@@ -21,9 +21,9 @@ See @ref chrono::ChBody for API details.
 
 - Rigid bodies inherit (in the C++ sense) from the ChFrameMoving classes and as such they have a position, rotation, velocity, and acceleration
 
-- The position, speed, acceleration are of the center of mass (COG) 
+- The position, speed, acceleration are that of the center of mass (COG) 
 
-- They contain a mass and a an inertia tensor
+- They have a mass and an inertia tensor
 
 - They can be connected by ChLink constraints
 
@@ -32,7 +32,7 @@ See @ref chrono::ChBody for API details.
 
 Creating/Setting up a ChBody object typically involves the following steps:
 
-1. Create the ChBody and set position/mass properties
+1. Create the ChBody and set its position and possibly its velocity along with its mass and inertia tensor properties
 2. Add the body to a @ref chrono::ChSystem
 3. Optional: add [collision shapes](@ref collision_shapes)
 4. Optional: add [visualization assets](@ref visualization_assets)
@@ -40,37 +40,38 @@ Creating/Setting up a ChBody object typically involves the following steps:
 The following example illustrates Steps 1 and 2:
 
 ~~~{.cpp}
-// Create a body – use shared pointer!
-ChSharedPtr<ChBody> body_b(new ChBody);
+// Create a body – use shared pointer
+auto body_b = std::make_shared<ChBody>();
 
-// Set initial position & speed of the COG of body,
+// Set initial position and velocity of the COG of body,
 // using the same syntax used for ChFrameMoving
 body_b->SetPos( ChVector<>(0.2,0.4,2) );
 body_b->SetPos_dt( ChVector<>(0.1,0,0) );
 
-// Set mass and inertia tensor
+// Set mass and inertia tensor attributes
 body_b->SetMass(10);
 body_b->SetInertiaXX( ChVector<>(4,4,4) );
 
-// If body is fixed to ground, use this:
+// Here's how one can indicate that the body is fixed to ground:
 body_b->SetBodyFixed(true);
 
-// Finally
+// Finally, add the newly created to the system being simulated
 my_system.Add(body_b);
 ~~~
 
 # ChBodyAuxRef   {#manual_ChBodyAuxRef}
 
 This is a special type of rigid body that has an auxiliary 
-frame that does not match necessarily with the COG frame.
+frame that is not necessarily coincident with the COG frame.
 
 See @ref chrono::ChBodyAuxRef for API details.
  
 ![](pic_ChBodyAuxRef.png)
 
-- Inherited from ChBody
-- Used when the COG is not practical as the main reference for the body and another reference is preferred, ex. from a CAD, so it adds an auxiliary REF frame
-- Note that the straight mybody->GetPos(), mybody->GetRot(), mybody->GetPos_dt(), mybody->GetWvel() etc. will give you the kinematic quantities ''for the GOG frame''. If you need those of the REF, do mybody->GetFrame_REF_to_abs().GetPos(), etc.
+Remarks:
+- Inherits (in the C++ sense) from ChBody
+- Handy when using a COG reference frame is cumbersome and instead another reference is preferred, for instance, coming from CAD
+- Calls such as mybody->GetPos(), mybody->GetRot(), mybody->GetPos_dt(), mybody->GetWvel(), etc., will report the kinematic quantities ''for the COG frame''. If you need those of the REF, do mybody->GetFrame_REF_to_abs().GetPos(), etc.
 - The REF frame is used for
   - [collision shapes](@ref collision_shapes)
   - [visualization shapes](@ref visualization_assets)
@@ -79,28 +80,29 @@ The following is a short example on how to set the position
 of the body using the REF frame:
 
 ~~~{.cpp}
-// Create a body with aux.reference
-ChSharedPtr<ChBodyAuxRef> body_b(new ChBodyAuxRef);
+// Create a body with an auxiliary reference frame
+auto body_b = std::make_shared<ChBodyAuxRef>();
 
-// Set position of COG respect to reference
+// Set position of COG with respect to the reference frame
 body_b->SetFrame_COG_to_REF(X_bcogref);
-// Set position of reference in absolute space
+// Set position of the reference frame in absolute space
 body_b->SetFrame_REF_to_abs(X_bref);
 // Position of COG in absolute space is simply body_b
-// ex. body_b->GetPos()  body_b->GetRot()  etc.
+// ex. body_b->GetPos(),  body_b->GetRot(),  etc.
+pos_vec = body_b->GetPos();
 ~~~
 
 
 # Other bodies   {#manual_otherbodies}
 
-There are other classes inherited from ChBody. Those are specializations 
-that introduce additional features. In the following we list the most relevant:
+There are other classes that inherit from ChBody. They are specializations 
+that introduce additional features. The most relevant classes in this context are:
 
 
 ## Conveyor belt   
 
 The ChConveyor is a body that has a rectangular collision surface 
-that simulates a conveyor belt.
+used in the simulation of a conveyor belt.
 
 See @ref chrono::ChConveyor for API details.
 
@@ -113,9 +115,8 @@ See @ref chrono::ChConveyor for API details.
 - @ref chrono::ChBodyEasyConvexHull,
 - @ref chrono::ChBodyEasyClusterOfSpheres,
 
-Those are ready-to-use bodies that simplify the definition of 
-body properties in case the body is a simple shape such as a box, a sphere, etc.
-In fact when you create one of these, you automatically get the following:
+These define ready/easy-to-use bodies that simplify the definition of its attributes when the body is a simple shape such as a box, a sphere, etc.
+When creating one of these objects, one automatically gets:
 
 - The mass and inertia tensor are computed from the geometry, given the density
 - Optional: a visualization asset showing the shape is added automatically
