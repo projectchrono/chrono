@@ -1,56 +1,50 @@
-
+﻿
 Simulation system      {#simulation_system}
 =================
 
-The simulation system contains all other objects being simulated: 
+The Chrono system contains all other objects being simulated, e.g.: 
 [bodies](@ref rigid_bodies), [links](@ref links), etc.
-It plays a fundamental role in Chrono::Engine.
+The system is the cornerstone of a Chrono simulation.
 
 
 # ChSystem  {#manual_ChSystem}
 
-The simulation system is an object of class ChSystem. 
+A Chrono simulation system is an object of class ChSystem. 
 See @ref chrono::ChSystem for API details.
 
-The following picture shows an example that explains 
-how mechanisms turn into a database of bodies and links 
-in a ChSystem:
+Example:
+The following picture shows how mechanisms turn into a database of bodies 
+and links in a ChSystem:
 
 ![](pic_database.png)
 
-- A @ref chrono::ChSystem contains all items of the simulation: bodies, constraints, etc.
+- A @ref chrono::ChSystem contains all items that participate in a simulation: bodies, constraints, numerical integrator type, integration tolerances, etc.
 
-- Use the ```Add()```, ```Remove()``` functions to populate it
+- Use the ```Add()```, ```Remove()``` functions to add elements to a system object
 
-- Simulation settings are contained in ChSystem:
-  - integrator type
-  - tolerances
-  - etc.
+Recommended way of dealing with system objects:
 
-In most cases, you have to do the following:
+- Create a @ref chrono::ChSystem
+- Add [body](@ref rigid_bodies) objects into it, see @ref chrono::ChBody
+- Add [link](@ref links) objects into it, see @ref chrono::ChLink
+- Adjust parameters for the time integration
+- Run a dynamics simulation of a certain length
 
-- create a @ref chrono::ChSystem
-- add [body](@ref rigid_bodies) objects into it, see @ref chrono::ChBody
-- add [link](@ref links) objects into it, see @ref chrono::ChLink
-- adjust some parameters for the time integration
-- run the simulation loop
-
-Example:
+Example: a slider-crank mechanism
 
 ~~~{.cpp}
-// 1- Create a ChronoENGINE physical system: all bodies and constraints
-//    will be handled by this ChSystem object.
+// 1- Create a Chrono physical system: all bodies and constraints
+//    will belong to and be handled by this ChSystem object.
 ChSystem my_system;
  
  
-// 2- Create the rigid bodies of the slider-crank mechanical system
-//   (a crank, a rod, a truss), maybe setting position/mass/inertias of
-//   their center of mass (COG) etc.
+// 2- Create the rigid bodies of the slider-crank 
+//   (a crank, a rod, a truss), possibly setting their position/mass/inertias attributes
 	
 // ..the truss
 auto my_body_A = std::make_shared<ChBody>();
 my_system.AddBody(my_body_A);
-my_body_A->SetBodyFixed(true);  // truss does not move!
+my_body_A->SetBodyFixed(true);  // the truss doesn't move
 
 // ..the crank
 auto my_body_B = std::make_shared<ChBody>();
@@ -58,7 +52,7 @@ my_system.AddBody(my_body_B);
 my_body_B->SetPos(ChVector<>(1, 0, 0));  // position of COG of crank
 my_body_B->SetMass(2);
 
-// ..the rod
+// ..the connecting rod
 auto my_body_C = std::make_shared<ChBody>();
 my_system.AddBody(my_body_C);
 my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
@@ -68,17 +62,17 @@ my_body_C->SetMass(3);
 // 3- Create constraints: the mechanical joints 
 //    between the rigid bodies.
 
-// .. a revolute joint between crank and rod
+// .. a revolute joint between the crank and rod
 auto my_link_BC = std::make_shared<ChLinkLockRevolute>();
 my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
 my_system.AddLink(my_link_BC);
 
-// .. a slider joint between rod and truss
+// .. a slider joint between the rod and truss
 auto my_link_CA = std::make_shared<ChLinkLockPointLine>();
 my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
 my_system.AddLink(my_link_CA);
 
-// .. an engine between crank and truss
+// .. an engine (motion generator) between the crank and truss
 auto my_link_AB = std::make_shared<ChLinkEngine>();
 my_link_AB->Initialize(my_body_A, my_body_B, ChCoordsys<>(ChVector<>(0, 0, 0)));
 my_link_AB->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
@@ -99,7 +93,8 @@ my_system.SetMinBounceSpeed(0.1);
 
 while( my_system.GetChTime() < 10 )
 { 		
-	// Here Chrono::Engine time integration is performed:
+	// Chrono advances the state of the system via time integration
+	// with a time step of 0.02
 	my_system.StepDynamics(0.02);
 
 	// Draw items on screen (lines, circles, etc.) or dump data to disk 
@@ -109,65 +104,65 @@ while( my_system.GetChTime() < 10 )
 
 
 The default simulation settings are good for real-time 
-fast simulations, with low requirements in terms of precision, 
-and with balanced values of sizes and masses. 
+fast simulations with low requirements in terms of precision 
+and with similar sizes and inertia attributes. 
 
-If you want to simulate more difficult scenarios, 
-you might need to adjust the settings. In most cases there 
-are three areas to adjust:
+Several system settings may be adjusted to simulate more challenging scenarios.
+In most cases there are three areas to adjust:
 
-- the **time stepper** (the time integration algorithm)
-- the **solver** (the algorithm that computes accelerations and reaction forces at each time step)
-- other settings (for instance collision tolerances etc.)
+- The **time stepper**; i.e., the time integration algorithm
+- The **solver**; i.e., the algorithm that computes accelerations and reaction forces at each time step
+- Other settings, for instance, the collision detection tolerances
 
-Here is a primer to the tuning of these parameters.
+A primer on tuning these parameters is provided below.
 
 
 # Time steppers {#time_steppers}
 
-Time steppers are used to advance the simulation. They perform numerical integration.
-As such, they are also known as _time integrators_.
+Time steppers, also known as _time integrators_, are used to advance the simulation. They perform numerical integration; i.e., they advance the state of the system in time.
 
-Technical and theoretical details on time integration are explained in PDF documents 
-available at the [white papers page](@ref whitepaper_root), for example
+Technical and theoretical details on time integration are explained in several PDF documents 
+available on the [white papers page](@ref whitepaper_root). For example
 [this PDF](http://projectchrono.org/assets/white_papers/integrator.pdf) explains how 
 implicit integrators are implemented in Chrono.
 
 Time steppers can be changed in two ways:
-- using the ```my_system.SetIntegrationType(...)``` function, that has ready-to-use 
-  enums that you can choose 
-- using the ```my_system.SetTimestepper(...)``` function, that allows plugging custom 
-  timesteppers, maybe developed by you, or in optional modules.
+- Using the ```my_system.SetIntegrationType(...)``` function, to choose a ready-to-use, pre-packaged time-stepper 
+- Using the ```my_system.SetTimestepper(...)``` function, to plug in a custom time-stepper, which is user-defined
 
-Using the first 'easy' method, one changes the time stepper 
-as in the following example:
+Example: changing the time stepper to an implicit numerical integrator
+
 
 ~~~{.cpp}
 my_system.SetIntegrationType(ChSystem::INT_IMPLICIT_EULER)
 ~~~
 
-Among the available timesteppers, we suggest to use one of these most useful algorithms:
+Summary of time-steppers:
+
 
 - ```INT_EULER_IMPLICIT_LINEARIZED```
-	- fast, no sub-iterations required
-	- first order accuracy
-	- works for DVI (hard contacts)
-	- in case of FEA it gives first order _implicit integration_
-	- constraints kept closed using stabilization
-	- default time stepper in Chrono
+	- Default time stepper in Chrono
+	- Fast, no sub-iterations required
+	- First order accuracy
+	- Works for DVI contacts (hard contacts)
+	- Delivers first order accuracy for FEA
+	- Constraints kept closed using stabilization
 - ```INT_HHT```
-	- slow, sub-iterations required
-	- second order accuracy, with adjustable numerical damping
-	- at the moment it does not work for DVI (hard contacts)
-	- in case of FEA it gives second order _implicit integration_
-	- constraints kept closed _exactly_ because of inner iterations.
+	- Implicit integrator, based on the Hilber-Hughes-Taylor formula
+	- Typically slower than the INT_EULER_IMPLICIT_LINEARIZED choice
+	- Sub-iterations required
+	- Second order accuracy, with adjustable numerical damping
+	- Currently can't be used for systems that handle contacts in a DVI approach; i.e., for hard contacts
+	- Delivers second order accuracy for FEA
+	- Constraints kept closed _exactly_ because of inner iterations.
 - ```INT_NEWMARK```
-    - popular in the FEA community, similar properties as INT_HHT
+    - Popular in the FEA community, similar properties as INT_HHT
+	- With the exception of one particular choice of parameters (in which it becomes the trapezoidal integration rule) it delivers first order accuracy
 
-Depending on the type of integrator, maybe there are additional 
-parameters to adjust. Those custom, advanced settings
-are not accessible directly from @ref chrono::ChSystem,
-so you should do like in the following example:
+	In the above, the meaning of 'first order' or 'second order' accuracy is that the global integration error goes to zero as the value of the time step (or square of the time step for a second order method).
+	
+Depending on the type of time-stepper used, there may be different parameters to adjust.
+Example:
 
 ~~~{.cpp}
 if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
@@ -181,70 +176,57 @@ See @ref chrono::ChTimestepper for API details.
 
 # Solvers {#solvers}
 
-Solvers are called by the above discussed time steppers, in order to compute
-the unknown accelerations and unknown reaction forces at each time step.
-
-They often require a large amount of computations and, as such, they represent 
+A solver is called by a time stepper to compute
+the unknown accelerations and unknown reaction forces at each time step of the simulation. Most often they represent 
 the biggest computational bottleneck of the entire simulation.
 
-<div class="ce-info">
-Note that you can mix different solvers and time steppers as you prefer. 
-However, there are some combinations that work better.
-</div>
-
 Solvers can be changed in two ways:
-- using the ```my_system.SetSolverType(...)``` function, that has ready-to-use 
-  enums that you can choose 
-- using the ```my_system.ChangeSolverSpeed(...)``` function, that allows plugging custom 
-  solvers, maybe developed by you, or in optional modules.
+- Using the ```my_system.SetSolverType(...)``` function, to choose a ready-to-use, pre-packaged option 
+- Using the ```my_system.ChangeSolverSpeed(...)``` function, to plug in a custom time-stepper, which is user-defined
   
-Using the first 'easy' method, one changes the time stepper 
-as in the following example:
+Example: 
 
 ~~~{.cpp}
 my_system.SetSolverType(ChSystem::SOLVER_SOR);
 ~~~
 
-Among the available solvers, we suggest to use one of these most useful algorithms:
+We recommend using one of the following iterative solvers:
 
 - ```SOLVER_SOR``` 	
-	- maximum speed: good for real-time applications, 
 	- low precision: convergence might stall, especially with odd mass ratios
 	- supports DVI (hard contacts, with complementarity)
+	- used most often for small problems, solution accuracy is not particularly important
 	
 - ```SOLVER_APGD```	
-	- slow but better convergence
+	- very good convergence, used most often for simulations in which high accuracy in results is desired
 	- supports DVI (hard contacts, with complementarity)
 	
 - ```SOLVER_BARZILAIBORWEIN``` 
-    - slow but better convergence
+    - good convergence
 	- supports DVI (hard contacts, with complementarity)   
-    - very similar to ```SOLVER_APGD``` but a bit more robust when using large mass ratios
+    - similar to ```SOLVER_APGD```, might be more robust when using large mass ratios
 	
 - ```SOLVER_MINRES``` 
     - good convergence
     - supports FEA problems
     - does nor support DVI (hard contacts, with complementarity) for the moment.	
 	
-- (etc.)
+Most iterative solvers have a default value for the max number of iterations for convergence. 
 
-Most iterative solvers have an upper limit on number of iterations. 
+- When this number is higher, the solver has the chance to 'try harder', which might lead to longer simulation times
 
-- The higher, the more precise, but slower.
+- When this value is low, the solver is faster but the solution at the end of the iterative process might be not fully converged
 
-- The lower, the faster, but it is likely that it clamps the iteration when precision is not yet reached.
-
-The max. number of iterations can be easily changed in this way:
+The max. number of iterations can be changed as follows:
 
 ~~~{.cpp}
 // Change the max iterations for the solver
 my_system.SetMaxItersSolverSpeed(20);
 ~~~
 
-Depending on the type of solver, maybe there are additional 
-parameters to adjust. Those custom, advanced settings
-are not accessible directly from @ref chrono::ChSystem,
-so you should do something along the lines of the following example:
+Depending on the type of integrator used, there may be different parameters to adjust.
+Advanced settings are not accessible directly from @ref chrono::ChSystem,
+for instance:
 
 ~~~{.cpp}
 if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolverSpeed())) {
@@ -252,34 +234,27 @@ if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolverSpee
 }
 ~~~
 
-See @ref chrono::ChSolver for API details and children classes.
+See @ref chrono::ChSolver for API for further details.
 
 
 # Other parameters  {#other_simulation_parameters}
 
-Here we discuss additional settings that can affect the outcome of a simulation,
-and most of them are related to collision.
+There are many integrator/solver settings that can affect the outcome of a simulation. We focus below on two important settings related to handling collisions in a simulation in which bodies collide with each other and/or with the ground.
 
-First of all, remember what we said about [collision tolerances](@ref collision_tolerances), 
-then read the following.
+
+[collision tolerances](@ref collision_tolerances), 
+
 
 ### Max. recovery speed 
 
-Objects in contact, that interpenetrate (ex for numerical errors, 
-incoherent initial conditions, etc.) will not 'escape' 
-one from the other faster than this threshold. Change it as: 
+Bodies in contact that interpenetrate for various reasons, e.g., small numerical integration error, inconsistent initial conditions, etc., will not 'escape' this contact violation at a speed faster than this threshold. The recovery speed is in general problem dependent and is controlled by user as shown below. 
 
 ~~~{.cpp}
 my_system.SetMaxPenetrationRecoverySpeed(0.2);
 ~~~
 
-- The higher, the faster and more precisely are recovered 
-  the contact constraints errors (if any), but the risk is 
-  that objects ‘pop’ out, and stackings might become unstable and noisy.
-  
-- The lower, the more likely the risk that objects _sink_ 
-  one into the other when the integrator precision is low 
-  (ex small number of iterations).
+- Larger values allow a more aggressive correction of the penetration, yet this can lead to scenarios in which bodies in contact pop out fast or in stacking problems the stack becoming jittery, noisy   
+- A small threshold increases the risk that objects _sink_ into one another when integrator precision is low, for instance, when the solver has a small max number of iterations
 
   
 ### Min. bounce speed 
@@ -291,17 +266,13 @@ This helps to achieve more stable simulations of stacked objects.
 ~~~{.cpp}
 my_system.SetMinBounceSpeed(0.1);
 ~~~
+- A higher value leads to more stable simulations but less physically realistic collisions
 
-- The higher, the more likely is to get stable simulations, 
-  but the less realistic the physics of the collision.
-  
-- The lower, the more realistic is the physics of the system, 
-  but you need very short time step to take advantage of this, 
-  otherwise you might incur in objects that bounce erratically forever.
+- Lower values lead to a more physically realistic time evolution but require small integration time steps otherwise objects may keep bounce erratically
 
 
 
 # Theory
 
-You can find additional information on the theoretical aspects of time integration 
-in Chrono::Engine by looking at the [whitepapers page](@ref whitepaper_root).
+Additional information regarding the time integration strategies implemented
+in Chrono can be found on the  [whitepapers page](@ref whitepaper_root).
