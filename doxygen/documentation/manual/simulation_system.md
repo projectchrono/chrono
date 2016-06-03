@@ -239,10 +239,7 @@ See @ref chrono::ChSolver for API for further details.
 
 # Other parameters  {#other_simulation_parameters}
 
-There are many integrator/solver settings that can affect the outcome of a simulation. We focus below on two important settings related to handling collisions in a simulation in which bodies collide with each other and/or with the ground.
-
-
-[collision tolerances](@ref collision_tolerances), 
+There are many integrator/solver settings that can affect the outcome of a simulation. For instance, see [collision tolerances](@ref collision_tolerances) to gain a better understanding of the interplay between the accuracy in the collision detection and robustness of a simulation. We focus below on two important settings related to handling collisions in a simulation in which bodies collide with each other and/or with the ground.
 
 
 ### Max. recovery speed 

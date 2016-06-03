@@ -1,10 +1,10 @@
 
-Visualization assets      {#visualization_assets}
+Assets      {#visualization_assets}
 ====================
 
 __Assets__ represent optional objects that can be attached to [rigid bodies](@ref rigid_bodies) to provide access to information/data such as:
-* Custom user-defined data such as electric charge, costs, sounds, etc. 
 * Visualization shapes
+* Custom user-defined data such as electric charge, costs, sounds, etc. 
 
 
 # ChAsset    {#manual_ChAsset}
