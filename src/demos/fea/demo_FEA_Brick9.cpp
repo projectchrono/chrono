@@ -91,9 +91,7 @@ void AxialDynamics() {
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-    bool Hencky = true;
     bool Plasticity = true;
-    bool DruckerPrager = true;
     double timestep = 1e-4;
 
     // Create and add the nodes
@@ -185,18 +183,18 @@ void AxialDynamics() {
         // Set other element properties
         element->SetAlphaDamp(0.0);    // Structural damping for this element
         element->SetGravityOn(false);  // turn internal gravitational force calculation off
-                                       // element->SetStrainFormulation(Hencky);
-        element->SetHenckyStrain(Hencky);
-        if (Hencky) {
+
+        element->SetStrainFormulation(ChElementBrick_9::Hencky);
+        element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
+        if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
             element->SetPlasticity(Plasticity);
             if (Plasticity) {
                 element->SetYieldStress(1e5);
                 element->SetHardeningSlope(5e5);
                 element->SetCCPInitial(CCPInitial);
-                element->SetDruckerPrager(DruckerPrager);
-                if (DruckerPrager) {
-                    element->SetFriction1(10.0);
-                    element->SetFriction2(10.0);
+                if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
+                    element->SetFriction(10.0);
+                    element->SetDilatancy(10.0);
                     element->SetDPType(3);
                 }
             }
@@ -436,7 +434,7 @@ void BendingQuasiStatic() {
         element->SetAlphaDamp(0.25);   // Structural damping for this element
         element->SetGravityOn(false);  // Turn internal gravitational force calculation off
 
-        element->SetHenckyStrain(true);
+        element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -684,8 +682,7 @@ void SwingingShell() {
         // Set other element properties
         element->SetAlphaDamp(0.005);  // Structural damping for this element
         element->SetGravityOn(true);   // turn internal gravitational force calculation off
-
-        element->SetHenckyStrain(true);
+        element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh

@@ -186,7 +186,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
         element->SetAlphaDamp(0.1);    // Structural damping for this element
         element->SetGravityOn(false);  // Turn internal gravitational force calculation off
 
-        element->SetHenckyStrain(true);
+        element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh
@@ -386,7 +386,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
         element->SetAlphaDamp(0.005);  // Structural damping for this element
         element->SetGravityOn(true);   // turn internal gravitational force calculation off
 
-        element->SetHenckyStrain(true);
+        element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticity(false);
 
         // Add element to mesh

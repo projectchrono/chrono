@@ -79,6 +79,17 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     std::shared_ptr<ChNodeFEAxyz> GetNode8() const { return m_nodes[7]; }
     std::shared_ptr<ChNodeFEAcurv> GetCentralNode() const { return m_central_node; }
 
+    /// Set strain type calculation.
+    enum StrainFormulation {
+        GreenLagrange,  ///< Green-Lagrange strain formulation
+        Hencky          ///< Hencky strain
+    };
+
+    /// Set plasticity formulation.
+    enum PlasticityFormulation {
+        J2,            ///< J2 plasticity (metals)
+        DruckerPrager  ///< Drucker-Prager plasticity (soil)
+    };
     /// Set element dimensions (x, y, z directions).
     void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
     /// Get the element dimensions (x, y, z directions).
@@ -95,28 +106,42 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     bool IsGravityOn() const { return m_gravity_on; }
     /// Set the structural damping.
     void SetAlphaDamp(double a) { m_Alpha = a; }
-
-    enum StrainFormulation { GreenLagrange, Hencky };
-
-    void SetStrainFormulation(StrainFormulation val) { m_strain_form = val; }
+    /// Set the strain formulation.
+    void SetStrainFormulation(StrainFormulation model) { m_strain_form = model; }
+    /// Get the strain formulation.
+    StrainFormulation GetStrainFormulation() const { return m_strain_form; }
+    /// Set the plasticity formulation.
+    void SetPlasticityFormulation(PlasticityFormulation model) { m_plast_form = model; }
+    /// Get the plasticity formulation.
+    PlasticityFormulation GetPlasticityFormulation() const { return m_plast_form; }
+    /// Set Hencky strain.
     void SetHenckyStrain(bool val) { m_Hencky = val; }
+    /// Set plasticity.
     void SetPlasticity(bool val) { m_Plasticity = val; }
+    /// Set Drucker-Prager plasticity.
     void SetDruckerPrager(bool val) { m_DP = val; }
-
+    /// Set yield stress for yield function.
     void SetYieldStress(double a) { m_YieldStress = a; }
+    /// Set linear isotropic modulus.
     void SetHardeningSlope(double a) { m_HardeningSlope = a; }
-    void SetFriction1(double a) { m_FrictionAngle1 = a; }
-    void SetFriction2(double a) { m_FrictionAngle2 = a; }
+    /// Set internal friction angle.
+    void SetFriction(double friction) { m_FrictionAngle = friction; }
+    /// Set dilatancy angle.
+    void SetDilatancy(double dilatancy) { m_DilatancyAngle = dilatancy; }
+    /// Set Drucker-Prager hardening type.
     void SetDPType(int a) { m_DPHardening = a; }
-
+    /// Set initial strain tensor per integration point of the 9-node element.
     void SetCCPInitial(ChMatrixNM<double, 9, 8> mat) { m_CCPinv_Plast = mat; }
 
     /// Calculate shape functions and their derivatives.
     ///   N = [N1, N2, N3, N4, ...]                               (1x11 row vector)
     ///   S = [N1*eye(3), N2*eye(3), N3*eye(3) ,N4*eye(3), ...]   (3x11 matrix)
     void ShapeFunctions(ChMatrix<>& N, double x, double y, double z);
+    /// Calculate shape function derivative w.r.t. X.
     void ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y, double z);
+    /// Calculate shape function derivative w.r.t. Y.
     void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y, double z);
+    /// Calculate shape function derivative w.r.t. Z.
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
@@ -199,20 +224,21 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
     ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
     ChMatrixNM<double, 6, 6> m_E_eps;
-    double m_FrictionAngle1;  ///< Drucker-Prager Friction Angle Beta
-    double m_FrictionAngle2;  ///< Drucker-Prager Dilatancy Angle Phi
+    double m_FrictionAngle;  ///< Drucker-Prager Friction Angle Beta
+    double m_DilatancyAngle;  ///< Drucker-Prager Dilatancy Angle Phi
     int m_DPHardening;        ///< Drucker-Prager Hardening Type
 
-    StrainFormulation m_strain_form;
-    bool m_Hencky;      ///< flag activating Hencky strain formulation
-    bool m_Plasticity;  ///< flag activating Plastic deformation
-    bool m_DP;          ///< flag activating Drucker-Prager formulation
+    StrainFormulation m_strain_form;     ///< Enum for strain formulation
+    PlasticityFormulation m_plast_form;  ///< Enum for plasticity formulation
+    bool m_Hencky;                       ///< flag activating Hencky strain formulation
+    bool m_Plasticity;                   ///< flag activating Plastic deformation
+    bool m_DP;                           ///< flag activating Drucker-Prager formulation
 
     double m_YieldStress;                    ///< plastic yield stress
     double m_HardeningSlope;                 ///< plastic hardening slope
     ChMatrixNM<double, 8, 1> m_Alpha_Plast;  ///< hardening alpha parameter
-    ChMatrixNM<double, 9, 8> m_CCPinv_Plast;
-    int m_InteCounter;
+    ChMatrixNM<double, 9, 8> m_CCPinv_Plast; ///< strain tensor for each integration point
+    int m_InteCounter;  ///< Integration point counter (up to 8)
 
     // -----------------------------------
     // Interface to base classes
@@ -276,7 +302,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     // Calculate the current 33x1 matrix of nodal coordinate derivatives.
     void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
 
-    void EPSP_Euerian_SolidANCF33(ChMatrixNM<double, 6, 33>& strainD,
+    void ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
                                   ChMatrixNM<double, 1, 11> Nx,
                                   ChMatrixNM<double, 1, 11> Ny,
                                   ChMatrixNM<double, 1, 11> Nz,
