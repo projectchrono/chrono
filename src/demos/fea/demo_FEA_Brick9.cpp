@@ -183,7 +183,8 @@ void AxialDynamics() {
         // Set other element properties
         element->SetAlphaDamp(0.0);    // Structural damping for this element
         element->SetGravityOn(false);  // turn internal gravitational force calculation off
-
+        element->SetDPIterationNo(50); // Set maximum number of iterations for Drucker-Prager Newton-Raphson
+        element->SetDPYieldTol(1e-8);  // Set stop tolerance for Drucker-Prager Newton-Raphson
         element->SetStrainFormulation(ChElementBrick_9::Hencky);
         element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
         if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
@@ -295,7 +296,7 @@ void AxialDynamics() {
         application.EndScene();
         Iter += mystepper->GetNumIterations();
         GetLog() << "t = " << my_system.GetChTime() << "\n";
-        GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
+        // GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         if (!application.GetPaused()) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);

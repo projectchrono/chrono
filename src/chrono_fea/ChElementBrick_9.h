@@ -79,17 +79,21 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     std::shared_ptr<ChNodeFEAxyz> GetNode8() const { return m_nodes[7]; }
     std::shared_ptr<ChNodeFEAcurv> GetCentralNode() const { return m_central_node; }
 
-    /// Set strain type calculation.
+    /// Strain type calculation.
     enum StrainFormulation {
         GreenLagrange,  ///< Green-Lagrange strain formulation
         Hencky          ///< Hencky strain
     };
 
-    /// Set plasticity formulation.
+    /// Plasticity formulation.
     enum PlasticityFormulation {
         J2,            ///< J2 plasticity (metals)
         DruckerPrager  ///< Drucker-Prager plasticity (soil)
     };
+    /// Maximum number of iteration for DP return mapping
+    int m_DP_iterationNo;
+    /// Tolerance for yield function value (Drucker-Prager)
+    double m_DP_yield;
     /// Set element dimensions (x, y, z directions).
     void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
     /// Get the element dimensions (x, y, z directions).
@@ -114,8 +118,14 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     void SetPlasticityFormulation(PlasticityFormulation model) { m_plast_form = model; }
     /// Get the plasticity formulation.
     PlasticityFormulation GetPlasticityFormulation() const { return m_plast_form; }
-    /// Set Hencky strain.
-    void SetHenckyStrain(bool val) { m_Hencky = val; }
+    /// Set the DP iteration number.
+    void SetDPIterationNo(int ItNo) { m_DP_iterationNo = ItNo; }
+    /// Get the DP iteration number.
+    int GetDPIterationNo() const { return m_DP_iterationNo; }
+    /// Set the DP yield function tolerance.
+    void SetDPYieldTol(double yieldf_tol) { m_DP_yield = yieldf_tol; }
+    /// Get the DP yield function tolerance.
+    double GetDPYieldTol() const { return m_DP_yield; }
     /// Set plasticity.
     void SetPlasticity(bool val) { m_Plasticity = val; }
     /// Set Drucker-Prager plasticity.

@@ -521,12 +521,12 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             LogStrain(2, 0) = 0.5 * log(BETRI_eig[0]);
 
             ChMatrixNM<double, 3, 3> FI;        ///< Inverse of total deformation gradient
-            ChMatrixNM<double, 6, 33> strainD;  // Jacobian of strains w.r.t. coordinates
+            ChMatrixNM<double, 6, 33> strainD;  ///< Jacobian of strains w.r.t. coordinates
             FI = DefF;
             FI.MatrInverse();
 
             // Obtain Jacobian of strains w.r.t. element coordinates
-            m_element->ComputeStrainD_Brick9(strainD, Nx, Ny, Nz, FI, j0);  // ?
+            m_element->ComputeStrainD_Brick9(strainD, Nx, Ny, Nz, FI, j0); 
 
             // Obtain eigenvalues of Kirchhoff stress tensor
             ChMatrixNM<double, 3, 1> StressK_eig;
@@ -551,16 +551,24 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                 EETD.y = LogStrain(1, 0) - EEVD3;
                 EETD.z = LogStrain(2, 0) - EEVD3;
                 // Norm of deviatoric Hencky strain
-                double ETDNorm = std::sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
-
+                double ETDNorm = EETD.Length(); 
+                // Hydrostatic pressure
                 double hydroP;
+                // Deviatoric stress
                 ChVector<double> devStress;
+                // Norm of deviatoric stress tensor
                 double NormSn;
+                // Second invariant of stress tensor
                 double J2Rt;
+                // Current value of yield function
                 double YieldFunc;
+                // Flag indicating whether an elastic (0) or plastic (1) step occurs
                 int YieldFlag;
+                // Variation of flow rate
                 double DeltaGamma;
+                // Updated value of deviatoric stress tensor
                 ChVector<double> devStressUp;
+                // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
                 switch (m_element->GetPlasticityFormulation()) {
                     case ChElementBrick_9::J2: {
@@ -576,7 +584,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         // Second invariant of the stress tensor (J2)
                         J2Rt = NormSn / sqrt(2.0);
 
-                        // Trial stress for yield function
+                        // Trial (elastic) deviatoric stress for yield function
                         double qtrial = sqrt(3.0) * J2Rt;
 
                         // Evaluation of J2 yield function
@@ -647,13 +655,16 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     } break;
 
                     case ChElementBrick_9::DruckerPrager: {
-                        double EDNInv;
+                        double EDNInv; // Inverse of norm of deviatoric Hencky strain
                         ChMatrixNM<double, 6, 1> UniDev;
+
+                        // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
                             EDNInv = 1.0 / ETDNorm;
                         } else {
                             EDNInv = 0.0;
                         }
+
                         UniDev(0, 0) = EETD.x * EDNInv;
                         UniDev(1, 0) = EETD.y * EDNInv;
                         UniDev(3, 0) = EETD.z * EDNInv;
@@ -671,8 +682,9 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
                         double phi = m_element->m_FrictionAngle * CH_C_PI / 180.0;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_PI / 180.0;  // Dilatancy angle
-                        double eta;
-                        double gsi;
+
+                        double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
+                        double gsi; // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
                         if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
@@ -690,16 +702,15 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         }
                         double alpha1;
                         double beta1;
-                        if (etab == 0) {
+                        if (etab == 0)
                             alpha1 = 0;
-                        } else {
+                        else
                             alpha1 = gsi / etab;
-                        }
-                        if (eta == 0) {
+
+                        if (eta == 0)
                             beta1 = 0;
-                        } else {
+                        else
                             beta1 = gsi / eta;
-                        }
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -710,15 +721,16 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         double PT = hydroP;
 
                         YieldFlag = 0;
+                        // If YieldFunc > 0.0 there is need for return mapping
                         if (YieldFunc > 0.0) {
                             YieldFlag = 1;
 
-                            // Initialize for newton-raphson
+                            // Initialize for Newton-Raphson
                             double DGamma = 0.0;
                             double Yfunc1 = YieldFunc;  // Initially recalculated
 
-                            for (int ii = 0; ii < 50; ii++) {
-                                // Compute newton residual
+                            for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {  
+                                // Compute Newton residual
                                 double DDGamma =
                                     Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
                                 DGamma = DGamma + DDGamma;
@@ -727,19 +739,16 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                 double P = PT - K * etab * DGamma;
                                 Yfunc1 = SQRJ2T + eta * P -
                                          gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-                                if (Yfunc1 < 1e-8) {
+                                if (Yfunc1 < m_element->GetDPYieldTol()) 
                                     break;
-                                }
-                                if (ii == 49) {
-                                    GetLog() << "Hit the max iterations for the DP model";
-                                }
+
+                                if (ii == m_element->GetDPIterationNo() - 1)
+                                    throw ChException("Maximum number of iterations reached in Drucker-Prager Newton-Raphson algorithm");
                             }
                             DeltaGamma = DGamma;
                             double Check_DP_Cone = J2Rt - G * DGamma;
 
                             if (Check_DP_Cone < 0.0) {  // Cone return mapping
-                                GetLog() << "Cone--------!!!";
-                                system("pause");
                                 double Rtrial = hydroP -
                                                 beta1 * (m_element->m_YieldStress +
                                                          m_element->m_HardeningSlope *
@@ -776,20 +785,24 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                 LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
                                 LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
                             }
+                            // Update eigenvalues of strain tensor
                             lambda.x = exp(2.0 * LogStrain(0, 0));
                             lambda.y = exp(2.0 * LogStrain(1, 0));
                             lambda.z = exp(2.0 * LogStrain(2, 0));
+                            // Updated left Cauchy-Green strain tensor  
                             ChMatrixNM<double, 3, 3> BEUP;
                             MM1.MatrScale(lambda.x);
                             MM2.MatrScale(lambda.y);
                             MM3.MatrScale(lambda.z);
                             BEUP = MM1 + MM2 + MM3;
+                            // Obtain plastic deformation tensor
                             MM1.MatrScale(1 / lambda.x);
                             MM2.MatrScale(1 / lambda.y);
                             MM3.MatrScale(1 / lambda.z);
                             Temp33.MatrMultiply(FI, BEUP);
                             CCPinv.MatrMultiplyT(Temp33, FI);
-                            // Store CPPinv
+
+                            // Store plastic deformation tensor for each iteration
                             m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
                             m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
                             m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
@@ -1145,7 +1158,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             }
             Temp33.MatrMultiply(DefF, CCPinv);  // Obtain elastic deformation gradient (remove plastic part)
             BETRI.MatrMultiplyT(Temp33, DefF);  // Obtain left Cauchy-Green tensor // ?
-            BETRI.FastEigen(BETRI_eigv, BETRI_eig);
+            BETRI.FastEigen(BETRI_eigv, BETRI_eig); // Obtain eigenvalues of left Cauchy-Green tensor
             for (int i = 0; i < 3; i++) {
                 e3(i, 0) = BETRI_eigv(i, 0);
                 e1(i, 0) = BETRI_eigv(i, 1);
@@ -1154,7 +1167,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             MM1.MatrMultiplyT(e1, e1);
             MM2.MatrMultiplyT(e2, e2);
             MM3.MatrMultiplyT(e3, e3);
-
+            // Compute logarithmic strains
             ChMatrixNM<double, 3, 1> LogStrain;
             LogStrain(0, 0) = 0.5 * log(BETRI_eig[1]);
             LogStrain(1, 0) = 0.5 * log(BETRI_eig[2]);
@@ -1194,15 +1207,25 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 EETD.x = LogStrain(0, 0) - EEVD3;
                 EETD.y = LogStrain(1, 0) - EEVD3;
                 EETD.z = LogStrain(2, 0) - EEVD3;
-                double ETDNorm = sqrt(EETD.x * EETD.x + EETD.y * EETD.y + EETD.z * EETD.z);
+                // Norm of deviatoric Hencky strain 
+                double ETDNorm = EETD.Length();
+                // Hydrostatic pressure
                 double hydroP;
+                // Deviatoric stress tensor
                 ChVector<double> devStress;
+                // Norm of deviatoric stress tensor
                 double NormSn;
+                // Second invariant of stress tensor
                 double J2Rt;
+                // Current value of yield function
                 double YieldFunc;
+                // Flag indicating whether an elastic (0) or plastic (1) step occurs
                 int YieldFlag;
+                // Variation of flow rate
                 double DeltaGamma;
+                // Deviatoric stresses updated
                 ChVector<double> devStressUp;
+                // Vector of eigenvalues of current logarithmic strain
                 ChVector<double> lambda;
 
                 switch (m_element->GetPlasticityFormulation()) {
@@ -1295,7 +1318,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             devStressVec(0, 0) = devStress.x;
                             devStressVec(1, 0) = devStress.y;
                             devStressVec(3, 0) = devStress.z;
-                            // TODO, commenting this part of code
+
+                            // Obtain matrices DEVPRJ and Dep, necessary for Jacobian of plastic internal forces
                             ChMatrixNM<double, 6, 6> FOID;
                             ChMatrixNM<double, 6, 1> SOID;
 
@@ -1329,8 +1353,9 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     } break;
 
                     case ChElementBrick_9::DruckerPrager: {
-                        double EDNInv;
+                        double EDNInv; // Inverse of norm of deviatoric Hencky strain
                         ChMatrixNM<double, 6, 1> UniDev;
+                        // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
                             EDNInv = 1.0 / ETDNorm;
                         } else {
@@ -1353,8 +1378,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                         double phi = m_element->m_FrictionAngle * CH_C_PI / 180.0;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_PI / 180.0;  // Dilatancy angle
-                        double eta;
-                        double gsi;
+                        double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
+                        double gsi; // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
                         if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
@@ -1391,16 +1416,16 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                    m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
                         double SQRJ2T = J2Rt;
                         double PT = hydroP;
-
+                        // If YieldFunc > 0.0 there is need for return mapping
                         YieldFlag = 0;
                         if (YieldFunc > 0.0) {
                             YieldFlag = 1;
 
-                            // Initialize for newton-raphson
+                            // Initialize for Newton-Raphson
                             double DGamma = 0.0;
                             double Yfunc1 = YieldFunc;  // Initially recalculated
 
-                            for (int ii = 0; ii < 50; ii++) {
+                            for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                 // Compute newton residual
                                 double DDGamma =
                                     Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
@@ -1410,19 +1435,19 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 double P = PT - K * etab * DGamma;
                                 Yfunc1 = SQRJ2T + eta * P -
                                          gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-                                if (Yfunc1 < 1e-8) {
+                                if (Yfunc1 < m_element->GetDPYieldTol()) {
                                     break;
                                 }
-                                if (ii == 49) {
-                                    GetLog() << "Hit the max iterations for the DP model";
+                                if (ii == m_element->GetDPIterationNo()-1) {
+                                    throw ChException("Maximum number of iterations reached in Drucker-Prager Newton-Raphson algorithm. Jacobian \n");
                                 }
                             }
                             DeltaGamma = DGamma;
                             double Check_DP_Cone = J2Rt - G * DGamma;
 
                             if (Check_DP_Cone < 0.0) {  // Cone return mapping
-                                GetLog() << "Cone--------!!!";
-                                system("pause");
+                                /*GetLog() << "Cone--------!!!";
+                                system("pause");*/
                                 double Rtrial = hydroP -
                                                 beta1 * (m_element->m_YieldStress +
                                                          m_element->m_HardeningSlope *
@@ -1451,31 +1476,36 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
                                 LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
                             }
+                            // Update eigenvalues of strain tensor
                             lambda.x = exp(2.0 * LogStrain(0, 0));
                             lambda.y = exp(2.0 * LogStrain(1, 0));
                             lambda.z = exp(2.0 * LogStrain(2, 0));
+                            // Updated left Cauchy-Green strain tensor  
                             ChMatrixNM<double, 3, 3> BEUP;
                             MM1.MatrScale(lambda.x);
                             MM2.MatrScale(lambda.y);
                             MM3.MatrScale(lambda.z);
                             BEUP = MM1 + MM2 + MM3;
+                            // Obtain plastic deformation tensor
                             MM1.MatrScale(1 / lambda.x);
                             MM2.MatrScale(1 / lambda.y);
                             MM3.MatrScale(1 / lambda.z);
                             Temp33.MatrMultiply(FI, BEUP);
+                            // Obtain plastic deformation tensor
                             CCPinv.MatrMultiplyT(Temp33, FI);
 
                             double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
                             double AFact;
-                            if (Check_DP_Cone >= 0.0) {  // for smooth cone wall reutrn
+                            if (Check_DP_Cone >= 0.0) {  // for smooth cone wall return
                                 AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-                            } else {  // for cone point return
+                            } else {  // for cone apex return
                                 AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
                             }
                             double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
                             double CFact = -sqrt(2.0) * G * Aux * K;
                             double DFact = K * (1.0 - K * eta * etab * Aux);
 
+                            // Calculation for Dep: Plastic contribution to Jacobian of internal forces
                             ChMatrixNM<double, 6, 6> FOID;
                             ChMatrixNM<double, 6, 1> SOID;
 
@@ -1635,11 +1665,6 @@ void ChElementBrick_9::ComputeInternalJacobians(double Kfactor, double Rfactor) 
                                                           );
     // Accumulate Jacobian
     m_JacobianMatrix += result;
-    // for (int i = 0; i < 33; i++)
-    //{
-    //	GetLog() << result(i,0) << "\n";
-    //	system("pause");
-    //}
 }
 
 // -----------------------------------------------------------------------------
