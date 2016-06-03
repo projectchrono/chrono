@@ -39,8 +39,8 @@ void BendingQuasiStatic();
 void SwingingShell();
 int main(int argc, char* argv[]) {
     AxialDynamics();
-     // BendingQuasiStatic();
-    //SwingingShell();
+    // BendingQuasiStatic();
+    // SwingingShell();
     return 0;
 }
 // Axial Dynamic
@@ -91,9 +91,9 @@ void AxialDynamics() {
     double dx = plate_lenght_x / numDiv_x;
     double dy = plate_lenght_y / numDiv_y;
     double dz = plate_lenght_z / numDiv_z;
-	bool Hencky = true;
-	bool Plasticity = true;
-	bool DruckerPrager = true;
+    bool Hencky = true;
+    bool Plasticity = true;
+    bool DruckerPrager = true;
     double timestep = 1e-4;
 
     // Create and add the nodes
@@ -145,13 +145,12 @@ void AxialDynamics() {
     material->Set_E(E.x);
     // material->Set_G(G.x);
     material->Set_v(nu.x);
-	ChMatrixNM<double, 9, 8> CCPInitial;
-	for (int k = 0; k < 8; k++)
-	{
-		CCPInitial(0, k) = 1;
-		CCPInitial(4, k) = 1;
-		CCPInitial(8, k) = 1;
-	}
+    ChMatrixNM<double, 9, 8> CCPInitial;
+    for (int k = 0; k < 8; k++) {
+        CCPInitial(0, k) = 1;
+        CCPInitial(4, k) = 1;
+        CCPInitial(8, k) = 1;
+    }
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
         // Adjacent nodes
@@ -186,25 +185,22 @@ void AxialDynamics() {
         // Set other element properties
         element->SetAlphaDamp(0.0);    // Structural damping for this element
         element->SetGravityOn(false);  // turn internal gravitational force calculation off
-        // element->SetStrainFormulation(Hencky);
-		element->SetHenckyStrain(Hencky);
-		if (Hencky)
-		{
-			element->SetPlasticity(Plasticity);
-			if (Plasticity)
-			{
-				element->SetYieldStress(1e5);
-				element->SetHardeningSlope(5e5);
-				element->SetCCPInitial(CCPInitial);
-				element->SetDruckerPrager(DruckerPrager);
-				if (DruckerPrager)
-				{
-					element->SetFriction1(10.0);
-					element->SetFriction2(10.0);
-					element->SetDPType(3);
-				}
-			}
-		}
+                                       // element->SetStrainFormulation(Hencky);
+        element->SetHenckyStrain(Hencky);
+        if (Hencky) {
+            element->SetPlasticity(Plasticity);
+            if (Plasticity) {
+                element->SetYieldStress(1e5);
+                element->SetHardeningSlope(5e5);
+                element->SetCCPInitial(CCPInitial);
+                element->SetDruckerPrager(DruckerPrager);
+                if (DruckerPrager) {
+                    element->SetFriction1(10.0);
+                    element->SetFriction2(10.0);
+                    element->SetDPType(3);
+                }
+            }
+        }
 
         // Add element to mesh
         my_mesh->AddElement(element);
@@ -285,8 +281,8 @@ void AxialDynamics() {
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
-	double start = std::clock();
-	int Iter = 0;
+    double start = std::clock();
+    int Iter = 0;
     while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
         application.BeginScene();
         application.DrawAll();
@@ -299,9 +295,9 @@ void AxialDynamics() {
         nodetip4->SetForce(ChVector<>(force, 0.0, 0.0));
 
         application.EndScene();
-		Iter += mystepper->GetNumIterations();
-		GetLog() << "t = " << my_system.GetChTime() << "\n";
-		GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
+        Iter += mystepper->GetNumIterations();
+        GetLog() << "t = " << my_system.GetChTime() << "\n";
+        GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         if (!application.GetPaused()) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
@@ -310,9 +306,9 @@ void AxialDynamics() {
             fprintf(outputfile, "\n  ");
         }
     }
-	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-	GetLog() << "Simulation Time: " << duration << "\n";
-	GetLog() << Iter << "\n";
+    double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+    GetLog() << "Simulation Time: " << duration << "\n";
+    GetLog() << Iter << "\n";
 }
 
 // QuasiStatic
@@ -495,12 +491,12 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    //my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
+    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
     //                                                   // handle stiffness matrices
-    //ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    //msolver->SetDiagonalPreconditioning(true);
-    //my_system.SetMaxItersSolverSpeed(100);
-    //my_system.SetTolForce(1e-10);
+    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // msolver->SetDiagonalPreconditioning(true);
+    // my_system.SetMaxItersSolverSpeed(100);
+    // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
@@ -745,12 +741,12 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    //my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
+    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
     //                                                   // handle stiffness matrices
-    //ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    //msolver->SetDiagonalPreconditioning(true);
-    //my_system.SetMaxItersSolverSpeed(100);
-    //my_system.SetTolForce(1e-10);
+    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // msolver->SetDiagonalPreconditioning(true);
+    // my_system.SetMaxItersSolverSpeed(100);
+    // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
