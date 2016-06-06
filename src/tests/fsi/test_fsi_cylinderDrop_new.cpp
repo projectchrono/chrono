@@ -58,6 +58,7 @@
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsPrintSph.cuh"
 
 // FSI Interface Includes
 #include "tests/fsi/params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
@@ -419,7 +420,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 // =============================================================================
 
-void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
+void SavePovFilesMBD(fsi::ChSystemFsi & myFsiSystem, ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
 		double mTime) {
 	static double exec_time;
 	int out_steps = std::ceil((1.0 / paramsH->dT) / out_fps);
@@ -430,6 +431,14 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParam
 
 	// If enabled, output data for PovRay postprocessing.
 	if (povray_output && tStep % out_steps == 0) {
+		// **** out fluid
+		chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
+				myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+				*paramsH, pov_dir_fluid);
+
+		// **** out mbd
 		if (tStep / out_steps == 0) {
 			const std::string rmCmd = std::string("rm ") + pov_dir_mbd
 					+ std::string("/*.dat");
@@ -583,17 +592,16 @@ int main(int argc, char* argv[]) {
 			printf("Double Precision\n") : printf("Single Precision\n");
 	int stepEnd = int(paramsH->tFinal / paramsH->dT);
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		printf("step : %d \n", tStep);
 
 
 #if haveFluid
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray,
-//				currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
 		myFsiSystem.DoStepDynamics_FSI();
 #else
 		myFsiSystem.DoStepDynamics_ChronoRK2();
 #endif
 
-//		SavePovFilesMBD(mphysicalSystem, tStep, mTime);
+		SavePovFilesMBD(myFsiSystem, mphysicalSystem, paramsH, tStep, mTime);
 
 	}
 //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
