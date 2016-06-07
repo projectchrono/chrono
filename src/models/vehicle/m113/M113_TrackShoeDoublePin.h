@@ -12,17 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 track shoe subsystem (single pin).
+// M113 track shoe subsystem (double pin).
 //
 // =============================================================================
 
-#ifndef M113_TRACK_SHOE_H
-#define M113_TRACK_SHOE_H
+#ifndef M113_TRACK_SHOE_DOUBLE_PIN_H
+#define M113_TRACK_SHOE_DOUBLE_PIN_H
 
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChSinglePinShoe.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 
 #include "models/ChApiModels.h"
 
@@ -33,15 +33,15 @@ namespace m113 {
 ///
 ///
 ///
-class CH_MODELS_API M113_TrackShoe : public ChSinglePinShoe {
+class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
   public:
-    M113_TrackShoe();
-    ~M113_TrackShoe() {}
+    M113_TrackShoeDoublePin();
+    ~M113_TrackShoeDoublePin() {}
 
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be
     /// consistent with the idler and road wheels in the containing track assembly).
-    virtual TrackShoeType GetType() const override { return CENTRAL_PIN; }
+    virtual GuidePinType GetType() const override { return CENTRAL_PIN; }
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }
     /// Return the pitch length of the track shoe.

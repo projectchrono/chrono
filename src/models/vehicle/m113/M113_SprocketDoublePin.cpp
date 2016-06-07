@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 sprocket subsystem.
+// M113 sprocket subsystem (double pin).
 //
 // =============================================================================
 
@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "models/vehicle/m113/M113_Sprocket.h"
+#include "models/vehicle/m113/M113_SprocketDoublePin.h"
 
 namespace chrono {
 namespace vehicle {
@@ -31,33 +31,33 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const int M113_Sprocket::m_num_teeth = 10;
+const int M113_SprocketDoublePin::m_num_teeth = 10;
 
-const double M113_Sprocket::m_gear_mass = 436.7;
-const ChVector<> M113_Sprocket::m_gear_inertia(12.22, 13.87, 12.22);
-const double M113_Sprocket::m_axle_inertia = 1;
-const double M113_Sprocket::m_separation = 0.225;
+const double M113_SprocketDoublePin::m_gear_mass = 436.7;
+const ChVector<> M113_SprocketDoublePin::m_gear_inertia(12.22, 13.87, 12.22);
+const double M113_SprocketDoublePin::m_axle_inertia = 1;
+const double M113_SprocketDoublePin::m_separation = 0.225;
 
-const double M113_Sprocket::m_gear_RT = 0.2605;
-const double M113_Sprocket::m_gear_RC = 0.3;
-const double M113_Sprocket::m_gear_R = 0.089;
-const double M113_Sprocket::m_gear_RA = 0.245;
+const double M113_SprocketDoublePin::m_gear_RT = 0.2605;
+const double M113_SprocketDoublePin::m_gear_RC = 0.3;
+const double M113_SprocketDoublePin::m_gear_R = 0.089;
+const double M113_SprocketDoublePin::m_gear_RA = 0.245;
 
-const std::string M113_SprocketLeft::m_meshName = "Sprocket_L_POV_geom";
-const std::string M113_SprocketLeft::m_meshFile = "M113/Sprocket_L.obj";
+const std::string M113_SprocketDoublePinLeft::m_meshName = "Sprocket_L_POV_geom";
+const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket_L.obj";
 
-const std::string M113_SprocketRight::m_meshName = "Sprocket_R_POV_geom";
-const std::string M113_SprocketRight::m_meshFile = "M113/Sprocket_R.obj";
+const std::string M113_SprocketDoublePinRight::m_meshName = "Sprocket_R_POV_geom";
+const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_Sprocket::M113_Sprocket(const std::string& name) : ChArcSprocket(name), m_vis_type(PRIMITIVES) {
+M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.4f, 0.1f, 1e7f, 0.3f);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Sprocket::AddGearVisualization() {
+void M113_SprocketDoublePin::AddGearVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES:
             ChSprocket::AddGearVisualization();
@@ -76,7 +76,7 @@ void M113_Sprocket::AddGearVisualization() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Sprocket::ExportMeshPovray(const std::string& out_dir) {
+void M113_SprocketDoublePin::ExportMeshPovray(const std::string& out_dir) {
     utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
