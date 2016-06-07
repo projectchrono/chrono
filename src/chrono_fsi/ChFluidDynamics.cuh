@@ -24,19 +24,20 @@
 namespace chrono {
 namespace fsi {
 
+/// Fluid dynamics system.
+///
+/// This class is used to represent a fluid system and take
+/// care of the time integration of the fluid dynamics. This is
+/// a class designed for base SPH simulation.
+///
+/// The class holds pointer to data, which is hold somewhere else.
+/// It also include a forceSystem, which takes care of the
+/// computation of force between markers. The forceSystem is owned
+/// by the class.
 class CH_FSI_API ChFluidDynamics: public ChFsiGeneral {
 public:
-	/// Fluid dynamics system.
-	///
-	/// This class is used to represent a fluid system and take
-	/// care of the time integration of the fluid dynamics. This is
-	/// a class designed for base SPH simulation.
-	///
-	/// The class holds pointer to data, which is hold somewhere else.
-	/// It also include a forceSystem, which takes care of the
-	/// computation of force between markers. The forceSystem is owned
-	/// by the class.
-	///
+
+	/// Fluid dynamics class constructor
 	/// The class constructor performs the following operations:
 	/// Instantiate ChFsiForceParallel, i.e. force system;
 	/// Copy the pointer to fluid data, parameters, and number of objects
@@ -45,7 +46,7 @@ public:
 	ChFluidDynamics(ChBce* otherBceWorker, ChFsiDataManager* otherFsiData,
 			SimParams* otherParamsH, NumberOfObjects* otherNumObjects);
 
-	/// Class destructor. Deletes the force system
+	/// Class destructor. Deletes the force system.
 	~ChFluidDynamics();
 
 	/// Integrate the fluid system in time.

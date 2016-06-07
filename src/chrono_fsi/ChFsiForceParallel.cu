@@ -382,7 +382,7 @@ void ChFsiForceParallel::CopySortedToOriginal_Invasive_R3(thrust::device_vector<
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R3(thrust::device_vector<Real3>& original,
-                                                             thrust::device_vector<Real3>& sorted,
+                                                             const thrust::device_vector<Real3>& sorted,
                                                              const thrust::device_vector<uint>& gridMarkerIndex) {
   thrust::device_vector<Real3> dummySorted = sorted;
   CopySortedToOriginal_Invasive_R3(original, dummySorted, gridMarkerIndex);
@@ -406,13 +406,15 @@ void ChFsiForceParallel::CopySortedToOriginal_NonInvasive_R4(thrust::device_vect
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-                                             thrust::device_vector<Real3>& sortedPosRad,
-                                             thrust::device_vector<Real3>& sortedVelMas,
-                                             thrust::device_vector<Real4>& sortedRhoPreMu,
-                                             thrust::device_vector<uint>& gridMarkerIndex,
-                                             thrust::device_vector<uint>& cellStart,
-                                             thrust::device_vector<uint>& cellEnd) {
+
+void ChFsiForceParallel::CalculateXSPH_velocity() {
+  /* Calculate vel_XSPH */
+  if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
+    printf("vel_XSPH_Sorted_D.size() %d numObjectsH->numAllMarkers %d \n", vel_XSPH_Sorted_D.size(),
+           numObjectsH->numAllMarkers);
+    throw std::runtime_error("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
+  }
+
   bool* isErrorH, *isErrorD;
   isErrorH = (bool*)malloc(sizeof(bool));
   cudaMalloc((void**)&isErrorD, sizeof(bool));
@@ -424,9 +426,9 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
   computeGridSize(numObjectsH->numAllMarkers, 64, numBlocks, numThreads);
 
   /* Execute the kernel */
-  newVel_XSPH_D << <numBlocks, numThreads>>> (mR3CAST(vel_XSPH_Sorted_D), mR3CAST(sortedPosRad), mR3CAST(sortedVelMas),
-                                              mR4CAST(sortedRhoPreMu), U1CAST(gridMarkerIndex), U1CAST(cellStart),
-                                              U1CAST(cellEnd), numObjectsH->numAllMarkers, isErrorD);
+  newVel_XSPH_D << <numBlocks, numThreads>>> (mR3CAST(vel_XSPH_Sorted_D), mR3CAST(sortedSphMarkersD->posRadD), mR3CAST(sortedSphMarkersD->velMasD),
+                                              mR4CAST(sortedSphMarkersD->rhoPresMuD), U1CAST(markersProximityD->gridMarkerIndexD),
+                                              U1CAST(markersProximityD->cellStartD), U1CAST(markersProximityD->cellEndD), numObjectsH->numAllMarkers, isErrorD);
 
   cudaThreadSynchronize();
   cudaCheckError();
@@ -437,22 +439,7 @@ void ChFsiForceParallel::RecalcVelocity_XSPH(thrust::device_vector<Real3>& vel_X
   }
   cudaFree(isErrorD);
   free(isErrorH);
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 
-void ChFsiForceParallel::CalculateXSPH_velocity() {
-  /* Calculate vel_XSPH */
-  if (vel_XSPH_Sorted_D.size() != numObjectsH->numAllMarkers) {
-    printf("vel_XSPH_Sorted_D.size() %d numObjectsH->numAllMarkers %d \n", vel_XSPH_Sorted_D.size(),
-           numObjectsH->numAllMarkers);
-    throw std::runtime_error("Error! size error vel_XSPH_Sorted_D Thrown from CalculateXSPH_velocity!\n");
-  }
-  RecalcVelocity_XSPH(vel_XSPH_Sorted_D, sortedSphMarkersD->posRadD, sortedSphMarkersD->velMasD,
-                      sortedSphMarkersD->rhoPresMuD, markersProximityD->gridMarkerIndexD, markersProximityD->cellStartD,
-                      markersProximityD->cellEndD);
-
-  /* Collide */
-  /* Initialize derivVelRhoD with zero. NECESSARY. */
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

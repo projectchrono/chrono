@@ -15,9 +15,6 @@
 // Class for performing time integration in fluid system.//
 // =============================================================================
 
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along x
-
 #include "chrono_fsi/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChSphGeneral.cuh"
