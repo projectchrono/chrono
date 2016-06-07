@@ -625,19 +625,19 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // ----------------
 
     // Container dimensions
-    double hdimX = 15.0;
+    double hdimX = 2.5;
     double hdimY = 0.25;
     double hdimZ = 0.5;
     double hthick = 0.25;
 
     // Granular material properties
-    m_radius_g = 0.02;
+    m_radius_g = 0.01;
     int Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
     double mass_g = rho_g * vol_g;
     ChVector<> inertia_g = 0.4 * mass_g * m_radius_g * m_radius_g * ChVector<>(1, 1, 1);
-    unsigned int num_particles = 1;
+    int num_layers = 4;
 
     // Terrain contact properties
     float friction_terrain = 0.9f;
@@ -836,7 +836,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
         ChVector<> hdims(hdimX - r, hdimY - r, 0);
         ChVector<> center(0, 0, 2 * r);
 
-        while (gen.getTotalNumBodies() < num_particles) {
+        for (int il = 0; il < num_layers; il++) {
             gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
             center.z += 2 * r;
         }
@@ -888,7 +888,7 @@ void TerrainNode::Settle() {
 
     // Simulate granular material
     double time_end = 0.5;
-    double time_step = 1e-3;
+    double time_step = 1e-4;
 
     while (m_system->GetChTime() < time_end) {
 #ifdef CHRONO_OPENGL
@@ -998,7 +998,6 @@ void TerrainNode::CreateFaceProxies() {
 
     for (unsigned int it = 0; it < m_num_tri; it++) {
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-        m_system->AddBody(body);
         body->SetIdentifier(it);
         body->SetMass(m_mass_pF);
 
@@ -1010,14 +1009,17 @@ void TerrainNode::CreateFaceProxies() {
         // Create contact shape.
         // Note that the vertex locations will be updated at every synchronization time.
         std::string name = "tri_" + std::to_string(it);
+        double len = 0.1;
 
         body->GetCollisionModel()->ClearModel();
-        utils::AddTriangle(body.get(), ChVector<>(1, 0, 0), ChVector<>(0, 1, 0), ChVector<>(0, 0, 1), name);
+        utils::AddTriangle(body.get(), ChVector<>(len, 0, 0), ChVector<>(0, len, 0), ChVector<>(0, 0, len), name);
         body->GetCollisionModel()->SetFamily(1);
         body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
         body->GetCollisionModel()->BuildModel();
 
         m_proxies.push_back(ProxyBody(body, it));
+
+        m_system->AddBody(body);
     }
 }
 
@@ -1043,9 +1045,9 @@ void TerrainNode::Synchronize(int step_number, double time) {
     }
 
     for (unsigned int it = 0; it < m_num_tri; it++) {
-        m_triangles[it].v1 = 3 * it + 0;
-        m_triangles[it].v2 = 3 * it + 1;
-        m_triangles[it].v3 = 3 * it + 2;
+        m_triangles[it].v1 = tri_data[3 * it + 0];
+        m_triangles[it].v2 = tri_data[3 * it + 1];
+        m_triangles[it].v3 = tri_data[3 * it + 2];
     }
 
     delete[] vert_data;

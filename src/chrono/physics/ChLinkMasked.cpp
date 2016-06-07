@@ -53,7 +53,7 @@ ChLinkMasked::ChLinkMasked() {
 }
 
 ChLinkMasked::ChLinkMasked(const ChLinkMasked& other) : ChLinkMarkers(other) {
-    mask - other.mask->Clone();
+    mask = other.mask->Clone();
 
     // setup -alloc all needed matrices!!
     ChangedLinkMask();
