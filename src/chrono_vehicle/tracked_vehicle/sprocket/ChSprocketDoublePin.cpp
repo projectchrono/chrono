@@ -13,14 +13,14 @@
 // =============================================================================
 //
 // Base class for a sprocket template with gear profile composed of circular
-// arcs, suitable for interaction with single-pin track shoes.
+// arcs and a flat seat, suitable for interaction with double-pin track shoes.
 //
 // =============================================================================
 
 #include <cmath>
 
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChArcSprocket.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChSinglePinShoe.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
 namespace chrono {
@@ -28,19 +28,19 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class ArcSprocketContactCB : public ChSystem::ChCustomComputeCollisionCallback {
+class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCallback {
   public:
-    ArcSprocketContactCB(ChTrackAssembly* track,  ///< containing track assembly
-                         double envelope,         ///< collision detection envelope
-                         int gear_nteeth,         ///< number of teeth of the sprocket gear
-                         double gear_RO,          ///< radius if the addendum circle
-                         double gear_RC,          ///< radius of the arc centers circle
-                         double gear_R,           ///< radius of the tooth arc profile
-                         double separation,       ///< separation between sprocket gears
-                         double shoe_locF,        ///< location of front cylinder on shoe (in local frame)
-                         double shoe_locR,        ///< location of rear cylinder on shoe (in local frame)
-                         double shoe_R            ///< radius of shoe cylinders
-                         )
+    SprocketDoublePinContactCB(ChTrackAssembly* track,  ///< containing track assembly
+                               double envelope,         ///< collision detection envelope
+                               int gear_nteeth,         ///< number of teeth of the sprocket gear
+                               double gear_RO,          ///< radius if the addendum circle
+                               double gear_RC,          ///< radius of the arc centers circle
+                               double gear_R,           ///< radius of the tooth arc profile
+                               double separation,       ///< separation between sprocket gears
+                               double shoe_locF,        ///< location of front cylinder on shoe (in local frame)
+                               double shoe_locR,        ///< location of rear cylinder on shoe (in local frame)
+                               double shoe_R            ///< radius of shoe cylinders
+                               )
         : m_track(track),
           m_envelope(envelope),
           m_sprocket(m_track->GetSprocket()),
@@ -103,7 +103,7 @@ class ArcSprocketContactCB : public ChSystem::ChCustomComputeCollisionCallback {
     double m_Rhat_diff;  // test quantity for narrowphase check
 };
 
-void ArcSprocketContactCB::PerformCustomCollision(ChSystem* system) {
+void SprocketDoublePinContactCB::PerformCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sproket or track shoes.
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
@@ -133,10 +133,10 @@ void ArcSprocketContactCB::PerformCustomCollision(ChSystem* system) {
 
 // Perform collision test between one of the shoe's contact cylinders and the
 // sprocket gear profiles.
-void ArcSprocketContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,
-                                                 const ChVector<>& locC_abs,
-                                                 const ChVector<>& dirC_abs,
-                                                 const ChVector<> locS_abs) {
+void SprocketDoublePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,
+                                                       const ChVector<>& locC_abs,
+                                                       const ChVector<>& dirC_abs,
+                                                       const ChVector<> locS_abs) {
     // Broadphase collision test: no contact if the cylinder center is too far from
     // the sprocket center.
     if ((locC_abs - locS_abs).Length2() > m_R_sum * m_R_sum)
@@ -165,7 +165,7 @@ void ArcSprocketContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> shoe,
 
 // Working in the (x-z) plane of the gear, perform a 2D collision test between the
 // gear profile and a circle centered at the specified location.
-void ArcSprocketContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, const ChVector<>& loc) {
+void SprocketDoublePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, const ChVector<>& loc) {
     // No contact if the circle center is too far from the gear center.
     if (loc.x * loc.x + loc.z * loc.z > m_gear_RC * m_gear_RC)
         return;
@@ -215,7 +215,7 @@ void ArcSprocketContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, cons
 // Find the center of the profile arc that is closest to the specified location.
 // The calculation is performed in the (x-z) plane.
 // It is assumed that the gear profile is specified with an arc at its lowest z value.
-ChVector<> ArcSprocketContactCB::FindClosestArc(const ChVector<>& loc) {
+ChVector<> SprocketDoublePinContactCB::FindClosestArc(const ChVector<>& loc) {
     // Angle between two consecutive gear teeth
     double delta = CH_C_2PI / m_gear_nteeth;
     // Angle formed by 'loc' and the line z<0
@@ -228,15 +228,15 @@ ChVector<> ArcSprocketContactCB::FindClosestArc(const ChVector<>& loc) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChArcSprocket::ChArcSprocket(const std::string& name) : ChSprocket(name) {
+ChSprocketDoublePin::ChSprocketDoublePin(const std::string& name) : ChSprocket(name) {
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::ChCustomComputeCollisionCallback* ChArcSprocket::GetCollisionCallback(ChTrackAssembly* track) {
+ChSystem::ChCustomComputeCollisionCallback* ChSprocketDoublePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
-    auto shoe = std::dynamic_pointer_cast<ChSinglePinShoe>(track->GetTrackShoe(0));
+    auto shoe = std::dynamic_pointer_cast<ChTrackShoeDoublePin>(track->GetTrackShoe(0));
     assert(shoe);
 
     // Extract parameterization of gear profile
@@ -251,14 +251,14 @@ ChSystem::ChCustomComputeCollisionCallback* ChArcSprocket::GetCollisionCallback(
     double shoe_R = shoe->GetCylinderRadius();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
-    return new ArcSprocketContactCB(track, 0.005, gear_nteeth, gear_RO, gear_RC, gear_R, GetSeparation(), shoe_locF,
-                                    shoe_locR, shoe_R);
+    return new SprocketDoublePinContactCB(track, 0.005, gear_nteeth, gear_RO, gear_RC, gear_R, GetSeparation(),
+                                          shoe_locF, shoe_locR, shoe_R);
 }
 
 // -----------------------------------------------------------------------------
 // Create and return the sprocket gear profile.
 // -----------------------------------------------------------------------------
-std::shared_ptr<geometry::ChLinePath> ChArcSprocket::GetProfile() {
+std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() {
     auto profile = std::make_shared<geometry::ChLinePath>();
 
     int num_teeth = GetNumTeeth();

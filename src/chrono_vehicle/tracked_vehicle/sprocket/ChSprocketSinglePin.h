@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_ARC_SPROCKET_H
-#define CH_ARC_SPROCKET_H
+#ifndef CH_SPROCKET_SINGLE_PIN_H
+#define CH_SPROCKET_SINGLE_PIN_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -32,12 +32,12 @@ namespace vehicle {
 
 /// Base class for a sprocket template with gear profile composed of circular arcs.
 /// This sprocket type is suitable for interaction with single-pin track shoes.
-class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
+class CH_VEHICLE_API ChSprocketSinglePin : public ChSprocket {
   public:
-    ChArcSprocket(const std::string& name  ///< [in] name of the subsystem
-                  );
+    ChSprocketSinglePin(const std::string& name  ///< [in] name of the subsystem
+                        );
 
-    virtual ~ChArcSprocket() {}
+    virtual ~ChSprocketSinglePin() {}
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
