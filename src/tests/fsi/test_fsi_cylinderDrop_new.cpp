@@ -533,12 +533,12 @@ int main(int argc, char* argv[]) {
 
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		printSimulationParameters(paramsH);
-//		myFsiSystem.SetSimParams(paramsH);
 #if haveFluid
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 		utils::GridSampler<> sampler(initSpace0);
-		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
-		chrono::fsi::Real3 boxHalfDim = paramsH->cMax - boxCenter;
+		chrono::fsi::Real3 boxCenter = chrono::fsi::mR3(0, 0, paramsH->cMin.z + 0.5 * basinDepth);
+		boxCenter.z += 2 * paramsH->HSML;
+		chrono::fsi::Real3 boxHalfDim = chrono::fsi::mR3(1.8, .9 * hdimY, 0.5 * basinDepth);
 		utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter), fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
 		int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {

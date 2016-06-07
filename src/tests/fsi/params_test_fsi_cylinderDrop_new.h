@@ -59,7 +59,7 @@ void SetupParamsH(SimParams* paramsH, Real hdimX, Real hdimY, Real hthick, Real 
 	paramsH->mu0 = .001;
 	paramsH->v_Max = 1; // Arman, I changed it to 0.1 for vehicle. Check this
 	paramsH->EPS_XSPH = .5f;
-	paramsH->dT = 1e-3;
+	paramsH->dT = 1e-4;
 	paramsH->tFinal = 2;
 	paramsH->timePause = 0;
 	paramsH->kdT = 5;  // I don't know what is kdT
