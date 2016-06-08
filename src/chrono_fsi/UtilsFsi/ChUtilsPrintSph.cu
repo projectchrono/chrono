@@ -18,12 +18,10 @@ namespace chrono {
 namespace fsi {
 namespace utils {
 //*******************************************************************************************************************************
-void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
+	void PrintToFile(const thrust::device_vector<Real3>& posRadD,
 		const thrust::device_vector<Real3>& velMasD,
 		const thrust::device_vector<Real4>& rhoPresMuD,
 		const thrust::host_vector<int4>& referenceArray,
-
-		const SimParams & paramsH,
 		const std::string& out_dir) {
 
 		thrust::host_vector<Real3> posRadH = posRadD;
@@ -126,19 +124,6 @@ void PrintToFile_SPH(const thrust::device_vector<Real3>& posRadD,
 		posRadH.clear();
 		velMasH.clear();
 		rhoPresMuH.clear();
-}
-
-//*******************************************************************************************************************************
-
-void PrintToFile(const thrust::device_vector<Real3>& posRadD,
-		const thrust::device_vector<Real3>& velMasD,
-		const thrust::device_vector<Real4>& rhoPresMuD,
-		const thrust::host_vector<int4>& referenceArray,
-		const SimParams & paramsH,
-		const std::string& out_dir) {
-	// print fluid stuff
-	PrintToFile_SPH(posRadD, velMasD, rhoPresMuD, referenceArray, paramsH,
-			out_dir);
 }
 
 

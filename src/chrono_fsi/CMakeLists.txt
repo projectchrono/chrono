@@ -21,10 +21,6 @@ message(STATUS "==== Chrono FSI module ====")
 mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
 
-# ----------------------------------------------------------------------------
-# CUDA STUFF , Arman Take care of this
-# ----------------------------------------------------------------------------
-
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 find_package(CUDA)
@@ -36,8 +32,8 @@ SET(CHRONO_INCLUDE_DIRS
 
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
-SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_20")
+SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
 
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 

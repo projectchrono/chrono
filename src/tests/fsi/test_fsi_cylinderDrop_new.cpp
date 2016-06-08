@@ -26,13 +26,6 @@
 #include <assert.h>
 #include <stdlib.h>  // system
 
-// SPH includes
-//#include "chrono_fsi/collideSphereSphere.cuh"
-//#include "chrono_fsi/printToFile.cuh"
-//#include "chrono_fsi/custom_cutil_math.h"
-//#include "chrono_fsi/SPHCudaUtils.h"
-//#include "chrono_fsi/checkPointReduced.h"
-
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
@@ -50,10 +43,7 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
 
-//#include "BallDropParams.h"
-//#include "chrono_fsi/SphInterface.h"
-//#include "chrono_fsi/InitializeSphMarkers.h"
-//#include "chrono_fsi/FSI_Integrate.h"
+// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
@@ -432,11 +422,11 @@ void SavePovFilesMBD(fsi::ChSystemFsi & myFsiSystem, ChSystemParallelDVI& mphysi
 	// If enabled, output data for PovRay postprocessing.
 	if (povray_output && tStep % out_steps == 0) {
 		// **** out fluid
-		chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
-				myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
-				myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
-				myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
-				*paramsH, pov_dir_fluid);
+		//chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
+		//		myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
+		//		myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
+		//		myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+		//		pov_dir_fluid);
 
 		// **** out mbd
 		if (tStep / out_steps == 0) {
