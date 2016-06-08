@@ -25,7 +25,6 @@
 #include "chrono_fsi/ChBce.cuh"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -68,9 +67,6 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
   /// copying from the full step
   void CopyDeviceDataToHalfStep();
 
-  /// instantiate the member vehicle pointer from an external objects.
-  void SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle);
-
   /// Function to fill out the dependent data based on the independent one. For instance
   /// it copies the position of the rigid bodies from the multibody dynamics system
   /// to arrays in fsi system since they are needed for internal use.
@@ -106,14 +102,12 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
   ChBce* bceWorker;									///< pointer to the bce workers
 
   chrono::ChSystemParallelDVI* mphysicalSystem;		///< pointer to the multibody system
-  chrono::vehicle::ChWheeledVehicleAssembly* mVehicle;	///< pointer to vehicle, if exist.
 
   SimParams* paramsH;								///< pointer to the simulation parameters
   NumberOfObjects* numObjectsH;						///< pointer to the number of objects, fluid, bce, and boundary markers
 
   double mTime;										///< current real time of the simulation
   bool haveFluid;									///< boolean to check if the system have fluid or not
-  bool haveVehicle;									///< boolean to check if the system have vehicle
 
 #ifdef CHRONO_OPENGL
   chrono::opengl::ChOpenGLWindow* gl_window;		///< opengl graphics window if opengl exist
