@@ -422,11 +422,11 @@ void SavePovFilesMBD(fsi::ChSystemFsi & myFsiSystem, ChSystemParallelDVI& mphysi
 	// If enabled, output data for PovRay postprocessing.
 	if (povray_output && tStep % out_steps == 0) {
 		// **** out fluid
-		//chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
-		//		myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
-		//		myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
-		//		myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
-		//		pov_dir_fluid);
+		chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
+				myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+				pov_dir_fluid);
 
 		// **** out mbd
 		if (tStep / out_steps == 0) {

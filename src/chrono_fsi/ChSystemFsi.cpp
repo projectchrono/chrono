@@ -39,8 +39,6 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_h
   fsiInterface =
       new ChFsiInterface(&(fsiData->fsiBodiesH), mphysicalSystem, &fsiBodeisPtr,
                          &(fsiData->fsiGeneralData.rigid_FSI_ForcesD), &(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
-
-  InitializeChronoGraphics();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
