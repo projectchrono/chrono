@@ -12,18 +12,18 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 sprocket subsystem.
+// M113 sprocket subsystem (single pin).
 //
 // =============================================================================
 
-#ifndef M113_SPROCKET_H
-#define M113_SPROCKET_H
+#ifndef M113_SPROCKET_SINGLE_PIN_H
+#define M113_SPROCKET_SINGLE_PIN_H
 
 #include <string>
 
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChArcSprocket.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketSinglePin.h"
 
 #include "models/ChApiModels.h"
 
@@ -34,9 +34,9 @@ namespace m113 {
 ///
 ///
 ///
-class CH_MODELS_API M113_Sprocket : public ChArcSprocket {
+class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
   public:
-    virtual ~M113_Sprocket() {}
+    virtual ~M113_SprocketSinglePin() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -71,7 +71,7 @@ class CH_MODELS_API M113_Sprocket : public ChArcSprocket {
     void ExportMeshPovray(const std::string& out_dir);
 
   protected:
-    M113_Sprocket(const std::string& name);
+    M113_SprocketSinglePin(const std::string& name);
 
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
@@ -92,10 +92,10 @@ class CH_MODELS_API M113_Sprocket : public ChArcSprocket {
     VisualizationType m_vis_type;
 };
 
-class CH_MODELS_API M113_SprocketLeft : public M113_Sprocket {
+class CH_MODELS_API M113_SprocketSinglePinLeft : public M113_SprocketSinglePin {
   public:
-    M113_SprocketLeft() : M113_Sprocket("M113_SprocketLeft") {}
-    ~M113_SprocketLeft() {}
+    M113_SprocketSinglePinLeft() : M113_SprocketSinglePin("M113_SprocketLeft") {}
+    ~M113_SprocketSinglePinLeft() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
@@ -105,10 +105,10 @@ class CH_MODELS_API M113_SprocketLeft : public M113_Sprocket {
     static const std::string m_meshFile;
 };
 
-class CH_MODELS_API M113_SprocketRight : public M113_Sprocket {
+class CH_MODELS_API M113_SprocketSinglePinRight : public M113_SprocketSinglePin {
   public:
-    M113_SprocketRight() : M113_Sprocket("M113_SprocketRight") {}
-    ~M113_SprocketRight() {}
+    M113_SprocketSinglePinRight() : M113_SprocketSinglePin("M113_SprocketRight") {}
+    ~M113_SprocketSinglePinRight() {}
 
     virtual std::string GetMeshName() const override { return m_meshName; }
     virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
