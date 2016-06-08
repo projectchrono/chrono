@@ -675,8 +675,8 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_PI / 180.0;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_PI / 180.0;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
                         double gsi; // Coefficient multiplying 'current' cohesion value in yield function
@@ -1051,20 +1051,26 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)
-            ChMatrixNM<double, 9, 33> Gd;
-            for (int ii = 0; ii < 11; ii++) {
-                Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(2, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+			ChMatrixNM<double, 9, 33> Gd;
+			double Temp1;
+			double Temp2;
+			double Temp3;
+			for (int ii = 0; ii < 11; ii++) {
+				Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+				Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+				Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+				Gd(0, 3 * (ii)) = Temp1;
+				Gd(1, 3 * (ii)+1) = Temp1;
+				Gd(2, 3 * (ii)+2) = Temp1;
 
-                Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(4, 3 * (ii) + 1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(5, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+				Gd(3, 3 * (ii)) = Temp2;
+				Gd(4, 3 * (ii)+1) = Temp2;
+				Gd(5, 3 * (ii)+2) = Temp2;
 
-                Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-            }
+				Gd(6, 3 * (ii)) = Temp3;
+				Gd(7, 3 * (ii)+1) = Temp3;
+				Gd(8, 3 * (ii)+2) = Temp3;
+			}
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
@@ -1130,7 +1136,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             // Term from  differentiation of Jacobian of strain w.r.t. coordinates w.r.t. coordinates (that is, twice)
             temp339.MatrTMultiply(Gd, Sigm);
             // Sum contributions to the final Jacobian of internal forces
-            result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
+			result = temp336 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) * strainD + (temp339 * m_Kfactor) * Gd;
             result.MatrScale(detJ0 * m_element->m_GaussScaling);
         } break;
         case ChElementBrick_9::Hencky: {
@@ -1264,53 +1270,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                             // Step variation of the plastic flow (rate)
                             double DeltaGamma = YieldFunc / (3.0 * G + m_element->m_HardeningSlope);
-                            // Perform return mapping on deviatoric stress tensor (Up for Update)
-                            ChVector<double> devStressUp;
-                            if (qtrial != 0.0) {
-                                devStressUp = (1.0 - G * DeltaGamma * 3.0 / qtrial) * devStress;
-                            } else {
-                                devStressUp = devStress;
-                            }
-                            // Update stress tensor
-                            StressK_eig(0, 0) = devStressUp.x + hydroP;
-                            StressK_eig(1, 0) = devStressUp.y + hydroP;
-                            StressK_eig(2, 0) = devStressUp.z + hydroP;
-                            // Update logarithmic strains
-                            LogStrain(0, 0) = devStressUp.x / (2.0 * G) + EEVD3;
-                            LogStrain(1, 0) = devStressUp.y / (2.0 * G) + EEVD3;
-                            LogStrain(2, 0) = devStressUp.z / (2.0 * G) + EEVD3;
-
-                            // Obtain eigenvalues of current (map-returned) logarithmic strains
-                            ChVector<double> lambda;
-                            lambda.x = exp(2.0 * LogStrain(0, 0));
-                            lambda.y = exp(2.0 * LogStrain(1, 0));
-                            lambda.z = exp(2.0 * LogStrain(2, 0));
-
-                            ChMatrixNM<double, 3, 3> BEUP;  ///< Updated elastic left Cauchy strain tensor
-                            MM1.MatrScale(lambda.x);
-                            MM2.MatrScale(lambda.y);
-                            MM3.MatrScale(lambda.z);
-                            BEUP = MM1 + MM2 + MM3;
-                            // MM1, MM2, and MM3 are outputs of the return mapping alg. so must be re-updated
-                            MM1.MatrScale(1 / lambda.x);
-                            MM2.MatrScale(1 / lambda.y);
-                            MM3.MatrScale(1 / lambda.z);
-                            // Keep track of plastic variable alpha for each integration point
-                            m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
-                                m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + DeltaGamma;
-                            Temp33.MatrMultiply(FI, BEUP);
-                            CCPinv.MatrMultiplyT(Temp33, FI);
-
-                            // Store plastic deformation tensor for each iteration
-                            m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
-                            m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
-                            m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
-                            m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
-                            m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
-                            m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
-                            m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
-                            m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
-                            m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
 
                             // Obtain some terms necessary for plastic Jacobian of internal forces
                             qtrial = sqrt(3.0 / 2.0) * NormSn + 3.0 * G * DeltaGamma;
@@ -1381,8 +1340,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_PI / 180.0;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_PI / 180.0;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
+						double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
                         double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
                         double gsi; // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
@@ -1451,8 +1410,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             double Check_DP_Cone = J2Rt - G * DGamma;
 
                             if (Check_DP_Cone < 0.0) {  // Cone return mapping
-                                /*GetLog() << "Cone--------!!!";
-                                system("pause");*/
+
                                 double Rtrial = hydroP -
                                                 beta1 * (m_element->m_YieldStress +
                                                          m_element->m_HardeningSlope *
@@ -1463,10 +1421,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 StressK_eig(0, 0) = hydroP - K * DeltaGamma;
                                 StressK_eig(1, 0) = hydroP - K * DeltaGamma;
                                 StressK_eig(2, 0) = hydroP - K * DeltaGamma;
-
-                                // Calculate update elastic logarithmic strain
-                                LogStrain = StressK_eig;
-                                LogStrain.MatrScale(1 / (3.0 * K));
                             } else {
                                 // Deviatoric stress
                                 devStressUp = (1.0 - G * DeltaGamma / J2Rt) * devStress;
@@ -1476,39 +1430,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 StressK_eig(0, 0) = devStressUp.x + hydroP;
                                 StressK_eig(1, 0) = devStressUp.y + hydroP;
                                 StressK_eig(2, 0) = devStressUp.z + hydroP;
-                                // Calculate update elastic logarithmic strain
-                                LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-                                LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-                                LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
                             }
-                            // Update eigenvalues of strain tensor
-                            lambda.x = exp(2.0 * LogStrain(0, 0));
-                            lambda.y = exp(2.0 * LogStrain(1, 0));
-                            lambda.z = exp(2.0 * LogStrain(2, 0));
-                            // Updated left Cauchy-Green strain tensor  
-                            ChMatrixNM<double, 3, 3> BEUP;
-                            MM1.MatrScale(lambda.x);
-                            MM2.MatrScale(lambda.y);
-                            MM3.MatrScale(lambda.z);
-                            BEUP = MM1 + MM2 + MM3;
-                            // Obtain plastic deformation tensor
-                            MM1.MatrScale(1 / lambda.x);
-                            MM2.MatrScale(1 / lambda.y);
-                            MM3.MatrScale(1 / lambda.z);
-                            Temp33.MatrMultiply(FI, BEUP);
-                            // Obtain plastic deformation tensor
-                            CCPinv.MatrMultiplyT(Temp33, FI);
-
-                            double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-                            double AFact;
-                            if (Check_DP_Cone >= 0.0) {  // for smooth cone wall return
-                                AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-                            } else {  // for cone apex return
-                                AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
-                            }
-                            double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
-                            double CFact = -sqrt(2.0) * G * Aux * K;
-                            double DFact = K * (1.0 - K * eta * etab * Aux);
 
                             // Calculation for Dep: Plastic contribution to Jacobian of internal forces
                             ChMatrixNM<double, 6, 6> FOID;
@@ -1525,8 +1447,15 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             SOID(1, 0) = 1.0;
                             SOID(3, 0) = 1.0;
 
-                            if (Check_DP_Cone) {  // Consistent tangent for smooth cone wall return
-                                for (int ii = 0; ii < 6; ii++) {
+							double AFact;
+                            if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
+								double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
+								AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
+								double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
+								double CFact = -sqrt(2.0) * G * Aux * K;
+								double DFact = K * (1.0 - K * eta * etab * Aux);
+
+								for (int ii = 0; ii < 6; ii++) {
                                     for (int jj = 0; jj < 6; jj++) {
                                         Dep(ii, jj) =
                                             AFact * FOID(ii, jj) + BFact * UniDev(ii) +
@@ -1535,6 +1464,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                     }
                                 }
                             } else {  // Consistent tangent for cone point
+								AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
                                 for (int ii = 0; ii < 6; ii++) {
                                     for (int jj = 0; jj < 6; jj++) {
                                         Dep(ii, jj) = AFact * SOID(ii) * SOID(jj);
@@ -1556,7 +1486,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             // Influence of damping
             ChMatrixNM<double, 6, 1> DEPS;
-            DEPS.Reset();
             for (int ii = 0; ii < 33; ii++) {
                 DEPS(0, 0) = DEPS(0, 0) + strainD(0, ii) * m_element->m_d_dt(ii, 0);
                 DEPS(1, 0) = DEPS(1, 0) + strainD(1, ii) * m_element->m_d_dt(ii, 0);
@@ -1617,19 +1546,27 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             Sigm(7, 7) = Stress(3, 0);
             Sigm(8, 8) = Stress(3, 0);
 
+			// Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
+			// coordinates)
             ChMatrixNM<double, 9, 33> Gd;
+            double Temp1;
+            double Temp2;
+            double Temp3;
             for (int ii = 0; ii < 11; ii++) {
-                Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(2, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                Gd(0, 3 * (ii)) = Temp1;
+                Gd(1, 3 * (ii) + 1) = Temp1;
+                Gd(2, 3 * (ii) + 2) = Temp1;
 
-                Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(4, 3 * (ii) + 1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(5, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                Gd(3, 3 * (ii)) = Temp2;
+                Gd(4, 3 * (ii) + 1) = Temp2;
+                Gd(5, 3 * (ii) + 2) = Temp2;
 
-                Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                Gd(6, 3 * (ii)) = Temp3;
+                Gd(7, 3 * (ii) + 1) = Temp3;
+                Gd(8, 3 * (ii) + 2) = Temp3;
             }
 
             // Jacobian of internal forces (excluding the EAS contribution).
@@ -1643,8 +1580,9 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             temp339.MatrTMultiply(Gd, Sigm);  // Stress contribution to the Jacobian of internal forces
 
-            result = (temp336 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp339 * Gd) * m_Kfactor;
-            if (ChElementBrick_9::Hencky == m_element->GetStrainFormulation()) {
+			result = temp336*(m_Kfactor + m_Rfactor * m_element->m_Alpha) * strainD + (temp339 * m_Kfactor)* Gd;
+
+			if (ChElementBrick_9::Hencky == m_element->GetStrainFormulation()) {
                 result.MatrScale(detJ * m_element->m_GaussScaling);
             } else {
                 result.MatrScale(detJ0 * m_element->m_GaussScaling);
