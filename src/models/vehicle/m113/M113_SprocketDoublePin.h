@@ -55,11 +55,13 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     virtual double GetSeparation() const override { return m_separation; }
 
     /// Return the radius of the addendum circle.
-    virtual double GetOuterRadius() const { return m_gear_RT; }
+    virtual double GetOuterRadius() const override { return m_gear_RT; }
     /// Return the radius of the (concave) tooth circular arc.
-    virtual double GetArcRadius() const { return m_gear_R; }
-    /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const { return m_gear_RC; }
+    virtual double GetArcRadius() const override { return m_gear_R; }
+    /// Return height of arc center.
+    virtual double GetArcCenterHeight() const override { return m_gear_C; }
+    /// Return offset of arc center.
+    virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
     /// Add visualization of the road wheel.
     virtual void AddGearVisualization() override;
@@ -85,8 +87,9 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
 
     // Gear profile data
     static const double m_gear_RT;
-    static const double m_gear_RC;
     static const double m_gear_R;
+    static const double m_gear_C;
+    static const double m_gear_W;
     static const double m_gear_RA;
 
     VisualizationType m_vis_type;

@@ -38,16 +38,18 @@ const ChVector<> M113_SprocketDoublePin::m_gear_inertia(12.22, 13.87, 12.22);
 const double M113_SprocketDoublePin::m_axle_inertia = 1;
 const double M113_SprocketDoublePin::m_separation = 0.225;
 
-const double M113_SprocketDoublePin::m_gear_RT = 0.2605;
-const double M113_SprocketDoublePin::m_gear_RC = 0.3;
-const double M113_SprocketDoublePin::m_gear_R = 0.089;
+const double M113_SprocketDoublePin::m_gear_RT = 10.69 * 0.0254;
+const double M113_SprocketDoublePin::m_gear_R = 0.88 * 0.0254;
 const double M113_SprocketDoublePin::m_gear_RA = 0.245;
 
-const std::string M113_SprocketDoublePinLeft::m_meshName = "Sprocket_L_POV_geom";
-const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket_L.obj";
+const double M113_SprocketDoublePin::m_gear_C = 9.334 * 0.0254;
+const double M113_SprocketDoublePin::m_gear_W = 1.825 * 0.0254;
 
-const std::string M113_SprocketDoublePinRight::m_meshName = "Sprocket_R_POV_geom";
-const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket_R.obj";
+const std::string M113_SprocketDoublePinLeft::m_meshName = "Sprocket2_L_POV_geom";
+const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket2_L.obj";
+
+const std::string M113_SprocketDoublePinRight::m_meshName = "Sprocket2_R_POV_geom";
+const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -63,12 +65,12 @@ void M113_SprocketDoublePin::AddGearVisualization() {
             ChSprocket::AddGearVisualization();
             break;
         case MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(GetMeshName());
-            m_gear->AddAsset(trimesh_shape);
+            ////geometry::ChTriangleMeshConnected trimesh;
+            ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+            ////auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            ////trimesh_shape->SetMesh(trimesh);
+            ////trimesh_shape->SetName(GetMeshName());
+            ////m_gear->AddAsset(trimesh_shape);
             break;
         }
     }
@@ -77,7 +79,7 @@ void M113_SprocketDoublePin::AddGearVisualization() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_SprocketDoublePin::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
+    ////utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
 }
 
 }  // end namespace m113

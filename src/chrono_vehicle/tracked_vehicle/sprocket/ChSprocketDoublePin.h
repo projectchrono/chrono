@@ -56,11 +56,14 @@ class CH_VEHICLE_API ChSprocketDoublePin : public ChSprocket {
     /// Return the radius of the addendum circle.
     virtual double GetOuterRadius() const = 0;
 
-    /// Return the radius of the (concave) tooth circular arc.
+    /// Return the radius of the (concave) tooth circular arcs.
     virtual double GetArcRadius() const = 0;
 
-    /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const = 0;
+    /// Return height of arc centers.
+    virtual double GetArcCenterHeight() const = 0;
+
+    /// Return offset of arc centers.
+    virtual double GetArcCenterOffset() const = 0;
 };
 
 /// @} vehicle_tracked_sprocket
