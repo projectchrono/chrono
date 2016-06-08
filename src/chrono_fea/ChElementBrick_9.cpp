@@ -396,61 +396,56 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             strain(4, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
             strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
-            // Reorganize variable part of the deformation gradient (DefF)
-            ChMatrixNM<double, 6, 9> DepsDDm;
-
-            DepsDDm(0, 0) = DefF(0, 0);
-            DepsDDm(0, 1) = DefF(1, 0);
-            DepsDDm(0, 2) = DefF(2, 0);
-            DepsDDm(1, 3) = DefF(0, 1);
-            DepsDDm(1, 4) = DefF(1, 1);
-            DepsDDm(1, 5) = DefF(2, 1);
-
-            DepsDDm(2, 0) = DefF(0, 1);
-            DepsDDm(2, 1) = DefF(1, 1);
-            DepsDDm(2, 2) = DefF(2, 1);
-            DepsDDm(2, 3) = DefF(0, 0);
-            DepsDDm(2, 4) = DefF(1, 0);
-            DepsDDm(2, 5) = DefF(2, 0);
-
-            DepsDDm(3, 6) = DefF(0, 2);
-            DepsDDm(3, 7) = DefF(1, 2);
-            DepsDDm(3, 8) = DefF(2, 2);
-
-            DepsDDm(4, 0) = DefF(0, 2);
-            DepsDDm(4, 1) = DefF(1, 2);
-            DepsDDm(4, 2) = DefF(2, 2);
-            DepsDDm(4, 6) = DefF(0, 0);
-            DepsDDm(4, 7) = DefF(1, 0);
-            DepsDDm(4, 8) = DefF(2, 0);
-
-            DepsDDm(5, 3) = DefF(0, 2);
-            DepsDDm(5, 4) = DefF(1, 2);
-            DepsDDm(5, 5) = DefF(2, 2);
-            DepsDDm(5, 6) = DefF(0, 1);
-            DepsDDm(5, 7) = DefF(1, 1);
-            DepsDDm(5, 8) = DefF(2, 1);
-
-            // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
-            // coordinates)
-            ChMatrixNM<double, 9, 33> Gd;
-
-            for (int ii = 0; ii < 11; ii++) {
-                Gd(0, 3 * (ii)) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(1, 3 * (ii) + 1) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-                Gd(2, 3 * (ii) + 2) = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-
-                Gd(3, 3 * (ii)) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(4, 3 * (ii) + 1) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-                Gd(5, 3 * (ii) + 2) = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-
-                Gd(6, 3 * (ii)) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-                Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-            }
-            // Jacobian of Green-Lagrange strains with respect to the coordinates
+            // Strain derivative component
             ChMatrixNM<double, 6, 33> strainD;
-            strainD.MatrMultiply(DepsDDm, Gd);
+            ChMatrixNM<double, 1, 33> tempB;
+            ChMatrixNM<double, 1, 33> tempBB;
+            ChMatrixNM<double, 1, 3> tempB3;
+            ChMatrixNM<double, 1, 3> tempB31;
+            tempB3.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            tempB3.MatrMultiply(Ny, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            tempB31.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
+
+            tempB3.MatrMultiply(Nz, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            tempB31.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            tempB31.MatrMultiply(Ny, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
+
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
             DEPS.Reset();
@@ -1004,42 +999,55 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             strain(4, 0) = (Nx * ddNz)(0, 0) - (Nx * d0d0Nz)(0, 0);
             strain(5, 0) = (Ny * ddNz)(0, 0) - (Ny * d0d0Nz)(0, 0);
 
-            // Reorganize variable part of the deformation gradient (DefF)
-            ChMatrixNM<double, 6, 9> DepsDDm;  // Derivative of strain vector w.r.t. deformation gradient elements
+            // Strain derivative component
+            ChMatrixNM<double, 6, 33> strainD;
+            ChMatrixNM<double, 1, 33> tempB;
+            ChMatrixNM<double, 1, 33> tempBB;
+            ChMatrixNM<double, 1, 3> tempB3;
+            ChMatrixNM<double, 1, 3> tempB31;
+            tempB3.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            tempB3.MatrMultiply(Ny, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            tempB31.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
 
-            // (d)eps_xx/(d)DefF(i)
-            DepsDDm(0, 0) = DefF(0, 0);
-            DepsDDm(0, 1) = DefF(1, 0);
-            DepsDDm(0, 2) = DefF(2, 0);
-            // (d)eps_yy/(d)DefF(i)
-            DepsDDm(1, 3) = DefF(0, 1);
-            DepsDDm(1, 4) = DefF(1, 1);
-            DepsDDm(1, 5) = DefF(2, 1);
-            // (d)eps_xy/(d)DefF(i)
-            DepsDDm(2, 0) = DefF(0, 1);
-            DepsDDm(2, 1) = DefF(1, 1);
-            DepsDDm(2, 2) = DefF(2, 1);
-            DepsDDm(2, 3) = DefF(0, 0);
-            DepsDDm(2, 4) = DefF(1, 0);
-            DepsDDm(2, 5) = DefF(2, 0);
-            // (d)eps_zz/(d)DefF(i)
-            DepsDDm(3, 6) = DefF(0, 2);
-            DepsDDm(3, 7) = DefF(1, 2);
-            DepsDDm(3, 8) = DefF(2, 2);
-            // (d)eps_xz/(d)DefF(i)
-            DepsDDm(4, 0) = DefF(0, 2);
-            DepsDDm(4, 1) = DefF(1, 2);
-            DepsDDm(4, 2) = DefF(2, 2);
-            DepsDDm(4, 6) = DefF(0, 0);
-            DepsDDm(4, 7) = DefF(1, 0);
-            DepsDDm(4, 8) = DefF(2, 0);
-            // (d)eps_yz/(d)DefF(i)
-            DepsDDm(5, 3) = DefF(0, 2);
-            DepsDDm(5, 4) = DefF(1, 2);
-            DepsDDm(5, 5) = DefF(2, 2);
-            DepsDDm(5, 6) = DefF(0, 1);
-            DepsDDm(5, 7) = DefF(1, 1);
-            DepsDDm(5, 8) = DefF(2, 1);
+            tempB3.MatrMultiply(Nz, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            tempB31.MatrMultiply(Nx, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            tempB31.MatrMultiply(Ny, m_element->m_d);
+            for (int i = 0; i < 11; i++) {
+                for (int j = 0; j < 3; j++) {
+                    tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
+                }
+            }
+            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
 
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)
@@ -1057,9 +1065,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 Gd(7, 3 * (ii) + 1) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
                 Gd(8, 3 * (ii) + 2) = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
             }
-            // Jacobian of Green-Lagrange strains with respect to the coordinates
-            ChMatrixNM<double, 6, 33> strainD;  // Derivative of strain vector w.r.t. element coordinates
-            strainD.MatrMultiply(DepsDDm, Gd);
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
