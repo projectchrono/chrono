@@ -396,8 +396,10 @@ set(CV_TV_ROADWHEEL_FILES
 source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
 
 set(CV_TV_SPROCKET_FILES
-    tracked_vehicle/sprocket/ChArcSprocket.h
-    tracked_vehicle/sprocket/ChArcSprocket.cpp
+    tracked_vehicle/sprocket/ChSprocketSinglePin.h
+    tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
+    tracked_vehicle/sprocket/ChSprocketDoublePin.h
+    tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
@@ -408,8 +410,10 @@ set(CV_TV_SUSPENSION_FILES
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
 set(CV_TV_TRACKSHOE_FILES
-    tracked_vehicle/track_shoe/ChSinglePinShoe.h
-    tracked_vehicle/track_shoe/ChSinglePinShoe.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h
+    tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
+    tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 

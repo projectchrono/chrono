@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-    M113_Vehicle vehicle(false, ChMaterialSurfaceBase::DEM);
+    M113_Vehicle vehicle(false, SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
     // Set visualization type for vehicle components (default: PRIMITIVES).
     ////vehicle.SetRoadWheelVisType(NONE);

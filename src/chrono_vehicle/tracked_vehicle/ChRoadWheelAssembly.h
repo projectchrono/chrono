@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChRoadWheelAssembly {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Return the type of track shoe consistent with this road wheel.
-    TrackShoeType GetType() const { return m_type; }
+    GuidePinType GetType() const { return m_type; }
 
     /// Return a handle to the road wheel subsystem.
     std::shared_ptr<ChRoadWheel> GetRoadWheel() const { return m_road_wheel; }
@@ -99,7 +99,7 @@ class CH_VEHICLE_API ChRoadWheelAssembly {
 
   protected:
     std::string m_name;                         ///< name of the subsystem
-    TrackShoeType m_type;                       ///< type of the track shoe matching this road wheel
+    GuidePinType m_type;                        ///< type of the track shoe matching this road wheel
     std::shared_ptr<ChRoadWheel> m_road_wheel;  ///< road-wheel subsystem
 };
 

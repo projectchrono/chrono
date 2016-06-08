@@ -34,9 +34,10 @@ namespace m113 {
 class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
+                 TrackShoeType shoe_type,
                  ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
-    M113_Vehicle(bool fixed, ChSystem* system);
+    M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system);
 
     ~M113_Vehicle() {}
 
@@ -53,7 +54,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     void ExportMeshPovray(const std::string& out_dir);
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, TrackShoeType shoe_type);
 
     // Chassis visualization mesh
     static const std::string m_chassisMeshName;

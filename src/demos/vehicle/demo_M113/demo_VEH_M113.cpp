@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-    M113_Vehicle vehicle(false, ChMaterialSurfaceBase::DEM);
+    M113_Vehicle vehicle(false, SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 

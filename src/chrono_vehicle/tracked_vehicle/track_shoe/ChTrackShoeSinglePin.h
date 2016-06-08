@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_SINGLE_PIN_SHOE_H
-#define CH_SINGLE_PIN_SHOE_H
+#ifndef CH_TRACK_SHOE_SINGLE_PIN_H
+#define CH_TRACK_SHOE_SINGLE_PIN_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -33,10 +33,10 @@ namespace vehicle {
 
 /// Base class for a single-pin track shoe (template definition).
 /// A single-pin track shoe can be either of CENTRAL_PIN or LATERAL_PIN type.
-class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
   public:
-    ChSinglePinShoe(const std::string& name  ///< [in] name of the subsystem
-                    );
+    ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
+                         );
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
