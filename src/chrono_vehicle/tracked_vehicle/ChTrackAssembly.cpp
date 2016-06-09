@@ -129,7 +129,7 @@ bool ChTrackAssembly::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double shoe_height = m_shoes[0]->GetHeight();
     double sprocket_radius = m_sprocket->GetAssemblyRadius();
     double idler_radius = m_idler->GetWheelRadius() + 0.9 * shoe_height;
-    double wheel_radius = m_suspensions[0]->GetWheelRadius() + 0.95 * shoe_height;
+    double wheel_radius = m_suspensions[0]->GetWheelRadius() + 0.9 * shoe_height;
 
     // Decide whether we wrap counter-clockwise (sprocket in front of idler) or
     // clockwise (sprocket behind idler).
@@ -173,7 +173,7 @@ bool ChTrackAssembly::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     angle = ccw ? -CH_C_PI - std::atan2(dz, dx) : CH_C_PI + std::atan2(dz, -dx);
 
     // Create track shoes with constant orientation
-    while (sign * (idler_pos.x - p2.x + 0.5 * shoe_pitch) > 0 && index < num_shoes) {
+    while (sign * (idler_pos.x - p2.x + shoe_pitch) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
