@@ -38,9 +38,8 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
                                double gear_C,           ///< height of profile arcs
                                double gear_W,           ///< offset of profile arcs
                                double separation,       ///< separation between sprocket gears
-                               double shoe_locF,        ///< location of front cylinder on shoe (in local frame)
-                               double shoe_locR,        ///< location of rear cylinder on shoe (in local frame)
-                               double shoe_R            ///< radius of shoe cylinders
+                               double shoe_len,         ///< length of track shoe connector
+                               double shoe_R            ///< radius of track shoe connector
                                )
         : m_track(track),
           m_envelope(envelope),
@@ -52,8 +51,7 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
           m_gear_W(gear_W),
           m_gear_Rhat(gear_R - envelope),
           m_separation(separation),
-          m_shoe_locF(shoe_locF),
-          m_shoe_locR(shoe_locR),
+          m_shoe_len(shoe_len),
           m_shoe_R(shoe_R),
           m_shoe_Rhat(shoe_R + envelope) {}
 
@@ -71,9 +69,8 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
     double m_gear_C;      // sprocket gear, arc center height
     double m_gear_W;      // sprocket gear, arc center offset
     double m_separation;  // separation distance between sprocket gears
-    double m_shoe_locF;   // single-pin shoe, location of front contact cylinder
-    double m_shoe_locR;   // single-pin shoe, location of rear contact cylinder
-    double m_shoe_R;      // single-pin shoe, radius of contact cylinders
+    double m_shoe_len;    // length of track shoe connector
+    double m_shoe_R;      // radius of track shoe connector
 
     double m_gear_Rhat;  // adjusted gear arc radius
     double m_shoe_Rhat;  // adjusted she cylinder radius
@@ -108,13 +105,12 @@ ChSystem::ChCustomComputeCollisionCallback* ChSprocketDoublePin::GetCollisionCal
     double gear_W = GetArcCenterOffset();
 
     // Extract parameterization of the shoe contact geometry.
-    double shoe_locF = shoe->GetFrontCylinderLoc();
-    double shoe_locR = shoe->GetRearCylinderLoc();
-    double shoe_R = shoe->GetCylinderRadius();
+    double shoe_len = shoe->GetConnectorLength();
+    double shoe_R = shoe->GetConnectorRadius();
 
     // Create and return the callback object. Note: this pointer will be freed by the base class.
     return new SprocketDoublePinContactCB(track, 0.005, gear_nteeth, gear_RO, gear_R, gear_C, gear_W, GetSeparation(),
-                                          shoe_locF, shoe_locR, shoe_R);
+                                          shoe_len, shoe_R);
 }
 
 // -----------------------------------------------------------------------------
