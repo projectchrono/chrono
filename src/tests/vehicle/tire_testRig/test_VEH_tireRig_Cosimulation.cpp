@@ -156,7 +156,7 @@ RigNode::RigNode(int num_threads) {
     double chassis_mass = 0.1;
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
-    m_init_vel = 10;  //// 20;
+    m_init_vel = 0; //// 20;
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -578,8 +578,8 @@ class TerrainNode {
     double m_init_height;  ///< initial terrain height (after optional settling)
     double m_radius_g;     ///< radius of one particle of granular material
 
-    unsigned int m_num_vert;            ///< number of tire mesh vertices
-    unsigned int m_num_tri;             ///< number of tire mesh triangles
+    unsigned int m_num_vert;  ///< number of tire mesh vertices
+    unsigned int m_num_tri;   ///< number of tire mesh triangles
 
     std::vector<VertexState> m_vertex_states;  ///< mesh vertex states
     std::vector<Triangle> m_triangles;         ///< tire mesh connectivity
@@ -598,10 +598,12 @@ class TerrainNode {
     void ForcesNodeProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices);
     void ForcesFaceProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices);
 
+    void PrintMeshUpdateData();
+    void PrintNodeProxiesUpdateData();
+    void PrintFaceProxiesUpdateData();
+
     void PrintNodeProxiesContactData();
     void PrintFaceProxiesContactData();
-
-    void PrintLowestProxy();
 
     bool vertex_height_comparator(const ProxyBody& a, const ProxyBody& b);
 
@@ -1053,18 +1055,19 @@ void TerrainNode::Synchronize(int step_number, double time) {
     delete[] vert_data;
     delete[] tri_data;
 
+    ////PrintMeshUpdateData();
+
     // Set position, rotation, and velocity of proxy bodies.
     switch (m_type) {
         case RIGID:
             UpdateNodeProxies();
+            PrintNodeProxiesUpdateData();
             break;
         case GRANULAR:
             UpdateFaceProxies();
+            PrintFaceProxiesUpdateData();
             break;
     }
-
-    // Display information on lowest proxy.
-    PrintLowestProxy();
 
     // Calculate cumulative contact forces for all bodies in system.
     m_system->CalculateContactForces();
@@ -1331,14 +1334,44 @@ void TerrainNode::PrintFaceProxiesContactData() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TerrainNode::PrintLowestProxy() {
+void TerrainNode::PrintNodeProxiesUpdateData() {
     auto lowest = std::min_element(
         m_proxies.begin(), m_proxies.end(),
         [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
     const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
     double height = (*lowest).m_body->GetPos().z;
-    std::cout << "[Terrain node] lowest vertex:  index = " << (*lowest).m_index << "  height = " << height
+    std::cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
               << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+}
+
+void TerrainNode::PrintFaceProxiesUpdateData() {
+    {
+        auto lowest = std::min_element(
+            m_proxies.begin(), m_proxies.end(),
+            [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
+        const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
+        double height = (*lowest).m_body->GetPos().z;
+        std::cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+            << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+    }
+
+    {
+        auto lowest = std::min_element(
+            m_vertex_states.begin(), m_vertex_states.end(),
+            [](const VertexState& a, const VertexState& b){return a.pos.z < b.pos.z; });
+        std::cout << "[Terrain node] lowest vertex:  height = " << (*lowest).pos.z << std::endl;
+    }
+}
+
+// Print vertex and face connectivity data, as received from the rig node at synchronization.
+void TerrainNode::PrintMeshUpdateData() {
+    std::cout << "[Terrain node] mesh vertices and faces" << std::endl;
+    std::for_each(m_vertex_states.begin(), m_vertex_states.end(), [](const VertexState& a) {
+        std::cout << a.pos.x << "  " << a.pos.y << "  " << a.pos.z << std::endl;
+    });
+
+    std::for_each(m_triangles.begin(), m_triangles.end(),
+                  [](const Triangle& a) { std::cout << a.v1 << "  " << a.v2 << "  " << a.v3 << std::endl; });
 }
 
 // =============================================================================
@@ -1374,7 +1407,7 @@ int main() {
             my_rig->SetOutputFile("TestRigCosim_RigNode.txt");
             break;
         case TERRAIN_NODE_RANK:
-            my_terrain = new TerrainNode(TerrainNode::RIGID, ChMaterialSurfaceBase::DEM, nthreads_terrainnode);
+            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, nthreads_terrainnode);
             ////my_terrain->SetOutputFile("TestRigCosim_TerrainNode.txt");
             my_terrain->Settle();
             break;
