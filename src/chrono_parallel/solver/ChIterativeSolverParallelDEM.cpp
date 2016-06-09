@@ -367,7 +367,7 @@ void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ex
                                                           custom_vector<real3>& ext_body_force,
                                                           custom_vector<real3>& ext_body_torque,
                                                           custom_vector<int2>& shape_pairs,
-                                                          custom_vector<bool>& shear_touch) {
+                                                          custom_vector<char>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(

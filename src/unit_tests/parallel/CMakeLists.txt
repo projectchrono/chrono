@@ -20,7 +20,7 @@ SET(TESTS
     utest_PAR_mat33
     utest_PAR_matrix
     utest_PAR_gravity
-    utest_PAR_rhs
+    #utest_PAR_rhs
     utest_PAR_r
     utest_PAR_shafts
     utest_PAR_other_math
