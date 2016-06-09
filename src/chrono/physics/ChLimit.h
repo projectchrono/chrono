@@ -1,19 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLINKLIMIT_H
 #define CHLINKLIMIT_H
 
-#include <math.h>
 #include <float.h>
+#include <cmath>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -22,16 +25,15 @@
 
 namespace chrono {
 
-/// Class for limits in link joints (for example
-/// limits on elbow or knee rotations, etc.)
+/// Class for limits in link joints (for example limits on elbow or knee rotations, etc.)
 /// Old code: Must be improved..
 
 class ChApi ChLinkLimit {
   private:
-    int active;  // true/false
-    int penalty_only;
-    int polar;
-    int rotation;
+    bool active;  // true/false
+    bool penalty_only;
+    bool polar;
+    bool rotation;
     double max;
     double min;
     double maxCushion;
@@ -53,35 +55,36 @@ class ChApi ChLinkLimit {
     ChConstraintTwoBodies constr_lower;
 
     ChLinkLimit();
+    ChLinkLimit(const ChLinkLimit& other);
     ~ChLinkLimit();
-    void Copy(ChLinkLimit* source);
-    ChLinkLimit* new_Duplicate();
 
-    int Get_active() { return active; }
-    int Get_penalty() { return penalty_only; }
-    int Get_polar() { return polar; }
-    int Get_rotation() { return rotation; }
-    double Get_max() { return max; }
-    double Get_min() { return min; }
-    double Get_maxCushion() { return maxCushion; }
-    double Get_minCushion() { return minCushion; }
-    double Get_Kmax() { return Kmax; }
-    double Get_Kmin() { return Kmin; }
-    double Get_Rmax() { return Rmax; }
-    double Get_Rmin() { return Rmin; }
-    double Get_maxElastic() { return maxElastic; }
-    double Get_minElastic() { return minElastic; }
-    ChFunction* GetModul_Kmax() { return modul_Kmax; };
-    ChFunction* GetModul_Kmin() { return modul_Kmin; };
-    ChFunction* GetModul_Rmax() { return modul_Rmax; };
-    ChFunction* GetModul_Rmin() { return modul_Rmin; };
-    ChFunction* GetPolar_Max() { return polar_Max; };
-    double Get_polar_max(double pol_ang);
+    ChLinkLimit* Clone() const { return new ChLinkLimit(*this); }
 
-    void Set_active(int m_active) { active = m_active; }
-    void Set_penalty(int m_active) { penalty_only = m_active; }
-    void Set_polar(int m_pol) { polar = m_pol; }
-    void Set_rotation(int m_rot) { rotation = m_rot; }
+    bool Get_active() const { return active; }
+    bool Get_penalty() const { return penalty_only; }
+    bool Get_polar() const { return polar; }
+    bool Get_rotation() const { return rotation; }
+    double Get_max() const { return max; }
+    double Get_min() const { return min; }
+    double Get_maxCushion() const { return maxCushion; }
+    double Get_minCushion() const { return minCushion; }
+    double Get_Kmax() const { return Kmax; }
+    double Get_Kmin() const { return Kmin; }
+    double Get_Rmax() const { return Rmax; }
+    double Get_Rmin() const { return Rmin; }
+    double Get_maxElastic() const { return maxElastic; }
+    double Get_minElastic() const { return minElastic; }
+    ChFunction* GetModul_Kmax() const { return modul_Kmax; }
+    ChFunction* GetModul_Kmin() const { return modul_Kmin; }
+    ChFunction* GetModul_Rmax() const { return modul_Rmax; }
+    ChFunction* GetModul_Rmin() const { return modul_Rmin; }
+    ChFunction* GetPolar_Max() const { return polar_Max; }
+    double Get_polar_max(double pol_ang) const;
+
+    void Set_active(bool m_active) { active = m_active; }
+    void Set_penalty(bool m_active) { penalty_only = m_active; }
+    void Set_polar(bool m_pol) { polar = m_pol; }
+    void Set_rotation(bool m_rot) { rotation = m_rot; }
     void Set_max(double m_max);
     void Set_min(double m_min);
     void Set_maxCushion(double m_maxCushion);
@@ -98,10 +101,11 @@ class ChApi ChLinkLimit {
     void SetModul_Rmin(ChFunction* m_funct);
     void SetPolar_Max(ChFunction* m_funct);
 
-    double GetViolation(double x);  // return negative violation when x<min, or positive if x>max;
-    double GetForce(double x, double x_dt);
+    /// Return negative violation when x<min, or positive if x>max
+    double GetViolation(double x) const;
 
-    double GetPolarForce(double x, double x_dt, double pol_ang);
+    double GetForce(double x, double x_dt) const;
+    double GetPolarForce(double x, double x_dt, double pol_ang) const;
 
     //
     // SERIALIZATION
@@ -112,7 +116,6 @@ class ChApi ChLinkLimit {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
-
 };
 
 }  // end namespace chrono

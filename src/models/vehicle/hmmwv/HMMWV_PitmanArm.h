@@ -23,9 +23,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_PitmanArm : public chrono::vehicle::ChPitmanArm {
+class CH_MODELS_API HMMWV_PitmanArm : public ChPitmanArm {
   public:
     HMMWV_PitmanArm(const std::string& name);
     ~HMMWV_PitmanArm() {}
@@ -36,13 +38,13 @@ class CH_MODELS_API HMMWV_PitmanArm : public chrono::vehicle::ChPitmanArm {
     virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const chrono::ChVector<>& getSteeringLinkInertia() const override { return m_steeringLinkInertia; }
-    virtual const chrono::ChVector<>& getPitmanArmInertia() const override { return m_pitmanArmInertia; }
+    virtual const ChVector<>& getSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual const ChVector<>& getPitmanArmInertia() const override { return m_pitmanArmInertia; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
-    virtual const chrono::ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getDirection(DirectionId which) override;
 
   private:
     static const double m_steeringLinkMass;
@@ -53,10 +55,12 @@ class CH_MODELS_API HMMWV_PitmanArm : public chrono::vehicle::ChPitmanArm {
 
     static const double m_maxAngle;
 
-    static const chrono::ChVector<> m_steeringLinkInertia;
-    static const chrono::ChVector<> m_pitmanArmInertia;
+    static const ChVector<> m_steeringLinkInertia;
+    static const ChVector<> m_pitmanArmInertia;
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

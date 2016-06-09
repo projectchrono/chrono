@@ -20,38 +20,41 @@
 #define M113_VEHICLE_H
 
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
-class CH_MODELS_API M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
+class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
-                 chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+                 TrackShoeType shoe_type,
+                 ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
-    M113_Vehicle(bool fixed, chrono::ChSystem* system);
+    M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system);
 
     ~M113_Vehicle() {}
 
-    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
-    void SetChassisVisType(chrono::vehicle::VisualizationType vis);
-    void SetSprocketVisType(chrono::vehicle::VisualizationType vis);
-    void SetIdlerVisType(chrono::vehicle::VisualizationType vis);
-    void SetRoadWheelVisType(chrono::vehicle::VisualizationType vis);
-    void SetTrackShoeVisType(chrono::vehicle::VisualizationType vis);
+    void SetChassisVisType(VisualizationType vis);
+    void SetSprocketVisType(VisualizationType vis);
+    void SetIdlerVisType(VisualizationType vis);
+    void SetRoadWheelVisType(VisualizationType vis);
+    void SetTrackShoeVisType(VisualizationType vis);
 
     void ExportMeshPovray(const std::string& out_dir);
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, TrackShoeType shoe_type);
 
     // Chassis visualization mesh
     static const std::string m_chassisMeshName;
@@ -59,15 +62,17 @@ class CH_MODELS_API M113_Vehicle : public chrono::vehicle::ChTrackedVehicle {
 
     // Chassis mass properties
     static const double m_chassisMass;
-    static const chrono::ChVector<> m_chassisCOM;
-    static const chrono::ChVector<> m_chassisInertia;
+    static const ChVector<> m_chassisCOM;
+    static const ChVector<> m_chassisInertia;
 
     // Driver local coordinate system
-    static const chrono::ChCoordsys<> m_driverCsys;
+    static const ChCoordsys<> m_driverCsys;
 
-    chrono::vehicle::VisualizationType m_chassisVisType;
+    VisualizationType m_chassisVisType;
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

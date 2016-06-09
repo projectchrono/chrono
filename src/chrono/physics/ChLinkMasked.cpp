@@ -1,39 +1,29 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkMasked.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkMasked.h"
-#include "physics/ChSystem.h"
-#include "physics/ChGlobal.h"
-//#include "physics/ChCollide.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChLinkMasked.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 using namespace collision;
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkMasked> a_registration_ChLinkMasked;
 
-// BUILDERS
 ChLinkMasked::ChLinkMasked() {
     force_D = new ChLinkForce;  // defeault no forces in link dof
     force_R = new ChLinkForce;
@@ -62,7 +52,24 @@ ChLinkMasked::ChLinkMasked() {
                   // setting automatically  n. of DOC and DOF,
 }
 
-// DESTROYER
+ChLinkMasked::ChLinkMasked(const ChLinkMasked& other) : ChLinkMarkers(other) {
+    mask = other.mask->Clone();
+
+    // setup -alloc all needed matrices!!
+    ChangedLinkMask();
+
+    force_D = other.force_D->Clone();
+    force_R = other.force_R->Clone();
+    force_X = other.force_X->Clone();
+    force_Y = other.force_Y->Clone();
+    force_Z = other.force_Z->Clone();
+    force_Rx = other.force_Rx->Clone();
+    force_Ry = other.force_Ry->Clone();
+    force_Rz = other.force_Rz->Clone();
+
+    d_restlength = other.d_restlength;
+}
+
 ChLinkMasked::~ChLinkMasked() {
     DestroyLink();
 
@@ -85,35 +92,6 @@ ChLinkMasked::~ChLinkMasked() {
 
     delete mask;
     mask = NULL;
-}
-
-void ChLinkMasked::Copy(ChLinkMasked* source) {
-    // first copy the parent class data...
-    ChLinkMarkers::Copy(source);
-
-    mask->Copy(source->mask);
-
-    // setup -alloc all needed matrices!!
-    ChangedLinkMask();
-
-    force_D->Copy(source->force_D);  // copy int.forces
-    force_R->Copy(source->force_R);
-    force_X->Copy(source->force_X);
-    force_Y->Copy(source->force_Y);
-    force_Z->Copy(source->force_Z);
-    force_Rx->Copy(source->force_Rx);
-    force_Ry->Copy(source->force_Ry);
-    force_Rz->Copy(source->force_Rz);
-
-    d_restlength = source->d_restlength;
-}
-
-ChLink* ChLinkMasked::new_Duplicate()  // inherited classes:  Link* MyInheritedLink::new_Duplicate()
-{
-    ChLinkMasked* m_l;
-    m_l = new ChLinkMasked;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
 }
 
 void ChLinkMasked::BuildLink() {
@@ -150,7 +128,9 @@ void ChLinkMasked::BuildLink() {
 
 void ChLinkMasked::BuildLink(ChLinkMask* new_mask) {
     // set mask
-    mask->Copy(new_mask);
+    delete mask;
+    mask = new_mask->Clone();
+
     // setup matrices;
     BuildLink();
 }
@@ -366,8 +346,8 @@ void ChLinkMasked::ConstraintsBiLoad_C(double factor, double recovery_clamp, boo
         if (mask->Constr_N(i).IsActive()) {
             if (do_clamp) {
                 if (mask->Constr_N(i).IsUnilateral())
-                    mask->Constr_N(i)
-                        .Set_b_i(mask->Constr_N(i).Get_b_i() + ChMax(factor * C->ElementN(cnt), -recovery_clamp));
+                    mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
+                                              ChMax(factor * C->ElementN(cnt), -recovery_clamp));
                 else
                     mask->Constr_N(i).Set_b_i(mask->Constr_N(i).Get_b_i() +
                                               ChMin(ChMax(factor * C->ElementN(cnt), -recovery_clamp), recovery_clamp));
@@ -571,20 +551,13 @@ void ChLinkMasked::Update(double time, bool update_assets) {
     UpdateForces(time);
 }
 
-/////////
-///////// FILE I/O
-/////////
-
 // Define some  link-specific flags for backward compatibility
 
 #define LF_INACTIVE (1L << 0)
 #define LF_BROKEN (1L << 2)
 #define LF_DISABLED (1L << 4)
 
-
-
-void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -592,7 +565,7 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
     ChLinkMarkers::ArchiveOUT(marchive);
 
     // serialize all member data:
-    //marchive << CHNVP(mask); // to do? needed?
+    // marchive << CHNVP(mask); // to do? needed?
     marchive << CHNVP(d_restlength);
     marchive << CHNVP(force_D);
     marchive << CHNVP(force_R);
@@ -605,8 +578,7 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -626,5 +598,4 @@ void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(force_Rz);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

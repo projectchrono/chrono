@@ -18,9 +18,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_RackPinion.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -39,7 +38,8 @@ const double HMMWV_RackPinion::m_maxAngle = 50.0 * (CH_C_PI / 180);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RackPinion::HMMWV_RackPinion(const std::string& name) : ChRackPinion(name) {
-}
+HMMWV_RackPinion::HMMWV_RackPinion(const std::string& name) : ChRackPinion(name) {}
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

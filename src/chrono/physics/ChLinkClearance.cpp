@@ -1,36 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkClearance.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkClearance.h"
+#include "chrono/physics/ChLinkClearance.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR CLEARANCE LINKS
-//
-//
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkClearance> a_registration_ChLinkClearance;
 
 ChLinkClearance::ChLinkClearance() {
@@ -58,31 +44,16 @@ ChLinkClearance::ChLinkClearance() {
     ChangedLinkMask();
 }
 
-ChLinkClearance::~ChLinkClearance() {
-}
+ChLinkClearance::ChLinkClearance(const ChLinkClearance& other) : ChLinkLock(other) {
+    clearance = other.clearance;
+    c_friction = other.c_friction;
+    c_restitution = other.c_restitution;
+    c_tang_restitution = other.c_tang_restitution;
+    c_viscous = other.c_viscous;
+    diameter = other.diameter;
 
-void ChLinkClearance::Copy(ChLinkClearance* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    clearance = source->clearance;
-    c_friction = source->c_friction;
-    c_restitution = source->c_restitution;
-    c_tang_restitution = source->c_tang_restitution;
-    c_viscous = source->c_viscous;
-    diameter = source->diameter;
-
-    contact_F_abs = source->contact_F_abs;
-    contact_V_abs = source->contact_V_abs;
-}
-
-ChLink* ChLinkClearance::new_Duplicate() {
-    ChLinkClearance* m_l;
-    m_l = new ChLinkClearance;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+    contact_F_abs = other.contact_F_abs;
+    contact_V_abs = other.contact_V_abs;
 }
 
 // easy data getting
@@ -214,10 +185,7 @@ void ChLinkClearance::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-
-
-void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -234,8 +202,7 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -251,8 +218,4 @@ void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(c_viscous);
 }
 
-
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

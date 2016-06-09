@@ -22,14 +22,16 @@
 #ifndef HMMWV_SIMPLEPOWERTRAIN_H
 #define HMMWV_SIMPLEPOWERTRAIN_H
 
-#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 #include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/powertrain/ChSimplePowertrain.h"
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_SimplePowertrain : public chrono::vehicle::ChSimplePowertrain {
+class CH_MODELS_API HMMWV_SimplePowertrain : public ChSimplePowertrain {
   public:
     HMMWV_SimplePowertrain();
 
@@ -48,5 +50,7 @@ class CH_MODELS_API HMMWV_SimplePowertrain : public chrono::vehicle::ChSimplePow
 };
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

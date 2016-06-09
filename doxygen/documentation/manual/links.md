@@ -1,14 +1,12 @@
-
+﻿
 Links      {#links}
 ========
 
 
-Rigid bodies can be constrained: think about the case of a rod 
-and a piston, which are connected by a revolute joint, 
-as well as the rod is connected to the crankshaft, and so on. 
-
-This is achieved by using the ChLink classes. 
-Look at the API documentation for ChLink and its many sub-classes.
+A Chrono body can be constrained in its relative motion with respect to a different body or ground.
+For instance, consider the case of a connecting rod and a piston, which are connected by a revolute joint. Or the rod and the crankshaft, which are also connected through a joint.
+ 
+Connecting the relative motion of bodies is achieved in Chrono using ChLink classes.
 
 ![](pic_ChLink.png)
 
@@ -23,39 +21,36 @@ Look at the API documentation for ChLink and its many sub-classes.
   - ChLinkDistance
   - ...
 
-- Most links use two ChMarker as references
+- Most links use two ChMarker objects 
 
-- The marker m2 (in body n.2) is the master marker
+- Reactions and joint rotations/velocities are computed with respect to the master marker
 
-- Reactions and joint rotations/speeds etc. are computed respect to the master marker
-
-- Motion is constrained respect to the x,y,z axes of the frame of the master marker, ex:
-  - ChLinkLockRevolute: allowed DOF on z axis rotation
-  - ChLinkLockPrismatic: allowed DOF on x axis translation
+- Motion is constrained with respect to the x,y,z axes of the frame of the master marker
+  Example:
+  - ChLinkLockRevolute: allows one DOF, a rotation about the z axis
+  - ChLinkLockPrismatic: allows one DOF, a translation along the x axis
   - etc. 
 
-In most cases, one does not need to create explicitly the two markers, 
-because you just have to create a ChLink and use the ChLink::Initialize() 
-function, passing the two bodies and the position of the constraint; 
-such function will automatically create the two markers and it will add them to the bodies.
+In many cases there is no need to explicitly create two markers. Use in the case the ChLink::Initialize() 
+function, passing the two bodies and the position of the constraint. This function will automatically create the two markers and it will add them to the bodies.
 
-Alternatively you can create the two markers by yourself and add them to
-the two bodies, then call ```Initialize()``` by passing the two markers.
+Alternatively, one can create the two markers by explicitly, add them to
+the two bodies, and then call ```Initialize()``` by passing the two markers.
 
-In general the process is based on these steps:
+In general, the process involves the following steps:
 
 - Create the link from the desired ChLinkXxxyyy class
 - Use ```mylink->Initialize(…)``` to connect two bodies
 - Add the link to a ChSystem
 - Optional: set link properties
 
-See the following example:
+Example:
 
 ~~~{.cpp}
 // 1- Create a constraint of ‘engine’ type, that constrains
-// all x,y,z,Rx,Ry,Rz relative motions of marker 1 respect 
-// to 2, and Rz will follow a prescribed rotation.
-ChSharedPtr<ChLinkEngine> my_motor(new ChLinkEngine);
+// all x,y,z,Rx,Ry,Rz relative motions of marker 1 with respect 
+// to 2; Rz will follow a prescribed rotation.
+auto my_motor = std::make_shared<ChLinkEngine>();
 
 // 2- Initialization: define the position of m2 in absolute space:
 my_motor->Initialize( rotatingBody, // <- body 1
@@ -68,14 +63,14 @@ mphysicalSystem.AddLink(my_motor);
 
 // 4- Set some properties:
 my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-if (ChSharedPtr<ChFunction_Const> mfun = my_motor->Get_spe_funct().DynamicCastTo<ChFunction_Const>())
-   mfun->Set_yconst(CH_C_PI/2.0); // speed w=90°/s
+if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>())
+   mfun->Set_yconst(CH_C_PI_2); // speed w=90 deg/s
 ~~~
 
 
 # Examples
 
-Among the many examples, look at:
+See also:
 
 - demo_fourbar.cpp
 - demo_suspension.cpp

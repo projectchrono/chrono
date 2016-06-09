@@ -26,13 +26,6 @@
 #include <assert.h>
 #include <stdlib.h>  // system
 
-// SPH includes
-//#include "chrono_fsi/collideSphereSphere.cuh"
-//#include "chrono_fsi/printToFile.cuh"
-//#include "chrono_fsi/custom_cutil_math.h"
-//#include "chrono_fsi/SPHCudaUtils.h"
-//#include "chrono_fsi/checkPointReduced.h"
-
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
@@ -50,19 +43,17 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
 
-//#include "BallDropParams.h"
-//#include "chrono_fsi/SphInterface.h"
-//#include "chrono_fsi/InitializeSphMarkers.h"
-//#include "chrono_fsi/FSI_Integrate.h"
+// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
+#include "chrono_fsi/UtilsFsi/ChUtilsPrintSph.h"
 
 // FSI Interface Includes
 #include "tests/fsi/params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
 
-#define haveFluid true
+#define haveFluid 1
 
 // Chrono namespaces
 using namespace chrono;
@@ -419,7 +410,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 
 // =============================================================================
 
-void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
+void SavePovFilesMBD(fsi::ChSystemFsi & myFsiSystem, ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
 		double mTime) {
 	static double exec_time;
 	int out_steps = std::ceil((1.0 / paramsH->dT) / out_fps);
@@ -430,6 +421,14 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParam
 
 	// If enabled, output data for PovRay postprocessing.
 	if (povray_output && tStep % out_steps == 0) {
+		// **** out fluid
+		chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
+				myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+				pov_dir_fluid);
+
+		// **** out mbd
 		if (tStep / out_steps == 0) {
 			const std::string rmCmd = std::string("rm ") + pov_dir_mbd
 					+ std::string("/*.dat");
@@ -524,12 +523,12 @@ int main(int argc, char* argv[]) {
 
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		printSimulationParameters(paramsH);
-//		myFsiSystem.SetSimParams(paramsH);
 #if haveFluid
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 		utils::GridSampler<> sampler(initSpace0);
-		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
-		chrono::fsi::Real3 boxHalfDim = paramsH->cMax - boxCenter;
+		chrono::fsi::Real3 boxCenter = chrono::fsi::mR3(0, 0, paramsH->cMin.z + 0.5 * basinDepth);
+		boxCenter.z += 2 * paramsH->HSML;
+		chrono::fsi::Real3 boxHalfDim = chrono::fsi::mR3(1.8, .9 * hdimY, 0.5 * basinDepth);
 		utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter), fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
 		int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {
@@ -583,17 +582,16 @@ int main(int argc, char* argv[]) {
 			printf("Double Precision\n") : printf("Single Precision\n");
 	int stepEnd = int(paramsH->tFinal / paramsH->dT);
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		printf("step : %d \n", tStep);
 
 
 #if haveFluid
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray,
-//				currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
 		myFsiSystem.DoStepDynamics_FSI();
 #else
 		myFsiSystem.DoStepDynamics_ChronoRK2();
 #endif
 
-//		SavePovFilesMBD(mphysicalSystem, tStep, mTime);
+		SavePovFilesMBD(myFsiSystem, mphysicalSystem, paramsH, tStep, mTime);
 
 	}
 //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);

@@ -16,12 +16,11 @@
 //
 // =============================================================================
 
-#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
 #include <cmath>
+#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -32,8 +31,7 @@ const double HMMWV_FialaTire::m_normalDamping = 17513;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_FialaTire::HMMWV_FialaTire(const std::string& name) : ChFialaTire(name) {
-}
+HMMWV_FialaTire::HMMWV_FialaTire(const std::string& name) : ChFialaTire(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -105,3 +103,5 @@ double HMMWV_FialaTire::GetNormalStiffnessForce(double depth) const {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

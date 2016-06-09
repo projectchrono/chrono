@@ -27,7 +27,7 @@ namespace fsi {
 //--------------------------------------------------------------------------------------------------------------------------------
 
 ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_haveFluid)
-    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0), haveVehicle(false), mVehicle(NULL) {
+    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0) {
   fsiData = new ChFsiDataManager();
   paramsH = new SimParams;
   fsiBodeisPtr.resize(0);
@@ -39,8 +39,6 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_h
   fsiInterface =
       new ChFsiInterface(&(fsiData->fsiBodiesH), mphysicalSystem, &fsiBodeisPtr,
                          &(fsiData->fsiGeneralData.rigid_FSI_ForcesD), &(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
-
-  InitializeChronoGraphics();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,22 +68,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
                fsiData->sphMarkersD2.rhoPresMuD.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// Arman : split this later. move vehicle stuff out of this class.
 int ChSystemFsi::DoStepChronoSystem(Real dT, double mTime) {
-  if (haveVehicle) {
-    // Release the vehicle chassis at the end of the hold time.
-
-    if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed()) {
-      mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-      for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-      }
-    }
-
-    // Update vehicle
-    mVehicle->Synchronize(mTime);
-  }
-
 #ifdef CHRONO_OPENGL
   if (gl_window->Active()) {
     gl_window->DoStepDynamics(dT);
@@ -151,12 +134,7 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 
   DoStepChronoSystem(1.0 * paramsH->dT, mTime);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle) {
-  mVehicle = other_mVehicle;
-  haveVehicle = true;
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
   fsiData->ResizeDataManager();

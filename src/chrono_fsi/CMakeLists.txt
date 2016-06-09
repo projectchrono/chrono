@@ -7,20 +7,22 @@
 option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 
 # Return now if this module is not enabled
-if(NOT ENABLE_MODULE_FSI)
+#
+# TODO: REMOVE CHRONO_VEHICLE & CHRONO_PARALLEL AS REQUIREMENTS!!!!!
+#
+if(NOT ENABLE_MODULE_FSI OR NOT ENABLE_MODULE_PARALLEL)
+  mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
+  mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
   return()
 endif()
 
 message(STATUS "==== Chrono FSI module ====")
 
-# ----------------------------------------------------------------------------
-# CUDA STUFF , Arman Take care of this
-# ----------------------------------------------------------------------------
+mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
+mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
-OPTION(ENABLE_CUDA "Cuda Support" ON)
-IF(ENABLE_CUDA)
 find_package(CUDA)
 
 SET(CHRONO_INCLUDE_DIRS 
@@ -30,18 +32,12 @@ SET(CHRONO_INCLUDE_DIRS
 
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
-SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_20")
+SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
 
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
-ENDIF()
-# ----------------------------------------------------------------------------
-# OpenGL
-# ----------------------------------------------------------------------------
-IF(ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
+
+
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
 # ----------------------------------------------------------------------------
@@ -52,7 +48,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/ChConfigFSI.h.in
                ${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h)
 
 install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
-        DESTINATION include/chrono_vehicle)
+        DESTINATION include/chrono_fsi)
 
 #-----------------------------------------------------------------------------
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
@@ -71,7 +67,7 @@ ChFsiTypeConvert.cpp
 UtilsFsi/ChUtilsGeneratorBce.cpp
 UtilsFsi/ChUtilsGeneratorFluid.cpp
 UtilsFsi/ChUtilsGeneratorFsi.cpp
-UtilsFsi/ChUtilsPrintSph.cu
+UtilsFsi/ChUtilsPrintSph.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -91,7 +87,7 @@ ChFsiTypeConvert.h
 UtilsFsi/ChUtilsGeneratorBce.h
 UtilsFsi/ChUtilsGeneratorFluid.h
 UtilsFsi/ChUtilsGeneratorFsi.h
-UtilsFsi/ChUtilsPrintSph.cuh
+UtilsFsi/ChUtilsPrintSph.h
 )
 
 SOURCE_GROUP("" FILES 
@@ -99,23 +95,38 @@ SOURCE_GROUP("" FILES
     ${ChronoEngine_FSI_HEADERS})
 
 #-----------------------------------------------------------------------------	
-
-#-----------------------------------------------------------------------------	
 # Create the ChronoEngine_fsi library
+#-----------------------------------------------------------------------------	
+
+set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(LIBRARIES "ChronoEngine")
+
+if(ENABLE_MODULE_OPENGL)
+    include_directories(${CH_OPENGL_INCLUDES})
+    list(APPEND LIBRARIES ChronoEngine_opengl)
+ENDIF()
+
+if(ENABLE_MODULE_PARALLEL)
+	set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
+	include_directories(${CH_PARALLEL_INCLUDES})
+	list(APPEND LIBRARIES ChronoEngine_parallel)
+endif()
+
+if(ENABLE_MODULE_VEHICLE)
+	include_directories(${CH_VEHICLE_INCLUDES})
+	list(APPEND LIBRARIES ChronoEngine_vehicle)
+endif()
 
 CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED 
     ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_fsi PROPERTIES
-                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
+                      COMPILE_FLAGS "${CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_FEA")
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_FSI")
                           
-TARGET_LINK_LIBRARIES(ChronoEngine_fsi
-                      ChronoEngine)
-
-ADD_DEPENDENCIES(ChronoEngine_fsi ChronoEngine)
+TARGET_LINK_LIBRARIES(ChronoEngine_fsi ${LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_fsi
         RUNTIME DESTINATION bin

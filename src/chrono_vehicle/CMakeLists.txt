@@ -321,6 +321,23 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
+if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
+    set(CV_WV_COSIM_FILES
+        wheeled_vehicle/cosim/ChCosimManager.h
+        wheeled_vehicle/cosim/ChCosimManager.cpp
+        wheeled_vehicle/cosim/ChCosimNode.h
+        wheeled_vehicle/cosim/ChCosimVehicleNode.h
+        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
+        wheeled_vehicle/cosim/ChCosimTireNode.h
+        wheeled_vehicle/cosim/ChCosimTireNode.cpp
+        wheeled_vehicle/cosim/ChCosimTerrainNode.h
+        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
+    )
+    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
+else()
+    set(CV_WV_COSIM_FILES "")
+endif()
+
 # --------------- TRACKED VEHICLE FILES
 
 set(CV_TV_BASE_FILES
@@ -379,8 +396,10 @@ set(CV_TV_ROADWHEEL_FILES
 source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
 
 set(CV_TV_SPROCKET_FILES
-    tracked_vehicle/sprocket/ChArcSprocket.h
-    tracked_vehicle/sprocket/ChArcSprocket.cpp
+    tracked_vehicle/sprocket/ChSprocketSinglePin.h
+    tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
+    tracked_vehicle/sprocket/ChSprocketDoublePin.h
+    tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
@@ -391,8 +410,10 @@ set(CV_TV_SUSPENSION_FILES
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
 set(CV_TV_TRACKSHOE_FILES
-    tracked_vehicle/track_shoe/ChSinglePinShoe.h
-    tracked_vehicle/track_shoe/ChSinglePinShoe.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h
+    tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
+    tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
+    tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
@@ -428,7 +449,9 @@ source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 # ----------------------------------------------------------------------------
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
+set(LINK_FLAGS ${CH_LINKERFLAG_SHARED})
 set(LIBRARIES "ChronoEngine")
+
 if(ENABLE_MODULE_IRRLICHT)
     set(CXX_FLAGS "${CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBRARIES ChronoEngine_irrlicht)
@@ -438,6 +461,13 @@ endif()
 
 if(ENABLE_MODULE_FEA)
     list(APPEND LIBRARIES ChronoEngine_fea)
+endif()
+
+if(MPI_CXX_FOUND)
+    set(CXX_FLAGS "${CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS}")
+    set(LINK_FLAGS "${LINK_FLAGS} ${MPI_CXX_LINK_FLAGS}")
+    include_directories(${MPI_CXX_INCLUDE_PATH})
+    list(APPEND LIBRARIES ${MPI_CXX_LIBRARIES})
 endif()
 
 add_library(ChronoEngine_vehicle SHARED
@@ -462,6 +492,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CVIRR_WV_UTILS_FILES}
     ${CV_WV_VEHICLE_FILES}
     ${CV_WV_WHEEL_FILES}
+    ${CV_WV_COSIM_FILES}
 #
     ${CV_TV_BASE_FILES}
     ${CV_TV_BRAKE_FILES}

@@ -61,6 +61,10 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
 #endif
 }
 
+ChSystemParallel::ChSystemParallel(const ChSystemParallel& other) : ChSystem(other) {
+    //// TODO
+}
+
 ChSystemParallel::~ChSystemParallel() {
     delete data_manager;
 }

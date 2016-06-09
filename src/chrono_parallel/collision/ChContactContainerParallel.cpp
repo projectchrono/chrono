@@ -15,6 +15,11 @@ ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc
     n_added_6_6 = 0;
 }
 
+ChContactContainerParallel::ChContactContainerParallel(const ChContactContainerParallel& other)
+    : ChContactContainerBase(other) {
+    //// TODO
+}
+
 ChContactContainerParallel::~ChContactContainerParallel() {
     RemoveAllContacts();
 }

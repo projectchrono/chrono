@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSHAFTHERMALENGINE_H
 #define CHSHAFTHERMALENGINE_H
@@ -17,44 +20,28 @@
 
 namespace chrono {
 
-///  Class for defining a thermal engine
-///  between two one-degree-of-freedom parts, that is,
-///  shafts that can be used to build 1D models
-///  of power trains.
-///  The first shaft is the 'crankshaft' to whom the
-///  torque is applied, the second is the botor block,
-///  that receives the negative torque.
+/// Class for defining a thermal engine between two one-degree-of-freedom parts;
+/// i.e., shafts that can be used to build 1D models of power trains.
+/// The first shaft is the 'crankshaft' to whom the torque is applied, the second
+/// is the botor block, that receives the negative torque.
 
 class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChShaftsThermalEngine, ChShaftsTorqueBase);
 
   private:
-    //
-    // DATA
-    //
-
-    std::shared_ptr<ChFunction> Tw;  // torque as function of angular vel.
+    std::shared_ptr<ChFunction> Tw;  ///< torque as function of angular vel.
     double throttle;
 
     bool error_backward;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Constructor.
     ChShaftsThermalEngine();
-    /// Destructor
-    ~ChShaftsThermalEngine();
+    ChShaftsThermalEngine(const ChShaftsThermalEngine& other);
+    ~ChShaftsThermalEngine() {}
 
-    /// Copy from another ChShaftsThermalEngine.
-    void Copy(ChShaftsThermalEngine* source);
-
-    //
-    // FUNCTIONS
-    //
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsThermalEngine* Clone() const override { return new ChShaftsThermalEngine(*this); }
 
     /// Set the torque curve T(w), function of angular speed between shaft1 and shaft2.
     /// Output units: [Nm]  , input units: [rad/s]
@@ -67,33 +54,25 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
     /// scaled as T=T(w)*s.
     /// This is a simplified model of real torque modulation, but
     /// nough for a basic model. An advanced approach would require a 2D map T(w,s)
-    void SetThrottle(double mt) { this->throttle = mt; }
+    void SetThrottle(double mt) { throttle = mt; }
     /// Get the current throttle value
-    double GetThrottle() const { return this->throttle; }
+    double GetThrottle() const { return throttle; }
 
     /// Tell if the engine is rotating backward.
     /// If so, it's an erroneous situation
-    bool IsRotatingBackward() { return this->error_backward; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
+    bool IsRotatingBackward() { return error_backward; }
 
     /// This is the function that actually contains the
     /// formula for computing T=T(w,throttle)
-    virtual double ComputeTorque();
-
-    //
-    // SERIALIZATION
-    //
+    virtual double ComputeTorque() override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

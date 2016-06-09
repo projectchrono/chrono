@@ -1,34 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHPROXIMITYCONTAINERBASE_H
 #define CHPROXIMITYCONTAINERBASE_H
 
-///////////////////////////////////////////////////
-//
-//   ChProximityContainerBase.h
-//
-//   Class for container of many contacts
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChPhysicsItem.h"
-#include "physics/ChMaterialCouple.h"
-#include "collision/ChCCollisionInfo.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/physics/ChMaterialCouple.h"
+#include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
 
@@ -62,7 +51,6 @@ class ChApi ChReportProximityCallback {
         ) = 0;
 };
 
-///
 /// Class representing the interface for containers of proximity pairs,
 /// that is pairs of collision models that have been obtained from the
 /// broadphase collision.
@@ -71,37 +59,21 @@ class ChApi ChReportProximityCallback {
 /// forcefields for cloth simulation etc.) or highly optimized GPU buffers,
 /// etc. etc.
 /// This is only the basic interface with the features that are in common.
-///
 
 class ChApi ChProximityContainerBase : public ChPhysicsItem {
     CH_RTTI(ChProximityContainerBase, ChPhysicsItem);
 
   protected:
-    //
-    // DATA
-    //
-
     ChAddProximityCallback* add_proximity_callback;
     ChReportProximityCallback* report_proximity_callback;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChProximityContainerBase() {
-        add_proximity_callback = 0;
-        report_proximity_callback = 0;
-    };
-
-    virtual ~ChProximityContainerBase(){};
-
-    //
-    // FUNCTIONS
-    //
+    ChProximityContainerBase() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
+    ChProximityContainerBase(const ChProximityContainerBase& other);
+    virtual ~ChProximityContainerBase() {}
 
     /// Tell the number of added proximity pairs. To be implemented by child classes.
-    virtual int GetNproximities() = 0;
+    virtual int GetNproximities() const = 0;
 
     /// Remove (delete) all contained proximity pairs. To be implemented by child classes.
     virtual void RemoveAllProximities() = 0;
@@ -126,7 +98,7 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
     /// The collision system will call this after adding
     /// all pairs (for example with AddProximity() or similar). By default
     /// it does nothing.
-    virtual void EndAddProximities(){};
+    virtual void EndAddProximities() {}
 
     /// Sets a callback to be used each time a proximity pair is
     /// added to the container. Note that not all child classes can
@@ -139,34 +111,17 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
     /// Child classes of ChContactContainerBase should try to implement this.
     virtual void ReportAllProximities(ChReportProximityCallback* mcallback) = 0;
 
-
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class
-        ChPhysicsItem::ArchiveOUT(marchive);
-        // serialize all member data:
-    }
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class
-        ChPhysicsItem::ArchiveIN(marchive);
-        // stream in all member data:
-    }
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -73,7 +73,7 @@ namespace CONVEX_DECOMPOSITION
 	};
 
 
-	template <class F, class S> 
+	template <class F, class S>
 	class Pair
 	{
 	public:
@@ -138,7 +138,7 @@ NX_INLINE NxF32 NxMin(NxF32 a, NxF32 b)				{	return a < b ? a : b;	}
 	class Allocator
 	{
 	public:
-		Allocator(const char* dummy = 0) 
+		Allocator(const char* dummy = 0)
 		{
 		}
 		void* allocate(size_t size, const char* file, int line)
@@ -157,8 +157,8 @@ NX_INLINE NxF32 NxMin(NxF32 a, NxF32 b)				{	return a < b ? a : b;	}
 	class NamedAllocator
 	{
 	public:
-		NamedAllocator(const char* name = 0) 
-			
+		NamedAllocator(const char* name = 0)
+
 		{
 
     }
@@ -188,7 +188,7 @@ NX_INLINE NxF32 NxMin(NxF32 a, NxF32 b)				{	return a < b ? a : b;	}
 #endif
 		}
 	public:
-		ReflectionAllocator(const char* dummy=0) 
+		ReflectionAllocator(const char* dummy=0)
 		{
 		}
 		void* allocate(size_t size, const char* filename, int line)
@@ -201,7 +201,7 @@ NX_INLINE NxF32 NxMin(NxF32 a, NxF32 b)				{	return a < b ? a : b;	}
 		}
 	};
 
-	// if you get a build error here, you are trying to NX_NEW a class 
+	// if you get a build error here, you are trying to NX_NEW a class
 	// that is neither plain-old-type nor derived from CONVEX_DECOMPOSITION::UserAllocated
 	template <typename T, typename X>
 	union EnableIfPod
@@ -214,8 +214,8 @@ NX_INLINE NxF32 NxMin(NxF32 a, NxF32 b)				{	return a < b ? a : b;	}
 
 // Global placement new for ReflectionAllocator templated by plain-old-type. Allows using NX_NEW for pointers and built-in-types.
 // ATTENTION: You need to use NX_DELETE_POD or NX_FREE to deallocate memory, not NX_DELETE. NX_DELETE_POD redirects to NX_FREE.
-// Rationale: NX_DELETE uses global operator delete(void*), which we dont' want to overload. 
-// Any other definition of NX_DELETE couldn't support array syntax 'NX_DELETE([]a);'. 
+// Rationale: NX_DELETE uses global operator delete(void*), which we dont' want to overload.
+// Any other definition of NX_DELETE couldn't support array syntax 'NX_DELETE([]a);'.
 // NX_DELETE_POD was preferred over NX_DELETE_ARRAY because it is used less often and applies to both single instances and arrays.
 template <typename T>
 NX_INLINE void* operator new(size_t size, CONVEX_DECOMPOSITION::ReflectionAllocator<T> alloc, const char* fileName, typename CONVEX_DECOMPOSITION::EnableIfPod<T, int>::Type line)
@@ -261,7 +261,7 @@ NX_INLINE void  operator delete[](void* ptr, CONVEX_DECOMPOSITION::ReflectionAll
 #define NV_DEBUG_EXP_C(x)
 #endif
 
-#if defined (NX_X360) | defined (NX_WINDOWS) | defined (NX_CELL) | defined (NXLINUX) | defined(NX_WII) 
+#if defined (NX_X360) | defined (NX_WINDOWS) | defined (NX_CELL) | defined (NXLINUX) | defined(NX_WII)
 // Stack allocation with alloc fallback for large allocations (>50% of default stack size for platform)
 #	define NX_ALLOCA(var, type, number)											\
 		bool alloced_##var = false;												\
@@ -336,7 +336,7 @@ namespace CONVEX_DECOMPOSITION
 	class AlignedAllocator : public BaseAllocator
 	{
 	public:
-		AlignedAllocator(const BaseAllocator& base = BaseAllocator()) 
+		AlignedAllocator(const BaseAllocator& base = BaseAllocator())
 		: BaseAllocator(base) {}
 
 		void* allocate(size_t size, const char* file, int line)
@@ -494,7 +494,7 @@ public:
 	}
 
 	NX_INLINE NvStrideIterator operator+(int i) const
-	{	
+	{
 		return NvStrideIterator(byteAdd(mPtr, i * stride()), stride());
 	}
 
@@ -554,13 +554,13 @@ public:
 	}
 
 private:
-	NX_INLINE static T* byteAdd(T* ptr, NxU32 bytes) 
-	{ 
+	NX_INLINE static T* byteAdd(T* ptr, NxU32 bytes)
+	{
 		return const_cast<T*>(reinterpret_cast<const T*>(reinterpret_cast<const NxU8*>(ptr) + bytes));
 	}
 
 	NX_INLINE static T* byteSub(T* ptr, NxU32 bytes)
-	{ 
+	{
 		return const_cast<T*>(reinterpret_cast<const T*>(reinterpret_cast<const NxU8*>(ptr) - bytes));
 	}
 
@@ -654,8 +654,8 @@ namespace CONVEX_DECOMPOSITION
 		/*!
 		Copy-constructor. Copy all entries from other array
 		*/
-		template <class A> 
-		NX_INLINE Array(const Array<T,A>& other, const Alloc& alloc = Alloc()) 
+		template <class A>
+		NX_INLINE Array(const Array<T,A>& other, const Alloc& alloc = Alloc())
 		{
 			if(other.mSize > 0)
 			{
@@ -677,7 +677,7 @@ namespace CONVEX_DECOMPOSITION
 		/*!
 		Assignment operator. Copy content (deep-copy)
 		*/
-		template <class A> 
+		template <class A>
 		NX_INLINE const Array& operator= (const Array<T,A>& t)
 		{
 			if(&t == this)
@@ -694,7 +694,7 @@ namespace CONVEX_DECOMPOSITION
 				copy(mData,t.mData,t.mSize);
 				mSize = t.mSize;
 
-				return;
+				return *this;
 			}
 			else
 			{
@@ -717,7 +717,7 @@ namespace CONVEX_DECOMPOSITION
 		\return
 		The element i in the array.
 		*/
-		NX_INLINE const T& operator[] (NxU32 i) const 
+		NX_INLINE const T& operator[] (NxU32 i) const
 		{
 			return mData[i];
 		}
@@ -729,7 +729,7 @@ namespace CONVEX_DECOMPOSITION
 		\return
 		The element i in the array.
 		*/
-		NX_INLINE T& operator[] (NxU32 i) 
+		NX_INLINE T& operator[] (NxU32 i)
 		{
 			return mData[i];
 		}
@@ -739,7 +739,7 @@ namespace CONVEX_DECOMPOSITION
 		\return
 		a pointer to the initial element of the array.
 		*/
-		NX_INLINE ConstIterator begin() const 
+		NX_INLINE ConstIterator begin() const
 		{
 			return mData;
 		}
@@ -755,7 +755,7 @@ namespace CONVEX_DECOMPOSITION
 		a pointer to the element beyond the last element of the array.
 		*/
 
-		NX_INLINE ConstIterator end() const 
+		NX_INLINE ConstIterator end() const
 		{
 			return mData+mSize;
 		}
@@ -770,7 +770,7 @@ namespace CONVEX_DECOMPOSITION
 		\return a reference to the first element of the array
 		*/
 
-		NX_INLINE const T& front() const 
+		NX_INLINE const T& front() const
 		{
 			NX_ASSERT(mSize);
 			return mData[0];
@@ -787,7 +787,7 @@ namespace CONVEX_DECOMPOSITION
 		\return a reference to the last element of the array
 		*/
 
-		NX_INLINE const T& back() const 
+		NX_INLINE const T& back() const
 		{
 			NX_ASSERT(mSize);
 			return mData[mSize-1];
@@ -806,7 +806,7 @@ namespace CONVEX_DECOMPOSITION
 		\return
 		The number of of entries in the array.
 		*/
-		NX_INLINE NxU32 size() const 
+		NX_INLINE NxU32 size() const
 		{
 			return mSize;
 		}
@@ -833,7 +833,7 @@ namespace CONVEX_DECOMPOSITION
 		/*!
 		Finds the first occurrence of an element in the array.
 		\param a
-		The element that will be removed. 
+		The element that will be removed.
 		*/
 
 
@@ -864,7 +864,7 @@ namespace CONVEX_DECOMPOSITION
 
 		NX_INLINE T& pushBack(const T& a)
 		{
-			if(mCapacity<=mSize) 
+			if(mCapacity<=mSize)
 				grow(capacityIncrement());
 
 			new((void*)(mData + mSize)) T(a);
@@ -877,7 +877,7 @@ namespace CONVEX_DECOMPOSITION
 		Returns the element at the end of the array. Only legal if the array is non-empty.
 		*/
 		/////////////////////////////////////////////////////////////////////////
-		NX_INLINE T popBack() 
+		NX_INLINE T popBack()
 		{
 			NX_ASSERT(mSize);
 			T t = mData[mSize-1];
@@ -893,7 +893,7 @@ namespace CONVEX_DECOMPOSITION
 		/////////////////////////////////////////////////////////////////////////
 		NX_INLINE T& insert()
 		{
-			if(mCapacity<=mSize) 
+			if(mCapacity<=mSize)
 				grow(capacityIncrement());
 
 			return *(new (mData+mSize++)T);
@@ -917,7 +917,7 @@ namespace CONVEX_DECOMPOSITION
 			mData[mSize].~T();
 		}
 
-		NX_INLINE void replaceWithLast(Iterator i) 
+		NX_INLINE void replaceWithLast(Iterator i)
 		{
 			replaceWithLast(static_cast<NxU32>(i-mData));
 		}
@@ -954,7 +954,7 @@ namespace CONVEX_DECOMPOSITION
 		The element that was removed.
 		*/
 		/////////////////////////////////////////////////////////////////////////
-		NX_INLINE void remove(NxU32 i) 
+		NX_INLINE void remove(NxU32 i)
 		{
 			NX_ASSERT(i<mSize);
 			while(i+1<mSize)
@@ -1001,7 +1001,7 @@ namespace CONVEX_DECOMPOSITION
 
 		//////////////////////////////////////////////////////////////////////////
 		/*!
-		Resize array such that only as much memory is allocated to hold the 
+		Resize array such that only as much memory is allocated to hold the
 		existing elements
 		*/
 		//////////////////////////////////////////////////////////////////////////
@@ -1108,8 +1108,8 @@ namespace CONVEX_DECOMPOSITION
 
 		\param capacity
 		The number of entries that the set should be able to hold.
-		*/	
-		NX_INLINE void grow(NxU32 capacity) 
+		*/
+		NX_INLINE void grow(NxU32 capacity)
 		{
 			NX_ASSERT(mCapacity < capacity);
 			recreate(capacity, mSize);
@@ -1122,8 +1122,8 @@ namespace CONVEX_DECOMPOSITION
 	{
 		typedef InlineAllocator<N * sizeof(T), Alloc> Allocator;
 	public:
-		NX_INLINE InlineArray(const Alloc& alloc = Alloc()) 
-			: Array<T, Allocator>(alloc) 
+		NX_INLINE InlineArray(const Alloc& alloc = Alloc())
+			: Array<T, Allocator>(alloc)
 		{}
 	};
 }
@@ -1349,16 +1349,16 @@ namespace CONVEX_DECOMPOSITION
 	have at least 1/4 probability of changing.
 	* If mix() is run forward, every bit of c will change between 1/3 and
 	2/3 of the time.  (Well, 22/100 and 78/100 for some 2-bit deltas.)
-	mix() was built out of 36 single-cycle latency instructions in a 
+	mix() was built out of 36 single-cycle latency instructions in a
 	structure that could supported 2x parallelism, like so:
-	a -= b; 
+	a -= b;
 	a -= c; x = (c>>13);
 	b -= c; a ^= x;
 	b -= a; x = (a<<8);
 	c -= a; b ^= x;
 	c -= b; x = (b>>13);
 	...
-	Unfortunately, superscalar Pentiums and Sparcs can't take advantage 
+	Unfortunately, superscalar Pentiums and Sparcs can't take advantage
 	of that parallelism.  They've also turned some of those single-cycle
 	latency instructions into multi-cycle latency instructions.  Still,
 	this is the fastest good hash I could find.  There were about 2^^68
@@ -1394,7 +1394,7 @@ namespace CONVEX_DECOMPOSITION
 			b += k[1];
 			c += k[2];
 			hashMix(a,b,c);
-			k += 3; 
+			k += 3;
 			len -= 3;
 		}
 
@@ -1425,7 +1425,7 @@ namespace CONVEX_DECOMPOSITION
 	public:
 		NxU32 operator()(const char *string) const
 		{
-			// "DJB" string hash 
+			// "DJB" string hash
 			NxU32 h = 5381;
 			for(const char *ptr = string; *ptr; ptr++)
 				h = ((h<<5)+h)^*ptr;
@@ -1480,7 +1480,7 @@ namespace CONVEX_DECOMPOSITION
 			~HashBase()
 			{
 				for(NxU32 i = 0;i<mHash.size();i++)
-				{				
+				{
 					for(NxU32 j = mHash[i]; j != EOL; j = mNext[j])
 						mEntries[j].~Entry();
 				}
@@ -1561,8 +1561,8 @@ namespace CONVEX_DECOMPOSITION
 			}
 
 			NX_INLINE NxU32 size() const
-			{ 
-				return mSize; 
+			{
+				return mSize;
 			}
 
 			void clear()
@@ -1734,8 +1734,8 @@ namespace CONVEX_DECOMPOSITION
 				NX_INLINE void advance()			{	mEntry = mBase.mNext[mEntry]; skip();		}
 				NX_INLINE void skip()
 				{
-					while(mEntry==mBase.EOL) 
-					{ 
+					while(mEntry==mBase.EOL)
+					{
 						if(++mBucket == mBase.mHash.size())
 							break;
 						mEntry = mBase.mHash[mBucket];
@@ -1749,19 +1749,19 @@ namespace CONVEX_DECOMPOSITION
 			};
 		};
 
-		template <class Key, 
-				  class HashFn, 
+		template <class Key,
+				  class HashFn,
 				  class Allocator = Allocator,
 				  bool Coalesced = false>
 		class HashSetBase
-		{ 
+		{
 		public:
 			struct GetKey { NX_INLINE const Key &operator()(const Key &e) {	return e; }	};
 
 			typedef HashBase<Key, Key, HashFn, GetKey, Allocator, Coalesced> BaseMap;
 			typedef typename BaseMap::Iter Iterator;
 
-			HashSetBase(NxU32 initialTableSize = 64, 
+			HashSetBase(NxU32 initialTableSize = 64,
 						float loadFactor = 0.75f):	mBase(initialTableSize,loadFactor)	{}
 
 			bool insert(const Key &k)
@@ -1783,13 +1783,13 @@ namespace CONVEX_DECOMPOSITION
 
 		};
 
-		template <class Key, 
+		template <class Key,
 			  class Value,
-			  class HashFn, 
+			  class HashFn,
 			  class Allocator = Allocator >
 
 		class HashMapBase
-		{ 
+		{
 		public:
 			typedef Pair<const Key,Value> Entry;
 			struct GetKey { NX_INLINE const Key &operator()(const Entry &e) {	return e.first; }	};
@@ -1813,7 +1813,7 @@ namespace CONVEX_DECOMPOSITION
 				Entry *e = mBase.create(k, exists);
 				if(!exists)
 					new(e)Entry(k,Value());
-		
+
 				return e->second;
 			}
 
@@ -1844,13 +1844,13 @@ namespace CONVEX_DECOMPOSITION
 // This header defines two hash maps. Hash maps
 // * support custom initial table sizes (rounded up internally to power-of-2)
 // * support custom static allocator objects
-// * auto-resize, based on a load factor (i.e. a 64-entry .75 load factor hash will resize 
+// * auto-resize, based on a load factor (i.e. a 64-entry .75 load factor hash will resize
 //                                        when the 49th element is inserted)
 // * are based on open hashing
 // * have O(1) contains, erase
 //
 // Maps have STL-like copying semantics, and properly initialize and destruct copies of objects
-// 
+//
 // There are two forms of map: coalesced and uncoalesced. Coalesced maps keep the entries in the
 // initial segment of an array, so are fast to iterate over; however deletion is approximately
 // twice as expensive.
@@ -1862,7 +1862,7 @@ namespace CONVEX_DECOMPOSITION
 //		bool			erase(const T &k);						O(1)
 //		NxU32			size();									constant
 //		void			reserve(NxU32 size);					O(MAX(currentOccupancy,size))
-//		void			clear();								O(currentOccupancy) (with zero constant for objects without destructors) 
+//		void			clear();								O(currentOccupancy) (with zero constant for objects without destructors)
 //      Iterator		getIterator();
 //
 // operator[] creates an entry if one does not exist, initializing with the default constructor.
@@ -1870,7 +1870,7 @@ namespace CONVEX_DECOMPOSITION
 // 		const Key *getEntries();
 //
 // Use of iterators:
-// 
+//
 // for(HashMap::Iterator iter = test.getIterator(); !iter.done(); ++iter)
 //			myFunction(iter->first, iter->second);
 
@@ -1891,9 +1891,9 @@ namespace CONVEX_DECOMPOSITION
 		Iterator getIterator() { return Iterator(HashMapBase::mBase); }
 	};
 
-	template <class Key, 
+	template <class Key,
 			  class Value,
-			  class HashFn = Hash<Key>, 
+			  class HashFn = Hash<Key>,
 			  class Allocator = Allocator >
 	class CoalescedHashMap: public Internal::HashMapBase<Key, Value, HashFn, Allocator>
 	{

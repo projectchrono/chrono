@@ -29,11 +29,9 @@
 #define TRACKCOLLISIONCALLBACK_H
 
 #include <cmath>
-
+#include <unordered_map>
 #include "physics/ChSystem.h"
 #include "physics/ChContactContainerBase.h"
-#include "core/ChHashTable.h"
-#include "core/ChHashFunction.h"
 
 
 namespace chrono {
@@ -126,7 +124,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
           m_sum_Pz_contacts(0),
           m_sum_Nz_contacts(0) {
         // alloc the hash table for persistent manifold of gear-cylinder contacts
-        m_hashed_contacts = new ChHashTable<int, GearPinCacheContact>(m_persistent_hashtable_dim);
+        m_hashed_contacts = new std::unordered_map<int, GearPinCacheContact>(m_persistent_hashtable_dim);
 
         // keep track of some persistence of contact info
         m_persistentContactSteps.resize(m_shoes.size(), 0);
@@ -211,7 +209,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
         float reactions_cache[6];  // same structure as in btManifoldPoint for other types of contact
     };
 
-    ChHashTable<int, GearPinCacheContact>* m_hashed_contacts;
+    std::unordered_map<int, GearPinCacheContact>* m_hashed_contacts;
 
     // check the hash table for persistent contact
     // vnGear_bar the surface normal of the gear at the contact point.
@@ -224,7 +222,7 @@ class GearPinCollisionCallback : public ChSystem::ChCustomComputeCollisionCallba
     {
         // see if this contact is in the hash table
         float* reaction_cache = 0;
-        typename ChHashTable<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
+        typename std::unordered_map<int, GearPinCacheContact>::iterator cached = m_hashed_contacts->find(shoeID);
         if (cached == m_hashed_contacts->end())
             reaction_cache = (m_hashed_contacts->insert(shoeID))->second.reactions_cache;
         else

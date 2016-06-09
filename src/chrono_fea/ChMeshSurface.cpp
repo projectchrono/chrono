@@ -19,8 +19,6 @@
 #include "chrono_fea/ChFaceTetra_4.h"
 
 #include <unordered_set>
-#include "chrono/core/ChHashTable.h"
-#include <unordered_map>
 #include <map>
 #include <array>
 #include <algorithm>

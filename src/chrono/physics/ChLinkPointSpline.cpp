@@ -1,27 +1,28 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
+#include "chrono/geometry/ChLineSegment.h"
 #include "chrono/physics/ChLinkPointSpline.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/geometry/ChLineSegment.h"
 
 namespace chrono {
 
 using namespace geometry;
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkPointSpline> a_registration_ChLinkPointSpline;
 
-// BUILDERS
 ChLinkPointSpline::ChLinkPointSpline() {
     type = LNK_POINTSPLINE;  // initializes type
 
@@ -35,35 +36,15 @@ ChLinkPointSpline::ChLinkPointSpline() {
     ChangedLinkMask();
 }
 
-// DESTROYER
-ChLinkPointSpline::~ChLinkPointSpline() {
+ChLinkPointSpline::ChLinkPointSpline(const ChLinkPointSpline& other) : ChLinkLock(other) {
+    trajectory_line = std::shared_ptr<ChLine>(other.trajectory_line->Clone());  // deep copy
 }
-
-void ChLinkPointSpline::Copy(ChLinkPointSpline* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy own data
-
-    trajectory_line = std::shared_ptr<ChLine>(source->trajectory_line->Clone());  // deep copy
-}
-
-ChLink* ChLinkPointSpline::new_Duplicate() {
-    ChLinkPointSpline* m_l;
-    m_l = new ChLinkPointSpline;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-//////////
 
 void ChLinkPointSpline::Set_trajectory_line(std::shared_ptr<geometry::ChLine> mline) {
     trajectory_line = mline;
 }
 
-/////////    UPDATE TIME
-/////////
+// UPDATE TIME
 
 void ChLinkPointSpline::UpdateTime(double time) {
     ChTime = time;
@@ -142,9 +123,7 @@ void ChLinkPointSpline::UpdateTime(double time) {
     }
 }
 
-
-void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -156,8 +135,7 @@ void ChLinkPointSpline::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -168,7 +146,4 @@ void ChLinkPointSpline::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(trajectory_line);
 }
 
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

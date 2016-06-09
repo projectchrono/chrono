@@ -23,9 +23,11 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_BrakeSimple : public chrono::vehicle::ChBrakeSimple {
+class CH_MODELS_API HMMWV_BrakeSimple : public ChBrakeSimple {
   public:
     HMMWV_BrakeSimple();
     virtual ~HMMWV_BrakeSimple() {}
@@ -36,6 +38,8 @@ class CH_MODELS_API HMMWV_BrakeSimple : public chrono::vehicle::ChBrakeSimple {
     static const double m_maxtorque;
 };
 
+}  // end namespace hmmwv
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

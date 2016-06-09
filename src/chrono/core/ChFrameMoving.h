@@ -1,43 +1,31 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFRAMEMOVING_H
 #define CHFRAMEMOVING_H
 
-//////////////////////////////////////////////////
-//
-//   ChFrameMoving.h
-//
-//   Math functions for FRAMES WHICH HAVE SPEED AND
-//   ACCELERATION, that is a coordinate
-//   system with translation and rotation etc-
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChFrame.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
-/// ChFrame: a class for coordinate systems in 3D space.
+/// ChFrameMoving: a class for coordinate systems in 3D space.
 ///
 ///  A 'frame' coordinate system has a translation and
 /// a rotation respect to a 'parent' coordinate system,
 /// usually the absolute (world) coordinates.
 ///
-///  Differently from a simple ChCoordsys() object, however,
+/// Differently from a simple ChCoordsys() object, however,
 /// the ChFrame implements some optimizations because
 /// each ChFrame stores also a 3x3 rotation matrix, which
 /// can speed up coordinate transformations when a large
@@ -49,38 +37,30 @@ namespace chrono {
 template <class Real = double>
 class ChFrameMoving : public ChFrame<Real> {
   public:
-    //
-    // DATA
-    //
-
     ChCoordsys<Real> coord_dt;    ///< Rotation and position speed, as vector+quaternion
     ChCoordsys<Real> coord_dtdt;  ///< Rotation and position acceleration, as vector+quaternion
-
-    //
-    // CONSTRUCTORS
-    //
 
     /// Construct from pos and rot (as a quaternion)
     explicit ChFrameMoving(const ChVector<Real>& mv = ChVector<Real>(0, 0, 0),
                            const ChQuaternion<Real>& mq = ChQuaternion<Real>(1, 0, 0, 0))
         : ChFrame<Real>(mv, mq) {
         coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    };
+    }
 
     /// Construct from pos and rotation (as a 3x3 matrix)
     ChFrameMoving(const ChVector<Real>& mv, const ChMatrix33<Real>& ma) : ChFrame<Real>(mv, ma) {
         coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    };
+    }
 
     /// Construct from a coordsys
     explicit ChFrameMoving(const ChCoordsys<Real>& mc) : ChFrame<Real>(mc) {
         coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    };
+    }
 
     /// Construct from a frame
     explicit ChFrameMoving(const ChFrame<Real>& mc) : ChFrame<Real>(mc) {
         coord_dt.rot = coord_dtdt.rot = ChQuaternion<Real>(0, 0, 0, 0);
-    };
+    }
 
     /// Copy constructor, build from another moving frame
     ChFrameMoving(const ChFrameMoving<Real>& other)
@@ -518,8 +498,7 @@ class ChFrameMoving : public ChFrame<Real> {
     // STREAMING
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
 
@@ -532,8 +511,7 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
 
@@ -544,7 +522,6 @@ class ChFrameMoving : public ChFrame<Real> {
         marchive >> CHNVP(coord_dt);
         marchive >> CHNVP(coord_dtdt);
     }
-
 };
 
 //
@@ -725,6 +702,6 @@ ChFrameMoving<Real> operator>>(const ChFrameMoving<Real>& Fa, const ChQuaternion
 //   ChQuaternion = ChFrameMoving * ChQuaternion
 // is not necessary, just falls back to ChQuaternion = ChFrame * ChQuaternion  , see ChFrame.h
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChFrame.h
+#endif

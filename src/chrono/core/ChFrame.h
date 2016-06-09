@@ -1,36 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHFRAME_H
 #define CHFRAME_H
 
-//////////////////////////////////////////////////
-//
-//   ChFrame.h
-//
-//   Math functions for FRAME, that is a coordinate
-//   system with translation and rotation.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "core/ChTransform.h"
-#include "core/ChMatrixNM.h"
-#include "core/ChMatrix33.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChMatrixNM.h"
+#include "chrono/core/ChTransform.h"
 
 namespace chrono {
 
@@ -52,20 +40,10 @@ namespace chrono {
 template <class Real = double>
 class ChFrame {
   public:
-    //
-    // DATA
-    //
+    ChCoordsys<Real> coord;  ///< Rotation and position, as vector+quaternion
 
-    /// Rotation and position, as vector+quaternion
-    ChCoordsys<Real> coord;
-
-    /// Rotation as 3x3 orthogonal matrix (auxiliary, for faster
-    /// transformation of many coordinates )
-    ChMatrix33<Real> Amatrix;
-
-    //
-    // CONSTRUCTORS
-    //
+    // Auxiliary, for faster transformation of many coordinates
+    ChMatrix33<Real> Amatrix;  ///< 3x3 orthogonal rotation matrix
 
     /// Default constructor, or construct from pos and rot (as a quaternion)
     explicit ChFrame(const ChVector<Real>& mv = ChVector<Real>(0, 0, 0),
@@ -316,7 +294,6 @@ class ChFrame {
     /// object, this function is about 50% faster than TransformParentToLocal
     /// of a ChCoordsys.
     /// \return The point in parent coordinate
-
     virtual ChVector<Real> TransformLocalToParent(const ChVector<Real>& local) const {
         return ChTransform<Real>::TransformLocalToParent(local, coord.pos, Amatrix);
     }
@@ -332,7 +309,6 @@ class ChFrame {
     /// object, this function is about 50% faster than TransformParentToLocal
     /// method of a ChCoordsys.
     /// \return The point in local frame coordinate
-
     virtual ChVector<Real> TransformParentToLocal(const ChVector<Real>& parent) const {
         return ChTransform<Real>::TransformParentToLocal(parent, coord.pos, Amatrix);
     }
@@ -344,7 +320,6 @@ class ChFrame {
     /// This function transforms a frame from 'this' local coordinate
     /// system to parent frame coordinate system.
     /// \return The frame in parent frame coordinate
-
     virtual void TransformLocalToParent(
         const ChFrame<Real>& local,  ///< frame to transform, given in local frame coordinates
         ChFrame<Real>& parent        ///< transformed frame, in parent coordinates, will be stored here
@@ -355,7 +330,6 @@ class ChFrame {
     /// This function transforms a frame from the parent coordinate
     /// system to 'this' local frame coordinate system.
     /// \return The frame in local frame coordinate
-
     virtual void TransformParentToLocal(
         const ChFrame<Real>& parent,  ///< frame to transform, given in parent coordinates
         ChFrame<Real>& local          ///< transformed frame, in local coordinates, will be stored here
@@ -366,7 +340,6 @@ class ChFrame {
     /// This function transforms a direction from 'this' local coordinate
     /// system to parent frame coordinate system.
     /// \return The direction in local frame coordinate
-
     virtual ChVector<Real> TransformDirectionParentToLocal(
         const ChVector<>& mdirection  ///< direction to transform, given in parent coordinates
         ) const {
@@ -376,7 +349,6 @@ class ChFrame {
     /// This function transforms a direction from the parent frame coordinate system
     /// to 'this' local coordinate system.
     /// \return The direction in parent frame coordinate
-
     virtual ChVector<Real> TransformDirectionLocalToParent(const ChVector<>& mdirection) const {
         return Amatrix.Matr_x_Vect(mdirection);
     }
@@ -520,9 +492,8 @@ class ChFrame {
     // STREAMING
     //
 
-        /// Method to allow serialization of transient data in archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    /// Method to allow serialization of transient data in archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
         marchive.VersionWrite(1);
         // stream out all member data
@@ -530,15 +501,13 @@ class ChFrame {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
         int version = marchive.VersionRead();
         // stream in all member data
         marchive >> CHNVP(coord);
         Amatrix.Set_A_quaternion(coord.rot);
     }
-
 };
 
 //
@@ -703,6 +672,6 @@ ChFrame<Real> operator>>(const ChFrame<Real>& Fa, const ChQuaternion<Real>& Fb) 
     return res;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChFrame.h
+#endif

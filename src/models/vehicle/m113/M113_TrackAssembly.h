@@ -25,19 +25,44 @@
 
 #include "models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
-///
-///
-///
-class CH_MODELS_API M113_TrackAssembly : public chrono::vehicle::ChTrackAssembly {
+/// Base class for the M113 track assembly.
+class CH_MODELS_API M113_TrackAssembly : public ChTrackAssembly {
   public:
-    M113_TrackAssembly(chrono::vehicle::VehicleSide side);
     ~M113_TrackAssembly() {}
 
-  private:
+    void SetIdlerVisType(VisualizationType vis);
+    void SetRoadWheelVisType(VisualizationType vis);
+    virtual void SetSprocketVisType(VisualizationType vis) = 0;
+    virtual void SetTrackShoeVisType(VisualizationType vis) = 0;
+
+  protected:
+    M113_TrackAssembly(VehicleSide side);
+};
+
+/// M113 track assembly using single-pin track shoes.
+class CH_MODELS_API M113_TrackAssemblySinglePin : public M113_TrackAssembly {
+public:
+    M113_TrackAssemblySinglePin(VehicleSide side);
+
+    virtual void SetSprocketVisType(VisualizationType vis) override;
+    virtual void SetTrackShoeVisType(VisualizationType vis) override;
+};
+
+/// M113 track assembly using double-pin track shoes.
+class CH_MODELS_API M113_TrackAssemblyDoublePin : public M113_TrackAssembly {
+public:
+    M113_TrackAssemblyDoublePin(VehicleSide side);
+
+    virtual void SetSprocketVisType(VisualizationType vis) override;
+    virtual void SetTrackShoeVisType(VisualizationType vis) override;
 };
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

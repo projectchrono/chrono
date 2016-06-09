@@ -3,8 +3,7 @@ Collision shapes       {#collision_shapes}
 ================
 
 
-Collision shapes can be added optionally to ChBody objects. 
-This allows you to have rigid bodies that touch each other and collide in the simulation.
+Collision shapes can be added optionally to ChBody objects. Having collision shapes attached to bodies enable them to interact during simulation with other bodies through friction and contact.
 
 
 # Collision models     {#collision_models}
@@ -14,28 +13,27 @@ This can be used to define the collision shapes.
 
 ![](pic_ChCollisionModel.png)
 
-- Collision shapes are defined respect to the REF frame of the [body](@ref rigid_bodies)
+- Collision shapes are defined with respect to the REF frame of the [body](@ref rigid_bodies)
 
-- Spheres, boxes, cylinders, convex hulls, ellipsoids, compounds,...
+- Examples of shapes: spheres, boxes, cylinders, convex hulls, ellipsoids, compounds, etc.
 
-- shapes are unlimited in number. However, compound shapes simulate slower 
-  than single shapes, and the fastest is the COG-centered sphere.
+- One can add multiple collision shapes to a rigid body. However, compound shapes will slow down the collision detection phase of the simulation. In this context, there is no geometry simpler to handle than a sphere that is located at the center of mass of the rigid body. 
 
-- Concave shapes: decompose in compounds of convex shapes
+- Handling of concave shapes falls back on a decomposition of the geometry in a union of convex shapes
 
-- Hint: for simple ready-to-use bodies that already contain 
+- For simple ready-to-use bodies that already contain 
   collision shapes, use  ChBodyEasySphere, ChBodyEasyBox, etc. 
   (see [body manual pages](@ref manual_otherbodies)
 
-- Collision shapes and visualization assets does not need to match; 
-  ex. you may have a detailed visualization shape for rendering purposes, 
-  but the collision shape is much simpler to speedup simulation.
+- Collision shapes and visualization assets do not need to match; 
+  e. g. one may have a detailed visualization shape for rendering purposes, 
+  yet the collision shape is much simpler to avoid a slowdown of the simulation.
 
-- avoid shapes that are too thin, too flat or in general that 
+- Avoid shapes that are too thin, too flat or in general that 
   lead to extreme size ratios 
 
 
-These are the typical steps to setup collision, after you created a ChBody:
+Steps to set up collision after you create a ChBody:
 
 ~~~{.cpp}
 body_b->GetCollisionModel()->ClearModel();
@@ -49,8 +47,8 @@ body_b->SetCollide(true);
 # Collision families   {#collision_families}
 
 You can define _collision families_ for selective collisions. 
-For example you may want that one object of family=2, 
-does not collide with all objects of family=4: 
+For example you may not want the object of family=2 to 
+collide with any objects of family=4:
 
 ~~~{.cpp}
 // default collision family is 0. Change it:
@@ -58,27 +56,22 @@ body_b->GetCollisionModel()->SetFamily(2);
 body_b->SetFamilyMaskNoCollisionWithFamily(4);
 ~~~
 
-There is a max.number of 15 collision families that you can use.
+Currently, Chrono allows up to 15 different collision families that can be involved in a simulation.
 
 
 # Collision materials   {#collision_materials}
 
-When you add collision shapes to a body, you may need to 
-define the friction coefficient of the surface. 
-The same for other collision-specific properties 
-such as rolling friction, coeffcient of restitution etc. 
+Adding collision shapes to a body typically requires the user to define the friction coefficient of the surface. This observation also holds for other collision-specific properties such as rolling friction, coefficient of restitution, etc. This can be done in two ways.
 
-This can be done in two ways.
-
-**Easy** but memory-consuming approach:
+**Easy** (Memory consuming):
 
 ~~~{.cpp}
 body_b->SetFriction(0.4f);
 body_b->SetRollingFriction(0.001f);
 ~~~
 
-**Advanced** approach with a shared material. 
-This means that you create a ChSharedMaterial and you use it for one or more bodies:
+**Advanced** (Shared material). 
+A ChSharedMaterial is created and subsequently used for one or more bodies:
 
 ~~~{.cpp}
 // Create a surface material and change properties:
@@ -95,90 +88,78 @@ body_d->SetSurfaceMaterial(mat);
 
 # Collision tolerances     {#collision_tolerances}
 
-Each collision model has two tolerances, that are used by the 
-collision engine to create and delete constact:
+Each collision model has two tolerance used by collision engine to create and delete contacts:
 
-- an outward safe **envelope**. This represents the volume where potential 
-  contacts are searched. This means that contacts are feed into the solver even _before_ 
-  the objects come into true contact, but in fact this is needed by the numerical 
-  schemes because they must know the existence of contacts a bit in advance 
-  (then, if not touching, their contact forces will be computed as zero by the solver). 
-  If this contacts were sent to the solver when objects are already interpenetrating, 
-  the motion could be shaky and unprecise.
+- An outward safe **envelope**. 
+  This represents the volume where potential contacts are searched. In other words, for the sake of collision detection the body becomes puffy, or inflated, by a small amount that is user controlled. Rationale: although at the beginning of a time step two bodies might not be in contact, during the duration of one integration time step they might come in contact. This envelope provisions for this possibility. More specifically, this envelope is needed by the numerical schemes since they must anticipate contacts ahead of time. If these contacts were sent to the solver when objects are already interpenetrating, the motion could be shaky and less accurate. Having a too large envelope will produce a lot of false positives (in terms of contacts), which will slow down both the collision detection and the solution stage. The latter is due to the fact that a lot of contacts will be solved only to produce a ``zero contact force'' answer.
 
-- an inward **margin**. It might happen that qbject might interpenetrate 
-  even if considered rigid, because of numerical integration errors, 
-  approximations, or because of badly designed initial conditions. 
-  If this happens, it is not a problem because the collision detection 
-  algorithm can support interpenetration up to this _margin_. 
-  When this margin is crossed, a different type of collision detection 
-  is used, with a much slower algorithm. 
+- An inward **margin**. 
+  Two collision shapes belonging to different bodies might interpenetrate
+  even if considered rigid owing to numerical integration errors, 
+  collision detection approximations, ill specified initial conditions, etc. 
+  The 'go-to' collision detection algorithm can support interpenetration up to this _margin_. 
+  When this margin is crossed, the solver falls back on a slower collision detection algorithm.
 
-In fact the fast collision algorithm must run between 'shrunk' versions of the 
+The fast collision algorithm must run between 'shrunk' versions of the 
 shapes, and the original shape is recovered later by offsetting the collision 
 points outward. Hence the rounding effect. In the picture below, the two blue 
 shapes were added as sharp boxes, but the effect from the point of view of 
-collision is like having boxes with rounded corners, whose rounding radius 
+collision is like having boxes with rounded corners whose rounding radius 
 is the collision margin.
 
 ![](pic_margins.png)
 
-This said, one might think that it would be optimal to have large outward 
-envelope and large inward margin. However there are drawbacks:
 
-- Too large collision envelope: 
-  - too many potential contacts, 
-  - high CPU time, 
-  - high waste of RAM
+Drawbacks to poor envelope and/or margin choices:
 
-- Too small collision envelope: 
-  - risk of tunnelling effects, 
-  - unstable, shaky simulation of stacked objects
+- Collision envelope too large: 
+  - Many potential contacts
+  - High CPU time
+  - Waste of memory
 
-- Too large collision margin: 
-  - shapes are way too ''rounded''. 
+- Collision envelope too small: 
+  - Risk of tunnelling effects
+  - Unstable, shaky simulation, particularly when dealing with stacked objects
 
-- Too small collision margin: 
-  - when interpenetration occurs beyond this value, 
+- Collision margin too large: 
+  - Shapes appear too ''rounded'' 
+
+- Collision margin too small: 
+  - When interpenetration occurs beyond this value, 
     an inefficient algorithm is used
 
-To change these margins, see this example:
+Setting the value of the envelope/margin:
 
 ~~~{.cpp}
 ChCollisionModel::SetDefaultSuggestedEnvelope(0.001); 
 ChCollisionModel::SetDefaultSuggestedMargin  (0.0005); 
 ~~~
 
-Note that these settings will affect collision models that are created 
-**after** these changes. 
+<div class="ce-info">
+These settings will affect collision shapes that are created 
+**after** these function calls. 
 
-You can call SetDefaultSuggestedEnvelope and SetDefaultSuggestedMargin 
-multiple times, maybe at the beginning of your program, 
-or maybe once per collision model creation; however, 
-once you populated the collision model with collision shapes, 
-there is no way to change the margins afterward.
+SetDefaultSuggestedEnvelope and SetDefaultSuggestedMargin can be called 
+multiple times, but once the collision model is populated with collision shapes
+the envelopes and margins cannot be changed.
+</div>
 
-Finally, there is also a **contact breaking threshold**, 
-that is a global tolerance for all models, and it can be set as in this example:
+
+Finally, there is also a **contact breaking threshold**, which is a global tolerance for all models. It can be set as in this example:
 
 ~~~{.cpp}
 ChCollisionSystemBullet::SetContactBreakingThreshold(0.001);
 ~~~
 
-This represents the maximum distance of two persistent contact 
-points that is accepted before they are removed by the collision 
-detection engine. This because the Bullet collision algorithm keeps 
-contact point persistent from one simulation frame to the other 
-if two bodies are sliding, and it must know when to cut the 
-contact when they separate too much.
+The contact breaking threshold represents the maximum distance between two collision shapes where were in contact before the contact is considered as non-existent. This is due to the fact that Chrono relies in many instances on the Bullet collision algorithms and Bullet keeps 
+contact points persistent from one simulation frame to the next. This threshold value instructs Bullet when to severe the contact between the two collision shapes.
 
 
 # Examples
-
-Among the many examples, look at:
-- demo_bricks.cpp
-- demo_collision.cpp
-- demo_friction.cpp
+For further guidance, see:
+- @ref demo_bricks.cpp
+- @ref demo_collision.cpp
+- @ref demo_friction.cpp
 
 
 

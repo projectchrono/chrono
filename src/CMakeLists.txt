@@ -140,6 +140,27 @@ FIND_PACKAGE(FMA)
   ENDIF()
   
 ENDIF()
+
+#-----------------------------------------------------------------------------
+# MPI support
+#-----------------------------------------------------------------------------
+
+message(STATUS "Searching for MPI...")
+find_package(MPI)
+message(STATUS "  MPI (C++) found: ${MPI_CXX_FOUND}")
+if(MPI_CXX_FOUND)
+  message(STATUS "  MPI compiler:      ${MPI_CXX_COMPILER}")
+  message(STATUS "  MPI compile flags: ${MPI_CXX_COMPILE_FLAGS}")
+  message(STATUS "  MPI include path:  ${MPI_CXX_INCLUDE_PATH}")
+  message(STATUS "  MPI link flags:    ${MPI_CXX_LINK_FLAGS}")
+  message(STATUS "  MPI libraries:     ${MPI_CXX_LIBRARIES}")
+  message(STATUS "")
+  message(STATUS "  MPIEXEC:               ${MPIEXEC}")
+  message(STATUS "  MPIEXEC_NUMPROC_FLAG:  ${MPIEXEC_NUMPROC_FLAG}")
+  message(STATUS "  MPIEXEC_PREFLAGS:      ${MPIEXEC_PREFLAGS}")
+  message(STATUS "  MPIEXEC_POSTFLAGS:     ${MPIEXEC_POSTFLAGS}")
+endif()
+
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

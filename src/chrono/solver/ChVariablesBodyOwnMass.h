@@ -43,13 +43,15 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     ChVariablesBodyOwnMass& operator=(const ChVariablesBodyOwnMass& other);
 
     /// Get the mass associated with translation of body
-    virtual double GetBodyMass() { return mass; }
+    virtual double GetBodyMass() const override { return mass; }
 
     /// Access the 3x3 inertia matrix
-    virtual ChMatrix33<>& GetBodyInertia() { return inertia; }
+    virtual ChMatrix33<>& GetBodyInertia() override { return inertia; }
+    virtual const ChMatrix33<>& GetBodyInertia() const override { return inertia; }
 
     /// Access the 3x3 inertia matrix inverted
-    ChMatrix33<>& GetBodyInvInertia() { return inv_inertia; }
+    virtual ChMatrix33<>& GetBodyInvInertia() override { return inv_inertia; }
+    virtual const ChMatrix33<>& GetBodyInvInertia() const override { return inv_inertia; }
 
     /// Set the inertia matrix
     void SetBodyInertia(const ChMatrix33<>& minertia);

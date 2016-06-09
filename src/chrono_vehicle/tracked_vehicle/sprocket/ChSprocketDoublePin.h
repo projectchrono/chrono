@@ -13,12 +13,12 @@
 // =============================================================================
 //
 // Base class for a sprocket template with gear profile composed of circular
-// arcs, suitable for interaction with single-pin track shoes.
+// arcs and a flat seat, suitable for interaction with double-pin track shoes.
 //
 // =============================================================================
 
-#ifndef CH_ARC_SPROCKET_H
-#define CH_ARC_SPROCKET_H
+#ifndef CH_SPROCKET_DOUBLE_PIN_H
+#define CH_SPROCKET_DOUBLE_PIN_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -30,14 +30,15 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_sprocket
 /// @{
 
-/// Base class for a sprocket template with gear profile composed of circular arcs.
-/// This sprocket type is suitable for interaction with single-pin track shoes.
-class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
+/// Base class for a sprocket template with gear profile composed of circular arcs
+/// and a flat seat. This sprocket type is suitable for interaction with double-pin
+/// track shoes.
+class CH_VEHICLE_API ChSprocketDoublePin : public ChSprocket {
   public:
-    ChArcSprocket(const std::string& name  ///< [in] name of the subsystem
-                  );
+    ChSprocketDoublePin(const std::string& name  ///< [in] name of the subsystem
+                        );
 
-    virtual ~ChArcSprocket() {}
+    virtual ~ChSprocketDoublePin() {}
 
     /// Return the 2D gear profile.
     /// The gear profile, a ChLinePath geometric object, is made up of an arbitrary number
@@ -55,11 +56,14 @@ class CH_VEHICLE_API ChArcSprocket : public ChSprocket {
     /// Return the radius of the addendum circle.
     virtual double GetOuterRadius() const = 0;
 
-    /// Return the radius of the (concave) tooth circular arc.
+    /// Return the radius of the (concave) tooth circular arcs.
     virtual double GetArcRadius() const = 0;
 
-    /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const = 0;
+    /// Return height of arc centers.
+    virtual double GetArcCenterHeight() const = 0;
+
+    /// Return offset of arc centers.
+    virtual double GetArcCenterOffset() const = 0;
 };
 
 /// @} vehicle_tracked_sprocket

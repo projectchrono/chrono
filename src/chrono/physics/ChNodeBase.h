@@ -1,29 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be 
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHNODEBASE_H
 #define CHNODEBASE_H
 
 #include "chrono/core/ChRunTimeType.h"
-#include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/physics/ChPhysicsItem.h"
+#include "chrono/solver/ChVariablesBodyOwnMass.h"
 
 namespace chrono {
 
-/// Class for a node, that has some degrees of 
+/// Class for a node, that has some degrees of
 /// freedom and that contain a proxy to the solver.
 /// It is like a lightweight version of a ChPhysicsItem,
-/// often a ChPhysicsItem is used as a container for a cluster 
+/// often a ChPhysicsItem is used as a container for a cluster
 /// of these ChNodeBase.
 
 class ChApi ChNodeBase {
@@ -31,47 +32,43 @@ class ChApi ChNodeBase {
     CH_RTTI_ROOT(ChMaterialSurfaceBase);
 
   protected:
-    unsigned int offset_x;  // offset in vector of state (position part)
-    unsigned int offset_w;  // offset in vector of state (speed part)
+    unsigned int offset_x;  ///< offset in vector of state (position part)
+    unsigned int offset_w;  ///< offset in vector of state (speed part)
 
   public:
     ChNodeBase();
-    virtual ~ChNodeBase();
+    ChNodeBase(const ChNodeBase& other);
+    virtual ~ChNodeBase() {}
 
-    ChNodeBase(const ChNodeBase& other);  // Copy constructor
-    ChNodeBase& operator=(const ChNodeBase& other);  // Assignment operator
-
-    //
-    // FUNCTIONS
-    //
+    ChNodeBase& operator=(const ChNodeBase& other);
 
     //
     // Functions for interfacing to the state bookkeeping
     //
 
     /// Get the number of degrees of freedom
-    virtual int Get_ndof_x() = 0;
+    virtual int Get_ndof_x() const = 0;
 
     /// Get the number of degrees of freedom, derivative
     /// This might be different from ndof if quaternions are used for rotations,
     /// as derivative might be angular velocity.
-    virtual int Get_ndof_w() { return this->Get_ndof_x(); }
+    virtual int Get_ndof_w() const { return Get_ndof_x(); }
 
     /// Get offset in the state vector (position part)
-	unsigned int NodeGetOffset_x()	{ return this->offset_x; }
-				/// Get offset in the state vector (speed part)
-	unsigned int NodeGetOffset_w()	{ return this->offset_w; }
+    unsigned int NodeGetOffset_x() { return offset_x; }
+    /// Get offset in the state vector (speed part)
+    unsigned int NodeGetOffset_w() { return offset_w; }
 
-				/// Set offset in the state vector (position part)
-	void NodeSetOffset_x(const unsigned int moff) { this->offset_x= moff; }
-				/// Set offset in the state vector (speed part)
-    void NodeSetOffset_w(const unsigned int moff) { this->offset_w = moff; }
+    /// Set offset in the state vector (position part)
+    void NodeSetOffset_x(const unsigned int moff) { offset_x = moff; }
+    /// Set offset in the state vector (speed part)
+    void NodeSetOffset_w(const unsigned int moff) { offset_w = moff; }
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,
                                     const unsigned int off_v,
                                     ChStateDelta& v,
-                                    double& T){};
+                                    double& T) {}
     virtual void NodeIntStateScatter(const unsigned int off_x,
                                      const ChState& x,
                                      const unsigned int off_v,
@@ -84,7 +81,7 @@ class ChApi ChNodeBase {
                                        const ChState& x,
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) {
-        for (int i = 0; i < this->Get_ndof_x(); ++i) {
+        for (int i = 0; i < Get_ndof_x(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -109,7 +106,7 @@ class ChApi ChNodeBase {
 
     /// Adds the current forces (applied to node) into the
     /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
-    virtual void VariablesFbLoadForces(double factor = 1.) {}
+    virtual void VariablesFbLoadForces(double factor = 1) {}
 
     /// Initialize the 'qb' part of the ChVariables with the
     /// current value of speeds.
@@ -125,7 +122,7 @@ class ChApi ChNodeBase {
     /// If 'step' is not 0, also should compute the approximate acceleration of
     /// the item using backward differences, that is  accel=(new_speed-old_speed)/step.
     /// Mostly used after the solver provided the solution in ChVariables.
-    virtual void VariablesQbSetSpeed(double step = 0.) {}
+    virtual void VariablesQbSetSpeed(double step = 0) {}
 
     /// Increment node positions by the 'qb' part of the ChVariables,
     /// multiplied by a 'step' factor.

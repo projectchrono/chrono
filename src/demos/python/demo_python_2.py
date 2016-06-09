@@ -66,9 +66,9 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 class MyReportContactCallback(chrono.ChReportContactCallback):
     def __init__(self):
          chrono.ChReportContactCallback.__init__(self)
-    def ReportContactCallback(self,vA,vB,cA,dist,frict,force,torque,modA,modB):
+    def ReportContactCallback(self,vA,vB,cA,dist,force,torque,modA,modB):
          print ('  contact: point A=' , vA,  '  dist=',dist)
-         return 1        # return 0 to stop reporting contacts
+         return True        # return False to stop reporting contacts
 
 my_rep = MyReportContactCallback()
 

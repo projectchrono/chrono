@@ -24,9 +24,8 @@
 
 #include "models/vehicle/hmmwv/HMMWV_Vehicle.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
@@ -40,7 +39,7 @@ const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344,
                                                  3570.20377);  // chassis inertia (roll,pitch,yaw)
 
 const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_Vehicle::m_chassisMeshFile = vehicle::GetDataFile("hmmwv/hmmwv_chassis.obj");
+const std::string HMMWV_Vehicle::m_chassisMeshFile = "hmmwv/hmmwv_chassis.obj";
 
 const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));
 
@@ -88,7 +87,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
         }
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_chassisMeshFile, false, false);
+            trimesh.LoadWavefrontMesh(GetDataFile(m_chassisMeshFile), false, false);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
@@ -146,8 +145,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
 }
 
-HMMWV_Vehicle::~HMMWV_Vehicle() {
-}
+HMMWV_Vehicle::~HMMWV_Vehicle() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -207,7 +205,8 @@ double HMMWV_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
+        ->GetSpringDeformation(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
@@ -221,13 +220,14 @@ double HMMWV_Vehicle::GetShockLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
+        ->GetShockVelocity(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(m_chassisMeshFile, m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
+    utils::WriteMeshPovray(GetDataFile(m_chassisMeshFile), m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
 
     HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get());
     HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get());
@@ -243,10 +243,12 @@ void HMMWV_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])
+        ->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
 
     GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])
+        ->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
 
     GetLog() << "\n\n";
 
@@ -292,3 +294,5 @@ void HMMWV_Vehicle::DebugLog(int what) {
 }
 
 }  // end namespace hmmwv
+}  // end namespace vehicle
+}  // end namespace chrono

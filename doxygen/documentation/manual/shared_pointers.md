@@ -2,50 +2,47 @@
 Shared pointers                 {#shared_pointers}
 ==============================
 
-In Chrono::Engine, most 'heavyweight objects' such as rigid bodies, links, etc., are managed
-via **shared pointers**. This means that the user is freed from the need to take care of
-deleting objects after he creates them, because shared pointers provide a (limited)
-garbage-collection facility, possibly sharing that management with other objects.
+In Chrono, most of the 'heavyweight objects', such as rigid bodies, links, etc., are managed
+via **shared pointers**. One consequence is that the user does not need to be concerned about 
+deleting objects after creating them. Indeed, these shared pointers provide in some sense a basic garbage-collection facility. In this context, Chrono uses the C++11 compliant shared pointer from the STL library: ```std::shared_ptr```.
 
-We use the C++11 compliant shared pointer from the STL library: ```std::shared_ptr```.
-
-Objects of shared_ptr types have the ability of taking ownership of a
-pointer and share that ownership: once they take ownership, 
-the group of owners of a pointer become responsible for its 
+Objects of shared_ptr types have the ability of sharing the ownership of a
+pointer. Once they take shared ownership of a pointer, 
+the group of owners become responsible for its 
 deletion when the last one of them releases that ownership.
-
-Therefore shared_ptr objects release ownership on the object 
+In this context, its useful to keep in mind that shared_ptr objects release ownership on the object 
 they co-own as soon as they themselves are destroyed. 
 
 Once all shared_ptr objects that share ownership over 
 a pointer have released this ownership, the managed 
 object is _automatically_ deleted.
 
-The main effect of using shared_ptr is that the user will **never need to use delete**.
-This avoids a lot of headache in memory management and avoids lot of errors with dangling pointers.
+The main effect of using a shared_ptr object is that the user will **never need to use delete**. This simplifies memory management and avoids errors associated with dangling pointers.
 
-An example: create an object and handle it with a shared pointer:
+Example: create an object and handle it with via a shared pointer.
 
 ~~~{.cpp}
-std::shared_ptr<ChBody> my_body (new ChBody);
+std::shared_ptr<ChBody> my_body(new ChBody);
 ~~~
 
-An equivalent, better alternative is to use ```std::make_shared```, that allows a bit faster performance:
+A better alternative is to use ```std::make_shared```, which is a bit faster:
 
 ~~~{.cpp}
 auto my_body = std::make_shared<ChBody>();
 ~~~
 
-Note that ```auto```, as in other C++11 cases, means that you do not have to specify 
-```std::shared_ptr<ChBody> my_body = ...``` and it means less typing.
+Note that ```auto```, as in other C++11 cases, means that there is no need to specify 
+```std::shared_ptr<ChBody> my_body = ...``` 
 
-If parameters are needed during the construction:
+
+In the next example, parameters are needed in the constructor call:
 
 ~~~{.cpp}
 auto my_foo = std::make_shared<Foo>(par1, par2);
 ~~~
 
-One can also assign other pointers to the same shared object, as in these examples:
+Other pointers can also be assigned to the same shared object.
+Examples:
 
 ~~~{.cpp}
 auto my_foo = std::make_shared<Foo>(par1, par2);
@@ -54,9 +51,7 @@ std::shared_ptr<Foo> my_fuu = my_foo;
 auto my_fii = FunctionReturningSharedPointer();
 ~~~
 
-Note that if you want to downcast shared pointers, you use ```dynamic_pointer_cast<...>(...)```,
-also you can do a static cast via ```static_pointer_cast<...>(...)```,
-as in these examples:
+Downcasting shared pointers falls back on the use of ```dynamic_pointer_cast<...>(...)```. A static cast is done via ```static_pointer_cast<...>(...)```:
 
 ~~~{.cpp}
 std::shared_ptr<Base> var1;
@@ -70,17 +65,10 @@ if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTi
 ~~~
 
 
-## Porting from old (previous than v.3.0) versions of the API
+## Porting from a pre 3.0 version of the Chrono API
 
-<div class="ce-info">
-The following section can be skipped if you do not have to port your code
-from an older version of Chrono::Engine.
-</div>
-
-The older API of Chrono used a custom shared pointer called ```ChSharedPtr```.
-This is made obsolete and it has been replaced by the ```std::shared_ptr``` discussed above.
-If you want to port old code to the new (greater than v.3.0) versions of Chrono API, follow 
-these guidelines:
+Pre 3.0 versions of the Chrono API used the custom shared pointer class ```ChSharedPtr```. This was made obsolete and replaced by the ```std::shared_ptr```.
+Modifying old code to use the v.3.0 and newer versions of the Chrono API can be straightforward if one follows these guidelines:
 
 - Types:
   - OLD:
@@ -100,7 +88,7 @@ these guidelines:
   
 		auto my_var = std::make_shared<Foo>(arg1, arg2);
 
-- if the constructor of Foo does not take any arguments, then:
+- If the constructor of Foo does not take any arguments, then:
   - OLD:
   
 		ChSharedPtr<Foo>  my_var(new Foo);
@@ -109,7 +97,7 @@ these guidelines:
   
 		auto my_var = std::make_shared<Foo>();
 	
-- if you have a variable already declared as a shared pointer somewhere else:
+- If a variable has already been declared as a shared pointer somewhere else:
   - OLD:
   
 		ChSharedPtr<Foo> my_var;
@@ -120,7 +108,7 @@ these guidelines:
 		std::shared_ptr<Foo> my_var;
 		my_var = std::make_shared<Foo>(arg1, arg2);
 
-- copy constructors
+- Copy constructors
   - OLD:
   
 		ChSharedPtr<Foo>  var1;
@@ -132,7 +120,7 @@ these guidelines:
 		std::shared_ptr<Foo> var2(var1);
 		auto var3 = std::shared_ptr<Foo>(var1);
 
-- constructor from raw pointer
+- Constructor from raw pointer
   - OLD:
   
 		Foo* my_pointer;
@@ -143,7 +131,7 @@ these guidelines:
 		Foo* my_pointer;
 		std::shared_ptr<Foo> my_var(my_pointer);
 	
-- casting
+- Casting
   - OLD:
   
 		ChSharedPtr<Base>  var1;
@@ -154,10 +142,10 @@ these guidelines:
   
 		std::shared_ptr<Base> var1;
 		auto var2 = std::dynamic_pointer_cast<Derived>(var1);
-		auto var3 = std::static_pointer_cast<Derived>(var1);
+		auto var3 = std::static_pointer_cast <Derived>(var1);
 	
 
-- access to the wrapped pointer
+- Access to the wrapped pointer
   - OLD:
   
 		ChSharedPtr<Foo> my_var;
@@ -169,7 +157,7 @@ these guidelines:
 		Foo* my_pointer = my_var.get();
 	
 
-- testing for NULL (empty) shared pointer  (e.g. in an assert, or a conditional)
+- Testing for NULL (empty) shared pointer, e.g. in an assert or a conditional
   - OLD:
   
 		ChSharedPtr<Foo> my_var;
@@ -178,10 +166,10 @@ these guidelines:
   - NEW:
   
 		std::shared_ptr<Foo> my_var;
-		assert(my_var);
+		assert(!my_var);
 	
 
-- testing for the type should be done explicitly with dynamic_pointer_cast
+- Testing for the type should be done explicitly with dynamic_pointer_cast
   - OLD:
   
 		ChSharedPtr<Bar> my_var;

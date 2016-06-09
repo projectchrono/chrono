@@ -1,15 +1,18 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 
-#include "physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkSpringCB.h"
 
 namespace chrono {
 
@@ -17,37 +20,21 @@ namespace chrono {
 // persistence
 ChClassRegister<ChLinkSpringCB> a_registration_ChLinkSpringCB;
 
-ChLinkSpringCB::ChLinkSpringCB() : m_rest_length(0), m_force(0), m_force_fun(NULL) {
+ChLinkSpringCB::ChLinkSpringCB() : m_rest_length(0), m_force(0), m_force_fun(NULL) {}
+
+ChLinkSpringCB::ChLinkSpringCB(const ChLinkSpringCB& other) : ChLinkMarkers(other) {
+    m_rest_length = other.m_rest_length;
+    m_force = other.m_force;
+    m_force_fun = other.m_force_fun;  //// do we need a deep copy?
 }
 
-ChLinkSpringCB::~ChLinkSpringCB() {
-}
-
-void ChLinkSpringCB::Copy(ChLinkSpringCB* source) {
-    // first copy the parent class data
-    ChLinkMarkers::Copy(source);
-
-    // copy custom data:
-    m_force_fun = source->m_force_fun;
-    m_rest_length = source->m_rest_length;
-    m_force = source->m_force;
-}
-
-ChLink* ChLinkSpringCB::new_Duplicate() {
-    ChLinkSpringCB* m_l = new ChLinkSpringCB;
-    m_l->Copy(this);
-    return (m_l);
-}
-
-void ChLinkSpringCB::Initialize(
-    std::shared_ptr<ChBody> body1,  // first body to link
-    std::shared_ptr<ChBody> body2,  // second body to link
-    bool pos_are_relative,      // true: following pos. are considered relative to bodies. false: pos. are absolute
-    ChVector<> pos1,            // position of spring endpoint for 1st body (rel. or abs., see flag above)
-    ChVector<> pos2,            // position of spring endpoint for 2nd body (rel. or abs., see flag above)
-    bool auto_rest_length,      // if true, initializes the rest length as the distance between pos1 and pos2
-    double rest_length          // rest length (no need to define if auto_rest_length=true.)
-    ) {
+void ChLinkSpringCB::Initialize(std::shared_ptr<ChBody> body1,
+                                std::shared_ptr<ChBody> body2,
+                                bool pos_are_relative,
+                                ChVector<> pos1,
+                                ChVector<> pos2,
+                                bool auto_rest_length,
+                                double rest_length) {
     // First, initialize as all constraint with markers.
     // In this case, create the two markers also!.
     ChLinkMarkers::Initialize(body1, body2, CSYSNORM);
@@ -77,8 +64,7 @@ void ChLinkSpringCB::UpdateForces(double time) {
     C_force += m_force * relM.pos.GetNormalized();
 }
 
-void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -90,8 +76,7 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -102,5 +87,4 @@ void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(m_rest_length);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

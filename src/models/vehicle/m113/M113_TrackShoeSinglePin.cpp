@@ -16,44 +16,43 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChColorAsset.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "models/vehicle/m113/M113_TrackShoe.h"
+#include "models/vehicle/m113/M113_TrackShoeSinglePin.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
-
+namespace chrono {
+namespace vehicle {
 namespace m113 {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_TrackShoe::m_shoe_height = 0.06;
-const double M113_TrackShoe::m_shoe_pitch = 0.154;
-const double M113_TrackShoe::m_shoe_mass = 18.02;
-const chrono::ChVector<> M113_TrackShoe::m_shoe_inertia(0.22, 0.04, 0.25);
+const double M113_TrackShoeSinglePin::m_shoe_height = 0.06;
+const double M113_TrackShoeSinglePin::m_shoe_pitch = 0.154;
+const double M113_TrackShoeSinglePin::m_shoe_mass = 18.02;
+const ChVector<> M113_TrackShoeSinglePin::m_shoe_inertia(0.22, 0.04, 0.25);
 
-const double M113_TrackShoe::m_cyl_radius = 0.015;
-const double M113_TrackShoe::m_front_cyl_loc = 0.0535;
-const double M113_TrackShoe::m_rear_cyl_loc = -0.061;
+const double M113_TrackShoeSinglePin::m_cyl_radius = 0.015;
+const double M113_TrackShoeSinglePin::m_front_cyl_loc = 0.0535;
+const double M113_TrackShoeSinglePin::m_rear_cyl_loc = -0.061;
 
-const std::string M113_TrackShoe::m_meshName = "TrackShoe_POV_geom";
-const std::string M113_TrackShoe::m_meshFile = vehicle::GetDataFile("M113/TrackShoe.obj");
+const std::string M113_TrackShoeSinglePin::m_meshName = "TrackShoe_POV_geom";
+const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoe::M113_TrackShoe() : ChSinglePinShoe("M113_TrackShoe"), m_vis_type(PRIMITIVES) {
+M113_TrackShoeSinglePin::M113_TrackShoeSinglePin() : ChTrackShoeSinglePin("M113_TrackShoe"), m_vis_type(PRIMITIVES) {
     SetContactMaterial(0.8f, 0.1f, 1e7f, 0.3f);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoe::AddShoeContact() {
+void M113_TrackShoeSinglePin::AddShoeContact() {
     m_shoe->GetCollisionModel()->ClearModel();
     m_shoe->GetCollisionModel()->AddBox(0.055, 0.095, 0.03);
     m_shoe->GetCollisionModel()->AddBox(0.0142, 0.0055, 0.0375, ChVector<>(0.045, 0, 0.0375));
@@ -62,7 +61,7 @@ void M113_TrackShoe::AddShoeContact() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoe::AddShoeVisualization() {
+void M113_TrackShoeSinglePin::AddShoeVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES: {
             auto rev_axis = std::make_shared<ChCylinderShape>();
@@ -118,7 +117,7 @@ void M113_TrackShoe::AddShoeVisualization() {
         }
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
@@ -131,3 +130,5 @@ void M113_TrackShoe::AddShoeVisualization() {
 }
 
 }  // end namespace m113
+}  // end namespace vehicle
+}  // end namespace chrono

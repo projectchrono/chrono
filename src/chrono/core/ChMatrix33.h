@@ -93,6 +93,23 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set_A_AngAxis(angle, axis);
     }
 
+    /// Complete generic constructor from 9 elements, ordered as three in first row, 
+    /// three in second row, three in third row.
+    template <class RealB>
+    ChMatrix33(const RealB& m00, const RealB& m01, const RealB& m02,
+	           const RealB& m10, const RealB& m11, const RealB& m12,
+	           const RealB& m20, const RealB& m21, const RealB& m22) {
+        this->Set33Element(0,0, m00);
+        this->Set33Element(0,1, m01);
+        this->Set33Element(0,2, m02);
+        this->Set33Element(1,0, m10);
+        this->Set33Element(1,1, m11);
+        this->Set33Element(1,2, m12);
+        this->Set33Element(2,0, m20);
+        this->Set33Element(2,1, m21);
+        this->Set33Element(2,2, m22);
+    }
+
     //
     // OPERATORS
     //
@@ -386,6 +403,21 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set33Element(2, 0, -(Real)vect.y);
         this->Set33Element(2, 1, (Real)vect.x);
         this->Set33Element(2, 2, 0);
+    }
+
+    /// Fills a 3x3 matrix as product of two 'cross product' matrices, 
+    /// as double vector cross product.
+    template <class RealB>
+    void Set_XY_matrix(const ChVector<RealB>& vectA,const ChVector<RealB>& vectB) {
+        this->Set33Element(0,0, -vectA.y*vectB.y-vectA.z*vectB.z);
+        this->Set33Element(1,0,  vectA.x*vectB.y);
+        this->Set33Element(2,0,  vectA.x*vectB.z);
+        this->Set33Element(0,1,  vectA.y*vectB.x);
+        this->Set33Element(1,1, -vectA.z*vectB.z-vectA.x*vectB.x);
+        this->Set33Element(2,1,  vectA.y*vectB.z);
+        this->Set33Element(0,2,  vectA.z*vectB.x);
+        this->Set33Element(1,2,  vectA.z*vectB.y);
+        this->Set33Element(2,2, -vectA.x*vectB.x-vectA.y*vectB.y);
     }
 
     /// Fills a 3x3 matrix as a rotation matrix, given the three
@@ -775,6 +807,33 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         temp.z = this->Get33Element(2, 2);
         return temp;
     }
+    
+    /// Return the sum of the three elements on the diagonal
+    Real GetTrace() const {
+        return this->Get33Element(0, 0) + this->Get33Element(1, 1) + this->Get33Element(2, 2);
+    }
+
+    /// Assuming it is an orthogonal rotation matrix, get Ax vector
+    ChVector<Real> GetAx() const {
+        return ChVector<Real>(
+		      0.5*(this->Get33Element(2,1)-this->Get33Element(1,2)),
+		      0.5*(this->Get33Element(0,2)-this->Get33Element(2,0)),
+		      0.5*(this->Get33Element(1,0)-this->Get33Element(0,1))
+		      );
+    };
+
+    /// Return a symmetric matrix =(1/2)*(A+A')
+    ChMatrix33<Real> GetSymm() const {
+        Real m12 = 0.5*(this->Get33Element(1,0)+this->Get33Element(0,1));
+        Real m13 = 0.5*(this->Get33Element(2,0)+this->Get33Element(0,2));
+        Real m23 = 0.5*(this->Get33Element(2,1)+this->Get33Element(1,2));
+
+        return ChMatrix33<Real>(
+		      this->Get33Element(0,0), m12, m13,
+		      m12, this->Get33Element(1,1), m23,
+		      m13, m23, this->Get33Element(2,2)
+		      );
+    };
 
     /// Convert to a 2-dimensional array
     void To_Marray(double marr[3][3]) {
@@ -806,6 +865,26 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         return mma;
     }
 };
+
+
+
+
+// Compute a 3x3 matrix as a tensor product between two vectors (outer product of vectors)
+template <class Real>
+ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& vB) {
+    ChMatrix33<Real> T;
+    T(0,0) = vA.x*vB.x;
+    T(0,1) = vA.x*vB.y;
+    T(0,2) = vA.x*vB.z;
+    T(1,0) = vA.y*vB.x;
+    T(1,1) = vA.y*vB.y;
+    T(1,2) = vA.y*vB.z;
+    T(2,0) = vA.z*vB.x;
+    T(2,1) = vA.z*vB.y;
+    T(2,2) = vA.z*vB.z;
+    return T;
+}
+
 
 }  // END_OF_NAMESPACE____
 

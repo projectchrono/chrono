@@ -1,57 +1,42 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkPulley.cpp
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChLinkPulley.h"
+#include "chrono/physics/ChLinkPulley.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////
-//
-//   CLASS FOR PULLEYS
-//
-//
-
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkPulley> a_registration_ChLinkPulley;
 
-ChLinkPulley::ChLinkPulley() {
-    type = LNK_PULLEY;  // initializes type
-
-    a1 = 0;
-    a2 = 0;
-    r1 = 1;
-    r2 = 1;
-    tau = 1;
-    phase = 0;
-    checkphase = FALSE;
-    shaft_dist = 0;
+ChLinkPulley::ChLinkPulley()
+    : a1(0),
+      a2(0),
+      r1(1),
+      r2(1),
+      tau(1),
+      phase(0),
+      checkphase(false),
+      shaft_dist(0),
+      belt_up1(VNULL),
+      belt_up2(VNULL),
+      belt_low1(VNULL),
+      belt_low2(VNULL) {
+    // initializes type
+    type = LNK_PULLEY;
 
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
-
-    belt_up1 = VNULL;
-    belt_up2 = VNULL;
-    belt_low1 = VNULL;
-    belt_low2 = VNULL;
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // to X  only. It was a LinkMaskLF because this class inherited from LinkLock.
@@ -59,40 +44,35 @@ ChLinkPulley::ChLinkPulley() {
     ChangedLinkMask();
 }
 
-ChLinkPulley::~ChLinkPulley() {
+ChLinkPulley::ChLinkPulley(const ChLinkPulley& other) : ChLinkLock(other) {
+    tau = other.tau;
+    phase = other.phase;
+    a1 = other.a1;
+    a2 = other.a2;
+    checkphase = other.checkphase;
+    r1 = other.r1;
+    r2 = other.r2;
+    belt_up1 = other.belt_up1;
+    belt_up2 = other.belt_up2;
+    belt_low1 = other.belt_low1;
+    belt_low2 = other.belt_low2;
+    local_shaft1 = other.local_shaft1;
+    local_shaft2 = other.local_shaft2;
+    shaft_dist = other.shaft_dist;
 }
 
-void ChLinkPulley::Copy(ChLinkPulley* source) {
-    // first copy the parent class data...
-    //
-    ChLinkLock::Copy(source);
-
-    // copy custom data:
-    tau = source->tau;
-    phase = source->phase;
-    a1 = source->a1;
-    a2 = source->a2;
-    checkphase = source->checkphase;
-    r1 = source->r1;
-    r2 = source->r2;
-    belt_up1 = source->belt_up1;
-    belt_up2 = source->belt_up2;
-    belt_low1 = source->belt_low1;
-    belt_low2 = source->belt_low2;
-    local_shaft1 = source->local_shaft1;
-    local_shaft2 = source->local_shaft2;
-    shaft_dist = source->shaft_dist;
+void ChLinkPulley::Set_r1(double mr) {
+    r1 = mr;
+    tau = r1 / r2;
 }
 
-ChLink* ChLinkPulley::new_Duplicate() {
-    ChLinkPulley* m_l;
-    m_l = new ChLinkPulley;  // inherited classes should write here: m_l = new MyInheritedLink;
-    m_l->Copy(this);
-    return (m_l);
+void ChLinkPulley::Set_r2(double mr) {
+    r2 = mr;
+    tau = r1 / r2;
 }
 
 Vector ChLinkPulley::Get_shaft_dir1() {
-    if (this->Body1) {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
         return absframe.GetA().Get_A_Zaxis();
@@ -101,7 +81,7 @@ Vector ChLinkPulley::Get_shaft_dir1() {
 }
 
 Vector ChLinkPulley::Get_shaft_dir2() {
-    if (this->Body1) {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
         return absframe.GetA().Get_A_Zaxis();
@@ -110,7 +90,7 @@ Vector ChLinkPulley::Get_shaft_dir2() {
 }
 
 Vector ChLinkPulley::Get_shaft_pos1() {
-    if (this->Body1) {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1, absframe);
         return absframe.GetPos();
@@ -119,7 +99,7 @@ Vector ChLinkPulley::Get_shaft_pos1() {
 }
 
 Vector ChLinkPulley::Get_shaft_pos2() {
-    if (this->Body1) {
+    if (Body1) {
         ChFrame<double> absframe;
         ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2, absframe);
         return absframe.GetPos();
@@ -172,10 +152,8 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
     // correct marker positions if phasing is not correct
     double m_delta = 0;
-    if (this->checkphase) {
+    if (checkphase) {
         double realtau = tau;
-        // if (this->epicyclic)
-        //	realtau = -tau;
 
         m_delta = a1 - phase - (a2 / realtau);
 
@@ -193,7 +171,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChVector<> d21_w = dcc_w - Get_shaft_dir1() * Vdot(Get_shaft_dir1(), dcc_w);
     ChVector<> D21_w = Vnorm(d21_w);
 
-    this->shaft_dist = d21_w.Length();
+    shaft_dist = d21_w.Length();
 
     ChVector<> U1_w = Vcross(Get_shaft_dir1(), D21_w);
 
@@ -202,10 +180,10 @@ void ChLinkPulley::UpdateTime(double mytime) {
     ChVector<> Ru_w = D21_w * cos(gamma1) + U1_w * sin(gamma1);
     ChVector<> Rl_w = D21_w * cos(gamma1) - U1_w * sin(gamma1);
 
-    this->belt_up1 = Get_shaft_pos1() + Ru_w * r1;
-    this->belt_low1 = Get_shaft_pos1() + Rl_w * r1;
-    this->belt_up2 = Get_shaft_pos1() + d21_w + Ru_w * r2;
-    this->belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
+    belt_up1 = Get_shaft_pos1() + Ru_w * r1;
+    belt_low1 = Get_shaft_pos1() + Rl_w * r1;
+    belt_up2 = Get_shaft_pos1() + d21_w + Ru_w * r2;
+    belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
 
     // marker alignment
     ChMatrix33<> maU;
@@ -247,10 +225,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
     deltaC_dtdt.rot = QNULL;
 }
 
-
-
-void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive)
-{
+void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
 
@@ -270,8 +245,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive)
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) 
-{
+void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
 
@@ -290,7 +264,4 @@ void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive)
     marchive >> CHNVP(local_shaft2);
 }
 
-
-///////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

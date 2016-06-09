@@ -2,6 +2,8 @@
 # Additional include paths and libraries
 # ------------------------------------------------------------------------------
 
+MESSAGE(STATUS "Additional test programs for FSI module...")
+
 INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 
 SET(LIBRARIES
@@ -35,6 +37,7 @@ SET(FSI_TESTS
 # List all FSI TESTS that use chrono-parallel
 SET(FSI_PARALLEL_TESTS
 # add fsi parallel TESTS here
+test_fsi_cylinderDrop_new
 )
 
 # List all FSI TESTS use vehicle
@@ -45,7 +48,6 @@ SET(FSI_VEHICLE_TESTS
 # List all FSI TESTS use parallel and vehicle
 SET(FSI_PARALLEL_VEHICLE_TESTS
 # add fsi parallel vehicle TESTS here
-	test_fsi_cylinderDrop_new
 )
 
 #--------------------------------------------------------------

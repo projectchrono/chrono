@@ -15,17 +15,17 @@
 // Class for performing time integration in fluid system.//
 // =============================================================================
 
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along x
-
 #include "chrono_fsi/ChFluidDynamics.cuh"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChSphGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
-//--------------------------------------------------------------------------------------------------------------------------------
-// collide a particle against all other particles in a given cell
+
+// -----------------------------------------------------------------------------
+/// Device function to calculate the share of density influence on a given marker from
+/// all other markers in a given cell
+
 __device__ void collideCellDensityReInit(Real& densityShare,
                                          Real& denominator,
                                          int3 gridPos,
@@ -68,7 +68,9 @@ __device__ void collideCellDensityReInit(Real& densityShare,
   densityShare += densityShare2;
   denominator += denominator2;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+/// Kernel to apply periodic BC along x
 
 __global__ void ApplyPeriodicBoundaryXKernel(Real3* posRadD, Real4* rhoPresMuD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
@@ -99,8 +101,10 @@ __global__ void ApplyPeriodicBoundaryXKernel(Real3* posRadD, Real4* rhoPresMuD) 
     return;
   }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along y
+
+// -----------------------------------------------------------------------------
+/// Kernel to apply periodic BC along y
+
 __global__ void ApplyPeriodicBoundaryYKernel(Real3* posRadD, Real4* rhoPresMuD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index >= numObjectsD.numAllMarkers) {
@@ -130,8 +134,10 @@ __global__ void ApplyPeriodicBoundaryYKernel(Real3* posRadD, Real4* rhoPresMuD) 
     return;
   }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// applies periodic BC along z
+
+// -----------------------------------------------------------------------------
+/// Kernel to apply periodic BC along z
+
 __global__ void ApplyPeriodicBoundaryZKernel(Real3* posRadD, Real4* rhoPresMuD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
   if (index >= numObjectsD.numAllMarkers) {
@@ -161,8 +167,11 @@ __global__ void ApplyPeriodicBoundaryZKernel(Real3* posRadD, Real4* rhoPresMuD) 
     return;
   }
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// updates the fluid particles' properties, i.e. velocity, density, pressure, position
+// -----------------------------------------------------------------------------
+/// Kernel to update the fluid properities.
+///
+/// It updates the density, velocity and position relying on explicit Euler scheme.
+/// Pressure is obtained from the density and an Equation of State.
 __global__ void UpdateFluidD(Real3* posRadD,
                              Real3* velMasD,
                              Real3* vel_XSPH_D,
@@ -261,8 +270,11 @@ __global__ void UpdateFluidD(Real3* posRadD,
   rhoPresMuD[index] = rhoPresMu;  // rhoPresMuD updated
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
-// without normalization
+// -----------------------------------------------------------------------------
+/// Kernel for updating the density.
+///
+/// It calculates the density of the markers. It does include the normalization
+/// close to the boundaries and free surface.
 __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
                                   Real3* sortedPosRad,
                                   Real3* sortedVelMas,
@@ -309,7 +321,9 @@ __global__ void ReCalcDensityD_F1(Real4* dummySortedRhoPreMu,
   dummySortedRhoPreMu[index] = rhoPreMuA;
 }
 
-//--------------------------------------------------------------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// CLASS FOR FLUID DYNAMICS SYSTEM
+// -----------------------------------------------------------------------------
 
 ChFluidDynamics::ChFluidDynamics(ChBce* otherBceWorker,
                                  ChFsiDataManager* otherFsiData,
@@ -319,18 +333,23 @@ ChFluidDynamics::ChFluidDynamics(ChBce* otherBceWorker,
   forceSystem = new ChFsiForceParallel(otherBceWorker, &(fsiData->sortedSphMarkersD), &(fsiData->markersProximityD),
                                        &(fsiData->fsiGeneralData), paramsH, numObjectsH);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
 void ChFluidDynamics::Finalize() {
   cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
   cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
   forceSystem->Finalize();
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
 
 ChFluidDynamics::~ChFluidDynamics() {
   delete forceSystem;
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
 void ChFluidDynamics::IntegrateSPH(SphMarkerDataD* sphMarkersD2,
                                    SphMarkerDataD* sphMarkersD1,
                                    FsiBodiesDataD* fsiBodiesD1,
@@ -339,8 +358,9 @@ void ChFluidDynamics::IntegrateSPH(SphMarkerDataD* sphMarkersD2,
   this->UpdateFluid(sphMarkersD2, dT);
   this->ApplyBoundarySPH_Markers(sphMarkersD2);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
-// updates the fluid particles by calling UpdateFluidD
+
+// -----------------------------------------------------------------------------
+
 void ChFluidDynamics::UpdateFluid(SphMarkerDataD* sphMarkersD, Real dT) {
   //	int4 referencePortion = referenceArray[0];
   //	if (referennamespace chrono {
@@ -373,7 +393,9 @@ void ChFluidDynamics::UpdateFluid(SphMarkerDataD* sphMarkersD, Real dT) {
   cudaFree(isErrorD);
   free(isErrorH);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
 /**
  * @brief ApplyBoundarySPH_Markers
  * @details
@@ -400,7 +422,9 @@ void ChFluidDynamics::ApplyBoundarySPH_Markers(SphMarkerDataD* sphMarkersD) {
   //    cudaThreadSynchronize();
   //    cudaCheckError();
 }
-//--------------------------------------------------------------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+
 void ChFluidDynamics::DensityReinitialization() {
   uint nBlock_NumSpheres, nThreads_SphMarkers;
   computeGridSize(numObjectsH->numAllMarkers, 256, nBlock_NumSpheres, nThreads_SphMarkers);

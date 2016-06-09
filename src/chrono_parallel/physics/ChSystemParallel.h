@@ -45,7 +45,12 @@ class ChParallelDataManager;
 class settings_container;
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-    CH_RTTI(ChSystemParallel, ChSystem);
+  CH_RTTI(ChSystemParallel, ChSystem);
+
+ public:
+  ChSystemParallel(unsigned int max_objects);
+  ChSystemParallel(const ChSystemParallel& other);
+  ~ChSystemParallel();
 
   public:
     ChSystemParallel(unsigned int max_objects);
@@ -129,8 +134,12 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
 
-  public:
-    ChSystemParallelDVI(unsigned int max_objects = 1000);
+ public:
+  ChSystemParallelDVI(unsigned int max_objects = 1000);
+  ChSystemParallelDVI(const ChSystemParallelDVI& other);
+
+  /// "Virtual" copy constructor (covariant return type).
+  virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
 
     void ChangeSolverType(SOLVERTYPE type);
     void Initialize();
@@ -158,8 +167,12 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
-  public:
-    ChSystemParallelDEM(unsigned int max_objects = 1000);
+ public:
+  ChSystemParallelDEM(unsigned int max_objects = 1000);
+  ChSystemParallelDEM(const ChSystemParallelDEM& other);
+
+  /// "Virtual" copy constructor (covariant return type).
+  virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
 
     virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override;

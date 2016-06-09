@@ -13,7 +13,7 @@
 #ifndef CHPARTICLEEVENTTRIGGER_H
 #define CHPARTICLEEVENTTRIGGER_H
 
-#include "chrono/core/ChHashTable.h"
+#include <unordered_map>
 #include "chrono/physics/ChSystem.h"
 #include "chrono/geometry/ChBox.h"
 
@@ -114,7 +114,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
         if ((localpos.z <= 0) && (-localpos.z < margin) && (fabs(localpos.x) < 0.5 * Xsize + margin) &&
             (fabs(localpos.y) < 0.5 * Ysize + margin)) {
             // Was it in the upper part, at last iteration?
-            ChHashTable<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get());
+            std::unordered_map<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get());
             if (mcached != last_positions.end()) {
                 ChVector<> pA = (*mcached).second.mpos;
                 ChVector<> pB = localpos;
@@ -149,7 +149,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
                 // ok, was in the upper part Z>0 of the triangle.. store in hash table for next
                 // run, so that one will know if the particle crossed the rectangle into Z<0
                 _particle_last_pos mlastpos((*myiter), localpos);
-                last_positions.insert((size_t)(*myiter).get(), mlastpos);
+                last_positions.insert({(size_t)(*myiter).get(), mlastpos});
             }
 
             ++myiter;
@@ -164,7 +164,7 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
     ChVector<> last_intersectionUV;  // .x and .y in range 0..1
 
   protected:
-    ChHashTable<size_t, _particle_last_pos> last_positions;
+    std::unordered_map<size_t, _particle_last_pos> last_positions;
 };
 
 }  // end of namespace particlefactory

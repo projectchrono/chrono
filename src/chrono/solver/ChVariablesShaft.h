@@ -41,7 +41,7 @@ class ChApi ChVariablesShaft : public ChVariables {
 
     /// The number of scalar variables in the vector qb
     /// (dof=degrees of freedom)
-    virtual int Get_ndof() const { return 1; }
+    virtual int Get_ndof() const override { return 1; }
 
     /// Get the inertia associated with rotation of the shaft
     double GetInertia() const { return m_inertia; }

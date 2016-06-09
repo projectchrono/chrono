@@ -9,12 +9,13 @@
 
   "Contact Material":
   {
-      "Use Physical Properties":  false,
+     "Coefficient of Friction":    0.9,
+     "Coefficient of Restitution": 0.1,
+
+     "Use Physical Properties":  false,
 
       "Properties":
       {
-          "Coefficient of Friction":    0.9,
-          "Coefficient of Restitution": 0.1,
           "Young Modulus":              2e6,
           "Poisson Ratio":              0.3
       },
