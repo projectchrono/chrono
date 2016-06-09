@@ -844,12 +844,12 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
         std::cout << "[Terrain node] Generated particles:  " << gen.getTotalNumBodies() << std::endl;
     }
 
-    // ATTENTION: Here we cache the number of bodies that had been added so far to
-    // the parallel system.  This will be used to index into the various global arrays
-    // to access information on proxy bodies.  The implicit assumption here is that
-    // *NO OTHER BODIES* are created before the proxy bodies!
+    // ATTENTION: Here we cache the number of contact shapes that had been added so far
+    // to the parallel system.  This will be used to index into the various global arrays
+    // to access/modify information on contact shapes for the proxy bodies.  The implicit
+    // assumption here is that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
 
-     m_proxy_start_index = m_system->data_manager->num_rigid_bodies;
+     m_proxy_start_index = m_system->data_manager->num_rigid_shapes;
 }
 
 // -----------------------------------------------------------------------------
