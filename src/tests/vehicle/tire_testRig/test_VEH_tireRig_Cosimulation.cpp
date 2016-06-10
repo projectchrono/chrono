@@ -280,7 +280,7 @@ RigNode::~RigNode() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::SetOutputFile(const std::string& name) {
-    m_outf.open(name, std::ios::out | std::ios::app);
+    m_outf.open(name, std::ios::out);
     m_outf.precision(7);
     m_outf << std::scientific;
 }
@@ -863,7 +863,7 @@ TerrainNode::~TerrainNode() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TerrainNode::SetOutputFile(const std::string& name) {
-    m_outf.open(name, std::ios::out | std::ios::app);
+    m_outf.open(name, std::ios::out);
     m_outf.precision(7);
     m_outf << std::scientific;
 }
@@ -1201,7 +1201,7 @@ void TerrainNode::ForcesFaceProxies(std::vector<double>& vert_forces, std::vecto
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector<>> my_map;
 
-    for (unsigned int it = 0; it < m_num_vert; it++) {
+    for (unsigned int it = 0; it < m_num_tri; it++) {
         // Get cumulative contact force at triangle centroid.
         // Do nothing if zero force.
         real3 rforce = m_system->GetBodyContactForce(m_proxies[it].m_body);
