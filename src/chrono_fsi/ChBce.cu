@@ -29,11 +29,9 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
                                                      Real4* qD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
   int numRigid_SphMarkers = numObjectsD.numRigid_SphMarkers;
-  printf("1, index %d %d \n", index, numRigid_SphMarkers);
   if (index >= numObjectsD.numRigid_SphMarkers) {
     return;
   }
-  printf("2, \n");
   int rigidIndex = rigidIdentifierD[index];
   uint rigidMarkerIndex =
       index + numObjectsD.startRigidMarkers;  // updatePortion = [start, end] index of the update portion
@@ -44,12 +42,6 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
   Real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
   Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
   rigidSPH_MeshPos_LRF_D[index] = dist3LF;
-
-  printf("-- index %d, rigidIndex %d, rigidMarkerIndex %d, pos %f %f %f, dist3 %f %f %f, dist3LF %f %f %f \n", index, rigidIndex, rigidMarkerIndex,
-	  posRadD[rigidMarkerIndex].x, posRadD[rigidMarkerIndex].y, posRadD[rigidMarkerIndex].z,
-	  dist3.x, dist3.y, dist3.z,
-	  dist3LF.x, dist3LF.y, dist3LF.z
-	  );
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell

@@ -1,30 +1,5 @@
 # ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
-
-SET(LIBRARIES
-    ChronoEngine   
-    ChronoEngine_fsi
-)
-IF(ENABLE_MODULE_PARALLEL)
-SET(LIBRARIES ${LIBRARIES} 
-    ChronoEngine_parallel
-)
-ENDIF()
-IF(ENABLE_MODULE_VEHICLE)
-SET(LIBRARIES ${LIBRARIES}
-    ChronoEngine_vehicle   
-)
-ENDIF()
-IF(ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
-
-# ------------------------------------------------------------------------------
-# List of all executables
+# List of demos according their depencies
 # ------------------------------------------------------------------------------
 
 # List all FSI demos that use chrono
@@ -35,6 +10,7 @@ SET(FSI_DEMOS
 # List all FSI demos that use chrono-parallel
 SET(FSI_PARALLEL_DEMOS
 # add fluid demos here
+demo_FSI_cylinderDrop
 )
 
 # List all FSI demos use vehicle
@@ -48,8 +24,30 @@ SET(FSI_PARALLEL_VEHICLE_DEMOS
 )
 
 #--------------------------------------------------------------
+SET(LIBRARIES
+    ChronoEngine   
+    ChronoEngine_fsi
+)
+
+IF(ENABLE_MODULE_PARALLEL)
+	INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
+	SET(LIBRARIES ${LIBRARIES} ChronoEngine_parallel)
+ENDIF()
+
+IF(ENABLE_MODULE_VEHICLE)
+SET(LIBRARIES ${LIBRARIES}
+    ChronoEngine_vehicle   
+)
+ENDIF()
+
+IF(ENABLE_MODULE_OPENGL)
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+ENDIF()
+
 # Add executables for demos that have no other dependencies
 IF(ENABLE_MODULE_PARALLEL)
+	INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 	IF(ENABLE_MODULE_VEHICLE)
 		FOREACH(PROGRAM ${FSI_PARALLEL_VEHICLE_DEMOS})
 		    MESSAGE(STATUS "...add ${PROGRAM}")
