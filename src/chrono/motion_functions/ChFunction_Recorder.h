@@ -16,6 +16,7 @@
 #define CHFUNCT_RECORDER_H
 
 #include <list>
+#include <iterator>
 
 #include "chrono/motion_functions/ChFunction_Base.h"
 
