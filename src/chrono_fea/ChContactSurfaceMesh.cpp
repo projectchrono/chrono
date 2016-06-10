@@ -16,9 +16,11 @@
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChFaceTetra_4.h"
+#include "chrono_fea/ChFaceBrick_9.h"
 #include "chrono_fea/ChMesh.h"
 
 #include <unordered_map>
@@ -165,6 +167,40 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
         }
     }
 
+    ///
+    /// Case5. Outer surface boundaries of 9-node brick meshes:
+    ///
+
+    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceBrick_9> face_map_brick;
+
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+            for (int nface = 0; nface < 4; ++nface) {
+                ChFaceBrick_9 mface(mbrick, nface);
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::sort(mface_key.begin(), mface_key.end());
+                face_map_brick.insert({ mface_key, mface });
+            }
+        }
+    }
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+            for (int nface = 0; nface < 8; ++nface) { // Each of the 8 faces of a brick
+                ChFaceBrick_9 mface(mbrick, nface); // Create a face of the element
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                    mface.GetNodeN(2).get(), mface.GetNodeN(3).get() };
+                std::sort(mface_key.begin(), mface_key.end());
+                if (face_map_brick.count(mface_key) == 1) {
+                    // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
+                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
+                    triangles.push_back({ { mface.GetNodeN(0).get(), mface.GetNodeN(2).get(), mface.GetNodeN(3).get() } });
+                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
+                    triangles_ptrs.push_back({ { mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3) } });
+                }
+            }
+        }
+    }
     // Compute triangles connectivity 
 
     std::multimap< std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;

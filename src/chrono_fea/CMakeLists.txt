@@ -88,6 +88,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementShellANCF.h
     ChElementShellEANS4.h
     ChFaceTetra_4.h
+    ChFaceBrick_9.h
     ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h
