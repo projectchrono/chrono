@@ -28,9 +28,12 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
                                                      Real3* posRigidD,
                                                      Real4* qD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
+  int numRigid_SphMarkers = numObjectsD.numRigid_SphMarkers;
+  printf("1, index %d %d \n", index, numRigid_SphMarkers);
   if (index >= numObjectsD.numRigid_SphMarkers) {
     return;
   }
+  printf("2, \n");
   int rigidIndex = rigidIdentifierD[index];
   uint rigidMarkerIndex =
       index + numObjectsD.startRigidMarkers;  // updatePortion = [start, end] index of the update portion
@@ -41,6 +44,12 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
   Real3 dist3 = posRadD[rigidMarkerIndex] - posRigidD[rigidIndex];
   Real3 dist3LF = InverseRotate_By_RotationMatrix_DeviceHost(a1, a2, a3, dist3);
   rigidSPH_MeshPos_LRF_D[index] = dist3LF;
+
+  printf("-- index %d, rigidIndex %d, rigidMarkerIndex %d, pos %f %f %f, dist3 %f %f %f, dist3LF %f %f %f \n", index, rigidIndex, rigidMarkerIndex,
+	  posRadD[rigidMarkerIndex].x, posRadD[rigidMarkerIndex].y, posRadD[rigidMarkerIndex].z,
+	  dist3.x, dist3.y, dist3.z,
+	  dist3LF.x, dist3LF.y, dist3LF.z
+	  );
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 // collide a particle against all other particles in a given cell
@@ -271,14 +280,15 @@ ChBce::ChBce(SphMarkerDataD* otherSortedSphMarkersD,
       numObjectsH(otherNumObjects) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::Finalize() {
+void ChBce::Finalize(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD) {
   cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
   cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+
   totalSurfaceInteractionRigid4.resize(numObjectsH->numRigidBodies);
   dummyIdentify.resize(numObjectsH->numRigidBodies);
   torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
 
-  // modify BCE velocity and pressure
+  // Resizing the arrays used to modify the BCE velocity and pressure according to ADAMI 
   int numRigidAndBoundaryMarkers =
       fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
   if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
@@ -286,6 +296,9 @@ void ChBce::Finalize() {
   }
   velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
   rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
+
+  // Populate local position of BCE markers
+  Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 ChBce::~ChBce() {
@@ -312,6 +325,10 @@ void ChBce::MakeRigidIdentifier() {
 ////--------------------------------------------------------------------------------------------------------------------------------
 
 void ChBce::Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD) {
+	if (numObjectsH->numRigidBodies == 0) {
+		return;
+	}
+
   MakeRigidIdentifier();
 
   uint nBlocks_numRigid_SphMarkers;
@@ -324,6 +341,8 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodies
        mR4CAST(fsiBodiesD->q_fsiBodies_D));
   cudaThreadSynchronize();
   cudaCheckError();
+
+  UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

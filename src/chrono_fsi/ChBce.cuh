@@ -47,7 +47,7 @@ class CH_FSI_API ChBce : public ChFsiGeneral {
 
   void Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD);
 
-  virtual void Finalize();
+  virtual void Finalize(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD);
 
  private:
   FsiGeneralData* fsiGeneralData;

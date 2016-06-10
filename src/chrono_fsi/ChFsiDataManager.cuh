@@ -128,6 +128,7 @@ public:
 
 	zipIterRigidD iterator();
 	void CopyFromH(const FsiBodiesDataH & other);
+	FsiBodiesDataD& operator=(const FsiBodiesDataD & other);
 
 	// resize
 	void resize(int s);
@@ -201,7 +202,6 @@ class CH_FSI_API ChFsiDataManager {
 
   void AddSphMarker(Real3 pos, Real3 vel, Real4 rhoPresMu);
   void ResizeDataManager();
-  void CopyFsiBodiesDataH2D();
 
   NumberOfObjects numObjects;
 
