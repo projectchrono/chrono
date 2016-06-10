@@ -26,7 +26,7 @@ namespace fsi {
 // Arman: have a function to set mphysical system
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_haveFluid)
+ChSystemFsi::ChSystemFsi(ChSystem* other_physicalSystem, bool other_haveFluid)
     : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0) {
   fsiData = new ChFsiDataManager();
   paramsH = new SimParams;
@@ -142,6 +142,9 @@ void ChSystemFsi::FinalizeData() {
   fsiInterface->ResizeChronoBodiesData();
   fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));                     //(1)
   fsiData->CopyFsiBodiesDataH2D();                                                                   // (2)
+
+
+
   bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));       // (3)
   bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));  //(4)
 }

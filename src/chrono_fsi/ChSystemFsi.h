@@ -24,7 +24,9 @@
 #include "chrono_fsi/ChFsiInterface.h"
 #include "chrono_fsi/ChBce.cuh"
 
+#include "chrono/physics/ChSystem.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
+
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -48,7 +50,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
 	/// This class constructor instantiates all the member objects. Wherever relevant, the
 	/// instantiation is handled by sending a pointer to other objects or data.
 	/// Therefore, the sub-classes have pointers to the same data
-  ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_haveFluid);
+  ChSystemFsi(ChSystem* other_physicalSystem, bool other_haveFluid);
 
   /// destructor for the fsi system
   ~ChSystemFsi();
@@ -101,7 +103,7 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
   ChFsiInterface* fsiInterface;						///< pointer to the fsi interface system
   ChBce* bceWorker;									///< pointer to the bce workers
 
-  chrono::ChSystemParallelDVI* mphysicalSystem;		///< pointer to the multibody system
+  chrono::ChSystem* mphysicalSystem;		///< pointer to the multibody system
 
   SimParams* paramsH;								///< pointer to the simulation parameters
   NumberOfObjects* numObjectsH;						///< pointer to the number of objects, fluid, bce, and boundary markers

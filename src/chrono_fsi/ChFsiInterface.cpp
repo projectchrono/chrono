@@ -22,7 +22,7 @@ namespace chrono {
 namespace fsi {
 //------------------------------------------------------------------------------------
 ChFsiInterface::ChFsiInterface(FsiBodiesDataH* other_fsiBodiesH,
-                               chrono::ChSystemParallelDVI* other_mphysicalSystem,
+                               chrono::ChSystem* other_mphysicalSystem,
                                std::vector<std::shared_ptr<chrono::ChBody> >* other_fsiBodeisPtr,
                                thrust::device_vector<Real3>* other_rigid_FSI_ForcesD,
                                thrust::device_vector<Real3>* other_rigid_FSI_TorquesD)

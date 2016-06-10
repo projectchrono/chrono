@@ -10,7 +10,6 @@
 #include <fstream>
 #include <thrust/reduce.h>
 #include "chrono_fsi/UtilsFsi/ChUtilsPrintSph.h"
-#include "chrono_fsi/custom_math.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChParams.cuh"
 
@@ -53,26 +52,6 @@ namespace utils {
 		fileNameFluidParticles << ssFluidParticles.str();
 		fileNameFluidParticles.close();
 		//*****************************************************
-		const std::string nameBoundary = out_dir + std::string("/boundary")
-				+ std::string(fileCounter) + std::string(".csv");
-
-		//    std::ofstream fileNameBoundaries;
-		//    fileNameBoundaries.open(nameBoundary);
-		//    std::stringstream ssBoundary;
-		//    for (int i = referenceArray[1].x; i < referenceArray[1].y; i++) {
-		//      Real3 pos = posRadH[i];
-		//      Real3 vel = velMasH[i];
-		//      Real4 rP = rhoPresMuH[i];
-		//      Real velMag = length(vel);
-		//      ssBoundary << pos.x << ", " << pos.y << ", " << pos.z << ", " << vel.x << ", " << vel.y << ", " << vel.z <<
-		//      ", "
-		//                 << velMag << ",
-		//                              "<< rP.x<<",
-		//          "<< rP.y<<", "<< rP.w<<", "<<std::endl;
-		//    }
-		//    fileNameBoundaries << ssBoundary.str();
-		//    fileNameBoundaries.close();
-		//*****************************************************
 		const std::string nameFluidBoundaries = out_dir
 				+ std::string("/fluid_boundary") + std::string(fileCounter)
 				+ std::string(".csv");
@@ -86,7 +65,6 @@ namespace utils {
 			Real3 vel = velMasH[i];
 			Real4 rP = rhoPresMuH[i];
 			Real velMag = length(vel);
-			// if (pos.y > .0002 && pos.y < .0008)
 			ssFluidBoundaryParticles << pos.x << ", " << pos.y << ", " << pos.z
 					<< ", " << vel.x << ", " << vel.y << ", " << vel.z << ", "
 					<< velMag << ", " << rP.x << ", " << rP.y << ", " << rP.z
@@ -111,7 +89,7 @@ namespace utils {
 				Real3 vel = velMasH[i];
 				Real4 rP = rhoPresMuH[i];
 				Real velMag = length(vel);
-				// if (pos.y > .0002 && pos.y < .0008)
+				
 				ssBCE << pos.x << ", " << pos.y << ", " << pos.z << ", "
 						<< vel.x << ", " << vel.y << ", " << vel.z << ", "
 						<< velMag << ", " << rP.x << ", " << rP.y << ", "

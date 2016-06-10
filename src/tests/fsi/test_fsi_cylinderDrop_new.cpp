@@ -174,7 +174,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 
 	// ---------------------
 	// Edit mphysicalSystem settings.
-	// ---------------------\
+	// ---------------------
 
 	double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
 	// double collisionEnvelop = 0.04 * paramsH->HSML;
