@@ -58,7 +58,7 @@ void ChANCFTire::CreateContactSurface() {
         case TRIANGLE_MESH: {
             auto contact_surf = std::make_shared<ChContactSurfaceMesh>();
             m_mesh->AddContactSurface(contact_surf);
-            contact_surf->AddFacesFromBoundary(m_contact_face_thickness);
+            contact_surf->AddFacesFromBoundary(m_contact_face_thickness, false);
             contact_surf->SetMaterialSurface(m_contact_mat);
             break;
         }

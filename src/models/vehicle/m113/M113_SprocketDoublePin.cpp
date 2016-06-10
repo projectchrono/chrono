@@ -36,11 +36,11 @@ const int M113_SprocketDoublePin::m_num_teeth = 10;
 const double M113_SprocketDoublePin::m_gear_mass = 436.7;
 const ChVector<> M113_SprocketDoublePin::m_gear_inertia(12.22, 13.87, 12.22);
 const double M113_SprocketDoublePin::m_axle_inertia = 1;
-const double M113_SprocketDoublePin::m_separation = 0.225;
+const double M113_SprocketDoublePin::m_separation = 0.278;
 
 const double M113_SprocketDoublePin::m_gear_RT = 10.69 * 0.0254;
 const double M113_SprocketDoublePin::m_gear_R = 0.88 * 0.0254;
-const double M113_SprocketDoublePin::m_gear_RA = 0.245;
+const double M113_SprocketDoublePin::m_gear_RA = 0.255;
 
 const double M113_SprocketDoublePin::m_gear_C = 9.334 * 0.0254;
 const double M113_SprocketDoublePin::m_gear_W = 1.825 * 0.0254;

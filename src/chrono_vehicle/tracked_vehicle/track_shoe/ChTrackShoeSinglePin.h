@@ -56,6 +56,13 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
+  protected:
+    /// Return the mass of the shoe body.
+    virtual double GetShoeMass() const = 0;
+
+    /// Return the moments of inertia of the shoe body.
+    virtual const ChVector<>& GetShoeInertia() const = 0;
+
     /// Return the location of the front contact cylinder.
     /// This location is relative to the shoe reference frame (in the positive x direction)
     virtual double GetFrontCylinderLoc() const = 0;
@@ -67,13 +74,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-  protected:
-    /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const = 0;
-
-    /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const = 0;
-
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization() = 0;
 
@@ -83,7 +83,13 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     virtual void AddShoeContact() = 0;
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
+
+    friend class ChSprocketSinglePin;
+    friend class ChTrackAssemblySinglePin;
 };
+
+/// Vector of handles to single-pin track shoe subsystems.
+typedef std::vector<std::shared_ptr<ChTrackShoeSinglePin> > ChTrackShoeSinglePinList;
 
 /// @} vehicle_tracked_shoe
 

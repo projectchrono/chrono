@@ -49,12 +49,7 @@ namespace vehicle {
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
 class CH_VEHICLE_API ChTrackAssembly {
   public:
-    ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
-                    VehicleSide side          ///< [in] assembly on left/right vehicle side
-                    )
-        : m_name(name), m_side(side) {}
-
-    ~ChTrackAssembly() {}
+    virtual ~ChTrackAssembly() {}
 
     /// Get the name identifier for this track assembly subsystem.
     const std::string& GetName() const { return m_name; }
@@ -69,10 +64,10 @@ class CH_VEHICLE_API ChTrackAssembly {
     size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
 
     /// Get the number of track shoes.
-    size_t GetNumTrackShoes() const { return m_shoes.size(); }
+    virtual size_t GetNumTrackShoes() const = 0;
 
     /// Get a handle to the sprocket.
-    std::shared_ptr<ChSprocket> GetSprocket() const { return m_sprocket; }
+    virtual std::shared_ptr<ChSprocket> GetSprocket() const = 0;
 
     /// Get a handle to the idler subsystem.
     std::shared_ptr<ChIdler> GetIdler() const { return m_idler; }
@@ -87,25 +82,27 @@ class CH_VEHICLE_API ChTrackAssembly {
     std::shared_ptr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
 
     /// Get a handle to the specified track shoe subsystem.
-    std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const { return m_shoes[id]; }
+    virtual std::shared_ptr<ChTrackShoe> GetTrackShoe(size_t id) const = 0;
 
     /// Get the global location of the specified track shoe.
-    const ChVector<>& GetTrackShoePos(size_t id) const { return m_shoes[id]->m_shoe->GetPos(); }
+    /// The returned location is that of the shoe body in the track shoe subsystem.
+    const ChVector<>& GetTrackShoePos(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos(); }
 
     /// Get the orientation of the the specified track shoe.
     /// The track shoe body orientation is returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetTrackShoeRot(size_t id) const { return m_shoes[id]->m_shoe->GetRot(); }
+    /// rotation with respect to the global reference frame. This is the orientation of
+    /// the shoe body in the track shoe subsystem.
+    const ChQuaternion<>& GetTrackShoeRot(size_t id) const { return GetTrackShoe(id)->m_shoe->GetRot(); }
 
     /// Get the linear velocity of the specified track shoe.
-    /// Return the linear velocity of the shoe center, expressed in the global
+    /// Return the linear velocity of the shoe body center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetTrackShoeLinVel(size_t id) const { return m_shoes[id]->m_shoe->GetPos_dt(); }
+    const ChVector<>& GetTrackShoeLinVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPos_dt(); }
 
     /// Get the angular velocity of the the specified track shoe.
-    /// Return the angular velocity of the shoe frame, expressed in the global
+    /// Return the angular velocity of the shoe body frame, expressed in the global
     /// reference frame.
-    ChVector<> GetTrackShoeAngVel(size_t id) const { return m_shoes[id]->m_shoe->GetWvel_par(); }
+    ChVector<> GetTrackShoeAngVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetWvel_par(); }
 
     /// Get the complete state for the specified track shoe.
     /// This includes the location, orientation, linear and angular velocities,
@@ -144,19 +141,21 @@ class CH_VEHICLE_API ChTrackAssembly {
     void LogConstraintViolations();
 
   protected:
-    std::string m_name;                      ///< name of the subsystem
-    VehicleSide m_side;                      ///< assembly on left/right vehicle side
-    std::shared_ptr<ChSprocket> m_sprocket;  ///< sprocket subsystem
-    std::shared_ptr<ChIdler> m_idler;        ///< idler (and tensioner) subsystem
-    std::shared_ptr<ChTrackBrake> m_brake;   ///< sprocket brake
-    ChRoadWheelAssemblyList m_suspensions;   ///< road-wheel assemblies
-    ChTrackShoeList m_shoes;                 ///< track shoes
+    ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
+                    VehicleSide side          ///< [in] assembly on left/right vehicle side
+                    )
+        : m_name(name), m_side(side) {}
 
-  private:
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
-    bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis);
+    virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
+
+    std::string m_name;                     ///< name of the subsystem
+    VehicleSide m_side;                     ///< assembly on left/right vehicle side
+    std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
+    std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
+    ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
 };
 
 /// @} vehicle_tracked

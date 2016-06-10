@@ -38,6 +38,9 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
+    /// Return the pitch length of the track shoe.
+    /// This quantity must agree with the pitch of the sprocket gear.
+    virtual double GetPitch() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
@@ -54,34 +57,49 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
-    /// Return the location of the front contact cylinder.
-    /// This location is relative to the shoe reference frame (in the positive x direction)
-    virtual double GetFrontCylinderLoc() const = 0;
-
-    /// Return the location of the rear contact cylinder.
-    /// This location is relative to the shoe reference frame (in the negative x direction)
-    virtual double GetRearCylinderLoc() const = 0;
-
-    /// Return the radius of the contact cylinders.
-    virtual double GetCylinderRadius() const = 0;
-
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
-
     /// Return the moments of inertia of the shoe body.
     virtual const ChVector<>& GetShoeInertia() const = 0;
+    /// Return shoe length (distance between pins).
+    virtual double GetShoeLength() const = 0;
+    /// Return shoe width (separation between connectors).
+    virtual double GetShoeWidth() const = 0;
 
-    /// Add visualization of the track shoe.
+    /// Return the mass of a connector body.
+    virtual double GetConnectorMass() const = 0;
+    /// Return the moments of inertia of a connector body.
+    virtual const ChVector<>& GetConnectorInertia() const = 0;
+    /// Return the length of a connector body (distance between pins).
+    virtual double GetConnectorLength() const = 0;
+    /// Return the radius of a connector body.
+    virtual double GetConnectorRadius() const = 0;
+
+    /// Add visualization of the shoe body.
     virtual void AddShoeVisualization() = 0;
+
+    /// Add visualization of a connector body.
+    virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector) = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
     virtual void AddShoeContact() = 0;
 
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
+    std::shared_ptr<ChBody> m_connector_L;             ///< handle to left connector body
+    std::shared_ptr<ChBody> m_connector_R;             ///< handle to right connector body
+    std::shared_ptr<ChLinkLockRevolute> m_rev_this_L;  ///< revolute joint between left connector and shoe
+    std::shared_ptr<ChLinkLockRevolute> m_rev_this_R;  ///< revolute joint between right connector and shoe
+    std::shared_ptr<ChLinkLockRevolute> m_rev_next_L;  ///< revolute joint between left connector and next shoe
+    std::shared_ptr<ChLinkLockRevolute> m_rev_next_R;  ///< revolute joint between right connector and next shoe
+
+    friend class ChSprocketDoublePin;
+    friend class ChTrackAssemblyDoublePin;
 };
+
+/// Vector of handles to double-pin track shoe subsystems.
+typedef std::vector<std::shared_ptr<ChTrackShoeDoublePin> > ChTrackShoeDoublePinList;
 
 /// @} vehicle_tracked_shoe
 
