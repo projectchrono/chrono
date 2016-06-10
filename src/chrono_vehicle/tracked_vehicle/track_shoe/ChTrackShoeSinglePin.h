@@ -85,7 +85,11 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 
     friend class ChSprocketSinglePin;
+    friend class ChTrackAssemblySinglePin;
 };
+
+/// Vector of handles to single-pin track shoe subsystems.
+typedef std::vector<std::shared_ptr<ChTrackShoeSinglePin> > ChTrackShoeSinglePinList;
 
 /// @} vehicle_tracked_shoe
 

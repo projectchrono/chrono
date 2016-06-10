@@ -417,6 +417,14 @@ set(CV_TV_TRACKSHOE_FILES
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
+set(CV_TV_TRACKASSEMBLY_FILES
+    tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h
+    tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
+    tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
+    tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
+)
+source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
+
 set(CV_TV_UTILS_FILES
     tracked_vehicle/utils/ChTrackTestRig.h
     tracked_vehicle/utils/ChTrackTestRig.cpp
@@ -502,6 +510,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
+    ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
 #

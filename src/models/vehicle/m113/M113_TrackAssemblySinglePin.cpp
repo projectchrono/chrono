@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 track assembly subsystem.
+// M113 single-pin track assembly subsystem.
 //
 // =============================================================================
 
@@ -20,21 +20,17 @@
 #include "models/vehicle/m113/M113_Idler.h"
 #include "models/vehicle/m113/M113_RoadWheel.h"
 #include "models/vehicle/m113/M113_SprocketSinglePin.h"
-#include "models/vehicle/m113/M113_SprocketDoublePin.h"
 #include "models/vehicle/m113/M113_Suspension.h"
-#include "models/vehicle/m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "models/vehicle/m113/M113_TrackShoeSinglePin.h"
-#include "models/vehicle/m113/M113_TrackShoeDoublePin.h"
 
 namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-// -----------------------------------------------------------------------------
-
-// Constructor for M113 track assembly base class.
-// Create the idler, brake, and suspension subsystems.
-M113_TrackAssembly::M113_TrackAssembly(VehicleSide side) : ChTrackAssembly("", side) {
+// Constructor for the M113 track assembly using single-pin track shoes.
+// Create the suspensions, idler, brake, sprocket, and track shoes.
+M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChTrackAssemblySinglePin("", side) {
     m_suspensions.resize(5);
     m_suspensions[0] = std::make_shared<M113_Suspension>(side, true);
     m_suspensions[1] = std::make_shared<M113_Suspension>(side, true);
@@ -54,11 +50,7 @@ M113_TrackAssembly::M113_TrackAssembly(VehicleSide side) : ChTrackAssembly("", s
             m_brake = std::make_shared<M113_BrakeSimple>();
             break;
     }
-}
 
-// Constructor for the M113 track assembly using single-pin track shoes.
-// Create the sprocket and track shoes.
-M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : M113_TrackAssembly(side) {
     size_t num_shoes;
     switch (side) {
         case LEFT:
@@ -76,33 +68,11 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : M11
     }
 }
 
-// Constructor for the M113 track assembly using double-pin track shoes.
-// Create the sprocket and track shoes.
-M113_TrackAssemblyDoublePin::M113_TrackAssemblyDoublePin(VehicleSide side) : M113_TrackAssembly(side) {
-    size_t num_shoes;
-    switch (side) {
-        case LEFT:
-            m_sprocket = std::make_shared<M113_SprocketDoublePinLeft>();
-            num_shoes = 63;
-            break;
-        case RIGHT:
-            m_sprocket = std::make_shared<M113_SprocketDoublePinRight>();
-            num_shoes = 64;
-            break;
-    }
-
-    for (size_t it = 0; it < num_shoes; it++) {
-        m_shoes.push_back(std::make_shared<M113_TrackShoeDoublePin>());
-    }
-}
-
-// -----------------------------------------------------------------------------
-
-void M113_TrackAssembly::SetIdlerVisType(VisualizationType vis) {
+void M113_TrackAssemblySinglePin::SetIdlerVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_Idler>(GetIdler())->SetVisType(vis);
 }
 
-void M113_TrackAssembly::SetRoadWheelVisType(VisualizationType vis) {
+void M113_TrackAssemblySinglePin::SetRoadWheelVisType(VisualizationType vis) {
     for (int iw = 0; iw < GetNumRoadWheelAssemblies(); iw++) {
         std::static_pointer_cast<M113_RoadWheel>(GetRoadWheel(iw))->SetVisType(vis);
     }
@@ -117,17 +87,6 @@ void M113_TrackAssemblySinglePin::SetTrackShoeVisType(VisualizationType vis) {
         std::static_pointer_cast<M113_TrackShoeSinglePin>(GetTrackShoe(is))->SetVisType(vis);
     }
 }
-
-void M113_TrackAssemblyDoublePin::SetSprocketVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_SprocketDoublePin>(GetSprocket())->SetVisType(vis);
-}
-
-void M113_TrackAssemblyDoublePin::SetTrackShoeVisType(VisualizationType vis) {
-    for (size_t is = 0; is < GetNumTrackShoes(); is++) {
-        std::static_pointer_cast<M113_TrackShoeDoublePin>(GetTrackShoe(is))->SetVisType(vis);
-    }
-}
-
 
 }  // end namespace m113
 }  // end namespace vehicle

@@ -24,7 +24,8 @@
 
 #include "models/vehicle/m113/M113_DrivelineBDS.h"
 #include "models/vehicle/m113/M113_SimpleDriveline.h"
-#include "models/vehicle/m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+#include "models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 #include "models/vehicle/m113/M113_Vehicle.h"
 
 namespace chrono {
@@ -48,16 +49,16 @@ const ChCoordsys<> M113_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuate
 // Constructors
 // -----------------------------------------------------------------------------
 M113_Vehicle::M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : ChTrackedVehicle("M113 Vehicle", contactMethod), m_chassisVisType(PRIMITIVES) {
-    Create(fixed, shoe_type);
+    : ChTrackedVehicle("M113 Vehicle", contactMethod), m_type(shoe_type), m_chassisVisType(PRIMITIVES) {
+    Create(fixed);
 }
 
 M113_Vehicle::M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system)
-    : ChTrackedVehicle("M113 Vehicle", system), m_chassisVisType(PRIMITIVES) {
-    Create(fixed, shoe_type);
+    : ChTrackedVehicle("M113 Vehicle", system), m_type(shoe_type), m_chassisVisType(PRIMITIVES) {
+    Create(fixed);
 }
 
-void M113_Vehicle::Create(bool fixed, TrackShoeType shoe_type) {
+void M113_Vehicle::Create(bool fixed) {
     // Create the chassis body
     m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
 
@@ -71,7 +72,7 @@ void M113_Vehicle::Create(bool fixed, TrackShoeType shoe_type) {
     m_system->Add(m_chassis);
 
     // Create the track assembly subsystems
-    switch (shoe_type) {
+    switch (m_type) {
         case SINGLE_PIN:
             m_tracks[0] = std::make_shared<M113_TrackAssemblySinglePin>(LEFT);
             m_tracks[1] = std::make_shared<M113_TrackAssemblySinglePin>(RIGHT);
@@ -96,23 +97,55 @@ void M113_Vehicle::SetChassisVisType(VisualizationType vis) {
 }
 
 void M113_Vehicle::SetSprocketVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[0])->SetSprocketVisType(vis);
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[1])->SetSprocketVisType(vis);
+    switch (m_type) {
+        case SINGLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetSprocketVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetSprocketVisType(vis);
+            break;
+        case DOUBLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetSprocketVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetSprocketVisType(vis);
+            break;
+    }
 }
 
 void M113_Vehicle::SetIdlerVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[0])->SetIdlerVisType(vis);
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[1])->SetIdlerVisType(vis);
+    switch (m_type) {
+        case SINGLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetIdlerVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetIdlerVisType(vis);
+            break;
+        case DOUBLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetIdlerVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetIdlerVisType(vis);
+            break;
+    }
 }
 
 void M113_Vehicle::SetRoadWheelVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[0])->SetRoadWheelVisType(vis);
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[1])->SetRoadWheelVisType(vis);
+    switch (m_type) {
+        case SINGLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetRoadWheelVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetRoadWheelVisType(vis);
+            break;
+        case DOUBLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetRoadWheelVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetRoadWheelVisType(vis);
+            break;
+    }
 }
 
 void M113_Vehicle::SetTrackShoeVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[0])->SetTrackShoeVisType(vis);
-    std::static_pointer_cast<M113_TrackAssembly>(m_tracks[1])->SetTrackShoeVisType(vis);
+    switch (m_type) {
+        case SINGLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetTrackShoeVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetTrackShoeVisType(vis);
+            break;
+        case DOUBLE_PIN:
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetTrackShoeVisType(vis);
+            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetTrackShoeVisType(vis);
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------

@@ -25,7 +25,8 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
-#include "models/vehicle/m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+#include "models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

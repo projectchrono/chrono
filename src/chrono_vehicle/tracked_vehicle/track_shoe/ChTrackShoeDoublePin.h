@@ -95,7 +95,11 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     std::shared_ptr<ChLinkLockRevolute> m_rev_next_R;  ///< revolute joint between right connector and next shoe
 
     friend class ChSprocketDoublePin;
+    friend class ChTrackAssemblyDoublePin;
 };
+
+/// Vector of handles to double-pin track shoe subsystems.
+typedef std::vector<std::shared_ptr<ChTrackShoeDoublePin> > ChTrackShoeDoublePinList;
 
 /// @} vehicle_tracked_shoe
 

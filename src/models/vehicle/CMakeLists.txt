@@ -71,8 +71,10 @@ set(CVM_M113_FILES
     m113/M113_SprocketDoublePin.h
     m113/M113_Suspension.cpp
     m113/M113_Suspension.h
-    m113/M113_TrackAssembly.cpp
-    m113/M113_TrackAssembly.h
+    m113/M113_TrackAssemblySinglePin.cpp
+    m113/M113_TrackAssemblySinglePin.h
+    m113/M113_TrackAssemblyDoublePin.cpp
+    m113/M113_TrackAssemblyDoublePin.h
     m113/M113_TrackShoeSinglePin.cpp
     m113/M113_TrackShoeSinglePin.h
     m113/M113_TrackShoeDoublePin.cpp
