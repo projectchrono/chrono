@@ -25,11 +25,6 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 find_package(CUDA)
 
-SET(CHRONO_INCLUDE_DIRS 
-	${CHRONO_INCLUDE_DIRS} 
-	"${CUDA_TOOLKIT_ROOT_DIR}/include"
-    	"${CUDA_SDK_ROOT_DIR}/common/inc")
-
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
@@ -37,6 +32,20 @@ SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
 
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 
+message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
+message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
+
+# ----------------------------------------------------------------------------
+# Collect additional include directories necessary for the FSI module.
+# Make some variables cisible from parent directory
+# ----------------------------------------------------------------------------
+
+set(CH_FSI_INCLUDES 
+    "${CUDA_TOOLKIT_ROOT_DIR}/include"
+    "${CUDA_SDK_ROOT_DIR}/common/inc"
+)
+
+set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
