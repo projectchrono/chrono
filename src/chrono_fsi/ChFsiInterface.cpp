@@ -161,6 +161,7 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD* fsiB
     fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
     fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
   }
+  fsiBodiesD->CopyFromH(*fsiBodiesH);
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoBodiesData() {

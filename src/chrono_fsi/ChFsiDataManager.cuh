@@ -99,23 +99,6 @@ class SphMarkerDataH {
  private:
 };
 
-class FsiBodiesDataD {
- public:
-  thrust::device_vector<Real3> posRigid_fsiBodies_D;
-  thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
-  thrust::device_vector<Real3> accRigid_fsiBodies_D;
-  thrust::device_vector<Real4> q_fsiBodies_D;
-  thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
-  thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
-
-  zipIterRigidD iterator();
-
-  // resize
-  void resize(int s);
-
- private:
-};
-
 // dummy fsi bodies
 class FsiBodiesDataH {
  public:
@@ -132,6 +115,24 @@ class FsiBodiesDataH {
   void resize(int s);
 
  private:
+};
+
+class FsiBodiesDataD {
+public:
+	thrust::device_vector<Real3> posRigid_fsiBodies_D;
+	thrust::device_vector<Real4> velMassRigid_fsiBodies_D;
+	thrust::device_vector<Real3> accRigid_fsiBodies_D;
+	thrust::device_vector<Real4> q_fsiBodies_D;
+	thrust::device_vector<Real3> omegaVelLRF_fsiBodies_D;
+	thrust::device_vector<Real3> omegaAccLRF_fsiBodies_D;
+
+	zipIterRigidD iterator();
+	void CopyFromH(const FsiBodiesDataH & other);
+
+	// resize
+	void resize(int s);
+
+private:
 };
 
 class ProximityDataD {

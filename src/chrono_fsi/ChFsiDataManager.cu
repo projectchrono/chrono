@@ -73,6 +73,15 @@ void FsiBodiesDataD::resize(int s) {
   omegaAccLRF_fsiBodies_D.resize(s);
 }
 
+void FsiBodiesDataD::CopyFromH(const FsiBodiesDataH & other) {
+	thrust::copy(other.posRigid_fsiBodies_H.begin(), other.posRigid_fsiBodies_H.end(), posRigid_fsiBodies_D.begin());
+	thrust::copy(other.velMassRigid_fsiBodies_H.begin(), other.velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
+	thrust::copy(other.accRigid_fsiBodies_H.begin(), other.accRigid_fsiBodies_H.end(), accRigid_fsiBodies_D.begin());
+	thrust::copy(other.q_fsiBodies_H.begin(), other.q_fsiBodies_H.end(), q_fsiBodies_D.begin());
+	thrust::copy(other.omegaVelLRF_fsiBodies_H.begin(), other.omegaVelLRF_fsiBodies_H.end(), omegaVelLRF_fsiBodies_D.begin());
+	thrust::copy(other.omegaAccLRF_fsiBodies_H.begin(), other.omegaAccLRF_fsiBodies_H.end(), omegaAccLRF_fsiBodies_D.begin());
+}
+
 //---------------------------------------------------------------------------------------
 
 zipIterRigidH FsiBodiesDataH::iterator() {
