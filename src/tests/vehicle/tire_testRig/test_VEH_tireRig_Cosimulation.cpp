@@ -40,6 +40,7 @@
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/utils/ChUtilsCreators.h"
@@ -110,6 +111,8 @@ class RigNode {
     void Synchronize(int step_number, double time);
     void Advance(double step_size);
 
+    double GetSimTime() { return m_timer.GetTimeSeconds(); }
+    double GetTotalSimTime() { return m_cumm_sim_time; }
     void OutputData();
 
   private:
@@ -130,6 +133,8 @@ class RigNode {
     double m_init_vel;  ///< initial wheel forward linear velocity
 
     std::ofstream m_outf;  ///< output file stream
+    ChTimer<double> m_timer;
+    double m_cumm_sim_time;
 
     // Private methods
     void PrintLowestNode();
@@ -144,7 +149,7 @@ class RigNode {
 // - create (but do not initialize) the tire
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(int num_threads) {
+RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     // ----------------
     // Model parameters
     // ----------------
@@ -352,8 +357,6 @@ void RigNode::Initialize() {
     m_revolute->SetName("revolute");
     m_revolute->Initialize(m_rim, m_set_toe, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
     
-    
-
     // ---------------
     // Initialize tire
     // ---------------
@@ -454,12 +457,16 @@ void RigNode::Synchronize(int step_number, double time) {
 // Advance simulation of the rig node by the specified duration
 // -----------------------------------------------------------------------------
 void RigNode::Advance(double step_size) {
+    m_timer.reset();
+    m_timer.start();
     double t = 0;
     while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
     }
+    m_timer.stop();
+    m_cumm_sim_time += m_timer();
 }
 
 // -----------------------------------------------------------------------------
@@ -538,6 +545,8 @@ class TerrainNode {
     void Synchronize(int step_number, double time);
     void Advance(double step_size);
 
+    double GetSimTime() { return m_timer.GetTimeSeconds(); }
+    double GetTotalSimTime() { return m_cumm_sim_time; }
     void OutputData();
 
   private:
@@ -587,6 +596,8 @@ class TerrainNode {
     unsigned int m_proxy_start_index;  ///< start index for proxy bodies in global arrays
 
     std::ofstream m_outf;  ///< output file stream
+    ChTimer<double> m_timer;
+    double m_cumm_sim_time;
 
     // Private methods
     void CreateNodeProxies();
@@ -621,7 +632,7 @@ class TerrainNode {
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
-    : m_type(type), m_method(method), m_init_height(0) {
+    : m_type(type), m_method(method), m_init_height(0), m_cumm_sim_time(0) {
     // ----------------
     // Model parameters
     // ----------------
@@ -1251,7 +1262,11 @@ void TerrainNode::ForcesFaceProxies(std::vector<double>& vert_forces, std::vecto
 // Advance simulation of the terrain node by the specified duration
 // -----------------------------------------------------------------------------
 void TerrainNode::Advance(double step_size) {
+    m_timer.reset();
+    m_timer.start();
     m_system->DoStepDynamics(step_size);
+    m_timer.stop();
+    m_cumm_sim_time += m_timer();
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
@@ -1445,6 +1460,8 @@ int main() {
                 std::cout << " --- " << std::endl;
 
                 my_rig->Advance(step_size);
+                std::cout << "Tire sim time =    " << my_rig->GetSimTime() << "  [" << my_rig->GetTotalSimTime() << "]"
+                          << std::endl;
                 my_rig->OutputData();
 
                 break;
@@ -1452,6 +1469,8 @@ int main() {
             case TERRAIN_NODE_RANK: {
                 my_terrain->Synchronize(is, time);
                 my_terrain->Advance(step_size);
+                std::cout << "Terrain sim time = " << my_terrain->GetSimTime() << "  [" << my_terrain->GetTotalSimTime()
+                          << "]" << std::endl;
                 my_terrain->OutputData();
 
                 break;
