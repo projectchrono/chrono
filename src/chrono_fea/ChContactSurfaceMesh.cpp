@@ -175,7 +175,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
 
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
-            for (int nface = 0; nface < 4; ++nface) {
+            for (int nface = 0; nface < 6; ++nface) {
                 ChFaceBrick_9 mface(mbrick, nface);
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                                                           mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
@@ -186,7 +186,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
     }
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
-            for (int nface = 0; nface < 8; ++nface) { // Each of the 8 faces of a brick
+            for (int nface = 0; nface < 6; ++nface) { // Each of the 6 faces of a brick
                 ChFaceBrick_9 mface(mbrick, nface); // Create a face of the element
                 std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
                     mface.GetNodeN(2).get(), mface.GetNodeN(3).get() };
