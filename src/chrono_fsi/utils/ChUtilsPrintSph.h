@@ -14,8 +14,8 @@
 //
 // Utility function to print the save fluid, bce, and boundary data into file
 // =============================================================================
-#ifndef PRINTTOFILE_CUH
-#define PRINTTOFILE_CUH
+#ifndef CHUTILSPRINTSPH_H
+#define CHUTILSPRINTSPH_H
 #include "chrono_fsi/ChApiFsi.h"
 #include <thrust/host_vector.h>
 #include <thrust/device_vector.h>

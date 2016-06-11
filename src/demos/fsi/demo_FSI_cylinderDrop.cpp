@@ -44,9 +44,9 @@
 // Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
+#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
-#include "chrono_fsi/UtilsFsi/ChUtilsPrintSph.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.h"
 
 // FSI Interface Includes
 #include "demos/fsi/params_demo_FSI_cylinderDrop.h"  //SetupParamsH()

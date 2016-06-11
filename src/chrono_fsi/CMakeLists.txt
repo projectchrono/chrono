@@ -72,10 +72,10 @@ ChFsiGeneral.cu
 ChFsiInterface.cpp
 ChSystemFsi.cpp
 ChFsiTypeConvert.cpp
-UtilsFsi/ChUtilsGeneratorBce.cpp
-UtilsFsi/ChUtilsGeneratorFluid.cpp
-UtilsFsi/ChUtilsGeneratorFsi.cpp
-UtilsFsi/ChUtilsPrintSph.cpp
+utils/ChUtilsGeneratorBce.cpp
+utils/ChUtilsGeneratorFluid.cpp
+utils/ChUtilsGeneratorFsi.cpp
+utils/ChUtilsPrintSph.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -90,12 +90,12 @@ ChFsiInterface.h
 ChSystemFsi.h
 ChSphGeneral.cuh
 ChApiFsi.h
-include/utils.h
 ChFsiTypeConvert.h
-UtilsFsi/ChUtilsGeneratorBce.h
-UtilsFsi/ChUtilsGeneratorFluid.h
-UtilsFsi/ChUtilsGeneratorFsi.h
-UtilsFsi/ChUtilsPrintSph.h
+utils/ChUtilsGeneratorBce.h
+utils/ChUtilsGeneratorFluid.h
+utils/ChUtilsGeneratorFsi.h
+utils/ChUtilsPrintSph.h
+utils/ChUtilsPrintStruct.h
 )
 
 SOURCE_GROUP("" FILES 

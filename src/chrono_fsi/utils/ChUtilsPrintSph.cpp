@@ -1,15 +1,25 @@
-/*
- * printToFile.cu
- *
- *  Created on: Mar 2, 2015
- *      Author: Arman Pazouki
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Author: Arman Pazouki
+// =============================================================================
+//
+// Utility function to print the save fluid, bce, and boundary data into file
+// =============================================================================
 #include <string.h>
 #include <stdio.h>
 #include <sstream>
 #include <fstream>
 #include <thrust/reduce.h>
-#include "chrono_fsi/UtilsFsi/ChUtilsPrintSph.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChParams.cuh"
 
