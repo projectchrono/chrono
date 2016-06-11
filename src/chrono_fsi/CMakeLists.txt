@@ -42,7 +42,6 @@ message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
 
 set(CH_FSI_INCLUDES 
     "${CUDA_TOOLKIT_ROOT_DIR}/include"
-    "${CUDA_SDK_ROOT_DIR}/common/inc"
 )
 
 set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
