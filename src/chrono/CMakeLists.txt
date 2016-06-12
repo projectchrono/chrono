@@ -32,7 +32,6 @@ set(ChronoEngine_core_SOURCES
     core/ChFileutils.cpp
     core/ChStream.cpp
     core/ChMathematics.cpp
-    core/ChVector.cpp
     core/ChQuaternion.cpp
     core/ChCoordsys.cpp
     core/ChLinkedListMatrix.cpp
@@ -68,6 +67,7 @@ set(ChronoEngine_core_HEADERS
     core/ChTimer.h
     core/ChTransform.h
     core/ChVector.h
+    core/ChVector2.h
     core/ChSparseMatrix.h
     core/ChLinkedListMatrix.h
     core/ChWrapHashmap.h
