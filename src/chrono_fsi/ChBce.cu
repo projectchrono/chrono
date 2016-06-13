@@ -28,6 +28,7 @@ __global__ void Populate_RigidSPH_MeshPos_LRF_kernel(Real3* rigidSPH_MeshPos_LRF
                                                      Real3* posRigidD,
                                                      Real4* qD) {
   uint index = blockIdx.x * blockDim.x + threadIdx.x;
+  int numRigid_SphMarkers = numObjectsD.numRigid_SphMarkers;
   if (index >= numObjectsD.numRigid_SphMarkers) {
     return;
   }
@@ -271,14 +272,15 @@ ChBce::ChBce(SphMarkerDataD* otherSortedSphMarkersD,
       numObjectsH(otherNumObjects) {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChBce::Finalize() {
+void ChBce::Finalize(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD) {
   cudaMemcpyToSymbolAsync(paramsD, paramsH, sizeof(SimParams));
   cudaMemcpyToSymbolAsync(numObjectsD, numObjectsH, sizeof(NumberOfObjects));
+
   totalSurfaceInteractionRigid4.resize(numObjectsH->numRigidBodies);
   dummyIdentify.resize(numObjectsH->numRigidBodies);
   torqueMarkersD.resize(numObjectsH->numRigid_SphMarkers);
 
-  // modify BCE velocity and pressure
+  // Resizing the arrays used to modify the BCE velocity and pressure according to ADAMI 
   int numRigidAndBoundaryMarkers =
       fsiGeneralData->referenceArray[2 + numObjectsH->numRigidBodies - 1].y - fsiGeneralData->referenceArray[0].y;
   if ((numObjectsH->numBoundaryMarkers + numObjectsH->numRigid_SphMarkers) != numRigidAndBoundaryMarkers) {
@@ -286,6 +288,9 @@ void ChBce::Finalize() {
   }
   velMas_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
   rhoPreMu_ModifiedBCE.resize(numRigidAndBoundaryMarkers);
+
+  // Populate local position of BCE markers
+  Populate_RigidSPH_MeshPos_LRF(sphMarkersD, fsiBodiesD);
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 ChBce::~ChBce() {
@@ -312,6 +317,10 @@ void ChBce::MakeRigidIdentifier() {
 ////--------------------------------------------------------------------------------------------------------------------------------
 
 void ChBce::Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD) {
+	if (numObjectsH->numRigidBodies == 0) {
+		return;
+	}
+
   MakeRigidIdentifier();
 
   uint nBlocks_numRigid_SphMarkers;
@@ -324,6 +333,8 @@ void ChBce::Populate_RigidSPH_MeshPos_LRF(SphMarkerDataD* sphMarkersD, FsiBodies
        mR4CAST(fsiBodiesD->q_fsiBodies_D));
   cudaThreadSynchronize();
   cudaCheckError();
+
+  UpdateRigidMarkersPositionVelocity(sphMarkersD, fsiBodiesD);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------

@@ -20,7 +20,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
-#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorBce.h"
+#include "chrono_fsi/utils/ChUtilsGeneratorBce.h"
 #include "chrono_fsi/ChFsiDataManager.cuh"
 
 namespace chrono {

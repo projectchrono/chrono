@@ -20,7 +20,9 @@
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
+
 
 namespace chrono {
 namespace fsi {
@@ -28,7 +30,7 @@ namespace fsi {
 class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
  public:
   ChFsiInterface(FsiBodiesDataH* other_fsiBodiesH,
-                 chrono::ChSystemParallelDVI* other_mphysicalSystem,
+                 chrono::ChSystem* other_mphysicalSystem,
                  std::vector<std::shared_ptr<chrono::ChBody> >* other_fsiBodeisPtr,
                  thrust::device_vector<Real3>* other_rigid_FSI_ForcesD,
                  thrust::device_vector<Real3>* other_rigid_FSI_TorquesD);
@@ -43,7 +45,7 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
  private:
   FsiBodiesDataH* fsiBodiesH;
   ChronoBodiesDataH* chronoRigidBackup;
-  chrono::ChSystemParallelDVI* mphysicalSystem;
+  chrono::ChSystem* mphysicalSystem;
   std::vector<std::shared_ptr<chrono::ChBody> >* fsiBodeisPtr;
   thrust::device_vector<Real3>* rigid_FSI_ForcesD;
   thrust::device_vector<Real3>* rigid_FSI_TorquesD;

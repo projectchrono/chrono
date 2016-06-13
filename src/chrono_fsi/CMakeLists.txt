@@ -10,7 +10,7 @@ option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 #
 # TODO: REMOVE CHRONO_VEHICLE & CHRONO_PARALLEL AS REQUIREMENTS!!!!!
 #
-if(NOT ENABLE_MODULE_FSI OR NOT ENABLE_MODULE_PARALLEL OR NOT ENABLE_MODULE_VEHICLE)
+if(NOT ENABLE_MODULE_FSI OR NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
   return()
@@ -21,26 +21,30 @@ message(STATUS "==== Chrono FSI module ====")
 mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
 
-# ----------------------------------------------------------------------------
-# CUDA STUFF , Arman Take care of this
-# ----------------------------------------------------------------------------
-
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 find_package(CUDA)
 
-SET(CHRONO_INCLUDE_DIRS 
-	${CHRONO_INCLUDE_DIRS} 
-	"${CUDA_TOOLKIT_ROOT_DIR}/include"
-    	"${CUDA_SDK_ROOT_DIR}/common/inc")
-
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
-SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_20,code=sm_20")
-#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_20")
+SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
+#SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
 
 option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
 
+message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
+message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
+
+# ----------------------------------------------------------------------------
+# Collect additional include directories necessary for the FSI module.
+# Make some variables cisible from parent directory
+# ----------------------------------------------------------------------------
+
+set(CH_FSI_INCLUDES 
+    "${CUDA_TOOLKIT_ROOT_DIR}/include"
+)
+
+set(CH_FSI_INCLUDES "${CH_FSI_INCLUDES}" PARENT_SCOPE)
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration file
@@ -68,10 +72,10 @@ ChFsiGeneral.cu
 ChFsiInterface.cpp
 ChSystemFsi.cpp
 ChFsiTypeConvert.cpp
-UtilsFsi/ChUtilsGeneratorBce.cpp
-UtilsFsi/ChUtilsGeneratorFluid.cpp
-UtilsFsi/ChUtilsGeneratorFsi.cpp
-UtilsFsi/ChUtilsPrintSph.cu
+utils/ChUtilsGeneratorBce.cpp
+utils/ChUtilsGeneratorFluid.cpp
+utils/ChUtilsGeneratorFsi.cpp
+utils/ChUtilsPrintSph.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
@@ -86,12 +90,12 @@ ChFsiInterface.h
 ChSystemFsi.h
 ChSphGeneral.cuh
 ChApiFsi.h
-include/utils.h
 ChFsiTypeConvert.h
-UtilsFsi/ChUtilsGeneratorBce.h
-UtilsFsi/ChUtilsGeneratorFluid.h
-UtilsFsi/ChUtilsGeneratorFsi.h
-UtilsFsi/ChUtilsPrintSph.cuh
+utils/ChUtilsGeneratorBce.h
+utils/ChUtilsGeneratorFluid.h
+utils/ChUtilsGeneratorFsi.h
+utils/ChUtilsPrintSph.h
+utils/ChUtilsPrintStruct.h
 )
 
 SOURCE_GROUP("" FILES 

@@ -73,6 +73,32 @@ void FsiBodiesDataD::resize(int s) {
   omegaAccLRF_fsiBodies_D.resize(s);
 }
 
+void FsiBodiesDataD::CopyFromH(const FsiBodiesDataH & other) {
+	thrust::copy(other.posRigid_fsiBodies_H.begin(), other.posRigid_fsiBodies_H.end(), posRigid_fsiBodies_D.begin());
+	thrust::copy(other.velMassRigid_fsiBodies_H.begin(), other.velMassRigid_fsiBodies_H.end(), velMassRigid_fsiBodies_D.begin());
+	thrust::copy(other.accRigid_fsiBodies_H.begin(), other.accRigid_fsiBodies_H.end(), accRigid_fsiBodies_D.begin());
+	thrust::copy(other.q_fsiBodies_H.begin(), other.q_fsiBodies_H.end(), q_fsiBodies_D.begin());
+	thrust::copy(other.omegaVelLRF_fsiBodies_H.begin(), other.omegaVelLRF_fsiBodies_H.end(), omegaVelLRF_fsiBodies_D.begin());
+	thrust::copy(other.omegaAccLRF_fsiBodies_H.begin(), other.omegaAccLRF_fsiBodies_H.end(), omegaAccLRF_fsiBodies_D.begin());
+}
+
+FsiBodiesDataD& FsiBodiesDataD::operator=(const FsiBodiesDataD & other) {
+	if (this == &other) {
+		return *this;
+	}
+	thrust::copy(other.posRigid_fsiBodies_D.begin(), other.posRigid_fsiBodies_D.end(),
+		posRigid_fsiBodies_D.begin());
+	thrust::copy(other.velMassRigid_fsiBodies_D.begin(), other.velMassRigid_fsiBodies_D.end(),
+		velMassRigid_fsiBodies_D.begin());
+	thrust::copy(other.accRigid_fsiBodies_D.begin(), other.accRigid_fsiBodies_D.end(),
+		accRigid_fsiBodies_D.begin());
+	thrust::copy(other.q_fsiBodies_D.begin(), other.q_fsiBodies_D.end(), q_fsiBodies_D.begin());
+	thrust::copy(other.omegaVelLRF_fsiBodies_D.begin(), other.omegaVelLRF_fsiBodies_D.end(),
+		omegaVelLRF_fsiBodies_D.begin());
+	thrust::copy(other.omegaAccLRF_fsiBodies_D.begin(), other.omegaAccLRF_fsiBodies_D.end(),
+		omegaAccLRF_fsiBodies_D.begin());
+}
+
 //---------------------------------------------------------------------------------------
 
 zipIterRigidH FsiBodiesDataH::iterator() {
@@ -284,35 +310,6 @@ void ChFsiDataManager::ResizeDataManager() {
   fsiGeneralData.rigid_FSI_TorquesD.resize(numObjects.numRigidBodies);
   fsiGeneralData.rigidIdentifierD.resize(numObjects.numRigid_SphMarkers);
   fsiGeneralData.rigidSPH_MeshPos_LRF_D.resize(numObjects.numRigid_SphMarkers);
-}
-
-////--------------------------------------------------------------------------------------------------------------------------------
-
-void ChFsiDataManager::CopyFsiBodiesDataH2D() {
-  // Arman: do it with zip iterator
-  thrust::copy(fsiBodiesH.posRigid_fsiBodies_H.begin(), fsiBodiesH.posRigid_fsiBodies_H.end(),
-               fsiBodiesD1.posRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesH.velMassRigid_fsiBodies_H.begin(), fsiBodiesH.velMassRigid_fsiBodies_H.end(),
-               fsiBodiesD1.velMassRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesH.accRigid_fsiBodies_H.begin(), fsiBodiesH.accRigid_fsiBodies_H.end(),
-               fsiBodiesD1.accRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesH.q_fsiBodies_H.begin(), fsiBodiesH.q_fsiBodies_H.end(), fsiBodiesD1.q_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesH.omegaVelLRF_fsiBodies_H.begin(), fsiBodiesH.omegaVelLRF_fsiBodies_H.end(),
-               fsiBodiesD1.omegaVelLRF_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesH.omegaAccLRF_fsiBodies_H.begin(), fsiBodiesH.omegaAccLRF_fsiBodies_H.end(),
-               fsiBodiesD1.omegaAccLRF_fsiBodies_D.begin());
-
-  thrust::copy(fsiBodiesD1.posRigid_fsiBodies_D.begin(), fsiBodiesD1.posRigid_fsiBodies_D.end(),
-               fsiBodiesD2.posRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesD1.velMassRigid_fsiBodies_D.begin(), fsiBodiesD1.velMassRigid_fsiBodies_D.end(),
-               fsiBodiesD2.velMassRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesD1.accRigid_fsiBodies_D.begin(), fsiBodiesD1.accRigid_fsiBodies_D.end(),
-               fsiBodiesD2.accRigid_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesD1.q_fsiBodies_D.begin(), fsiBodiesD1.q_fsiBodies_D.end(), fsiBodiesD1.q_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesD1.omegaVelLRF_fsiBodies_D.begin(), fsiBodiesD1.omegaVelLRF_fsiBodies_D.end(),
-               fsiBodiesD2.omegaVelLRF_fsiBodies_D.begin());
-  thrust::copy(fsiBodiesD1.omegaAccLRF_fsiBodies_D.begin(), fsiBodiesD1.omegaAccLRF_fsiBodies_D.end(),
-               fsiBodiesD2.omegaAccLRF_fsiBodies_D.begin());
 }
 
 }  // end namespace fsi

@@ -17,8 +17,8 @@
 //
 // =============================================================================
 
-#ifndef CH_SINGLE_PIN_SHOE_H
-#define CH_SINGLE_PIN_SHOE_H
+#ifndef CH_TRACK_SHOE_SINGLE_PIN_H
+#define CH_TRACK_SHOE_SINGLE_PIN_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -33,10 +33,10 @@ namespace vehicle {
 
 /// Base class for a single-pin track shoe (template definition).
 /// A single-pin track shoe can be either of CENTRAL_PIN or LATERAL_PIN type.
-class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
   public:
-    ChSinglePinShoe(const std::string& name  ///< [in] name of the subsystem
-                    );
+    ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
+                         );
 
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
@@ -56,6 +56,13 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
+  protected:
+    /// Return the mass of the shoe body.
+    virtual double GetShoeMass() const = 0;
+
+    /// Return the moments of inertia of the shoe body.
+    virtual const ChVector<>& GetShoeInertia() const = 0;
+
     /// Return the location of the front contact cylinder.
     /// This location is relative to the shoe reference frame (in the positive x direction)
     virtual double GetFrontCylinderLoc() const = 0;
@@ -67,13 +74,6 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-  protected:
-    /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const = 0;
-
-    /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const = 0;
-
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization() = 0;
 
@@ -83,7 +83,13 @@ class CH_VEHICLE_API ChSinglePinShoe : public ChTrackShoe {
     virtual void AddShoeContact() = 0;
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
+
+    friend class ChSprocketSinglePin;
+    friend class ChTrackAssemblySinglePin;
 };
+
+/// Vector of handles to single-pin track shoe subsystems.
+typedef std::vector<std::shared_ptr<ChTrackShoeSinglePin> > ChTrackShoeSinglePinList;
 
 /// @} vehicle_tracked_shoe
 
