@@ -1,7 +1,7 @@
 ---
 layout: default
-title: Dashboard
-permalink: /dashboard/
+title: Status
+permalink: /status/
 ---
 {::options parse_block_html="true" /}
 
