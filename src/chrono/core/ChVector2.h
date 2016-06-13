@@ -23,6 +23,7 @@
 #include <iomanip>
 #include <iostream>
 
+#include "chrono/core/ChMathematics.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -324,7 +325,7 @@ bool Vequal(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
 
 template <class RealA>
 bool Vnotnull(const ChVector2<RealA>& va) {
-    return (va.x != 0 || va.y != 0)
+    return (va.x != 0 || va.y != 0);
 }
 
 template <class RealA, class RealB>
