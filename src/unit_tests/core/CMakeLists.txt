@@ -5,6 +5,7 @@ SET(TESTS
     utest_CH_ChVector
     utest_CH_coords
     utest_CH_math
+    utest_CH_AVX
     #utest_CH_stream
 )
 
