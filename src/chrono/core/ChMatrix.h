@@ -30,6 +30,8 @@
 #include "core/ChCoordsys.h"
 #include "core/ChStream.h"
 #include "core/ChException.h"
+#include "chrono/ChConfig.h"
+#include <immintrin.h>
 
 namespace chrono {
 
@@ -557,6 +559,74 @@ class ChMatrix {
             }
         }
     }
+
+#ifdef CHRONO_HAS_AVX
+    /// Multiplies two matrices, and stores the result in "this" matrix: [this]=[A]*[B].
+    /// AVX implementation: The speed up is marginal if size of the matrices are small, e.g. 3*3
+    /// Generally, as the matra.GetColumns() increases the method performs better
+    void MatrMultiplyAVX(const ChMatrix<double>& matra, const ChMatrix<double>& matrb) {
+        assert(matra.GetColumns() == matrb.GetRows());
+        assert(this->rows == matra.GetRows());
+        assert(this->columns == matrb.GetColumns());
+        int A_Nrow = matra.GetRows();
+        int B_Nrow = matrb.GetRows();
+        int A_NCol = matra.GetColumns();
+        int B_NCol = matrb.GetColumns();
+        const double* A_add = matra.GetAddress();
+        const double* B_add = matrb.GetAddress();
+        double* this_Add = this->GetAddress();
+        for (int rowA = 0; rowA < A_Nrow; rowA++) {
+            for (int colB = 0; colB < B_NCol; colB += 4) {
+                __m256d sum = _mm256_setzero_pd();
+                for (int elem = 0; elem < A_NCol; elem++) {
+                    __m256d ymmA = _mm256_broadcast_sd(A_add + A_NCol * rowA + elem);
+                    __m256d ymmB = _mm256_loadu_pd(B_add + elem * B_NCol + colB);
+                    __m256d prod = _mm256_mul_pd(ymmA, ymmB);
+                    sum = _mm256_add_pd(sum, prod);
+                }
+                _mm256_storeu_pd(this_Add + rowA * B_NCol + colB, sum);
+            }
+        }
+    }
+
+    /// Multiplies two matrices (the second is considered transposed): [this]=[A]*[B]'
+    /// Note: This method is faster than MatrMultiplyT if matra.GetColumns()%4=0 && matra.GetColumns()>8
+    /// It is still fast if matra.GetColumns() is large enough even if matra.GetColumns()%4!=0
+    void MatrMultiplyTAVX(const ChMatrix<double>& matra, const ChMatrix<double>& matrb) {
+        assert(matra.GetColumns() == matrb.GetColumns());
+        assert(this->GetRows() == matra.GetRows());
+        assert(this->GetColumns() == matrb.GetRows());
+        int A_Nrow = matra.GetRows();
+        int B_Nrow = matrb.GetRows();
+        int A_NCol = matra.GetColumns();
+        int B_NCol = matrb.GetColumns();
+        const double* A_add = matra.GetAddress();
+        const double* B_add = matrb.GetAddress();
+        bool NeedsPadding = B_NCol % 4;
+        int CorrectFAT = ((B_NCol >> 2) << 2);
+        for (int rowA = 0; rowA < A_Nrow; rowA++) {
+            for (int rowB = 0; rowB < B_Nrow; rowB++) {
+                int colB;
+                double temp_sum = 0.0;
+                __m256d sum = _mm256_setzero_pd();
+                for (colB = 0; colB < CorrectFAT; colB += 4) {
+                    __m256d ymmA = _mm256_loadu_pd(A_add + rowA * A_NCol + colB);
+                    __m256d ymmB = _mm256_loadu_pd(B_add + rowB * B_NCol + colB);
+                    __m256d prod = _mm256_mul_pd(ymmA, ymmB);
+                    sum = _mm256_add_pd(sum, prod);
+                }
+                sum = _mm256_hadd_pd(sum, sum);
+                temp_sum = ((double*)&sum)[0] + ((double*)&sum)[2];
+                if (NeedsPadding)
+                    for (colB = CorrectFAT; colB < B_NCol; colB++) {
+                        temp_sum += (matra.Element(rowA, colB) * matrb.Element(rowB, colB));
+                    }
+                SetElement(rowA, rowB, temp_sum);
+            }
+        }
+    }
+
+#endif
 
     /// Multiplies two matrices (the second is considered transposed): [this]=[A]*[B]'
     /// Faster than doing B.MatrTranspose(); result.MatrMultiply(A,B);
