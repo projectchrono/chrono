@@ -35,14 +35,14 @@ namespace m113 {
 
 const double M113_TrackShoeDoublePin::m_shoe_mass = 18.02;
 const ChVector<> M113_TrackShoeDoublePin::m_shoe_inertia(0.22, 0.04, 0.25);
-const double M113_TrackShoeDoublePin::m_shoe_length = 3.875 * 0.0254;
-const double M113_TrackShoeDoublePin::m_shoe_width = 10.95 * 0.0254;
+const double M113_TrackShoeDoublePin::m_shoe_length = 0.0984;  // 3.875''
+const double M113_TrackShoeDoublePin::m_shoe_width = 0.2781;   // 10.95''
 const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
 
 const double M113_TrackShoeDoublePin::m_connector_mass = 2.0;                  //// TODO
 const ChVector<> M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
-const double M113_TrackShoeDoublePin::m_connector_radius = 0.88 * 0.0254;
-const double M113_TrackShoeDoublePin::m_connector_length = 2.125 * 0.0254;
+const double M113_TrackShoeDoublePin::m_connector_radius = 0.0223;             // 0.88''
+const double M113_TrackShoeDoublePin::m_connector_length = 0.054;              // 2.125''
 
 const std::string M113_TrackShoeDoublePin::m_meshName = "TrackShoe_POV_geom";
 const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoe.obj";
