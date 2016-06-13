@@ -669,7 +669,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     if (m_circular) {
                         // prepare a circular section
                         std::vector<ChVector<>> msection_pts(beam_resolution_section);
-                        for (int is = 0; is < msection_pts.size(); ++is) {
+                        for (size_t is = 0; is < msection_pts.size(); ++is) {
                             double sangle = CH_C_2PI * ((double)is / (double)msection_pts.size());
                             msection_pts[is] = ChVector<>(0, cos(sangle) * m_rad, sin(sangle) * m_rad);
                         }
@@ -690,7 +690,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
                             ChVector<int> islice_offset((in - 1) * msection_pts.size(), (in - 1) * msection_pts.size(),
                                                         (in - 1) * msection_pts.size());
-                            for (int is = 0; is < msection_pts.size(); ++is) {
+                            for (size_t is = 0; is < msection_pts.size(); ++is) {
                                 int ipa = is;
                                 int ipb = (is + 1) % msection_pts.size();
                                 int ipaa = ipa + msection_pts.size();
@@ -1127,16 +1127,6 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     glyphs_asset->SetGlyphCoordsys(glyphs_asset->GetNumberOfGlyphs(), 
                         ChCoordsys<>((myshell->GetNodeA()->GetPos()+myshell->GetNodeB()->GetPos()+myshell->GetNodeC()->GetPos()+myshell->GetNodeD()->GetPos())*0.25, 
                         myshell->GetAvgRot()) );
-                }
-                // nodes coordsys
-                if (false) {
-                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
-                    for (int in=0; in<4; ++in) {
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphCoordsys(glyphs_asset->GetNumberOfGlyphs(), 
-                            ChCoordsys<>(myshell->EvaluatePT(in), 
-                            myshell->Tn[in].Get_A_quaternion()) );
-                    }
                 }
                 // gauss point coordsys
                 if (false) {

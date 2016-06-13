@@ -9,7 +9,7 @@
 
 /* C/C++ standard library*/
 /* Chrono::FSI Library*/
-#include "chrono_fsi/include/utils.h"
+#include "chrono_fsi/utils/ChUtilsPrintStruct.h"
 #include "chrono_fsi/ChParams.cuh"
 
 namespace chrono {
@@ -120,9 +120,9 @@ void SetupParamsH(SimParams* paramsH, Real hdimX, Real hdimY, Real hthick, Real 
 	std::cout << "paramsH->sizeScale: " << paramsH->sizeScale << std::endl;
 	std::cout << "paramsH->HSML: " << paramsH->HSML << std::endl;
 	std::cout << "paramsH->bodyForce3: ";
-	printStruct(paramsH->bodyForce3);
+	utils::printStruct(paramsH->bodyForce3);
 	std::cout << "paramsH->gravity: ";
-	printStruct(paramsH->gravity);
+	utils::printStruct(paramsH->gravity);
 	std::cout << "paramsH->rho0: " << paramsH->rho0 << std::endl;
 	std::cout << "paramsH->mu0: " << paramsH->mu0 << std::endl;
 	std::cout << "paramsH->v_Max: " << paramsH->v_Max << std::endl;
@@ -134,9 +134,9 @@ void SetupParamsH(SimParams* paramsH, Real hdimX, Real hdimY, Real hthick, Real 
 	std::cout << "paramsH->densityReinit: " << paramsH->densityReinit
 			<< std::endl;
 	std::cout << "paramsH->cMin: ";
-	printStruct(paramsH->cMin);
+	utils::printStruct(paramsH->cMin);
 	std::cout << "paramsH->cMax: ";
-	printStruct(paramsH->cMax);
+	utils::printStruct(paramsH->cMax);
 	std::cout << "paramsH->MULT_INITSPACE: " << paramsH->MULT_INITSPACE
 			<< std::endl;
 	std::cout << "paramsH->NUM_BOUNDARY_LAYERS: " << paramsH->NUM_BOUNDARY_LAYERS
@@ -150,18 +150,18 @@ void SetupParamsH(SimParams* paramsH, Real hdimX, Real hdimY, Real hthick, Real 
 	std::cout << "paramsH->BASEPRES: " << paramsH->BASEPRES << std::endl;
 	std::cout << "paramsH->LARGE_PRES: " << paramsH->LARGE_PRES << std::endl;
 	std::cout << "paramsH->deltaPress: ";
-	printStruct(paramsH->deltaPress);
+	utils::printStruct(paramsH->deltaPress);
 	std::cout << "paramsH->nPeriod: " << paramsH->nPeriod << std::endl;
 	std::cout << "paramsH->EPS_XSPH: " << paramsH->EPS_XSPH << std::endl;
 	std::cout << "paramsH->multViscosity_FSI: " << paramsH->multViscosity_FSI
 			<< std::endl;
 	std::cout << "paramsH->rigidRadius: ";
-	printStruct(paramsH->rigidRadius);
+	utils::printStruct(paramsH->rigidRadius);
 	std::cout << "paramsH->binSize0: " << paramsH->binSize0 << std::endl;
 	std::cout << "paramsH->boxDims: ";
-	printStruct(paramsH->boxDims);
+	utils::printStruct(paramsH->boxDims);
 	std::cout << "paramsH->gridSize: ";
-	printStruct(paramsH->gridSize);
+	utils::printStruct(paramsH->gridSize);
 	std::cout << "********************" << std::endl;
 }
 

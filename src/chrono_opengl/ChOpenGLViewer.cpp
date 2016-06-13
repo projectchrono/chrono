@@ -214,7 +214,7 @@ void ChOpenGLViewer::Render() {
       cloud_data.resize(physics_system->Get_bodylist()->size());
 #pragma omp parallel for
       for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
-    	std::shared_ptr<ChBody> abody = physics_system->Get_bodylist()->at(i);
+      std::shared_ptr<ChBody> abody = physics_system->Get_bodylist()->at(i);
         ChVector<> pos = abody->GetPos();
         cloud_data[i] = glm::vec3(pos.x, pos.y, pos.z);
       }
@@ -222,7 +222,7 @@ void ChOpenGLViewer::Render() {
 
     if (render_mode == POINTS) {
       cloud.Update(cloud_data);
-      glm::mat4 model(1);
+      glm::mat4 model(10);
       cloud.Draw(projection, view * model);
     }
     RenderGrid();
@@ -408,7 +408,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
         if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
             ChOpenGLMaterial pillow(glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f * .5f,
                                     glm::vec3(196.0f, 77.0f, 88.0f) / 255.0f, glm::vec3(1, 1, 1));
-            std::cout << trimesh_shape->GetName() << std::endl;
+            ////std::cout << trimesh_shape->GetName() << std::endl;
             obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape.get(), pillow);
             obj_files[trimesh_shape->GetName()].AttachShader(&main_shader);
             model_obj[trimesh_shape->GetName()].push_back(model);

@@ -51,7 +51,7 @@ class CH_VEHICLE_API ChRoadWheel {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Return the type of track shoe consistent with this road wheel.
-    virtual TrackShoeType GetType() const = 0;
+    virtual GuidePinType GetType() const = 0;
 
     /// Get a handle to the road wheel body.
     std::shared_ptr<ChBody> GetWheelBody() const { return m_wheel; }

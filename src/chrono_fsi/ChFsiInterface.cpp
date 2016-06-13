@@ -22,7 +22,7 @@ namespace chrono {
 namespace fsi {
 //------------------------------------------------------------------------------------
 ChFsiInterface::ChFsiInterface(FsiBodiesDataH* other_fsiBodiesH,
-                               chrono::ChSystemParallelDVI* other_mphysicalSystem,
+                               chrono::ChSystem* other_mphysicalSystem,
                                std::vector<std::shared_ptr<chrono::ChBody> >* other_fsiBodeisPtr,
                                thrust::device_vector<Real3>* other_rigid_FSI_ForcesD,
                                thrust::device_vector<Real3>* other_rigid_FSI_TorquesD)
@@ -161,6 +161,7 @@ void ChFsiInterface::Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD* fsiB
     fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWvel_loc());
     fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = ChFsiTypeConvert::ChVectorToReal3(bodyPtr->GetWacc_loc());
   }
+  fsiBodiesD->CopyFromH(*fsiBodiesH);
 }
 //------------------------------------------------------------------------------------
 void ChFsiInterface::ResizeChronoBodiesData() {

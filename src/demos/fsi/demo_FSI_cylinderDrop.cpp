@@ -1,20 +1,22 @@
-///////////////////////////////////////////////////////////////////////////////
-//	main.cpp
-//	Reads the initializes the particles, either from file or inside the code
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-//	Related Files: collideSphereSphere.cu, collideSphereSphere.cuh
-//	Input File:		initializer.txt (optional: if initialize from file)
-//					This file contains the sph particles specifications. The description
-//					reads the number of particles first. The each line provides the
-//					properties of one SPH particl:
-//					position(x,y,z), radius, velocity(x,y,z), mass, \rho, pressure, mu,
-// particle_type(rigid
-// or fluid)
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-//	Created by Arman Pazouki
-///////////////////////////////////////////////////////////////////////////////
-
-// note: this is the original fsi_hmmwv model. uses RK2, an specific coupling, and density re_initializaiton.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Author: Arman Pazouki
+// =============================================================================
+//
+// Model file to generate a Cylinder, as a FSI body, a sphere, as a non-fsi 
+// body, fluid, and boundary. The cyliner is dropped on the water. Water is not
+// steady and is modeled initially a cube of falling particles.
+// parametrization of this model relies on params_demo_FSI_cylinderDrop.h
+// =============================================================================
 
 // General Includes
 #include <iostream>
@@ -26,19 +28,8 @@
 #include <assert.h>
 #include <stdlib.h>  // system
 
-// SPH includes
-//#include "chrono_fsi/collideSphereSphere.cuh"
-//#include "chrono_fsi/printToFile.cuh"
-//#include "chrono_fsi/custom_cutil_math.h"
-//#include "chrono_fsi/SPHCudaUtils.h"
-//#include "chrono_fsi/checkPointReduced.h"
-
 // Chrono Parallel Includes
 #include "chrono_parallel/physics/ChSystemParallel.h"
-
-// Chrono Vehicle Include
-//#include "chrono_fsi/VehicleExtraProperties.h"
-//#include "chrono_vehicle/ChVehicleModelData.h"
 
 //#include "chrono_utils/ChUtilsVehicle.h"
 #include "chrono/utils/ChUtilsGeometry.h"
@@ -50,17 +41,15 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
 
-//#include "BallDropParams.h"
-//#include "chrono_fsi/SphInterface.h"
-//#include "chrono_fsi/InitializeSphMarkers.h"
-//#include "chrono_fsi/FSI_Integrate.h"
+// Chrono fsi includes
 #include "chrono_fsi/ChSystemFsi.h"
 #include "chrono_fsi/ChDeviceUtils.cuh"
-#include "chrono_fsi/UtilsFsi/ChUtilsGeneratorFsi.h"
+#include "chrono_fsi/utils/ChUtilsGeneratorFsi.h"
 #include "chrono_fsi/ChFsiTypeConvert.h"
+#include "chrono_fsi/utils/ChUtilsPrintSph.h"
 
 // FSI Interface Includes
-#include "tests/fsi/params_test_fsi_cylinderDrop_new.h"  //SetupParamsH()
+#include "demos/fsi/params_demo_FSI_cylinderDrop.h"  //SetupParamsH()
 
 #define haveFluid 1
 
@@ -73,6 +62,9 @@ using std::endl;
 std::ofstream simParams;
 // =============================================================================
 
+//----------------------------
+// output directories and settings
+//----------------------------
 
 const std::string out_dir = "FSI_OUTPUT"; //"../FSI_OUTPUT";
 const std::string pov_dir_fluid = out_dir + "/povFilesFluid";
@@ -80,7 +72,11 @@ const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
 bool povray_output = true;
 int out_fps = 30;
 
-Real contact_recovery_speed = 1;
+Real contact_recovery_speed = 1; ///< recovery speed for MBD
+
+//----------------------------
+// dimention of the box and fluid
+//----------------------------
 
 Real hdimX = 14;  // 5.5;
 Real hdimY = 1.75;
@@ -91,9 +87,13 @@ Real basinDepth = 2;
 Real fluidInitDimX = 2;
 Real fluidHeight = 1.4;  // 2.0;
 
-// =============================================================================
+//------------------------------------------------------------------
+// function to set some simulation settings from command line
+//------------------------------------------------------------------
+
 void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
-		int& max_iteration_sliding, int& max_iteration_bilateral) {
+	int& max_iteration_sliding, int& max_iteration_bilateral, 
+	int& max_iteration_normal, int& max_iteration_spinning) {
 	if (argc > 1) {
 		const char* text = argv[1];
 		threads = atoi(text);
@@ -105,34 +105,20 @@ void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
 	if (argc > 3) {
 		const char* text = argv[3];
 		max_iteration_bilateral = atoi(text);
-	}
-}
-// =============================================================================
-void SetArgumentsForMbdFromInput(int argc, char* argv[], int& threads,
-		int& max_iteration_normal, int& max_iteration_sliding,
-		int& max_iteration_spinning, int& max_iteration_bilateral) {
-	if (argc > 1) {
-		const char* text = argv[1];
-		threads = atoi(text);
-	}
-	if (argc > 2) {
-		const char* text = argv[2];
-		max_iteration_normal = atoi(text);
-	}
-	if (argc > 3) {
-		const char* text = argv[3];
-		max_iteration_sliding = atoi(text);
 	}
 	if (argc > 4) {
 		const char* text = argv[4];
-		max_iteration_spinning = atoi(text);
+		max_iteration_normal = atoi(text);
 	}
 	if (argc > 5) {
 		const char* text = argv[5];
-		max_iteration_bilateral = atoi(text);
+		max_iteration_spinning = atoi(text);
 	}
 }
-// =============================================================================
+
+//------------------------------------------------------------------
+// function to set the solver setting for the 
+//------------------------------------------------------------------
 
 void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<> gravity, int argc,
 		char* argv[]) {
@@ -152,7 +138,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 	// ----------------------
 
 	SetArgumentsForMbdFromInput(argc, argv, threads, max_iteration_sliding,
-			max_iteration_bilateral);
+		max_iteration_bilateral, max_iteration_normal, max_iteration_spinning);
 
 	// ----------------------
 	// Set number of threads.
@@ -183,7 +169,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 
 	// ---------------------
 	// Edit mphysicalSystem settings.
-	// ---------------------\
+	// ---------------------
 
 	double tolerance = 0.1;  // 1e-3;  // Arman, move it to paramsH
 	// double collisionEnvelop = 0.04 * paramsH->HSML;
@@ -211,9 +197,12 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 	mphysicalSystem.GetSettings()->collision.bins_per_axis = _make_int3(40, 40,
 			40);  // Arman check
 }
-// =============================================================================
 
-// Arman you still need local position of bce markers
+//------------------------------------------------------------------
+// Create the objects of the MBD system. Rigid bodies, and if fsi, their
+// bce representation are created and added to the systems
+//------------------------------------------------------------------
+
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::ChSystemFsi &myFsiSystem, chrono::fsi::SimParams* paramsH) {
 
 	std::shared_ptr<chrono::ChMaterialSurface> mat_g(new chrono::ChMaterialSurface);
@@ -417,9 +406,11 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem, fsi::C
 	//  }
 }
 
-// =============================================================================
+//------------------------------------------------------------------
+// Function to save the povray files of the MBD
+//------------------------------------------------------------------
 
-void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
+void SavePovFilesMBD(fsi::ChSystemFsi & myFsiSystem, ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParams* paramsH, int tStep,
 		double mTime) {
 	static double exec_time;
 	int out_steps = std::ceil((1.0 / paramsH->dT) / out_fps);
@@ -430,6 +421,14 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParam
 
 	// If enabled, output data for PovRay postprocessing.
 	if (povray_output && tStep % out_steps == 0) {
+		// **** out fluid
+		chrono::fsi::utils::PrintToFile(myFsiSystem.GetDataManager()->sphMarkersD1.posRadD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.velMasD,
+				myFsiSystem.GetDataManager()->sphMarkersD1.rhoPresMuD,
+				myFsiSystem.GetDataManager()->fsiGeneralData.referenceArray,
+				pov_dir_fluid);
+
+		// **** out mbd
 		if (tStep / out_steps == 0) {
 			const std::string rmCmd = std::string("rm ") + pov_dir_mbd
 					+ std::string("/*.dat");
@@ -452,7 +451,11 @@ void SavePovFilesMBD(ChSystemParallelDVI& mphysicalSystem, chrono::fsi::SimParam
 	}
 }
 
-// =============================================================================
+//------------------------------------------------------------------
+// Print the simulation parameters: those pre-set and those set from 
+// command line
+//------------------------------------------------------------------
+
 void printSimulationParameters(chrono::fsi::SimParams* paramsH) {
 	simParams << " time_pause_fluid_external_force: "
 			<< paramsH->timePause << endl
@@ -465,7 +468,6 @@ void printSimulationParameters(chrono::fsi::SimParams* paramsH) {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-	//****************************************************************************************
 	time_t rawtime;
 	struct tm* timeinfo;
 
@@ -524,12 +526,12 @@ int main(int argc, char* argv[]) {
 
 		SetupParamsH(paramsH, hdimX, hdimY, hthick, basinDepth, fluidInitDimX, fluidHeight);
 		printSimulationParameters(paramsH);
-//		myFsiSystem.SetSimParams(paramsH);
 #if haveFluid
 		Real initSpace0 = paramsH->MULT_INITSPACE * paramsH->HSML;
 		utils::GridSampler<> sampler(initSpace0);
-		chrono::fsi::Real3 boxCenter = 0.5 * (paramsH->cMax + paramsH->cMin);
-		chrono::fsi::Real3 boxHalfDim = paramsH->cMax - boxCenter;
+		chrono::fsi::Real3 boxCenter = chrono::fsi::mR3(0, 0, paramsH->cMin.z + 0.5 * basinDepth);
+		boxCenter.z += 2 * paramsH->HSML;
+		chrono::fsi::Real3 boxHalfDim = chrono::fsi::mR3(1.8, .9 * hdimY, 0.5 * basinDepth);
 		utils::Generator::PointVector points = sampler.SampleBox(fsi::ChFsiTypeConvert::Real3ToChVector(boxCenter), fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
 		int numPart = points.size();
 		for (int i = 0; i < numPart; i++) {
@@ -583,17 +585,16 @@ int main(int argc, char* argv[]) {
 			printf("Double Precision\n") : printf("Single Precision\n");
 	int stepEnd = int(paramsH->tFinal / paramsH->dT);
 	for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
+		printf("step : %d \n", tStep);
 
 
 #if haveFluid
-//		PrintToFile(posRadD, velMasD, rhoPresMuD, referenceArray,
-//				currentParamsH, realTime, tStep, out_steps, pov_dir_fluid);
 		myFsiSystem.DoStepDynamics_FSI();
 #else
 		myFsiSystem.DoStepDynamics_ChronoRK2();
 #endif
 
-//		SavePovFilesMBD(mphysicalSystem, tStep, mTime);
+		SavePovFilesMBD(myFsiSystem, mphysicalSystem, paramsH, tStep, mTime);
 
 	}
 //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);

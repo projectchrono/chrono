@@ -25,7 +25,8 @@
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
-#include "models/vehicle/m113/M113_TrackAssembly.h"
+#include "models/vehicle/m113/M113_TrackAssemblySinglePin.h"
+#include "models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -51,7 +52,7 @@ int side = 0;
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Create an M113 track assembly.
-    auto track_assembly = std::make_shared<M113_TrackAssembly>(LEFT);
+    auto track_assembly = std::make_shared<M113_TrackAssemblySinglePin>(LEFT);
 
     // Create and initialize the testing mechanism.
     ChVector<> sprocket_loc(0, 1, 0);

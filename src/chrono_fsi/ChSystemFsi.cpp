@@ -26,8 +26,8 @@ namespace fsi {
 // Arman: have a function to set mphysical system
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_haveFluid)
-    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0), haveVehicle(false), mVehicle(NULL) {
+ChSystemFsi::ChSystemFsi(ChSystem* other_physicalSystem, bool other_haveFluid)
+    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0) {
   fsiData = new ChFsiDataManager();
   paramsH = new SimParams;
   fsiBodeisPtr.resize(0);
@@ -39,15 +39,13 @@ ChSystemFsi::ChSystemFsi(ChSystemParallelDVI* other_physicalSystem, bool other_h
   fsiInterface =
       new ChFsiInterface(&(fsiData->fsiBodiesH), mphysicalSystem, &fsiBodeisPtr,
                          &(fsiData->fsiGeneralData.rigid_FSI_ForcesD), &(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
-
-  InitializeChronoGraphics();
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Finalize() {
   FinalizeData();
   if (haveFluid) {
-    bceWorker->Finalize();
+	bceWorker->Finalize(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
     fluidDynamics->Finalize();
   }
 }
@@ -70,22 +68,7 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
                fsiData->sphMarkersD2.rhoPresMuD.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-// Arman : split this later. move vehicle stuff out of this class.
 int ChSystemFsi::DoStepChronoSystem(Real dT, double mTime) {
-  if (haveVehicle) {
-    // Release the vehicle chassis at the end of the hold time.
-
-    if (mVehicle->GetVehicle()->GetChassis()->GetBodyFixed()) {
-      mVehicle->GetVehicle()->GetChassis()->SetBodyFixed(false);
-      for (int i = 0; i < 2 * mVehicle->GetVehicle()->GetNumberAxles(); i++) {
-        mVehicle->GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
-      }
-    }
-
-    // Update vehicle
-    mVehicle->Synchronize(mTime);
-  }
-
 #ifdef CHRONO_OPENGL
   if (gl_window->Active()) {
     gl_window->DoStepDynamics(dT);
@@ -104,7 +87,6 @@ void ChSystemFsi::DoStepDynamics_FSI() {
   ChDeviceUtils::FillMyThrust4(fsiData->fsiGeneralData.derivVelRhoD, mR4(0));
   fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD2), &(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1),
                               0.5 * paramsH->dT);
-  int tStep = mTime / paramsH->dT;
 
   bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
   fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
@@ -133,7 +115,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
   fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));
   bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
 
-  // TODO
+  // Density re-initialization
+  int tStep = mTime / paramsH->dT;
   if ((tStep % 10 == 0) && (paramsH->densityReinit != 0)) {
     fluidDynamics->DensityReinitialization();
   }
@@ -151,21 +134,14 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 
   DoStepChronoSystem(1.0 * paramsH->dT, mTime);
 }
-//--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::SetVehicle(chrono::vehicle::ChWheeledVehicleAssembly* other_mVehicle) {
-  mVehicle = other_mVehicle;
-  haveVehicle = true;
-}
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
   fsiData->ResizeDataManager();
   // Arman: very important: you cannot change the order of (1-3). Fix the issue later
   fsiInterface->ResizeChronoBodiesData();
   fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));                     //(1)
-  fsiData->CopyFsiBodiesDataH2D();                                                                   // (2)
-  bceWorker->Populate_RigidSPH_MeshPos_LRF(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));       // (3)
-  bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));  //(4)
+  fsiData->fsiBodiesD2 = fsiData->fsiBodiesD1;														//(2) construct midpoint rigid data
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {

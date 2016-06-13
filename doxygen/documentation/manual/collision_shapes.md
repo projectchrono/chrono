@@ -151,12 +151,12 @@ Finally, there is also a **contact breaking threshold**, which is a global toler
 ChCollisionSystemBullet::SetContactBreakingThreshold(0.001);
 ~~~
 
-The contact breaking threshold represents the maximum distance between two collision shapes where were in contact before the contact is considered as nonexistent. This is due to the fact that Chrono relies in many instances on the Bullet collision algorithms and Bullet keeps 
+The contact breaking threshold represents the maximum distance between two collision shapes where were in contact before the contact is considered as non-existent. This is due to the fact that Chrono relies in many instances on the Bullet collision algorithms and Bullet keeps 
 contact points persistent from one simulation frame to the next. This threshold value instructs Bullet when to severe the contact between the two collision shapes.
 
 
 # Examples
-See, for instance:
+For further guidance, see:
 - @ref demo_bricks.cpp
 - @ref demo_collision.cpp
 - @ref demo_friction.cpp

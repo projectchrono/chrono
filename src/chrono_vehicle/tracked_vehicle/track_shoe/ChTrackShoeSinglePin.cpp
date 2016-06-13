@@ -21,21 +21,20 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/tracked_vehicle/track_shoe/ChSinglePinShoe.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeSinglePin.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSinglePinShoe::ChSinglePinShoe(const std::string& name) : ChTrackShoe(name) {
-}
+ChTrackShoeSinglePin::ChTrackShoeSinglePin(const std::string& name) : ChTrackShoe(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSinglePinShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                 const ChVector<>& location,
-                                 const ChQuaternion<>& rotation) {
+void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                      const ChVector<>& location,
+                                      const ChQuaternion<>& rotation) {
     // Create the shoe body.
     ChVector<> loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
@@ -71,13 +70,13 @@ void ChSinglePinShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double ChSinglePinShoe::GetMass() const {
+double ChTrackShoeSinglePin::GetMass() const {
     return GetShoeMass();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSinglePinShoe::Connect(std::shared_ptr<ChTrackShoe> next) {
+void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
     // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);

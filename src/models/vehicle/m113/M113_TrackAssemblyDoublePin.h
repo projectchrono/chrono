@@ -12,32 +12,31 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// M113 track assembly subsystem.
+// M113 double-pin track assembly subsystem.
 //
 // =============================================================================
 
-#ifndef M113_TRACK_ASSEMBLY_H
-#define M113_TRACK_ASSEMBLY_H
+#ifndef M113_TRACK_ASSEMBLY_DOUBLE_PIN_H
+#define M113_TRACK_ASSEMBLY_DOUBLE_PIN_H
 
 #include <string>
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
 #include "models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-///
-///
-///
-class CH_MODELS_API M113_TrackAssembly : public ChTrackAssembly {
-  public:
-    M113_TrackAssembly(VehicleSide side);
-    ~M113_TrackAssembly() {}
+/// M113 track assembly using double-pin track shoes.
+class CH_MODELS_API M113_TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
+public:
+    M113_TrackAssemblyDoublePin(VehicleSide side);
 
-  private:
+    void SetIdlerVisType(VisualizationType vis);
+    void SetRoadWheelVisType(VisualizationType vis);
+    void SetSprocketVisType(VisualizationType vis);
+    void SetTrackShoeVisType(VisualizationType vis);
 };
 
 }  // end namespace m113
