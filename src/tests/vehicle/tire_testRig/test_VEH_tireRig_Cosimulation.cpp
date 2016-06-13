@@ -40,11 +40,14 @@
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
+#include "chrono/timestepper/ChState.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
@@ -78,15 +81,38 @@ static const bool use_mat_properties = false;
 static const int nthreads_rignode = 2;
 static const int nthreads_terrainnode = 2;
 
+// Number of cosimulation steps and step size
+int num_steps = 125000;
+double step_size = 1e-4;
+
+// Output directories
+const std::string out_dir = "../TIRE_RIG_COSIM";
+const std::string rig_dir = out_dir + "/RIG";
+const std::string terrain_dir = out_dir + "/TERRAIN";
+
+// Output frequency (frames per second)
+double output_fps = 100;
+
+// Checkpointing frequency (frames per second)
+double checkpoint_fps = 10;
+
+// Problem phase.  
+// In SETTLING, generate checkpointing output.
+// In TESTING, initialize from checkpointing files.
+enum PhaseType {SETTLING, TESTING};
+PhaseType phase = SETTLING;
+
 // =============================================================================
 class ChFunction_SlipAngle : public ChFunction {
-public:
-    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(); }
+  public:
+    ChFunction_SlipAngle(double max_angle) : m_max_angle(max_angle) {}
+
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(m_max_angle); }
 
     virtual double Get_y(double t) const override {
         // Ramp for 1 second and stay at that value (scale)
         double delay = 0.2;
-        double scale = -20.0 / 180 * CH_C_PI;
+        double scale = -m_max_angle / 180 * CH_C_PI;
         if (t <= delay)
             return 0;
         double t1 = t - delay;
@@ -94,6 +120,9 @@ public:
             return scale;
         return t1 * scale;
     }
+
+  private:
+    double m_max_angle;
 };
 
 // =============================================================================
@@ -113,7 +142,8 @@ class RigNode {
 
     double GetSimTime() { return m_timer.GetTimeSeconds(); }
     double GetTotalSimTime() { return m_cumm_sim_time; }
-    void OutputData();
+    void OutputData(int frame);
+    void WriteCheckpoint();
 
   private:
     ChSystemDEM* m_system;  ///< containing system
@@ -136,11 +166,19 @@ class RigNode {
     ChTimer<double> m_timer;
     double m_cumm_sim_time;
 
-    // Private methods
+    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
+
+    // Initialize body and tire state at initial configuration
+    void InitBodies(double init_height);
+    // Initialize body and tire state from checkpointing file
+    void InitBodies(const std::string& filename);
+
     void PrintLowestNode();
     void PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel);
     void PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices);
 };
+
+const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
 
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
@@ -299,44 +337,31 @@ void RigNode::SetOutputFile(const std::string& name) {
 // - send information on tire mesh topology (number verices and triangles)
 // -----------------------------------------------------------------------------
 void RigNode::Initialize() {
-    // ------------------------------
-    // Receive initial terrain height
-    // ------------------------------
+    // --------------------------------------
+    // Initialize the rig bodies and the tire
+    // --------------------------------------
 
-    double init_height;
-    MPI_Status status;
-    MPI_Recv(&init_height, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+    switch (phase) {
+        case SETTLING: {
+            // Receive initial terrain height
+            double init_height;
+            MPI_Status status;
+            MPI_Recv(&init_height, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    std::cout << "[Rig node    ] Received init_height = " << init_height << std::endl;
+            std::cout << "[Rig node    ] Received init_height = " << init_height << std::endl;
 
-    // -----------------------------------
-    // Initialize the rig mechanism bodies
-    // -----------------------------------
+            // Set body and tire states
+            InitBodies(init_height);
 
-    // Initialize rim body.
-    double tire_radius = m_tire->GetRadius();
+            break;
+        }
+        case TESTING: {
+            // Set body and tire states from checkpointing file
+            InitBodies(m_checkpoint_filename);
 
-    m_rim->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
-    m_rim->SetRot(QUNIT);
-    m_rim->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
-    m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
-
-    // Initialize chassis body
-    m_chassis->SetBodyFixed(false);
-    m_chassis->SetCollide(false);
-    m_chassis->SetInertiaXX(ChVector<>(1, 1, 1));
-    m_chassis->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
-    m_chassis->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
-    m_chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
-
-    // Initialize the set_toe body
-    m_set_toe->SetBodyFixed(false);
-    m_set_toe->SetCollide(false);
-    m_set_toe->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
-    m_set_toe->SetRot(QUNIT);
-    m_set_toe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    m_set_toe->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
-
+            break;
+        }
+    }
 
     // -----------------------------------
     // Initialize the rig mechanism joints
@@ -346,7 +371,7 @@ void RigNode::Initialize() {
     
     // chassis       ==revolute_z==>   set_toe
     // Create slip controlling function (toe angle)
-    f_slip = std::make_shared<ChFunction_SlipAngle>();
+    f_slip = std::make_shared<ChFunction_SlipAngle>(0);
     
     m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
     m_slip_motor->SetName("engine_set_slip");
@@ -357,11 +382,9 @@ void RigNode::Initialize() {
     m_revolute->SetName("revolute");
     m_revolute->Initialize(m_rim, m_set_toe, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
     
-    // ---------------
-    // Initialize tire
-    // ---------------
-
-    m_tire->Initialize(m_rim, LEFT);
+    // ----------------------
+    // Create contact surface
+    // ----------------------
 
     // Create a mesh load for contact forces and add it to the tire's load container.
     auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
@@ -381,6 +404,125 @@ void RigNode::Initialize() {
     MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     std::cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << std::endl;
+}
+
+// -----------------------------------------------------------------------------
+// Initialization of the rig node bodies (initial configuration)
+// - initialize the state of the mechanism bodies
+// - initialize the tire
+// -----------------------------------------------------------------------------
+void RigNode::InitBodies(double init_height) {
+    double tire_radius = m_tire->GetRadius();
+
+    // Initialize chassis body
+    m_chassis->SetBodyFixed(false);
+    m_chassis->SetCollide(false);
+    m_chassis->SetInertiaXX(ChVector<>(1, 1, 1));
+    m_chassis->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
+    m_chassis->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+    m_chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
+
+    // Initialize the set_toe body
+    m_set_toe->SetBodyFixed(false);
+    m_set_toe->SetCollide(false);
+    m_set_toe->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
+    m_set_toe->SetRot(QUNIT);
+    m_set_toe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
+    m_set_toe->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+
+    // Initialize rim body.
+    m_rim->SetPos(ChVector<>(0, 0, init_height + tire_radius + cont_offset));
+    m_rim->SetRot(QUNIT);
+    m_rim->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+    m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
+
+    // Initialize tire
+    m_tire->Initialize(m_rim, LEFT);
+}
+
+// -----------------------------------------------------------------------------
+// Initialization of the rig node bodies from a checkpoint data file:
+// - initialize the mechanism bodies with states from checkpoint file
+// - initialize the tire and overwrite mesh state from checkpoint file
+// -----------------------------------------------------------------------------
+void RigNode::InitBodies(const std::string& filename) {
+    // Open input file stream
+    std::ifstream ifile(filename);
+    std::string line;
+
+    // Initialize the rig mechanism bodies
+    int identifier;
+    ChVector<> pos;
+    ChQuaternion<> rot;
+    ChVector<> pos_dt;
+    ChQuaternion<> rot_dt;
+
+    // Initialize chassis body.
+    {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
+            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+
+        m_chassis->SetPos(ChVector<>(pos.x, pos.y, pos.z));
+        m_chassis->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
+        m_chassis->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
+        m_chassis->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
+    }
+
+    // Initialize set_toe body.
+    {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
+            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+
+        m_set_toe->SetPos(ChVector<>(pos.x, pos.y, pos.z));
+        m_set_toe->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
+        m_set_toe->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
+        m_set_toe->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
+    }
+
+    // Initialize rim body.
+    {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
+            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+
+        m_rim->SetPos(ChVector<>(pos.x, pos.y, pos.z));
+        m_rim->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
+        m_rim->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
+        m_rim->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
+    }
+
+    // Initialize the tire, then overwrite the state of the underlying mesh.
+    m_tire->Initialize(m_rim, LEFT);
+
+    auto mesh = m_tire->GetMesh();
+    ChState x(mesh->GetDOF(), NULL);
+    ChStateDelta v(mesh->GetDOF_w(), NULL);
+
+    for (int ix = 0; ix < x.GetLength(); ix++) {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> x(ix);
+    }
+    for (int iv = 0; iv < v.GetLength(); iv++) {
+        std::getline(ifile, line);
+        std::istringstream iss(line);
+        iss >> v(iv);
+    }
+
+    unsigned int offset_x = 0;
+    unsigned int offset_v = 0;
+    double t = 0;
+    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
+        auto node = mesh->GetNode(in);
+        node->NodeIntStateScatter(offset_x, x, offset_v, v, t);
+        offset_x += node->Get_ndof_x();
+        offset_v += node->Get_ndof_w();
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -471,17 +613,56 @@ void RigNode::Advance(double step_size) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void RigNode::OutputData() {
-    if (!m_outf.is_open())
-        return;
+void RigNode::OutputData(int frame) {
+    // Append to results output file
+    if (m_outf.is_open()) {
+        std::string del("  ");
+        const ChVector<>& rim_pos = m_rim->GetPos();
+        const ChVector<>& rim_vel = m_rim->GetPos_dt();
+        m_outf << m_system->GetChTime() << del;
+        m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
+            << rim_vel.z << del;
+        m_outf << std::endl;
+    }
 
-    std::string del("  ");
-    const ChVector<>& rim_pos = m_rim->GetPos();
-    const ChVector<>& rim_vel = m_rim->GetPos_dt();
-    m_outf << m_system->GetChTime() << del;
-    m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
-        << rim_vel.z << del;
-    m_outf << std::endl;
+    // Create and write frame output file.
+    char filename[100];
+    sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteCheckpoint() {
+    utils::CSV_writer csv(" ");
+
+    // Write body state information
+    csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPos_dt()
+        << m_chassis->GetRot_dt() << std::endl;
+    csv << m_set_toe->GetIdentifier() << m_set_toe->GetPos() << m_set_toe->GetRot() << m_set_toe->GetPos_dt()
+        << m_set_toe->GetRot_dt() << std::endl;
+    csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
+        << std::endl;
+
+    // Write deformable tire state information
+    auto mesh = m_tire->GetMesh();
+    ChState x(mesh->GetDOF(), NULL);
+    ChStateDelta v(mesh->GetDOF_w(), NULL);
+    unsigned int offset_x = 0;
+    unsigned int offset_v = 0;
+    double t;
+    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
+        auto node = mesh->GetNode(in);
+        node->NodeIntStateGather(offset_x, x, offset_v, v, t);
+        offset_x += node->Get_ndof_x();
+        offset_v += node->Get_ndof_w();
+    }
+
+    for (int ix = 0; ix < x.GetLength(); ix++)
+        csv << x(ix) << std::endl;
+    for (int iv = 0; iv < v.GetLength(); iv++)
+        csv << v(iv) << std::endl;
+
+    csv.write_to_file(m_checkpoint_filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -547,7 +728,7 @@ class TerrainNode {
 
     double GetSimTime() { return m_timer.GetTimeSeconds(); }
     double GetTotalSimTime() { return m_cumm_sim_time; }
-    void OutputData();
+    void OutputData(int frame);
 
   private:
     /// Triangle vertex indices.
@@ -1288,9 +1469,15 @@ void TerrainNode::Advance(double step_size) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TerrainNode::OutputData() {
-    if (!m_outf.is_open())
-        return;
+void TerrainNode::OutputData(int frame) {
+    // Append to results output file
+    if (m_outf.is_open()) {
+        //// TODO
+    }
+
+    // Create and write frame output file.
+    char filename[100];
+    sprintf(filename, "%s/data_%04d.dat", terrain_dir.c_str(), frame + 1);
 }
 
 // -----------------------------------------------------------------------------
@@ -1410,6 +1597,26 @@ int main() {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+    // Prepare output directories.
+    if (rank == 0) {
+        if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << out_dir << std::endl;
+            return 1;
+        }
+        if (ChFileutils::MakeDirectory(rig_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << rig_dir << std::endl;
+            return 1;
+        }
+        if (ChFileutils::MakeDirectory(terrain_dir.c_str()) < 0) {
+            std::cout << "Error creating directory " << terrain_dir << std::endl;
+            return 1;
+        }
+    }
+
+    // Number of simulation steps between miscellaneous events.
+    int output_steps = (int)std::ceil(1 / (output_fps * step_size));
+    int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
+
     // Create the two systems and run settling phase for terrain.
     // Data exchange:
     //   rig => terrain (tire contact material properties)
@@ -1419,11 +1626,11 @@ int main() {
     switch (rank) {
         case RIG_NODE_RANK:
             my_rig = new RigNode(nthreads_rignode);
-            my_rig->SetOutputFile("TestRigCosim_RigNode.txt");
+            my_rig->SetOutputFile(rig_dir + "/rig_results.txt");
             break;
         case TERRAIN_NODE_RANK:
             my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, nthreads_terrainnode);
-            ////my_terrain->SetOutputFile("TestRigCosim_TerrainNode.txt");
+            ////my_terrain->SetOutputFile(terrain_dir + "/terrain_results.txt");
             my_terrain->Settle();
             break;
     }
@@ -1445,8 +1652,8 @@ int main() {
     // At synchronization, there is bi-directional data exchange:
     //     rig => terrain (position information)
     //     terrain => rig (force information)
-    int num_steps = 125000;
-    double step_size = 1e-4;
+    int output_frame = 0;
+    int checkpoint_frame = 0;
 
     for (int is = 0; is < num_steps; is++) {
         double time = is * step_size;
@@ -1462,7 +1669,16 @@ int main() {
                 my_rig->Advance(step_size);
                 std::cout << "Tire sim time =    " << my_rig->GetSimTime() << "  [" << my_rig->GetTotalSimTime() << "]"
                           << std::endl;
-                my_rig->OutputData();
+
+                if (is % output_steps == 0) {
+                    my_rig->OutputData(output_frame);
+                    output_frame++;
+                }
+
+                if (phase == SETTLING && is % checkpoint_frame) {
+                    my_rig->WriteCheckpoint();
+                    checkpoint_frame++;
+                }
 
                 break;
             }
@@ -1471,7 +1687,11 @@ int main() {
                 my_terrain->Advance(step_size);
                 std::cout << "Terrain sim time = " << my_terrain->GetSimTime() << "  [" << my_terrain->GetTotalSimTime()
                           << "]" << std::endl;
-                my_terrain->OutputData();
+
+                if (is % output_steps == 0) {
+                    my_terrain->OutputData(output_frame);
+                    output_frame++;
+                }
 
                 break;
             }
