@@ -13,4 +13,4 @@ exclude: ['metrics-database', 'quickstart.sh']
 # Build settings
 markdown: kramdown
 highlighter: rouge
-gems:      [jekyll-sitemap]
+gems:      [jekyll-sitemap, 'jekyll-lunr-js-search']

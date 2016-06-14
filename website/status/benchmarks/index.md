@@ -1,10 +1,9 @@
 ---
 layout: default
-title: Status
-permalink: /status/
+title: Benchmarks
+permalink: /status/benchmarks/
 ---
 {::options parse_block_html="true" /}
-
 
 ### Project Chrono Benchmark Test Results:
 
@@ -20,12 +19,4 @@ permalink: /status/
 
 </body>
 </html>
-
-### Stats
-
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_basic_stats?format=js'></script>
-<br>
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids?format=js'></script>
-
-<br><br>
 
