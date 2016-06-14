@@ -70,19 +70,19 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // ----------------
 
     // Container dimensions
-    double hdimX = 2.5;
-    double hdimY = 0.25;
-    double hdimZ = 0.5;
-    double hthick = 0.25;
+    m_hdimX = 1.0;
+    m_hdimY = 0.25;
+    m_hdimZ = 0.5;
+    m_hthick = 0.25;
 
     // Granular material properties
-    m_radius_g = 0.01;
+    m_radius_g = 0.1;
     int Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
     double mass_g = rho_g * vol_g;
     ChVector<> inertia_g = 0.4 * mass_g * m_radius_g * m_radius_g * ChVector<>(1, 1, 1);
-    int num_layers = 4;
+    int num_layers = 10;
 
     // Terrain contact properties
     float friction_terrain = 0.9f;
@@ -229,20 +229,20 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
     container->GetCollisionModel()->ClearModel();
     // Bottom box
-    utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hdimY, hthick), ChVector<>(0, 0, -hthick),
+	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hdimY, m_hthick), ChVector<>(0, 0, -m_hthick),
         ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-        ChVector<>(hdimX + hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
+	utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
+		ChVector<>(m_hdimX + m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Rear box
-    utils::AddBoxGeometry(container.get(), ChVector<>(hthick, hdimY, hdimZ + hthick),
-        ChVector<>(-hdimX - hthick, 0, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
+	utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
+		ChVector<>(-m_hdimX - m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Left box
-    utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-        ChVector<>(0, hdimY + hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
+	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
+		ChVector<>(0, m_hdimY + m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Right box
-    utils::AddBoxGeometry(container.get(), ChVector<>(hdimX, hthick, hdimZ + hthick),
-        ChVector<>(0, -hdimY - hthick, hdimZ - hthick), ChQuaternion<>(1, 0, 0, 0), false);
+	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
+		ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
@@ -278,7 +278,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
         // Create particles in layers until reaching the desired number of particles
         double r = 1.01 * m_radius_g;
-        ChVector<> hdims(hdimX - r, hdimY - r, 0);
+		ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
         ChVector<> center(0, 0, 2 * r);
 
         for (int il = 0; il < num_layers; il++) {
@@ -365,15 +365,15 @@ void TerrainNode::Settle() {
 // -----------------------------------------------------------------------------
 void TerrainNode::Initialize() {
     // ---------------------------
-    // Send initial terrain height
+    // Send initial terrain dimensions -Height and length- to locate tire
     // ---------------------------
 
     // Note: take into account dimension of proxy bodies
-    double init_height = m_init_height + m_radius_pN;
-    MPI_Send(&init_height, 1, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
+	double init_dim[2] = { m_init_height + m_radius_pN, m_hdimX };
+    MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    std::cout << "[Terrain node] Initial terrain height = " << init_height << std::endl;
-
+	std::cout << "[Terrain node] Initial terrain height        = " << init_dim[0] << std::endl;
+	std::cout << "[Terrain node] Container longitudinal length = " << init_dim[1] << std::endl;
     // ------------------------------------------
     // Receive tire contact surface specification
     // ------------------------------------------

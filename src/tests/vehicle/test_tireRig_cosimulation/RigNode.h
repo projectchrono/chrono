@@ -82,15 +82,19 @@ class RigNode {
     std::shared_ptr<chrono::ChBody> m_rim;     ///< wheel rim body
     std::shared_ptr<chrono::ChBody> m_set_toe;     ///< set toe body
     std::shared_ptr<chrono::ChBody> m_chassis;     ///< chassis body
+	std::shared_ptr<chrono::ChBody> m_axle;     ///< axle body
     std::shared_ptr<chrono::ChLinkLockPlanePlane> m_plane_plane;  ///< ground-rim joint
     std::shared_ptr<chrono::vehicle::ChDeformableTire> m_tire;                       ///< deformable tire
     std::shared_ptr<chrono::fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
-    std::shared_ptr<chrono::ChLinkLockRevolute> m_revolute; ///< set_toe-rim revolute joint
     std::shared_ptr<ChFunction_SlipAngle> f_slip; ///< function to set toe angle
     std::shared_ptr<chrono::ChLinkEngine> m_slip_motor;   ///< angular motor constraint
-
-    double m_init_vel;  ///< initial wheel forward linear velocity
-
+	std::shared_ptr<chrono::ChLinkLockPrismatic> m_prism_vel; ///< prismatic joint for chassis linear velocity
+	std::shared_ptr<chrono::ChLinkLinActuator> m_lin_actuator; ///< actuator imposing linear velocity to system
+	std::shared_ptr<chrono::ChLinkLockPrismatic> m_prism_axl; ///< prismatic joint for chassis-axle joint
+	std::shared_ptr<chrono::ChLinkEngine> m_rev_motor;  ///< motor enforcing prescribed rim angular velocity
+    
+	double m_init_vel;  ///< initial wheel forward linear velocity
+	double m_slip;      ///< prescribed longitudinal slip for wheel  
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;
     double m_cumm_sim_time;
@@ -98,7 +102,7 @@ class RigNode {
     static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 
     // Initialize body and tire state at initial configuration
-    void InitBodies(double init_height);
+    void InitBodies(double init_height, double long_half_length);
     // Initialize body and tire state from checkpointing file
     void InitBodies(const std::string& filename);
 

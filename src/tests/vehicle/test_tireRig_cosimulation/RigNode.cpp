@@ -94,9 +94,14 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     double rim_mass = 100;            //// 0.1;
     double set_toe_mass = 0.1;
     double chassis_mass = 0.1;
+	double axle_mass = 0.1;
+
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
+	ChVector<> axle_inertia(0.1, 0.1, 0.1);
+
     m_init_vel = 0; //// 20;
+	m_slip = 0; // Enforced longitudinal slip
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -161,25 +166,22 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     m_rim->SetMass(rim_mass);
     m_rim->SetInertiaXX(rim_inertia);
 
+	// Create the axle body.
+	m_axle = std::make_shared<ChBody>();
+	m_system->AddBody(m_axle);
+	m_axle->SetMass(axle_mass);
+	m_axle->SetInertiaXX(axle_inertia);
+
     // -------------------------------
     // Create the rig mechanism joints
     // -------------------------------
-    
-    // Plane contraint on the rim
-    m_plane_plane = std::make_shared<ChLinkLockPlanePlane>();
-    m_system->AddLink(m_plane_plane);
-    
+
     // chassis ==revolute_z==>  set_toe
     m_slip_motor = std::make_shared<ChLinkEngine>();
     m_slip_motor->SetName("engine_set_slip");
     m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
     m_system->AddLink(m_slip_motor);
 
-    // set_toe  ==revolute_y==> rim (wheel)
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
-    m_system->AddLink(m_revolute);
-    m_revolute->SetName("revolute");
-    
     // ---------------
     // Create the tire
     // ---------------
@@ -240,19 +242,19 @@ void RigNode::Initialize() {
 
     switch (phase) {
         case SETTLING: {
-            // Receive initial terrain height
-            double init_height;
+            // Receive initial terrain dimensions: height and length
+			double init_dim[2];
             MPI_Status status;
-            MPI_Recv(&init_height, 1, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+			MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-            std::cout << "[Rig node    ] Received init_height = " << init_height << std::endl;
+			std::cout << "[Rig node    ] Received init_height = " << init_dim[0] << std::endl;
+			std::cout << "[Rig node    ] Received longitudinal terrain dimension = " << init_dim[1] << std::endl;
 
             // Slighlty perturb terrain height to ensure there is no initial contact
-            init_height += 1e-5;
+			init_dim[0] += 1e-5;
 
             // Set body and tire states
-            InitBodies(init_height);
-
+			InitBodies(init_dim[0], init_dim[1]);
             break;
         }
         case TESTING: {
@@ -267,8 +269,39 @@ void RigNode::Initialize() {
     // Initialize the rig mechanism joints
     // -----------------------------------
 
-    m_plane_plane->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngX(CH_C_PI_2)));
-    
+
+	// Prismatic constraint on the toe
+	m_prism_vel = std::make_shared<ChLinkLockPrismatic>();
+	m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
+	m_prism_vel->SetName("Prismatic_settoe_ground");
+	m_system->AddLink(m_prism_vel);
+
+	// Impose velocity actuation on the prismatic joint
+	auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, m_init_vel*(1.0-m_slip));
+	m_lin_actuator = std::make_shared<ChLinkLinActuator>();
+	m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
+		ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+	m_lin_actuator->SetName("Prismatic_actuator");
+	m_lin_actuator->Set_lin_offset(1); // Set actuator distance offset
+	m_lin_actuator->Set_dist_funct(actuator_fun);
+	m_system->AddLink(m_lin_actuator);
+
+	// Prismatic constraint on the toe-axle: Connects chassis to axle
+	m_prism_axl = std::make_shared<ChLinkLockPrismatic>();
+	m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+	m_prism_axl->SetName("Prismatic_vertical");
+	m_system->AddLink(m_prism_axl);
+
+	// Connect rim to axle: Impose rotation on the rim
+	m_rev_motor = std::make_shared<ChLinkEngine>();
+	m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+	m_rev_motor->SetName("Motor_ang_vel");
+	m_rev_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+	double tire_radius = m_tire->GetRadius();
+	m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / tire_radius));
+	m_system->AddLink(m_rev_motor);
+
+
     // chassis       ==revolute_z==>   set_toe
     // Create slip controlling function (toe angle)
     f_slip = std::make_shared<ChFunction_SlipAngle>(0);
@@ -277,10 +310,6 @@ void RigNode::Initialize() {
     m_slip_motor->SetName("engine_set_slip");
     m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
     m_slip_motor->Set_rot_funct(f_slip);
-
-    // set_toe       ==revolute_y==>   rim (wheel)
-    m_revolute->SetName("revolute");
-    m_revolute->Initialize(m_rim, m_set_toe, ChCoordsys<>(m_rim->GetPos(), Q_from_AngX(CH_C_PI_2)));
     
     // ----------------------
     // Create contact surface
@@ -311,30 +340,35 @@ void RigNode::Initialize() {
 // - initialize the state of the mechanism bodies
 // - initialize the tire
 // -----------------------------------------------------------------------------
-void RigNode::InitBodies(double init_height) {
+void RigNode::InitBodies(double init_height, double long_half_length) {
     double tire_radius = m_tire->GetRadius();
 
     // Initialize chassis body
     m_chassis->SetBodyFixed(false);
     m_chassis->SetCollide(false);
     m_chassis->SetInertiaXX(ChVector<>(1, 1, 1));
-    m_chassis->SetPos(ChVector<>(0, 0, init_height + tire_radius));
-    m_chassis->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+	m_chassis->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
+    m_chassis->SetPos_dt(ChVector<>(m_init_vel*(1.0-m_slip), 0, 0));
     m_chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the set_toe body
     m_set_toe->SetBodyFixed(false);
     m_set_toe->SetCollide(false);
-    m_set_toe->SetPos(ChVector<>(0, 0, init_height + tire_radius));
+	m_set_toe->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
     m_set_toe->SetRot(QUNIT);
     m_set_toe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-    m_set_toe->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+	m_set_toe->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
 
     // Initialize rim body.
-    m_rim->SetPos(ChVector<>(0, 0, init_height + tire_radius));
+	m_rim->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
     m_rim->SetRot(QUNIT);
-    m_rim->SetPos_dt(ChVector<>(m_init_vel, 0, 0));
+	m_rim->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
     m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
+
+	// Initialize axle body
+	m_axle->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
+	m_axle->SetRot(QUNIT);
+	m_axle->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
 
     // Initialize tire
     m_tire->Initialize(m_rim, LEFT);
@@ -398,6 +432,19 @@ void RigNode::InitBodies(const std::string& filename) {
         m_rim->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
         m_rim->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
     }
+
+	// Initialize axle body.
+	{
+		std::getline(ifile, line);
+		std::istringstream iss(line);
+		iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
+			pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+
+		m_axle->SetPos(ChVector<>(pos.x, pos.y, pos.z));
+		m_axle->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
+		m_axle->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
+		m_axle->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
+	}
 
     // Read and discard line with number of vertices and DOFs
     std::getline(ifile, line);
@@ -523,12 +570,24 @@ void RigNode::OutputData(int frame) {
     // Append to results output file
     if (m_outf.is_open()) {
         std::string del("  ");
+
         const ChVector<>& rim_pos = m_rim->GetPos();
+        const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
+        const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
+        const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
+        const ChVector<>& rfrc_act = m_lin_actuator->Get_react_force();  // drawbar pull
+        const ChVector<>& rtrq_act = m_lin_actuator->Get_react_torque();
+        const ChVector<>& rfrc_motor = m_rev_motor->Get_react_force();
+        const ChVector<>& rtrq_motor = m_rev_motor->Get_react_torque();
+
         m_outf << m_system->GetChTime() << del;
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
-            << rim_vel.z << del;
-        //// TODO: write reaction in wheel joint
+               << rim_vel.z << del << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del
+               << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del << rtrq_prsm.x << del << rtrq_prsm.y
+               << del << rtrq_prsm.z << del << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del << rtrq_act.x
+               << del << rtrq_act.y << del << rtrq_act.z << del << rfrc_motor.x << del << rfrc_motor.y << del
+               << rfrc_motor.z;
         m_outf << std::endl;
     }
 
@@ -566,7 +625,8 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         << m_set_toe->GetRot_dt() << std::endl;
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
         << std::endl;
-
+	csv << m_axle->GetIdentifier() << m_axle->GetPos() << m_axle->GetRot() << m_axle->GetPos_dt() << m_axle->GetRot_dt()
+		<< std::endl;
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);

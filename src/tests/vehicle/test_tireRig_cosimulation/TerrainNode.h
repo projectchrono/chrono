@@ -99,6 +99,11 @@ class TerrainNode {
     std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
     bool m_fixed_proxies;              ///< flag indicating whether or not proxy bodies are fixed to ground
 
+	double m_hdimX = 1.0;     ///< Longitudinal dimension of granular material container
+	double m_hdimY = 0.25;    ///< Lateral dimension of granular material container
+	double m_hdimZ = 0.5;     ///< Vertical dimension of granular material container
+	double m_hthick = 0.25;   ///< Thickness of granular material container wall
+
     double m_mass_pN;    ///< mass of a spherical proxy body
     double m_radius_pN;  ///< radius of a spherical proxy body
     double m_mass_pF;    ///< mass of a triangular proxy body
