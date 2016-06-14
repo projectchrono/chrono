@@ -1,6 +1,4 @@
 <header class="site-header">
-<script src="content/js/jquery.min.js"></script>
-<script src="content/js/bootstrap.min.js"></script>
   <div class="container">
 
     <nav class="navbar navbar-default navbar-fixed-top">
@@ -32,12 +30,16 @@
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
             {% endif %} 
             {% endfor %}
+            <li>
+            <form action="/search" method="get" style="display:block">
+              <div style="position: absolute;">
+                <input type="text" style="display:inline;" id="search_box" name="query">
+                <input type="submit" style="display:inline;" value="search">
+              </div >
+             </form> 
+            </li>
           </ul>
-          <!-- <ul class="nav navbar-nav navbar-right">
-            {% for link in site.data.navbar-default.right %}
-            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-            {% endfor %}
-          </ul> -->
+         
         </div><!--/.navbar-collapse -->
       </div>
     </nav>
