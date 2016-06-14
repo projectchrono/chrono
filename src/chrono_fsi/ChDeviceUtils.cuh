@@ -18,10 +18,10 @@
 #ifndef CH_DEVICEUTILS_H_
 #define CH_DEVICEUTILS_H_
 
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_math.h"
+#include <thrust/device_vector.h>
+#include <thrust/host_vector.h>
 
 namespace chrono {
 namespace fsi {
@@ -44,18 +44,18 @@ typedef unsigned int uint;
 
 #define mU3 make_uint3
 
-#define F1CAST(x) (float*) thrust::raw_pointer_cast(&x[0])
-#define D1CAST(x) (double*) thrust::raw_pointer_cast(&x[0])
-#define BCAST(x) (bool*) thrust::raw_pointer_cast(&x[0])
+#define F1CAST(x) (float *)thrust::raw_pointer_cast(&x[0])
+#define D1CAST(x) (double *)thrust::raw_pointer_cast(&x[0])
+#define BCAST(x) (bool *)thrust::raw_pointer_cast(&x[0])
 
-#define I1CAST(x) (int*) thrust::raw_pointer_cast(&x[0])
-#define mI2CAST(x) (int2*) thrust::raw_pointer_cast(&x[0])
-#define U1CAST(x) (uint*) thrust::raw_pointer_cast(&x[0])
-#define R1CAST(x) (Real*) thrust::raw_pointer_cast(&x[0])
-#define mR3CAST(x) (Real3*) thrust::raw_pointer_cast(&x[0])
-#define mR4CAST(x) (Real4*) thrust::raw_pointer_cast(&x[0])
+#define I1CAST(x) (int *)thrust::raw_pointer_cast(&x[0])
+#define mI2CAST(x) (int2 *)thrust::raw_pointer_cast(&x[0])
+#define U1CAST(x) (uint *)thrust::raw_pointer_cast(&x[0])
+#define R1CAST(x) (Real *)thrust::raw_pointer_cast(&x[0])
+#define mR3CAST(x) (Real3 *)thrust::raw_pointer_cast(&x[0])
+#define mR4CAST(x) (Real4 *)thrust::raw_pointer_cast(&x[0])
 #define TCAST(x) thrust::raw_pointer_cast(x.data())
-#define mR3BY3CAST(x) (Real3By3*) thrust::raw_pointer_cast(&x[0])
+#define mR3BY3CAST(x) (Real3By3 *)thrust::raw_pointer_cast(&x[0])
 
 // ----------------------------------------------------------------------------
 // editor stuff
@@ -88,13 +88,14 @@ typedef unsigned int uint;
 //
 // Legacy CUTIL macros. Currently default to no-ops (TODO)
 // ----------------------------------------------------------------------------
-#define cudaCheckError()                                                               \
-  {                                                                                    \
-    cudaError_t e = cudaGetLastError();                                                \
-    if (e != cudaSuccess) {                                                            \
-      printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__, cudaGetErrorString(e)); \
-      exit(0);                                                                         \
-    }                                                                                  \
+#define cudaCheckError()                                                       \
+  {                                                                            \
+    cudaError_t e = cudaGetLastError();                                        \
+    if (e != cudaSuccess) {                                                    \
+      printf("Cuda failure %s:%d: '%s'\n", __FILE__, __LINE__,                 \
+             cudaGetErrorString(e));                                           \
+      exit(0);                                                                 \
+    }                                                                          \
   }
 
 // --------------------------------------------------------------------
@@ -104,7 +105,7 @@ typedef unsigned int uint;
 // time between a start and stop event.
 // --------------------------------------------------------------------
 class GpuTimer {
- public:
+public:
   GpuTimer(cudaStream_t stream = 0) : m_stream(stream) {
     cudaEventCreate(&m_start);
     cudaEventCreate(&m_stop);
@@ -125,7 +126,7 @@ class GpuTimer {
     return elapsed;
   }
 
- private:
+private:
   cudaStream_t m_stream;
   cudaEvent_t m_start;
   cudaEvent_t m_stop;
@@ -138,22 +139,24 @@ class GpuTimer {
 // might be needed in host files
 // --------------------------------------------------------------------
 class CH_FSI_API ChDeviceUtils {
- public:
-  static void ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize);
-  static void ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize);
-  static void FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v);
-  static void ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec);
-  static void ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec);
-  static void ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec);
-  static void PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3);
-  static void PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4);
-  static void ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size);
-  static void ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size);
-  static void ResizeU1(thrust::device_vector<uint>& mThrustVec, int size);
+public:
+  static void ResizeMyThrust3(thrust::device_vector<Real3> &mThrustVec,
+                              int mSize);
+  static void ResizeMyThrust4(thrust::device_vector<Real4> &mThrustVec,
+                              int mSize);
+  static void FillMyThrust4(thrust::device_vector<Real4> &mThrustVec, Real4 v);
+  static void ClearMyThrustR3(thrust::device_vector<Real3> &mThrustVec);
+  static void ClearMyThrustR4(thrust::device_vector<Real4> &mThrustVec);
+  static void ClearMyThrustU1(thrust::device_vector<uint> &mThrustVec);
+  static void PushBackR3(thrust::device_vector<Real3> &mThrustVec, Real3 a3);
+  static void PushBackR4(thrust::device_vector<Real4> &mThrustVec, Real4 a4);
+  static void ResizeR3(thrust::device_vector<Real3> &mThrustVec, int size);
+  static void ResizeR4(thrust::device_vector<Real4> &mThrustVec, int size);
+  static void ResizeU1(thrust::device_vector<uint> &mThrustVec, int size);
 
- private:
+private:
 };
-}  // end namespace fsi
-}  // end namespace chrono
+} // end namespace fsi
+} // end namespace chrono
 
 #endif
