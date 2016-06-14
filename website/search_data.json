@@ -4,11 +4,11 @@ layout: null
 
 {
     {% for page in site.pages %}
-    "{{ page.url | slugify | escape }}":{
-      "title"    : "{{ page.title | escape }}",
-      "content"  : "{{page.content | strip_html | strip_newlines | remove:  " " | escape | remove: "\"}}",
-      "url"      : "{{ site.baseurl }}{{ page.url }}"
-      }
+    "{{ page.url | slugify }}": {
+      "title": "{{ page.title | xml_escape }}",
+      "content"	 : "{{page.content | strip_html | strip_newlines | remove:  "	" | escape | remove: "\"}}",
+      "url": " {{ page.url | xml_escape }}"
+    }		
       {% unless forloop.last %},{% endunless %}
     {% endfor %}
 }

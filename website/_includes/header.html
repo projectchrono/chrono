@@ -31,11 +31,11 @@
             {% endif %} 
             {% endfor %}
             <li>
-            <form action="/search" method="get" style="padding-top:">
-                <input type="text" id="search-box" name="query">
-                <input type="submit" value="search">
+              <form method="get" action="/search" id="search_bar_triggered">
+                          <input type="submit" value="Search">
 
-             </form> 
+                <input type="text" id="search_bar" name="query" value="" />
+              </form> 
             </li>
           </ul>
          
