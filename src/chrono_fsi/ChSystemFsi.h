@@ -59,20 +59,20 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
   ///
   /// It uses a Runge-Kutta 2nd order algorithm to update both the fluid and multibody
   /// system dynamics. The midpoint data of MBS is needed for fluid dynamics update.
-  void DoStepDynamics_FSI();
+  virtual void DoStepDynamics_FSI();
 
   /// function to integrate the multibody system dynamics based on Runge-Kutta 2nd
   /// order integration scheme
-  void DoStepDynamics_ChronoRK2();
+  virtual void DoStepDynamics_ChronoRK2();
 
   /// function to initialize the midpoint device data of the fluid system by
   /// copying from the full step
-  void CopyDeviceDataToHalfStep();
+  virtual void CopyDeviceDataToHalfStep();
 
   /// Function to fill out the dependent data based on the independent one. For instance
   /// it copies the position of the rigid bodies from the multibody dynamics system
   /// to arrays in fsi system since they are needed for internal use.
-  void FinalizeData();
+  virtual void FinalizeData();
 
   /// function to return the pointer to the data manager
   ChFsiDataManager* GetDataManager() { return fsiData; }

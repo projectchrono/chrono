@@ -54,7 +54,7 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral {
   /// Function calculate the force on SPH markers.
   ///
   /// This is a basic force computation relying on WCSPH approach.
-  void ForceSPH(SphMarkerDataD* otherSphMarkersD, FsiBodiesDataD* otherFsiBodiesD);
+  virtual void ForceSPH(SphMarkerDataD* otherSphMarkersD, FsiBodiesDataD* otherFsiBodiesD);
 
 	/// Synchronize the copy of the data (parameters and number of objects) between
 	/// device (GPU) and host (CPU).

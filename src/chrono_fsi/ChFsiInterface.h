@@ -36,11 +36,11 @@ class CH_FSI_API ChFsiInterface : public ChFsiGeneral {
                  thrust::device_vector<Real3>* other_rigid_FSI_TorquesD);
   ~ChFsiInterface();  // TODO
 
-  void Add_Rigid_ForceTorques_To_ChSystem();
-  void Copy_External_To_ChSystem();
-  void Copy_ChSystem_to_External();
-  void Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD* fsiBodiesD);
-  void ResizeChronoBodiesData();
+  virtual void Add_Rigid_ForceTorques_To_ChSystem();
+  virtual void Copy_External_To_ChSystem();
+  virtual void Copy_ChSystem_to_External();
+  virtual void Copy_fsiBodies_ChSystem_to_FluidSystem(FsiBodiesDataD* fsiBodiesD);
+  virtual void ResizeChronoBodiesData();
 
  private:
   FsiBodiesDataH* fsiBodiesH;
