@@ -38,12 +38,12 @@ const ChVector<> M113_SprocketDoublePin::m_gear_inertia(12.22, 13.87, 12.22);
 const double M113_SprocketDoublePin::m_axle_inertia = 1;
 const double M113_SprocketDoublePin::m_separation = 0.278;
 
-const double M113_SprocketDoublePin::m_gear_RT = 10.69 * 0.0254;
-const double M113_SprocketDoublePin::m_gear_R = 0.88 * 0.0254;
-const double M113_SprocketDoublePin::m_gear_RA = 0.255;
+const double M113_SprocketDoublePin::m_gear_RT = 0.2715;  // 10.69''
+const double M113_SprocketDoublePin::m_gear_R = 0.0223;   // 0.88''
+const double M113_SprocketDoublePin::m_gear_RA = 0.242;   // 9.53''
 
-const double M113_SprocketDoublePin::m_gear_C = 9.334 * 0.0254;
-const double M113_SprocketDoublePin::m_gear_W = 1.825 * 0.0254;
+const double M113_SprocketDoublePin::m_gear_C = 0.2371;  // 9.334''
+const double M113_SprocketDoublePin::m_gear_W = 0.0464;  // 1.825''
 
 const std::string M113_SprocketDoublePinLeft::m_meshName = "Sprocket2_L_POV_geom";
 const std::string M113_SprocketDoublePinLeft::m_meshFile = "M113/Sprocket2_L.obj";

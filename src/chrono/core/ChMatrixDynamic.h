@@ -31,6 +31,7 @@
 #include "core/ChStream.h"
 #include "core/ChException.h"
 #include "core/ChMatrix.h"
+
 namespace chrono {
 
 //
@@ -101,7 +102,12 @@ class ChMatrixDynamic : public ChMatrix<Real> {
         assert(row >= 0 && col >= 0);
         this->rows = row;
         this->columns = col;
+#ifdef CHRONO_HAS_AVX
+        this->address = new Real[row * col + 3];
+#else
         this->address = new Real[row * col];
+
+#endif
         // SetZero(row*col);
         for (int i = 0; i < this->rows * this->columns; ++i)
             this->address[i] = 0;

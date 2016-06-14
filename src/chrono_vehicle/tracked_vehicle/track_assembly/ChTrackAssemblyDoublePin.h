@@ -25,6 +25,8 @@
 
 #include <vector>
 
+#include "chrono/core/ChVector2.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
@@ -67,6 +69,28 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) override;
+
+    /// Utility function to create the bodies of the specified track shoe with
+    /// the given configuration. This version specifies locations and orientations
+    /// for the shoe and connector bodies separately (in 2D, in the (x-z) plane).
+    void CreateTrackShoe(size_t index,    ///< index of track shoe within assembly
+                         ChVector2<> ps,  ///< (x-z) location of shoe body
+                         ChVector2<> pc,  ///< (x-z) location of connector body
+                         double as,       ///< shoe body angle
+                         double ac);      ///< connector body angle
+
+    /// Utility function to create the bodies of the specified track shoe with
+    /// the given configuration. This version specifies the location of the center
+    /// the track shoe system (in @D, in the (x-z) plane) and a common orientation
+    /// angle for both the shoe and connector bodies.
+    void CreateTrackShoe(size_t index,  ///< index of track shoe within assembly
+                         ChVector2<>p,  ///< (x-z) location of track shoe center
+                         double angle   ///< angle of the shoe and connector bodies
+                         );
+
+    std::shared_ptr<ChBodyAuxRef> m_chassis;
+    double m_sprocket_offset;
+    double m_connector_offset;
 };
 
 /// @} vehicle_tracked
