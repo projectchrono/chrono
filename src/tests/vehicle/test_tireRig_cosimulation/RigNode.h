@@ -36,6 +36,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
@@ -100,6 +101,8 @@ class RigNode {
     void InitBodies(double init_height);
     // Initialize body and tire state from checkpointing file
     void InitBodies(const std::string& filename);
+
+    void WriteStateInformation(chrono::utils::CSV_writer& csv);
 
     void PrintLowestNode();
     void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos, const std::vector<chrono::ChVector<>>& vert_vel);
