@@ -44,6 +44,7 @@
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
+#include "chrono_fea/ChElementShellANCF.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
@@ -597,8 +598,7 @@ void RigNode::OutputData(int frame) {
 
     utils::CSV_writer csv(" ");
     WriteStateInformation(csv);
-    //// TODO: write mesh connectivity
-    //// TODO: write strain information
+	WriteMeshInformation(csv); // Connectivity and strain state
     csv.write_to_file(filename);
 }
 
@@ -651,6 +651,62 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         csv << v(iv) << std::endl;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
+	
+	// Extract mesh
+	auto my_mesh = m_tire->GetMesh();
+
+	// Vector to roughly interpolate strain information
+	std::vector<std::vector<int>> NodeNeighborElement;
+	NodeNeighborElement.resize(my_mesh->GetNnodes());
+
+	// Print tire mesh connectivity
+	std::vector<std::shared_ptr<fea::ChNodeFEAbase> > myvector;
+	myvector.resize(my_mesh->GetNnodes());
+	for (int i = 0; i < my_mesh->GetNnodes(); i++) {
+		myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
+	}
+	csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
+
+	for (int iele = 0; iele < my_mesh->GetNelements(); iele++) {
+		auto element = (my_mesh->GetElement(iele));
+		int nodeOrder[] = { 0, 1, 2, 3 };
+		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
+			auto nodeA = (element->GetNodeN(nodeOrder[myNodeN]));
+			std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
+			it = find(myvector.begin(), myvector.end(), nodeA);
+			if (it != myvector.end()) {
+				auto index = std::distance(myvector.begin(), it);
+				csv << (unsigned int)index << " ";
+				NodeNeighborElement[index].push_back(iele);
+			}
+		}
+		csv << "\n";
+	}
+
+	// Print strain information: eps_xx, eps_yy, eps_xy averaged over 4 surrounding elements
+	csv << "\n Vectors of Strains \n";
+	for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
+		double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
+		double myarea = 0;
+		double dx, dy;
+		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+			int myelemInx = NodeNeighborElement[i][j];
+			ChVector<> StrainVector(0);
+			StrainVector = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))
+				->EvaluateSectionStrains();
+			dx = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))->GetLengthX();
+			dy = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))->GetLengthY();
+			myarea += dx * dy / 4;
+			areaAve1 += StrainVector.x * dx * dy / 4;
+			areaAve2 += StrainVector.y * dx * dy / 4;
+			areaAve3 += StrainVector.z * dx * dy / 4;
+		}
+		csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
+	}
+}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::PrintLowestNode() {

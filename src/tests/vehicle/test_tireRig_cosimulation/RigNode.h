@@ -107,7 +107,7 @@ class RigNode {
     void InitBodies(const std::string& filename);
 
     void WriteStateInformation(chrono::utils::CSV_writer& csv);
-
+	void WriteMeshInformation(chrono::utils::CSV_writer& csv);
     void PrintLowestNode();
     void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos, const std::vector<chrono::ChVector<>>& vert_vel);
     void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
