@@ -23,39 +23,47 @@
 namespace chrono {
 namespace fsi {
 
-void ChDeviceUtils::ResizeMyThrust3(thrust::device_vector<Real3>& mThrustVec, int mSize) {
+void ChDeviceUtils::ResizeMyThrust3(thrust::device_vector<Real3> &mThrustVec,
+                                    int mSize) {
   mThrustVec.resize(mSize);
 }
-void ChDeviceUtils::ResizeMyThrust4(thrust::device_vector<Real4>& mThrustVec, int mSize) {
+void ChDeviceUtils::ResizeMyThrust4(thrust::device_vector<Real4> &mThrustVec,
+                                    int mSize) {
   mThrustVec.resize(mSize);
 }
-void ChDeviceUtils::FillMyThrust4(thrust::device_vector<Real4>& mThrustVec, Real4 v) {
+void ChDeviceUtils::FillMyThrust4(thrust::device_vector<Real4> &mThrustVec,
+                                  Real4 v) {
   thrust::fill(mThrustVec.begin(), mThrustVec.end(), v);
 }
-void ChDeviceUtils::ClearMyThrustR3(thrust::device_vector<Real3>& mThrustVec) {
+void ChDeviceUtils::ClearMyThrustR3(thrust::device_vector<Real3> &mThrustVec) {
   mThrustVec.clear();
 }
-void ChDeviceUtils::ClearMyThrustR4(thrust::device_vector<Real4>& mThrustVec) {
+void ChDeviceUtils::ClearMyThrustR4(thrust::device_vector<Real4> &mThrustVec) {
   mThrustVec.clear();
 }
-void ChDeviceUtils::ClearMyThrustU1(thrust::device_vector<uint>& mThrustVec) {
+void ChDeviceUtils::ClearMyThrustU1(thrust::device_vector<uint> &mThrustVec) {
   mThrustVec.clear();
 }
-void ChDeviceUtils::PushBackR3(thrust::device_vector<Real3>& mThrustVec, Real3 a3) {
+void ChDeviceUtils::PushBackR3(thrust::device_vector<Real3> &mThrustVec,
+                               Real3 a3) {
   mThrustVec.push_back(a3);
 }
-void ChDeviceUtils::PushBackR4(thrust::device_vector<Real4>& mThrustVec, Real4 a4) {
+void ChDeviceUtils::PushBackR4(thrust::device_vector<Real4> &mThrustVec,
+                               Real4 a4) {
   mThrustVec.push_back(a4);
 }
-void ChDeviceUtils::ResizeR3(thrust::device_vector<Real3>& mThrustVec, int size) {
+void ChDeviceUtils::ResizeR3(thrust::device_vector<Real3> &mThrustVec,
+                             int size) {
   mThrustVec.resize(size);
 }
-void ChDeviceUtils::ResizeR4(thrust::device_vector<Real4>& mThrustVec, int size) {
+void ChDeviceUtils::ResizeR4(thrust::device_vector<Real4> &mThrustVec,
+                             int size) {
   mThrustVec.resize(size);
 }
-void ChDeviceUtils::ResizeU1(thrust::device_vector<uint>& mThrustVec, int size) {
+void ChDeviceUtils::ResizeU1(thrust::device_vector<uint> &mThrustVec,
+                             int size) {
   mThrustVec.resize(size);
 }
 
-}  // end namespace fsi
-}  // end namespace chrono
+} // end namespace fsi
+} // end namespace chrono

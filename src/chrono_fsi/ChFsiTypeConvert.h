@@ -19,8 +19,8 @@
 #ifndef CH_FSI_TYPECONVERT_H_
 #define CH_FSI_TYPECONVERT_H_
 
-#include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 #include "chrono_fsi/ChApiFsi.h"
 #include "chrono_fsi/custom_math.h"
 
@@ -28,7 +28,7 @@ namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChFsiTypeConvert {
- public:
+public:
   static ChVector<> Real3ToChVector(Real3 p3);
   static ChVector<> Real4ToChVector(Real4 p4);
   static ChQuaternion<> Real4ToChQuaternion(Real4 q4);
@@ -36,7 +36,7 @@ class CH_FSI_API ChFsiTypeConvert {
   static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
   static Real4 ChQuaternionToReal4(ChQuaternion<> q4);
 
- private:
+private:
 };
 
 // namespace utils {
@@ -48,6 +48,6 @@ class CH_FSI_API ChFsiTypeConvert {
 // Real4 ConvertChVectorToR4(ChVector<> v3, Real m);
 // Real4 ConvertChQuaternionToR4(ChQuaternion<> q4);
 
-}  // end namespace fsi
-}  // end namespace chrono
+} // end namespace fsi
+} // end namespace chrono
 #endif
