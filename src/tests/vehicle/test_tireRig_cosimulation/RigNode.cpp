@@ -24,6 +24,7 @@
 
 //// TODO:
 ////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    complete OutputData() function
 
 #include <omp.h>
 #include <algorithm>
@@ -41,7 +42,6 @@
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/timestepper/ChState.h"
 #include "chrono/utils/ChUtilsCreators.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
@@ -357,6 +357,9 @@ void RigNode::InitBodies(const std::string& filename) {
     ChVector<> pos_dt;
     ChQuaternion<> rot_dt;
 
+    // Read and discard line with number of bodies
+    std::getline(ifile, line);
+
     // Initialize chassis body.
     {
         std::getline(ifile, line);
@@ -395,6 +398,9 @@ void RigNode::InitBodies(const std::string& filename) {
         m_rim->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
         m_rim->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
     }
+
+    // Read and discard line with number of vertices and DOFs
+    std::getline(ifile, line);
 
     // Initialize the tire, then overwrite the state of the underlying mesh.
     m_tire->Initialize(m_rim, LEFT);
@@ -522,18 +528,36 @@ void RigNode::OutputData(int frame) {
         m_outf << m_system->GetChTime() << del;
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
             << rim_vel.z << del;
+        //// TODO: write reaction in wheel joint
         m_outf << std::endl;
     }
 
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
+
+    utils::CSV_writer csv(" ");
+    WriteStateInformation(csv);
+    //// TODO: write mesh connectivity
+    //// TODO: write strain information
+    csv.write_to_file(filename);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
+    WriteStateInformation(csv);
+    csv.write_to_file(m_checkpoint_filename);
+
+    std::cout << "[Rig node    ] write checkpoint ===> " << m_checkpoint_filename << std::endl;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
+    // Write number of bodies
+    csv << "3" << std::endl;
 
     // Write body state information
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPos_dt()
@@ -543,7 +567,7 @@ void RigNode::WriteCheckpoint() {
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
         << std::endl;
 
-    // Write deformable tire state information
+    // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
     ChStateDelta v(mesh->GetDOF_w(), NULL);
@@ -557,14 +581,14 @@ void RigNode::WriteCheckpoint() {
         offset_v += node->Get_ndof_w();
     }
 
+    // Write number of vertices, number of DOFs
+    csv << mesh->GetNnodes() << mesh->GetDOF() << mesh->GetDOF_w() << std::endl;
+
+    // Write mesh vertex positions and velocities
     for (int ix = 0; ix < x.GetLength(); ix++)
         csv << x(ix) << std::endl;
     for (int iv = 0; iv < v.GetLength(); iv++)
         csv << v(iv) << std::endl;
-
-    csv.write_to_file(m_checkpoint_filename);
-
-    std::cout << "[Rig node    ] write checkpoint ===> " << m_checkpoint_filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
