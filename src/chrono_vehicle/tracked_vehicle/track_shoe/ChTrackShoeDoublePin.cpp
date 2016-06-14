@@ -92,6 +92,24 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     AddConnectorVisualization(m_connector_R);
 }
 
+void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
+                                      const ChVector<>& loc_shoe,
+                                      const ChQuaternion<>& rot_shoe,
+                                      const ChVector<>& loc_connector_L,
+                                      const ChVector<>& loc_connector_R,
+                                      const ChQuaternion<>& rot_connector) {
+    // Initialize at origin.
+    Initialize(chassis, VNULL, QUNIT);
+
+    // Overwrite body locations and orientations.
+    m_shoe->SetPos(loc_shoe);
+    m_shoe->SetRot(rot_shoe);
+    m_connector_L->SetPos(loc_connector_L);
+    m_connector_L->SetRot(rot_connector);
+    m_connector_R->SetPos(loc_connector_R);
+    m_connector_R->SetRot(rot_connector);
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 double ChTrackShoeDoublePin::GetMass() const {

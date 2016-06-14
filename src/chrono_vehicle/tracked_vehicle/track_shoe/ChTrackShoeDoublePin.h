@@ -45,12 +45,24 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
     /// at the specified location and orientation (expressed in the global frame).
-    /// A derived class must extend this default implementation and specify the contact
-    /// geometry for the track shoe body.
+    /// This version initializes the bodies of a double-pin track shoe such that
+    /// the center of the track shoe subsystem is at the specified location and all
+    /// bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
+
+    /// Initialize this track shoe system.
+    /// This version specifies the locations and orientations of the shoe body and of
+    /// the connector bodies (relative to the chassis frame).
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to chassis body
+                    const ChVector<>& loc_shoe,             ///< [in] location of shoe body
+                    const ChQuaternion<>& rot_shoe,         ///< [in] orientation of shoe body
+                    const ChVector<>& loc_connector_L,      ///< [in] location of left connector body
+                    const ChVector<>& loc_connector_R,      ///< [in] location of right connector body
+                    const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
+                    );
 
     /// Connect this track shoe to the specified neighbor.
     /// This function must be called only after both track shoes have been initialized.

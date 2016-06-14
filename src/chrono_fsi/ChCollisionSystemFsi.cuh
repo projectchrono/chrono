@@ -19,51 +19,57 @@
 #define CH_COLLISIONSYSTEM_FSI_H_
 
 #include "chrono_fsi/ChApiFsi.h"
-#include "chrono_fsi/ChFsiGeneral.cuh"
 #include "chrono_fsi/ChFsiDataManager.cuh"
+#include "chrono_fsi/ChFsiGeneral.cuh"
 
 namespace chrono {
 namespace fsi {
 
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
- public:
+public:
   // ChCollisionSystemFsi();
-  ChCollisionSystemFsi(SphMarkerDataD* otherSortedSphMarkersD,
-                       ProximityDataD* otherMarkersProximityD,
-                       SimParams* otherParamsH,
-                       NumberOfObjects* otherNumObjects);
+  ChCollisionSystemFsi(SphMarkerDataD *otherSortedSphMarkersD,
+                       ProximityDataD *otherMarkersProximityD,
+                       SimParams *otherParamsH,
+                       NumberOfObjects *otherNumObjects);
   ~ChCollisionSystemFsi();
   /**
-                  * @brief Encapsulate calcHash and reaorderDataAndFindCellStart;
+                  * @brief Encapsulate calcHash and
+   * reaorderDataAndFindCellStart;
                   * @details
   */
-  void ArrangeData(SphMarkerDataD* otherSphMarkersD);
+  void ArrangeData(SphMarkerDataD *otherSphMarkersD);
 
   virtual void Finalize();
 
- private:
-  SphMarkerDataD* sphMarkersD;
-  SphMarkerDataD* sortedSphMarkersD;
-  ProximityDataD* markersProximityD;
+private:
+  SphMarkerDataD *sphMarkersD;
+  SphMarkerDataD *sortedSphMarkersD;
+  ProximityDataD *markersProximityD;
 
-  SimParams* paramsH;
-  NumberOfObjects* numObjectsH;
+  SimParams *paramsH;
+  NumberOfObjects *numObjectsH;
 
   void ResetCellSize(int s);
   /**
 * @brief calcHash - calcHashD
 *
-* @details calcHash is the wrapper function for calcHashD. calcHashD is a kernel function, which
+* @details calcHash is the wrapper function for calcHashD. calcHashD is a kernel
+* function, which
 * means that all the code in it is executed in parallel on the GPU.
 * 			calcHashD:
-* 		 				1. Get particle index. Determine by the block and thread we are in.
-* 		     			2. From x,y,z position determine which bin it is in.
+* 		 				1. Get particle index. Determine by the
+* block and thread we are in.
+* 		     			2. From x,y,z position determine which bin
+* it is in.
 * 		        		3. Calculate hash from bin index.
-* 		          		4. Store hash and particle index associated with it.
+* 		          		4. Store hash and particle index associated
+* with it.
 *
 * @param gridMarkerHash Store marker hash here
 * @param gridMarkerIndex Store marker index here
-* @param posRad Vector containing the positions of all particles, including boundary particles
+* @param posRad Vector containing the positions of all particles, including
+* boundary particles
 * @param numAllMarkers Total number of markers (fluid + boundary)
 */
   void calcHash();
@@ -74,7 +80,7 @@ class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
 */
   void reorderDataAndFindCellStart();
 };
-}  // end namespace fsi
-}  // end namespace chrono
+} // end namespace fsi
+} // end namespace chrono
 
 #endif /* CH_COLLISIONSYSTEM_FSI_H_ */

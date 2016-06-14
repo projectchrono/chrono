@@ -1,13 +1,14 @@
 ---
 layout: null
 ---
-{% for page in site.pages %}
-      "{{ page.url | slugify }}": {
-        "title": "{{ page.title | xml_escape }}",
-        "author": "{{ page.author | xml_escape }}",
-        "category": "{{ page.category | xml_escape }}",
-        "content": {{ page.content | strip_html | strip_newlines | jsonify }},
-        "url": "{{ page.url | xml_escape }}"
+
+{
+    {% for page in site.pages %}
+    "{{ page.url | slugify | escape }}":{
+      "title"    : "{{ page.title | escape }}",
+      "content"  : "{{page.content | strip_html | strip_newlines | remove:  " " | escape | remove: "\"}}",
+      "url"      : "{{ site.baseurl }}{{ page.url }}"
       }
       {% unless forloop.last %},{% endunless %}
     {% endfor %}
+}
