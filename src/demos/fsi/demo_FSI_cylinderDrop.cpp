@@ -72,6 +72,7 @@ const std::string pov_dir_mbd = out_dir + "/povFilesHmmwv";
 bool povray_output = true;
 int out_fps = 30;
 
+typedef fsi::Real Real;
 Real contact_recovery_speed = 1; ///< recovery speed for MBD
 
 //----------------------------
@@ -627,7 +628,11 @@ int main(int argc, char *argv[]) {
 
   double mTime = 0;
 
-  DOUBLEPRECISION ? printf("Double Precision\n") : printf("Single Precision\n");
+#ifdef CHRONO_FSI_USE_DOUBLE 
+  printf("Double Precision\n");  
+#else
+  printf("Single Precision\n");
+#endif
   int stepEnd = int(paramsH->tFinal / paramsH->dT);
   for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
     printf("step : %d \n", tStep);
