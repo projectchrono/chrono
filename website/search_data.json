@@ -3,7 +3,7 @@ layout: null
 ---
 {
     {% for page in site.pages %}
-    "{{ page.url}}":{
+    "{{ page.url | slugify | escape }}":{
       "title"    : "{{ page.title | escape }}",
       "content"  : "{{page.content | strip_html | strip_newlines | remove:  " " | escape | remove: "\"}}",
       "url"      : "{{ site.baseurl }}{{ page.url }}"
