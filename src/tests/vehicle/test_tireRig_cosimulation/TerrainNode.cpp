@@ -427,6 +427,9 @@ void TerrainNode::Settle() {
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void TerrainNode::Initialize() {
+    // Reset system time
+    m_system->SetChTime(0);
+
     // ------------------------------------------
     // Send information for initial tire location
     // ------------------------------------------
@@ -798,6 +801,21 @@ void TerrainNode::OutputData(int frame) {
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", terrain_dir.c_str(), frame + 1);
+
+    utils::CSV_writer csv(" ");
+    
+    // Write current time, number of granular particles and their radius
+    csv << m_system->GetChTime() << std::endl;
+    csv << m_num_particles << m_radius_g << std::endl;
+
+    // Write particle positions and linear velocities
+    for (auto body : *m_system->Get_bodylist()) {
+        if (body->GetIdentifier() < m_Id_g)
+            continue;
+        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << std::endl;
+    }
+
+    csv.write_to_file(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -813,7 +831,7 @@ void TerrainNode::WriteCheckpoint() {
     for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() < m_Id_g)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << body->GetPos_dt() << body->GetRot_dt()
+        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
             << std::endl;
     }
 
