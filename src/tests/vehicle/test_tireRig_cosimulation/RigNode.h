@@ -105,7 +105,7 @@ class RigNode {
     // Initialize body and tire state at initial configuration
     void InitBodies(double init_height, double long_half_length);
     // Initialize body and tire state from checkpointing file
-    void InitBodies(const std::string& filename);
+    void InitBodies();
 
     // Write mesh node state information
     void WriteStateInformation(chrono::utils::CSV_writer& csv);

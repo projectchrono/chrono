@@ -67,6 +67,7 @@ class TerrainNode {
     double GetSimTime() { return m_timer.GetTimeSeconds(); }
     double GetTotalSimTime() { return m_cumm_sim_time; }
     void OutputData(int frame);
+    void WriteCheckpoint();
 
   private:
     /// Triangle vertex indices.
@@ -109,7 +110,10 @@ class TerrainNode {
     double m_mass_pF;    ///< mass of a triangular proxy body
 
     double m_init_height;  ///< initial terrain height (after optional settling)
-    double m_radius_g;     ///< radius of one particle of granular material
+
+    int m_Id_g;                    ///< first identifier for granular material bodies
+    unsigned int m_num_particles;  ///< number of granular material bodies
+    double m_radius_g;             ///< radius of one particle of granular material
 
     unsigned int m_num_vert;  ///< number of tire mesh vertices
     unsigned int m_num_tri;   ///< number of tire mesh triangles
@@ -117,11 +121,14 @@ class TerrainNode {
     std::vector<VertexState> m_vertex_states;  ///< mesh vertex states
     std::vector<Triangle> m_triangles;         ///< tire mesh connectivity
 
-    unsigned int m_proxy_start_index;  ///< start index for proxy bodies in global arrays
+    int m_particles_start_index;       ///< start index for granular material bodies in system body list
+    unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
 
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;
     double m_cumm_sim_time;
+
+    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 
     // Private methods
     void CreateNodeProxies();

@@ -56,6 +56,8 @@
 
 using namespace chrono;
 
+const std::string TerrainNode::m_checkpoint_filename = terrain_dir + "/checkpoint.dat";
+
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
 // - receive tire contact material properties and create the "tire" material
@@ -64,7 +66,7 @@ using namespace chrono;
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
 TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
-    : m_type(type), m_method(method), m_init_height(0), m_cumm_sim_time(0) {
+    : m_type(type), m_method(method), m_num_particles(0), m_init_height(0), m_cumm_sim_time(0) {
     // ----------------
     // Model parameters
     // ----------------
@@ -77,7 +79,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
     // Granular material properties
     m_radius_g = 0.01;
-    int Id_g = 10000;
+    m_Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
     double mass_g = rho_g * vol_g;
@@ -264,6 +266,13 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
         m_system->AddLink(weld);
     }
 
+    // Cache the number of bodies that have been added so far to the parallel system.
+    // ATTENTION: This will be used to set the state of granular material particles if
+    // initializing them from a checkpoint file. As such, no other bodies should be
+    // created before invoking Settle().
+
+    m_particles_start_index = m_system->GetNbodies();
+
     // Create particles
     if (m_type == GRANULAR) {
         // Create a particle generator and a mixture entirely made out of spheres
@@ -274,7 +283,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
         m1->setDefaultSize(m_radius_g);
 
         // Set starting value for body identifiers
-        gen.setBodyIdentifier(Id_g);
+        gen.setBodyIdentifier(m_Id_g);
 
         // Create particles in layers until reaching the desired number of particles
         double r = 1.01 * m_radius_g;
@@ -286,15 +295,27 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
             center.z += 2 * r;
         }
 
-        std::cout << "[Terrain node] Generated particles:  " << gen.getTotalNumBodies() << std::endl;
+        m_num_particles = gen.getTotalNumBodies();
+        std::cout << "[Terrain node] Generated particles:  " << m_num_particles << std::endl;
     }
 
-    // ATTENTION: Here we cache the number of contact shapes that had been added so far
-    // to the parallel system.  This will be used to index into the various global arrays
-    // to access/modify information on contact shapes for the proxy bodies.  The implicit
-    // assumption here is that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
+    // Cache the number of contact shapes that have been added so far to the parallel system.  
+    // ATTENTION: This will be used to index into the various global arrays to access/modify
+    // information on contact shapes for the proxy bodies.  The implicit assumption here is
+    // that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
 
     m_proxy_start_index = m_system->data_manager->num_rigid_shapes;
+
+    // -------------------------------
+    // Create the visualization window
+    // -------------------------------
+
+#ifdef CHRONO_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+    gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    gl_window.SetRenderMode(opengl::WIREFRAME);
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -313,44 +334,83 @@ void TerrainNode::SetOutputFile(const std::string& name) {
 
 // -----------------------------------------------------------------------------
 // Settling phase for the terrain node
-// - if using granular material, allow it to settle
+// - if using granular material, allow it to settle or read from checkpoint
 // - record height of terrain
 // -----------------------------------------------------------------------------
 void TerrainNode::Settle() {
     m_init_height = 0;
-
-#ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-    gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
-#endif
 
     // If rigid terrain, return now
     if (m_type == RIGID) {
         return;
     }
 
-    // Simulate granular material
-    double time_end = 0.5;
-    double time_step = 1e-4;
+    switch (phase) {
+        case SETTLING: {
+            // Simulate granular material
+            double time_end = 0.5;
+            double time_step = 1e-4;
 
-    while (m_system->GetChTime() < time_end) {
+            while (m_system->GetChTime() < time_end) {
+                m_system->DoStepDynamics(time_step);
 #ifdef CHRONO_OPENGL
-        if (gl_window.Active()) {
-            gl_window.DoStepDynamics(time_step);
-            gl_window.Render();
-        }
-        else
-            MPI_Abort(MPI_COMM_WORLD, 1);
-#else
-        m_system->DoStepDynamics(time_step);
+                opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+                if (gl_window.Active()) {
+                    gl_window.Render();
+                } else {
+                    MPI_Abort(MPI_COMM_WORLD, 1);
+                }
 #endif
+            }
+
+            break;
+        }
+        case TESTING: {
+            // Open input file stream
+            std::ifstream ifile(m_checkpoint_filename);
+            std::string line;
+
+            // Read number of particles in checkpoint
+            unsigned int num_particles;
+            {
+                std::getline(ifile, line);
+                std::istringstream iss(line);
+                iss >> num_particles;
+
+                if (num_particles != m_num_particles) {
+                    std::cout << "ERROR: inconsistent number of particles in checkpoint file!" << std::endl;
+                    MPI_Abort(MPI_COMM_WORLD, 1);
+                }
+            }
+
+            // Read granular material state from checkpoint
+            for (int ib = m_particles_start_index; ib < m_system->Get_bodylist()->size(); ++ib) {
+                std::getline(ifile, line);
+                std::istringstream iss(line);
+                int identifier;
+                ChVector<> pos;
+                ChQuaternion<> rot;
+                ChVector<> pos_dt;
+                ChQuaternion<> rot_dt;
+                iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >>
+                    pos_dt.y >> pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+
+                auto body = (*m_system->Get_bodylist())[ib];
+                assert(body->GetIdentifier() == identifier);
+                body->SetPos(ChVector<>(pos.x, pos.y, pos.z));
+                body->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
+                body->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
+                body->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
+            }
+
+            std::cout << "[Terrain node] read checkpoint <=== " << m_checkpoint_filename << "   num. particles = " << num_particles << std::endl;
+
+            break;
+        }
     }
 
     // Find "height" of granular material
-    for (size_t i = 0; i < m_system->Get_bodylist()->size(); ++i) {
-        auto body = (*m_system->Get_bodylist())[i];
+    for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z > m_init_height)
             m_init_height = body->GetPos().z;
     }
@@ -709,8 +769,7 @@ void TerrainNode::Advance(double step_size) {
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     if (gl_window.Active()) {
         gl_window.Render();
-    }
-    else {
+    } else {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 #endif
@@ -736,6 +795,28 @@ void TerrainNode::OutputData(int frame) {
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", terrain_dir.c_str(), frame + 1);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void TerrainNode::WriteCheckpoint() {
+    utils::CSV_writer csv(" ");
+    
+    // Write number of granular material bodies.
+    csv << m_num_particles << std::endl;
+
+    // Loop over all bodies in the system and write state for granular material bodies.
+    // Filter granular material using the body identifier.
+    for (auto body : *m_system->Get_bodylist()) {
+        if (body->GetIdentifier() < m_Id_g)
+            continue;
+        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << body->GetPos_dt() << body->GetRot_dt()
+            << std::endl;
+    }
+
+    csv.write_to_file(m_checkpoint_filename);
+
+    std::cout << "[Terrain node] write checkpoint ===> " << m_checkpoint_filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------

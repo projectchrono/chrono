@@ -266,28 +266,25 @@ void RigNode::Initialize() {
     // Initialize the rig bodies and the tire
     // --------------------------------------
 
+    // Receive initial terrain dimensions: terrain height and container half-length
+    double init_dim[2];
+    MPI_Status status;
+    MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    std::cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << std::endl;
+    std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
+
+    // Slighlty perturb terrain height to ensure there is no initial contact
+    init_dim[0] += 1e-5;
+
+    // Set states, either at initial configuration or from checkpoint (depending on phase)
     switch (phase) {
         case SETTLING: {
-            // Receive initial terrain dimensions: height and half-length
-			double init_dim[2];
-            MPI_Status status;
-			MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-			std::cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << std::endl;
-			std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
-
-            // Slighlty perturb terrain height to ensure there is no initial contact
-			init_dim[0] += 1e-5;
-
-            // Set body and tire states
 			InitBodies(init_dim[0], init_dim[1]);
-
             break;
         }
         case TESTING: {
-            // Set body and tire states from checkpointing file
-            InitBodies(m_checkpoint_filename);
-
+            InitBodies();
             break;
         }
     }
@@ -382,9 +379,9 @@ void RigNode::InitBodies(double init_height, double long_half_length) {
 // - initialize the mechanism bodies with states from checkpoint file
 // - initialize the tire and overwrite mesh state from checkpoint file
 // -----------------------------------------------------------------------------
-void RigNode::InitBodies(const std::string& filename) {
+void RigNode::InitBodies() {
     // Open input file stream
-    std::ifstream ifile(filename);
+    std::ifstream ifile(m_checkpoint_filename);
     std::string line;
 
     // Initialize the rig mechanism bodies
@@ -669,12 +666,12 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
     // Print tire mesh connectivity
     std::vector<std::shared_ptr<fea::ChNodeFEAbase>> myvector;
     myvector.resize(my_mesh->GetNnodes());
-    for (int i = 0; i < my_mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
         myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
     }
 	csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
 
-	for (int iele = 0; iele < my_mesh->GetNelements(); iele++) {
+	for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
 		auto element = my_mesh->GetElement(iele);
 		int nodeOrder[] = { 0, 1, 2, 3 };
 		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
