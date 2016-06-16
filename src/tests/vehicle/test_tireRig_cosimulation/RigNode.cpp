@@ -585,12 +585,14 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rtrq_motor = m_rev_motor->Get_react_torque();
 
         m_outf << m_system->GetChTime() << del;
-        m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del << rim_vel.x << del << rim_vel.y << del
-               << rim_vel.z << del << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del
-               << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del << rtrq_prsm.x << del << rtrq_prsm.y
-               << del << rtrq_prsm.z << del << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del << rtrq_act.x
-               << del << rtrq_act.y << del << rtrq_act.z << del << rfrc_motor.x << del << rfrc_motor.y << del
-               << rfrc_motor.z;
+        m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
+        m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
+        m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
+        m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
+        m_outf << rtrq_prsm.x << del << rtrq_prsm.y << del << rtrq_prsm.z << del;
+        m_outf << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del;
+        m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
+        m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
         m_outf << std::endl;
     }
 
