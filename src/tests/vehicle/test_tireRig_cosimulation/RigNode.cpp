@@ -92,14 +92,15 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
 
     m_step_size = 1e-4;
 
-    double rim_mass = 100;            //// 0.1;
-    double set_toe_mass = 0.1;
     double chassis_mass = 0.1;
+    double set_toe_mass = 0.1;
 	double axle_mass = 0.1;
+    double rim_mass = 100;
 
-    ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
+    ChVector<> chassis_inertia(1, 1, 1);
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
 	ChVector<> axle_inertia(0.1, 0.1, 0.1);
+    ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
 
     m_init_vel = 0; //// 20;
 	m_slip = 0; // Enforced longitudinal slip
@@ -107,6 +108,7 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     // ----------------------------------
     // Create the (sequential) DEM system
     // ----------------------------------
+
     m_system = new ChSystemDEM;
     m_system->Set_G_acc(ChVector<>(0, 0, gacc));
 
@@ -147,41 +149,64 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
 
     // Create ground body.
     m_ground = std::make_shared<ChBody>();
-    m_system->AddBody(m_ground);
     m_ground->SetBodyFixed(true);
+    m_system->AddBody(m_ground);
 
     // Create the chassis body.
     m_chassis = std::make_shared<ChBody>();
     m_chassis->SetMass(chassis_mass);
+    m_chassis->SetInertiaXX(chassis_inertia);
     m_system->AddBody(m_chassis);
 
     // Create the set toe body.
     m_set_toe = std::make_shared<ChBody>();
-    m_system->AddBody(m_set_toe);
     m_set_toe->SetMass(set_toe_mass);
     m_set_toe->SetInertiaXX(set_toe_inertia);
+    m_system->AddBody(m_set_toe);
 
     // Create the rim body.
     m_rim = std::make_shared<ChBody>();
-    m_system->AddBody(m_rim);
     m_rim->SetMass(rim_mass);
     m_rim->SetInertiaXX(rim_inertia);
+    m_system->AddBody(m_rim);
 
 	// Create the axle body.
 	m_axle = std::make_shared<ChBody>();
-	m_system->AddBody(m_axle);
 	m_axle->SetMass(axle_mass);
 	m_axle->SetInertiaXX(axle_inertia);
+    m_system->AddBody(m_axle);
 
     // -------------------------------
     // Create the rig mechanism joints
     // -------------------------------
 
-    // chassis ==revolute_z==>  set_toe
+    // Connect chassis to set_toe body through an actuated revolute joint.
     m_slip_motor = std::make_shared<ChLinkEngine>();
     m_slip_motor->SetName("engine_set_slip");
     m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
     m_system->AddLink(m_slip_motor);
+
+    // Prismatic constraint on the toe
+    m_prism_vel = std::make_shared<ChLinkLockPrismatic>();
+    m_prism_vel->SetName("Prismatic_settoe_ground");
+    m_system->AddLink(m_prism_vel);
+
+    // Impose velocity actuation on the prismatic joint
+    m_lin_actuator = std::make_shared<ChLinkLinActuator>();
+    m_lin_actuator->SetName("Prismatic_actuator");
+    m_lin_actuator->Set_lin_offset(1); // Set actuator distance offset
+    m_system->AddLink(m_lin_actuator);
+
+    // Prismatic constraint on the toe-axle: Connects chassis to axle
+    m_prism_axl = std::make_shared<ChLinkLockPrismatic>();
+    m_prism_axl->SetName("Prismatic_vertical");
+    m_system->AddLink(m_prism_axl);
+
+    // Connect rim to axle: Impose rotation on the rim
+    m_rev_motor = std::make_shared<ChLinkEngine>();
+    m_rev_motor->SetName("Motor_ang_vel");
+    m_rev_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    m_system->AddLink(m_rev_motor);
 
     // ---------------
     // Create the tire
@@ -243,19 +268,20 @@ void RigNode::Initialize() {
 
     switch (phase) {
         case SETTLING: {
-            // Receive initial terrain dimensions: height and length
+            // Receive initial terrain dimensions: height and half-length
 			double init_dim[2];
             MPI_Status status;
 			MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-			std::cout << "[Rig node    ] Received init_height = " << init_dim[0] << std::endl;
-			std::cout << "[Rig node    ] Received longitudinal terrain dimension = " << init_dim[1] << std::endl;
+			std::cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << std::endl;
+			std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
 
             // Slighlty perturb terrain height to ensure there is no initial contact
 			init_dim[0] += 1e-5;
 
             // Set body and tire states
 			InitBodies(init_dim[0], init_dim[1]);
+
             break;
         }
         case TESTING: {
@@ -270,48 +296,28 @@ void RigNode::Initialize() {
     // Initialize the rig mechanism joints
     // -----------------------------------
 
-
-	// Prismatic constraint on the toe
-	m_prism_vel = std::make_shared<ChLinkLockPrismatic>();
-	m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
-	m_prism_vel->SetName("Prismatic_settoe_ground");
-	m_system->AddLink(m_prism_vel);
-
-	// Impose velocity actuation on the prismatic joint
-	auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, m_init_vel*(1.0-m_slip));
-	m_lin_actuator = std::make_shared<ChLinkLinActuator>();
-	m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
-		ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
-	m_lin_actuator->SetName("Prismatic_actuator");
-	m_lin_actuator->Set_lin_offset(1); // Set actuator distance offset
-	m_lin_actuator->Set_dist_funct(actuator_fun);
-	m_system->AddLink(m_lin_actuator);
-
-	// Prismatic constraint on the toe-axle: Connects chassis to axle
-	m_prism_axl = std::make_shared<ChLinkLockPrismatic>();
-	m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
-	m_prism_axl->SetName("Prismatic_vertical");
-	m_system->AddLink(m_prism_axl);
-
-	// Connect rim to axle: Impose rotation on the rim
-	m_rev_motor = std::make_shared<ChLinkEngine>();
-	m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
-	m_rev_motor->SetName("Motor_ang_vel");
-	m_rev_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-	double tire_radius = m_tire->GetRadius();
-	m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / tire_radius));
-	m_system->AddLink(m_rev_motor);
-
-
-    // chassis       ==revolute_z==>   set_toe
-    // Create slip controlling function (toe angle)
-    f_slip = std::make_shared<ChFunction_SlipAngle>(0);
-    
+    // Revolute engine on set_toe
+    auto slip_function = std::make_shared<ChFunction_SlipAngle>(0);
+    m_slip_motor->Set_rot_funct(slip_function);
     m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
-    m_slip_motor->SetName("engine_set_slip");
-    m_slip_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    m_slip_motor->Set_rot_funct(f_slip);
-    
+
+    // Prismatic constraint on the toe
+    m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
+
+    // Impose velocity actuation on the prismatic joint
+    auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip));
+    m_lin_actuator->Set_dist_funct(actuator_fun);
+    m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
+                               ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+
+    // Prismatic constraint on the toe-axle: Connects chassis to axle
+    m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+
+    // Connect rim to axle: Impose rotation on the rim
+    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+    m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
+    m_system->AddLink(m_rev_motor);
+
     // ----------------------
     // Create contact surface
     // ----------------------
@@ -343,33 +349,29 @@ void RigNode::Initialize() {
 // -----------------------------------------------------------------------------
 void RigNode::InitBodies(double init_height, double long_half_length) {
     double tire_radius = m_tire->GetRadius();
+    ChVector<> origin(-long_half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
+    ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
 
     // Initialize chassis body
-    m_chassis->SetBodyFixed(false);
-    m_chassis->SetCollide(false);
-    m_chassis->SetInertiaXX(ChVector<>(1, 1, 1));
-	m_chassis->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
-    m_chassis->SetPos_dt(ChVector<>(m_init_vel*(1.0-m_slip), 0, 0));
-    m_chassis->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    m_chassis->SetPos(origin);
+    m_chassis->SetRot(QUNIT);
+    m_chassis->SetPos_dt(init_vel);
 
     // Initialize the set_toe body
-    m_set_toe->SetBodyFixed(false);
-    m_set_toe->SetCollide(false);
-	m_set_toe->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
+    m_set_toe->SetPos(origin);
     m_set_toe->SetRot(QUNIT);
-    m_set_toe->SetInertiaXX(ChVector<>(0.1, 0.1, 0.1));
-	m_set_toe->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
+    m_set_toe->SetPos_dt(init_vel);
 
     // Initialize rim body.
-	m_rim->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
+    m_rim->SetPos(origin);
     m_rim->SetRot(QUNIT);
-	m_rim->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
+    m_rim->SetPos_dt(init_vel);
     m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
 
-	// Initialize axle body
-	m_axle->SetPos(ChVector<>(-long_half_length + 1.5*tire_radius, 0, init_height + tire_radius));
-	m_axle->SetRot(QUNIT);
-	m_axle->SetPos_dt(ChVector<>(m_init_vel*(1.0 - m_slip), 0, 0));
+    // Initialize axle body
+    m_axle->SetPos(origin);
+    m_axle->SetRot(QUNIT);
+    m_axle->SetPos_dt(init_vel);
 
     // Initialize tire
     m_tire->Initialize(m_rim, LEFT);
@@ -616,7 +618,7 @@ void RigNode::WriteCheckpoint() {
 // -----------------------------------------------------------------------------
 void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
     // Write number of bodies
-    csv << "3" << std::endl;
+    csv << "4" << std::endl;
 
     // Write body state information
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPos_dt()
@@ -627,6 +629,7 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         << std::endl;
 	csv << m_axle->GetIdentifier() << m_axle->GetPos() << m_axle->GetRot() << m_axle->GetPos_dt() << m_axle->GetRot_dt()
 		<< std::endl;
+
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
@@ -654,27 +657,26 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
-	
-	// Extract mesh
-	auto my_mesh = m_tire->GetMesh();
+    // Extract mesh
+    auto my_mesh = m_tire->GetMesh();
 
-	// Vector to roughly interpolate strain information
-	std::vector<std::vector<int>> NodeNeighborElement;
-	NodeNeighborElement.resize(my_mesh->GetNnodes());
+    // Vector to roughly interpolate strain information
+    std::vector<std::vector<int>> NodeNeighborElement;
+    NodeNeighborElement.resize(my_mesh->GetNnodes());
 
-	// Print tire mesh connectivity
-	std::vector<std::shared_ptr<fea::ChNodeFEAbase> > myvector;
-	myvector.resize(my_mesh->GetNnodes());
-	for (int i = 0; i < my_mesh->GetNnodes(); i++) {
-		myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
-	}
+    // Print tire mesh connectivity
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> myvector;
+    myvector.resize(my_mesh->GetNnodes());
+    for (int i = 0; i < my_mesh->GetNnodes(); i++) {
+        myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
+    }
 	csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
 
 	for (int iele = 0; iele < my_mesh->GetNelements(); iele++) {
-		auto element = (my_mesh->GetElement(iele));
+		auto element = my_mesh->GetElement(iele);
 		int nodeOrder[] = { 0, 1, 2, 3 };
 		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
-			auto nodeA = (element->GetNodeN(nodeOrder[myNodeN]));
+			auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
 			std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
 			it = find(myvector.begin(), myvector.end(), nodeA);
 			if (it != myvector.end()) {
@@ -691,14 +693,12 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
 	for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
 		double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
 		double myarea = 0;
-		double dx, dy;
-		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-			int myelemInx = NodeNeighborElement[i][j];
-			ChVector<> StrainVector(0);
-			StrainVector = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))
-				->EvaluateSectionStrains();
-			dx = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))->GetLengthX();
-			dy = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx))->GetLengthY();
+        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+            int myelemInx = NodeNeighborElement[i][j];
+            auto element = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx));
+            ChVector<> StrainVector = element->EvaluateSectionStrains();
+            double dx = element->GetLengthX();
+            double dy = element->GetLengthY();
 			myarea += dx * dy / 4;
 			areaAve1 += StrainVector.x * dx * dy / 4;
 			areaAve2 += StrainVector.y * dx * dy / 4;
@@ -707,6 +707,7 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
 		csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
 	}
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::PrintLowestNode() {

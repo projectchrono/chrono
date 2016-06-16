@@ -76,7 +76,7 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     m_hthick = 0.25;
 
     // Granular material properties
-    m_radius_g = 0.1;
+    m_radius_g = 0.01;
     int Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
@@ -146,29 +146,29 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
     // Create system and set method-specific solver settings
     switch (m_method) {
-    case ChMaterialSurfaceBase::DEM: {
-        ChSystemParallelDEM* sys = new ChSystemParallelDEM;
-        sys->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
-        sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
-        sys->GetSettings()->solver.use_material_properties = use_mat_properties;
-        m_system = sys;
+        case ChMaterialSurfaceBase::DEM: {
+            ChSystemParallelDEM* sys = new ChSystemParallelDEM;
+            sys->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
+            sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
+            sys->GetSettings()->solver.use_material_properties = use_mat_properties;
+            m_system = sys;
 
-        break;
-    }
-    case ChMaterialSurfaceBase::DVI: {
-        ChSystemParallelDVI* sys = new ChSystemParallelDVI;
-        sys->GetSettings()->solver.solver_mode = SLIDING;
-        sys->GetSettings()->solver.max_iteration_normal = 0;
-        sys->GetSettings()->solver.max_iteration_sliding = 200;
-        sys->GetSettings()->solver.max_iteration_spinning = 0;
-        sys->GetSettings()->solver.alpha = 0;
-        sys->GetSettings()->solver.contact_recovery_speed = -1;
-        sys->GetSettings()->collision.collision_envelope = 0.1 * m_radius_g;
-        sys->ChangeSolverType(APGD);
-        m_system = sys;
+            break;
+        }
+        case ChMaterialSurfaceBase::DVI: {
+            ChSystemParallelDVI* sys = new ChSystemParallelDVI;
+            sys->GetSettings()->solver.solver_mode = SLIDING;
+            sys->GetSettings()->solver.max_iteration_normal = 0;
+            sys->GetSettings()->solver.max_iteration_sliding = 200;
+            sys->GetSettings()->solver.max_iteration_spinning = 0;
+            sys->GetSettings()->solver.alpha = 0;
+            sys->GetSettings()->solver.contact_recovery_speed = -1;
+            sys->GetSettings()->collision.collision_envelope = 0.1 * m_radius_g;
+            sys->ChangeSolverType(APGD);
+            m_system = sys;
 
-        break;
-    }
+            break;
+        }
     }
 
     // Solver settings independent of method type
@@ -192,30 +192,30 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     std::shared_ptr<ChMaterialSurfaceBase> material_terrain;
 
     switch (m_method) {
-    case ChMaterialSurfaceBase::DEM: {
-        auto mat_ter = std::make_shared<ChMaterialSurfaceDEM>();
-        mat_ter->SetFriction(friction_terrain);
-        mat_ter->SetRestitution(restitution_terrain);
-        mat_ter->SetYoungModulus(Y_terrain);
-        mat_ter->SetPoissonRatio(nu_terrain);
-        mat_ter->SetKn(kn_terrain);
-        mat_ter->SetGn(gn_terrain);
-        mat_ter->SetKt(kt_terrain);
-        mat_ter->SetGt(gt_terrain);
+        case ChMaterialSurfaceBase::DEM: {
+            auto mat_ter = std::make_shared<ChMaterialSurfaceDEM>();
+            mat_ter->SetFriction(friction_terrain);
+            mat_ter->SetRestitution(restitution_terrain);
+            mat_ter->SetYoungModulus(Y_terrain);
+            mat_ter->SetPoissonRatio(nu_terrain);
+            mat_ter->SetKn(kn_terrain);
+            mat_ter->SetGn(gn_terrain);
+            mat_ter->SetKt(kt_terrain);
+            mat_ter->SetGt(gt_terrain);
 
-        material_terrain = mat_ter;
+            material_terrain = mat_ter;
 
-        break;
-    }
-    case ChMaterialSurfaceBase::DVI: {
-        auto mat_ter = std::make_shared<ChMaterialSurface>();
-        mat_ter->SetFriction(friction_terrain);
-        mat_ter->SetRestitution(restitution_terrain);
+            break;
+        }
+        case ChMaterialSurfaceBase::DVI: {
+            auto mat_ter = std::make_shared<ChMaterialSurface>();
+            mat_ter->SetFriction(friction_terrain);
+            mat_ter->SetRestitution(restitution_terrain);
 
-        material_terrain = mat_ter;
+            material_terrain = mat_ter;
 
-        break;
-    }
+            break;
+        }
     }
 
     // Create container body
@@ -229,20 +229,20 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
 
     container->GetCollisionModel()->ClearModel();
     // Bottom box
-	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hdimY, m_hthick), ChVector<>(0, 0, -m_hthick),
-        ChQuaternion<>(1, 0, 0, 0), true);
+    utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hdimY, m_hthick), ChVector<>(0, 0, -m_hthick),
+                          ChQuaternion<>(1, 0, 0, 0), true);
     // Front box
-	utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
-		ChVector<>(m_hdimX + m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
+                          ChVector<>(m_hdimX + m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Rear box
-	utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
-		ChVector<>(-m_hdimX - m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), ChVector<>(m_hthick, m_hdimY, m_hdimZ + m_hthick),
+                          ChVector<>(-m_hdimX - m_hthick, 0, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Left box
-	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
-		ChVector<>(0, m_hdimY + m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
+                          ChVector<>(0, m_hdimY + m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     // Right box
-	utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
-		ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
+    utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
+                          ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
 
     // If using RIGID terrain, the contact will be between the container and proxy bodies.
@@ -364,16 +364,18 @@ void TerrainNode::Settle() {
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void TerrainNode::Initialize() {
-    // ---------------------------
-    // Send initial terrain dimensions -Height and length- to locate tire
-    // ---------------------------
+    // ------------------------------------------
+    // Send information for initial tire location
+    // ------------------------------------------
 
+    // This includes the terrain height and the container half-length.
     // Note: take into account dimension of proxy bodies
 	double init_dim[2] = { m_init_height + m_radius_pN, m_hdimX };
     MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
-	std::cout << "[Terrain node] Initial terrain height        = " << init_dim[0] << std::endl;
-	std::cout << "[Terrain node] Container longitudinal length = " << init_dim[1] << std::endl;
+	std::cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << std::endl;
+	std::cout << "[Terrain node] Sent container half-length = " << init_dim[1] << std::endl;
+
     // ------------------------------------------
     // Receive tire contact surface specification
     // ------------------------------------------
@@ -388,21 +390,21 @@ void TerrainNode::Initialize() {
     m_triangles.resize(m_num_tri);
 
     std::cout << "[Terrain node] Received vertices = " << surf_props[0] << " triangles = " << surf_props[1]
-        << std::endl;
+              << std::endl;
 
     // -------------------
     // Create proxy bodies
     // -------------------
 
     switch (m_type) {
-    case RIGID:
-        // For contact with rigid ground, represent the tire as spheres associated with mesh vertices.
-        CreateNodeProxies();
-        break;
-    case GRANULAR:
-        // For contact with granular terrain, represent the tire as triangles associated with mesh faces.
-        CreateFaceProxies();
-        break;
+        case RIGID:
+            // For contact with rigid ground, represent the tire as spheres associated with mesh vertices.
+            CreateNodeProxies();
+            break;
+        case GRANULAR:
+            // For contact with granular terrain, represent the tire as triangles associated with mesh faces.
+            CreateFaceProxies();
+            break;
     }
 }
 
