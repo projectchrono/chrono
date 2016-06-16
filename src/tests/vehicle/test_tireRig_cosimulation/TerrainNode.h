@@ -54,7 +54,11 @@ class TerrainNode {
   public:
     enum Type { RIGID, GRANULAR };
 
-    TerrainNode(Type type, chrono::ChMaterialSurfaceBase::ContactMethod method, int num_threads);
+    TerrainNode(PhaseType phase,                                      ///< problem type (SETTLING or TESTING)
+                Type type,                                            ///< terrain type (RIGID or GRANULAR)
+                chrono::ChMaterialSurfaceBase::ContactMethod method,  ///< contact method (penalty or complementatiry)
+                int num_threads                                       ///< number of OpenMP threads
+                );
     ~TerrainNode();
 
     void SetOutputFile(const std::string& name);
@@ -90,6 +94,8 @@ class TerrainNode {
         std::shared_ptr<chrono::ChBody> m_body;
         int m_index;
     };
+
+    PhaseType m_phase;  ///< problem type (SETTLING or TESTING)
 
     Type m_type;  ///< terrain type (RIGID or GRANULAR)
 

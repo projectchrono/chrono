@@ -65,8 +65,11 @@ const std::string TerrainNode::m_checkpoint_filename = terrain_dir + "/checkpoin
 // - create the container body
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
-TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
-    : m_type(type), m_method(method), m_num_particles(0), m_init_height(0), m_cumm_sim_time(0) {
+TerrainNode::TerrainNode(PhaseType phase, Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
+    : m_phase(phase), m_type(type), m_method(method), m_num_particles(0), m_init_height(0), m_cumm_sim_time(0) {
+    std::cout << "[Terrain node] phase = " << phase << " type = " << type << " method = " << method
+              << " num_threads = " << num_threads << std::endl;
+
     // ----------------
     // Model parameters
     // ----------------
@@ -345,7 +348,7 @@ void TerrainNode::Settle() {
         return;
     }
 
-    switch (phase) {
+    switch (m_phase) {
         case SETTLING: {
             // Simulate granular material
             double time_end = 0.5;

@@ -60,7 +60,11 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
 
 class RigNode {
   public:
-    RigNode(int num_threads);
+    RigNode(PhaseType phase,  ///< problem type (SETTLING or TESTING)
+            double init_vel,  ///< initial wheel linear velocity
+            double slip,      ///< longitudinal slip value
+            int num_threads   ///< number of OpenMP threads
+            );
     ~RigNode();
 
     void SetOutputFile(const std::string& name);
@@ -75,8 +79,10 @@ class RigNode {
     void WriteCheckpoint();
 
   private:
+    PhaseType m_phase;  ///< problem type (SETTLING or TESTING)
+
     chrono::ChSystemDEM* m_system;  ///< containing system
-    double m_step_size;     ///< integration step size
+    double m_step_size;             ///< integration step size
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
     std::shared_ptr<chrono::ChBody> m_rim;      ///< wheel rim body
