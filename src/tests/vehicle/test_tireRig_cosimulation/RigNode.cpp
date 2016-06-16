@@ -382,6 +382,9 @@ void RigNode::InitBodies() {
     std::ifstream ifile(m_checkpoint_filename);
     std::string line;
 
+    // Read and discard line with current time
+    std::getline(ifile, line);
+
     // Initialize the rig mechanism bodies
     int identifier;
     ChVector<> pos;
@@ -596,8 +599,9 @@ void RigNode::OutputData(int frame) {
     sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
-    WriteStateInformation(csv);
-	WriteMeshInformation(csv); // Connectivity and strain state
+    csv << m_system->GetChTime() << std::endl;  // current time
+    WriteStateInformation(csv);                 // state of bodies and tire
+    WriteMeshInformation(csv);                  // connectivity and strain state
     csv.write_to_file(filename);
 }
 
@@ -605,6 +609,7 @@ void RigNode::OutputData(int frame) {
 // -----------------------------------------------------------------------------
 void RigNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
+    csv << m_system->GetChTime() << std::endl;
     WriteStateInformation(csv);
     csv.write_to_file(m_checkpoint_filename);
 

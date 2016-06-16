@@ -373,6 +373,9 @@ void TerrainNode::Settle() {
             std::ifstream ifile(m_checkpoint_filename);
             std::string line;
 
+            // Read and discard line with current time
+            std::getline(ifile, line);
+
             // Read number of particles in checkpoint
             unsigned int num_particles;
             {
@@ -823,7 +826,8 @@ void TerrainNode::OutputData(int frame) {
 void TerrainNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
     
-    // Write number of granular material bodies.
+    // Write current time and number of granular material bodies.
+    csv << m_system->GetChTime() << std::endl;
     csv << m_num_particles << std::endl;
 
     // Loop over all bodies in the system and write state for granular material bodies.
