@@ -294,16 +294,14 @@ void RigNode::Initialize() {
     // -----------------------------------
 
     // Revolute engine on set_toe
-    auto slip_function = std::make_shared<ChFunction_SlipAngle>(0);
-    m_slip_motor->Set_rot_funct(slip_function);
+    m_slip_motor->Set_rot_funct(std::make_shared<ChFunction_SlipAngle>(0));
     m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
     // Prismatic constraint on the toe
     m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
 
     // Impose velocity actuation on the prismatic joint
-    auto actuator_fun = std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip));
-    m_lin_actuator->Set_dist_funct(actuator_fun);
+    m_lin_actuator->Set_dist_funct(std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
     m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
                                ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
@@ -311,9 +309,8 @@ void RigNode::Initialize() {
     m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
     // Connect rim to axle: Impose rotation on the rim
-    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
     m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
-    m_system->AddLink(m_rev_motor);
+    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
     // ----------------------
     // Create contact surface
