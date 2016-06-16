@@ -23,9 +23,8 @@ permalink: /status/
 
 ### Stats
 
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_basic_stats?format=js'></script>
-<br>
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids?format=js'></script>
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_languages?format=js'></script>
+<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids_stats?format=js'></script>
 
 <br><br>
 

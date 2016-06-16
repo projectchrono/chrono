@@ -4,7 +4,6 @@ Title: Search
 permalink: /search
 ---
 
-
 Search powered by lunr.js
 <form action="/search" id="site_search">
                 <input type="text" id="search_box" name="query">
@@ -24,5 +23,11 @@ window.onload = function() {
 	$("#search_box").val(res);
 	$("#site_search").trigger("submit");
 };
+
+function search_documentation() {
+	var doc_url = "http://api.chrono.projectchrono.org/";
+}
 </script>
+
+
 <script src="/js/search.js"></script>
