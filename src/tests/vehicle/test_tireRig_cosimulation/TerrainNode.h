@@ -67,6 +67,7 @@ class TerrainNode {
     double GetSimTime() { return m_timer.GetTimeSeconds(); }
     double GetTotalSimTime() { return m_cumm_sim_time; }
     void OutputData(int frame);
+    void WriteCheckpoint();
 
   private:
     /// Triangle vertex indices.
@@ -99,17 +100,20 @@ class TerrainNode {
     std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
     bool m_fixed_proxies;              ///< flag indicating whether or not proxy bodies are fixed to ground
 
-	double m_hdimX = 1.0;     ///< Longitudinal dimension of granular material container
-	double m_hdimY = 0.25;    ///< Lateral dimension of granular material container
-	double m_hdimZ = 0.5;     ///< Vertical dimension of granular material container
-	double m_hthick = 0.25;   ///< Thickness of granular material container wall
+    double m_hdimX;   ///< container half-length (X direction)
+    double m_hdimY;   ///< container half-width (Y direction)
+    double m_hdimZ;   ///< container half-height (Z direction)
+    double m_hthick;  ///< container wall half-thickness
 
     double m_mass_pN;    ///< mass of a spherical proxy body
     double m_radius_pN;  ///< radius of a spherical proxy body
     double m_mass_pF;    ///< mass of a triangular proxy body
 
     double m_init_height;  ///< initial terrain height (after optional settling)
-    double m_radius_g;     ///< radius of one particle of granular material
+
+    int m_Id_g;                    ///< first identifier for granular material bodies
+    unsigned int m_num_particles;  ///< number of granular material bodies
+    double m_radius_g;             ///< radius of one particle of granular material
 
     unsigned int m_num_vert;  ///< number of tire mesh vertices
     unsigned int m_num_tri;   ///< number of tire mesh triangles
@@ -117,11 +121,14 @@ class TerrainNode {
     std::vector<VertexState> m_vertex_states;  ///< mesh vertex states
     std::vector<Triangle> m_triangles;         ///< tire mesh connectivity
 
-    unsigned int m_proxy_start_index;  ///< start index for proxy bodies in global arrays
+    int m_particles_start_index;       ///< start index for granular material bodies in system body list
+    unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
 
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;
     double m_cumm_sim_time;
+
+    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 
     // Private methods
     void CreateNodeProxies();

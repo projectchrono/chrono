@@ -149,6 +149,11 @@ int main() {
                     output_frame++;
                 }
 
+                if (phase == SETTLING && is % checkpoint_steps == 0) {
+                    my_terrain->WriteCheckpoint();
+                    checkpoint_frame++;
+                }
+
                 break;
             }
         }
