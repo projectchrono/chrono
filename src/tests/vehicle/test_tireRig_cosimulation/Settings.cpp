@@ -40,7 +40,7 @@ std::string rig_dir = out_dir + "/RIG";
 std::string terrain_dir = out_dir + "/TERRAIN";
 
 // Output frequency (frames per second)
-double output_fps = 1000;
+double output_fps = 200;
 
 // Checkpointing frequency (frames per second)
 double checkpoint_fps = 100;

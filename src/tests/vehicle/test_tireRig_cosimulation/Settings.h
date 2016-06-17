@@ -51,9 +51,4 @@ extern double output_fps;
 // Checkpointing frequency (frames per second)
 extern double checkpoint_fps;
 
-// Problem phase.  
-// In SETTLING, generate checkpointing output.
-// In TESTING, initialize from checkpointing files.
-enum PhaseType {SETTLING, TESTING};
-
 #endif

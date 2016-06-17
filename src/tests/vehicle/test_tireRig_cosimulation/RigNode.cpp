@@ -76,8 +76,6 @@ double ChFunction_SlipAngle::Get_y(double t) const {
 
 // =============================================================================
 
-const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
-
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
@@ -85,10 +83,11 @@ const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
 // - create (but do not initialize) the tire
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(PhaseType phase, double init_vel, double slip, int num_threads)
-    : m_phase(phase), m_init_vel(init_vel), m_slip(slip), m_cumm_sim_time(0) {
-    std::cout << "[Rig node    ] phase = " << phase << " init_vel = " << init_vel << " slip = " << slip
-              << " num_threads = " << num_threads << std::endl;
+RigNode::RigNode(double init_vel, double slip, int num_threads)
+    : m_init_vel(init_vel), m_slip(slip), m_cumm_sim_time(0) {
+    std::cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads
+              << std::endl;
+    std::cout << "[Rig node    ] output directory: " << rig_dir << std::endl;
 
     // ----------------
     // Model parameters
@@ -256,7 +255,7 @@ void RigNode::SetOutputFile(const std::string& name) {
 
 // -----------------------------------------------------------------------------
 // Initialization of the rig node:
-// - receive terrain height
+// - receive terrain height and container half-length
 // - initialize the mechanism bodies
 // - initialize the mechanism joints
 // - initialize the tire and extract contact surface
@@ -276,19 +275,33 @@ void RigNode::Initialize() {
     std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
 
     // Slighlty perturb terrain height to ensure there is no initial contact
-    init_dim[0] += 1e-5;
+    double init_height = init_dim[0] + 1e-5;
+    double half_length = init_dim[1];
 
-    // Set states, either at initial configuration or from checkpoint (depending on phase)
-    switch (m_phase) {
-        case SETTLING: {
-			InitBodies(init_dim[0], init_dim[1]);
-            break;
-        }
-        case TESTING: {
-            InitBodies();
-            break;
-        }
-    }
+    double tire_radius = m_tire->GetRadius();
+    ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
+    ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
+
+    // Initialize chassis body
+    m_chassis->SetPos(origin);
+    m_chassis->SetRot(QUNIT);
+    m_chassis->SetPos_dt(init_vel);
+
+    // Initialize the set_toe body
+    m_set_toe->SetPos(origin);
+    m_set_toe->SetRot(QUNIT);
+    m_set_toe->SetPos_dt(init_vel);
+
+    // Initialize rim body.
+    m_rim->SetPos(origin);
+    m_rim->SetRot(QUNIT);
+    m_rim->SetPos_dt(init_vel);
+    m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
+
+    // Initialize axle body
+    m_axle->SetPos(origin);
+    m_axle->SetRot(QUNIT);
+    m_axle->SetPos_dt(init_vel);
 
     // -----------------------------------
     // Initialize the rig mechanism joints
@@ -313,9 +326,12 @@ void RigNode::Initialize() {
     m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
     m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
-    // ----------------------
-    // Create contact surface
-    // ----------------------
+    // ------------------------------------------
+    // Initialize tire and create contact surface
+    // ------------------------------------------
+
+    // Initialize tire
+    m_tire->Initialize(m_rim, LEFT);
 
     // Create a mesh load for contact forces and add it to the tire's load container.
     auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
@@ -335,148 +351,6 @@ void RigNode::Initialize() {
     MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     std::cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << std::endl;
-}
-
-// -----------------------------------------------------------------------------
-// Initialization of the rig node bodies (initial configuration)
-// - initialize the state of the mechanism bodies
-// - initialize the tire
-// -----------------------------------------------------------------------------
-void RigNode::InitBodies(double init_height, double long_half_length) {
-    double tire_radius = m_tire->GetRadius();
-    ChVector<> origin(-long_half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
-    ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
-
-    // Initialize chassis body
-    m_chassis->SetPos(origin);
-    m_chassis->SetRot(QUNIT);
-    m_chassis->SetPos_dt(init_vel);
-
-    // Initialize the set_toe body
-    m_set_toe->SetPos(origin);
-    m_set_toe->SetRot(QUNIT);
-    m_set_toe->SetPos_dt(init_vel);
-
-    // Initialize rim body.
-    m_rim->SetPos(origin);
-    m_rim->SetRot(QUNIT);
-    m_rim->SetPos_dt(init_vel);
-    m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
-
-    // Initialize axle body
-    m_axle->SetPos(origin);
-    m_axle->SetRot(QUNIT);
-    m_axle->SetPos_dt(init_vel);
-
-    // Initialize tire
-    m_tire->Initialize(m_rim, LEFT);
-}
-
-// -----------------------------------------------------------------------------
-// Initialization of the rig node bodies from a checkpoint data file:
-// - initialize the mechanism bodies with states from checkpoint file
-// - initialize the tire and overwrite mesh state from checkpoint file
-// -----------------------------------------------------------------------------
-void RigNode::InitBodies() {
-    // Open input file stream
-    std::ifstream ifile(m_checkpoint_filename);
-    std::string line;
-
-    // Read and discard line with current time
-    std::getline(ifile, line);
-
-    // Initialize the rig mechanism bodies
-    int identifier;
-    ChVector<> pos;
-    ChQuaternion<> rot;
-    ChVector<> pos_dt;
-    ChQuaternion<> rot_dt;
-
-    // Read and discard line with number of bodies
-    std::getline(ifile, line);
-
-    // Initialize chassis body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-        m_chassis->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_chassis->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_chassis->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_chassis->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-    // Initialize set_toe body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-        m_set_toe->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_set_toe->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_set_toe->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_set_toe->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-    // Initialize rim body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-        m_rim->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_rim->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_rim->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_rim->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-	// Initialize axle body.
-	{
-		std::getline(ifile, line);
-		std::istringstream iss(line);
-		iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-			pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-		m_axle->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-		m_axle->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-		m_axle->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-		m_axle->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-	}
-
-    // Read and discard line with number of vertices and DOFs
-    std::getline(ifile, line);
-
-    // Initialize the tire, then overwrite the state of the underlying mesh.
-    m_tire->Initialize(m_rim, LEFT);
-
-    auto mesh = m_tire->GetMesh();
-    ChState x(mesh->GetDOF(), NULL);
-    ChStateDelta v(mesh->GetDOF_w(), NULL);
-
-    for (int ix = 0; ix < x.GetLength(); ix++) {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> x(ix);
-    }
-    for (int iv = 0; iv < v.GetLength(); iv++) {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> v(iv);
-    }
-
-    unsigned int offset_x = 0;
-    unsigned int offset_v = 0;
-    double t = 0;
-    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
-        auto node = mesh->GetNode(in);
-        node->NodeIntStateScatter(offset_x, x, offset_v, v, t);
-        offset_x += node->Get_ndof_x();
-        offset_v += node->Get_ndof_w();
-    }
 }
 
 // -----------------------------------------------------------------------------
@@ -603,17 +477,6 @@ void RigNode::OutputData(int frame) {
     WriteStateInformation(csv);                 // state of bodies and tire
     WriteMeshInformation(csv);                  // connectivity and strain state
     csv.write_to_file(filename);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigNode::WriteCheckpoint() {
-    utils::CSV_writer csv(" ");
-    csv << m_system->GetChTime() << std::endl;
-    WriteStateInformation(csv);
-    csv.write_to_file(m_checkpoint_filename);
-
-    std::cout << "[Rig node    ] write checkpoint ===> " << m_checkpoint_filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
