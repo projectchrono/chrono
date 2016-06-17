@@ -52,6 +52,7 @@ enum {
     OPT_USE_CHECKPOINT,
     OPT_SIM_TIME,
     OPT_NO_OUTPUT,
+    OPT_NO_RENDERING,
     OPT_INIT_VEL,
     OPT_LONG_SLIP,
     OPT_SUFFIX
@@ -69,6 +70,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_THREADS_RIG, "--num-threads-rig", SO_RE
                                     {OPT_SIM_TIME, "-t", SO_REQ_CMB},
                                     {OPT_SIM_TIME, "--simulation-time", SO_REQ_CMB},
                                     {OPT_NO_OUTPUT, "--no-output", SO_NONE},
+                                    {OPT_NO_RENDERING, "--no-rendering", SO_NONE},
                                     {OPT_INIT_VEL, "-v", SO_REQ_CMB},
                                     {OPT_INIT_VEL, "--initial-velocity", SO_REQ_CMB},
                                     {OPT_LONG_SLIP, "-s", SO_REQ_CMB},
@@ -91,6 +93,7 @@ bool GetProblemSpecs(int argc,
                      double& slip,
                      bool& use_checkpoint,
                      bool& output,
+                     bool& render,
                      std::string& suffix);
 
 // =============================================================================
@@ -99,9 +102,13 @@ int main(int argc, char** argv) {
     // Initialize MPI.
     int num_procs;
     int rank;
+    int name_len;
+    char procname[MPI_MAX_PROCESSOR_NAME];
+  
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Get_processor_name(procname, &name_len);
 
 #ifdef _DEBUG
     if (rank == 0) {
@@ -120,9 +127,10 @@ int main(int argc, char** argv) {
     double slip = 0;
     bool use_checkpoint = false;
     bool output = true;
+    bool render = true;
     std::string suffix = "";
-    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, use_checkpoint, output,
-                         suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, use_checkpoint,
+                         output, render, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -160,13 +168,15 @@ int main(int argc, char** argv) {
 
     switch (rank) {
         case RIG_NODE_RANK:
+            cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
             if (output) {
                 my_rig->SetOutputFile(rig_dir + "/rig_results.txt");
             }
             break;
         case TERRAIN_NODE_RANK:
-            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, nthreads_terrain);
+            cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
+            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, render, nthreads_terrain);
             if (output) {
                 ////my_terrain->SetOutputFile(terrain_dir + "/terrain_results.txt");
             }
@@ -270,6 +280,8 @@ void ShowUsage() {
     cout << "        Specify the value of the longitudinal slip [default: 0]" << endl;
     cout << " --no-output" << endl;
     cout << "        Disable generation of output files" << endl;
+    cout << " --no-rendering" << endl;
+    cout << "        Disable OpenGL rendering" << endl;
     cout << " --suffix=SUFFIX" << endl;
     cout << "        Specify suffix for output directory names [default: \"\"]" << endl;
     cout << " -? -h --help" << endl;
@@ -287,6 +299,7 @@ bool GetProblemSpecs(int argc,
                      double& slip,
                      bool& use_checkpoint,
                      bool& output,
+                     bool& render,
                      std::string& suffix
                      ) {
     // Create the option parser and pass it the program arguments and the array of valid options. 
@@ -327,6 +340,9 @@ bool GetProblemSpecs(int argc,
                 break;
             case OPT_NO_OUTPUT:
                 output = false;
+                break;
+            case OPT_NO_RENDERING:
+                render = false;
                 break;
             case OPT_USE_CHECKPOINT:
                 use_checkpoint = true;

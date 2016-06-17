@@ -57,6 +57,7 @@ class TerrainNode {
     TerrainNode(Type type,                                            ///< terrain type (RIGID or GRANULAR)
                 chrono::ChMaterialSurfaceBase::ContactMethod method,  ///< contact method (penalty or complementatiry)
                 bool use_checkpoint,                                  ///< initialize granular terrain from checkpoint
+                bool render,                                          ///< use OpenGL rendering
                 int num_threads                                       ///< number of OpenMP threads
                 );
     ~TerrainNode();
@@ -128,6 +129,8 @@ class TerrainNode {
 
     int m_particles_start_index;       ///< start index for granular material bodies in system body list
     unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
+
+    bool m_render;  ///< if true, use OpenGL rendering
 
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;

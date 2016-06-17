@@ -65,10 +65,15 @@ const std::string TerrainNode::m_checkpoint_filename = out_dir + "/checkpoint.da
 // - create the container body
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
-TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, bool use_checkpoint, int num_threads)
+TerrainNode::TerrainNode(Type type,
+                         ChMaterialSurfaceBase::ContactMethod method,
+                         bool use_checkpoint,
+                         bool render,
+                         int num_threads)
     : m_type(type),
       m_method(method),
       m_use_checkpoint(use_checkpoint),
+      m_render(render),
       m_num_particles(0),
       m_particles_start_index(0),
       m_proxy_start_index(0),
@@ -113,46 +118,6 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     m_radius_pN = 0.01;
     m_mass_pF = 1;
 
-    // ----------------------------------------
-    // Receive tire contact material properties
-    // ----------------------------------------
-
-    // Set use_material_properties in the system configuration.
-    // Create the "tire" contact material, but defer using it until the proxy bodies are created.
-    float mat_props[8];
-    MPI_Status status;
-    MPI_Recv(mat_props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
-
-    switch (m_method) {
-    case ChMaterialSurfaceBase::DEM: {
-        // Properties for tire
-        auto mat_tire = std::make_shared<ChMaterialSurfaceDEM>();
-        mat_tire->SetFriction(mat_props[0]);
-        mat_tire->SetRestitution(mat_props[1]);
-        mat_tire->SetYoungModulus(mat_props[2]);
-        mat_tire->SetPoissonRatio(mat_props[3]);
-        mat_tire->SetKn(mat_props[4]);
-        mat_tire->SetGn(mat_props[5]);
-        mat_tire->SetKt(mat_props[6]);
-        mat_tire->SetGt(mat_props[7]);
-
-        m_material_tire = mat_tire;
-
-        break;
-    }
-    case ChMaterialSurfaceBase::DVI: {
-        auto mat_tire = std::make_shared<ChMaterialSurface>();
-        mat_tire->SetFriction(mat_props[0]);
-        mat_tire->SetRestitution(mat_props[1]);
-
-        m_material_tire = mat_tire;
-
-        break;
-    }
-    }
-
-    std::cout << "[Terrain node] friction = " << mat_props[0] << std::endl;
-
     // --------------------------
     // Create the parallel system
     // --------------------------
@@ -196,6 +161,11 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // Set number of threads
     m_system->SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
+
+// Sanity check: print number of threads in a parallel region
+#pragma omp parallel
+#pragma omp master
+    { std::cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << std::endl; }
 
     // ---------------------
     // Create terrain bodies
@@ -321,11 +291,53 @@ TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method,
     // -------------------------------
 
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-    gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
-    gl_window.SetRenderMode(opengl::WIREFRAME);
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.Initialize(1280, 720, "Terrain Node", m_system);
+        gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetRenderMode(opengl::WIREFRAME);
+    }
 #endif
+
+    // ----------------------------------------
+    // Receive tire contact material properties
+    // ----------------------------------------
+
+    // Set use_material_properties in the system configuration.
+    // Create the "tire" contact material, but defer using it until the proxy bodies are created.
+    float mat_props[8];
+    MPI_Status status;
+    MPI_Recv(mat_props, 8, MPI_FLOAT, RIG_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    switch (m_method) {
+        case ChMaterialSurfaceBase::DEM: {
+            // Properties for tire
+            auto mat_tire = std::make_shared<ChMaterialSurfaceDEM>();
+            mat_tire->SetFriction(mat_props[0]);
+            mat_tire->SetRestitution(mat_props[1]);
+            mat_tire->SetYoungModulus(mat_props[2]);
+            mat_tire->SetPoissonRatio(mat_props[3]);
+            mat_tire->SetKn(mat_props[4]);
+            mat_tire->SetGn(mat_props[5]);
+            mat_tire->SetKt(mat_props[6]);
+            mat_tire->SetGt(mat_props[7]);
+
+            m_material_tire = mat_tire;
+
+            break;
+        }
+        case ChMaterialSurfaceBase::DVI: {
+            auto mat_tire = std::make_shared<ChMaterialSurface>();
+            mat_tire->SetFriction(mat_props[0]);
+            mat_tire->SetRestitution(mat_props[1]);
+
+            m_material_tire = mat_tire;
+
+            break;
+        }
+    }
+
+    std::cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -415,12 +427,16 @@ void TerrainNode::Settle() {
             m_system->DoStepDynamics(time_step);
             m_timer.stop();
             m_cumm_sim_time += m_timer();
+            std::cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
+                      << m_timer.GetTimeSeconds() << "]" << std::flush;
 #ifdef CHRONO_OPENGL
-            opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-            if (gl_window.Active()) {
-                gl_window.Render();
-            } else {
-                MPI_Abort(MPI_COMM_WORLD, 1);
+            if (m_render) {
+                opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+                if (gl_window.Active()) {
+                    gl_window.Render();
+                } else {
+                    MPI_Abort(MPI_COMM_WORLD, 1);
+                }
             }
 #endif
         }
@@ -789,11 +805,13 @@ void TerrainNode::Advance(double step_size) {
     m_timer.stop();
     m_cumm_sim_time += m_timer();
 #ifdef CHRONO_OPENGL
-    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    if (gl_window.Active()) {
-        gl_window.Render();
-    } else {
-        MPI_Abort(MPI_COMM_WORLD, 1);
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        if (gl_window.Active()) {
+            gl_window.Render();
+        } else {
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
     }
 #endif
 
