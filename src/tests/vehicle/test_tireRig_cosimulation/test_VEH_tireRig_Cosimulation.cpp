@@ -45,7 +45,17 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // ID values to identify command line arguments
-enum {OPT_HELP, OPT_THREADS_RIG, OPT_THREADS_TERRAIN, OPT_PHASE, OPT_SIM_TIME, OPT_NO_OUTPUT, OPT_INIT_VEL, OPT_LONG_SLIP};
+enum {
+    OPT_HELP,
+    OPT_THREADS_RIG,
+    OPT_THREADS_TERRAIN,
+    OPT_USE_CHECKPOINT,
+    OPT_SIM_TIME,
+    OPT_NO_OUTPUT,
+    OPT_INIT_VEL,
+    OPT_LONG_SLIP,
+    OPT_SUFFIX
+};
 
 // Table of CSimpleOpt::Soption structures. Each entry specifies:
 // - the ID for the option (returned from OptionId() during processing)
@@ -54,8 +64,8 @@ enum {OPT_HELP, OPT_THREADS_RIG, OPT_THREADS_TERRAIN, OPT_PHASE, OPT_SIM_TIME, O
 // The last entry must be SO_END_OF_OPTIONS
 CSimpleOptA::SOption g_options[] = {{OPT_THREADS_RIG, "--num-threads-rig", SO_REQ_CMB},
                                     {OPT_THREADS_TERRAIN, "--num-threads-terrain", SO_REQ_CMB},
-                                    {OPT_PHASE, "-p", SO_REQ_CMB},
-                                    {OPT_PHASE, "--phase", SO_REQ_CMB},
+                                    {OPT_USE_CHECKPOINT, "-c", SO_NONE},
+                                    {OPT_USE_CHECKPOINT, "--use-checkpoint", SO_REQ_CMB},
                                     {OPT_SIM_TIME, "-t", SO_REQ_CMB},
                                     {OPT_SIM_TIME, "--simulation-time", SO_REQ_CMB},
                                     {OPT_NO_OUTPUT, "--no-output", SO_NONE},
@@ -63,6 +73,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_THREADS_RIG, "--num-threads-rig", SO_RE
                                     {OPT_INIT_VEL, "--initial-velocity", SO_REQ_CMB},
                                     {OPT_LONG_SLIP, "-s", SO_REQ_CMB},
                                     {OPT_LONG_SLIP, "--longitudinal-slip", SO_REQ_CMB},
+                                    {OPT_SUFFIX, "--suffix", SO_REQ_CMB},
                                     {OPT_HELP, "-?", SO_NONE},
                                     {OPT_HELP, "-h", SO_NONE},
                                     {OPT_HELP, "--help", SO_NONE},
@@ -75,11 +86,12 @@ bool GetProblemSpecs(int argc,
                      int rank,
                      int& nthreads_rig,
                      int& nthreads_terrain,
-                     PhaseType& phase,
                      double& sim_time,
-                     bool& output,
                      double& init_vel,
-                     double& slip);
+                     double& slip,
+                     bool& use_checkpoint,
+                     bool& output,
+                     std::string& suffix);
 
 // =============================================================================
 
@@ -103,15 +115,21 @@ int main(int argc, char** argv) {
     // Parse command line arguments
     int nthreads_rig = 2;
     int nthreads_terrain = 2;
-    PhaseType phase = SETTLING;
     double sim_time = 10;
     double init_vel = 0;
     double slip = 0;
+    bool use_checkpoint = false;
     bool output = true;
-    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, phase, sim_time, output, init_vel, slip)) {
+    std::string suffix = "";
+    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, use_checkpoint, output,
+                         suffix)) {
         MPI_Finalize();
         return 1;
     }
+
+    // Append suffix to output directories
+    rig_dir = rig_dir + suffix;
+    terrain_dir = terrain_dir + suffix;
 
     // Prepare output directories.
     if (rank == 0) {
@@ -142,13 +160,13 @@ int main(int argc, char** argv) {
 
     switch (rank) {
         case RIG_NODE_RANK:
-            my_rig = new RigNode(phase, init_vel, slip, nthreads_rig);
+            my_rig = new RigNode(init_vel, slip, nthreads_rig);
             if (output) {
                 my_rig->SetOutputFile(rig_dir + "/rig_results.txt");
             }
             break;
         case TERRAIN_NODE_RANK:
-            my_terrain = new TerrainNode(phase, TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, nthreads_terrain);
+            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, nthreads_terrain);
             if (output) {
                 ////my_terrain->SetOutputFile(terrain_dir + "/terrain_results.txt");
             }
@@ -196,11 +214,6 @@ int main(int argc, char** argv) {
                     output_frame++;
                 }
 
-                if (phase == SETTLING && is % checkpoint_steps == 0) {
-                    my_rig->WriteCheckpoint();
-                    checkpoint_frame++;
-                }
-
                 break;
             }
             case TERRAIN_NODE_RANK: {
@@ -214,7 +227,7 @@ int main(int argc, char** argv) {
                     output_frame++;
                 }
 
-                if (phase == SETTLING && is % checkpoint_steps == 0) {
+                if (is % checkpoint_steps == 0) {
                     my_terrain->WriteCheckpoint();
                     checkpoint_frame++;
                 }
@@ -242,11 +255,10 @@ void ShowUsage() {
     cout << "        Specify number of OpenMP threads for the rig node [default: 2]" << endl;
     cout << " --num-threads-terrain=NUM_THREADS_TERRAIN" << endl;
     cout << "        Specify number of OpenMP threads for the terrain node [default: 2]" << endl;
-    cout << " -p=PHASE" << endl;
-    cout << " --phase=PHASE" << endl;
-    cout << "        Specify the problem type [default: SETTLING]" << endl;
-    cout << "        PHASE=0 or PHASE=SETTLING    settling phase, generate checkpoints" << endl;
-    cout << "        PHASE=1 or PHASE=TESTING     testing phase, initialize from checkpoint" << endl;
+    cout << " -c" << endl;
+    cout << " --use-checkpoint" << endl;
+    cout << "        Initialize granular terrain from checkppoint file" << endl;
+    cout << "        If not specified, the granular material is settled through simulation" << endl;
     cout << " -t=SIM_TIME" << endl;
     cout << " --simulation-time=SIM_TIME" << endl;
     cout << "        Specify simulation length in seconds [default: 10]" << endl;
@@ -258,6 +270,8 @@ void ShowUsage() {
     cout << "        Specify the value of the longitudinal slip [default: 0]" << endl;
     cout << " --no-output" << endl;
     cout << "        Disable generation of output files" << endl;
+    cout << " --suffix=SUFFIX" << endl;
+    cout << "        Specify suffix for output directory names [default: \"\"]" << endl;
     cout << " -? -h --help" << endl;
     cout << "        Print this message and exit." << endl;
     cout << endl;
@@ -268,16 +282,17 @@ bool GetProblemSpecs(int argc,
                      int rank,
                      int& nthreads_rig,
                      int& nthreads_terrain,
-                     PhaseType& phase,
                      double& sim_time,
-                     bool& output,
                      double& init_vel,
-                     double& slip) {
-    // Create the option parser and pass it the program arguments and the array
-    // of valid options. Then loop for as long as there are arguments to be
-    // processed.
+                     double& slip,
+                     bool& use_checkpoint,
+                     bool& output,
+                     std::string& suffix
+                     ) {
+    // Create the option parser and pass it the program arguments and the array of valid options. 
     CSimpleOptA args(argc, argv, g_options);
 
+    // Then loop for as long as there are arguments to be processed.
     while (args.Next()) {
         // Exit immediately if we encounter an invalid argument.
         if (args.LastError() != SO_SUCCESS) {
@@ -313,18 +328,12 @@ bool GetProblemSpecs(int argc,
             case OPT_NO_OUTPUT:
                 output = false;
                 break;
-            case OPT_PHASE: {
-                std::string phase_str = args.OptionArg();
-                std::transform(phase_str.begin(), phase_str.end(), phase_str.begin(), ::toupper);
-                if (phase_str == "0" || phase_str == "SETTLING")
-                    phase = SETTLING;
-                else if (phase_str == "1" || phase_str == "TESTING")
-                    phase = TESTING;
-                else
-                    return false;
-
+            case OPT_USE_CHECKPOINT:
+                use_checkpoint = true;
                 break;
-            }
+            case OPT_SUFFIX:
+                suffix = args.OptionArg();
+                break;
         }
     }
 

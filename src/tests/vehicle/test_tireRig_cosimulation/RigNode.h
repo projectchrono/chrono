@@ -60,8 +60,7 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
 
 class RigNode {
   public:
-    RigNode(PhaseType phase,  ///< problem type (SETTLING or TESTING)
-            double init_vel,  ///< initial wheel linear velocity
+    RigNode(double init_vel,  ///< initial wheel linear velocity
             double slip,      ///< longitudinal slip value
             int num_threads   ///< number of OpenMP threads
             );
@@ -76,11 +75,8 @@ class RigNode {
     double GetSimTime() { return m_timer.GetTimeSeconds(); }
     double GetTotalSimTime() { return m_cumm_sim_time; }
     void OutputData(int frame);
-    void WriteCheckpoint();
 
   private:
-    PhaseType m_phase;  ///< problem type (SETTLING or TESTING)
-
     chrono::ChSystemDEM* m_system;  ///< containing system
     double m_step_size;             ///< integration step size
 
@@ -105,13 +101,6 @@ class RigNode {
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;
     double m_cumm_sim_time;
-
-    static const std::string m_checkpoint_filename;  ///< name of checkpointing file
-
-    // Initialize body and tire state at initial configuration
-    void InitBodies(double init_height, double long_half_length);
-    // Initialize body and tire state from checkpointing file
-    void InitBodies();
 
     // Write mesh node state information
     void WriteStateInformation(chrono::utils::CSV_writer& csv);

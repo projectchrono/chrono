@@ -54,9 +54,9 @@ class TerrainNode {
   public:
     enum Type { RIGID, GRANULAR };
 
-    TerrainNode(PhaseType phase,                                      ///< problem type (SETTLING or TESTING)
-                Type type,                                            ///< terrain type (RIGID or GRANULAR)
+    TerrainNode(Type type,                                            ///< terrain type (RIGID or GRANULAR)
                 chrono::ChMaterialSurfaceBase::ContactMethod method,  ///< contact method (penalty or complementatiry)
+                bool use_checkpoint,                                  ///< initialize granular terrain from checkpoint
                 int num_threads                                       ///< number of OpenMP threads
                 );
     ~TerrainNode();
@@ -95,8 +95,6 @@ class TerrainNode {
         int m_index;
     };
 
-    PhaseType m_phase;  ///< problem type (SETTLING or TESTING)
-
     Type m_type;  ///< terrain type (RIGID or GRANULAR)
 
     chrono::ChMaterialSurfaceBase::ContactMethod m_method;  ///< contact method (penalty or complementarity)
@@ -117,6 +115,7 @@ class TerrainNode {
 
     double m_init_height;  ///< initial terrain height (after optional settling)
 
+    bool m_use_checkpoint;         ///< initialize granular terrain from checkpoint file
     int m_Id_g;                    ///< first identifier for granular material bodies
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
