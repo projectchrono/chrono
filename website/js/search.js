@@ -1,6 +1,5 @@
 ---
 ---
-
 jQuery(function() {
   // Initialize lunr with the fields to be searched, plus the boost.
   console.log("Initializing lunr");
@@ -23,18 +22,18 @@ jQuery(function() {
     });
   });
 
-  // If search originates from search bar
-  $("#search_bar_triggered").submit(function(event){
-      event.preventDefault();
-      console.log("Search bar triggered");
-      var query = $("#search_bar").val(); // Get the value for the text field
-      console.log("query is " + query);
+  // // If search originates from search bar
+  // $("#search_bar_triggered").submit(function(event){
+  //     event.preventDefault();
+  //     console.log("Search bar triggered");
+  //     var query = $("#search_bar").val(); // Get the value for the text field
+  //     console.log("query is " + query);
       
-      var results = window.idx.search(query); // Get lunr to perform a search
-            console.log("results is " + results);
-      $("#search_box").val(query);
-      display_search_results(results); // Hand the results off to be displayed
-  });
+  //     var results = window.idx.search(query); // Get lunr to perform a search
+  //           console.log("results is " + results);
+  //     $("#search_box").val(query);
+  //     display_search_results(results); // Hand the results off to be displayed
+  // });
 
   // Event when the form is submitted
   $("#site_search").submit(function(event){
@@ -44,7 +43,8 @@ jQuery(function() {
       // If query was passed from search bar
       console.log("Reading from search box");
       var query = $("#search_box").val(); // Get the value for the text field
-  
+      search_documentation(query);
+
       console.log("query is " + query);
 
       var results = window.idx.search(query); // Get lunr to perform a search
@@ -81,3 +81,5 @@ jQuery(function() {
   }
 
 });
+
+

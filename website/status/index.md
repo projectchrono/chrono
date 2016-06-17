@@ -5,7 +5,6 @@ permalink: /status/
 ---
 {::options parse_block_html="true" /}
 
-
 ### Project Chrono Benchmark Test Results:
 
 <html>
@@ -16,6 +15,7 @@ permalink: /status/
 </select>
 
 <div id='metrics' ></div>
+
 {% include plot_charts.js %}
 
 </body>
