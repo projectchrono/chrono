@@ -94,7 +94,7 @@ TerrainNode::TerrainNode(Type type,
     m_hthick = 0.25;
 
     // Granular material properties
-    m_radius_g = 0.01;
+    m_radius_g = 0.006;
     m_Id_g = 10000;
     double rho_g = 2500;
     double vol_g = (4.0 / 3) * CH_C_PI * m_radius_g * m_radius_g * m_radius_g;
@@ -105,7 +105,7 @@ TerrainNode::TerrainNode(Type type,
     // Terrain contact properties
     float friction_terrain = 0.9f;
     float restitution_terrain = 0.0f;
-    float Y_terrain = 2e6f;
+    float Y_terrain = 8e5f;
     float nu_terrain = 0.3f;
     float kn_terrain = 1.0e7f;
     float gn_terrain = 1.0e3f;
@@ -156,7 +156,7 @@ TerrainNode::TerrainNode(Type type,
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
     m_system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    m_system->GetSettings()->collision.bins_per_axis = I3(400, 20, 20);
+    m_system->GetSettings()->collision.bins_per_axis = I3(1000, 150, 20);
 
     // Set number of threads
     m_system->SetParallelThreadNumber(num_threads);
@@ -181,6 +181,7 @@ TerrainNode::TerrainNode(Type type,
             mat_ter->SetRestitution(restitution_terrain);
             mat_ter->SetYoungModulus(Y_terrain);
             mat_ter->SetPoissonRatio(nu_terrain);
+            mat_ter->SetAdhesion(100.0f);  // TODO
             mat_ter->SetKn(kn_terrain);
             mat_ter->SetGn(gn_terrain);
             mat_ter->SetKt(kt_terrain);
@@ -418,7 +419,7 @@ void TerrainNode::Settle() {
         // -------------------------------------
         // Simulate settling of granular terrain
         // -------------------------------------
-        double time_end = 0.5;
+        double time_end = 0.4;
         double time_step = 1e-4;
 
         while (m_system->GetChTime() < time_end) {
