@@ -22,6 +22,8 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
+#include "BaseTest.h"
+
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 ////#define USE_MKL
@@ -45,7 +47,39 @@ int numDiv_x = 50;
 int numDiv_y = 50;
 int numDiv_z = 1;
 
+/// A new test class that extends the BaseTest class so that it outputs proper JSON to be used in the metricsAPI
+class test_FEA_shellANCF : public BaseTest {
+public: test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
+    : BaseTest(testName, testProjectName),
+      m_execTime(-1)
+    {
+    		std::cout << "Constructing Derived Test" << std::endl;
+    }
+//     Default destuctor
+    ~test_FEA_shellANCF(){}
+    
+    // Override corresponding functions in BaseTest
+    virtual bool execute() {
+    	return m_passed;
+    }
+    virtual double getExecutionTime() const {
+    	return m_execTime;
+    }
+    bool setPassed(bool passed) {
+    	m_passed = passed;
+    }
+    bool setExecTime(double time) {
+    	m_execTime = time;
+    }
+private: 
+    /// Used to measure total test execution time for unit test
+    double m_execTime;
+    bool m_passed;
+};
+
+
 int main(int argc, char* argv[]) {
+	test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
     // If no command line arguments, run in "performance" mode and only report run time.
     // Otherwise, generate output files to verify correctness.
     bool output = (argc > 1);
@@ -235,14 +269,22 @@ int main(int argc, char* argv[]) {
 
         // Report run time and total number of iterations.
         GetLog() << "Number of iterations: " << num_iterations << "\n";
+        t.addMetric("num_iterations", num_iterations);
         GetLog() << "Simulation time:  " << timer() << "\n";
+        t.setExecTime(timer());
         GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
                  << "):  " << my_mesh->GetTimingInternalForces() << "\n";
+        t.addMetric("internal_forces", my_mesh->GetTimingInternalForces());
         GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad()
                  << "\n";
+        t.addMetric("jacobian", my_mesh->GetTimingJacobianLoad());
         GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad()
                  << "\n";
+        t.addMetric("extra_time", timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad());
+        t.setPassed(true);
     }
-
+    
+    t.print();
+    t.run();
     return 0;
 }

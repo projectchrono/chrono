@@ -204,7 +204,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Fills the Nz shape function derivative matrix with respect to Z.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 8 columns matrix!
-    void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
+    void ShapeFunctionsDerivativeZ(ChMatrixlsls>& Nz, double x, double y, double z);
 	/// Return a vector with three strain components
 	ChVector<> EvaluateSectionStrains();
   private:
