@@ -85,7 +85,11 @@ const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
 // - create (but do not initialize) the tire
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
+RigNode::RigNode(PhaseType phase, double init_vel, double slip, int num_threads)
+    : m_phase(phase), m_init_vel(init_vel), m_slip(slip), m_cumm_sim_time(0) {
+    std::cout << "[Rig node    ] phase = " << phase << " init_vel = " << init_vel << " slip = " << slip
+              << " num_threads = " << num_threads << std::endl;
+
     // ----------------
     // Model parameters
     // ----------------
@@ -101,9 +105,6 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
 	ChVector<> axle_inertia(0.1, 0.1, 0.1);
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
-
-    m_init_vel = 0; //// 20;
-	m_slip = 0; // Enforced longitudinal slip
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -278,7 +279,7 @@ void RigNode::Initialize() {
     init_dim[0] += 1e-5;
 
     // Set states, either at initial configuration or from checkpoint (depending on phase)
-    switch (phase) {
+    switch (m_phase) {
         case SETTLING: {
 			InitBodies(init_dim[0], init_dim[1]);
             break;
@@ -380,6 +381,9 @@ void RigNode::InitBodies() {
     // Open input file stream
     std::ifstream ifile(m_checkpoint_filename);
     std::string line;
+
+    // Read and discard line with current time
+    std::getline(ifile, line);
 
     // Initialize the rig mechanism bodies
     int identifier;
@@ -595,8 +599,9 @@ void RigNode::OutputData(int frame) {
     sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
-    WriteStateInformation(csv);
-	WriteMeshInformation(csv); // Connectivity and strain state
+    csv << m_system->GetChTime() << std::endl;  // current time
+    WriteStateInformation(csv);                 // state of bodies and tire
+    WriteMeshInformation(csv);                  // connectivity and strain state
     csv.write_to_file(filename);
 }
 
@@ -604,6 +609,7 @@ void RigNode::OutputData(int frame) {
 // -----------------------------------------------------------------------------
 void RigNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
+    csv << m_system->GetChTime() << std::endl;
     WriteStateInformation(csv);
     csv.write_to_file(m_checkpoint_filename);
 

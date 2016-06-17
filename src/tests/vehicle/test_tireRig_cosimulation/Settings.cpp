@@ -31,12 +31,7 @@ double gacc = -9.81;
 // Specify whether or not contact coefficients are based on material properties
 bool use_mat_properties = false;
 
-// Number of OpenMP threads on each MPI node
-int nthreads_rignode = 2;
-int nthreads_terrainnode = 2;
-
-// Number of cosimulation steps and step size
-int num_steps = 125000;
+// Cosimulation step size
 double step_size = 1e-4;
 
 // Output directories
@@ -49,8 +44,3 @@ double output_fps = 1000;
 
 // Checkpointing frequency (frames per second)
 double checkpoint_fps = 100;
-
-// Problem phase.  
-// In SETTLING, generate checkpointing output.
-// In TESTING, initialize from checkpointing files.
-PhaseType phase = SETTLING;

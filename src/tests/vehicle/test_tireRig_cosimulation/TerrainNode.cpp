@@ -65,8 +65,11 @@ const std::string TerrainNode::m_checkpoint_filename = terrain_dir + "/checkpoin
 // - create the container body
 // - if specified, create the granular material
 // -----------------------------------------------------------------------------
-TerrainNode::TerrainNode(Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
-    : m_type(type), m_method(method), m_num_particles(0), m_init_height(0), m_cumm_sim_time(0) {
+TerrainNode::TerrainNode(PhaseType phase, Type type, ChMaterialSurfaceBase::ContactMethod method, int num_threads)
+    : m_phase(phase), m_type(type), m_method(method), m_num_particles(0), m_init_height(0), m_cumm_sim_time(0) {
+    std::cout << "[Terrain node] phase = " << phase << " type = " << type << " method = " << method
+              << " num_threads = " << num_threads << std::endl;
+
     // ----------------
     // Model parameters
     // ----------------
@@ -345,7 +348,7 @@ void TerrainNode::Settle() {
         return;
     }
 
-    switch (phase) {
+    switch (m_phase) {
         case SETTLING: {
             // Simulate granular material
             double time_end = 0.5;
@@ -369,6 +372,9 @@ void TerrainNode::Settle() {
             // Open input file stream
             std::ifstream ifile(m_checkpoint_filename);
             std::string line;
+
+            // Read and discard line with current time
+            std::getline(ifile, line);
 
             // Read number of particles in checkpoint
             unsigned int num_particles;
@@ -424,6 +430,9 @@ void TerrainNode::Settle() {
 // - create the appropriate proxy bodies (state not set yet)
 // -----------------------------------------------------------------------------
 void TerrainNode::Initialize() {
+    // Reset system time
+    m_system->SetChTime(0);
+
     // ------------------------------------------
     // Send information for initial tire location
     // ------------------------------------------
@@ -795,6 +804,21 @@ void TerrainNode::OutputData(int frame) {
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", terrain_dir.c_str(), frame + 1);
+
+    utils::CSV_writer csv(" ");
+    
+    // Write current time, number of granular particles and their radius
+    csv << m_system->GetChTime() << std::endl;
+    csv << m_num_particles << m_radius_g << std::endl;
+
+    // Write particle positions and linear velocities
+    for (auto body : *m_system->Get_bodylist()) {
+        if (body->GetIdentifier() < m_Id_g)
+            continue;
+        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << std::endl;
+    }
+
+    csv.write_to_file(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -802,7 +826,8 @@ void TerrainNode::OutputData(int frame) {
 void TerrainNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
     
-    // Write number of granular material bodies.
+    // Write current time and number of granular material bodies.
+    csv << m_system->GetChTime() << std::endl;
     csv << m_num_particles << std::endl;
 
     // Loop over all bodies in the system and write state for granular material bodies.
@@ -810,7 +835,7 @@ void TerrainNode::WriteCheckpoint() {
     for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() < m_Id_g)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << body->GetPos_dt() << body->GetRot_dt()
+        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
             << std::endl;
     }
 
