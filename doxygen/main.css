@@ -3831,7 +3831,7 @@ tbody.collapse.in {
 
 .navbar-nav {
   margin: 6px -15px; }
-  .navbar-nav > li > a {
+  .navbar-nav > li > a, form {
     padding-top: 10px;
     padding-bottom: 10px;
     line-height: 21px; }
