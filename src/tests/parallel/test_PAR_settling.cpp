@@ -40,12 +40,51 @@
 
 using namespace chrono;
 
+// --------------------------------------------------------------------------
+
+void TimingHeader() {
+    printf("    TIME    |");
+    printf("    STEP |");
+    printf("   BROAD |");
+    printf("  NARROW |");
+    printf("  SOLVER |");
+    printf("  UPDATE |");
+    printf("# BODIES |");
+    printf("# CONTACT|");
+    printf(" # ITERS |");
+    printf("   RESID |");
+    printf("\n\n");
+}
+
+void TimingOutput(chrono::ChSystem* mSys) {
+    double TIME = mSys->GetChTime();
+    double STEP = mSys->GetTimerStep();
+    double BROD = mSys->GetTimerCollisionBroad();
+    double NARR = mSys->GetTimerCollisionNarrow();
+    double SOLVER = mSys->GetTimerSolver();
+    double UPDT = mSys->GetTimerUpdate();
+    double RESID = 0;
+    int REQ_ITS = 0;
+    int BODS = mSys->GetNbodies();
+    int CNTC = mSys->GetNcontacts();
+    if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
+        RESID = ((chrono::ChIterativeSolverParallel*)(mSys->GetSolverSpeed()))->GetResidual();
+        REQ_ITS = ((chrono::ChIterativeSolverParallel*)(mSys->GetSolverSpeed()))->GetTotalIterations();
+        BODS = parallel_sys->GetNbodies();
+        CNTC = parallel_sys->GetNcontacts();
+    }
+
+    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f |\n", TIME, STEP, BROD, NARR, SOLVER,
+        UPDT, BODS, CNTC, REQ_ITS, RESID);
+}
+
+// --------------------------------------------------------------------------
+
 int main(int argc, char** argv) {
     int num_threads = 4;
     ChMaterialSurfaceBase::ContactMethod method = ChMaterialSurfaceBase::DEM;
     bool use_mat_properties = true;
-    bool render = true;
-
+    bool render = false;
 
     // Get number of threads from arguments (if specified)
     if (argc > 1) {
@@ -245,14 +284,16 @@ int main(int argc, char** argv) {
     double time_end = 0.4;
     double time_step = 1e-4;
 
+    TimingHeader();
     while (system->GetChTime() < time_end) {
-        timer.reset();
-        timer.start();
+        ////timer.reset();
+        ////timer.start();
         system->DoStepDynamics(time_step);
-        timer.stop();
-        cumm_sim_time += timer();
-        std::cout << '\r' << std::fixed << std::setprecision(6) << system->GetChTime() << "  ["
-                  << timer.GetTimeSeconds() << "]" << std::flush;
+        TimingOutput(system);
+        ////timer.stop();
+        ////cumm_sim_time += timer();
+        ////std::cout << std::fixed << std::setprecision(6) << system->GetChTime() << "  [" << timer.GetTimeSeconds() << "]"
+        ////          << std::endl;
 #ifdef CHRONO_OPENGL
         if (render) {
             opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
