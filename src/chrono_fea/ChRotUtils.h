@@ -219,7 +219,7 @@ void CoeffEStar(const T1 &phi, const ChVector<> &p,
 
 
 /// Compute the rotation matrix Phi from Euler Rogriguez's parameters phi
-
+static
 ChMatrix33<> Rot(const ChVector<> & phi){
 	double coeff[COEFF_B];
 
@@ -237,7 +237,7 @@ ChMatrix33<> Rot(const ChVector<> & phi){
 
 /// Compute a G matrix from Euler Rogriguez's parameters Phi
 /// G defined in such a way that dPhi * PhiT = G * dphi
-
+static
  ChMatrix33<> DRot(const ChVector<> & phi){
 	double coeff[COEFF_C];
 
@@ -249,13 +249,13 @@ ChMatrix33<> Rot(const ChVector<> & phi){
     ChMatrix33<> pxpx; pxpx.Set_XY_matrix(phi, phi*coeff[2]);
 	Ga += pxpx;	/* += c[2] * phi x phi x */
 
-	return Ga;
+    return Ga;
 }
 
 
 /// Compute rotation matrix Phi and Ga matrix 
 /// from Euler Rogriguez's parameters Phi
-
+static
 void RotAndDRot(const ChVector<> & phi, ChMatrix33<> & Phi, ChMatrix33<> & Ga){
 	double coeff[COEFF_C];
 
@@ -278,7 +278,7 @@ void RotAndDRot(const ChVector<> & phi, ChMatrix33<> & Phi, ChMatrix33<> & Ga){
 
 /// Compute the inverse transpose of G matrix from
 /// Euler Rogriguez's parameters Phi
-
+static
 ChMatrix33<> DRot_IT(const ChVector<> & phi){
 	double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 	
@@ -295,7 +295,7 @@ ChMatrix33<> DRot_IT(const ChVector<> & phi){
 
 
 /// Compute the inverse of G matrix from Euler Rogriguez's parameters Phi
-
+static
 ChMatrix33<> DRot_I(const ChVector<> & phi){
 	double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 	
@@ -313,7 +313,7 @@ ChMatrix33<> DRot_I(const ChVector<> & phi){
 
 /// Compute inverse transpose ot rotation matrix Phi and Ga matrix 
 /// given Euler Rogriguez's parameters Phi
-
+static
 void RotAndDRot_IT(const ChVector<> & phi, ChMatrix33<> & PhiIT, ChMatrix33<> & GaIT){
 	double coeff[COEFF_D], coeffs[COEFF_C_STAR];
 
@@ -335,7 +335,7 @@ void RotAndDRot_IT(const ChVector<> & phi, ChMatrix33<> & PhiIT, ChMatrix33<> & 
 
 
 /// Compute Euler Rogriguez's parameters phi from rotation matrix Phi
-
+static
 ChVector<> VecRot(const ChMatrix33<> & Phi){
 	double a, cosphi, sinphi;
 	ChVector<> unit;
@@ -374,7 +374,7 @@ ChVector<> VecRot(const ChMatrix33<> & Phi){
 
 /// Compute, given Euler Rogriguez's parameters phi, a L matrix such that
 /// dG * a = L(phi, a) * dphi
-
+static
 ChMatrix33<> Elle(const ChVector<> & phi, const ChVector<> & a){
     double coeff[COEFF_E];
     CoeffE(phi,phi,coeff);

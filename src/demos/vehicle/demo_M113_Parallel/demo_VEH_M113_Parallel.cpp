@@ -365,7 +365,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, system);
+    M113_Vehicle vehicle(true, SINGLE_PIN, system);
     ////vehicle.SetStepsize(0.0001);
 
     vehicle.SetChassisVisType(NONE);

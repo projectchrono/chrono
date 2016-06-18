@@ -34,7 +34,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChNodeSPH> a_registration_ChNodeSPH;
 
-ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(NULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
+ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
     collision_model = new ChModelBullet;
     collision_model->SetContactable(this);
 

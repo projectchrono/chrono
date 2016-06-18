@@ -19,12 +19,7 @@
 #ifndef M113_VEHICLE_H
 #define M113_VEHICLE_H
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
-#include "chrono/physics/ChSystem.h"
-
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
-
 #include "models/ChApiModels.h"
 
 namespace chrono {
@@ -34,9 +29,10 @@ namespace m113 {
 class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
+                 TrackShoeType shoe_type,
                  ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
-    M113_Vehicle(bool fixed, ChSystem* system);
+    M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system);
 
     ~M113_Vehicle() {}
 
@@ -55,19 +51,18 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   private:
     void Create(bool fixed);
 
-    // Chassis visualization mesh
-    static const std::string m_chassisMeshName;
-    static const std::string m_chassisMeshFile;
+    TrackShoeType m_type;  ///< type of track assembly (SINGLE_PIN or DOUBLE_PIN)
 
-    // Chassis mass properties
-    static const double m_chassisMass;
-    static const ChVector<> m_chassisCOM;
-    static const ChVector<> m_chassisInertia;
+    static const std::string m_chassisMeshName;  ///< name of chassis visualization mesh
+    static const std::string m_chassisMeshFile;  ///< name of Wavefront file with chassis visualization mesh
 
-    // Driver local coordinate system
-    static const ChCoordsys<> m_driverCsys;
+    static const double m_chassisMass;         ///< chassis mass
+    static const ChVector<> m_chassisCOM;      ///< location of chassis center of mass
+    static const ChVector<> m_chassisInertia;  ///< chassis inertia moments
 
-    VisualizationType m_chassisVisType;
+    static const ChCoordsys<> m_driverCsys;  ///< driver local coordinate system
+
+    VisualizationType m_chassisVisType;  ///< chassis visualization type
 };
 
 }  // end namespace m113

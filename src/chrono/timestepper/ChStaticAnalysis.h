@@ -183,7 +183,7 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
             mintegrable->LoadResidual_F(R, 1.0);
             mintegrable->LoadConstraint_C(Qc, 1.0);
 
-            double cfactor = ChMin(1.0, ((double)(i + 1) / (double)(incremental_steps + 1)));
+            double cfactor = ChMin(1.0, ((double)(i + 2) / (double)(incremental_steps + 1)));
             R *= cfactor;
             Qc *= cfactor;
 

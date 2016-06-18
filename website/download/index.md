@@ -8,11 +8,8 @@ permalink: /download/
 
 
 
-Chrono::Engine
---------------
-
-Note that there is no download for Chrono::Engine. You should **clone it** from the public 
-[GIT repository](https://github.com/projectchrono/chrono) and **compile** the C++ source code.
+Note that there is no download for Project Chrono. Chrono should be **cloned** from the public 
+[GIT repository](https://github.com/projectchrono/chrono) and **compiled** from its C++ source code.
 
 <div>
 <a href="https://github.com/projectchrono/chrono">
@@ -28,8 +25,7 @@ Required tools
 
 ### C++ compiler 
 
-Chrono requires a C++11 compliant compiler. 
-We tested it on Microsoft compilers (required version Visual Studio v.2013 or later), GNU compilers, Intel compilers.
+Chrono requires a C++11 compliant compiler. The Chrono building process has been tested with Microsoft compilers (required version Visual Studio v.2013 or later), GNU compilers, and Intel compilers.
 
 <div class="ce-info">
 

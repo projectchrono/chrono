@@ -94,7 +94,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
   string(TOLOWER ${COMPONENT} COMPONENT_LOWER)
   string(TOUPPER ${COMPONENT} COMPONENT_UPPER)
 
-  # Report the name of the component that was requested and whether is was
+  # Report the name of the component that was requested and whether it was
   # required or optional.
 
   if(Chrono_FIND_REQUIRED_${COMPONENT})
@@ -165,6 +165,7 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       
     elseif(${COMPONENT_UPPER} MATCHES "FSI")
  
+      list(APPEND CHRONO_INCLUDE_DIRS "@CH_FSI_INCLUDES@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
 
@@ -286,10 +287,8 @@ function(add_DLL_copy_command DLL_LIST)
     message(STATUS "==== Add custom commands for copying DLLs ====")
     message(STATUS "DLL list...")
     
-    # Create custom target for copying DLLs; add it to the default build target.
-    # Hack: add a dependency on a missing file, to force this target to run every time.
-    add_custom_target(COPY_DLLS ALL
-                      DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__missing_file__)
+    # Create custom target for copying DLLs; add it to the default build target
+    add_custom_target(COPY_DLLS ALL)
     
     # Add custom command to create the destination folder
     add_custom_command(TARGET COPY_DLLS PRE_BUILD

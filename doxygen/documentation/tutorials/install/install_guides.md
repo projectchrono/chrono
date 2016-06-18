@@ -1,7 +1,7 @@
 Installation Guides {#tutorial_table_of_content_install}
 ==========================
 
-## Installing/build Chrono
+## Installing/building Chrono
 
 -   @subpage tutorial_install_chrono
 

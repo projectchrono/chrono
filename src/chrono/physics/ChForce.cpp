@@ -23,10 +23,10 @@ ChClassRegister<ChForce> a_registration_ChForce;
 
 ChForce::ChForce()
     : Body(NULL),
-      vpoint(NULL),
-      vrelpoint(NULL),
-      force(NULL),
-      relforce(NULL),
+      vpoint(VNULL),
+      vrelpoint(VNULL),
+      force(VNULL),
+      relforce(VNULL),
       vdir(VECT_X),
       vreldir(VECT_X),
       restpos(VNULL),

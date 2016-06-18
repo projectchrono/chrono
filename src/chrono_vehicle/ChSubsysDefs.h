@@ -225,10 +225,16 @@ enum DrivelineType {
     AWD   ///< all-wheel drive
 };
 
-/// Enum for track shoe types
+/// Enum for track shoe types.
 enum TrackShoeType {
-    CENTRAL_PIN,  ///< track shoes with central guiding pin
-    LATERAL_PIN   ///< track shoes with lateral guiding pins
+    SINGLE_PIN,  ///< single-pin track shoe and sprocket
+    DOUBLE_PIN   ///< double-pin track shoe and sprocket
+};
+
+/// Enum for guide pin (track shoe/roadwheel/idler).
+enum GuidePinType {
+    CENTRAL_PIN,  ///< track shoes with central guiding pin and double wheels
+    LATERAL_PIN   ///< track shoes with lateral guiding pins and single wheels
 };
 
 /// Flags for output (log/debug).

@@ -1,11 +1,10 @@
 
-Visualization assets      {#visualization_assets}
+Assets      {#visualization_assets}
 ====================
 
-This section is about assets, that is, optional objects that can be attached to [rigid bodies](@ref rigid_bodies). 
-Assets can be used either for attaching 
-* custom user-defined data (es. electric charge, costs, sounds, etc.) 
-* or to attach visualization shapes.
+__Assets__ represent optional objects that can be attached to [rigid bodies](@ref rigid_bodies) to provide access to information/data such as:
+* Visualization shapes
+* Custom user-defined data such as electric charge, costs, sounds, etc. 
 
 
 # ChAsset    {#manual_ChAsset}
@@ -13,27 +12,25 @@ Assets can be used either for attaching
 The ChAsset class is the base class for all types of assets. 
 See @ref chrono::ChAsset for API details.
 
-The following is an example of a custom-defined asset, 
-where the user wants to attach an information 'electrical charge' 
-to a rigid body:
+Example: a custom-defined asset is introduced below to illustrate a case in which a user attaches 'electrical charge' to a rigid body.
 
 ~~~{.cpp}
 // First declare a class inherited from ChAsset:
 
-class ElectricParticleProperty : public ChAsset
+class ElectricParticleProperty: public ChAsset
 { 
 public:
-	// data for this type of asset 
+	// Data for this type of asset 
 	double charge;
 	
-	// default constructor with initialization
+	// Default constructor with initialization
 	ElectricParticleProperty()
 	{
 		charge = 0;
 	}
 };
 
-// Now create an asset object from that class 
+// Create an asset object of  ElectricParticleProperty type
 
 ChSharedPtr<ElectricParticleProperty> electric_asset(new ElectricParticleProperty); 
 electric_asset->charge = 100;
@@ -43,43 +40,38 @@ electric_asset->charge = 100;
 mbody->AddAsset(electric_asset);
 ~~~
 
-
-Note that if you want to iterate over assets, later, 
-you might need to filter some specific class of asset, 
-and this can be done this way:
+Example: selecting all the assets of a certain type.
 
 ~~~{.cpp}
-for (unsigned int na= 0; na< abody->GetAssets().size(); na++)
+for (unsigned int na= 0; na<abody->GetAssets().size(); na++)
 {
-	ChSharedPtr<ChAsset> myasset = abody->GetAssetN(na);
-	if (ChSharedPtr<ElectricParticleProperty> electricasset = myasset.DynamicCastTo<ElectricParticleProperty>())
+	auto myasset = abody->GetAssetN(na);
+	if (std::shared_ptr<ElectricParticleProperty> electricasset = std::dynamic_pointer_cast<ElectricParticleProperty>(myasset))
 	{
-		// do things with the electricasset, ex print electricasset->charge;				
+		// Do things with the electricasset, for instance
+		electricasset->charge++;				
 	}
 }
 ~~~
 
 # Visualization shapes     {#manual_ChVisualization}
 
-There are many ready-to-use assets that are used to define visualization shapes.
-One can attach an unlimited number of visualization shapes to a body.
+There are many ready-to-use assets that define visualization shapes. Note that multiple visualization shapes can be attached to one body. 
 
-This system is interface-agnostic, in the sense that it does not 
-depend on a specific rendering engine. If, say, the [IRRLICHT module](@ref module_irrlicht) is used, 
-it is up to the Irrlicht module to convert these visualization assets 
-in something that can be rendered in the OpenGL view of Irrlicht; 
-if the [POSTPROCESSING module](@ref module_postprocessing) is used instead, such unit can convert 
-the visualization assets in scripts with shapes for the POVray rendering tool, etc.
+Chrono is rendering engine agnostic. Indeed, if the [IRRLICHT module](@ref module_irrlicht) is used,
+it is up to the Irrlicht module to convert the visualization assets 
+into something that can be rendered in the OpenGL view of Irrlicht. Likewise, 
+if the [POSTPROCESSING module](@ref module_postprocessing) is used instead, this unit is expected to convert the visualization assets into scripts with shapes for the POVray or some other rendering tool.
 
-Visualization assets are inherited from a common class: ChVisualization.
+Visualization assets are inherited from a base class called ChVisualization.
 See @ref chrono::ChVisualization for API details.
 
-Each shape has a translation and a rotation defined respect to the REF reference 
-of the owner [body](@ref rigid_bodies):
+Each shape has a translation and a rotation defined with respect to the REF reference 
+of the owner [body](@ref rigid_bodies). Note that this is not the COG frame, as shown in the figure below.
 
 ![](pic_ChAsset.png)
 
-There are many types of visualization assets:
+Examples of visualization assets:
 
 - ChSphereShape
 - ChBoxShape
@@ -88,48 +80,44 @@ There are many types of visualization assets:
 - ChConeShape
 - ChCapsuleShape
 
-A special type of visualization asset it the
-
-- ChAssetLevel
-
-that does not represent a shape, but it can contain other 
-visualization assets, as a group. This allows the creation 
-of hierarchical models. When rotating or translating a ChAssetLevel, 
-all other shapes are moved/rotated, because their frame is 
-defined respect to the owner level.
+A special type of visualization asset is the _ChAssetLevel_. 
+An object of this type does not represent a shape. Rather, it can contain other 
+visualization assets as a group. This allows the creation 
+of hierarchical models. When rotating or translating a ChAssetLevel object, 
+all the shapes associated with that object are moved/rotated.
 
 Other special assets are:
 
 - ChColorAsset
 - ChTexture
 
-They affect all the assets belonging to the same level, by coloring/texturing them.
+They affect all the assets belonging to the same level by coloring/texturing them.
 
-Some examples. Assuming you already created a body ```body_b```:
-
+Example.
 ~~~{.cpp}
-// Example: add a box
+// Assume that a body_b is already available at this point. Demonstrate how to add a box.
 
-ChSharedPtr<ChBoxShape> mbox (new ChBoxShape);
+auto mbox = std::make_shared<ChBoxShape>();
+
 mbox->GetBoxGeometry().Pos = ChVector<>(0,-1,0);
 mbox->GetBoxGeometry().Size = ChVector<>(10,0.5,10);
 body_b->AddAsset(mbox);	
 
 //Example: add a texture
 
-ChSharedPtr<ChTexture> mtexture(new ChTexture);
-mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+auto mtexture = std::make_shared<ChTexture>;
+mtexture->SetTextureFilename(GetChronoDataFile("bluewhite.png"));
 body_b->AddAsset(mtexture);
 
-// Example add a mesh (just referencing an .obj file):
+// Example: add a mesh via an .obj file
 
-ChSharedPtr<ChObjShapeFile> mobjmeshfile(new ChObjShapeFile);
+auto mobjmeshfile = std::make_shared<ChObjShapeFile>();
 mobjmeshfile->SetFilename("forklift_body.obj");
 body_b->AddAsset(mobjmeshfile);
 
-// Example add a mesh with triangle data:
+// Example: add a mesh with triangle data
 
-ChSharedPtr<ChTriangleMeshShape> mobjmesh(new ChTriangleMeshShape);
+auto mobjmesh = std::make_shared<ChTriangleMeshShape>();
 mobjmesh->GetMesh()->LoadWavefrontMesh("forklift_body.obj");
 body_b->AddAsset(mobjmesh);
 ~~~
@@ -137,7 +125,7 @@ body_b->AddAsset(mobjmesh);
 
 # Examples
 
-Among the many examples, look at:
+See also:
 
 - demo_irr_assets.cpp
 

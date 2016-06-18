@@ -669,7 +669,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     if (m_circular) {
                         // prepare a circular section
                         std::vector<ChVector<>> msection_pts(beam_resolution_section);
-                        for (int is = 0; is < msection_pts.size(); ++is) {
+                        for (size_t is = 0; is < msection_pts.size(); ++is) {
                             double sangle = CH_C_2PI * ((double)is / (double)msection_pts.size());
                             msection_pts[is] = ChVector<>(0, cos(sangle) * m_rad, sin(sangle) * m_rad);
                         }
@@ -690,7 +690,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
                             ChVector<int> islice_offset((in - 1) * msection_pts.size(), (in - 1) * msection_pts.size(),
                                                         (in - 1) * msection_pts.size());
-                            for (int is = 0; is < msection_pts.size(); ++is) {
+                            for (size_t is = 0; is < msection_pts.size(); ++is) {
                                 int ipa = is;
                                 int ipb = (is + 1) % msection_pts.size();
                                 int ipaa = ipa + msection_pts.size();
@@ -1115,14 +1115,14 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 	}
     
     //***TEST***
-    
+    if (true)
     for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
             // ------------ELEMENT IS A ChElementShellEANS4?
             if (auto myshell = std::dynamic_pointer_cast<ChElementShellEANS4>(this->FEMmesh->GetElement(iel))) {
-                glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                 glyphs_asset->SetGlyphsSize(0.4);
+                // average rotation
                 if (false) {
-                    // avg
+                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
                     glyphs_asset->GetNumberOfGlyphs();
                     glyphs_asset->SetGlyphCoordsys(glyphs_asset->GetNumberOfGlyphs(), 
                         ChCoordsys<>((myshell->GetNodeA()->GetPos()+myshell->GetNodeB()->GetPos()+myshell->GetNodeC()->GetPos()+myshell->GetNodeD()->GetPos())*0.25, 
@@ -1135,11 +1135,12 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphCoordsys(glyphs_asset->GetNumberOfGlyphs(), 
                             ChCoordsys<>(myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp]) );
+                            myshell->T_i[igp].Get_A_quaternion()) );
                     }
                 }
                 // gauss point weights
                 if (false) {
+                    glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                     for (int igp=0; igp<4; ++igp) {
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
@@ -1147,18 +1148,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             ChVector<>(0,myshell->alpha_i[igp]*4,0) );
                     }
                 }
-                // node rel.rotations
-                if (false) {
-                    for (int ipt=0; ipt<4; ++ipt) {
-                        glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
-                            myshell->EvaluatePT(ipt), 
-                            myshell->Tavg.Rotate(myshell->phi_tilde[ipt]*50) );
-                    }
-                }
                 // gauss curvatures
                 if (false) {
                     for (int igp=0; igp<4; ++igp) {
+                        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         /*
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
@@ -1172,27 +1165,23 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
                             myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate((myshell->kur_u_tilde[igp]+myshell->kur_v_tilde[igp])*50), ChColor(0,0,0) );
+                            myshell->T_i[igp] * ((myshell->k_tilde_1_i[igp]+myshell->k_tilde_2_i[igp])*50), ChColor(0,0,0) );
                     }
                 }
                 // gauss strains
                 if (true) {
                     for (int igp=0; igp<4; ++igp) {
+                        glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         double scale = 1; 
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
                             myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate(myshell->eps_tilde_u[igp]*scale), ChColor(1,0,0) );
+                            myshell->T_i[igp]*(myshell->eps_tilde_1_i[igp]*scale), ChColor(1,0,0) );
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
                             myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate(myshell->eps_tilde_v[igp]*scale), ChColor(0,0,1) );
+                            myshell->T_i[igp]*(myshell->eps_tilde_2_i[igp]*scale), ChColor(0,0,1) );
                         glyphs_asset->GetNumberOfGlyphs();
-                        /*
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), 
-                            myshell->EvaluateGP(igp), 
-                            myshell->T_i[igp].Rotate((myshell->eps_tilde_u[igp]+myshell->eps_tilde_v[igp])*1000), ChColor(0,0,0) );
-                            */
                     }
                 }
                 // other...
