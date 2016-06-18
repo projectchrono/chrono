@@ -1,4 +1,4 @@
-Build a project             {#tutorial_install_project}
+Building a project that uses Chrono             {#tutorial_install_project}
 ==========================
 
 
