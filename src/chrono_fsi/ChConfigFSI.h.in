@@ -24,6 +24,10 @@
 // Include main Chrono configuration header
 #include "chrono/ChConfig.h"
 
+// If using double precision
+//   #define CHRONO_FSI_USE_DOUBLE
+@CHRONO_FSI_USE_DOUBLE@
+
 // -----------------------------------------------------------------------------
 
 #endif

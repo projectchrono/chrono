@@ -26,26 +26,29 @@ namespace fsi {
 // Arman: have a function to set mphysical system
 //--------------------------------------------------------------------------------------------------------------------------------
 
-ChSystemFsi::ChSystemFsi(ChSystem* other_physicalSystem, bool other_haveFluid)
-    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid), mTime(0) {
+ChSystemFsi::ChSystemFsi(ChSystem *other_physicalSystem, bool other_haveFluid)
+    : mphysicalSystem(other_physicalSystem), haveFluid(other_haveFluid),
+      mTime(0) {
   fsiData = new ChFsiDataManager();
   paramsH = new SimParams;
   fsiBodeisPtr.resize(0);
   numObjectsH = &(fsiData->numObjects);
 
-  bceWorker = new ChBce(&(fsiData->sortedSphMarkersD), &(fsiData->markersProximityD), &(fsiData->fsiGeneralData),
-                        paramsH, numObjectsH);
+  bceWorker =
+      new ChBce(&(fsiData->sortedSphMarkersD), &(fsiData->markersProximityD),
+                &(fsiData->fsiGeneralData), paramsH, numObjectsH);
   fluidDynamics = new ChFluidDynamics(bceWorker, fsiData, paramsH, numObjectsH);
   fsiInterface =
       new ChFsiInterface(&(fsiData->fsiBodiesH), mphysicalSystem, &fsiBodeisPtr,
-                         &(fsiData->fsiGeneralData.rigid_FSI_ForcesD), &(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
+                         &(fsiData->fsiGeneralData.rigid_FSI_ForcesD),
+                         &(fsiData->fsiGeneralData.rigid_FSI_TorquesD));
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::Finalize() {
   FinalizeData();
   if (haveFluid) {
-	bceWorker->Finalize(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
+    bceWorker->Finalize(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
     fluidDynamics->Finalize();
   }
 }
@@ -60,11 +63,14 @@ ChSystemFsi::~ChSystemFsi() {
 }
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::CopyDeviceDataToHalfStep() {
-  thrust::copy(fsiData->sphMarkersD1.posRadD.begin(), fsiData->sphMarkersD1.posRadD.end(),
+  thrust::copy(fsiData->sphMarkersD1.posRadD.begin(),
+               fsiData->sphMarkersD1.posRadD.end(),
                fsiData->sphMarkersD2.posRadD.begin());
-  thrust::copy(fsiData->sphMarkersD1.velMasD.begin(), fsiData->sphMarkersD1.velMasD.end(),
+  thrust::copy(fsiData->sphMarkersD1.velMasD.begin(),
+               fsiData->sphMarkersD1.velMasD.end(),
                fsiData->sphMarkersD2.velMasD.begin());
-  thrust::copy(fsiData->sphMarkersD1.rhoPresMuD.begin(), fsiData->sphMarkersD1.rhoPresMuD.end(),
+  thrust::copy(fsiData->sphMarkersD1.rhoPresMuD.begin(),
+               fsiData->sphMarkersD1.rhoPresMuD.end(),
                fsiData->sphMarkersD2.rhoPresMuD.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
@@ -85,23 +91,31 @@ void ChSystemFsi::DoStepDynamics_FSI() {
   fsiInterface->Copy_ChSystem_to_External();
   this->CopyDeviceDataToHalfStep();
   ChDeviceUtils::FillMyThrust4(fsiData->fsiGeneralData.derivVelRhoD, mR4(0));
-  fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD2), &(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1),
+  fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD2),
+                              &(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1),
                               0.5 * paramsH->dT);
 
-  bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
+  bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD1),
+                                  &(fsiData->fsiBodiesD1));
   fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
   mTime += 0.5 * paramsH->dT;
 
   // TODO
-  DoStepChronoSystem(0.5 * paramsH->dT, mTime);  // Keep only this if you are just interested in the rigid sys
+  DoStepChronoSystem(
+      0.5 * paramsH->dT,
+      mTime); // Keep only this if you are just interested in the rigid sys
   //
 
   fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD2));
-  bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
+  bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2),
+                                                &(fsiData->fsiBodiesD2));
 
-  fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD1), &(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2), paramsH->dT);
+  fluidDynamics->IntegrateSPH(&(fsiData->sphMarkersD1),
+                              &(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2),
+                              paramsH->dT);
 
-  bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
+  bceWorker->Rigid_Forces_Torques(&(fsiData->sphMarkersD2),
+                                  &(fsiData->fsiBodiesD2));
 
   fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
 
@@ -113,7 +127,8 @@ void ChSystemFsi::DoStepDynamics_FSI() {
   DoStepChronoSystem(1.0 * paramsH->dT, mTime);
   //
   fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));
-  bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
+  bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1),
+                                                &(fsiData->fsiBodiesD1));
 
   // Density re-initialization
   int tStep = mTime / paramsH->dT;
@@ -127,7 +142,9 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
   fsiInterface->Copy_ChSystem_to_External();
   mTime += 0.5 * paramsH->dT;
 
-  DoStepChronoSystem(0.5 * paramsH->dT, mTime);  // Keep only this if you are just interested in the rigid sys
+  DoStepChronoSystem(
+      0.5 * paramsH->dT,
+      mTime); // Keep only this if you are just interested in the rigid sys
   mTime -= 0.5 * paramsH->dT;
   fsiInterface->Copy_External_To_ChSystem();
   mTime += paramsH->dT;
@@ -138,20 +155,25 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
   fsiData->ResizeDataManager();
-  // Arman: very important: you cannot change the order of (1-3). Fix the issue later
+  // Arman: very important: you cannot change the order of (1-3). Fix the issue
+  // later
   fsiInterface->ResizeChronoBodiesData();
-  fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));                     //(1)
-  fsiData->fsiBodiesD2 = fsiData->fsiBodiesD1;														//(2) construct midpoint rigid data
+  fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(
+      &(fsiData->fsiBodiesD1)); //(1)
+  fsiData->fsiBodiesD2 =
+      fsiData->fsiBodiesD1; //(2) construct midpoint rigid data
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {
+void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation,
+                                           chrono::ChVector<> CameraLookAt) {
 #ifdef CHRONO_OPENGL
   gl_window = &(chrono::opengl::ChOpenGLWindow::getInstance());
   gl_window->Initialize(1280, 720, "FSI_Problem", mphysicalSystem);
-  gl_window->SetCamera(CameraLocation, CameraLookAt, chrono::ChVector<>(0, 0, 1));
+  gl_window->SetCamera(CameraLocation, CameraLookAt,
+                       chrono::ChVector<>(0, 0, 1));
   gl_window->SetRenderMode(chrono::opengl::WIREFRAME);
 #endif
 }
 
-}  // end namespace fsi
-}  // end namespace chrono
+} // end namespace fsi
+} // end namespace chrono
