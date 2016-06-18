@@ -461,13 +461,6 @@ void ShellBrickContact() {
 	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
-	double JacCalcTime = 0.0;
-	for (int ii = 0; ii < TotalNumElements; ii++)
-	{
-		auto el = std::dynamic_pointer_cast<ChElementBrick_9>(my_mesh->GetElement(ii));
-		JacCalcTime += el->GetJacCalcTimer();
-	}
-	GetLog() << "JacCalc Time: " << JacCalcTime << "\n";
 }
 
 // Test Case
@@ -819,13 +812,6 @@ void SimpleBoxContact() {
 	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
-	double JacCalcTime = 0.0;
-	for (int ii = 0; ii < TotalNumElements; ii++)
-	{
-		auto el = std::dynamic_pointer_cast<ChElementBrick_9>(my_mesh->GetElement(ii));
-		JacCalcTime += el->GetJacCalcTimer();
-	}
-	GetLog() << "JacCalc Time: " << JacCalcTime << "\n";
 }
 
 // SoilBin Dynamic
@@ -1169,13 +1155,6 @@ void SoilBin() {
 	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
-	double JacCalcTime = 0.0;
-	for (int ii = 0; ii < TotalNumElements; ii++)
-	{
-		auto el = std::dynamic_pointer_cast<ChElementBrick_9>(my_mesh->GetElement(ii));
-		JacCalcTime += el->GetJacCalcTimer();
-	}
-	GetLog() << "JacCalc Time: " << JacCalcTime << "\n";
 }
 
 // Axial Dynamic
@@ -1446,13 +1425,6 @@ void AxialDynamics() {
 	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
-	double JacCalcTime = 0.0;
-	for (int ii = 0; ii < TotalNumElements; ii++)
-	{
-		auto el = std::dynamic_pointer_cast<ChElementBrick_9>(my_mesh->GetElement(ii));
-		JacCalcTime += el->GetJacCalcTimer();
-	}
-	GetLog() << "JacCalc Time: " << JacCalcTime << "\n";
 }
 
 // QuasiStatic
