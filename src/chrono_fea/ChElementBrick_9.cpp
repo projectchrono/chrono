@@ -847,11 +847,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
             // Obtain generalized elato-(plastic) forces
             result.MatrTMultiply(strainD, Stress);
-            if (ChElementBrick_9::Hencky == m_element->GetStrainFormulation()) {
-                result.MatrScale(detJ * m_element->m_GaussScaling);
-            } else {
-                result.MatrScale(detJ0 * m_element->m_GaussScaling);
-            }
+            result.MatrScale(detJ * m_element->m_GaussScaling);
             m_element->m_InteCounter++;
         } break;
     }
@@ -898,6 +894,8 @@ class MyJacobianBrick9 : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
     ChElementBrick_9* m_element;
     double m_Kfactor;
     double m_Rfactor;
+	ChMatrixNM<double, 33, 33> m_KTE1;
+	ChMatrixNM<double, 33, 33> m_KTE2;
 
     virtual void Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) override;
 };
@@ -1136,7 +1134,10 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             // Term from  differentiation of Jacobian of strain w.r.t. coordinates w.r.t. coordinates (that is, twice)
             temp339.MatrTMultiply(Gd, Sigm);
             // Sum contributions to the final Jacobian of internal forces
-			result = temp336 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) * strainD + (temp339 * m_Kfactor) * Gd;
+			m_KTE1.MatrMultiply(temp336, strainD);
+			m_KTE2.MatrMultiply(temp339, Gd);
+
+			result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
             result.MatrScale(detJ0 * m_element->m_GaussScaling);
         } break;
         case ChElementBrick_9::Hencky: {
@@ -1580,13 +1581,11 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             temp339.MatrTMultiply(Gd, Sigm);  // Stress contribution to the Jacobian of internal forces
 
-			result = temp336*(m_Kfactor + m_Rfactor * m_element->m_Alpha) * strainD + (temp339 * m_Kfactor)* Gd;
+			m_KTE1.MatrMultiply(temp336, strainD);
+			m_KTE2.MatrMultiply(temp339, Gd);
 
-			if (ChElementBrick_9::Hencky == m_element->GetStrainFormulation()) {
-                result.MatrScale(detJ * m_element->m_GaussScaling);
-            } else {
-                result.MatrScale(detJ0 * m_element->m_GaussScaling);
-            }
+			result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) +  m_KTE2 * m_Kfactor;
+            result.MatrScale(detJ * m_element->m_GaussScaling);
 
             m_element->m_InteCounter++;
         } break;
