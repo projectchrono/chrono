@@ -182,10 +182,10 @@ void ShellBrickContact() {
 	ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);
 	auto mat = std::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
 	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
-	my_surfacematerial->SetKn(3e6);
-	my_surfacematerial->SetKt(3e6);
-	my_surfacematerial->SetGn(3e3);
-	my_surfacematerial->SetGt(3e3);
+	my_surfacematerial->SetKn(3e6f);
+	my_surfacematerial->SetKt(3e6f);
+	my_surfacematerial->SetGn(3e3f);
+	my_surfacematerial->SetGt(3e3f);
 	ChMatrixNM<double, 9, 8> CCPInitial;
 	for (int k = 0; k < 8; k++) {
 		CCPInitial(0, k) = 1;
@@ -374,7 +374,7 @@ void ShellBrickContact() {
 	double ChTime = 0.0;
 	double start = std::clock();
 	int Iter = 0;
-	int timecount = 0.0;
+	int timecount = 0;
 	application.SetPaused(true);
 	while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
 		if (my_system.GetChTime() < 0.5) {
@@ -563,10 +563,10 @@ void SimpleBoxContact() {
 	// material->Set_G(G.x);
 	material->Set_v(nu.x);
 	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
-	my_surfacematerial->SetKn(1e6);
-	my_surfacematerial->SetKt(1e6);
-	my_surfacematerial->SetGn(1e3);
-	my_surfacematerial->SetGt(1e3);
+	my_surfacematerial->SetKn(1e6f);
+	my_surfacematerial->SetKt(1e6f);
+	my_surfacematerial->SetGn(1e3f);
+	my_surfacematerial->SetGt(1e3f);
 	ChMatrixNM<double, 9, 8> CCPInitial;
 	for (int k = 0; k < 8; k++) {
 		CCPInitial(0, k) = 1;
@@ -737,7 +737,7 @@ void SimpleBoxContact() {
 	double ChTime = 0.0;
 	double start = std::clock();
 	int Iter = 0;
-	int timecount = 0.0;
+	int timecount = 0;
 	application.SetPaused(true);
 	while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
 		//Plate->Empty_forces_accumulators();
@@ -914,10 +914,10 @@ void SoilBin() {
 	// material->Set_G(G.x);
 	material->Set_v(nu.x);
 	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
-	my_surfacematerial->SetKn(10e10);
-	my_surfacematerial->SetKt(10e10);
-	my_surfacematerial->SetGn(10e7);
-	my_surfacematerial->SetGt(10e7);
+	my_surfacematerial->SetKn(10e10f);
+	my_surfacematerial->SetKt(10e10f);
+	my_surfacematerial->SetGn(10e7f);
+	my_surfacematerial->SetGt(10e7f);
 	ChMatrixNM<double, 9, 8> CCPInitial;
 	for (int k = 0; k < 8; k++) {
 		CCPInitial(0, k) = 1;
