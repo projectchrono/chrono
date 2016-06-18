@@ -54,7 +54,12 @@ class TerrainNode {
   public:
     enum Type { RIGID, GRANULAR };
 
-    TerrainNode(Type type, chrono::ChMaterialSurfaceBase::ContactMethod method, int num_threads);
+    TerrainNode(Type type,                                            ///< terrain type (RIGID or GRANULAR)
+                chrono::ChMaterialSurfaceBase::ContactMethod method,  ///< contact method (penalty or complementatiry)
+                bool use_checkpoint,                                  ///< initialize granular terrain from checkpoint
+                bool render,                                          ///< use OpenGL rendering
+                int num_threads                                       ///< number of OpenMP threads
+                );
     ~TerrainNode();
 
     void SetOutputFile(const std::string& name);
@@ -111,6 +116,7 @@ class TerrainNode {
 
     double m_init_height;  ///< initial terrain height (after optional settling)
 
+    bool m_use_checkpoint;         ///< initialize granular terrain from checkpoint file
     int m_Id_g;                    ///< first identifier for granular material bodies
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
@@ -123,6 +129,8 @@ class TerrainNode {
 
     int m_particles_start_index;       ///< start index for granular material bodies in system body list
     unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
+
+    bool m_render;  ///< if true, use OpenGL rendering
 
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;

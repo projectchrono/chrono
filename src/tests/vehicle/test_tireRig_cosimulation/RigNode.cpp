@@ -76,8 +76,6 @@ double ChFunction_SlipAngle::Get_y(double t) const {
 
 // =============================================================================
 
-const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
-
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
@@ -85,7 +83,12 @@ const std::string RigNode::m_checkpoint_filename = rig_dir + "/checkpoint.dat";
 // - create (but do not initialize) the tire
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
+RigNode::RigNode(double init_vel, double slip, int num_threads)
+    : m_init_vel(init_vel), m_slip(slip), m_cumm_sim_time(0) {
+    std::cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads
+              << std::endl;
+    std::cout << "[Rig node    ] output directory: " << rig_dir << std::endl;
+
     // ----------------
     // Model parameters
     // ----------------
@@ -101,9 +104,6 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
     ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
 	ChVector<> axle_inertia(0.1, 0.1, 0.1);
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
-
-    m_init_vel = 0; //// 20;
-	m_slip = 0; // Enforced longitudinal slip
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -188,7 +188,7 @@ RigNode::RigNode(int num_threads) : m_cumm_sim_time(0) {
 
     // Prismatic constraint on the toe
     m_prism_vel = std::make_shared<ChLinkLockPrismatic>();
-    m_prism_vel->SetName("Prismatic_settoe_ground");
+    m_prism_vel->SetName("Prismatic_chassis_ground");
     m_system->AddLink(m_prism_vel);
 
     // Impose velocity actuation on the prismatic joint
@@ -255,7 +255,7 @@ void RigNode::SetOutputFile(const std::string& name) {
 
 // -----------------------------------------------------------------------------
 // Initialization of the rig node:
-// - receive terrain height
+// - receive terrain height and container half-length
 // - initialize the mechanism bodies
 // - initialize the mechanism joints
 // - initialize the tire and extract contact surface
@@ -275,75 +275,11 @@ void RigNode::Initialize() {
     std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
 
     // Slighlty perturb terrain height to ensure there is no initial contact
-    init_dim[0] += 1e-5;
+    double init_height = init_dim[0] + 1e-5;
+    double half_length = init_dim[1];
 
-    // Set states, either at initial configuration or from checkpoint (depending on phase)
-    switch (phase) {
-        case SETTLING: {
-			InitBodies(init_dim[0], init_dim[1]);
-            break;
-        }
-        case TESTING: {
-            InitBodies();
-            break;
-        }
-    }
-
-    // -----------------------------------
-    // Initialize the rig mechanism joints
-    // -----------------------------------
-
-    // Revolute engine on set_toe
-    m_slip_motor->Set_rot_funct(std::make_shared<ChFunction_SlipAngle>(0));
-    m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
-
-    // Prismatic constraint on the toe
-    m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
-
-    // Impose velocity actuation on the prismatic joint
-    m_lin_actuator->Set_dist_funct(std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
-    m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
-                               ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
-
-    // Prismatic constraint on the toe-axle: Connects chassis to axle
-    m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
-
-    // Connect rim to axle: Impose rotation on the rim
-    m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
-    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
-
-    // ----------------------
-    // Create contact surface
-    // ----------------------
-
-    // Create a mesh load for contact forces and add it to the tire's load container.
-    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
-    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
-    m_tire->GetLoadContainer()->Add(m_contact_load);
-
-    // Mark completion of system construction
-    m_system->SetupInitial();
-
-    // ---------------------------------------
-    // Send tire contact surface specification
-    // ---------------------------------------
-
-    unsigned int surf_props[2];
-    surf_props[0] = contact_surface->GetNumVertices();
-    surf_props[1] = contact_surface->GetNumTriangles();
-    MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
-    std::cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << std::endl;
-}
-
-// -----------------------------------------------------------------------------
-// Initialization of the rig node bodies (initial configuration)
-// - initialize the state of the mechanism bodies
-// - initialize the tire
-// -----------------------------------------------------------------------------
-void RigNode::InitBodies(double init_height, double long_half_length) {
     double tire_radius = m_tire->GetRadius();
-    ChVector<> origin(-long_half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
+    ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
     ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
 
     // Initialize chassis body
@@ -367,112 +303,54 @@ void RigNode::InitBodies(double init_height, double long_half_length) {
     m_axle->SetRot(QUNIT);
     m_axle->SetPos_dt(init_vel);
 
+    // -----------------------------------
+    // Initialize the rig mechanism joints
+    // -----------------------------------
+
+    // Revolute engine on set_toe
+    m_slip_motor->Set_rot_funct(std::make_shared<ChFunction_SlipAngle>(0));
+    m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+
+    // Prismatic constraint on the toe
+    m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
+
+    // Impose velocity actuation on the prismatic joint
+    m_lin_actuator->Set_dist_funct(std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
+    m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
+                               ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+
+    // Prismatic constraint on the toe-axle: Connects chassis to axle
+    m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+
+    // Connect rim to axle: Impose rotation on the rim
+    m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
+    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+
+    // ------------------------------------------
+    // Initialize tire and create contact surface
+    // ------------------------------------------
+
     // Initialize tire
     m_tire->Initialize(m_rim, LEFT);
-}
 
-// -----------------------------------------------------------------------------
-// Initialization of the rig node bodies from a checkpoint data file:
-// - initialize the mechanism bodies with states from checkpoint file
-// - initialize the tire and overwrite mesh state from checkpoint file
-// -----------------------------------------------------------------------------
-void RigNode::InitBodies() {
-    // Open input file stream
-    std::ifstream ifile(m_checkpoint_filename);
-    std::string line;
+    // Create a mesh load for contact forces and add it to the tire's load container.
+    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
+    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
+    m_tire->GetLoadContainer()->Add(m_contact_load);
 
-    // Initialize the rig mechanism bodies
-    int identifier;
-    ChVector<> pos;
-    ChQuaternion<> rot;
-    ChVector<> pos_dt;
-    ChQuaternion<> rot_dt;
+    // Mark completion of system construction
+    m_system->SetupInitial();
 
-    // Read and discard line with number of bodies
-    std::getline(ifile, line);
+    // ---------------------------------------
+    // Send tire contact surface specification
+    // ---------------------------------------
 
-    // Initialize chassis body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
+    unsigned int surf_props[2];
+    surf_props[0] = contact_surface->GetNumVertices();
+    surf_props[1] = contact_surface->GetNumTriangles();
+    MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-        m_chassis->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_chassis->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_chassis->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_chassis->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-    // Initialize set_toe body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-        m_set_toe->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_set_toe->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_set_toe->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_set_toe->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-    // Initialize rim body.
-    {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-            pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-        m_rim->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-        m_rim->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-        m_rim->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-        m_rim->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-    }
-
-	// Initialize axle body.
-	{
-		std::getline(ifile, line);
-		std::istringstream iss(line);
-		iss >> identifier >> pos.x >> pos.y >> pos.z >> rot.e0 >> rot.e1 >> rot.e2 >> rot.e3 >> pos_dt.x >> pos_dt.y >>
-			pos_dt.z >> rot_dt.e0 >> rot_dt.e1 >> rot_dt.e2 >> rot_dt.e3;
-
-		m_axle->SetPos(ChVector<>(pos.x, pos.y, pos.z));
-		m_axle->SetRot(ChQuaternion<>(rot.e0, rot.e1, rot.e2, rot.e3));
-		m_axle->SetPos_dt(ChVector<>(pos_dt.x, pos_dt.y, pos_dt.z));
-		m_axle->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
-	}
-
-    // Read and discard line with number of vertices and DOFs
-    std::getline(ifile, line);
-
-    // Initialize the tire, then overwrite the state of the underlying mesh.
-    m_tire->Initialize(m_rim, LEFT);
-
-    auto mesh = m_tire->GetMesh();
-    ChState x(mesh->GetDOF(), NULL);
-    ChStateDelta v(mesh->GetDOF_w(), NULL);
-
-    for (int ix = 0; ix < x.GetLength(); ix++) {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> x(ix);
-    }
-    for (int iv = 0; iv < v.GetLength(); iv++) {
-        std::getline(ifile, line);
-        std::istringstream iss(line);
-        iss >> v(iv);
-    }
-
-    unsigned int offset_x = 0;
-    unsigned int offset_v = 0;
-    double t = 0;
-    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
-        auto node = mesh->GetNode(in);
-        node->NodeIntStateScatter(offset_x, x, offset_v, v, t);
-        offset_x += node->Get_ndof_x();
-        offset_v += node->Get_ndof_w();
-    }
+    std::cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -571,6 +449,7 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rim_pos = m_rim->GetPos();
         const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
+		const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
         const ChVector<>& rfrc_act = m_lin_actuator->Get_react_force();  // drawbar pull
@@ -581,6 +460,7 @@ void RigNode::OutputData(int frame) {
         m_outf << m_system->GetChTime() << del;
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
         m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
+		m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
         m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
         m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
         m_outf << rtrq_prsm.x << del << rtrq_prsm.y << del << rtrq_prsm.z << del;
@@ -595,19 +475,10 @@ void RigNode::OutputData(int frame) {
     sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
-    WriteStateInformation(csv);
-	WriteMeshInformation(csv); // Connectivity and strain state
+    csv << m_system->GetChTime() << std::endl;  // current time
+    WriteStateInformation(csv);                 // state of bodies and tire
+    WriteMeshInformation(csv);                  // connectivity and strain state
     csv.write_to_file(filename);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigNode::WriteCheckpoint() {
-    utils::CSV_writer csv(" ");
-    WriteStateInformation(csv);
-    csv.write_to_file(m_checkpoint_filename);
-
-    std::cout << "[Rig node    ] write checkpoint ===> " << m_checkpoint_filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------

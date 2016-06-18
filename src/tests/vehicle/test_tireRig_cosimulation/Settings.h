@@ -37,12 +37,7 @@ extern double gacc;
 // Specify whether or not contact coefficients are based on material properties
 extern bool use_mat_properties;
 
-// Number of OpenMP threads on each MPI node
-extern int nthreads_rignode;
-extern int nthreads_terrainnode;
-
-// Number of cosimulation steps and step size
-extern int num_steps;
+// Cosimulation step size
 extern double step_size;
 
 // Output directories
@@ -55,11 +50,5 @@ extern double output_fps;
 
 // Checkpointing frequency (frames per second)
 extern double checkpoint_fps;
-
-// Problem phase.  
-// In SETTLING, generate checkpointing output.
-// In TESTING, initialize from checkpointing files.
-enum PhaseType {SETTLING, TESTING};
-extern PhaseType phase;
 
 #endif
