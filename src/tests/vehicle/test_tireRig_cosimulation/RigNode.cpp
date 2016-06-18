@@ -215,7 +215,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
 
     m_tire = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
-    m_tire->EnablePressure(false);
+    m_tire->EnablePressure(true);
     m_tire->EnableContact(true);
     m_tire->EnableRimConnection(true);
     m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
