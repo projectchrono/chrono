@@ -23,10 +23,11 @@
 #include <float.h>
 
 namespace chrono {
+
 // Check if SSE was found in CMake
 #ifdef CHRONO_HAS_SSE
-// Depending on the SSE variable in CMake include the proper header file for that
-// version of sse
+// Include the proper header file for the available SSE version
+// and enable use of SSE in Chrono::Parallel
 #ifdef CHRONO_SSE_1_0
 #include <xmmintrin.h>
 #elif defined CHRONO_SSE_2_0
@@ -38,17 +39,19 @@ namespace chrono {
 #elif defined CHRONO_SSE_4_2
 #include <nmmintrin.h>
 #endif
-#ifndef CHRONO_USE_SIMD
-#define CHRONO_USE_SIMD
+#ifndef CHRONO_PARALLEL_USE_SIMD
+#define CHRONO_PARALLEL_USE_SIMD
 #endif
 #else
-#undef CHRONO_USE_SIMD
+// Disable use of SSE in Chrono::Parallel
+#undef CHRONO_PARALLEL_USE_SIMD
 #endif
 
 // If the user specified using doubles in CMake make sure that SSE is disabled
 #ifdef CHRONO_PARALLEL_USE_DOUBLE
-#undef CHRONO_USE_SIMD
+#undef CHRONO_PARALLEL_USE_SIMD
 #endif
+
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
 #ifdef CHRONO_PARALLEL_USE_DOUBLE

@@ -20,6 +20,12 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
 
+// Fix for Blaze on Windows
+#ifdef _MSC_VER
+#undef __AVX__
+#undef __AVX2__
+#endif
+
 #include <iostream>
 
 #ifndef _MSC_VER
