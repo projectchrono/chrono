@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
             GetLog() << "---------------------\n";
             for (int B_j = 1; B_j <= MAX_B_j; B_j++) {
                 double AVE_SPEEDUP = 0;
-                for (int num_repeat = 0; num_repeat <= MAX_REPEAT; num_repeat++) {
+                for (int num_repeat = 0; num_repeat < MAX_REPEAT; num_repeat++) {
                     int A_row = A_i;
                     int A_col = A_j;
                     int B_row = A_col;
