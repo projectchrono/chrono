@@ -3,8 +3,13 @@
 
 SET(TESTS
   test_CH_function_recorder
-  test_AVX
 )
+
+if(AVX_FOUND)
+   set(TESTS ${TESTS}
+     test_AVX
+   )
+endif()
 
 MESSAGE(STATUS "Additional test programs for Chrono core...")
 
