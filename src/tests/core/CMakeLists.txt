@@ -3,6 +3,7 @@
 
 SET(TESTS
   test_CH_function_recorder
+  test_AVX
 )
 
 MESSAGE(STATUS "Additional test programs for Chrono core...")
