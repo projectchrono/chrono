@@ -5,6 +5,13 @@ permalink: /status/
 ---
 {::options parse_block_html="true" /}
 
+### Stats
+
+<script type="text/javascript" src="https://www.openhub.net/p/projectchrono/widgets/project_languages?format=js"></script>
+<script type="text/javascript" src="https://www.openhub.net/p/projectchrono/widgets/project_factoids_stats?format=js"></script>
+
+<br>
+
 ### Project Chrono Benchmark Test Results:
 
 ** NOTICE ** 
@@ -28,10 +35,5 @@ The benchmark API feature is still in development and may have bugs. All data is
 </body>
 </html>
 
-### Stats
-
-<script type="text/javascript" src="https://www.openhub.net/p/projectchrono/widgets/project_languages?format=js"></script>
-<script type="text/javascript" src="https://www.openhub.net/p/projectchrono/widgets/project_factoids_stats?format=js"></script>
-
-<br><br>
+<br>
 
