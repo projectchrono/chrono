@@ -22,19 +22,6 @@ jQuery(function() {
     });
   });
 
-  // // If search originates from search bar
-  // $("#search_bar_triggered").submit(function(event){
-  //     event.preventDefault();
-  //     console.log("Search bar triggered");
-  //     var query = $("#search_bar").val(); // Get the value for the text field
-  //     console.log("query is " + query);
-      
-  //     var results = window.idx.search(query); // Get lunr to perform a search
-  //           console.log("results is " + results);
-  //     $("#search_box").val(query);
-  //     display_search_results(results); // Hand the results off to be displayed
-  // });
-
   // Event when the form is submitted
   $("#site_search").submit(function(event){
       event.preventDefault();
@@ -78,6 +65,49 @@ jQuery(function() {
         $search_results.html('<li>No results found.<br/>Please check spelling, spacing, etc...</li>');
       }
     });
+  }
+  // Searches through doxygen site using embedded doxysearch capabilities
+  // See https://www.stack.nl/~dimitri/doxygen/manual/extsearch.html for more information
+  function search_documentation(query) {
+    var doc_url = "http://api.chrono.projectchrono.org/";
+    var doc_search_url = "cgi-bin/doxysearch.cgi";
+    var callback = "docshow";
+    var page = "1";
+    var number = "20";
+    var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
+    // Gets list of test names
+    $.ajax({
+          url: doc_url + doc_search_url + search_string,
+          method: "GET",
+          data: "",
+          dataType:"jsonp",
+          jsonpCallback: 'docshow',
+          success: function (response, status, xhr) {
+              console.log(response);
+              },
+          error: function (xhr, status, error_code) {
+              console.log("Error:" + status + ": " + error_code);
+          }
+    })
+  }
+  function docshow(result) {
+    var hits = result["items"];
+
+    for (var i = 0; i < hits.length; i++) {
+      var hit = hits[i];
+      // console.log(hit);
+      var name = hit["name"];
+      var url = hit["url"];
+      var url_base = "http://projectchrono.org/";
+      url = url_base + url;
+      var ul = document.getElementById("doc_results");
+      var li = document.createElement("li");
+      ul.appendChild(li);
+      var a = document.createElement("a");
+      li.appendChild(a);
+      a.setAttribute("href", url);
+      a.innerHTML = name;
+    }
   }
 
 });
