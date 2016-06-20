@@ -1,13 +1,7 @@
-<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
-
-<script type="text/javascript">
 var HTML_base = "http://localhost:5000/chrono_test/api";
-google.charts.load('current', {'packages':['corechart']});
+google.charts.load("current", {"packages":["corechart"]});
 
-var first = true;
 var charts = [];
-var tests;
 
 // Shows dropdown menu of all tests available
 function showTestNames(test_list) {
@@ -19,101 +13,126 @@ function showTestNames(test_list) {
         option.text = test.name;
         option.value = test.name;
         x.add(option);
-
     }
 }
 // Parses data for a given test and plots charts for each metric
-function drawCharts(run_name) {
+function drawCharts(test_runs) {
     var run_names = []; // Number of machines + name
     var runs = []; //  2D Array containing. Cols =  Number of machines, Rows = Run
     var metrics =[];
 
-    if(first){
-        run_names = tests['run_names'];
+    run_names = test_runs["run_names"];
+    var len = run_names.length;
 
-        /* Load runs for each machine */
-        for(var i = 0; i < run_names.length; i++){
-            run = run_names[i];
-            runs.push(tests[run]);
-        }
-
-        /* Load metric names */
-        for(metric in runs[0][0]['metrics']){
-            metrics.push(metric);
-        }  
+    /* Load runs for each machine */
+    for (var i = 0; i < len; i++){
+        run = run_names[i];
+        runs.push(test_runs[run]);
     }
-    else{
-        run_name = run_name.attr('id');
-        run_names.push(run_name);
-        runs.push(tests[run_name]);
-    }
-    console.log(run_names, runs, metrics);     
+    /* Load metric names */
+    for (metric in runs[0][0]["metrics"]) {
+        metrics.push(metric);
+    }  
+    console.log(run_names, runs, metrics);
+    
+    plotProps(metrics, run_names, runs);
 
-    plot(metrics, run_names, runs);
 }
-
-// Plots charts for each metric of a given test
-function plot(metrics, run_names, runs){
-    for(var i = 0; i < metrics.length; i++){
-
-        metric_name = metrics[i];
-        table = [['x']];
-
-        for(var j = 0; j < run_names.length; j++){
-            table[0].push(run_names[j]);
-        }
-
-        for(var j = 0; j < runs[0].length; j++){
-            date = new Date(runs[0][j].timestamp);
-            row = [date];
-
-            for(var k = 0; k < runs.length; k++){
-                try{
-                    data_point = runs[k][j].metrics[metric_name];
-                }catch(TypeError){
-                    console.log(runs[k][j]);
-                    data_point = 0;
-                }
-                row.push(data_point);
-            }
-            table.push(row);
-        }
-
-        var data = google.visualization.arrayToDataTable(table);
-        var options = { 
-            title: metric_name, 
-            legend: 'bottom',
+function makeChart(data, prop_name) {
+    var options = { 
+            title: prop_name, 
+            legend: "bottom",
             // vAxis: {title: metric_name},
             // hAxis: {title: "timestamp"},
-            explorer: {axis: 'horizontal',
-                actions: ['dragToZoom','rightClickToReset'],
-                maxZoomIn: 0},
+            explorer: {axis: "horizontal",
+                actions: ["dragToZoom","rightClickToReset"]},
             chartArea: {
-                height: '55%',
-            }
+                height: "50%",
+                width: "90%",
+            },
         };
 
-        if(first){
-            var div = document.createElement("div");
-            div.setAttribute('id', metric_name); // and make sure myclass has some styles in css
-            div.setAttribute('class', 'metric');
-            document.getElementById('metrics').appendChild(div);
+    var div = document.createElement("div");
+    div.setAttribute("id", prop_name); 
+    div.setAttribute("class", "metric");
+    document.getElementById("metrics").appendChild(div);
+    var chart = new google.visualization.ScatterChart(document.getElementById(prop_name));
+    chart.draw(data, options);
+    charts.push(chart);
+}
 
-            var chart = new google.visualization.ScatterChart(
-                                            document.getElementById(metric_name));
-            chart.draw(data, options);
-            charts.push(chart);
+// Plots charts for each property (metrics and execution time) of a given test
+function plotProps(metrics, run_names, runs) {
+    var timestamps = [];
+    var base_table = [["x"]];
+    // Sets up table of timestamps
+    for (var n = 0; n < run_names.length; n++) {
+        // Iterate through each run for that name
+        base_table[0].push(run_names[n]);
+        for (var m = 0; m < runs[n].length; m++) {
+            var test_run = runs[n][m];
+            var ts = new Date(test_run["timestamp"]);
+            // Adds timestamp to list of timestamps iff not already in array
+            var index = getObjectIndex(ts, timestamps);
+            if ( index == -1) {
+                timestamps.push(ts);
+                base_table.push([ts]);
+                // table[timestamps.length][n + 1] = test_run["metrics"][metric_name];
+            } //else {
+                // table[index + 1][n + 1].push(test_run["metrics"][metric_name]);
+            // }            
         }
-        else{
-            var div = document.getElementById(metric_name);
-            charts[i].draw(data, options)
+    }
 
+    // Ensures each row has same length
+    for (var n = 0; n < base_table.length; n++) {
+        base_table[n].length = run_names.length + 1;
+    }
+    var table = base_table;
+    // Plots execution times
+    for (var n = 0; n < run_names.length; n++) {
+        // Iterate through each run for that name
+        for (var m = 0; m < runs[n].length; m++) {
+            var test_run = runs[n][m];
+            var ts = new Date(test_run["timestamp"]);
+            var index = getObjectIndex(ts, timestamps);
+            table[index + 1][n + 1] = test_run["execution_time"];
         }
+    }
+    console.log(table);
+    var data = google.visualization.arrayToDataTable(table);
 
+    makeChart(data, "Execution Times");
+    console.log(metrics);
+    for (var i = 0; i < metrics.length; i++) {
+        var metric = metrics[i];
+        console.log(i + ": " + metric);
+        table = base_table;
+        // Plots a chart for each metric
+        for (var n = 0; n < run_names.length; n++) {
+            // Iterate through each run for that name
+            for (var m = 0; m < runs[n].length; m++) {
+                var test_run = runs[n][m];
+                console.log(test_run['metrics'][metric]);
+                var ts = new Date(test_run["timestamp"]);
+                var index = getObjectIndex(ts, timestamps);
+                table[index + 1][n + 1] = test_run["metrics"][metric];
+            }
+        }
+            // console.log(table);
+    data = google.visualization.arrayToDataTable(table);
+    makeChart(data, metric);
     }
-    if(first){
-        first = false;
-    }
+
+}
+
+function getObjectIndex(obj, arr) {
+    for (var test_idx = 0; test_idx < arr.length; test_idx++) {
+        if (arr[test_idx].valueOf() == obj.valueOf()) {
+            return test_idx;
+        }
+    } 
+    return -1;
 }
 
 
@@ -124,8 +143,8 @@ $.ajaxSetup({
         withCredentials: true
     },
     headers: {
-        'Access-Control-Allow-Credentials': true,
-        'Authorization': "Basic " + btoa("User:Password")
+        "Access-Control-Allow-Credentials": true,
+        "Authorization": "Basic " + btoa("User:Password")
     }
 });
 // Gets list of test names
@@ -136,18 +155,20 @@ $.ajax({
         dataType:"json",
         success: function (response, status, xhr) {
             console.log(response);
+            // Changes "Test Loading!" text
+            $("#test_names option:selected").html(" --- Select A Test --- ");
             showTestNames(response);
             },
         error: function (xhr, status, error_code) {
             console.log("Error:" + status + ": " + error_code);
         }
 })
+
 // Shows a test when selected from the dropdown menu
 function showTest(test_name) {
-    first = true;
-    $("#metrics").empty();
-    if (test_name == 'default') {
-        return;
+    $("#metrics").empty(); // Clears metrics div so new charts can be shown
+    if (test_name == "default") {
+        return; //If the "Select A Test" option is selected
     }
     $.ajaxSetup({
         crossDomain: true,
@@ -155,8 +176,8 @@ function showTest(test_name) {
             withCredentials: true
         },
         headers: {
-            'Access-Control-Allow-Credentials': true,
-            'Authorization': "Basic " + btoa("User:Password")
+            "Access-Control-Allow-Credentials": true,
+            "Authorization": "Basic " + btoa("User:Password")
         }
     });
     // Gets all test data for a given test
@@ -167,13 +188,10 @@ function showTest(test_name) {
         dataType:"json",
         success: function (response, status, xhr) {
             console.log(response);
-            tests = response;
-            google.charts.setOnLoadCallback(drawCharts(tests));
+            google.charts.setOnLoadCallback(drawCharts(response));
         },
         error: function (xhr, status, error_code) {
             console.log("Error:" + status + ": " + error_code);
         }
     })
 }
-
-</script>
