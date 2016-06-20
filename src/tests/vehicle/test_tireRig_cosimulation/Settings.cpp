@@ -29,7 +29,7 @@
 double gacc = -9.81;
 
 // Specify whether or not contact coefficients are based on material properties
-bool use_mat_properties = false;
+bool use_mat_properties = true;
 
 // Cosimulation step size
 double step_size = 1e-4;

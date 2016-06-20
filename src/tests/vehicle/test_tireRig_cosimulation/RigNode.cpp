@@ -188,7 +188,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
     // Prismatic constraint on the toe
     m_prism_vel = std::make_shared<ChLinkLockPrismatic>();
-    m_prism_vel->SetName("Prismatic_settoe_ground");
+    m_prism_vel->SetName("Prismatic_chassis_ground");
     m_system->AddLink(m_prism_vel);
 
     // Impose velocity actuation on the prismatic joint
@@ -215,7 +215,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
 
     m_tire = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
-    m_tire->EnablePressure(false);
+    m_tire->EnablePressure(true);
     m_tire->EnableContact(true);
     m_tire->EnableRimConnection(true);
     m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
@@ -312,12 +312,12 @@ void RigNode::Initialize() {
     m_slip_motor->Initialize(m_set_toe, m_chassis, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
     // Prismatic constraint on the toe
-    m_prism_vel->Initialize(m_ground, m_set_toe, ChCoordsys<>(m_set_toe->GetPos(), Q_from_AngY(CH_C_PI_2)));
+    m_prism_vel->Initialize(m_ground, m_chassis, ChCoordsys<>(m_chassis->GetPos(), Q_from_AngY(CH_C_PI_2)));
 
     // Impose velocity actuation on the prismatic joint
     m_lin_actuator->Set_dist_funct(std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
-    m_lin_actuator->Initialize(m_ground, m_set_toe, false, ChCoordsys<>(m_set_toe->GetPos(), QUNIT),
-                               ChCoordsys<>(m_set_toe->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+    m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
+                               ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
     // Prismatic constraint on the toe-axle: Connects chassis to axle
     m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
@@ -449,6 +449,7 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rim_pos = m_rim->GetPos();
         const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
+		const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
         const ChVector<>& rfrc_act = m_lin_actuator->Get_react_force();  // drawbar pull
@@ -459,6 +460,7 @@ void RigNode::OutputData(int frame) {
         m_outf << m_system->GetChTime() << del;
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
         m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
+		m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
         m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
         m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
         m_outf << rtrq_prsm.x << del << rtrq_prsm.y << del << rtrq_prsm.z << del;

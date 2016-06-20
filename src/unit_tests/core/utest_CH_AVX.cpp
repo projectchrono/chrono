@@ -1,140 +1,156 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Milad Rakhsha, Radu Serban
+// =============================================================================
+//
+// Unit test for MatrMultiplyAVX and MatrMultiplyTAVX.
+//
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   Demo on how to use Chrono mathematical
-//   functions (vector math, linear algebra, etc)
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-#include "core/ChTransform.h"
-#include "core/ChMatrix.h"
-#include "core/ChLog.h"
-#include "core/ChVector.h"
-#include "core/ChQuadrature.h"
-#include "core/ChException.h"
-#include "core/ChTimer.h"
+#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChLog.h"
 
 using namespace chrono;
 
+void FillRand(ChMatrix<double>& matra) {
+    int A_Nrow = matra.GetRows();
+    int A_NCol = matra.GetColumns();
+
+    for (int rowA = 0; rowA < A_Nrow; rowA++) {
+        for (int colA = 0; colA < A_NCol; colA++) {
+            matra.SetElement(rowA, colA, double(rand() % 100) / 100);
+        }
+    }
+}
+
+// Check multiplication A*B of random matrices A (MxN) and B (NxK)
+bool CheckMatMult(int M, int N, int K, double tolerance) {
+    GetLog() << "(" << M << "x" << N << ") * (" << N << "x" << K << ")   ... ";
+
+    ChMatrixDynamic<double> A(M, N);
+    ChMatrixDynamic<double> B(N, K);
+    A.FillRandom(10, -10);
+    B.FillRandom(10, -10);
+
+    ChMatrixDynamic<double> ref(M, K);
+    ref.MatrMultiply(A, B);
+
+    ChMatrixDynamic<double> avx(M, K);
+    avx.MatrMultiplyAVX(A, B);
+
+    if (avx.Equals(ref, tolerance)) {
+        GetLog() << "OK\n";
+        return true;
+    }
+
+    GetLog() << "FAILED\n";
+    GetLog() << "\n(A*B)_ref";
+    ref.StreamOUT(GetLog());
+    GetLog() << "\n(A*B)_avx";
+    avx.StreamOUT(GetLog());
+    GetLog() << "\n(A*B)_avx - (A*B)_ref";
+    (avx - ref).StreamOUT(GetLog());
+
+    return false;
+}
+
+// Check multiplication A*B' of random matrices A (MxN) and B (KxN)
+bool CheckMatMultT(int M, int N, int K, double tolerance) {
+    GetLog() << "(" << M << "x" << N << ") * (" << K << "x" << N << ")^T   ... ";
+
+    ChMatrixDynamic<double> A(M, N);
+    ChMatrixDynamic<double> B(K, N);
+    A.FillRandom(10, -10);
+    B.FillRandom(10, -10);
+
+    ChMatrixDynamic<double> ref(M, K);
+    ref.MatrMultiplyT(A, B);
+
+    ChMatrixDynamic<double> avx(M, K);
+    avx.MatrMultiplyTAVX(A, B);
+
+    if (avx.Equals(ref, tolerance)) {
+        GetLog() << "OK\n";
+        return true;
+    }
+
+    GetLog() << "FAILED\n";
+    GetLog() << "\n(A*B')_ref";
+    ref.StreamOUT(GetLog());
+    GetLog() << "\n(A*B')_avx";
+    avx.StreamOUT(GetLog());
+    GetLog() << "\n(A*B')_avx - (A*B')_ref";
+    (avx - ref).StreamOUT(GetLog());
+
+    return false;
+}
+
 int main(int argc, char* argv[]) {
-    GetLog() << "CHRONO foundation classes test: math\n\n";
-    ChTimer<double> timer;
-
+    // Print differences between standard and AVX-based multiplicaitons
     bool printMul = true;
-    bool MatrMultiply = true;
-    bool MatrMultiplyT = true;
 
-    int ITERATION = 10000;
+    // Tolerance for comparing matrices
+    double tolerance = 1e-12;
 
-    if (MatrMultiply) {
-        int A_row = 33;
-        int A_col = 9;
-        int B_row = A_col;
-        int B_col = 33;
-        ChMatrixDynamic<double> A(A_row, A_col);
-        ChMatrixDynamic<double> B(B_row, B_col);  // For Multiplication
-        ChMatrixDynamic<double> C(A_row, A_col);  // For add/sub
-        ChMatrixDynamic<double> AmulB(A_row, B_col);
-        ChMatrixDynamic<double> AmulB_ref(A_row, B_col);
-        ChMatrixDynamic<double> AAddC(A_row, A_col);
-        ChMatrixDynamic<double> AAddC_ref(A_row, A_col);
+    // Result of unit tests
+    bool passed = true;
 
-        A.FillRandom(10, -10);  // Fill a matrix with an element
-        B.FillRandom(10, -10);  // Fill a matrix with an element
+    // Initialize seed for rand()
+    srand(time(NULL));
 
-        GetLog() << "-----------------MatrMultiply---------------------- \n";
-        timer.start();
-        for (int j = 0; j < ITERATION; j++)
-            AmulB_ref.MatrMultiply(A, B);
-        timer.stop();
+    GetLog() << "\n-----------------MatrMultiply---------------------- \n";
 
-        double tempTime = timer();
-        GetLog() << "The MatrMultiply results in " << timer() << " (s), ";
-        timer.reset();
-        timer.start();
-        for (int j = 0; j < ITERATION; j++) {
-            AmulB.MatrMultiplyAVX(A, B);
-        }
-        timer.stop();
-        double AVXTime = timer();
-        GetLog() << "The AVX results in " << timer() << " (s) \n";
-        GetLog() << "Speed up =  " << tempTime / AVXTime << "x \n";
+    passed &= CheckMatMult(20, 8, 24, tolerance);
+    passed &= CheckMatMult(21, 8, 24, tolerance);
+    passed &= CheckMatMult(22, 8, 24, tolerance);
+    passed &= CheckMatMult(23, 8, 24, tolerance);
 
-        if (printMul) {
-            GetLog() << "--------------------------------------- \n";
-            GetLog() << "AVX-Ref result is : ";
-            (AmulB - AmulB_ref).StreamOUT(GetLog());  // Print a matrix to cout (ex. the console, if open)
-            GetLog() << "--------------------------------------- \n";
-        }
-        if (AmulB_ref == AmulB) {
-            GetLog() << "MatrMultiplyAVX is Ok ... \n\n";
-        } else {
-            GetLog() << "MatrMultiplyTAVX is not Ok! \n\n";
-        }
-    }
+    passed &= CheckMatMult(20, 9, 24, tolerance);
+    passed &= CheckMatMult(21, 9, 24, tolerance);
+    passed &= CheckMatMult(22, 9, 24, tolerance);
+    passed &= CheckMatMult(23, 9, 24, tolerance);
 
-    if (MatrMultiplyT) {
-        int A_row = 5;
-        int A_col = 20;
-        int B_row = 5;
-        int B_col = A_col;
+    passed &= CheckMatMult(20, 10, 24, tolerance);
+    passed &= CheckMatMult(21, 10, 24, tolerance);
+    passed &= CheckMatMult(22, 10, 24, tolerance);
+    passed &= CheckMatMult(23, 10, 24, tolerance);
 
-        ChMatrixDynamic<double> A(A_row, A_col);
-        ChMatrixDynamic<double> B(B_row, B_col);  // For Multiplication
-        ChMatrixDynamic<double> C(A_row, A_col);  // For add/sub
-        ChMatrixDynamic<double> AmulB(A_row, B_row);
-        ChMatrixDynamic<double> AmulB_ref(A_row, B_row);
+    passed &= CheckMatMult(20, 11, 24, tolerance);
+    passed &= CheckMatMult(21, 11, 24, tolerance);
+    passed &= CheckMatMult(22, 11, 24, tolerance);
+    passed &= CheckMatMult(23, 11, 24, tolerance);
 
-        A.FillRandom(10, -10);  // Fill a matrix with an element
-        B.FillRandom(10, -10);  // Fill a matrix with an element
-        GetLog() << "-----------------MatrMultiplyT---------------------- \n";
-        timer.reset();
-        timer.start();
-        for (int j = 0; j < ITERATION; j++)
-            AmulB_ref.MatrMultiplyT(A, B);
-        timer.stop();
+    GetLog() << "\n-----------------MatrMultiplyT---------------------- \n";
 
-        double tempTime = timer();
-        GetLog() << "The MatrMultiplyT results in " << timer() << " (s), ";
-        timer.reset();
-        timer.start();
-        for (int j = 0; j < ITERATION; j++)
-            AmulB.MatrMultiplyTAVX(A, B);
-        timer.stop();
-        double AVXTime = timer();
-        GetLog() << "The AVX results in " << timer() << " (s) \n";
-        GetLog() << "Speed up =  " << tempTime / AVXTime << "x \n";
+    passed &= CheckMatMultT(20, 8, 24, tolerance);
+    passed &= CheckMatMultT(21, 8, 24, tolerance);
+    passed &= CheckMatMultT(22, 8, 24, tolerance);
+    passed &= CheckMatMultT(23, 8, 24, tolerance);
 
-        if (printMul) {
-            GetLog() << "--------------------------------------- \n";
-            GetLog() << "AVX-Ref result is : ";
-            (AmulB - AmulB_ref).StreamOUT(GetLog());  // Print a matrix to cout (ex. the console, if open)
-                                                      //        GetLog() << "Reference result is : ";
-            //        AmulB_ref.StreamOUT(GetLog());
-            GetLog() << "--------------------------------------- \n";
-        }
-        if ((AmulB_ref == AmulB)) {
-            GetLog() << "MatrMultiplyTAVX is Ok ... \n\n";
-        } else {
-            GetLog() << "MatrMultiplyTAVX is not Ok! \n\n";
-        }
-    }
+    passed &= CheckMatMultT(20, 9, 24, tolerance);
+    passed &= CheckMatMultT(21, 9, 24, tolerance);
+    passed &= CheckMatMultT(22, 9, 24, tolerance);
+    passed &= CheckMatMultT(23, 9, 24, tolerance);
 
-    return 0;
+    passed &= CheckMatMultT(20, 10, 24, tolerance);
+    passed &= CheckMatMultT(21, 10, 24, tolerance);
+    passed &= CheckMatMultT(22, 10, 24, tolerance);
+    passed &= CheckMatMultT(23, 10, 24, tolerance);
+
+    passed &= CheckMatMultT(20, 11, 24, tolerance);
+    passed &= CheckMatMultT(21, 11, 24, tolerance);
+    passed &= CheckMatMultT(22, 11, 24, tolerance);
+    passed &= CheckMatMultT(23, 11, 24, tolerance);
+
+    // Return 0 if all tests passed.
+    return !passed;
 }
