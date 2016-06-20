@@ -87,3 +87,4 @@ _site
 .sass-cache
 doxygen/documentation/images/chronoStructure2016.png
 build_chrono_website.sh
+.htaccess

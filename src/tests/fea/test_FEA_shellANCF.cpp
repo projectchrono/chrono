@@ -268,6 +268,7 @@ int main(int argc, char* argv[]) {
         timer.stop();
 
         // Report run time and total number of iterations.
+        
         GetLog() << "Number of iterations: " << num_iterations << "\n";
         t.addMetric("num_iterations", num_iterations);
         GetLog() << "Simulation time:  " << timer() << "\n";

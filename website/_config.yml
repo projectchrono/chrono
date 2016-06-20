@@ -8,7 +8,7 @@ twitter_username: projectchrono
 github_username:  projectchrono
 permalink: /blog/:year/:month/:title/
 include: ['.htaccess']
-exclude: ['metrics-database', 'quickstart.sh']
+exclude: ['metrics-database', 'quickstart.sh', '*.log']
 
 # Build settings
 markdown: kramdown
