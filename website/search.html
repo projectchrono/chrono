@@ -1,0 +1,76 @@
+---
+layout: default
+Title: Search
+permalink: /search
+---
+
+Search powered by lunr.js
+<form action="/search" id="site_search">
+                <input type="text" id="search_box" name="query">
+                <input type="submit" value="Search">
+              </form> 
+<ul id="search_results">Search Loading</ul>
+<ul id="doc_results"></ul>
+
+<script src="/js/lunr.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="/js/search.js"></script>
+<script> 
+window.onload = function() {
+	var param = location.search;
+	qstart = param.search("query=");
+	qend = qstart + "query=".length;
+	var res = param.slice(qend);
+	$("#search_box").val(res);
+	$("#site_search").trigger("submit");
+};
+
+// Searches through doxygen site using embedded doxysearch capabilities
+// See https://www.stack.nl/~dimitri/doxygen/manual/extsearch.html for more information
+function search_documentation(query) {
+	var doc_url = "http://localhost/";
+	var doc_search_url = "cgi-bin/doxysearch.cgi";
+	var callback = "docshow";
+	var page = "1";
+	var number = "20";
+	var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
+	// Gets list of test names
+	$.ajax({
+        url: doc_url + doc_search_url + search_string,
+        method: "GET",
+        data: "",
+        dataType:"jsonp",
+        jsonpCallback: 'docshow',
+        success: function (response, status, xhr) {
+            console.log(response);
+            },
+        error: function (xhr, status, error_code) {
+            console.log("Error:" + status + ": " + error_code);
+        }
+	})
+}
+function docshow(result) {
+	// console.log(result);
+	hits = result["items"];
+	// document.getElementById("doc_results").innerHTML = JSON.stringify(hits, null, 4);
+
+	for (var i = 0; i < hits.length; i++) {
+		var hit = hits[i];
+		// console.log(hit);
+		var name = hit["name"];
+		var url = hit["url"];
+		var url_base = "http://localhost/";
+		url = url_base + url;
+		var ul = document.getElementById("doc_results");
+		var li = document.createElement("li");
+		ul.appendChild(li);
+		var a = document.createElement("a");
+		li.appendChild(a);
+		a.setAttribute("href", url);
+		a.innerHTML = name;
+	}
+}
+
+</script>
+
+
