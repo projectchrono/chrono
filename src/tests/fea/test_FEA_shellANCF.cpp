@@ -48,244 +48,257 @@ int numDiv_y = 50;
 int numDiv_z = 1;
 
 /// A new test class that extends the BaseTest class so that it outputs proper JSON to be used in the metricsAPI
-class test_FEA_shellANCF : public BaseTest {
-public: test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
-    : BaseTest(testName, testProjectName),
-      m_execTime(-1)
-    {
-    		std::cout << "Constructing Derived Test" << std::endl;
-    }
+class test_FEA_shellANCF: public BaseTest {
+public:
+	test_FEA_shellANCF(const std::string& testName,
+			const std::string& testProjectName) :
+			BaseTest(testName, testProjectName), m_execTime(-1) {
+		std::cout << "Constructing Derived Test" << std::endl;
+	}
 //     Default destuctor
-    ~test_FEA_shellANCF(){}
-    
-    // Override corresponding functions in BaseTest
-    virtual bool execute() {
-    	return m_passed;
-    }
-    virtual double getExecutionTime() const {
-    	return m_execTime;
-    }
-    void setPassed(bool passed) {
-    	m_passed = passed;
-    }
-    void setExecTime(double time) {
-    	m_execTime = time;
-    }
-private: 
-    /// Used to measure total test execution time for unit test
-    double m_execTime;
-    bool m_passed;
-};
+	~test_FEA_shellANCF() {
+	}
 
+	// Override corresponding functions in BaseTest
+	virtual bool execute() {
+		return m_passed;
+	}
+	virtual double getExecutionTime() const {
+		return m_execTime;
+	}
+	void setPassed(bool passed) {
+		m_passed = passed;
+	}
+	void setExecTime(double time) {
+		m_execTime = time;
+	}
+private:
+	/// Used to measure total test execution time for unit test
+	double m_execTime;
+	bool m_passed;
+};
 
 int main(int argc, char* argv[]) {
 	test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
-    // If no command line arguments, run in "performance" mode and only report run time.
-    // Otherwise, generate output files to verify correctness.
-    bool output = (argc > 1);
-    if (output) {
-        GetLog() << "Output file: ../TEST_SHELL_ANCF/tip_position.txt\n";
-    } else {
-        GetLog() << "Running in performance test mode.\n";
-    }
+	// If no command line arguments, run in "performance" mode and only report run time.
+	// Otherwise, generate output files to verify correctness.
+	bool output = (argc > 1);
+	if (output) {
+		GetLog() << "Output file: ../TEST_SHELL_ANCF/tip_position.txt\n";
+	} else {
+		GetLog() << "Running in performance test mode.\n";
+	}
 
 // --------------------------
 // Set number of threads
 // --------------------------
 #ifdef CHRONO_OPENMP_ENABLED
-    int max_threads = CHOMPfunctions::GetNumProcs();
+	int max_threads = CHOMPfunctions::GetNumProcs();
 
-    if (num_threads > max_threads)
-        num_threads = max_threads;
+	if (num_threads > max_threads)
+	num_threads = max_threads;
 
-    CHOMPfunctions::SetNumThreads(num_threads);
-    GetLog() << "Using " << num_threads << " thread(s)\n";
+	CHOMPfunctions::SetNumThreads(num_threads);
+	GetLog() << "Using " << num_threads <<" thread(s)\n";
 #else
-    GetLog() << "No OpenMP\n";
+	GetLog() << "No OpenMP\n";
 #endif
 
-    // --------------------------
-    // Create the physical system
-    // --------------------------
-    ChSystem my_system;
+	// --------------------------
+	// Create the physical system
+	// --------------------------
+	ChSystem my_system;
 
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+	my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-    GetLog() << "Using " << numDiv_x << " x " << numDiv_y << " mesh divisions\n";
-    auto my_mesh = std::make_shared<ChMesh>();
-    // Geometry of the plate
-    double plate_lenght_x = 1.0;
-    double plate_lenght_y = 1.0;
-    double plate_lenght_z = 0.04;  // small thickness
-    // Specification of the mesh
-    int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
-    // Number of elements in the z direction is considered as 1
-    int TotalNumElements = numDiv_x * numDiv_y;
-    //(1+1) is the number of nodes in the z direction
-    int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1);  // Or *(numDiv_z+1) for multilayer
-    // Element dimensions (uniform grid)
-    double dx = plate_lenght_x / numDiv_x;
-    double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
+	// Create a mesh, that is a container for groups
+	// of elements and their referenced nodes.
+	GetLog() << "Using " << numDiv_x << " x " << numDiv_y
+			<< " mesh divisions\n";
+	auto my_mesh = std::make_shared<ChMesh>();
+	// Geometry of the plate
+	double plate_lenght_x = 1.0;
+	double plate_lenght_y = 1.0;
+	double plate_lenght_z = 0.04;  // small thickness
+	// Specification of the mesh
+	int N_x = numDiv_x + 1;
+	int N_y = numDiv_y + 1;
+	int N_z = numDiv_z + 1;
+	// Number of elements in the z direction is considered as 1
+	int TotalNumElements = numDiv_x * numDiv_y;
+	//(1+1) is the number of nodes in the z direction
+	int TotalNumNodes = (numDiv_x + 1) * (numDiv_y + 1); // Or *(numDiv_z+1) for multilayer
+	// Element dimensions (uniform grid)
+	double dx = plate_lenght_x / numDiv_x;
+	double dy = plate_lenght_y / numDiv_y;
+	double dz = plate_lenght_z / numDiv_z;
 
-    // Create and add the nodes
+	// Create and add the nodes
 
-    for (int i = 0; i < TotalNumNodes; i++) {
-        // Parametric location and direction of nodal coordinates
-        double loc_x = (i % (numDiv_x + 1)) * dx;
-        double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-        double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
+	for (int i = 0; i < TotalNumNodes; i++) {
+		// Parametric location and direction of nodal coordinates
+		double loc_x = (i % (numDiv_x + 1)) * dx;
+		double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+		double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
 
-        double dir_x = 0;
-        double dir_y = 0;
-        double dir_z = 1;
+		double dir_x = 0;
+		double dir_y = 0;
+		double dir_z = 1;
 
-        // Create the node
-        auto node = std::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
-        node->SetMass(0);
-        // Fix all nodes along the axis X=0
-        if (i % (numDiv_x + 1) == 0)
-            node->SetFixed(true);
+		// Create the node
+		auto node = std::make_shared < ChNodeFEAxyzD
+				> (ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y,
+						dir_z));
+		node->SetMass(0);
+		// Fix all nodes along the axis X=0
+		if (i % (numDiv_x + 1) == 0)
+			node->SetFixed(true);
 
-        // Add node to mesh
-        my_mesh->AddNode(node);
-    }
+		// Add node to mesh
+		my_mesh->AddNode(node);
+	}
 
-    // Create an isotropic material
-    // Only one layer
-    double rho = 500;
-    double E = 2.1e7;
-    double nu = 0.3;
-    auto mat = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
+	// Create an isotropic material
+	// Only one layer
+	double rho = 500;
+	double E = 2.1e7;
+	double nu = 0.3;
+	auto mat = std::make_shared < ChMaterialShellANCF > (rho, E, nu);
 
-    // Create the elements
-    for (int i = 0; i < TotalNumElements; i++) {
-        // Definition of nodes forming an element
-        int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
-        int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
-        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
+	// Create the elements
+	for (int i = 0; i < TotalNumElements; i++) {
+		// Definition of nodes forming an element
+		int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
+		int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
+		int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+		int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
-        // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementShellANCF>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3)));
+		// Create the element and set its nodes.
+		auto element = std::make_shared<ChElementShellANCF>();
+		element->SetNodes(
+				std::dynamic_pointer_cast < ChNodeFEAxyzD
+						> (my_mesh->GetNode(node0)),
+				std::dynamic_pointer_cast < ChNodeFEAxyzD
+						> (my_mesh->GetNode(node1)),
+				std::dynamic_pointer_cast < ChNodeFEAxyzD
+						> (my_mesh->GetNode(node2)),
+				std::dynamic_pointer_cast < ChNodeFEAxyzD
+						> (my_mesh->GetNode(node3)));
 
-        // Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
-        element->SetDimensions(dx, dy);
-        // Single layer
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);  // Thickness: dy;  Ply angle: 0.
-        // Set other element properties
-        element->SetAlphaDamp(0.0);   // Structural damping for this
-        element->SetGravityOn(true);  // element calculates its own gravitational load
-        // Add element to mesh
-        my_mesh->AddElement(element);
-    }
+		// Element length is a fixed number in both direction. (uniform distribution of nodes in both directions)
+		element->SetDimensions(dx, dy);
+		// Single layer
+		element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat); // Thickness: dy;  Ply angle: 0.
+		// Set other element properties
+		element->SetAlphaDamp(0.0);   // Structural damping for this
+		element->SetGravityOn(true); // element calculates its own gravitational load
+		// Add element to mesh
+		my_mesh->AddElement(element);
+	}
 
-    // Switch off mesh class gravity (ANCF shell elements have a custom implementation)
-    my_mesh->SetAutomaticGravity(false);
+	// Switch off mesh class gravity (ANCF shell elements have a custom implementation)
+	my_mesh->SetAutomaticGravity(false);
 
-    // Remember to add the mesh to the system!
-    my_system.Add(my_mesh);
+	// Remember to add the mesh to the system!
+	my_system.Add(my_mesh);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+	// Mark completion of system construction
+	my_system.SetupInitial();
 
 // Set up solver
 #ifdef USE_MKL
-    GetLog() << "Using MKL solver\n";
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(true);
+	GetLog() << "Using MKL solver\n";
+	ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+	ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+	my_system.ChangeSolverStab(mkl_solver_stab);
+	my_system.ChangeSolverSpeed(mkl_solver_speed);
+	mkl_solver_speed->SetSparsityPatternLock(true);
+	mkl_solver_stab->SetSparsityPatternLock(true);
 #else
-    GetLog() << "Using MINRES solver\n";
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetTolForce(1e-10);
+	GetLog() << "Using MINRES solver\n";
+	my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+	ChSolverMINRES* msolver = (ChSolverMINRES*) my_system.GetSolverSpeed();
+	msolver->SetDiagonalPreconditioning(true);
+	my_system.SetMaxItersSolverSpeed(100);
+	my_system.SetTolForce(1e-10);
 #endif
 
-    // Set up integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
-    auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
-    mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(100);
-    mystepper->SetAbsTolerances(1e-5);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetScaling(true);
-    //// mystepper->SetVerbose(true);
+	// Set up integrator
+	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	auto mystepper = std::static_pointer_cast < ChTimestepperHHT
+			> (my_system.GetTimestepper());
+	mystepper->SetAlpha(-0.2);
+	mystepper->SetMaxiters(100);
+	mystepper->SetAbsTolerances(1e-5);
+	mystepper->SetMode(ChTimestepperHHT::POSITION);
+	mystepper->SetScaling(true);
+	//// mystepper->SetVerbose(true);
 
-    // ---------------
-    // Simulation loop
-    // ---------------
+	// ---------------
+	// Simulation loop
+	// ---------------
 
-    if (output) {
-        // Create output directory (if it does not already exist).
-        if (ChFileutils::MakeDirectory("../TEST_SHELL_ANCF") < 0) {
-            GetLog() << "Error creating directory ../TEST_SHELL_ANCF\n";
-            return 1;
-        }
+	if (output) {
+		// Create output directory (if it does not already exist).
+		if (ChFileutils::MakeDirectory("../TEST_SHELL_ANCF") < 0) {
+			GetLog() << "Error creating directory ../TEST_SHELL_ANCF\n";
+			return 1;
+		}
 
-        // Initialize the output stream and set precision.
-        utils::CSV_writer out("\t");
+		// Initialize the output stream and set precision.
+		utils::CSV_writer out("\t");
 
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(6);
+		out.stream().setf(std::ios::scientific | std::ios::showpos);
+		out.stream().precision(6);
 
-        auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
+		auto nodetip = std::dynamic_pointer_cast < ChNodeFEAxyzD
+				> (my_mesh->GetNode(TotalNumNodes - 1));
 
-        // Simulate to final time, while saving position of tip node.
-        for (int istep = 0; istep < num_steps; istep++) {
-            my_system.DoStepDynamics(step_size);
-            out << my_system.GetChTime() << nodetip->GetPos() << std::endl;
-        }
+		// Simulate to final time, while saving position of tip node.
+		for (int istep = 0; istep < num_steps; istep++) {
+			my_system.DoStepDynamics(step_size);
+			out << my_system.GetChTime() << nodetip->GetPos() << std::endl;
+		}
 
-        // Write results to output file.
-        out.write_to_file("../TEST_SHELL_ANCF/tip_position.txt");
-    } else {
-        // Initialize total number of iterations and timer.
-        int num_iterations = 0;
-        ChTimer<> timer;
-        timer.start();
+		// Write results to output file.
+		out.write_to_file("../TEST_SHELL_ANCF/tip_position.txt");
+	} else {
+		// Initialize total number of iterations and timer.
+		int num_iterations = 0;
+		ChTimer<> timer;
+		timer.start();
 
-        // Simulate to final time, while accumulating number of iterations.
-        for (int istep = 0; istep < num_steps; istep++) {
-            ////GetLog() << " step number: " << istep << "  time: " << my_system.GetChTime() << "\n";
-            my_system.DoStepDynamics(step_size);
-            num_iterations += mystepper->GetNumIterations();
-        }
+		// Simulate to final time, while accumulating number of iterations.
+		for (int istep = 0; istep < num_steps; istep++) {
+			////GetLog() << " step number: " << istep << "  time: " << my_system.GetChTime() << "\n";
+			my_system.DoStepDynamics(step_size);
+			num_iterations += mystepper->GetNumIterations();
+		}
 
-        timer.stop();
+		timer.stop();
 
-        // Report run time and total number of iterations.
-        
-        GetLog() << "Number of iterations: " << num_iterations << "\n";
-        t.addMetric("num_iterations", num_iterations);
-        GetLog() << "Simulation time:  " << timer() << "\n";
-        t.setExecTime(timer());
-        GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
-                 << "):  " << my_mesh->GetTimingInternalForces() << "\n";
-        t.addMetric("internal_forces", my_mesh->GetTimingInternalForces());
-        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad()
-                 << "\n";
-        t.addMetric("jacobian", my_mesh->GetTimingJacobianLoad());
-        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad()
-                 << "\n";
-        t.addMetric("extra_time", timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad());
-        t.setPassed(true);
-    }
-    
-    t.print();
-    t.run();
-    return 0;
+		// Report run time and total number of iterations.
+
+		GetLog() << "Number of iterations: " << num_iterations << "\n";
+		t.addMetric("num_iterations", num_iterations);
+		GetLog() << "Simulation time:  " << timer() << "\n";
+		t.setExecTime(timer());
+		GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
+				<< "):  " << my_mesh->GetTimingInternalForces() << "\n";
+		t.addMetric("internal_forces", my_mesh->GetTimingInternalForces());
+		GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  "
+				<< my_mesh->GetTimingJacobianLoad() << "\n";
+		t.addMetric("jacobian", my_mesh->GetTimingJacobianLoad());
+		GetLog() << "Extra time:  "
+				<< timer() - my_mesh->GetTimingInternalForces()
+						- my_mesh->GetTimingJacobianLoad() << "\n";
+		t.addMetric("extra_time",
+				timer() - my_mesh->GetTimingInternalForces()
+						- my_mesh->GetTimingJacobianLoad());
+		t.setPassed(true);
+	}
+
+	t.print();
+	t.run();
+	return 0;
 }
