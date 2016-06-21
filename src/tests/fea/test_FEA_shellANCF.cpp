@@ -22,7 +22,7 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
-#include "BaseTest.h"
+#include "../BaseTest.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
@@ -49,37 +49,28 @@ int numDiv_z = 1;
 
 /// A new test class that extends the BaseTest class so that it outputs proper JSON to be used in the metricsAPI
 class test_FEA_shellANCF : public BaseTest {
-public: test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
-    : BaseTest(testName, testProjectName),
-      m_execTime(-1)
-    {
-    		std::cout << "Constructing Derived Test" << std::endl;
+  public:
+    test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
+        : BaseTest(testName, testProjectName), m_execTime(-1) {
+        std::cout << "Constructing Derived Test" << std::endl;
     }
-//     Default destuctor
-    ~test_FEA_shellANCF(){}
-    
+
+    ~test_FEA_shellANCF() {}
+
     // Override corresponding functions in BaseTest
-    virtual bool execute() {
-    	return m_passed;
-    }
-    virtual double getExecutionTime() const {
-    	return m_execTime;
-    }
-    void setPassed(bool passed) {
-    	m_passed = passed;
-    }
-    void setExecTime(double time) {
-    	m_execTime = time;
-    }
-private: 
+    virtual bool execute() { return m_passed; }
+    virtual double getExecutionTime() const { return m_execTime; }
+    void setPassed(bool passed) { m_passed = passed; }
+    void setExecTime(double time) { m_execTime = time; }
+
+  private:
     /// Used to measure total test execution time for unit test
     double m_execTime;
     bool m_passed;
 };
 
-
 int main(int argc, char* argv[]) {
-	test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
+    test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
     // If no command line arguments, run in "performance" mode and only report run time.
     // Otherwise, generate output files to verify correctness.
     bool output = (argc > 1);
@@ -89,9 +80,9 @@ int main(int argc, char* argv[]) {
         GetLog() << "Running in performance test mode.\n";
     }
 
-// --------------------------
-// Set number of threads
-// --------------------------
+    // --------------------------
+    // Set number of threads
+    // --------------------------
 #ifdef CHRONO_OPENMP_ENABLED
     int max_threads = CHOMPfunctions::GetNumProcs();
 
