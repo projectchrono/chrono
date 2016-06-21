@@ -3,6 +3,8 @@
 *
 *  Created on: Nov 23, 2014
 *      Author: felipegb94
+*  Updated 6/21/16 by Conlain Kelly    
+*     
 */
 
 #ifndef BaseTest_H_
@@ -15,7 +17,60 @@
 #include <cstdio>
 #include <stdint.h>
 
-#include "Object.h"
+class Object
+{
+
+public:
+
+	Object()
+	: GlobalKey("")
+	{
+		std::cout << "Create object with no key" << std::endl;
+		json << "{";
+	}
+
+	void AddMember(std::string key, double value)
+	{
+		std::cout << "Adding Double" << std::endl;
+		json << "\n    \"" << key << "\"" << ": " << value << ",";
+	}
+
+	void AddMember(std::string key, Object& value)
+	{
+		std::cout << "Adding Object" << std::endl;
+		json << "\n    \"" << key << "\"" << ": " << value.GetObject() << ",";
+	}
+
+	void AddMember(std::string key, uint64_t value)
+	{
+		std::cout << "Adding Uint64" << std::endl;
+		json << "\n    \"" << key << "\"" << ": " << value << ",";
+	}
+
+	void AddMember(std::string key, int value)
+	{
+		std::cout << "Adding int" << std::endl;
+		json << "\n    \"" << key << "\"" << ": " << value << ",";
+	}
+
+	void AddMember(std::string key, std::string value)
+	{
+		std::cout << "Adding string" << std::endl;
+		json << "\n    \"" << key << "\"" << ": \"" << value << "\",";
+	}
+
+    // Gets JSON object. Closes JSON string and removes last comma.
+    std::string GetObject() const 
+    {
+        return json.str().substr(0, json.str().length()-1) + "\n}\n";    // Does some internal work
+    }
+
+	virtual ~Object() {}
+
+private:
+	std::string GlobalKey;
+	std::stringstream json; // String Stream with all content of the file
+};
 
 class BaseTest {
 
@@ -94,7 +149,7 @@ private:
   bool        m_passed;      ///< Did the test pass or fail?
 
   /// Metrics that are being tested (key-value pairs)
-  Object   m_jsonMetrics;
+  Object m_jsonMetrics;
   Object m_jsonTest;     ///< JSON output of the test
 
   /// This function finalizaes the json object and writes to a file
@@ -105,11 +160,14 @@ private:
     m_jsonTest.AddMember("execution_time", getExecutionTime());
     m_jsonTest.AddMember("metrics", m_jsonMetrics);
     /// Set values to json elements
-    jsonfile.open(m_path + m_name + ".json");
-    jsonfile << m_jsonTest.GetObject();
-    jsonfile.close();
+//    jsonfile.open(m_path + m_name + ".json");
+//    jsonfile << m_jsonTest.GetObject();
+//    jsonfile.close();
+    // ^ Disabled temporarily until metricsAPI is up
   }
 
 };
+
+
 
 #endif // BaseTest_H_

@@ -65,10 +65,10 @@ public: test_FEA_shellANCF(const std::string& testName, const std::string& testP
     virtual double getExecutionTime() const {
     	return m_execTime;
     }
-    bool setPassed(bool passed) {
+    void setPassed(bool passed) {
     	m_passed = passed;
     }
-    bool setExecTime(double time) {
+    void setExecTime(double time) {
     	m_execTime = time;
     }
 private: 
