@@ -22,7 +22,7 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
-#include "BaseTest.h"
+#include "../BaseTest.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
@@ -48,6 +48,7 @@ int numDiv_y = 50;
 int numDiv_z = 1;
 
 /// A new test class that extends the BaseTest class so that it outputs proper JSON to be used in the metricsAPI
+<<<<<<< HEAD
 class test_FEA_shellANCF: public BaseTest {
 public:
 	test_FEA_shellANCF(const std::string& testName,
@@ -88,10 +89,43 @@ int main(int argc, char* argv[]) {
 	} else {
 		GetLog() << "Running in performance test mode.\n";
 	}
+=======
+class test_FEA_shellANCF : public BaseTest {
+  public:
+    test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
+        : BaseTest(testName, testProjectName), m_execTime(-1) {
+        std::cout << "Constructing Derived Test" << std::endl;
+    }
 
-// --------------------------
-// Set number of threads
-// --------------------------
+    ~test_FEA_shellANCF() {}
+
+    // Override corresponding functions in BaseTest
+    virtual bool execute() { return m_passed; }
+    virtual double getExecutionTime() const { return m_execTime; }
+    void setPassed(bool passed) { m_passed = passed; }
+    void setExecTime(double time) { m_execTime = time; }
+
+  private:
+    /// Used to measure total test execution time for unit test
+    double m_execTime;
+    bool m_passed;
+};
+
+int main(int argc, char* argv[]) {
+    test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
+    // If no command line arguments, run in "performance" mode and only report run time.
+    // Otherwise, generate output files to verify correctness.
+    bool output = (argc > 1);
+    if (output) {
+        GetLog() << "Output file: ../TEST_SHELL_ANCF/tip_position.txt\n";
+    } else {
+        GetLog() << "Running in performance test mode.\n";
+    }
+>>>>>>> 6e4fc966bfaa411a1040ffe3862eb7d84e6aee3b
+
+    // --------------------------
+    // Set number of threads
+    // --------------------------
 #ifdef CHRONO_OPENMP_ENABLED
 	int max_threads = CHOMPfunctions::GetNumProcs();
 
