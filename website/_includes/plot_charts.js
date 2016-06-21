@@ -1,4 +1,4 @@
-var HTML_base = "http://localhost:5005/metrics/api";
+var HTML_base = "http://projectchrono.org/metrics/api";
 google.charts.load("current", {"packages":["corechart"]});
 
 var charts = [];
