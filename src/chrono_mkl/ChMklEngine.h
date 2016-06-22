@@ -24,24 +24,20 @@ namespace chrono {
 /// @addtogroup mkl_module
 /// @{
 
-/// Interface class to Intel MKL Pardiso solver. This class wraps the C interface of the solver in order to fit Chrono data structures.
-/// This class can still be called by the end-user in order to solve linear systems. See demo_MKL_MklEngine for the related demo.
-
-
+/// Interface class to Intel MKL Pardiso solver.
+/// This class wraps the C interface of the solver in order to fit Chrono data structures.
+/// This class can still be called by the end-user in order to solve linear systems.
+/// See demo_MKL_MklEngine for the related demo.
 class ChApiMkl ChMklEngine {
   private:
-
     void* pt[64];  // Handle to internal data structure (must be zeroed at startup)
 
     // Matrix in CSR3 format
-    double* a;                ///< (pointer to the) array of non-zero elements of the A
-    MKL_INT* ja;            ///< columns indices
-    MKL_INT* ia;            ///< row index
+    double* a;    ///< (pointer to the) array of non-zero elements of the A
+    MKL_INT* ja;  ///< columns indices
+    MKL_INT* ia;  ///< row index
 
-    // rhs
     double* b;  ///< rhs
-
-    // Output
     double* x;  ///< solution vector
 
     // Problem properties
@@ -50,12 +46,12 @@ class ChApiMkl ChMklEngine {
     MKL_INT nrhs;   ///< number of rhs
 
     // Pardiso solver settings
-    MKL_INT iparm[64];        ///< Pardiso solver parameter
-    MKL_INT maxfct;            ///< maximum number of numerical factorizations
+    MKL_INT iparm[64];      ///< Pardiso solver parameter
+    MKL_INT maxfct;         ///< maximum number of numerical factorizations
     std::vector<int> perm;  ///< vector in which the permutation is stored
 
     // Pardiso solver settings
-    MKL_INT mnum;           ///< 1<=mnum<=maxfct : which factorizations to use; usually 1
+    MKL_INT mnum;  ///< 1 <= mnum <= maxfct : which factorizations to use; usually 1
 
     // Auxiliary variables
     int last_phase_called;
@@ -74,8 +70,9 @@ class ChApiMkl ChMklEngine {
     */
 
     // Problem input functions
-    void SetMatrix(
-        ChCSR3Matrix& Z);  ///< It sets the matrix, but also the problem size \c n and the matrix type \c mtype
+
+    /// Set the matrix, as well as the problem size \c n and the matrix type \c mtype.
+    void SetMatrix(ChCSR3Matrix& Z);
     void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
     void SetSolutionVector(ChMatrix<>& insx);
@@ -85,39 +82,45 @@ class ChApiMkl ChMklEngine {
     void SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chrono, ChMatrix<>& bdest);
     void SetKnownVector(double* insb) { b = insb; }
 
-    void SetProblem(
-        ChCSR3Matrix& Z,
-        ChMatrix<>& insb,
-        ChMatrix<>& insx);  ///< It sets the data arrays, but also the problem size \c n and the matrix type \c mtype
+    /// Set the matrix, as well as the right-hand side and solution arrays.
+    void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
 
-    // Solver routine
-    int PardisoCall(int set_phase = 13, int message_level = 0);
-    void ResetSolver(int new_mat_type = 0);  ///< reinitializes the solver to default values
+    /// Solver routine.
+    int PardisoCall(int set_phase, int message_level = 0);
+
+    /// Reinitializes the solver to default values.
+    void ResetSolver(int new_mat_type = 0);
+
+    /// Set problem dimension.
     void SetProblemSize(int new_size) { n = new_size; }
 
     // Output functions
+
     void GetResidual(double* res) const;
     void GetResidual(ChMatrix<>& res) const { GetResidual(res.GetAddress()); }
     double GetResidualNorm(const double* res) const;
     double GetResidualNorm(const ChMatrix<>& res) const { return GetResidualNorm(res.GetAddress()); }
 
     // Auxiliary functions
+
     int* GetIparmAddress() { return iparm; }
-    void SetIparmValue(int parm_num, int value) {
-        iparm[parm_num] = value;
-    };  ///< Sets the \c parm_num th element of \c iparm to \c value
-    int GetIparmValue(int parm_num) const {
-        return iparm[parm_num];
-    };  ///< Returns the \c parm_num th element of \c iparm
+
+    /// Set the \c parm_num th element of \c iparm to \c value.
+    void SetIparmValue(int parm_num, int value) { iparm[parm_num] = value; }
+
+    /// Return the \c parm_num th element of \c iparm.
+    int GetIparmValue(int parm_num) const { return iparm[parm_num]; }
+
+    /// Print the solver parameters.
     void PrintIparmOutput() const;
 
     // Advanced functions
+
     void UsePermutationVector(bool on_off);
     void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
     void OutputSchurComplement(int option, int start_row, int end_row = 0);
     void SetPreconditionedCGS(bool on_off, int L);
-
-};  // ChMklEngine
+};
 
 /// @} mkl_module
 
