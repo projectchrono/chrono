@@ -26,66 +26,66 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 /// Interface class for all objects that support time integration.
-/// You can inherit your class from this class, by implementing those
-/// four functions. By doing this, you can use time integrators from
-/// the ChTimestepper hierarchy to integrate in time.
+/// Derived concrete classes can use time integrators for the ChTimestepper hierarchy.
 class ChApi ChIntegrable {
   public:
-    /// Tells the number of coordinates in the state Y.
-    /// Children classes MUST implement this!
+    /// Return the number of coordinates in the state Y.
     virtual int GetNcoords_y() = 0;
 
-    /// Tells the number of coordinates in the state increment.
+    /// Return the number of coordinates in the state increment.
     /// This is a base implementation that works in many cases where dim(Y) = dim(dy),
     /// but it can be overridden in the case that y contains quaternions for rotations
     /// rather than simple y+dy
     virtual int GetNcoords_dy() { return GetNcoords_y(); }
 
-    /// Tells the number of lagrangian multipliers (constraints)
+    /// Return the number of lagrangian multipliers (constraints).
     /// By default returns 0.
     virtual int GetNconstr() { return 0; }
 
-    /// This sets up the system state.
+    /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
         y.Resize(GetNcoords_y(), 1);
         dy.Resize(GetNcoords_dy(), 1);
     }
 
-    /// From system to state Y
+    /// Gather system state in specified array.
     /// Optionally, they will copy system private state, if any, to Y.
     virtual void StateGather(ChState& y, double& T) {}
 
-    /// From state Y to system.
-    /// This is important because it is called by time integrators all times
-    /// they modify the Y state. In some cases, the ChIntegrable object might
-    /// contain dependent data structures that might need an update at each change of Y,
-    /// if so, this function must be overridden.
+    /// Scatter the states from the provided array to the system.
+    /// This function is called by time integrators every time they modify the Y state.
+    /// In some cases, the ChIntegrable object might contain dependent data structures
+    /// that might need an update at each change of Y. If so, this function must be overridden.
     virtual void StateScatter(const ChState& y, const double T) {}
 
+    /// Gather from the system the state derivatives in specified array.
     /// Optional: the integrable object might contain last computed state derivative, some integrators might reuse it.
     virtual void StateGatherDerivative(ChStateDelta& Dydt) {}
 
+    /// Scatter the state derivatives from the provided array to the system.
     /// Optional: the integrable object might need to store last computed state derivative, ex. for plotting etc.
     virtual void StateScatterDerivative(const ChStateDelta& Dydt) {}
 
-    /// Optional: the integrable object might contain lagrangian multipliers (reaction in constraints)
+    /// Gather from the system the Lagrange multipliers in specified array.
+    /// Optional: the integrable object might contain Lagrange multipliers (reaction in constraints)
     virtual void StateGatherReactions(ChVectorDynamic<>& L) {}
 
-    /// Optional: the integrable object might contain lagrangian multipliers (reaction in constraints)
+    /// Scatter the Lagrange multipliers from the provided array to the system.
+    /// Optional: the integrable object might contain Lagrange multipliers (reaction in constraints)
     virtual void StateScatterReactions(const ChVectorDynamic<>& L) {}
 
-    /// dy/dt = f(y,t)
-    /// Given current state y , computes the state derivative dy/dt and
-    /// lagrangian multipliers L (if any).
-    /// NOTE: some solvers (ex in DVI) cannot compute a classical derivative
-    /// dy/dt when v is a function of bounded variation, and f or L are distributions (ex
-    /// when there are impulses and discontinuities), so they compute a finite Dy through a finite dt:
-    /// this is the reason why this function has an optional parameter dt. In a DVI setting,
-    /// one computes Dy, and returns Dy*(1/dt) here in Dydt parameter; if the original Dy has to be known,
-    /// just multiply Dydt*dt. The same for impulses: a DVI would compute impulses I, and return L=I*(1/dt).
-    /// NOTE! children classes must take care of calling StateScatter(y,T) before
-    /// computing Dy, only if force_state_scatter = true (otherwise it is assumed state is already in sync)
-    /// NOTE! children classes must take care of resizing Dy and L if needed.
+    /// Solve for state derivatives: dy/dt = f(y,t).
+    /// Given current state y , computes the state derivative dy/dt and Lagrange multipliers L (if any).
+    /// NOTE: some solvers (ex in DVI) cannot compute a classical derivative dy/dt when v is a function of
+    /// bounded variation, and f or L are distributions (e.g., when there are impulses and discontinuities),
+    /// so they compute a finite Dy through a finite dt. This is the reason why this function has an optional
+    /// parameter dt. In a DVI setting, one computes Dy, and returns Dy*(1/dt) here in Dydt parameter; if the
+    /// original Dy has to be known, just multiply Dydt*dt. The same for impulses: a DVI would compute
+    /// impulses I, and return L=I*(1/dt).
+    /// NOTES:
+    ///    - derived classes must take care of calling StateScatter(y,T) before computing Dy, only if
+    ///      force_state_scatter = true (otherwise it is assumed state is already in sync)
+    ///    - derived classes must take care of resizing Dy and L if needed.
     ///
     /// This function must return true if successful and false otherwise.
     virtual bool StateSolve(ChStateDelta& Dydt,              ///< result: computed Dydt
@@ -96,12 +96,12 @@ class ChApi ChIntegrable {
                             bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
                             ) = 0;
 
-    /// Perform y_new = y + Dy
+    /// Increment state array: y_new = y + Dy.
     /// This is a base implementation that works in many cases, but it can be overridden
-    /// in the case that y contains quaternions for rotations, rot. exponential is needed
-    /// rather than simple y+Dy
+    /// in the case that y contains quaternions for rotations, in which case rot. exponential is needed
+    /// instead of simply doing y+Dy.
     /// NOTE: the system is not updated automatically after the state increment, so one might
-    /// need to call StateScatter() if needed.
+    /// need to call StateScatter().
     virtual void StateIncrement(ChState& y_new,         ///< resulting y_new = y + Dy
                                 const ChState& y,       ///< initial state y
                                 const ChStateDelta& Dy  ///< state increment Dy
@@ -196,27 +196,25 @@ class ChApi ChIntegrable {
 // -----------------------------------------------------------------------------
 
 /// Special subcase: II-order differential system.
-/// Interface class for all objects that support time integration with state y that is second order,
-/// that is
+/// Interface class for all objects that support time integration with state y that is second order:
 ///     y = {x, v} , dy/dt={v, a}
 /// with positions x, speeds v=dx/dt, and accelerations a=ddx/dtdt.
 /// Such systems permit the use of special integrators that can exploit the particular system structure.
 class ChApi ChIntegrableIIorder : public ChIntegrable {
   public:
-    /// Tells the number of position coordinates x in y = {x, v}
-    /// Children classes MUST implement this!
+    /// Return the number of position coordinates x in y = {x, v}
     virtual int GetNcoords_x() = 0;
 
-    /// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
+    /// Return the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
     /// This is a base implementation that works in many cases where dim(v) = dim(x), but
     /// might be less ex. if x uses quaternions and v uses angular vel.
     virtual int GetNcoords_v() { return GetNcoords_x(); }
 
-    /// Tells the number of acceleration coordinates of a in dy/dt={v, a}
+    /// Return the number of acceleration coordinates of a in dy/dt={v, a}
     /// This is a default implementation that works in almost all cases, as dim(a) = dim(v),
     virtual int GetNcoords_a() { return GetNcoords_v(); }
 
-    /// This sets up the system state with separate II order components x, v, a
+    /// Set up the system state with separate II order components x, v, a
     /// for y = {x, v} and  dy/dt={v, a}
     virtual void StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& a);
 
@@ -224,16 +222,17 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// Optionally, they will copy system private state, if any, to y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) {}
 
-    /// From state Y={x,v} to system.
-    /// This is important because it is called by time integrators all times
-    /// they modify the Y state. In some cases, the ChIntegrable object might
-    /// contain dependent data structures that might need an update at each change of Y,
-    /// if so, this function must be overridden.
+    /// Scatter the states from the provided arrays to the system.
+    /// This function is called by time integrators all times they modify the Y state.
+    /// In some cases, the ChIntegrable object might contain dependent data structures
+    /// that might need an update at each change of Y. If so, this function must be overridden.
     virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) {}
 
+    /// Gather from the system the acceleration in specified array.
     /// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
     virtual void StateGatherAcceleration(ChStateDelta& a) {}
 
+    /// Scatter the acceleration from the provided array to the system.
     /// Optional: the integrable object might contain last computed state derivative, some integrators might use it.
     virtual void StateScatterAcceleration(const ChStateDelta& a) {}
 
@@ -265,7 +264,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                              bool force_state_scatter = true  ///< if false, x,v and T are not scattered to the system
                              );
 
-    /// Perform x_new = x + dx    for x in    Y = {x, dx/dt}
+    /// Increment state array:  x_new = x + dx    for x in    Y = {x, dx/dt}
     /// This is a base implementation that works in many cases, but it can be overridden
     /// in the case that x contains quaternions for rotations
     /// NOTE: the system is not updated automatically after the state increment, so one might
@@ -388,32 +387,34 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     //   custom II order timesteppers if possible.
     // NOTE: children classes does not need to override those default functions.
 
-    /// Tells the number of coordinates in the state y.
+    /// Return the number of coordinates in the state Y.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); };
 
-    /// Tells the number of coordinates in the state increment Dy.
+    /// Return the number of coordinates in the state increment.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); };
 
-    /// From system to state y={x,v}
+    /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
     virtual void StateGather(ChState& y, double& T) override;
 
-    /// From state y={x,v} to system.
+    /// Scatter the states from the provided array to the system.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
     virtual void StateScatter(const ChState& y, const double T) override;
 
+    /// Gather from the system the state derivatives in specified array.
     /// The integrable object might contain last computed state derivative, some integrators might reuse it.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
     virtual void StateGatherDerivative(ChStateDelta& Dydt) override;
 
+    /// Scatter the state derivatives from the provided array to the system.
     /// The integrable object might need to store last computed state derivative, ex. for plotting etc.
     /// NOTE! the velocity in dsdt={v,a} is not scattered to the II order integrable, only acceleration is scattered!
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
@@ -421,7 +422,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     /// compatibility with 1st order integrators.
     virtual void StateScatterDerivative(const ChStateDelta& Dydt) override;
 
-    /// Perform y_new = y + Dy
+    /// Increment state array: y_new = y + Dy.
     /// This is a base implementation that works in many cases.
     /// It calls StateIncrementX() if used on x in y={x, dx/dt}.
     /// It calls StateIncrementX() for x, and a normal sum for dx/dt if used on y in y={x, dx/dt}
@@ -430,7 +431,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                 const ChStateDelta& Dy  ///< state increment Dy
                                 ) override;
 
-    /// dy/dt = f(y,t)
+    /// Solve for state derivatives: dy/dt = f(y,t).
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
     /// PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
     /// compatibility with 1st order integrators.
@@ -462,11 +463,9 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
 
 // -----------------------------------------------------------------------------
 
-/// This is a custom operator "+" that takes care of incremental update
-/// of a state y by an increment Dy, if one types "y_new = y+Dy", by calling
-/// the specialized StateIncrement() in the ChIntegrable (if any, otherwise
-/// it will be a simple vector sum).
-
+/// Custom operator "+" that takes care of incremental update of a state y by an increment Dy.
+/// "y_new = y + Dy", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
+/// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChState& y, const ChStateDelta& Dy) {
     ChState result(y.GetRows(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
@@ -478,16 +477,15 @@ inline ChState& operator+=(ChState& y, const ChStateDelta& Dy) {
     return y;
 }
 
-/// This is a custom operator "+" that takes care of incremental update
-/// of a state y by an increment Dy, if one types "y_new = Dy+y", by calling
-/// the specialized StateIncrement() in the ChIntegrable (if any, otherwise
-/// it will be a simple vector sum).
-
+/// Custom operator "+" that takes care of incremental update of a state y by an increment Dy
+/// "y_new = Dy + y", invokes the specialized StateIncrement() in the ChIntegrable. If none is 
+/// provided, this defaults to a simple vector sum
 inline ChState operator+(const ChStateDelta& Dy, const ChState& y) {
     ChState result(y.GetRows(), y.GetIntegrable());
     y.GetIntegrable()->StateIncrement(result, y, Dy);
     return result;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
+
 #endif
