@@ -17,29 +17,31 @@
 
 #include <float.h>
 #include <memory.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 #include <cstring>
 #include <iostream>
 #include <list>
 
-#include "collision/ChCCollisionSystem.h"
-#include "core/ChLog.h"
-#include "core/ChMath.h"
-#include "core/ChTimer.h"
-#include "physics/ChAssembly.h"
-#include "physics/ChBodyAuxRef.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChControls.h"
-#include "physics/ChEvents.h"
-#include "physics/ChGlobal.h"
-#include "physics/ChLinksAll.h"
-#include "physics/ChMaterialCouple.h"
-#include "physics/ChProbe.h"
-#include "physics/ChScriptEngine.h"
-#include "timestepper/ChAssemblyAnalysis.h"
-#include "timestepper/ChIntegrable.h"
-#include "timestepper/ChTimestepper.h"
+#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/physics/ChAssembly.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChControls.h"
+#include "chrono/physics/ChEvents.h"
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChLinksAll.h"
+#include "chrono/physics/ChMaterialCouple.h"
+#include "chrono/physics/ChProbe.h"
+#include "chrono/physics/ChScriptEngine.h"
+#include "chrono/solver/ChSystemDescriptor.h"
+#include "chrono/timestepper/ChAssemblyAnalysis.h"
+#include "chrono/timestepper/ChIntegrable.h"
+#include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperHHT.h"
 
 namespace chrono {
 

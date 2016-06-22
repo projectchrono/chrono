@@ -14,12 +14,12 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChContactContainerDVI.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChProximityContainerBase.h"
 #include "chrono/physics/ChSystem.h"
-
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverJacobi.h"
@@ -30,14 +30,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSimplex.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
-#include "chrono/solver/ChSystemDescriptor.h"
-
-#include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/collision/ChCModelBullet.h"
-#include "chrono/core/ChTimer.h"
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/timestepper/ChTimestepper.h"
 
 using namespace chrono::collision;
 
