@@ -49,6 +49,7 @@ SET(ChronoEngine_FEA_SOURCES
 	  ChContactSurfaceMesh.cpp
 	  ChMeshSurface.cpp
 	  ChLoadContactSurfaceMesh.cpp
+    ChMaterialShellReissner.cpp
 )
 
 SET(ChronoEngine_FEA_HEADERS
@@ -104,6 +105,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChUtilsFEA.h
 	  ChLoadContactSurfaceMesh.h
 	  ChRotUtils.h
+	ChMaterialShellReissner.h
 )
 
 SOURCE_GROUP("" FILES 
