@@ -66,7 +66,7 @@ class ChContactContainerBase;
 ///
 /// Further info at the @ref simulation_system  manual page.
 
-class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorderEasy {
+class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     CH_RTTI(ChSystem, ChAssembly);
 
   public:
@@ -556,27 +556,28 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorderEasy {
                                  const ChStateDelta& Dx  ///< state increment Dx
                                  ) override;
 
-    /// Assuming an explicit DAE in the form
-    ///        M*a = F(x,v,t) + Cq'*L
+    /// Assuming a DAE of the form
+    ///       M*a = F(x,v,t) + Cq'*L
     ///       C(x,t) = 0
-    /// this must compute the solution of the change Du (in a or v or x) to satisfy
-    /// the equation required in a Newton Raphson iteration for an
-    /// implicit integrator equation:
+    /// this function computes the solution of the change Du (in a or v or x) for a Newton
+    /// iteration within an implicit integration scheme.
     ///  |Du| = [ G   Cq' ]^-1 * | R |
     ///  |DL|   [ Cq  0   ]      | Qc|
     /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
-    virtual void StateSolveCorrection(
-        ChStateDelta& Dv,                ///< result: computed Dv
-        ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
-        const ChVectorDynamic<>& R,      ///< the R residual
-        const ChVectorDynamic<>& Qc,     ///< the Qc residual
-        const double c_a,                ///< the factor in c_a*M
-        const double c_v,                ///< the factor in c_v*dF/dv
-        const double c_x,                ///< the factor in c_x*dF/dv
-        const ChState& x,                ///< current state, x part
-        const ChStateDelta& v,           ///< current state, v part
-        const double T,                  ///< current time T
-        bool force_state_scatter = true  ///< if false, x,v and T are not scattered to the system
+    /// This function returns true if successful and false otherwise.
+    virtual bool StateSolveCorrection(
+        ChStateDelta& Dv,                 ///< result: computed Dv
+        ChVectorDynamic<>& L,             ///< result: computed lagrangian multipliers, if any
+        const ChVectorDynamic<>& R,       ///< the R residual
+        const ChVectorDynamic<>& Qc,      ///< the Qc residual
+        const double c_a,                 ///< the factor in c_a*M
+        const double c_v,                 ///< the factor in c_v*dF/dv
+        const double c_x,                 ///< the factor in c_x*dF/dv
+        const ChState& x,                 ///< current state, x part
+        const ChStateDelta& v,            ///< current state, v part
+        const double T,                   ///< current time T
+        bool force_state_scatter = true,  ///< if false, x,v and T are not scattered to the system
+        bool force_setup = true           ///< if true, call the solver's Setup() function
         ) override;
 
     /// Increment a vector R with the term c*F:

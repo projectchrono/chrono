@@ -1384,62 +1384,61 @@ void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x 
     this->IntStateIncrement(0, x_new, x, 0, Dx);
 }
 
-// Assuming an explicit DAE in the form
-//        M*a = F(x,v,t) + Cq'*L
+// Assuming a DAE of the form
+//       M*a = F(x,v,t) + Cq'*L
 //       C(x,t) = 0
-// this must compute the solution of the change Du (in a or v or x) to satisfy
-// the equation required in a Newton Raphson iteration for an
-// implicit integrator equation:
+// this function computes the solution of the change Du (in a or v or x) for a Newton
+// iteration within an implicit integration scheme.
 //  |Du| = [ G   Cq' ]^-1 * | R |
 //  |DL|   [ Cq  0   ]      | Qc|
 // for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
-void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                    ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
-                                    const ChVectorDynamic<>& R,   ///< the R residual
-                                    const ChVectorDynamic<>& Qc,  ///< the Qc residual
-                                    const double c_a,             ///< the factor in c_a*M
-                                    const double c_v,             ///< the factor in c_v*dF/dv
-                                    const double c_x,             ///< the factor in c_x*dF/dv
-                                    const ChState& x,             ///< current state, x part
-                                    const ChStateDelta& v,        ///< current state, v part
-                                    const double T,               ///< current time T
-                                    bool force_state_scatter  ///< if false, x,v and T are not scattered to the system,
-                                    /// assuming that someone has done StateScatter just before
+// This function returns true if successful and false otherwise.
+bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                    ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
+                                    const ChVectorDynamic<>& R,   // the R residual
+                                    const ChVectorDynamic<>& Qc,  // the Qc residual
+                                    const double c_a,             // the factor in c_a*M
+                                    const double c_v,             // the factor in c_v*dF/dv
+                                    const double c_x,             // the factor in c_x*dF/dv
+                                    const ChState& x,             // current state, x part
+                                    const ChStateDelta& v,        // current state, v part
+                                    const double T,               // current time T
+                                    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+                                    bool force_setup              // if true, call the solver's Setup() function
                                     ) {
-    this->solvecount++;
+    solvecount++;
 
     if (force_state_scatter)
-        this->StateScatter(x, v, T);
+        StateScatter(x, v, T);
 
     // R and Qc vectors  --> solver sparse solver structures  (also sets L and Dv to warmstart)
-
-    this->IntToDescriptor(0, Dv, R, 0, L, Qc);
+    IntToDescriptor(0, Dv, R, 0, L, Qc);
 
     // G and Cq  matrices:  fill the sparse solver structures:
-
-    this->ConstraintsLoadJacobians();
+    ConstraintsLoadJacobians();
 
     // M, K, R matrices:  fill the sparse solver structures:
-
     if (c_a || c_v || c_x)
-        this->KRMmatricesLoad(-c_x, -c_v, c_a);  // for KRM blocks in ChKblock objects: fill them
-    this->descriptor->SetMassFactor(
-        c_a);  // for ChVariable objects, that does not have ChKblock: just use a coeff., to avoid duplicated data
+        KRMmatricesLoad(-c_x, -c_v, c_a);
+
+    // For ChVariable objects that do not have a ChKblock, just use the 'a' coefficient
+    // to avoid duplicated data.
+    descriptor->SetMassFactor(c_a);
 
     // diagnostics:
 
-    if (this->dump_matrices) {
+    if (dump_matrices) {
         // GetLog() << "StateSolveCorrection R=" << R << "\n\n";
         // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
         std::string sprefix(cprefix);
 
-        this->descriptor->DumpLastMatrices(true, sprefix.c_str());
-        this->descriptor->DumpLastMatrices(false, sprefix.c_str());
+        descriptor->DumpLastMatrices(true, sprefix.c_str());
+        descriptor->DumpLastMatrices(false, sprefix.c_str());
 
         chrono::ChStreamOutAsciiFile file_x((sprefix + "x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
@@ -1458,24 +1457,27 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);  // already saved as b from DumpLastMatrices?
     }
 
-    // Solve the problem
+    // Solve the problem. If indicated, first perform a solver setup.
 
     timer_solver.start();
 
-    GetSolverSpeed()->Solve(*this->descriptor);
+    if (!GetSolverSpeed()->Setup(*descriptor)) {
+        return false;
+    }
+    GetSolverSpeed()->Solve(*descriptor);
 
     timer_solver.stop();
 
     // Dv and L vectors  <-- sparse solver structures
 
-    this->IntFromDescriptor(0, Dv, 0, L);
+    IntFromDescriptor(0, Dv, 0, L);
 
-    // diagnostics:
+    // Diagnostics:
 
-    if (this->dump_matrices) {
+    if (dump_matrices) {
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
         std::string sprefix(cprefix);
 
         chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
@@ -1489,6 +1491,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         // GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
         // GetLog() << "StateSolveCorrection L="  << L << "\n\n";
     }
+
+    return true;
 }
 
 // Increment a vector R with the term c*F:

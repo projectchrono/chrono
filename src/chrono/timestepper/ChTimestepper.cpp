@@ -419,13 +419,15 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt  ///< timeste
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);
     mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
-    mintegrable->StateSolveCorrection(V, L, R, Qc,
-                                      1.0,           // factor for  M
-                                      -dt,           // factor for  dF/dv
-                                      -dt * dt,      // factor for  dF/dx
-                                      X, V, T + dt,  // not needed
-                                      false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                      );
+    mintegrable->StateSolveCorrection(
+        V, L, R, Qc,
+        1.0,           // factor for  M
+        -dt,           // factor for  dF/dv
+        -dt * dt,      // factor for  dF/dx
+        X, V, T + dt,  // not needed
+        false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
+        true           // force a call to the solver's Setup() function
+        );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -486,13 +488,15 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt  ///< timestep
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, 0);
     mintegrable->LoadConstraint_Ct(Qc, 1.0);
 
-    mintegrable->StateSolveCorrection(V, L, R, Qc,
-                                      1.0,           // factor for  M
-                                      -dt,           // factor for  dF/dv
-                                      -dt * dt,      // factor for  dF/dx
-                                      X, V, T + dt,  // not needed
-                                      false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                      );
+    mintegrable->StateSolveCorrection(
+        V, L, R, Qc,
+        1.0,           // factor for  M
+        -dt,           // factor for  dF/dv
+        -dt * dt,      // factor for  dF/dx
+        X, V, T + dt,  // not needed
+        false,         // do not StateScatter update to Xnew Vnew T+dt before computing correction
+        true           // force a call to the solver's Setup() function
+        );
 
     L *= (1.0 / dt);  // Note it is not -(1.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -521,15 +525,17 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt  ///< timestep
 
     mintegrable->LoadConstraint_C(Qc, 1.0, false, 0);
 
-    mintegrable->StateSolveCorrection(Vold, L, R, Qc,
-                                      1.0,           // factor for  M
-                                      0,             // factor for  dF/dv
-                                      0,             // factor for  dF/dx
-                                      X, V, T,       // not needed
-                                      false          // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                      );
+    mintegrable->StateSolveCorrection(
+        Vold, L, R, Qc,
+        1.0,      // factor for  M
+        0,        // factor for  dF/dv
+        0,        // factor for  dF/dx
+        X, V, T,  // not needed
+        false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
+        true      // force a call to the solver's Setup() function
+        );
 
-    X += Vold;  //here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
+    X += Vold;  // here we used 'Vold' as 'dpos' to recycle Vold and avoid allocating a new vector dpos
 
     mintegrable->StateScatter(X, V, T);     // state -> system
 }
@@ -608,7 +614,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt  ///< timestep to advance
             -dt * 0.5,        // factor for  dF/dv
             -dt * dt * 0.25,  // factor for  dF/dx
             Xnew, Vnew, T + dt,
-            false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            false,  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            true    // force a call to the solver's Setup() function
             );
 
         Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
@@ -686,13 +693,15 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt  ///< timestep 
     // mintegrable->LoadResidual_CqL(R, L, dt*0.5); // + dt/2*Cq*l_new  assume l_old = 0;
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // C/dt
 
-    mintegrable->StateSolveCorrection(Dv, Dl, R, Qc,
-                                      1.0,              // factor for  M
-                                      -dt * 0.5,        // factor for  dF/dv
-                                      -dt * dt * 0.25,  // factor for  dF/dx
-                                      Xnew, Vnew, T + dt,
-                                      false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                      );
+    mintegrable->StateSolveCorrection(
+        Dv, Dl, R, Qc,
+        1.0,              // factor for  M
+        -dt * 0.5,        // factor for  dF/dv
+        -dt * dt * 0.25,  // factor for  dF/dx
+        Xnew, Vnew, T + dt,
+        false,  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+        true    // force a call to the solver's Setup() function
+        );
 
     Dl *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
     L += Dl;
@@ -759,13 +768,15 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt  ///< timestep
     mintegrable->LoadResidual_F(R, dt * 0.5);                               // + dt/2*f_new
     mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // C/dt
 
-    mintegrable->StateSolveCorrection(Vnew, L, R, Qc,
-                                      1.0,              // factor for  M
-                                      -dt * 0.5,        // factor for  dF/dv
-                                      -dt * dt * 0.25,  // factor for  dF/dx
-                                      Xnew, Vnew, T + dt,
-                                      false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                      );
+    mintegrable->StateSolveCorrection(
+        Vnew, L, R, Qc,
+        1.0,              // factor for  M
+        -dt * 0.5,        // factor for  dF/dv
+        -dt * dt * 0.25,  // factor for  dF/dx
+        Xnew, Vnew, T + dt,
+        false,  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+        true    // force a call to the solver's Setup() function
+        );
 
     L *= (2.0 / dt);  // Note it is not -(2.0/dt) because we assume StateSolveCorrection already flips sign of Dl
 
@@ -1157,7 +1168,8 @@ void ChTimestepperNewmark::Advance(const double dt  ///< timestep to advance
             -dt * gamma,      // factor for  dF/dv
             -dt * dt * beta,  // factor for  dF/dx
             Xnew, Vnew, T + dt,
-            false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            false,  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            true    // force a call to the solver's Setup() function
             );
 
         L += Dl;  // Note it is not -= Dl because we assume StateSolveCorrection flips sign of Dl

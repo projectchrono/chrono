@@ -490,6 +490,7 @@ source_group(particlefactory FILES
 # Timestepper group
 
 set(ChronoEngine_timestepper_SOURCES
+    timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
     )
 
@@ -498,7 +499,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
     timestepper/ChStaticAnalysis.h
-	timestepper/ChAssemblyAnalysis.h
+    timestepper/ChAssemblyAnalysis.h
     )
 
 source_group(timestepper FILES

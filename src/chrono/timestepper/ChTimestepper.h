@@ -405,12 +405,11 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
                          );
 };
 
-/// Performs a step of Euler implicit for II order systems
-/// using the Anitescu/Stewart/Trinkle single-iteration method,
-/// that is a bit like an implicit Euler where one performs only
-/// the first NR corrector iteration.
-/// If the solver in StateSolveCorrection is a CCP complementarity
-/// solver, this is the typical Anitescu stabilized timestepper for DVIs.
+/// Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle
+/// single-iteration method, that is a bit like an implicit Euler where one performs only the
+/// first Newton corrector iteration.
+/// If using an underlying CCP complementarity solver, this is the typical Anitescu stabilized
+/// timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitLinearized, ChTimestepperIIorder);
@@ -431,12 +430,11 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
                          );
 };
 
-/// Performs a step of Euler implicit for II order systems
-/// using a semi implicit Euler without constr.stabilization, followed by a projection,
-/// that is: a speed problem followed by a position problem that
-/// keeps constraint drifting 'closed' by using a projection.
-/// If the solver in StateSolveCorrection is a CCP complementarity
-/// solver, this is the Tasora stabilized timestepper for DVIs.
+/// Performs a step of Euler implicit for II order systems using a semi implicit Euler without
+/// constraint stabilization, followed by a projection. That is: a speed problem followed by a
+/// position problem that keeps constraint drifting 'closed' by using a projection.
+/// If using an underlying CCP complementarity solver, this is the typical Tasora stabilized
+/// timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChTimestepperEulerImplicitProjected, ChTimestepperIIorder);
