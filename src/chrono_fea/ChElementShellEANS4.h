@@ -24,7 +24,9 @@
 #include "chrono_fea/ChElementShell.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono_fea/ChUtilsFEA.h"
+#include "chrono_fea/ChMaterialShellReissner.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
+
 
 namespace chrono {
 namespace fea {
@@ -32,70 +34,7 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-// ----------------------------------------------------------------------------
-/// Material definition.
-/// This class implements material properties for a layer from the Reissner theory,
-/// see Morandini, Masarati "Implementation and Validation of a 4-node shell element"
-class ChApiFea ChMaterialShellEANS {
-  public:
-    /// Construct an isotropic material.
-    ChMaterialShellEANS(double thickness, ///< thickness
-                        double rho,  ///< material density
-                        double E,    ///< Young's modulus
-                        double nu,   ///< Poisson ratio
-                        double alpha = 1.0,///< shear factor
-                        double beta = 0.1 ///< torque factor
-                        );
 
-    /// Return the thickness
-    double Get_thickness() const { return m_thickness; }
-
-    /// Return the material density.
-    double Get_rho() const { return m_rho; }
-    /// Return the elasticity moduli
-    double Get_E() const { return m_E; }
-    /// Return the Poisson ratio
-    double Get_nu() const { return m_nu; }
-    /// Return the shear factor
-    double Get_alpha() const { return m_alpha; }
-    /// Return the torque factor
-    double Get_beta() const { return m_beta; }
-
-    /// The FE code will evaluate this function to compute 
-    /// u,v stresses/torques given the u,v strains/curvatures.
-    /// You can inherit a more sophisticated material that override this (ex. for
-    /// orthotropic materials, etc.)
-    virtual void ComputeStress(ChVector<>& n_u, 
-                               ChVector<>& n_v,
-                               ChVector<>& m_u, 
-                               ChVector<>& m_v,
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v);
-
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation 
-    /// stresses/strains. In many cases this is a constant matrix, but it could
-    /// change for instance in case of hardening or softening materials, etc.
-    /// By default, it is computed by backward differentiation from the ComputeStress() function,
-    /// but it is better to provide an analytical form if possible.
-    virtual void ComputeTangentC(ChMatrix<>& mC, 
-                                const ChVector<>& eps_u, 
-                                const ChVector<>& eps_v,
-                                const ChVector<>& kur_u, 
-                                const ChVector<>& kur_v);
-
-  private: 
-    double m_thickness;             ///< thickness
-    double m_rho;                  ///< density
-    double m_E;                      ///< elasticity moduli
-    double m_nu;                     ///< Poisson ratio
-    double m_alpha;                  ///< shear factor
-    double m_beta ;                  ///< torque factor
-};
-
-
-// ----------------------------------------------------------------------------
 /// Shell with geometrically exact kinematics, with 4 nodes. 
 /// Uses ANS to avoid shear locking.
 /// Based on the paper:
@@ -126,21 +65,21 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
         double Get_theta() const { return m_theta; }
 
         /// Return the layer material.
-        std::shared_ptr<ChMaterialShellEANS> GetMaterial() const { return m_material; }
+        std::shared_ptr<ChMaterialShellReissnerIntegrable> GetMaterial() const { return m_material; }
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
         Layer(ChElementShellEANS4* element,                  ///< containing element
               double thickness,                              ///< layer thickness
               double theta,                                  ///< fiber angle
-              std::shared_ptr<ChMaterialShellEANS> material  ///< layer material
+              std::shared_ptr<ChMaterialShellReissnerIntegrable> material  ///< layer material
               );
 
         /// Initial setup for this layer
         void SetupInitial();
 
         ChElementShellEANS4* m_element;                   ///< containing shell element
-        std::shared_ptr<ChMaterialShellEANS> m_material;  ///< layer material
+        std::shared_ptr<ChMaterialShellReissnerIntegrable> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
 
@@ -194,13 +133,24 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     void SetAsNeutral();
 
     /// Add a layer.
+    /// By default, when adding more than one layer, the reference z level of the 
+    /// shell element is centered along the total thickness.
     void AddLayer(double thickness,                              ///< layer thickness
-                  double theta,                                  ///< fiber angle (radians)
-                  std::shared_ptr<ChMaterialShellEANS> material  ///< layer material
+                  double theta,                                  ///< fiber angle (radians) 
+                  std::shared_ptr<ChMaterialShellReissnerIntegrable> material  ///< layer material
                   );
 
+    /// Impose the reference z level of shell element as centered along the total thickness.
+    /// This is the default behavior each time you call AddLayer();
+    /// Note! Use after you added all layers.
+    void SetLayerZreferenceCentered();
+
+    /// Impose the reference z level of shell element respect to the lower face of bottom layer
+    /// Note! Use after you added all layers.
+    void SetLayerZreference(double z_from_bottom);
+
     /// Get the number of layers.
-    size_t GetNumLayers() const { return m_numLayers; }
+    size_t GetNumLayers() const { return m_layers.size(); }
 
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
@@ -212,7 +162,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     double GetLengthX() const { return m_lenX; }
     /// Get the element length in the Y direction.
     double GetLengthY() const { return m_lenY; }
-    /// Get the total thickness of the shell element.
+    /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
     double GetThickness() { return m_thickness; }
 
     ChQuaternion<> GetAvgRot() {return T_overline.Get_A_quaternion();}
@@ -254,13 +204,14 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     // DATA
     //
     std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
-    std::vector<Layer> m_layers;                           ///< element layers
-    size_t m_numLayers;                                    ///< number of layers for this element
+
+    std::vector<Layer>  m_layers;                          ///< element layers
+    std::vector<double> m_layers_z;                        ///< layer separation z values (not scaled, default centered tot thickness)
+
     double m_thickness;                                    ///< total element thickness
     double m_lenX;                                         ///< element length in X direction
     double m_lenY;                                         ///< element length in Y direction
     double m_Alpha;                                        ///< structural damping
-    std::vector<double> m_GaussZ;                          ///< layer separation z values (scaled to [-1,1])
     ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
     ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
