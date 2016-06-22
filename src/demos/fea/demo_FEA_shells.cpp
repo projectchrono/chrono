@@ -25,7 +25,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementShellEANS4.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         
         int nels_L = 12;
         int nels_W = 1;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_L*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_L*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_L+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (il>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes( 
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
         int nels_U = 60;
         int nels_W = 10;
         double arc = CH_C_2PI *1;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(
@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
         int nels_U = 32;
         int nels_W = 32;
         double arc = CH_C_PI;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -367,7 +367,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(

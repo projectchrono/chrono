@@ -16,7 +16,7 @@
 
 #include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementShellEANS4.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChUtilsFEA.h"
 #include "chrono_fea/ChRotUtils.h"
 #include <cmath>
@@ -187,43 +187,43 @@ InterpDeriv_xi2(const ChVector<>*const v, const double xi[2])
 
 
 //--------------------------------------------------------------
-// ChElementShellEANS4 
+// ChElementShellReissner4 
 //--------------------------------------------------------------
 
 
 // Static integration tables
  
-double ChElementShellEANS4::xi_i[ChElementShellEANS4::NUMIP][2] = {
+double ChElementShellReissner4::xi_i[ChElementShellReissner4::NUMIP][2] = {
 	{-1. / std::sqrt(3.), -1. / std::sqrt(3.)},
 	{ 1. / std::sqrt(3.), -1. / std::sqrt(3.)},
 	{ 1. / std::sqrt(3.),  1. / std::sqrt(3.)},
 	{-1. / std::sqrt(3.),  1. / std::sqrt(3.)}
 };
 
-double ChElementShellEANS4::w_i[ChElementShellEANS4::NUMIP] = {
+double ChElementShellReissner4::w_i[ChElementShellReissner4::NUMIP] = {
 	1.,
 	1.,
 	1.,
 	1.
 };
 
-double ChElementShellEANS4::xi_A[ChElementShellEANS4::NUMSSEP][2] =  {
+double ChElementShellReissner4::xi_A[ChElementShellReissner4::NUMSSEP][2] =  {
 	{ 0.,  1.},
 	{-1.,  0.},
 	{ 0., -1.},
 	{ 1.,  0.}
 };
 
-double ChElementShellEANS4::xi_n[ChElementShellEANS4::NUMNODES][2] = {
+double ChElementShellReissner4::xi_n[ChElementShellReissner4::NUMNODES][2] = {
 	{ 1.,  1.},
 	{-1.,  1.},
 	{-1., -1.},
 	{ 1., -1.}
 };
 
-double ChElementShellEANS4::xi_0[2] = {0., 0.};
+double ChElementShellReissner4::xi_0[2] = {0., 0.};
 
-void ChElementShellEANS4::UpdateNodalAndAveragePosAndOrientation()
+void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation()
 {
 	ChMatrix33<> T_avg;
 	ChMatrix33<> Tn[NUMNODES];
@@ -259,7 +259,7 @@ void ChElementShellEANS4::UpdateNodalAndAveragePosAndOrientation()
 	}
 }
 
-void ChElementShellEANS4::ComputeInitialNodeOrientation()
+void ChElementShellReissner4::ComputeInitialNodeOrientation()
 {
 	for (int i = 0; i < NUMNODES; i++) {
 		xa[i] = this->m_nodes[i]->GetPos();
@@ -308,7 +308,7 @@ void ChElementShellEANS4::ComputeInitialNodeOrientation()
 	InterpolateOrientation();
 }
 
-void ChElementShellEANS4::InterpolateOrientation()
+void ChElementShellReissner4::InterpolateOrientation()
 {
 	ChMatrix33<> DRot_I_phi_tilde_n_MT_T_overline[NUMNODES];
 	ChMatrix33<> Ri, Gammai;
@@ -350,7 +350,7 @@ void ChElementShellEANS4::InterpolateOrientation()
 }
 
 
-void ChElementShellEANS4::ComputeIPCurvature()
+void ChElementShellReissner4::ComputeIPCurvature()
 {
 	ChMatrix33<> Gamma_I_n_MT_T_overline[NUMNODES];
 	for (int n = 0; n < NUMNODES; n++) {
@@ -387,19 +387,19 @@ void ChElementShellEANS4::ComputeIPCurvature()
 }
 
 
-ChElementShellEANS4::ChElementShellEANS4() :  m_thickness(0) {
+ChElementShellReissner4::ChElementShellReissner4() :  m_thickness(0) {
     m_nodes.resize(4);
     m_Alpha = 0;
 
     //***TODO***?
 }
 
-ChElementShellEANS4::~ChElementShellEANS4() {
+ChElementShellReissner4::~ChElementShellReissner4() {
     
 }
 
 
-void ChElementShellEANS4::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA,
+void ChElementShellReissner4::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA,
                                   std::shared_ptr<ChNodeFEAxyzrot> nodeB,
                                   std::shared_ptr<ChNodeFEAxyzrot> nodeC,
                                   std::shared_ptr<ChNodeFEAxyzrot> nodeD) {
@@ -421,14 +421,14 @@ void ChElementShellEANS4::SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA,
 }
 
 
-ChVector<> ChElementShellEANS4::EvaluateGP(int igp) {
+ChVector<> ChElementShellReissner4::EvaluateGP(int igp) {
         return 
             GetNodeA()->GetPos() * L1(xi_i[igp]) + 
 		    GetNodeB()->GetPos() * L2(xi_i[igp]) + 
 		    GetNodeC()->GetPos() * L3(xi_i[igp]) + 
 		    GetNodeD()->GetPos() * L4(xi_i[igp]);
     }
-ChVector<> ChElementShellEANS4::EvaluatePT(int ipt) {
+ChVector<> ChElementShellReissner4::EvaluatePT(int ipt) {
         return 
             GetNodeA()->GetPos() * L1(xi_n[ipt]) + 
 		    GetNodeB()->GetPos() * L2(xi_n[ipt]) + 
@@ -440,7 +440,7 @@ ChVector<> ChElementShellEANS4::EvaluatePT(int ipt) {
 // Add a layer.
 // -----------------------------------------------------------------------------
 
-void ChElementShellEANS4::AddLayer(
+void ChElementShellReissner4::AddLayer(
             double thickness, 
             double theta, 
             std::shared_ptr<ChMaterialShellReissner> material
@@ -450,7 +450,7 @@ void ChElementShellEANS4::AddLayer(
 }
 
 
-void ChElementShellEANS4::SetLayerZreferenceCentered() {
+void ChElementShellReissner4::SetLayerZreferenceCentered() {
     // accumulate element thickness. 
     m_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
@@ -466,7 +466,7 @@ void ChElementShellEANS4::SetLayerZreferenceCentered() {
 }
 
 
-void ChElementShellEANS4::SetLayerZreference(double z_from_bottom) {
+void ChElementShellReissner4::SetLayerZreference(double z_from_bottom) {
     // accumulate element thickness. 
     m_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
@@ -487,7 +487,7 @@ void ChElementShellEANS4::SetLayerZreference(double z_from_bottom) {
 // -----------------------------------------------------------------------------
 
 // Initial element setup.
-void ChElementShellEANS4::SetAsNeutral() {
+void ChElementShellReissner4::SetAsNeutral() {
 
     GetNodeA()->GetX0ref().SetPos( GetNodeA()->GetPos() );
     GetNodeB()->GetX0ref().SetPos( GetNodeB()->GetPos() );
@@ -507,7 +507,7 @@ void ChElementShellEANS4::SetAsNeutral() {
 // -----------------------------------------------------------------------------
 
 // Initial element setup.
-void ChElementShellEANS4::SetupInitial(ChSystem* system) {
+void ChElementShellReissner4::SetupInitial(ChSystem* system) {
 
     // Align initial pos/rot of nodes to actual pos/rot
     SetAsNeutral();
@@ -679,7 +679,7 @@ void ChElementShellEANS4::SetupInitial(ChSystem* system) {
 }
 
 // State update.
-void ChElementShellEANS4::Update() {
+void ChElementShellReissner4::Update() {
     ChElementGeneric::Update();
 
     //***TEST***
@@ -688,7 +688,7 @@ void ChElementShellEANS4::Update() {
 }
 
 // Fill the D vector with the current field values at the element nodes.
-void ChElementShellEANS4::GetStateBlock(ChMatrixDynamic<>& mD) {
+void ChElementShellReissner4::GetStateBlock(ChMatrixDynamic<>& mD) {
     mD.Reset(4*7, 1);
     mD.PasteVector(m_nodes[0]->GetPos(), 0, 0);
     mD.PasteQuaternion(m_nodes[0]->GetRot(), 3, 0);
@@ -705,7 +705,7 @@ void ChElementShellEANS4::GetStateBlock(ChMatrixDynamic<>& mD) {
 // NOTE! we assume that this function is computed after one computed 
 // ComputeInternalForces(), that updates inner data for the given node states.
 
-void ChElementShellEANS4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
+void ChElementShellReissner4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor, double Mfactor) {
     assert((H.GetRows() == 24) && (H.GetColumns() == 24));
 
     // Calculate the mass matrix 
@@ -721,7 +721,7 @@ void ChElementShellEANS4::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor
 }
 
 // Return the mass matrix.
-void ChElementShellEANS4::ComputeMmatrixGlobal(ChMatrix<>& M) {
+void ChElementShellReissner4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 
     // Calculate the mass matrix 
     ComputeMassMatrix();
@@ -734,7 +734,7 @@ void ChElementShellEANS4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 
-void ChElementShellEANS4::ComputeMassMatrix() {
+void ChElementShellReissner4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
     double thickness = this->GetLayer(0).Get_thickness();
@@ -801,7 +801,7 @@ void ChElementShellEANS4::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 
-void ChElementShellEANS4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
     Fi.Reset();
 
@@ -1058,7 +1058,7 @@ void ChElementShellEANS4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 
-void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfactor) {
+void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rfactor) {
 
     m_JacobianMatrix.Reset();
 
@@ -1149,7 +1149,7 @@ void ChElementShellEANS4::ComputeInternalJacobians(double Kfactor, double Rfacto
 // Shape functions
 // -----------------------------------------------------------------------------
 
-void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y) {
+void ChElementShellReissner4::ShapeFunctions(ChMatrix<>& N, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
 
@@ -1159,7 +1159,7 @@ void ChElementShellEANS4::ShapeFunctions(ChMatrix<>& N, double x, double y) {
     N(3) = L4(xi);
 }
 
-void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y) {
+void ChElementShellReissner4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
     Nx(0) = L1_1(xi);
@@ -1168,7 +1168,7 @@ void ChElementShellEANS4::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, do
     Nx(3) = L4_1(xi);
 }
 
-void ChElementShellEANS4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y) {
+void ChElementShellReissner4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y) {
     double xi[2];
     xi[0]=x, xi[1]=y;
     Ny(0) = L1_2(xi);
@@ -1191,7 +1191,7 @@ void ChElementShellEANS4::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, do
 // Interface to ChElementShell base class
 // -----------------------------------------------------------------------------
 
-void ChElementShellEANS4::EvaluateSectionDisplacement(const double u,
+void ChElementShellReissner4::EvaluateSectionDisplacement(const double u,
                                                      const double v,
                                                      const ChMatrix<>& displ,
                                                      ChVector<>& u_displ,
@@ -1201,7 +1201,7 @@ void ChElementShellEANS4::EvaluateSectionDisplacement(const double u,
     u_rotaz = VNULL;  // no angles.. this is ANCF (or maybe return here the slope derivatives?)
 }
 
-void ChElementShellEANS4::EvaluateSectionFrame(const double u,
+void ChElementShellReissner4::EvaluateSectionFrame(const double u,
                                               const double v,
                                               const ChMatrix<>& displ,
                                               ChVector<>& point,
@@ -1211,7 +1211,7 @@ void ChElementShellEANS4::EvaluateSectionFrame(const double u,
     rot = QUNIT;  // or maybe use gram-schmidt to get csys of section from slopes?
 }
 
-void ChElementShellEANS4::EvaluateSectionPoint(const double u,
+void ChElementShellReissner4::EvaluateSectionPoint(const double u,
                                               const double v,
                                               const ChMatrix<>& displ,
                                               ChVector<>& point) {
@@ -1231,7 +1231,7 @@ void ChElementShellEANS4::EvaluateSectionPoint(const double u,
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellEANS4::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
     mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
     mD.PasteQuaternion(m_nodes[0]->GetRot(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 7, 0);
@@ -1243,7 +1243,7 @@ void ChElementShellEANS4::LoadableGetStateBlock_x(int block_offset, ChVectorDyna
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellEANS4::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
     mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
     mD.PasteQuaternion(m_nodes[0]->GetRot_dt(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -1254,7 +1254,7 @@ void ChElementShellEANS4::LoadableGetStateBlock_w(int block_offset, ChVectorDyna
     mD.PasteQuaternion(m_nodes[3]->GetRot_dt(), block_offset + 21, 0);
 }
 
-void ChElementShellEANS4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
+void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
     ChMatrixNM<double, 4, 1> N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 4; ii++) {
@@ -1263,14 +1263,14 @@ void ChElementShellEANS4::EvaluateSectionVelNorm(double U, double V, ChVector<>&
 }
 
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
-void ChElementShellEANS4::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+void ChElementShellReissner4::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
     }
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
-void ChElementShellEANS4::ComputeNF(
+void ChElementShellReissner4::ComputeNF(
     const double U,              // parametric coordinate in surface
     const double V,              // parametric coordinate in surface
     ChVectorDynamic<>& Qi,       // Return result of Q = N'*F  here
@@ -1306,7 +1306,7 @@ void ChElementShellEANS4::ComputeNF(
 }
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V,W) coordinates of the surface.
-void ChElementShellEANS4::ComputeNF(
+void ChElementShellReissner4::ComputeNF(
     const double U,              // parametric coordinate in volume
     const double V,              // parametric coordinate in volume
     const double W,              // parametric coordinate in volume
@@ -1348,7 +1348,7 @@ void ChElementShellEANS4::ComputeNF(
 // -----------------------------------------------------------------------------
 
 // Calculate average element density (needed for ChLoaderVolumeGravity).
-double ChElementShellEANS4::GetDensity() {
+double ChElementShellReissner4::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
         double rho = m_layers[kl].GetMaterial()->Get_rho();
@@ -1359,7 +1359,7 @@ double ChElementShellEANS4::GetDensity() {
 }
 
 // Calculate normal to the surface at (U,V) coordinates.
-ChVector<> ChElementShellEANS4::ComputeNormal(const double U, const double V) {
+ChVector<> ChElementShellReissner4::ComputeNormal(const double U, const double V) {
 
     ChMatrixNM<double, 1, 4> Nx;
     ChMatrixNM<double, 1, 4> Ny;
@@ -1389,14 +1389,14 @@ ChVector<> ChElementShellEANS4::ComputeNormal(const double U, const double V) {
 
 
 // Private constructor (a layer can be created only by adding it to an element)
-ChElementShellEANS4::Layer::Layer(ChElementShellEANS4* element,
+ChElementShellReissner4::Layer::Layer(ChElementShellReissner4* element,
                                  double thickness,
                                  double theta,
                                  std::shared_ptr<ChMaterialShellReissner> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer:
-void ChElementShellEANS4::Layer::SetupInitial() {
+void ChElementShellReissner4::Layer::SetupInitial() {
  
 }
 

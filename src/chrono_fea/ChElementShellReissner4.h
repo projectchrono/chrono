@@ -50,10 +50,10 @@ namespace fea {
 ///   |     |     |
 /// A o-----+-----o B
 ///
-class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
+class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
-    ChElementShellEANS4();
-    virtual ~ChElementShellEANS4();
+    ChElementShellReissner4();
+    virtual ~ChElementShellReissner4();
 
     /// Definition of a layer
     class Layer {
@@ -69,7 +69,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellEANS4* element,                  ///< containing element
+        Layer(ChElementShellReissner4* element,                  ///< containing element
               double thickness,                              ///< layer thickness
               double theta,                                  ///< fiber angle
               std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
@@ -78,12 +78,12 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
         /// Initial setup for this layer
         void SetupInitial();
 
-        ChElementShellEANS4* m_element;                   ///< containing shell element
+        ChElementShellReissner4* m_element;                   ///< containing shell element
         std::shared_ptr<ChMaterialShellReissner> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
 
-        friend class ChElementShellEANS4;
+        friend class ChElementShellReissner4;
         friend class MyForce;
         friend class MyJacobian;
     };

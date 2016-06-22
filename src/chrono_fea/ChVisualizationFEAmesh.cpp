@@ -21,7 +21,7 @@
 #include "chrono_fea/ChElementHexa_20.h"
 #include "chrono_fea/ChElementHexa_8.h"
 #include "chrono_fea/ChElementShell.h"
-#include "chrono_fea/ChElementShellEANS4.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChElementTetra_10.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChFaceTetra_4.h"
@@ -1133,8 +1133,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     //***TEST***
     if (true)
     for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
-            // ------------ELEMENT IS A ChElementShellEANS4?
-            if (auto myshell = std::dynamic_pointer_cast<ChElementShellEANS4>(this->FEMmesh->GetElement(iel))) {
+            // ------------ELEMENT IS A ChElementShellReissner4?
+            if (auto myshell = std::dynamic_pointer_cast<ChElementShellReissner4>(this->FEMmesh->GetElement(iel))) {
                 glyphs_asset->SetGlyphsSize(0.4);
                 // average rotation
                 if (false) {

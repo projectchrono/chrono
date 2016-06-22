@@ -346,12 +346,10 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     Tm(2,0) =-SC;  Tm(2,1) = SC;   Tm(2,2) = CC;   Tm(2,3) =-SS;
     Tm(3,0) =-SC;  Tm(3,1) = SC;   Tm(3,2) =-SS;   Tm(3,3) = CC;
 
-//GetLog() << "Qm_local=" << Qm_local << "\n";
     ChMatrixNM<double, 4,4> tmp44;
     ChMatrixNM<double, 4,4> Qm;
     tmp44.MatrMultiply(Qm_local,Tm);
     Qm.MatrTMultiply(Tm,tmp44);
-//GetLog() << "Qm=" << Qm << "\n";
 
     // Rotate Qs_local into Qs, as Qs = Ts'*Qs_local*Ts
     ChMatrixNM<double, 2,2> Ts;
