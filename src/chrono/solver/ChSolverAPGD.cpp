@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChSolverAPGD.h"
 
@@ -15,15 +18,14 @@
 #include "chrono/core/ChStream.h"
 
 #include <iostream>
-#include <vector>
-#include <valarray>
-#include <string>
 #include <sstream>
+#include <string>
+#include <valarray>
+#include <vector>
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverAPGD> a_registration_ChSolverAPGD;
 
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
@@ -198,8 +200,6 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             // (14) endwhile
         }
 
-        // if(verbose) OutputState("_14");
-
         // (15) theta_(k+1) = (-theta_k^2 + theta_k * sqrt(theta_k^2 + 4)) / 2
         thetaNew = (-pow(theta, 2.0) + theta * sqrt(pow(theta, 2.0) + 4.0)) / 2.0;
 
@@ -210,8 +210,6 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         tmp.MatrSub(gammaNew, gamma);  // Here tmp is equal to gammaNew - gamma;
         tmp.MatrScale(Beta);
         yNew.MatrAdd(gammaNew, tmp);
-
-        // if(verbose) OutputState("_17");
 
         // (18) r = r(gamma_(k+1))
         double res = Res4(sysd);
@@ -226,8 +224,6 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
             // (22) endif
         }
-
-        // if(verbose) OutputState("_22");
 
         // (23) if r < Tau
         if (residual < this->tolerance) {
@@ -249,8 +245,6 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             // (29) endif
         }
 
-        // if(verbose) OutputState("_29");
-
         // (30) L_k = 0.9 * L_k
         L = 0.9 * L;
 
@@ -270,7 +264,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
         // (32) endfor
     }
-    // if(verbose) OutputState("_32");
+
     if (verbose)
         std::cout << "Residual: " << residual << ", Iter: " << tot_iterations << std::endl;
 

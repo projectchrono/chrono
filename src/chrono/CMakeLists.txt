@@ -673,7 +673,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
     solver/ChSolver.h
-    solver/ChDirectSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
     solver/ChSolverMINRES.h

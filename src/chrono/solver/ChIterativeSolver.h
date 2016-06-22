@@ -39,12 +39,12 @@ class ChApi ChIterativeSolver : public ChSolver {
     CH_RTTI(ChIterativeSolver, ChSolver);
 
   protected:
-    int max_iterations;
-    int tot_iterations;  /// The total number of iterations performed by the solver
-    bool warm_start;
-    double tolerance;
-    double omega;
-    double shlambda;
+    int max_iterations;  ///< maximum allowed iterations
+    int tot_iterations;  ///< total number of iterations performed by the solver
+    bool warm_start;     ///< indicate whether or not to use warm starting
+    double tolerance;    ///< tolerance for termination criteria
+    double omega;        ///< over-relaxation factor
+    double shlambda;     ///< sharpness factor
 
     bool record_violation_history;
     std::vector<double> violation_history;

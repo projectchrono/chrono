@@ -16,6 +16,7 @@
 #define CHSOLVER_H
 
 #include <vector>
+
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChVariables.h"
@@ -44,42 +45,36 @@ class ChApi ChSolver {
     CH_RTTI_ROOT(ChSolver);
 
   public:
-    bool verbose;
-
     ChSolver() : verbose(false) {}
 
     virtual ~ChSolver() {}
 
-    // --Following functions are generic interfaces to the solver. The
-    //   Solve() function is a pure virtual method, so it MUST be implemented
-    //   by specialized child classes:
-
     /// Performs the solution of the problem.
-    /// You must provide a system description using ChSystemDescriptor.
     /// This function MUST be implemented in children classes, with specialized
-    /// methods such as iterative schemes, simplex schemes, fixed point algorithms, etc.
-    /// \return  the maximum constraint violation after termination.
-
+    /// methods such as iterative or direct solvers.
+    /// Returns true if it successfully solves the problem and false otherwise.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) = 0;
 
-    /// This method is implemented in direct solvers such as MKL
-    virtual double Factorize(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                             ) {
-        return 0;
+    /// This function does the setup operations for the solver.
+    /// The purpose of this function is to prepare the solver for subsequent calls to the
+    /// solve function.  This function is called only as frequently it is determined that
+    /// it is appropriate to perform the setup phase.
+    virtual bool Setup(ChSystemDescriptor& sysd  ///< system description with constraints and variables
+                       ) {
+        return true;
     }
 
-    void SetVerbose(bool mv) { this->verbose = mv; }
-    bool GetVerbose() const { return this->verbose; }
+    /// Set verbose output from solver.
+    void SetVerbose(bool mv) { verbose = mv; }
 
-    //
-    // SERIALIZATION
-    //
+    // Return whether or not verbose output is enabled.
+    bool GetVerbose() const { return verbose; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
-        // serialize parent class
         // serialize all member data:
         marchive << CHNVP(verbose);
     }
@@ -88,10 +83,12 @@ class ChApi ChSolver {
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
-        // deserialize parent class
         // stream in all member data:
         marchive >> CHNVP(verbose);
     }
+
+  protected:
+    bool verbose;
 };
 
 /// @} chrono_solver
