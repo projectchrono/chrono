@@ -177,7 +177,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// This is more powerful than SetIntegrationType, because you can provide your own object.
     /// Also sets the mode to INT_CUSTOM__ , should you ever call GetIntegrationType() later.
     void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) {
-        this->timestepper = mstepper;
+        timestepper = mstepper;
         integration_type = INT_CUSTOM__;
     }
 
@@ -329,7 +329,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor);
 
     /// Access directly the 'system descriptor'.
-    ChSystemDescriptor* GetSystemDescriptor() { return this->descriptor; }
+    ChSystemDescriptor* GetSystemDescriptor() { return descriptor; }
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -403,21 +403,25 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the number of contacts.
     int GetNcontacts();
 
-    /// Gets the time (in seconds) spent for computing the time step
+    /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() { return timer_step(); }
-    /// Gets the fraction of time (in seconds) for the solver, within the time step
+    /// Return the fraction of time (in seconds) for the solver, within the time step.
+    /// Note that this time excludes any calls to the solver's Setup function.
     virtual double GetTimerSolver() { return timer_solver(); }
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    /// Return the time (in seconds) for the solver Setup phase.
+    virtual double GetTimerSetup() { return timer_setup(); }
+    /// Return the fraction of time (in seconds) for finding collisions, within the time step.
     virtual double GetTimerCollisionBroad() { return timer_collision_broad(); }
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    /// Return the fraction of time (in seconds) for finding collisions, within the time step.
     virtual double GetTimerCollisionNarrow() { return timer_collision_narrow(); }
-    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
+    /// Return the fraction of time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() { return timer_update(); }
 
     /// Resets the timers.
     void ResetTimers() {
         timer_step.reset();
         timer_solver.reset();
+        timer_setup.reset();
         timer_collision_broad.reset();
         timer_collision_narrow.reset();
         timer_update.reset();
@@ -439,7 +443,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Counts the number of bodies and links.
     /// Computes the offsets of object states in the global state.
-    /// Assumes that this->offset_x this->offset_w this->offset_L are already set
+    /// Assumes that offset_x, offset_w, and offset_L are already set
     /// as starting point for offsetting all the contained sub objects.
     virtual void Setup() override;
 
@@ -521,13 +525,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     //
 
     /// Tells the number of position coordinates x in y = {x, v}
-    virtual int GetNcoords_x() override { return this->GetNcoords(); }
+    virtual int GetNcoords_x() override { return GetNcoords(); }
 
     /// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    virtual int GetNcoords_v() override { return this->GetNcoords_w(); }
+    virtual int GetNcoords_v() override { return GetNcoords_w(); }
 
     /// Tells the number of lagrangian multipliers (constraints)
-    virtual int GetNconstr() override { return this->GetNdoc_w(); }
+    virtual int GetNconstr() override { return GetNdoc_w(); }
 
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
@@ -761,21 +765,26 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// steps "frame_step", using the DoFrameDynamics() many times.
     int DoEntireUniformDynamics(double frame_step);
 
-    /// Return the total amount of performed time steps
-    size_t GetStepcount() { return stepcount; }
-    /// Reset to 0 the total amount of performed time steps
+    /// Return the total number of time steps taken so far.
+    size_t GetStepcount() const { return stepcount; }
+
+    /// Reset to 0 the total number of time steps.
     void ResetStepcount() { stepcount = 0; }
 
-    /// Return the number of StateSolveCorrection operations
-    /// (reset to 0 at each timestep of static analysis)
-    int GetSolverCallsCount() { return solvecount; }
+    /// Return the number of calls to the solver's Solve() function.
+    /// This counter is reset at each timestep.
+    int GetSolverCallsCount() const { return solvecount; }
+
+    /// Return the number of calls to the solver's Setup() function.
+    /// This counter is reset at each timestep.
+    int GetSolverSetupCount() const { return setupcount; }
 
     /// Set this to "true" to enable saving of matrices at each time
     /// step, for debugging purposes. Note that matrices will be saved in the
     /// working directory of the exe, with format 0001_01_M.dat 0002_01_M.dat
     /// (if the timestepper requires multiple solves, also 0001_01. 0001_02.. etc.)
     void SetDumpMatrices(bool md) { dump_matrices = md; }
-    bool GetDumpMatrices() { return dump_matrices; }
+    bool GetDumpMatrices() const { return dump_matrices; }
 
     // ---- KINEMATICS
 
@@ -891,7 +900,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     size_t stepcount;  ///< internal counter for steps
 
-    int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep os static analysis)
+    int setupcount;  ///< number of calls to the solver's Setup()
+    int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep of static analysis)
 
     bool dump_matrices;  ///< for debugging
 
@@ -921,13 +931,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
   protected:
     // timers for profiling execution speed
-    ChTimer<double> timer_step;
-    ChTimer<double> timer_solver;
-    ChTimer<double> timer_collision_broad;
-    ChTimer<double> timer_collision_narrow;
-    ChTimer<double> timer_update;
+    ChTimer<double> timer_step;              ///< timer for integration step
+    ChTimer<double> timer_solver;            ///< timer for solver (excluding setup phase)
+    ChTimer<double> timer_setup;             ///< timer for solver setup
+    ChTimer<double> timer_collision_broad;   ///< timer for collision broad phase
+    ChTimer<double> timer_collision_narrow;  ///< timer for collision narrow phase
+    ChTimer<double> timer_update;            ///< timer for system update
 
-    std::shared_ptr<ChTimestepper> timestepper;
+    std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 };
 
 }  // end namespace chrono
