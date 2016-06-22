@@ -22,61 +22,11 @@ namespace fea {
 
 
 
-//--------------------------------------------------------------
-
-void ChMaterialShellReissnerPreIntegrated::ComputeTangentC(ChMatrix<>& mC, 
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v)  {
-    assert(mC.GetRows() == 12);
-    assert(mC.GetColumns() == 12);
-
-    mC.Reset(12,12);
-
-    
-    ChMatrixNM<double, 12, 1> strain_0;
-    strain_0.PasteVector(eps_u,0,0);
-    strain_0.PasteVector(eps_v,3,0);
-    strain_0.PasteVector(kur_u,6,0);
-    strain_0.PasteVector(kur_v,9,0);
-
-    ChVector<> nu, nv, mu, mv;
-
-    this->ComputeStress(nu, nv, mu, mv,  eps_u, eps_v, kur_u, kur_v);
-
-    ChMatrixNM<double, 12, 1> stress_0;
-    stress_0.PasteVector(nu,0,0);
-    stress_0.PasteVector(nv,3,0);
-    stress_0.PasteVector(mu,6,0);
-    stress_0.PasteVector(mv,9,0);
-
-    double delta = 1e-9;
-    for (int i=0; i<12; ++i) {
-        strain_0(i,0) += delta;
-        ChVector<> deps_u, deps_v, dkur_u, dkur_v;
-        deps_u=strain_0.ClipVector(0,0);
-        deps_v=strain_0.ClipVector(3,0);
-        dkur_u=strain_0.ClipVector(6,0);
-        dkur_v=strain_0.ClipVector(9,0);
-        this->ComputeStress(nu, nv, mu, mv,  deps_u, deps_v, dkur_u, dkur_v);
-        ChMatrixNM<double, 12, 1> stress_1;
-        stress_1.PasteVector(nu,0,0);
-        stress_1.PasteVector(nv,3,0);
-        stress_1.PasteVector(mu,6,0);
-        stress_1.PasteVector(mv,9,0);
-        ChMatrixNM<double, 12, 1> stress_d = stress_1 - stress_0;
-        stress_d *= (1./delta);
-        mC.PasteMatrix(&stress_d,0,i);
-        strain_0(i,0) -= delta;
-    }
-    
-}
 
 
 //--------------------------------------------------------------
 
-void ChMaterialShellReissnerIntegrable::ComputeTangentC(ChMatrix<>& mC, 
+void ChMaterialShellReissner::ComputeTangentC(ChMatrix<>& mC, 
                                const ChVector<>& eps_u, 
                                const ChVector<>& eps_v,
                                const ChVector<>& kur_u, 
@@ -442,89 +392,6 @@ void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
     mC(10,0)=hh*Qm(3,0);  mC(10,1)=hh*Qm(3,2);      mC(10,3)=hh*Qm(3,3);  mC(10,4)=hh*Qm(3,1);
 }
 
-
-
-
-//--------------------------------------------------------------
-
-ChMaterialShellReissnerPreIntIsothropic::ChMaterialShellReissnerPreIntIsothropic(
-                        double thickness, ///< thickness
-                        double rho,  ///< material density
-                        double E,    ///< Young's modulus
-                        double nu,   ///< Poisson ratio
-                        double alpha,///< shear factor
-                        double beta  ///< torque factor
-                        ) {
-    m_thickness = thickness;
-    m_rho = rho;
-    m_E = E;
-    m_nu = nu;
-    m_alpha = alpha;
-    m_beta = beta;
-}
-
-
-void ChMaterialShellReissnerPreIntIsothropic::ComputeStress(ChVector<>& n_u, 
-                               ChVector<>& n_v,
-                               ChVector<>& m_u, 
-                               ChVector<>& m_v,
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v){
-    double h = m_thickness;
-    double G = m_E / (2.*(1.+m_nu));
-    double C = m_E*h / (1. - m_nu*m_nu);
-    double D = C*h*h / 12.;
-    double F = G*h*h*h / 12.;
-
-    n_u.x = eps_u.x * C  + eps_v.y * m_nu*C;
-    n_u.y = eps_u.y * 2*G*h;
-    n_u.z = eps_u.z * m_alpha * G *h;
-    n_v.x = eps_v.x * 2*G*h;
-    n_v.y = eps_v.y * C  + eps_u.x * m_nu*C;
-    n_v.z = eps_v.z * m_alpha * G *h;
-    
-    m_u.x = kur_u.x * 2* F;
-    m_u.y = kur_u.y * D  +  kur_v.x * (- m_nu * D);
-    m_u.z = kur_u.z * m_beta * F;
-    m_v.x = kur_v.x * D  +  kur_u.y * (- m_nu * D);
-    m_v.y = kur_v.y * 2* F;
-    m_v.z = kur_v.z * m_beta * F;
-}
-
-
-void ChMaterialShellReissnerPreIntIsothropic::ComputeTangentC(ChMatrix<>& mC, 
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v)  {
-    assert(mC.GetRows() == 12);
-    assert(mC.GetColumns() == 12);
-
-    mC.Reset(12,12);
-    double h = m_thickness;
-    double G = m_E / (2.*(1.+m_nu));
-    double C = m_E*h / (1. - m_nu*m_nu);
-    double D = C*h*h / 12.;
-    double F = G*h*h*h / 12.;
-    mC(0,0) = C;
-    mC(0,4) = m_nu * C;
-    mC(4,0) = m_nu * C;
-    mC(1,1) = 2.*G*h;
-    mC(2,2) = m_alpha * G * h;
-    mC(3,3) = 2.*G*h;
-    mC(4,4) = C;
-    mC(5,5) = m_alpha * G * h;
-    mC(6,6) = 2.*F;
-    mC(7,7) = D;
-    mC(7,9) = -m_nu*D;
-    mC(9,7) = -m_nu*D;
-    mC(8,8) = m_beta * F;
-    mC(9,9) = D;
-    mC(10,10) = 2.*F;
-    mC(11,11) = m_beta * F;
-}
 
 
 

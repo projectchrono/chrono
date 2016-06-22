@@ -65,21 +65,21 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
         double Get_theta() const { return m_theta; }
 
         /// Return the layer material.
-        std::shared_ptr<ChMaterialShellReissnerIntegrable> GetMaterial() const { return m_material; }
+        std::shared_ptr<ChMaterialShellReissner> GetMaterial() const { return m_material; }
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
         Layer(ChElementShellEANS4* element,                  ///< containing element
               double thickness,                              ///< layer thickness
               double theta,                                  ///< fiber angle
-              std::shared_ptr<ChMaterialShellReissnerIntegrable> material  ///< layer material
+              std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
               );
 
         /// Initial setup for this layer
         void SetupInitial();
 
         ChElementShellEANS4* m_element;                   ///< containing shell element
-        std::shared_ptr<ChMaterialShellReissnerIntegrable> m_material;  ///< layer material
+        std::shared_ptr<ChMaterialShellReissner> m_material;  ///< layer material
         double m_thickness;                               ///< layer thickness
         double m_theta;                                   ///< fiber angle
 
@@ -137,7 +137,7 @@ class ChApiFea ChElementShellEANS4 : public ChElementShell, public ChLoadableUV,
     /// shell element is centered along the total thickness.
     void AddLayer(double thickness,                              ///< layer thickness
                   double theta,                                  ///< fiber angle (radians) 
-                  std::shared_ptr<ChMaterialShellReissnerIntegrable> material  ///< layer material
+                  std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
                   );
 
     /// Impose the reference z level of shell element as centered along the total thickness.

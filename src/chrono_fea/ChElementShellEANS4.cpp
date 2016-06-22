@@ -443,7 +443,7 @@ ChVector<> ChElementShellEANS4::EvaluatePT(int ipt) {
 void ChElementShellEANS4::AddLayer(
             double thickness, 
             double theta, 
-            std::shared_ptr<ChMaterialShellReissnerIntegrable> material
+            std::shared_ptr<ChMaterialShellReissner> material
             ) {
     m_layers.push_back(Layer(this, thickness, theta, material));
     SetLayerZreferenceCentered();
@@ -1392,7 +1392,7 @@ ChVector<> ChElementShellEANS4::ComputeNormal(const double U, const double V) {
 ChElementShellEANS4::Layer::Layer(ChElementShellEANS4* element,
                                  double thickness,
                                  double theta,
-                                 std::shared_ptr<ChMaterialShellReissnerIntegrable> material)
+                                 std::shared_ptr<ChMaterialShellReissner> material)
     : m_element(element), m_thickness(thickness), m_theta(theta), m_material(material) {}
 
 // Initial setup for this layer:

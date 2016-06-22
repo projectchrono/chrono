@@ -36,26 +36,15 @@ namespace fea {
 /// Base class for all meterials to be used for 
 /// 6-field Reissner-Mindlin shells (kinematically-exact shell theory)
 /// as in Witkowski et al.
+/// Inherited materials do not define any thickness, which should be
+/// a property of the element or its layer(s) using this material.
 class ChApiFea ChMaterialShellReissner {
   public:
     /// Construct an isotropic material.
-      ChMaterialShellReissner() {};
+    ChMaterialShellReissner() {};
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
-
-  protected: 
-    double m_rho;                  ///< density
-};
-
-/// Class for all meterials to be used for 
-/// 6-field Reissner-Mindlin shells (kinematically-exact shell theory)
-/// that require through-the thickness integration.
-/// Inherited materials do not define any thickness, which should be
-/// a property of the element or its layer(s) using this material.
-class ChApiFea ChMaterialShellReissnerIntegrable : public ChMaterialShellReissner {
-  public:
-    ChMaterialShellReissnerIntegrable() {};
 
     /// The FE code will evaluate this function to compute 
     /// u,v stresses/torques given the u,v strains/curvatures.
@@ -87,53 +76,18 @@ class ChApiFea ChMaterialShellReissnerIntegrable : public ChMaterialShellReissne
                                 const double z_sup, ///< layer upper z value (along thickness coord)
                                 const double angle  ///< layer angle respect to x (if needed)
                                 );
+
+  protected: 
+    double m_rho;                  ///< density
 };
 
-/// Class for all meterials to be used for 
-/// 6-field Reissner-Mindlin shells (kinematically-exact shell theory)
-/// that are pre-integrated along the thickness direction.
-/// This means that inherited classes output per-unit-length forces/torques
-/// given the curvature, as the thickness is a per-material property.
-class ChApiFea ChMaterialShellReissnerPreIntegrated : public ChMaterialShellReissner {
-  public:
-    ChMaterialShellReissnerPreIntegrated() : m_thickness(0) {};
-
-    /// The FE code will evaluate this function to compute 
-    /// u,v per-unit-length forces/torques given the u,v strains/curvatures.
-    /// Inherited classes MUST implemenmt this.
-    virtual void ComputeStress(ChVector<>& n_u, 
-                               ChVector<>& n_v,
-                               ChVector<>& m_u, 
-                               ChVector<>& m_v,
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v) = 0;
-
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation 
-    /// per-unit-length forces/torques  vs strains. In many cases this is a constant matrix, but it could
-    /// change for instance in case of hardening or softening materials, etc.
-    /// By default, it is computed by backward differentiation from the ComputeStress() function,
-    /// but inherited classes should better provide an analytical form, if possible.
-    virtual void ComputeTangentC(ChMatrix<>& mC, 
-                                const ChVector<>& eps_u, 
-                                const ChVector<>& eps_v,
-                                const ChVector<>& kur_u, 
-                                const ChVector<>& kur_v);
-
-    /// Return the thickness
-    virtual double Get_thickness() const { return m_thickness; }
-  
-protected: 
-    double m_thickness;             ///< thickness
-};
 
 
 /// Material definition.
 /// This class implements material properties for a layer from the Reissner theory,
 /// for the case of isotropic linear linear elastic material. 
 /// This is probably the material that you need most often when using 6-field shells.
-class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissnerIntegrable {
+class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissner {
   public:
     /// Construct an isotropic material.
     ChMaterialShellReissnerIsothropic(
@@ -195,7 +149,7 @@ class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissne
 /// This is useful for laminated shells. One direction can be made softer than the other.
 /// Note that the angle and the thickness are defined when adding this material to 
 /// a finite element as a layer.
-class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissnerIntegrable {
+class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissner {
   public:
     /// Construct an orthotropic material
     ChMaterialShellReissnerOrthotropic(
@@ -275,57 +229,6 @@ class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissn
     double beta ;                   ///< torque factor
 };
 
-/// Material definition.
-/// This class implements material properties for a layer from the Reissner theory,
-/// see Morandini, Masarati "Implementation and Validation of a 4-node shell element"
-class ChApiFea ChMaterialShellReissnerPreIntIsothropic : public ChMaterialShellReissnerPreIntegrated {
-  public:
-    /// Construct an isotropic material.
-    ChMaterialShellReissnerPreIntIsothropic(
-                        double thickness, ///< thickness
-                        double rho,  ///< material density
-                        double E,    ///< Young's modulus
-                        double nu,   ///< Poisson ratio
-                        double alpha = 1.0,///< shear factor
-                        double beta = 0.1 ///< torque factor
-                        );
-
-    /// Return the elasticity moduli
-    double Get_E() const { return m_E; }
-    /// Return the Poisson ratio
-    double Get_nu() const { return m_nu; }
-    /// Return the shear factor
-    double Get_alpha() const { return m_alpha; }
-    /// Return the torque factor
-    double Get_beta() const { return m_beta; }
-
-    /// The FE code will evaluate this function to compute 
-    /// u,v stresses/torques given the u,v strains/curvatures.
-    /// You can inherit a more sophisticated material that override this (ex. for
-    /// orthotropic materials, etc.)
-    virtual void ComputeStress(ChVector<>& n_u, 
-                               ChVector<>& n_v,
-                               ChVector<>& m_u, 
-                               ChVector<>& m_v,
-                               const ChVector<>& eps_u, 
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u, 
-                               const ChVector<>& kur_v);
-
-    /// Compute [C] , that is [ds/de], the tangent of the constitutive relation 
-    /// stresses/strains. 
-    virtual void ComputeTangentC(ChMatrix<>& mC, 
-                                const ChVector<>& eps_u, 
-                                const ChVector<>& eps_v,
-                                const ChVector<>& kur_u, 
-                                const ChVector<>& kur_v);
-
-  private: 
-    double m_E;                      ///< elasticity moduli
-    double m_nu;                     ///< Poisson ratio
-    double m_alpha;                  ///< shear factor
-    double m_beta ;                  ///< torque factor
-};
 
 
 
