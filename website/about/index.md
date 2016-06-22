@@ -55,11 +55,3 @@ We took the decision to release Chrono as open source in 2013, when we started t
 ### Copyright
 Chrono is copyrighted by {% include module.html first="PROJECT" second="CHRONO" %}, a nonprofit set up in the US, and released under a BSD 3 license. 
 
-
-### Stats
-
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_basic_stats?format=js'></script>
-<br>
-<script type='text/javascript' src='https://www.openhub.net/p/projectchrono/widgets/project_factoids?format=js'></script>
-
-<br><br>

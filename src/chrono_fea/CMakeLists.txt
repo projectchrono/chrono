@@ -28,10 +28,12 @@ SET(ChronoEngine_FEA_SOURCES
     ChElementShellANCF.cpp
 	ChElementShellEANS4.cpp
     ChElementBrick.cpp
+    ChElementBrick_9.cpp
     ChNodeFEAxyz.cpp
     ChNodeFEAxyzrot.cpp
     ChNodeFEAxyzP.cpp
     ChNodeFEAxyzD.cpp
+    ChNodeFEAcurv.cpp
     ChGaussIntegrationRule.cpp
     ChGaussPoint.cpp
     ChMesh.cpp
@@ -65,6 +67,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChNodeFEAxyzrot.h
     ChNodeFEAxyzP.h 
     ChNodeFEAxyzD.h 
+    ChNodeFEAcurv.h
     ChElementBase.h
     ChElementGeneric.h
     ChElementCorotational.h
@@ -74,6 +77,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementBeamEuler.h
     ChElementBeamANCF.h
     ChElementBrick.h 
+    ChElementBrick_9.h
     ChElement3D.h
     ChElementTetrahedron.h
     ChElementTetra_4.h
@@ -85,6 +89,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementShellANCF.h
 	ChElementShellEANS4.h
 	  ChFaceTetra_4.h
+    ChFaceBrick_9.h
 	  ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h

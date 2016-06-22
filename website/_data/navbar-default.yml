@@ -49,3 +49,5 @@ main:
          url: '/testimonials/'
     - title: Old Website
       url: 'http://old.projectchrono.org'
+    - title: Status
+      url: '/status'

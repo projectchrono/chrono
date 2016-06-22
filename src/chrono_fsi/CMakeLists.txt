@@ -13,6 +13,7 @@ option(ENABLE_MODULE_FSI "Enable the Chrono FSI module" OFF)
 if(NOT ENABLE_MODULE_FSI OR NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE CUDA_TOOLKIT_ROOT_DIR)
   mark_as_advanced(FORCE CUDA_USE_STATIC_CUDA_RUNTIME)
+  mark_as_advanced(FORCE USE_FSI_DOUBLE)
   return()
 endif()
 
@@ -20,6 +21,7 @@ message(STATUS "==== Chrono FSI module ====")
 
 mark_as_advanced(CLEAR CUDA_TOOLKIT_ROOT_DIR)
 mark_as_advanced(CLEAR CUDA_USE_STATIC_CUDA_RUNTIME)
+mark_as_advanced(CLEAR USE_FSI_DOUBLE)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
@@ -30,10 +32,14 @@ find_package(CUDA)
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
 
-option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
-
 message(STATUS "  CUDA toolkit includes:    ${CUDA_TOOLKIT_ROOT_DIR}/include")
 message(STATUS "  CUDA SDK includes:        ${CUDA_SDK_ROOT_DIR}/common/inc")
+
+option(CUDA_PROPAGATE_HOST_FLAGS "set host flags off" FALSE)
+option(USE_FSI_DOUBLE "Compile Chrono::FSI with double precision math" ON)
+IF(USE_FSI_DOUBLE)
+  SET(CHRONO_FSI_USE_DOUBLE "#define CHRONO_FSI_USE_DOUBLE")
+ENDIF()
 
 # ----------------------------------------------------------------------------
 # Collect additional include directories necessary for the FSI module.
@@ -91,6 +97,7 @@ ChSystemFsi.h
 ChSphGeneral.cuh
 ChApiFsi.h
 ChFsiTypeConvert.h
+custom_math.h
 utils/ChUtilsGeneratorBce.h
 utils/ChUtilsGeneratorFluid.h
 utils/ChUtilsGeneratorFsi.h

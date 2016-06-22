@@ -1,8 +1,7 @@
 <header class="site-header">
-
   <div class="container">
 
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <nav class="navbar navbar-default navbar-fixed-top role="navigation">
       <div class="container">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
@@ -31,12 +30,15 @@
             <li><a href="{{ link.url }}">{{ link.title }}</a></li>
             {% endif %} 
             {% endfor %}
+            <li>
+              <form method="get" action="/search" id="search_bar_triggered">
+                          <input type="submit" value="Search">
+
+                <input type="text" id="search_bar" name="query" value="" />
+              </form> 
+            </li>
           </ul>
-          <!-- <ul class="nav navbar-nav navbar-right">
-            {% for link in site.data.navbar-default.right %}
-            <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-            {% endfor %}
-          </ul> -->
+         
         </div><!--/.navbar-collapse -->
       </div>
     </nav>

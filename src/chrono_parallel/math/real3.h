@@ -26,7 +26,7 @@
 #define R3 real3
 #define ZERO_VECTOR R3(0)
 namespace chrono {
-#ifdef CHRONO_USE_SIMD
+#ifdef CHRONO_PARALLEL_USE_SIMD
 static const __m128 SIGNMASK = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
 #endif
 
@@ -37,12 +37,12 @@ class CHRONO_ALIGN_16 real3 {
       real x, y, z;
     };
     real array[3];
-#ifdef CHRONO_USE_SIMD
+#ifdef CHRONO_PARALLEL_USE_SIMD
     __m128 mmvalue;
 #endif
   };
 
-#ifdef CHRONO_USE_SIMD
+#ifdef CHRONO_PARALLEL_USE_SIMD
   inline real3() : mmvalue(_mm_setzero_ps()) {}
   inline real3(real a) : mmvalue(_mm_set1_ps(a)) {}
   inline real3(real a, real b, real c) : mmvalue(_mm_setr_ps(a, b, c, 0)) {}

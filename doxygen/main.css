@@ -3831,7 +3831,7 @@ tbody.collapse.in {
 
 .navbar-nav {
   margin: 6px -15px; }
-  .navbar-nav > li > a {
+  .navbar-nav > li > a, form {
     padding-top: 10px;
     padding-bottom: 10px;
     line-height: 21px; }
@@ -5836,6 +5836,9 @@ button.close {
     .navbar-form .form-control {
       height: auto;
       padding: 4px 6px; }
+      .dropdown:hover .dropdown-content {
+    	display: block;
+    }
   .navbar .dropdown-menu {
     border: none; }
     .navbar .dropdown-menu > li > a,
@@ -6043,6 +6046,9 @@ input[type="checkbox"] {
   background-color: #f6f6f6;
   border: 1px solid #ccc; }
 
+.dropdown:hover .dropdown-content {
+    	display: block;
+    }
 .dropdown-menu {
   padding: 0;
   margin-top: 0;

@@ -5,9 +5,14 @@ SET(TESTS
     utest_CH_ChVector
     utest_CH_coords
     utest_CH_math
-    utest_CH_AVX
     #utest_CH_stream
 )
+
+if(AVX_FOUND)
+   set(TESTS ${TESTS} 
+       utest_CH_AVX
+   )
+endif()
 
 MESSAGE(STATUS "Unit test programs for CORE module...")
 
