@@ -81,6 +81,7 @@ jQuery(function() {
           method: "GET",
           data: "",
           dataType:"jsonp",
+          contentType: 'application/json'
           jsonpCallback: callback,
           success: function (response, status, xhr) {
               console.log(response);
