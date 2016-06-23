@@ -33,7 +33,8 @@ ChTimestepperHHT::ChTimestepperHHT(ChIntegrableIIorder* mintegrable)
       step_decrease_factor(0.5),
       h_min(1e-10),
       h(1e6),
-      num_successful_steps(0) {
+      num_successful_steps(0),
+      modified_Newton(true) {
     SetAlpha(-0.2);  // default: some dissipation
 }
 
@@ -98,6 +99,16 @@ void ChTimestepperHHT::Advance(const double dt) {
         h = ChMin(h, dt);
     }
 
+    // Monitor flags controlling whther or not the Newton matrix must be updated.
+    // If using modified Newton, a matrix update occurs:
+    //   - at the beginning of a step
+    //   - on a stepsize decrease
+    //   - if the Newton iteration does not converge with an out-of-date matrix
+    // Otherwise, the matrix is always updated 
+    matrix_is_current = false;
+    call_setup = true;
+
+    // Loop until reaching final time
     while (T < tfinal) {
         double scaling_factor = scaling ? beta * h * h : 1;
         Prepare(mintegrable, scaling_factor);
@@ -105,36 +116,74 @@ void ChTimestepperHHT::Advance(const double dt) {
         // Newton-Raphson for state at T+h
         bool converged;
         int it;
+
         for (it = 0; it < maxiters; it++) {
+            if (verbose && modified_Newton && call_setup)
+                GetLog() << " HHT call Setup.\n";
+
+            // Solve linear system and increment state
             Increment(mintegrable, scaling_factor);
             num_it++;
+
+            // If using modified Newton, do not call Setup again
+            call_setup = !modified_Newton;
+
+            // Check convergence
             converged = CheckConvergence(scaling_factor);
             if (converged)
                 break;
         }
 
-        if (converged || !step_control) {
-            // NR converged (or step size control disabled):
-            // - if the number of iterations was low enough, increase the count of successive
-            //   successful steps (for possible step increase)
-            // - if needed, adjust stepsize to reach exactly tfinal
-            // - advance time and set the state
+        if (converged) {
+            // ------ NR converged
 
+            // if the number of iterations was low enough, increase the count of successive
+            // successful steps (for possible step increase)
             if (it < maxiters_success)
                 num_successful_steps++;
             else
                 num_successful_steps = 0;
 
             if (verbose) {
-                if (converged)
-                    GetLog() << " HHT NR converged (" << num_successful_steps << ").";
-                else
-                    GetLog() << " HHT NR terminated.";
+                GetLog() << " HHT NR converged (" << num_successful_steps << ").";
                 GetLog() << "  T = " << T + h << "  h = " << h << "\n";
             }
 
+            // if needed, adjust stepsize to reach exactly tfinal
             if (std::abs(T + h - tfinal) < 1e-6)
                 h = tfinal - T;
+
+            // advance time and set the state
+            T += h;
+            X = Xnew;
+            V = Vnew;
+            A = Anew;
+            L = Lnew;
+
+        } else if (!matrix_is_current) {
+            // ------ NR did not converge but the matrix was out-of-date
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // re-attempt step with updated matrix
+            if (verbose) {
+                GetLog() << " HHT re-attempt step with updated matrix.\n";
+            }
+
+            call_setup = true;
+
+        } else if (!step_control) {
+            // ------ NR did not converge and we do not control stepsize
+
+            // reset the count of successive successful steps
+            num_successful_steps = 0;
+
+            // accept solution as is and complete step
+            if (verbose) {
+                GetLog() << " HHT NR terminated.";
+                GetLog() << "  T = " << T + h << "  h = " << h << "\n";
+            }
 
             T += h;
             X = Xnew;
@@ -143,21 +192,26 @@ void ChTimestepperHHT::Advance(const double dt) {
             L = Lnew;
 
         } else {
-            // NR did not converge.
-            // - reset the count of successive successful steps
-            // - decrease stepsize
-            // - bail out if stepsize reaches minimum allowable
+            // ------ NR did not converge
 
+            // reset the count of successive successful steps
             num_successful_steps = 0;
+
+            // decrease stepsize
             h *= step_decrease_factor;
+
             if (verbose)
                 GetLog() << " ---HHT reduce stepsize to " << h << "\n";
 
+            // bail out if stepsize reaches minimum allowable
             if (h < h_min) {
                 if (verbose)
                     GetLog() << " HHT at minimum stepsize. Exiting...\n";
                 throw ChException("HHT: Reached minimum allowable step size.");
             }
+
+            // force a matrix re-evaluation (due to change in stepsize)
+            call_setup = true;
         }
 
         // Scatter state -> system
@@ -238,14 +292,14 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
             integrable->LoadConstraint_C(Qc, 1 / (beta * h * h), Qc_do_clamp, Qc_clamping);  //  1/(beta*dt^2)*C
 
             // Solve linear system
-            integrable->StateSolveCorrection(
-                Da, Dl, R, Qc,
-                1 / (1 + alpha),  // factor for  M (was 1 in Negrut paper ?!)
-                -h * gamma,       // factor for  dF/dv
-                -h * h * beta,    // factor for  dF/dx
-                Xnew, Vnew, T + h,
-                false  // do not StateScatter update to Xnew Vnew T+h before computing correction
-                );
+            integrable->StateSolveCorrection(Da, Dl, R, Qc,
+                                             1 / (1 + alpha),    // factor for  M (was 1 in Negrut paper ?!)
+                                             -h * gamma,         // factor for  dF/dv
+                                             -h * h * beta,      // factor for  dF/dx
+                                             Xnew, Vnew, T + h,  // not used here (force_scatter = false)
+                                             false,              // do not scatter states
+                                             call_setup          // call Setup?
+                                             );
 
             // Update estimate of state at t+h
             Lnew += Dl;  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
@@ -263,14 +317,14 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
             integrable->LoadConstraint_C(Qc, 1.0, Qc_do_clamp, Qc_clamping);          //  1/(beta*dt^2)*C
 
             // Solve linear system
-            integrable->StateSolveCorrection(
-                Da, Dl, R, Qc,
-                scaling_factor / ((1 + alpha) * beta * h * h),  // factor for  M
-                -scaling_factor * gamma / (beta * h),           // factor for  dF/dv
-                -scaling_factor,                                // factor for  dF/dx
-                Xnew, Vnew, T + h,
-                false  // do not StateScatter update to Xnew Vnew T+h before computing correction
-                );
+            integrable->StateSolveCorrection(Da, Dl, R, Qc,
+                                             scaling_factor / ((1 + alpha) * beta * h * h),  // factor for  M
+                                             -scaling_factor * gamma / (beta * h),           // factor for  dF/dv
+                                             -scaling_factor,                                // factor for  dF/dx
+                                             Xnew, Vnew, T + h,  // not used here(force_scatter = false)
+                                             false,              // do not scatter states
+                                             call_setup          // call Setup?
+                                             );
 
             // Update estimate of state at t+h
             Lnew += Dl * (1.0 / scaling_factor);  // not -= Dl because we assume StateSolveCorrection flips sign of Dl
@@ -283,6 +337,9 @@ void ChTimestepperHHT::Increment(ChIntegrableIIorder* integrable, double scaling
 
             break;
     }
+
+    // If Setup was called at this iteration, mark the Newton matrix as up-to-date
+    matrix_is_current = call_setup;
 }
 
 // Convergence test

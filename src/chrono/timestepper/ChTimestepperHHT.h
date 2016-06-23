@@ -68,6 +68,10 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double h;                     ///< internal stepsize
     int num_successful_steps;     ///< number of successful steps
 
+    bool modified_Newton;    ///< use modified Newton?
+    bool matrix_is_current;  ///< is the Newton matrix up-to-date?
+    bool call_setup;         ///< should the solver's Setup function be called?
+
     ChVectorDynamic<> ewtS;  ///< vector of error weights (states)
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 
@@ -91,6 +95,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     void SetScaling(bool mscaling) { scaling = mscaling; }
 
     /// Turn step size control on/off.
+    /// Step size control is enabled by default.
     void SetStepControl(bool val) { step_control = val; }
 
     /// Set the minimum step size.
@@ -111,6 +116,13 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Set the multiplicative factor for a stepsize decrease.
     /// Must be a value smaller than 1.
     void SetStepDecreaseFactor(double factor) { step_decrease_factor = factor; }
+
+    /// Enable/disable modified Newton.
+    /// If enabled, the Newton matrix is evaluated, assembled, and factorized only once
+    /// per step or if the Newton iteration does not converge with an out-of-date matrix.
+    /// If disabled, the Newton matrix is evaluated at every iteration of the nonlinear solver.
+    /// Modified Newton iteration is enabled by default.
+    void SetModifiedNewton(bool val) { modified_Newton = val; }
 
     /// Return the number of iterations over the last step.
     /// Note that this is a cummulative iteration count, over all internal steps.
