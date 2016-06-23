@@ -74,7 +74,6 @@ jQuery(function() {
     var page = "0";
     var number = "25";
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page;
-    // Gets list of test names
     $.ajax({
           url: doc_url + doc_search_url + search_string,
           method: "GET",
@@ -82,6 +81,7 @@ jQuery(function() {
           dataType:"jsonp",
           jsonpCallback: docshow,
           success: function (response, status, xhr) {
+            docshow(response);
               console.log(response);
               },
           error: function (xhr, status, error_code) {
