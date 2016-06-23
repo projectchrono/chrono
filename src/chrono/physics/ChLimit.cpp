@@ -79,6 +79,7 @@ void ChLinkLimit::Set_max(double m_max) {
         maxCushion = max - min;
     if ((max - maxCushion) < (min + minCushion))
         minCushion = max - min - maxCushion;
+	constr_upper.SetActive(true);
 }
 
 void ChLinkLimit::Set_min(double m_min) {
@@ -89,6 +90,7 @@ void ChLinkLimit::Set_min(double m_min) {
         minCushion = max - min;
     if ((min + minCushion) > (max - maxCushion))
         maxCushion = max - min - minCushion;
+	constr_lower.SetActive(true);
 }
 
 void ChLinkLimit::Set_maxCushion(double m_maxCushion) {

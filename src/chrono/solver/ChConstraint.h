@@ -181,6 +181,11 @@ class ChApi ChConstraint {
         return _active;
     }
 
+	/// Set the status of the constraint to active
+	virtual void SetActive(bool isactive) {
+		_active = isactive;
+	}
+
     /// Compute the residual of the constraint using the LINEAR
     /// expression   c_i= [Cq_i]*q + cfm_i*l_i + b_i . For a satisfied bilateral
     /// constraint, this residual must be near zero.
