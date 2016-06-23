@@ -72,7 +72,7 @@ jQuery(function() {
     var doc_url = "http://projectchrono.org";
     var doc_search_url = "/doxygen";
     var callback = "docshow";
-    var page = "1";
+    var page = "0";
     var number = "20";
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page;
     // Gets list of test names
@@ -81,7 +81,7 @@ jQuery(function() {
           method: "GET",
           data: "",
           dataType:"jsonp",
-          jsonpCallback: 'docshow',
+          jsonpCallback: callback,
           success: function (response, status, xhr) {
               console.log(response);
               },
