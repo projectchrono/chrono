@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
 #include "chrono/physics/ChLinkLock.h"
@@ -948,7 +948,7 @@ int ChLinkLock::GetDOC_d() {
             ++mdocd;
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        if (limit_Rz->constr_lower.IsActive())
+        if (limit_Rz->constr_lower.IsActive()) 
             ++mdocd;
         if (limit_Rz->constr_upper.IsActive())
             ++mdocd;
@@ -1461,52 +1461,64 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     ChLinkMasked::InjectConstraints(mdescriptor);
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_X->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_X->constr_lower);
-        if (limit_X->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_X->constr_upper);
+		if (limit_X->constr_lower.IsActive()) {
+			limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_X->constr_lower);
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_X->constr_upper);
+		}
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Y->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_Y->constr_lower);
-        if (limit_Y->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_Y->constr_upper);
+		if (limit_Y->constr_lower.IsActive()) {
+			limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Y->constr_lower);
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Y->constr_upper);
+		}
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Z->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_Z->constr_lower);
-        if (limit_Z->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_Z->constr_upper);
+		if (limit_Z->constr_lower.IsActive()) {
+			limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Z->constr_lower);
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Z->constr_upper);
+		}
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Rx->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
-        if (limit_Rx->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
+		if (limit_Rx->constr_lower.IsActive()) {
+			limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
+		}
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Ry->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
-        if (limit_Ry->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
+		if (limit_Ry->constr_lower.IsActive()) {
+			limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
+		}
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Rz->constr_lower.IsActive())
-            mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
-        if (limit_Rz->constr_upper.IsActive())
-            mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
+		if (limit_Rz->constr_lower.IsActive()) {
+			limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
+		}
     }
 }
 
@@ -1515,28 +1527,52 @@ void ChLinkLock::ConstraintsBiReset() {
     ChLinkMasked::ConstraintsBiReset();
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.Set_b_i(0.);
-        limit_X->constr_upper.Set_b_i(0.);
+		if (limit_X->constr_lower.IsActive()) {
+			limit_X->constr_lower.Set_b_i(0.);
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			limit_X->constr_upper.Set_b_i(0.);
+		}
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.Set_b_i(0.);
-        limit_Y->constr_upper.Set_b_i(0.);
+		if (limit_Y->constr_lower.IsActive()) {
+			limit_Y->constr_lower.Set_b_i(0.);
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			limit_Y->constr_upper.Set_b_i(0.);
+		}
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.Set_b_i(0.);
-        limit_Z->constr_upper.Set_b_i(0.);
+		if (limit_Z->constr_lower.IsActive()) {
+			limit_Z->constr_lower.Set_b_i(0.);
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			limit_Z->constr_upper.Set_b_i(0.);
+		}
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.Set_b_i(0.);
-        limit_Rx->constr_upper.Set_b_i(0.);
+		if (limit_Rx->constr_lower.IsActive()) {
+			limit_Rx->constr_lower.Set_b_i(0.);
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			limit_Rx->constr_upper.Set_b_i(0.);
+		}
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.Set_b_i(0.);
-        limit_Ry->constr_upper.Set_b_i(0.);
+		if (limit_Ry->constr_lower.IsActive()) {
+			limit_Ry->constr_lower.Set_b_i(0.);
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			limit_Ry->constr_upper.Set_b_i(0.);
+		}
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.Set_b_i(0.);
-        limit_Rz->constr_upper.Set_b_i(0.);
+		if (limit_Rz->constr_lower.IsActive()) {
+			limit_Rz->constr_lower.Set_b_i(0.);
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			limit_Rz->constr_upper.Set_b_i(0.);
+		}
     }
 }
 
@@ -1705,64 +1741,88 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     ChLinkMasked::ConstraintsLoadJacobians();
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_X->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_X->constr_lower.Get_Cq_a());
-        limit_X->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_X->constr_lower.Get_Cq_b());
-        limit_X->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_X->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_X->constr_lower.IsActive()) {
+			limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_X->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_X->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Y->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Y->constr_lower.Get_Cq_a());
-        limit_Y->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Y->constr_lower.Get_Cq_b());
-        limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_Y->constr_lower.IsActive()) {
+			limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Z->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Z->constr_lower.Get_Cq_a());
-        limit_Z->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Z->constr_lower.Get_Cq_b());
-        limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_Z->constr_lower.IsActive()) {
+			limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Rx->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Rx->constr_lower.Get_Cq_a());
-        limit_Rx->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Rx->constr_lower.Get_Cq_b());
-        limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_Rx->constr_lower.IsActive()) {
+			limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Ry->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Ry->constr_lower.Get_Cq_a());
-        limit_Ry->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Ry->constr_lower.Get_Cq_b());
-        limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_Ry->constr_lower.IsActive()) {
+			limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Rz->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Rz->constr_lower.Get_Cq_a());
-        limit_Rz->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Rz->constr_lower.Get_Cq_b());
-        limit_Rz->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Rz->constr_upper.Get_Cq_b()->MatrNeg();
+		if (limit_Rz->constr_lower.IsActive()) {
+			limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Body2);
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+			Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Body1);
+			Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Body2);
+			limit_Rz->constr_upper.Get_Cq_a()->MatrNeg();
+			limit_Rz->constr_upper.Get_Cq_b()->MatrNeg();
+		}
     }
 }
 
@@ -1874,28 +1934,52 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // add also the contribution from link limits to the react_force and react_torque.
     if (limit_X && limit_X->Get_active()) {
-        react_force.x -= factor * limit_X->constr_lower.Get_l_i();
-        react_force.x += factor * limit_X->constr_upper.Get_l_i();
+		if (limit_X->constr_lower.IsActive()) {
+			react_force.x -= factor * limit_X->constr_lower.Get_l_i();
+		}
+		if (limit_X->constr_upper.IsActive()) {
+			react_force.x += factor * limit_X->constr_upper.Get_l_i();
+		}
     }
     if (limit_Y && limit_Y->Get_active()) {
-        react_force.y -= factor * limit_Y->constr_lower.Get_l_i();
-        react_force.y += factor * limit_Y->constr_upper.Get_l_i();
+		if (limit_Y->constr_lower.IsActive()) {
+			react_force.y -= factor * limit_Y->constr_lower.Get_l_i();
+		}
+		if (limit_Y->constr_upper.IsActive()) {
+			react_force.y += factor * limit_Y->constr_upper.Get_l_i();
+		}
     }
     if (limit_Z && limit_Z->Get_active()) {
-        react_force.z -= factor * limit_Z->constr_lower.Get_l_i();
-        react_force.z += factor * limit_Z->constr_upper.Get_l_i();
+		if (limit_Z->constr_lower.IsActive()) {
+			react_force.z -= factor * limit_Z->constr_lower.Get_l_i();
+		}
+		if (limit_Z->constr_upper.IsActive()) {
+			react_force.z += factor * limit_Z->constr_upper.Get_l_i();
+		}
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        react_torque.x -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
-        react_torque.x += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+		if (limit_Rx->constr_lower.IsActive()) {
+			react_torque.x -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
+		}
+		if (limit_Rx->constr_upper.IsActive()) {
+			react_torque.x += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+		}
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        react_torque.y -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
-        react_torque.y += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+		if (limit_Ry->constr_lower.IsActive()) {
+			react_torque.y -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
+		}
+		if (limit_Ry->constr_upper.IsActive()) {
+			react_torque.y += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+		}
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        react_torque.z -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
-        react_torque.z += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+		if (limit_Rz->constr_lower.IsActive()) {
+			react_torque.z -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
+		}
+		if (limit_Rz->constr_upper.IsActive()) {
+			react_torque.z += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+		}
     }
 
     // the internal forces add their contribute to the reactions
