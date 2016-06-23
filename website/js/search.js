@@ -69,8 +69,8 @@ jQuery(function() {
   // Searches through doxygen site using embedded doxysearch capabilities
   // See https://www.stack.nl/~dimitri/doxygen/manual/extsearch.html for more information
   function search_documentation(query) {
-    var doc_url = "http://api.chrono.projectchrono.org/";
-    var doc_search_url = "cgi-bin/doxysearch.cgi";
+    var doc_url = "http://projectchrono.org";
+    var doc_search_url = "/doxygen";
     var callback = "docshow";
     var page = "1";
     var number = "20";
