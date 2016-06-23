@@ -71,9 +71,8 @@ jQuery(function() {
   function search_documentation(query) {
     var doc_url = "http://projectchrono.org";
     var doc_search_url = "/doxygen";
-    var callback = "docshow";
     var page = "0";
-    var number = "20";
+    var number = "25";
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page;
     // Gets list of test names
     $.ajax({
@@ -81,8 +80,7 @@ jQuery(function() {
           method: "GET",
           data: "",
           dataType:"jsonp",
-          contentType: 'application/json'
-          jsonpCallback: callback,
+          jsonpCallback: docshow,
           success: function (response, status, xhr) {
               console.log(response);
               },
@@ -93,7 +91,6 @@ jQuery(function() {
   }
   function docshow(result) {
     var hits = result["items"];
-
     for (var i = 0; i < hits.length; i++) {
       var hit = hits[i];
       // console.log(hit);
