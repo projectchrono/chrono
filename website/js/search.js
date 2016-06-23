@@ -74,7 +74,7 @@ jQuery(function() {
     var callback = "docshow";
     var page = "1";
     var number = "20";
-    var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
+    var search_string = "?q=" + query +"&n=" + number + "&p=" + page;
     // Gets list of test names
     $.ajax({
           url: doc_url + doc_search_url + search_string,
