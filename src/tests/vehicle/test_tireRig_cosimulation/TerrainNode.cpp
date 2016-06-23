@@ -26,16 +26,18 @@
 ////    better approximation of mass / inertia? (CreateFaceProxies)
 ////    angular velocity (UpdateFaceProxies)
 ////    implement (PrintFaceProxiesContactData)
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
 
-#include <omp.h>
 #include <algorithm>
-#include <string>
+#include <cmath>
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <string>
 #include <unordered_map>
 #include <vector>
+
+#include <omp.h>
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
@@ -112,6 +114,13 @@ TerrainNode::TerrainNode(Type type,
     float kt_terrain = 2.86e6f;
     float gt_terrain = 1.0e3f;
 
+    // Estimates for number of bins for broad-phase
+    int factor = 2;
+    int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
+    int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
+    int binsZ = 1;
+    std::cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
+
     // Proxy bodies properties
     m_fixed_proxies = false;
     m_mass_pN = 1;
@@ -156,7 +165,7 @@ TerrainNode::TerrainNode(Type type,
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
     m_system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    m_system->GetSettings()->collision.bins_per_axis = I3(1000, 150, 20);
+    m_system->GetSettings()->collision.bins_per_axis = I3(binsX, binsY, binsZ);
 
     // Set number of threads
     m_system->SetParallelThreadNumber(num_threads);
