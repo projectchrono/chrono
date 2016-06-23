@@ -51,6 +51,10 @@ class ChApi ChSolverSimplex : public ChSolver {
     ChSolverSimplex();
     ~ChSolverSimplex();
 
+    /// Indicate whether ot not the Solve() phase requires an up-to-date problem matrix.
+    /// This solver does not have a proper separation between Setup() and Solve().
+    virtual bool SolveRequiresMatrix() const override { return true; }
+
     /// Performs the solution of the problem, using the simplex method.
     /// If you must solve many problems with the same number of
     /// variables and constraints, we suggest you to use the same

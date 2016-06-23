@@ -508,7 +508,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
-    // Old bookkeeping system - to be removed soon
+    // Old bookkeeping system 
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;
@@ -894,8 +894,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization
     int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
 
-    double min_bounce_speed;  ///< maximum speed for rebounce after impacts. If lower speed at rebounce, it is clamped
-                              ///to zero.
+    double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
     double max_penetration_recovery_speed;  ///< this limits the speed of penetration recovery (>0, speed of exiting)
 
     int parallel_thread_number;  ///< used for multithreaded solver etc.

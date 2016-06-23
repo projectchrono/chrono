@@ -49,6 +49,12 @@ class ChApi ChSolver {
 
     virtual ~ChSolver() {}
 
+    /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
+    /// Typically, direct solvers only need the matrix for the Setup() phase. However,
+    /// iterative solvers likely require the matrix to perform the necessary matrix-vector
+    /// operations.
+    virtual bool SolveRequiresMatrix() const = 0;
+
     /// Performs the solution of the problem.
     /// This function MUST be implemented in children classes, with specialized
     /// methods such as iterative or direct solvers.

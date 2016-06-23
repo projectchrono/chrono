@@ -1407,8 +1407,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // R and Qc vectors  --> solver sparse solver structures  (also sets L and Dv to warmstart)
     IntToDescriptor(0, Dv, R, 0, L, Qc);
 
-    // If indicated, fill the sparse system structures with information in G and Cq
-    if (force_setup) {
+    // If the solver's Setup() must be called or if the solver's Solve() requires it,
+    // fill the sparse system structures with information in G and Cq.
+    if (force_setup || GetSolverSpeed()->SolveRequiresMatrix()) {
         // Cq  matrix
         ConstraintsLoadJacobians();
 

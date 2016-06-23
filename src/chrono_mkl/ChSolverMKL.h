@@ -60,7 +60,12 @@ class ChApiMkl ChSolverMKL : public ChSolver {
 
     void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
 
-    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; };
+    /// Set the number of non-zero entries in the problem matrix.
+    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; }
+
+    /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
+    /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
+    virtual bool SolveRequiresMatrix() const override { return false; }
 
     /// Solve using the MKL Pardiso sparse direct solver.
     /// It uses the matrix factorization obtained at the last call to Setup().
@@ -71,10 +76,7 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     /// Returns true if successful and false otherwise.
     virtual bool Setup(ChSystemDescriptor& sysd) override;
 
-    //
-    // SERIALIZATION
-    //
-
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
