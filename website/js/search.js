@@ -79,9 +79,9 @@ jQuery(function() {
           method: "GET",
           data: "",
           dataType:"jsonp",
-          jsonpCallback: docshow,
+          jsonpCallback: docshow(response),
           success: function (response, status, xhr) {
-            docshow(response);
+              docshow(response);
               console.log(response);
               },
           error: function (xhr, status, error_code) {
