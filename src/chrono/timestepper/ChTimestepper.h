@@ -87,8 +87,6 @@ class ChApi ChTimestepper {
     /// Turn on/off clamping on the Qcterm
     void SetQcClamping(double mcl) { Qc_clamping = mcl; }
 
-    // SERIALIZATION
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
@@ -196,14 +194,19 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     CH_RTTI(ChImplicitIterativeTimestepper, ChImplicitTimestepper);
 
   protected:
-    int maxiters;
-    double reltol;   // relative tolerance
-    double abstolS;  // absolute tolerance (states)
-    double abstolL;  // absolute tolerance (Lagrange multipliers)
+    int maxiters;    ///< maximum number of iterations
+    double reltol;   ///< relative tolerance
+    double abstolS;  ///< absolute tolerance (states)
+    double abstolL;  ///< absolute tolerance (Lagrange multipliers)
+
+    int numiters;   ///< number of iterations
+    int numsetups;  ///< number of calls to the solver's Setup function
+    int numsolves;  ///< number of calls to the solver's Solve function
 
   public:
-    /// Constructors
-    ChImplicitIterativeTimestepper() : maxiters(6), reltol(1e-4), abstolS(1e-10), abstolL(1e-10) {}
+    ChImplicitIterativeTimestepper()
+        : maxiters(6), reltol(1e-4), abstolS(1e-10), abstolL(1e-10), numiters(0), numsetups(0), numsolves(0) {}
+    virtual ~ChImplicitIterativeTimestepper() {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
     void SetMaxiters(int miters) { maxiters = miters; }
@@ -233,7 +236,14 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
         abstolL = abs_tol;
     }
 
-    // SERIALIZATION
+    /// Return the number of iterations.
+    int GetNumIterations() const { return numiters; }
+
+    /// Return the number of calls to the solver's Setup function.
+    int GetNumSetupCalls() const { return numsetups; }
+
+    /// Return the number of calls to the solver's Solve function.
+    int GetNumSolveCalls() const { return numsolves; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
@@ -574,10 +584,8 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     virtual void Advance(const double dt  ///< timestep to advance
                          );
 
-    // SERIALIZATION
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class:
@@ -589,7 +597,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
+    virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class:

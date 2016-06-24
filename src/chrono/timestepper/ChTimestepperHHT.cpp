@@ -79,7 +79,9 @@ void ChTimestepperHHT::Advance(const double dt) {
 
     // Advance solution to time T+dt, possibly taking multiple steps
     double tfinal = T + dt;  // target final time
-    num_it = 0;              // total number of NR iterations
+    numiters = 0;            // total number of NR iterations for this step
+    numsetups = 0;
+    numsolves = 0;
 
     // If we had a streak of successful steps, consider a stepsize increase.
     // Note that we never attempt a step larger than the specified dt value.
@@ -104,7 +106,7 @@ void ChTimestepperHHT::Advance(const double dt) {
     //   - at the beginning of a step
     //   - on a stepsize decrease
     //   - if the Newton iteration does not converge with an out-of-date matrix
-    // Otherwise, the matrix is always updated 
+    // Otherwise, the matrix is updated at each iteration.
     matrix_is_current = false;
     call_setup = true;
 
@@ -123,7 +125,13 @@ void ChTimestepperHHT::Advance(const double dt) {
 
             // Solve linear system and increment state
             Increment(mintegrable, scaling_factor);
-            num_it++;
+
+            // Increment counters
+            numiters++;
+            numsolves++;
+            if (call_setup) {
+                numsetups++;
+            }
 
             // If using modified Newton, do not call Setup again
             call_setup = !modified_Newton;
@@ -359,7 +367,7 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             double Dl_nrm = Dl.NormWRMS(ewtL);
 
             if (verbose) {
-                GetLog() << " HHT iteration=" << num_it << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
+                GetLog() << " HHT iteration=" << numiters << "  |R|=" << R_nrm << "  |Qc|=" << Qc_nrm
                          << "  |Da|=" << Da_nrm << "  |Dl|=" << Dl_nrm << "  N = " << R.GetLength()
                          << "  M = " << Qc.GetLength() << "\n";
             }
@@ -381,7 +389,7 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
             Dl_nrm /= scaling_factor;
 
             if (verbose) {
-                GetLog() << " HHT iteration=" << num_it << "  |Dx|=" << Dx_nrm << "  |Dl|=" << Dl_nrm << "\n";
+                GetLog() << " HHT iteration=" << numiters << "  |Dx|=" << Dx_nrm << "  |Dl|=" << Dl_nrm << "\n";
             }
 
             if (Dx_nrm < 1 && Dl_nrm < 1)
@@ -414,7 +422,6 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(beta);
     marchive << CHNVP(gamma);
     marchive << CHNVP(scaling);
-    marchive << CHNVP(num_it);
     HHT_Mode_mapper modemapper;
     marchive << CHNVP(modemapper(mode), "mode");
 }
@@ -430,7 +437,6 @@ void ChTimestepperHHT::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(beta);
     marchive >> CHNVP(gamma);
     marchive >> CHNVP(scaling);
-    marchive >> CHNVP(num_it);
     HHT_Mode_mapper modemapper;
     marchive >> CHNVP(modemapper(mode), "mode");
 }

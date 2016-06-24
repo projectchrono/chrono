@@ -45,7 +45,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     double beta;    ///< HHT method parameter:   beta = (1 - alpha)^2 / 4
     HHT_Mode mode;  ///< HHT formulation (ACCELERATION or POSITION)
     bool scaling;   ///< include scaling by beta * h * h (POSITION only)
-    int num_it;     ///< total number of NR iterations over the last step
 
     ChStateDelta Da;         ///< state update
     ChStateDelta Dx;         ///< cummulative state updates (POSITION only)
@@ -76,7 +75,6 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     ChVectorDynamic<> ewtL;  ///< vector of error weights (Lagrange multipliers)
 
   public:
-    /// Constructors (default empty)
     ChTimestepperHHT(ChIntegrableIIorder* mintegrable = nullptr);
 
     /// Set the numerical damping parameter.
@@ -124,15 +122,9 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
     /// Modified Newton iteration is enabled by default.
     void SetModifiedNewton(bool val) { modified_Newton = val; }
 
-    /// Return the number of iterations over the last step.
-    /// Note that this is a cummulative iteration count, over all internal steps.
-    int GetNumIterations() const { return num_it; }
-
     /// Perform an integration timestep.
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
-
-    // SERIALIZATION
+                         ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
