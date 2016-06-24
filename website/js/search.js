@@ -73,13 +73,14 @@ jQuery(function() {
     var doc_search_url = "/doxygen";
     var page = "0";
     var number = "25";
-    var search_string = "?q=" + query +"&n=" + number + "&p=" + page;
+    var callback = "docshow"
+    var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
     $.ajax({
           url: doc_url + doc_search_url + search_string,
           method: "GET",
           data: "",
           dataType:"jsonp",
-          jsonpCallback: docshow(),
+          jsonpCallback: "docshow",
           success: function (response, status, xhr) {
               docshow(response);
               console.log(response);
