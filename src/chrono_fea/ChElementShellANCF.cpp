@@ -775,10 +775,17 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = m_element->GetLayer(m_kl).Get_detJ0C();
 
-    // Enhanced Assumed Strain
+// Enhanced Assumed Strain
+#ifdef CHRONO_HAS_AVX
+    // Referring to test_AVX, expected speed up Vs. non-AVX operation: 1.7x
+    ChMatrixNM<double, 6, 5> G;
+    G.MatrMultiplyAVX(T0, M);
+    G = G * (detJ0C / detJ0);
+#else
     ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
-    ChMatrixNM<double, 6, 1> strain_EAS = G * m_element->m_alphaEAS[m_kl];
+#endif
 
+    ChMatrixNM<double, 6, 1> strain_EAS = G * m_element->m_alphaEAS[m_kl];
     ChMatrixNM<double, 8, 1> ddNx;
     ChMatrixNM<double, 8, 1> ddNy;
     ChMatrixNM<double, 8, 1> ddNz;
@@ -839,6 +846,7 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
     ChMatrixNM<double, 1, 3> tempB3;
     ChMatrixNM<double, 1, 3> tempB31;
     strainD_til.Reset();
+    // Expected speed up for AVX operation = 1.1x
     tempB3.MatrMultiply(Nx, m_element->m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
@@ -1007,13 +1015,30 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
     temp246.MatrTMultiply(strainD, E_eps);
     temp249.MatrTMultiply(Gd, Sigm);
     ChMatrixNM<double, 24, 24> KTE;
+
+#ifdef CHRONO_HAS_AVX
+    ChMatrixNM<double, 24, 24> KTE_temp1;
+    ChMatrixNM<double, 24, 24> KTE_temp2;
+    KTE_temp1.MatrMultiplyAVX(temp246, strainD);
+    KTE_temp2.MatrMultiplyAVX(temp249, Gd);
+    KTE = KTE_temp1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + KTE_temp2 * m_Kfactor;
+#else
     KTE = (temp246 * strainD) * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + (temp249 * Gd) * m_Kfactor;
+#endif
+
     KTE *= detJ0 * (m_element->m_GaussScaling);
 
     // EAS cross-dependency matrix.
     ChMatrixNM<double, 5, 6> temp56;
     temp56.MatrTMultiply(G, E_eps);
+
+#ifdef CHRONO_HAS_AVX
+    ChMatrixNM<double, 5, 24> GDEPSP;
+    GDEPSP.MatrMultiplyAVX(temp56, strainD);
+    GDEPSP = GDEPSP * (detJ0 * m_element->m_GaussScaling);
+#else
     ChMatrixNM<double, 5, 24> GDEPSP = (temp56 * strainD) * (detJ0 * m_element->m_GaussScaling);
+#endif
 
     // Load result vector (integrand)
     result.PasteClippedMatrixToVector(&KTE, 0, 0, 24, 24, 0);
@@ -1417,8 +1442,17 @@ ChVector<> ChElementShellANCF::EvaluateSectionStrains() {
     // Determinant of the initial position vector gradient at the element center
     double detJ0C = this->GetLayer(0).Get_detJ0C();
 
-    // Enhanced Assumed Strain
+// Enhanced Assumed Strain
+
+// Enhanced Assumed Strain
+#ifdef CHRONO_HAS_AVX
+    // Referring to test_AVX, expected speed up Vs. non-AVX operation: 1.7x
+    ChMatrixNM<double, 6, 5> G;
+    G.MatrMultiplyAVX(T0, M);
+    G = G * (detJ0C / detJ0);
+#else
     ChMatrixNM<double, 6, 5> G = T0 * M * (detJ0C / detJ0);
+#endif
     ChMatrixNM<double, 6, 1> strain_EAS = G * this->m_alphaEAS[0];
 
     ChMatrixNM<double, 8, 1> ddNx;
