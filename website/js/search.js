@@ -90,6 +90,7 @@ jQuery(function() {
     })
   }
   function docshow(result) {
+    console.log("result is: " + json.stringify(result, null, 4));
     var hits = result["items"];
     for (var i = 0; i < hits.length; i++) {
       var hit = hits[i];
