@@ -177,7 +177,7 @@ class PendulumProblem : public ChIntegrableIIorder {
     virtual int GetNcoords_x() override { return 2; }
 
     /// Tells the number of lagrangian multipliers (constraints)
-    virtual int GetNconstr() override  { return 1; }
+    virtual int GetNconstr() override { return 1; }
 
     /// system -> state
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
@@ -372,6 +372,8 @@ void RigidPendulums() {
     double step = 1e-3;
     int num_steps = 100;
     auto mode = ChTimestepperHHT::ACCELERATION;
+    bool step_control = true;
+    bool modified_Newton = true;
 
     ChSystem system;
     system.Set_G_acc(ChVector<>(0, -g, 0));
@@ -409,7 +411,7 @@ void RigidPendulums() {
         system.AddLink(revolute2);
     }
 
-    // Set MKL solver
+// Set MKL solver
 #ifdef CHRONO_MKL
     ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
     ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
@@ -423,6 +425,8 @@ void RigidPendulums() {
     system.SetIntegrationType(ChSystem::INT_HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system.GetTimestepper());
     integrator->SetMode(mode);
+    integrator->SetStepControl(step_control);
+    integrator->SetModifiedNewton(modified_Newton);
     integrator->SetVerbose(true);
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);
@@ -438,8 +442,15 @@ void RigidPendulums() {
             break;
     }
 
+    int num_iterations = 0;
+    int num_setup_calls = 0;
+    int num_solver_calls = 0;
+
     for (int it = 0; it < num_steps; it++) {
         system.DoStepDynamics(step);
+        num_iterations += integrator->GetNumIterations();
+        num_setup_calls += integrator->GetNumSetupCalls();
+        num_solver_calls += integrator->GetNumSolveCalls();
         printf("    %7.4f  %4d", integrator->GetTime(), integrator->GetNumIterations());
         printf("    %12.8f  %12.8f  %12.8f  %12.8f  %12.8f  %12.8f", pend1->GetPos().x, pend1->GetPos().y,
                pend1->GetPos_dt().x, pend1->GetPos_dt().y, pend1->GetPos_dtdt().x, pend1->GetPos_dtdt().y);
@@ -450,13 +461,18 @@ void RigidPendulums() {
             printf("\n");
         }
     }
+
+    printf("\n\n");
+    printf("Total number of setup calls:  %d\n", num_setup_calls);
+    printf("Total number of solver calls: %d\n", num_solver_calls);
+    printf("Total number of iterations: %d\n", num_iterations);
 }
 
 // ==========================================================================================================
 
 int main(int argc, char* argv[]) {
-    //Oscillator();
-    //Pendulum();
+    // Oscillator();
+    // Pendulum();
     RigidPendulums();
     return 0;
 }
