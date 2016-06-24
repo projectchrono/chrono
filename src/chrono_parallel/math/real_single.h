@@ -37,6 +37,9 @@ CUDA_HOST_DEVICE static inline real Cos(const real theta) {
 CUDA_HOST_DEVICE static inline real Tan(const real theta) {
     return tanf(theta);
 }
+CUDA_HOST_DEVICE static inline real Tanh(const real theta) {
+    return tanhf(theta);
+}
 CUDA_HOST_DEVICE static inline real ASin(const real theta) {
     return asinf(theta);
 }

@@ -296,8 +296,8 @@ void function_CalcContactForces(
                 if (relvel_t_mag >= (real)1e-4)
                     force -= (forceT_mag / relvel_t_mag) * relvel_t;
 
-                real3 torque1_loc = cross(pt1_loc, quatRotateMatT(force, rot[body1]));
-                real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
+                real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
+                real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
                 ext_body_id[2 * index] = body1;
                 ext_body_id[2 * index + 1] = body2;

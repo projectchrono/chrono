@@ -52,10 +52,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
   ChSystemParallel(const ChSystemParallel& other);
   ~ChSystemParallel();
 
-  public:
-    ChSystemParallel(unsigned int max_objects);
-    ~ChSystemParallel();
-
     virtual int Integrate_Y();
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;

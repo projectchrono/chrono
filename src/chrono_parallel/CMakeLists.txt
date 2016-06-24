@@ -144,7 +144,7 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/Ch3DOFRigidContainer.cpp
     physics/ChMPM.cu
     )
-
+    
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
 
 SET(ChronoEngine_Parallel_MATH
@@ -186,15 +186,15 @@ SET(ChronoEngine_Parallel_SOLVER
     #solver/ChSolverPDIP.h
     solver/ChSolverParallel.cpp
     #solver/ChSolverJacobi.cpp
-    solver/ChSolverCG.cpp
+    #solver/ChSolverCG.cpp
     #solver/ChSolverCGS.cpp
     #solver/ChSolverPGS.cpp
     #solver/ChSolverGD.cpp
     #solver/ChSolverSD.cpp
     #solver/ChSolverFN.cpp
-    solver/ChSolverAPGD.cpp
-    solver/ChSolverAPGDREF.cpp
-    solver/ChSolverMinRes.cpp
+    solver/ChSolverParallelAPGD.cpp
+    solver/ChSolverParallelAPGDREF.cpp
+    solver/ChSolverParallelMinRes.cpp
     #solver/ChSolverBiCG.cpp
     #solver/ChSolverBiCGStab.cpp
     #solver/ChSolverPDIP.cpp

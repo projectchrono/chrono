@@ -739,6 +739,7 @@ int ChSystemParallel::GetNumBilaterals() {
 double ChSystemParallel::GetTimerStep() {
     return data_manager->system_timer.GetTime("step");
 }
+
 /// Gets the fraction of time (in seconds) for the solution of the problem, within the time step
 double ChSystemParallel::GetTimerSolver() {
     return data_manager->system_timer.GetTime("solver");
