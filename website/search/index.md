@@ -9,7 +9,12 @@ Search powered by lunr.js
                 <input type="text" id="search_box" name="query">
                 <input type="submit" value="Search">
               </form> 
+### Site Search Results
+
 <ul id="search_results">Search Loading</ul>
+
+### Documentation Search Results
+
 <ul id="doc_results"></ul>
 
 <script src="/js/lunr.min.js"></script>

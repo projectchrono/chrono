@@ -62,7 +62,7 @@ jQuery(function() {
         });
       } else {
         // If there are no results, let the user know.
-        $search_results.html('<li>No results found.<br/>Please check spelling, spacing, etc...</li>');
+        $search_results.html('<li>No website results found.<br/>Please check spelling, spacing, etc...</li>');
       }
     });
   }
@@ -100,7 +100,7 @@ jQuery(function() {
       var url = hit["url"];
       var url_base = "http://api.projectchrono.org/";
       url = url_base + url;
-      var ul = document.getElementById("search_results");
+      var ul = document.getElementById("doc_results");
       var li = document.createElement("li");
       ul.appendChild(li);
       var a = document.createElement("a");
