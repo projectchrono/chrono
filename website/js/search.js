@@ -30,10 +30,12 @@ jQuery(function() {
       // If query was passed from search bar
       console.log("Reading from search box");
       var query = $("#search_box").val(); // Get the value for the text field
+      search_documentation(query);
 
       console.log("query is " + query);
 
       var results = window.idx.search(query); // Get lunr to perform a search
+            console.log("results is " + results);
       $("#search_bar").val(query);
       display_search_results(results); // Hand the results off to be displayed
   });
@@ -44,27 +46,23 @@ jQuery(function() {
     // Wait for data to load
     window.data.then(function(loaded_data) {
 
-    // This will search through the results from the main website 
-    // If there are results, the main website results will be first followed by the documentation search results
-    // If there are no website results, the documentation results will be displayed 
-    	// If there are also no documentation results, a "No results found" message will be shown
-    if (results.length) {
+      // Are there any results?
+      if (results.length) {
         $search_results.empty(); // Clear any old results
 
         // Iterate over the results
         results.forEach(function(result) {
-    	    var item = loaded_data[result.ref];
+          var item = loaded_data[result.ref];
 
-        	// Build a snippet of HTML for this result
-    	    var appendString = '<li><a href="' + item.url + '">' + item.title + '</a></li>';
+          // Build a snippet of HTML for this result
+          var appendString = '<li><a href="' + item.url + '">' + item.title + '</a></li>';
 
-    	    // Add the snippet to the collection of results.
-    	    $search_results.append(appendString);
+          // Add the snippet to the collection of results.
+          $search_results.append(appendString);
         });
-    	search_documentation(query)
-      } else if (!search_documentation(query)) {
+      } else {
         // If there are no results, let the user know.
-        $search_results.html('<li>No results found.<br/>Please check spelling, spacing, case, etc...</li>');
+        $search_results.html('<li>No results found.<br/>Please check spelling, spacing, etc...</li>');
       }
     });
   }
@@ -78,20 +76,20 @@ jQuery(function() {
     var callback = "docshow"
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
     $.ajax({
-        url: doc_url + doc_search_url + search_string,
-        method: "GET",
-        data: "",
-        dataType:"jsonp",
-        jsonpCallback: "docshow",
-        success: function (response, status, xhr) {
-            console.log(response);
-            },
-        error: function (xhr, status, error_code) {
-            console.log("Error:" + status + ": " + error_code);
-        }
+          url: doc_url + doc_search_url + search_string,
+          method: "GET",
+          data: "",
+          dataType:"jsonp",
+          jsonpCallback: "docshow",
+          success: function (response, status, xhr) {
+              docshow(response);
+              console.log(response);
+              },
+          error: function (xhr, status, error_code) {
+              console.log("Error:" + status + ": " + error_code);
+          }
     })
   }
-
   function docshow(result) {
     console.log("result is: " + JSON.stringify(result, null, 4));
     var hits = result["items"];
@@ -100,7 +98,7 @@ jQuery(function() {
       // console.log(hit);
       var name = hit["name"];
       var url = hit["url"];
-      var url_base = "http://projectchrono.org/";
+      var url_base = "http://api.projectchrono.org/";
       url = url_base + url;
       var ul = document.getElementById("search_results");
       var li = document.createElement("li");

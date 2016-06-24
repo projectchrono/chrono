@@ -10,6 +10,7 @@ Search powered by lunr.js
                 <input type="submit" value="Search">
               </form> 
 <ul id="search_results">Search Loading</ul>
+<ul id="doc_results"></ul>
 
 <script src="/js/lunr.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
