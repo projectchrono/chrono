@@ -114,8 +114,9 @@ class ChStaticLinearAnalysis : public ChStaticAnalysis {
             0,        // factor for  M
             0,        // factor for  dF/dv
             -1.0,     // factor for  dF/dx (the stiffness matrix)
-            X, V, T,  // not needed
-            false     // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            X, V, T,  // not needed here
+            false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
+            true      // force a call to the solver's Setup() function
             );
 
         X += Dx;
@@ -194,11 +195,12 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
 
             mintegrable->StateSolveCorrection(
                 Dx, L, R, Qc,
-                0,     // factor for  M
-                0,     // factor for  dF/dv
-                -1.0,  // factor for  dF/dx (the stiffness matrix)
-                Xnew, V, T,
-                false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                0,           // factor for  M
+                0,           // factor for  dF/dv
+                -1.0,        // factor for  dF/dx (the stiffness matrix)
+                Xnew, V, T,  // not needed here
+                false,       // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                true         // force a call to the solver's Setup() function
                 );
 
             Xnew += Dx;

@@ -95,6 +95,11 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Get number of calls to load Jacobian information.
     int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
 
+    /// Reset timers for internal force and Jacobian evaluations.
+    void ResetTimers() {
+        timer_internal_forces.reset();
+        timer_KRMload.reset();
+    }
     /// Get cummulative timing for internal force evaluation.
     double GetTimingInternalForces() { return timer_internal_forces(); }
     /// Get cummulative timing for Jacobian load calls.
