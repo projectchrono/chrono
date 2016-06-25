@@ -392,9 +392,6 @@ void RigNode::Synchronize(int step_number, double time) {
     MPI_Send(vert_data, 2 * 3 * num_vert, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * num_tri, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    delete[] vert_data;
-    delete[] tri_data;
-
     // Receive terrain forces.
     // Note that we use MPI_Probe to figure out the number of indices and forces received.
     MPI_Status status;
@@ -409,15 +406,21 @@ void RigNode::Synchronize(int step_number, double time) {
     std::cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << std::endl;
 
     // Repack data and apply forces to the mesh vertices
-    std::vector<ChVector<>> vert_forces;
-    std::vector<int> vert_indices;
+    m_vert_indices.resize(count);
+    m_vert_pos.resize(count);
+    m_vert_forces.resize(count);
     for (int iv = 0; iv < count; iv++) {
-        vert_forces.push_back(ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]));
-        vert_indices.push_back(index_data[iv]);
+        int index = index_data[iv];
+        m_vert_indices[iv] = index;
+        m_vert_pos[iv] = vert_pos[index];
+        m_vert_forces[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
     }
-    m_contact_load->InputSimpleForces(vert_forces, vert_indices);
+    m_contact_load->InputSimpleForces(m_vert_forces, m_vert_indices);
 
-    PrintContactData(vert_forces, vert_indices);
+    PrintContactData(m_vert_forces, m_vert_indices);
+
+    delete[] vert_data;
+    delete[] tri_data;
 
     delete[] index_data;
     delete[] force_data;
@@ -478,7 +481,10 @@ void RigNode::OutputData(int frame) {
     csv << m_system->GetChTime() << std::endl;  // current time
     WriteStateInformation(csv);                 // state of bodies and tire
     WriteMeshInformation(csv);                  // connectivity and strain state
+    WriteContactInformation(csv);               // vertex contact forces
     csv.write_to_file(filename);
+
+    std::cout << "[Rig node    ] write output file ==> " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -573,6 +579,15 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
 		}
 		csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
 	}
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
+    csv << m_vert_indices.size() << std::endl;
+    for (unsigned int iv = 0; iv < m_vert_indices.size(); iv++) {
+        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv] << std::endl;
+    }
 }
 
 // -----------------------------------------------------------------------------

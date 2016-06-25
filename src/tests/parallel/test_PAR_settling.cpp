@@ -122,6 +122,13 @@ int main(int argc, char** argv) {
     float kt_terrain = 2.86e6f;
     float gt_terrain = 1.0e3f;
 
+    // Estimates for number of bins for broad-phase
+    int factor = 2;
+    int binsX = (int)std::ceil(hdimX / radius_g) / factor;
+    int binsY = (int)std::ceil(hdimY / radius_g) / factor;
+    int binsZ = 1;
+    std::cout << "Broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
+
     // --------------------------
     // Create the parallel system
     // --------------------------
@@ -161,7 +168,7 @@ int main(int argc, char** argv) {
     system->GetSettings()->solver.tolerance = 0.1;
     system->GetSettings()->solver.max_iteration_bilateral = 100;
     system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    system->GetSettings()->collision.bins_per_axis = I3(1000, 150, 20);
+    system->GetSettings()->collision.bins_per_axis = I3(binsX, binsY, binsZ);
 
     // Set number of threads
     system->SetParallelThreadNumber(num_threads);

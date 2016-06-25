@@ -12,9 +12,8 @@
 //
 //   Demo code about
 //
-//     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+//     - FEA for shells of Reissner 6-field type
 
-// Include some headers used by this tutorial...
 
 #include <vector>
 
@@ -26,7 +25,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
-#include "chrono_fea/ChElementShellEANS4.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
@@ -83,32 +82,37 @@ int main(int argc, char* argv[]) {
     ChVector<> load_torque;
     ChVector<> load_force;
 
+
+    //
+    // BENCHMARK n.1
     //
     // Add an EANS SHELL cantilever:
     //
 
-    if (false)
+    if (false)  // set as 'true' to execute this 
     {
         double rect_thickness = 0.10;
-        double rect_L = 12.0;
+        double rect_L = 10.0;
         double rect_W = 1;
 
         // Create a material 
         double rho = 0.0;
         double E = 1.2e6;
         double nu = 0.0; 
-        auto mat = std::make_shared<ChMaterialShellEANS>(rect_thickness,
+
+        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(
                                                          rho, 
                                                          E, 
                                                          nu,
                                                          1.0,
                                                          0.01);
+        
 
         // Create the nodes 
         
         int nels_L = 12;
         int nels_W = 1;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_L*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_L*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_L+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -136,7 +140,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (il>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes( 
@@ -162,8 +166,8 @@ int main(int argc, char* argv[]) {
         
         // applied load
         //load_force = ChVector<>(200000,0, 20000);
-        //load_force = ChVector<>(0, 4, 0);
-        load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
+        load_force = ChVector<>(0, 4, 0);
+        //load_torque = ChVector<>(0, 0, 50*CH_C_PI/3.0);
 
         // reference solution for (0, 4, 0) shear to plot 
         ref_Y.AddPoint(0.10,1.309); ref_X.AddPoint(0.40,0.103);
@@ -179,11 +183,14 @@ int main(int argc, char* argv[]) {
         
     }
 
+
+    // 
+    // BENCHMARK n.2
     //
     // Add a SLIT ANNULAR PLATE:
     //
 
-    if (false)
+    if (true)  // set as 'true' to execute this
     {
         double plate_thickness = 0.03;
         double plate_Ri = 6;
@@ -193,7 +200,8 @@ int main(int argc, char* argv[]) {
         double rho = 0.0;
         double E = 21e6;
         double nu = 0.0; 
-        auto mat = std::make_shared<ChMaterialShellEANS>(plate_thickness,
+
+        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(
                                                          rho, 
                                                          E, 
                                                          nu,
@@ -205,7 +213,7 @@ int main(int argc, char* argv[]) {
         int nels_U = 60;
         int nels_W = 10;
         double arc = CH_C_2PI *1;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -219,10 +227,6 @@ int main(int argc, char* argv[]) {
                     (plate_Ri+(plate_Ro-plate_Ri)*w) * cos(u*arc), 
                     0,  
                     (plate_Ri+(plate_Ro-plate_Ri)*w) * sin(u*arc));
-                //ChMatrix33<> nr;
-                //nr.Set_A_Xdir (ChVector<>(cos(u*CH_C_2PI), 0, sin(u*CH_C_2PI)),VECT_Y);
-                //ChQuaternion<> noderot(nr.Get_A_quaternion());
-                //ChQuaternion<> noderot(ChQuaternion<>(ChRandom(), ChRandom(), ChRandom(), ChRandom()).GetNormalized());//QUNIT);
                 ChQuaternion<> noderot(QUNIT);
                 ChFrame<> nodeframe(nodepos, noderot);
 
@@ -241,7 +245,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(
@@ -250,15 +254,7 @@ int main(int argc, char* argv[]) {
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                     /*
-                    
-                    melement->SetNodes( 
-                        nodearray[(iu  )*(nels_W+1) + (iw-1)],
-                        nodearray[(iu  )*(nels_W+1) + (iw  )],
-                        nodearray[(iu-1)*(nels_W+1) + (iw  )],
-                        nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
-                        );
-                   */
+
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
                     melement->SetAlphaDamp(0.0);   
                     elarray[(iu-1)*(nels_W) + (iw-1)] = melement;
@@ -292,11 +288,13 @@ int main(int argc, char* argv[]) {
         ref_X.AddPoint(1.00,13.891);  ref_Y.AddPoint(1.00,17.528);
     }
     
+    // 
+    // BENCHMARK n.3
     //
     // Add a CLAMPED HALF CYLINDER :
     //
 
-    if (true)
+    if (false)
     {
         double plate_thickness = 0.03;
         double plate_R = 1.016;
@@ -306,19 +304,32 @@ int main(int argc, char* argv[]) {
         double rho = 0.0;
         double E = 2.0685e7;
         double nu = 0.3; 
-        auto mat = std::make_shared<ChMaterialShellEANS>(plate_thickness,
+
+        auto mat = std::make_shared<ChMaterialShellReissnerIsothropic>(
                                                          rho, 
                                                          E, 
                                                          nu,
                                                          1.0,
                                                          0.01);
 
+        // In case you want to test laminated shells, use this:
+        auto mat_ortho = std::make_shared<ChMaterialShellReissnerOrthotropic>(
+                                                         rho, 
+                                                         2.0685e7,
+                                                         0.517e7,
+                                                         0.3,
+                                                         0.795e7,
+                                                         0.795e7,
+                                                         0.795e7,
+                                                         1.0,
+                                                         0.01);
+
         // Create the nodes  
         
-        int nels_U = 24;
-        int nels_W = 24;
+        int nels_U = 32;
+        int nels_W = 32;
         double arc = CH_C_PI;
-        std::vector<std::shared_ptr<ChElementShellEANS4>> elarray(nels_U*nels_W);
+        std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U*nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodearray((nels_U+1)*(nels_W+1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_start(nels_W+1);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>>     nodes_end(nels_W+1);
@@ -356,7 +367,7 @@ int main(int argc, char* argv[]) {
 
                 // Make elements
                 if (iu>0 && iw>0) {
-                    auto melement = std::make_shared<ChElementShellEANS4>();
+                    auto melement = std::make_shared<ChElementShellReissner4>();
                     my_mesh->AddElement(melement);
                     
                     melement->SetNodes(
@@ -365,15 +376,12 @@ int main(int argc, char* argv[]) {
                         nodearray[(iu-1)*(nels_W+1) + (iw-1)], 
                         nodearray[(iu  )*(nels_W+1) + (iw-1)]
                         );
-                    /*
-                    melement->SetNodes( // not working well..
-                        nodearray[(iu  )*(nels_W+1) + (iw-1)],
-                        nodearray[(iu  )*(nels_W+1) + (iw  )],
-                        nodearray[(iu-1)*(nels_W+1) + (iw  )],
-                        nodearray[(iu-1)*(nels_W+1) + (iw-1)] 
-                        );
-                    */
+
                     melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    // In case you want to test laminated shells, do instead:
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
                     melement->SetAlphaDamp(0.0);   
                     elarray[(iu-1)*(nels_W) + (iw-1)] = melement;                    
                 }
@@ -432,7 +440,7 @@ int main(int argc, char* argv[]) {
     mvisualizeshellA->SetSmoothFaces(true);
 	mvisualizeshellA->SetWireframe(true);
 	my_mesh->AddAsset(mvisualizeshellA);
-/*
+    /*
     auto mvisualizeshellB = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizeshellB->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
     mvisualizeshellB->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
@@ -485,8 +493,8 @@ int main(int argc, char* argv[]) {
     */
 
     // Change type of integrator:
-    //my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
+    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
     //my_system.SetIntegrationType(ChSystem::INT_NEWMARK);
 
     if (auto msol =  dynamic_cast<ChImplicitIterativeTimestepper*>(my_system.GetSolverSpeed())) {
@@ -496,7 +504,6 @@ int main(int argc, char* argv[]) {
 
     double timestep = 0.1;
     application.SetTimestep(timestep);
-    //application.SetPaused(true);
     my_system.Setup();
     my_system.Update();
     
@@ -539,7 +546,9 @@ int main(int argc, char* argv[]) {
         
     }
 
-    ChGnuPlot mplot("__cantilever.gpl");
+    // Outputs results in a GNUPLOT plot:
+
+    ChGnuPlot mplot("__shell_benchmark.gpl");
     mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");

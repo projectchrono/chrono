@@ -19,14 +19,14 @@ MESSAGE(STATUS "==== Chrono FEA module ====")
 SET(ChronoEngine_FEA_SOURCES
     ChBuilderBeam.cpp
     ChElementGeneric.cpp
-    ChElementSpring.cpp
-    ChElementBar.cpp
+    ChElementSpring.cpp  
+    ChElementBar.cpp  
     ChElementTetra_4.cpp
     ChElementTetra_10.cpp
     ChElementHexa_8.cpp
     ChElementHexa_20.cpp 
     ChElementShellANCF.cpp
-    ChElementShellEANS4.cpp
+	ChElementShellReissner4.cpp
     ChElementBrick.cpp
     ChElementBrick_9.cpp
     ChNodeFEAxyz.cpp
@@ -47,10 +47,11 @@ SET(ChronoEngine_FEA_SOURCES
     ChLinkDirFrame.cpp
     ChLinkPointPoint.cpp
     ChContactSurface.cpp
-    ChContactSurfaceNodeCloud.cpp
-    ChContactSurfaceMesh.cpp
-    ChMeshSurface.cpp
-    ChLoadContactSurfaceMesh.cpp
+	  ChContactSurfaceNodeCloud.cpp
+	  ChContactSurfaceMesh.cpp
+	  ChMeshSurface.cpp
+	  ChLoadContactSurfaceMesh.cpp
+    ChMaterialShellReissner.cpp
 )
 
 SET(ChronoEngine_FEA_HEADERS
@@ -65,7 +66,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChNodeFEAxyz.h
     ChNodeFEAxyzrot.h
     ChNodeFEAxyzP.h 
-    ChNodeFEAxyzD.h
+    ChNodeFEAxyzD.h 
     ChNodeFEAcurv.h
     ChElementBase.h
     ChElementGeneric.h
@@ -75,7 +76,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementBeam.h
     ChElementBeamEuler.h
     ChElementBeamANCF.h
-    ChElementBrick.h
+    ChElementBrick.h 
     ChElementBrick_9.h
     ChElement3D.h
     ChElementTetrahedron.h
@@ -86,15 +87,15 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementHexa_20.h
     ChElementShell.h
     ChElementShellANCF.h
-    ChElementShellEANS4.h
-    ChFaceTetra_4.h
+	ChElementShellReissner4.h
+	  ChFaceTetra_4.h
     ChFaceBrick_9.h
-    ChLoadsBeam.h
+	  ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h
     ChMesh.h
     ChMeshFileLoader.h
-    ChMatterMeshless.h
+    ChMatterMeshless.h 
     ChProximityContainerMeshless.h
     ChPolarDecomposition.h
     ChMatrixCorotation.h
@@ -103,12 +104,13 @@ SET(ChronoEngine_FEA_HEADERS
     ChLinkDirFrame.h
     ChLinkPointPoint.h
     ChContactSurface.h
-    ChContactSurfaceNodeCloud.h
-    ChContactSurfaceMesh.h
-    ChMeshSurface.h
+	  ChContactSurfaceNodeCloud.h
+	  ChContactSurfaceMesh.h
+	  ChMeshSurface.h
     ChUtilsFEA.h
-    ChLoadContactSurfaceMesh.h
+	  ChLoadContactSurfaceMesh.h
 	  ChRotUtils.h
+	ChMaterialShellReissner.h
 )
 
 SOURCE_GROUP("" FILES 
