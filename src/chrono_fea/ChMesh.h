@@ -90,9 +90,14 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Override default in ChPhysicsItem
     virtual bool GetCollide() { return true; }
 
-    /// Get number of calls to internal forces evaluation.
+    /// Reset counters for internal force and Jacobian evaluations.
+    void ResetCounters() {
+        ncalls_internal_forces = 0;
+        ncalls_KRMload = 0;
+    }
+    /// Get cumulative number of calls to internal forces evaluation.
     int GetNumCallsInternalForces() { return ncalls_internal_forces; }
-    /// Get number of calls to load Jacobian information.
+    /// Get cumulative number of calls to load Jacobian information.
     int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
 
     /// Reset timers for internal force and Jacobian evaluations.
@@ -100,9 +105,9 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         timer_internal_forces.reset();
         timer_KRMload.reset();
     }
-    /// Get cummulative timing for internal force evaluation.
+    /// Get cumulative timing for internal force evaluation.
     double GetTimingInternalForces() { return timer_internal_forces(); }
-    /// Get cummulative timing for Jacobian load calls.
+    /// Get cumulative timing for Jacobian load calls.
     double GetTimingJacobianLoad() { return timer_KRMload(); }
 
     /// Add a contact surface
