@@ -40,7 +40,7 @@ using namespace chrono::fea;
 
 int num_threads = 4;      // default number of threads
 double step_size = 1e-3;  // integration step size
-int num_steps = 20;       // number of integration steps
+int num_steps = 22;       // number of integration steps
 int skip_steps = 2;       // initial number of steps excluded from timing
 
 int numDiv_x = 50;  // mesh divisions in X direction
@@ -199,59 +199,89 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
 
     // Simulation loop
-    ChTimer<> timer;
     double time_total = 0;
+    double time_setup = 0;
+    double time_solve = 0;
+    double time_update = 0;
+    double time_force = 0;
+    double time_jacobian = 0;
+    double time_skipped = 0;
     int num_iterations = 0;
     int num_setup_calls = 0;
     int num_solver_calls = 0;
+    int num_force_calls = 0;
+    int num_jacobian_calls = 0;
 
     for (int istep = 0; istep < num_steps; istep++) {
-        timer.reset();
-        timer.start();
+        my_mesh->ResetCounters();
+        my_mesh->ResetTimers();
+
         my_system.DoStepDynamics(step_size);
-        timer.stop();
 
-        const ChVector<>& p = nodetip->GetPos();
-        double time_step = timer.GetTimeSeconds();
-
-        if (istep <= skip_steps) {
+        if (istep == skip_steps) {
+            time_skipped = time_total;
             time_total = 0;
-            my_mesh->ResetTimers();
+            time_setup = 0;
+            time_solve = 0;
+            time_update = 0;
+            time_force = 0;
+            time_jacobian = 0;
+            num_iterations = 0;
+            num_setup_calls = 0;
+            num_solver_calls = 0;
+            num_force_calls = 0;
+            num_jacobian_calls = 0;
         }
 
-        time_total += time_step;
+        time_total += my_system.GetTimerStep();
+        time_setup += my_system.GetTimerSetup();
+        time_solve += my_system.GetTimerSolver();
+        time_update += my_system.GetTimerUpdate();
+
+        time_force += my_mesh->GetTimingInternalForces();
+        time_jacobian += my_mesh->GetTimingJacobianLoad();
+
         num_iterations += mystepper->GetNumIterations();
         num_setup_calls += mystepper->GetNumSetupCalls();
         num_solver_calls += mystepper->GetNumSolveCalls();
 
+        num_force_calls += my_mesh->GetNumCallsInternalForces();
+        num_jacobian_calls += my_mesh->GetNumCallsJacobianLoad();
+
+        const ChVector<>& p = nodetip->GetPos();
+
         if (verbose) {
             std::cout << "-------------------------------------------------------------------" << std::endl;
             std::cout << my_system.GetChTime() << "  ";
-            std::cout << "   " << time_step;
+            std::cout << "   " << my_system.GetTimerStep();
             std::cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << std::endl;
         }
 
         if (output) {
-            out << my_system.GetChTime() << time_step << nodetip->GetPos() << std::endl;
+            out << my_system.GetChTime() << my_system.GetTimerStep() << nodetip->GetPos() << std::endl;
         }
     }
 
-    // Final statistics.
-    double time_force = my_mesh->GetTimingInternalForces();
-    double time_jac = my_mesh->GetTimingJacobianLoad();
+    double time_other = time_total - time_setup - time_solve - time_update - time_force - time_jacobian;
 
     std::cout << "-------------------------------------------------------------------" << std::endl;
-    std::cout << "Total number of steps:        " << num_steps << std::endl;
+    std::cout << "Total number of steps:        " << num_steps - skip_steps << std::endl;
     std::cout << "Total number of iterations:   " << num_iterations << std::endl;
     std::cout << "Total number of setup calls:  " << num_setup_calls << std::endl;
     std::cout << "Total number of solver calls: " << num_solver_calls << std::endl;
-    std::cout << "Total number of internal force calls: " << my_mesh->GetNumCallsInternalForces() << std::endl;
-    std::cout << "Total number of Jacobian calls:       " << my_mesh->GetNumCallsJacobianLoad() << std::endl;
-    std::cout << "Simulation times (cummulative over the last " << num_steps - skip_steps << " steps)" << std::endl;
-    std::cout << "  Total execution: " << time_total << std::endl;
-    std::cout << "  Internal forces: " << time_force << std::endl;
-    std::cout << "  Jacobian:        " << time_jac << std::endl;
-    std::cout << "  Extra time:      " << time_total - time_force - time_jac << std::endl;
+    std::cout << "Total number of internal force calls: " << num_force_calls << std::endl;
+    std::cout << "Total number of Jacobian calls:       " << num_jacobian_calls << std::endl;
+    std::cout << std::endl;
+    std::cout << std::setprecision(3) << std::fixed;
+    std::cout << "Total time: " << time_total << std::endl;
+    std::cout << "  Setup:    " << time_setup << "\t (" << (time_setup/time_total)*100 << "%)" << std::endl;
+    std::cout << "  Solve:    " << time_solve << "\t (" << (time_solve / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Forces:   " << time_force << "\t (" << (time_force / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Jacobian: " << time_jacobian << "\t (" << (time_jacobian / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Update:   " << time_update << "\t (" << (time_update / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Other:    " << time_other << "\t (" << (time_other / time_total) * 100 << "%)" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Time for skipped steps (" << skip_steps << "): " << time_skipped << std::endl;
 
     if (output) {
         char name[100];
