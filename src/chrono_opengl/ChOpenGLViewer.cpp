@@ -543,7 +543,7 @@ void ChOpenGLViewer::RenderFEA() {
         }
 
         for (int i = 0; i < parallel_system->data_manager->host_data.boundary_triangles_fea.size(); i++) {
-            uint4 ind = parallel_system->data_manager->host_data.boundary_triangles_fea[i];
+            uvec4 ind = parallel_system->data_manager->host_data.boundary_triangles_fea[i];
             real3 pos1 = parallel_system->data_manager->host_data.pos_node_fea[ind.x];
             real3 pos2 = parallel_system->data_manager->host_data.pos_node_fea[ind.y];
             real3 pos3 = parallel_system->data_manager->host_data.pos_node_fea[ind.z];

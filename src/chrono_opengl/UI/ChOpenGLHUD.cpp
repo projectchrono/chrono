@@ -163,7 +163,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   real timer_step = physics_system->GetTimerStep();
   real timer_collision_broad = physics_system->GetTimerCollisionBroad();
   real timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-  real timer_lcp = physics_system->GetTimerLcp();
+  real timer_lcp = physics_system->GetTimerSolver();
   real timer_update = physics_system->GetTimerUpdate();
   if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
@@ -264,11 +264,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-  double iters = ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetTotalIterations();
+  double iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
   const std::vector<double>& vhist =
-      ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetViolationHistory();
+      ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
   const std::vector<double>& dhist =
-      ((ChLcpIterativeSolver*)(physics_system->GetLcpSolverSpeed()))->GetDeltalambdaHistory();
+      ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
   double residual = vhist.size() > 0 ? vhist.back() : 0.0;
   double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
