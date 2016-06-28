@@ -23,7 +23,7 @@ using namespace geometry;
 //////////////////////////////////////
 
 /// CLASS FOR TETRAHEDRAL FEA ELEMENTS
-uvec3 SortedFace(int face, const uint4& tetrahedron) {
+uvec3 SortedFace(int face, const uvec4& tetrahedron) {
     int i = tetrahedron.x;
     int j = tetrahedron.y;
     int k = tetrahedron.z;
@@ -43,7 +43,7 @@ uvec3 SortedFace(int face, const uint4& tetrahedron) {
             break;
     }
 }
-uvec3 UnSortedFace(int face, const uint4& tetrahedron) {
+uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
     int i = tetrahedron.x;
     int j = tetrahedron.y;
     int k = tetrahedron.z;
@@ -86,8 +86,8 @@ void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::ve
     data_manager->num_fea_nodes = pos_node.size();
     num_fea_nodes = pos_node.size();
 }
-void ChFEAContainer::AddElements(const std::vector<uint4>& indices) {
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+void ChFEAContainer::AddElements(const std::vector<uvec4>& indices) {
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     tet_indices.insert(tet_indices.end(), indices.begin(), indices.end());
     data_manager->num_fea_tets = tet_indices.size();
 }
@@ -226,7 +226,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
 
     uint num_tets = data_manager->num_fea_tets;
 
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
@@ -242,7 +242,7 @@ void ChFEAContainer::UpdatePosition(double ChTime) {
     for (int iter = 0; iter < 3; iter++) {
         //#pragma omp parallel for
         for (int i = 0; i < num_tets; i++) {
-            uint4 tet_ind = tet_indices[i];
+            uvec4 tet_ind = tet_indices[i];
 
             real3 p0 = pos_new[tet_ind.x];
             real3 p1 = pos_new[tet_ind.y];
@@ -344,7 +344,7 @@ void ChFEAContainer::Initialize() {
     uint num_nodes = data_manager->num_fea_nodes;
 
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<real>& mass_node = data_manager->host_data.mass_node_fea;
 
     X0.resize(num_tets);
@@ -355,7 +355,7 @@ void ChFEAContainer::Initialize() {
     Thrust_Fill(mass_node, 0);
 
     for (int i = 0; i < num_tets; i++) {
-        uint4 tet_ind = tet_indices[i];
+        uvec4 tet_ind = tet_indices[i];
 
         real3 x0 = pos_node[tet_ind.x];
         real3 x1 = pos_node[tet_ind.y];
@@ -553,14 +553,14 @@ void ChFEAContainer::Build_D() {
     uint num_tets = data_manager->num_fea_tets;
     real step_size = data_manager->settings.step_size;
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint b_off = num_rigid_bodies * 6 + num_shafts + num_fluid_bodies * 3;
     uint f_off = num_rigid_bodies * 6 + num_shafts;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
 #pragma omp parallel for
     for (int i = 0; i < num_tets; i++) {
-        uint4 tet_ind = tet_indices[i];
+        uvec4 tet_ind = tet_indices[i];
 
         real3 p0 = pos_node[tet_ind.x];
         real3 p1 = pos_node[tet_ind.y];
@@ -681,7 +681,7 @@ void ChFEAContainer::Build_D() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
@@ -769,7 +769,7 @@ void ChFEAContainer::Build_D() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int fluid = neighbor_marker_tet[p * max_rigid_neighbors + i];
@@ -835,7 +835,7 @@ void ChFEAContainer::Build_b() {
     uint num_tets = data_manager->num_fea_tets;
     SubVectorType b_sub = blaze::subvector(data_manager->host_data.b, start_tet, num_tet_constraints);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     custom_vector<real3>& pos_rigid = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rot_rigid = data_manager->host_data.rot_rigid;
     real step_size = data_manager->settings.step_size;
@@ -861,7 +861,7 @@ void ChFEAContainer::Build_b() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 real bi = 0;
@@ -919,7 +919,7 @@ void ChFEAContainer::Build_b() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 real bi = 0;
@@ -968,7 +968,7 @@ void ChFEAContainer::Build_E() {
     uint num_tets = data_manager->num_fea_tets;
     SubVectorType E_sub = blaze::subvector(data_manager->host_data.E, start_tet, num_tet_constraints);
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     real step_size = data_manager->settings.step_size;
     const real mu = youngs_modulus / (2 * (1. + poisson_ratio));
     const real lambda = youngs_modulus * poisson_ratio / ((1. + poisson_ratio) * (1 - 2 * poisson_ratio));
@@ -1037,7 +1037,7 @@ void ChFEAContainer::Build_E() {
 }
 
 template <typename T>
-static void inline AppendRow12(T& D, const int row, const int offset, const uint4 col, const real init) {
+static void inline AppendRow12(T& D, const int row, const int offset, const uvec4 col, const real init) {
     D.append(row, offset + col.x * 3 + 0, init);
     D.append(row, offset + col.x * 3 + 1, init);
     D.append(row, offset + col.x * 3 + 2, init);
@@ -1065,10 +1065,10 @@ void ChFEAContainer::GenerateSparsity() {
     uint fluid_offset = num_rigid_bodies * 6 + num_shafts;
 
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
     // std::cout << "start_tet " << start_tet << std::endl;
     for (int i = 0; i < num_tets; i++) {
-        uint4 tet_ind = tet_indices[i];
+        uvec4 tet_ind = tet_indices[i];
 
         tet_ind = Sort(tet_ind);
 
@@ -1101,11 +1101,11 @@ void ChFEAContainer::GenerateSparsity() {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_tet;
         custom_vector<real4>& face_rigid_tet = data_manager->host_data.face_rigid_tet;
         custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
-        custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+        custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
@@ -1121,7 +1121,7 @@ void ChFEAContainer::GenerateSparsity() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];
@@ -1184,11 +1184,11 @@ void ChFEAContainer::GenerateSparsity() {
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_marker_tet;
         custom_vector<real4>& face_marker_tet = data_manager->host_data.face_marker_tet;
         custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
-        custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
+        custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int fluid = neighbor_marker_tet[p * max_rigid_neighbors + i];
@@ -1208,7 +1208,7 @@ void ChFEAContainer::GenerateSparsity() {
         for (int p = 0; p < num_boundary_tets; p++) {
             int start = contact_counts[p];
             int end = contact_counts[p + 1];
-            uint4 tetind = tet_indices[boundary_element_fea[p]];
+            uvec4 tetind = tet_indices[boundary_element_fea[p]];
             for (int index = start; index < end; index++) {
                 int i = index - start;  // index that goes from 0
                 int fluid = neighbor_marker_tet[p * max_rigid_neighbors + i];
@@ -1328,8 +1328,8 @@ void ChFEAContainer::FindSurface() {
     uint num_nodes = data_manager->num_fea_nodes;
     uint num_tets = data_manager->num_fea_tets;
 
-    custom_vector<uint4>& tet_indices = data_manager->host_data.tet_indices;
-    custom_vector<uint4>& boundary_triangles_fea = data_manager->host_data.boundary_triangles_fea;
+    custom_vector<uvec4>& tet_indices = data_manager->host_data.tet_indices;
+    custom_vector<uvec4>& boundary_triangles_fea = data_manager->host_data.boundary_triangles_fea;
     custom_vector<uint>& boundary_node_fea = data_manager->host_data.boundary_node_fea;
     custom_vector<uint>& boundary_element_fea = data_manager->host_data.boundary_element_fea;
 
@@ -1379,16 +1379,16 @@ void ChFEAContainer::FindSurface() {
         uint e = faces[face].element;
         boundary_element_mask_fea[e] = 1;
 #if 0
-        boundary_triangles_fea.push_back(_make_uint4(tri.x, tri.y, tri.z, f));
+        boundary_triangles_fea.push_back(_make_uvec4(tri.x, tri.y, tri.z, f));
 #else
         if (f == 0) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, 0));
+            boundary_triangles_fea.push_back(_make_uvec4(tet_indices[e].y, tet_indices[e].z, tet_indices[e].w, 0));
         } else if (f == 1) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w, 1));
+            boundary_triangles_fea.push_back(_make_uvec4(tet_indices[e].x, tet_indices[e].z, tet_indices[e].w, 1));
         } else if (f == 2) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w, 2));
+            boundary_triangles_fea.push_back(_make_uvec4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].w, 2));
         } else if (f == 3) {
-            boundary_triangles_fea.push_back(_make_uint4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, 3));
+            boundary_triangles_fea.push_back(_make_uvec4(tet_indices[e].x, tet_indices[e].y, tet_indices[e].z, 3));
         }
 #endif
         face++;

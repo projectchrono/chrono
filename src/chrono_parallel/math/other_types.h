@@ -110,7 +110,7 @@ struct int4 {
     int x, y, z, w;
 };
 
-struct uint4 {
+struct uvec4 {
     unsigned int x, y, z, w;
 };
 CUDA_HOST_DEVICE vec3 operator-(const vec3& a, const vec3& b);
@@ -153,16 +153,16 @@ static inline uvec3 _make_uvec3(const uint& a, const uint& b, const uint& c) {
     return t;
 }
 
-static inline uint4 _make_uint4(const uint& a, const uint& b, const uint& c, const uint& d) {
-    uint4 t;
+static inline uvec4 _make_uvec4(const uint& a, const uint& b, const uint& c, const uint& d) {
+    uvec4 t;
     t.x = a;
     t.y = b;
     t.z = c;
     t.w = d;
     return t;
 }
-static inline uint4 Sort(const uint4& a) {
-    uint4 t = a;
+static inline uvec4 Sort(const uvec4& a) {
+    uvec4 t = a;
     if (t.x > t.w) {
         Swap(t.x, t.w);
     }

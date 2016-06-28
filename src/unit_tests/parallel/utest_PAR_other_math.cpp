@@ -24,25 +24,25 @@
 
 using namespace chrono;
 int main(int argc, char* argv[]) {
-    uint4 a = _make_uint4(1, 2, 3, 4);
+    uvec4 a = _make_uvec4(1, 2, 3, 4);
 
-    uint4 r = Sort(a);
+    uvec4 r = Sort(a);
 
     StrictEqual(a, r);
-    uint4 b;
-    b = _make_uint4(4, 3, 2, 1);
+    uvec4 b;
+    b = _make_uvec4(4, 3, 2, 1);
     r = Sort(b);
     StrictEqual(a, r);
 
-    b = _make_uint4(4, 2, 3, 1);
+    b = _make_uvec4(4, 2, 3, 1);
     r = Sort(b);
     StrictEqual(a, r);
 
-    b = _make_uint4(3, 4, 2, 1);
+    b = _make_uvec4(3, 4, 2, 1);
     r = Sort(b);
     StrictEqual(a, r);
 
-    b = _make_uint4(1, 3, 2, 4);
+    b = _make_uvec4(1, 3, 2, 4);
     r = Sort(b);
     StrictEqual(a, r);
 

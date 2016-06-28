@@ -162,7 +162,7 @@ inline real3 GetSupportPoint_Convex(const int size, const real3* convex_data, co
     return point;
 }
 
-inline real3 GetSupportPoint_Tetrahedron(const uint4 indices, const real3* nodes, const real3& n) {
+inline real3 GetSupportPoint_Tetrahedron(const uvec4 indices, const real3* nodes, const real3& n) {
     real max_dot_p = -C_LARGE_REAL;
     real dot_p;
     real3 point;
@@ -223,7 +223,7 @@ inline real3 GetCenter_Convex(const int size, const real3* convex_data) {
     return point / real(size);
 }
 
-inline real3 GetCenter_Tetrahedron(const uint4 indices, const real3* nodes) {
+inline real3 GetCenter_Tetrahedron(const uvec4 indices, const real3* nodes) {
     real3 tet = nodes[indices.x] + nodes[indices.y] + nodes[indices.z] + nodes[indices.w];
     return tet / real(4.0);
 }
@@ -379,7 +379,7 @@ static bool SnapeToFaceBary(const real3& A,
     return false;
 }
 // Given a contact point P and a tetrahedron T compute the closest triangle to that point
-static void FindTriIndex(const real3& P, const uint4& T, const real3* pos_node, int& face, real3& cb) {
+static void FindTriIndex(const real3& P, const uvec4& T, const real3* pos_node, int& face, real3& cb) {
     int i = T.x;
     int j = T.y;
     int k = T.z;

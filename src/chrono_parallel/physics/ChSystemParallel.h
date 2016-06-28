@@ -38,19 +38,18 @@
 #include "chrono_parallel/ChMeasures.h"
 #include "chrono_fea/ChMesh.h"
 
-
 namespace chrono {
 
 class ChParallelDataManager;
 class settings_container;
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-  CH_RTTI(ChSystemParallel, ChSystem);
+    CH_RTTI(ChSystemParallel, ChSystem);
 
- public:
-  ChSystemParallel(unsigned int max_objects);
-  ChSystemParallel(const ChSystemParallel& other);
-  ~ChSystemParallel();
+  public:
+    ChSystemParallel(unsigned int max_objects);
+    ChSystemParallel(const ChSystemParallel& other);
+    ~ChSystemParallel();
 
     virtual int Integrate_Y();
     virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
@@ -91,8 +90,17 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     /// Gets the total time for the collision detection step
     double GetTimerCollision();
 
+    /// Calculate cummulative contact forces for all bodies in the system.
+    virtual void CalculateContactForces() {}
+
+    /// Get the contact force on the body with specified id.
     virtual real3 GetBodyContactForce(uint body_id) const = 0;
+    /// Get the contact torque on the body with specified id.
     virtual real3 GetBodyContactTorque(uint body_id) const = 0;
+    /// Get the contact force on the specified body.
+    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+    /// Get the contact torque on the specified body.
+    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
 
     settings_container* GetSettings();
 
@@ -124,18 +132,17 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     std::vector<ChShaft*> shaftlist;
-
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
 
- public:
-  ChSystemParallelDVI(unsigned int max_objects = 1000);
-  ChSystemParallelDVI(const ChSystemParallelDVI& other);
+  public:
+    ChSystemParallelDVI(unsigned int max_objects = 1000);
+    ChSystemParallelDVI(const ChSystemParallelDVI& other);
 
-  /// "Virtual" copy constructor (covariant return type).
-  virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
 
     void ChangeSolverType(SOLVERTYPE type);
     void Initialize();
@@ -152,9 +159,8 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 
     virtual real3 GetBodyContactForce(uint body_id) const;
     virtual real3 GetBodyContactTorque(uint body_id) const;
-      //using ChSystemParallel::GetBodyContactForce;
-  //using ChSystemParallel::GetBodyContactTorque;
-
+    using ChSystemParallel::GetBodyContactForce;
+    using ChSystemParallel::GetBodyContactTorque;
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
@@ -163,12 +169,12 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
 
- public:
-  ChSystemParallelDEM(unsigned int max_objects = 1000);
-  ChSystemParallelDEM(const ChSystemParallelDEM& other);
+  public:
+    ChSystemParallelDEM(unsigned int max_objects = 1000);
+    ChSystemParallelDEM(const ChSystemParallelDEM& other);
 
-  /// "Virtual" copy constructor (covariant return type).
-  virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
 
     virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override;
@@ -179,16 +185,16 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     virtual void Setup();
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
-  virtual real3 GetBodyContactForce(uint body_id) const;
-  virtual real3 GetBodyContactTorque(uint body_id) const;
-  using ChSystemParallel::GetBodyContactForce;
-  using ChSystemParallel::GetBodyContactTorque;
+    virtual real3 GetBodyContactForce(uint body_id) const;
+    virtual real3 GetBodyContactTorque(uint body_id) const;
+    using ChSystemParallel::GetBodyContactForce;
+    using ChSystemParallel::GetBodyContactTorque;
 
     virtual void PrintStepStats();
 
-  double GetTimerProcessContact() const {
-    return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
-  }
+    double GetTimerProcessContact() const {
+        return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
+    }
 };
 
 }  // end namespace chrono

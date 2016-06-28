@@ -105,7 +105,7 @@ void StrictEqual(const Mat33& a, const Mat33& b) {
     StrictEqual(a.col(2), b.col(2));
 }
 
-void StrictEqual(const uint4& a, const uint4& b) {
+void StrictEqual(const uvec4& a, const uvec4& b) {
     StrictEqual(a.x, b.x);
     StrictEqual(a.y, b.y);
     StrictEqual(a.z, b.z);

@@ -763,9 +763,9 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];
 
-                uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
+                uvec4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
                 real3* node_pos = data_manager->host_data.pos_node_fea.data();
-                uint4 bface = data_manager->host_data.boundary_triangles_fea[p];
+                uvec4 bface = data_manager->host_data.boundary_triangles_fea[p];
                 real3 t1 = node_pos[bface.x];
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
@@ -910,9 +910,9 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];
 
-                uint4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
+                uvec4 tet_index = data_manager->host_data.tet_indices[data_manager->host_data.boundary_element_fea[p]];
                 real3* node_pos = data_manager->host_data.pos_node_fea.data();
-                uint4 bface = data_manager->host_data.boundary_triangles_fea[p];
+                uvec4 bface = data_manager->host_data.boundary_triangles_fea[p];
                 real3 t1 = node_pos[bface.x];
                 real3 t2 = node_pos[bface.y];
                 real3 t3 = node_pos[bface.z];
