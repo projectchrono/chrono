@@ -74,7 +74,7 @@ class CH_VEHICLE_API ChTrackShoe {
     /// Get the index of this track shoe within its containing track assembly.
     size_t GetIndex() const { return m_index; }
 
-    /// Get the mass of the track shoe.
+    /// Get the mass of the track shoe assembly.
     virtual double GetMass() const = 0;
 
     /// Set contact material properties.
@@ -85,7 +85,7 @@ class CH_VEHICLE_API ChTrackShoe {
                             float poisson_ratio             ///< [in] Poisson ratio
                             );
 
-    /// Turn on/off collision flag for the idler wheel.
+    /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }
 
     /// Initialize this track shoe subsystem.

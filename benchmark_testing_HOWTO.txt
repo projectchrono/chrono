@@ -1,0 +1,7 @@
+test_FEA_shell_ANCF.cpp changelog:
+Add new test class that extends BaseTest
+    Include BaseTest.h 
+Add setters for execution time and test passed
+Create instance of class in main
+Add appropriate metrics, execution time, and passed bool
+Call instance.run() to finalize json

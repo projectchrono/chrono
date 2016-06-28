@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSOLVERPCG_H
 #define CHSOLVERPCG_H
@@ -34,10 +36,6 @@ class ChApi ChSolverPCG : public ChIterativeSolver {
     CH_RTTI(ChSolverPCG, ChIterativeSolver);
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChSolverPCG(int mmax_iters = 50,       ///< max.number of iterations
                 bool mwarm_start = false,  ///< uses warm start?
                 double mtolerance = 0.0    ///< tolerance for termination criterion
@@ -46,15 +44,10 @@ class ChApi ChSolverPCG : public ChIterativeSolver {
 
     virtual ~ChSolverPCG() {}
 
-    //
-    // FUNCTIONS
-    //
-
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
-
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 };
 
 }  // end namespace chrono

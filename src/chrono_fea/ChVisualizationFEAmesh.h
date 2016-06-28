@@ -197,10 +197,18 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
 
   private:
-    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
-    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
+    double
+    ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
+    double
+    ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
     ChVector<float> ComputeFalseColor(double in);
     ChColor ComputeFalseColor2(double in);
+    void UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
+                           geometry::ChTriangleMeshConnected& trianglemesh,
+                           unsigned int& i_verts,
+                           unsigned int& i_vnorms,
+                           unsigned int& i_vcols,
+                           unsigned int& i_triindex);
 };
 
 }  // END_OF_NAMESPACE____

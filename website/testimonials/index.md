@@ -6,7 +6,7 @@ permalink: /testimonials/
 
 # Chrono Users
 
-Chrono has been used by various universities, companies, research centers. A partial list is provided below. Please let us know if you have used Chrono. Having a growing list of users increases our chances of keeping Chrono going as an open source and free multi-physics simulation framework.
+A list of several past and current Chrono users is provided below. Please let us know if you have used Chrono - a growing list of users increases our chances of keeping Chrono going as an open source and free multi-physics simulation framework.
 
 ### Universities:
 - University of Wisconsin-Madison (USA): Chrono has been use in a variety of applications, see Simulation-Based Engineering Lab web site [link](http://sbel.wisc.edu/)
@@ -14,8 +14,10 @@ Chrono has been used by various universities, companies, research centers. A par
 - Multibody dynamics support in [GPUSPH](http://www.gpusph.org/about/)
 - Georgia Tech University (USA): robotics, bio-inspired robots (Dan Goldman) [link](http://crablab.gatech.edu/)
 - Politecnico di Milano (Italy): planet formation, waste management, etc. (Pierangelo Masarati) [link](https://home.aero.polimi.it/masarati/)
+- Politecnico di Milano (Italy): 2018 landing of MASCOT on asteroid Ryugu; MASCOT lander currently onboard the JAXA Hayabusa 2 mission (Pierluigi Di Lizia) [link](http://www.aero.polimi.it/index.php?id=304&L=0&uid=25)
 - University of Washington (USA): shock wave propagation in granular media (Nicholas Boechler) [link](http://faculty.washington.edu/boechler/)
 - Aarhus University (Denmark): wheel/terrain interaction, agroecology (Ole Balling) [link](http://pure.au.dk/portal/en/oba@iha.dk)
+- Muroran Institute of Technology (Japan): robotics and synchronization control of multiple systems (Assoc. Prof. Hidekazu Kajiwara)
 
 ### Industry:
 - Intuitive Machines (USA)

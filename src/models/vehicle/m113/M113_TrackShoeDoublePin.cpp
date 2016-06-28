@@ -32,14 +32,17 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
-const double M113_TrackShoeDoublePin::m_shoe_pitch = 0.154;
+
 const double M113_TrackShoeDoublePin::m_shoe_mass = 18.02;
 const ChVector<> M113_TrackShoeDoublePin::m_shoe_inertia(0.22, 0.04, 0.25);
+const double M113_TrackShoeDoublePin::m_shoe_length = 0.0984;  // 3.875''
+const double M113_TrackShoeDoublePin::m_shoe_width = 0.2781;   // 10.95''
+const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
 
-const double M113_TrackShoeDoublePin::m_cyl_radius = 0.015;
-const double M113_TrackShoeDoublePin::m_front_cyl_loc = 0.0535;
-const double M113_TrackShoeDoublePin::m_rear_cyl_loc = -0.061;
+const double M113_TrackShoeDoublePin::m_connector_mass = 2.0;                  //// TODO
+const ChVector<> M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
+const double M113_TrackShoeDoublePin::m_connector_radius = 0.0223;             // 0.88''
+const double M113_TrackShoeDoublePin::m_connector_length = 0.054;              // 2.125''
 
 const std::string M113_TrackShoeDoublePin::m_meshName = "TrackShoe_POV_geom";
 const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoe.obj";
@@ -64,38 +67,20 @@ void M113_TrackShoeDoublePin::AddShoeContact() {
 void M113_TrackShoeDoublePin::AddShoeVisualization() {
     switch (m_vis_type) {
         case PRIMITIVES: {
-            auto rev_axis = std::make_shared<ChCylinderShape>();
-            rev_axis->GetCylinderGeometry().p1 = ChVector<>(0.077, -0.15, 0);
-            rev_axis->GetCylinderGeometry().p2 = ChVector<>(0.077, 0.15, 0);
-            rev_axis->GetCylinderGeometry().rad = 0.01;
-            m_shoe->AddAsset(rev_axis);
+            auto rev_rear = std::make_shared<ChCylinderShape>();
+            rev_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetShoeLength(), -0.163, 0);
+            rev_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetShoeLength(), +0.163, 0);
+            rev_rear->GetCylinderGeometry().rad = 0.01;
+            m_shoe->AddAsset(rev_rear);
 
-            auto cyl_FR = std::make_shared<ChCylinderShape>();
-            cyl_FR->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, -0.1402, 0);
-            cyl_FR->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, -0.0512, 0);
-            cyl_FR->GetCylinderGeometry().rad = m_cyl_radius;
-            m_shoe->AddAsset(cyl_FR);
-
-            auto cyl_RR = std::make_shared<ChCylinderShape>();
-            cyl_RR->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, -0.1402, 0);
-            cyl_RR->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, -0.0512, 0);
-            cyl_RR->GetCylinderGeometry().rad = m_cyl_radius;
-            m_shoe->AddAsset(cyl_RR);
-
-            auto cyl_FL = std::make_shared<ChCylinderShape>();
-            cyl_FL->GetCylinderGeometry().p1 = ChVector<>(m_front_cyl_loc, 0.1402, 0);
-            cyl_FL->GetCylinderGeometry().p2 = ChVector<>(m_front_cyl_loc, 0.0512, 0);
-            cyl_FL->GetCylinderGeometry().rad = m_cyl_radius;
-            m_shoe->AddAsset(cyl_FL);
-
-            auto cyl_RL = std::make_shared<ChCylinderShape>();
-            cyl_RL->GetCylinderGeometry().p1 = ChVector<>(m_rear_cyl_loc, 0.1402, 0);
-            cyl_RL->GetCylinderGeometry().p2 = ChVector<>(m_rear_cyl_loc, 0.0512, 0);
-            cyl_RL->GetCylinderGeometry().rad = m_cyl_radius;
-            m_shoe->AddAsset(cyl_RL);
+            auto rev_front = std::make_shared<ChCylinderShape>();
+            rev_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * GetShoeLength(), -0.163, 0);
+            rev_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * GetShoeLength(), +0.163, 0);
+            rev_front->GetCylinderGeometry().rad = 0.01;
+            m_shoe->AddAsset(rev_front);
 
             auto box_shoe = std::make_shared<ChBoxShape>();
-            box_shoe->GetBoxGeometry().SetLengths(ChVector<>(0.11, 0.19, 0.06));
+            box_shoe->GetBoxGeometry().SetLengths(ChVector<>(GetShoeLength(), 0.23, GetHeight()));
             box_shoe->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
             m_shoe->AddAsset(box_shoe);
 
@@ -123,6 +108,45 @@ void M113_TrackShoeDoublePin::AddShoeVisualization() {
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_meshName);
             m_shoe->AddAsset(trimesh_shape);
+
+            break;
+        }
+    }
+}
+
+void M113_TrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
+    switch (m_vis_type) {
+        case PRIMITIVES: {
+            auto cyl_rear = std::make_shared<ChCylinderShape>();
+            cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetConnectorLength(), -0.01, 0);
+            cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetConnectorLength(), +0.01, 0);
+            cyl_rear->GetCylinderGeometry().rad = GetConnectorRadius();
+            connector->AddAsset(cyl_rear);
+
+            auto cyl_front = std::make_shared<ChCylinderShape>();
+            cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * GetConnectorLength(), -0.01, 0);
+            cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * GetConnectorLength(), +0.01, 0);
+            cyl_front->GetCylinderGeometry().rad = GetConnectorRadius();
+            connector->AddAsset(cyl_front);
+
+            auto box = std::make_shared<ChBoxShape>();
+            box->GetBoxGeometry().SetLengths(ChVector<>(GetConnectorLength(), 0.02, 2 * GetConnectorRadius()));
+            box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
+            connector->AddAsset(box);
+
+            auto col = std::make_shared<ChColorAsset>();
+            if (m_index == 0)
+                col->SetColor(ChColor(0.7f, 0.4f, 0.4f));
+            else if (m_index % 2 == 0)
+                col->SetColor(ChColor(0.4f, 0.7f, 0.4f));
+            else
+                col->SetColor(ChColor(0.4f, 0.4f, 0.7f));
+            connector->AddAsset(col);
+
+            break;
+        }
+        case MESH: {
+            //// TODO
 
             break;
         }

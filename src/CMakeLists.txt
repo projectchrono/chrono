@@ -29,8 +29,16 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 # Threads and OpenMP support
 #-----------------------------------------------------------------------------
 
+message(STATUS "Searching for Threads...")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
+
+message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
+message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
+message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 
@@ -38,6 +46,7 @@ set(CH_C_FLAGS "${CH_C_FLAGS} ${CMAKE_THREAD_LIBS_INIT}")
 # However, we allow the user to optionally disable OpenMP support in the
 # main ChronoEngine library, regardless on whether or not OpenMP is found.
 
+message(STATUS "Searching for OpenMP...")
 find_package("OpenMP")
 
 # Determine OpenMP version. Prepare substitution variables that can be used in
@@ -45,7 +54,7 @@ find_package("OpenMP")
 
 if(OPENMP_FOUND)
   include(CheckOpenMPVersion)
-  message(STATUS "OpenMP version: ${OMP_VERSION}")
+  message(STATUS "  OpenMP version:   ${OMP_VERSION}")
   set(CHRONO_OMP_FOUND "#define CHRONO_OMP_FOUND")
   set(CHRONO_OMP_VERSION "#define CHRONO_OMP_VERSION \"${OMP_VERSION}\"")
   if(OMP_20)
@@ -63,6 +72,8 @@ if(OPENMP_FOUND)
   else()
     set(CHRONO_OMP_40 "")
   endif()
+else()
+  message(STATUS "  OpenMP not found")
 endif()
 
 # Provide an option (dependent on OPENMP_FOUND) for the user to disable OpenMP
@@ -72,6 +83,11 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
                        "OPENMP_FOUND" OFF)
 
 if(ENABLE_OPENMP)
+
+  message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
+  message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
   set(CH_C_FLAGS "${CH_C_FLAGS} ${OpenMP_C_FLAGS}")
   
@@ -86,61 +102,63 @@ endif()
 #-----------------------------------------------------------------------------
 
 # Figure out SIMD level support
-OPTION(USE_SIMD "Compile with SSE support for floating point math" ON)
+message(STATUS "Seaching for SSE...")
+find_package(SSE)
 
-IF(USE_SIMD)
-
-FIND_PACKAGE(SSE)
-
-  # Set substitution variables for configuration file.
-  IF(SSE_FOUND)
-    MESSAGE(STATUS "SSE version: ${SSE_VERSION}")
-    SET(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
-    SET(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
-    SET(CHRONO_SSE_LEVEL "#define CHRONO_SSE_${SSE_STR}")
-  ELSE()
-    MESSAGE("No SSE support")
-  ENDIF()
+# Set substitution variables for configuration file.
+if(SSE_FOUND)
+  message(STATUS "  SSE version: ${SSE_VERSION}")
+  set(CHRONO_HAS_SSE "#define CHRONO_HAS_SSE")
+  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_LEVEL \"${SSE_VERSION}\"")
+  set(CHRONO_SSE_LEVEL "#define CHRONO_SSE_${SSE_STR}")
+else()
+  message("  No SSE support")
+endif()
   
-FIND_PACKAGE(AVX)
+# Figure out AVX level support
+message(STATUS "Searching for AVX...")
+find_package(AVX)
 
-  #  # Set substitution variables for configuration file.
-  IF(AVX_FOUND)
-    MESSAGE(STATUS "AVX version: ${AVX_VERSION}")
-    SET(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
-    SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
-    SET(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
-  ELSE()
-    MESSAGE("No AVX support")
-  ENDIF()
-  
+# Set substitution variables for configuration file.
+if(AVX_FOUND)
+  message(STATUS "  AVX version: ${AVX_VERSION}")
+  set(CHRONO_HAS_AVX "#define CHRONO_HAS_AVX")
+  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_LEVEL \"${AVX_VERSION}\"")
+  set(CHRONO_AVX_LEVEL "#define CHRONO_AVX_${AVX_STR}")
+else()
+  message("  No AVX support")
+endif()
+
+message(STATUS "Searching for FMA...")
 FIND_PACKAGE(FMA)
 
-  #  # Set substitution variables for configuration file.
-  IF(FMA_FOUND)
-    MESSAGE(STATUS "FMA found")
-    SET(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+# Set substitution variables for configuration file.
+IF(FMA_FOUND)
+	MESSAGE(STATUS "FMA found")
+	SET(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
   ELSE()
     MESSAGE("No FMA support")
   ENDIF()  
 
-  SET(CHRONO_USE_SIMD "#define CHRONO_USE_SIMD")
-  
-  IF (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-    set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-  ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-    set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS} ${FMA_FLAGS}")
-  ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "Intel")
-    set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -xsse${SSE_VERSION} ")
-    set(CH_C_FLAGS "${CH_C_FLAGS} -xsse${SSE_VERSION}")
-  ELSEIF (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    # using Visual Studio C++
-  ENDIF()
-  
-ENDIF()
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xsse${SSE_VERSION}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -xsse${SSE_VERSION}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} -xsse${SSE_VERSION}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} -xsse${SSE_VERSION}")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  # using Visual Studio C++
+endif()
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------

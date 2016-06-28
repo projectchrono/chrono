@@ -53,12 +53,12 @@ PROJECT_BRIEF          =
 
 PROJECT_LOGO           = logo_chrono_engine_h90.png
 
-# The OUTPUT_DIRECTORY tag is used to specify the (relative or absolute) path
+# The OUTPUT_DIRECTORY = /var/www
 # into which the generated documentation will be written. If a relative path is
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY       = ../../../docs_build
+OUTPUT_DIRECTORY = /tmp/chrono_doxygen/
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-
 # directories (in 2 levels) under the output directory of each output format and
@@ -1052,7 +1052,7 @@ IGNORE_PREFIX          = Ch
 GENERATE_HTML          = YES
 
 # The HTML_OUTPUT tag is used to specify where the HTML docs will be put. If a
-# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
+# relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # it.
 # The default directory is: html.
 # This tag requires that the tag GENERATE_HTML is set to YES.
@@ -1526,7 +1526,7 @@ MATHJAX_CODEFILE       =
 # The default value is: YES.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-SEARCHENGINE           = YES
+SEARCHENGINE           = NO
 
 # When the SERVER_BASED_SEARCH tag is enabled the search engine will be
 # implemented using a web server instead of a web client using Javascript. There
@@ -1565,7 +1565,7 @@ EXTERNAL_SEARCH        = NO
 # Searching" for details.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SEARCHENGINE_URL       =
+SEARCHENGINE_URL       = http://projectchrono.org/doxygen
 
 # When SERVER_BASED_SEARCH and EXTERNAL_SEARCH are both enabled the unindexed
 # search data is written to a file for indexing by an external tool. With the
@@ -1603,7 +1603,7 @@ EXTRA_SEARCH_MAPPINGS  =
 GENERATE_LATEX         = YES
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. If a
-# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
+# relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # it.
 # The default directory is: latex.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
@@ -1774,7 +1774,7 @@ LATEX_TIMESTAMP        = NO
 GENERATE_RTF           = NO
 
 # The RTF_OUTPUT tag is used to specify where the RTF docs will be put. If a
-# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
+# relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # it.
 # The default directory is: rtf.
 # This tag requires that the tag GENERATE_RTF is set to YES.
@@ -1839,7 +1839,7 @@ RTF_SOURCE_CODE        = NO
 GENERATE_MAN           = NO
 
 # The MAN_OUTPUT tag is used to specify where the man pages will be put. If a
-# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
+# relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # it. A directory man3 will be created inside the directory specified by
 # MAN_OUTPUT.
 # The default directory is: man.
@@ -1883,7 +1883,7 @@ MAN_LINKS              = NO
 GENERATE_XML           = NO
 
 # The XML_OUTPUT tag is used to specify where the XML pages will be put. If a
-# relative path is entered the value of OUTPUT_DIRECTORY will be put in front of
+# relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # it.
 # The default directory is: xml.
 # This tag requires that the tag GENERATE_XML is set to YES.
@@ -1910,7 +1910,7 @@ XML_PROGRAMLISTING     = YES
 GENERATE_DOCBOOK       = NO
 
 # The DOCBOOK_OUTPUT tag is used to specify where the Docbook pages will be put.
-# If a relative path is entered the value of OUTPUT_DIRECTORY will be put in
+# If a relative path is entered the value of OUTPUT_DIRECTORY = /var/www
 # front of it.
 # The default directory is: docbook.
 # This tag requires that the tag GENERATE_DOCBOOK is set to YES.

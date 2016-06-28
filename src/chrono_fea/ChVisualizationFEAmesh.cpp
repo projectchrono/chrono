@@ -9,21 +9,23 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 // File author: A. Tasora
-  
-#include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChElementTetra_4.h"
-#include "chrono_fea/ChElementTetra_10.h"
-#include "chrono_fea/ChElementHexa_8.h"
-#include "chrono_fea/ChElementHexa_20.h"
-#include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChElementBeamANCF.h"
-#include "chrono_fea/ChElementShell.h"
-#include "chrono_fea/ChElementShellEANS4.h"
-#include "chrono_fea/ChFaceTetra_4.h"
-#include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChContactSurfaceMesh.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono/assets/ChGlyphs.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_fea/ChContactSurfaceMesh.h"
+#include "chrono_fea/ChContactSurfaceNodeCloud.h"
+#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBrick.h"
+#include "chrono_fea/ChElementBrick_9.h"
+#include "chrono_fea/ChElementHexa_20.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChElementShell.h"
+#include "chrono_fea/ChElementShellReissner4.h"
+#include "chrono_fea/ChElementTetra_10.h"
+#include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChFaceTetra_4.h"
+#include "chrono_fea/ChVisualizationFEAmesh.h"
 
 namespace chrono {
 namespace fea {
@@ -188,6 +190,96 @@ void TriangleNormalsSmooth(std::vector<ChVector<> >& normals, std::vector<int>& 
 	}
 }
 
+// Helper function for updating visualization mesh buffers for hex elements.
+void ChVisualizationFEAmesh::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
+                                               geometry::ChTriangleMeshConnected& trianglemesh,
+                                               unsigned int& i_verts,
+                                               unsigned int& i_vnorms,
+                                               unsigned int& i_vcols,
+                                               unsigned int& i_triindex) {
+    unsigned int ivert_el = i_verts;
+    unsigned int inorm_el = i_vnorms;
+
+    std::shared_ptr<ChNodeFEAxyz> nodes[8];
+    ChVector<> pt[8];
+
+    for (int in = 0; in < 8; ++in) {
+        nodes[in] = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(in));
+        if (!undeformed_reference)
+            pt[in] = nodes[in]->GetPos();
+        else
+            pt[in] = nodes[in]->GetX0();
+    }
+
+    // vertexes
+
+    if (this->shrink_elements) {
+        ChVector<> vc(0, 0, 0);
+        for (int in = 0; in < 8; ++in)
+            vc += pt[in];
+        vc = vc * (1.0 / 8.0);  // average, center of element
+        for (int in = 0; in < 8; ++in)
+            pt[in] = vc + this->shrink_factor * (pt[in] - vc);
+    }
+
+    for (int in = 0; in < 8; ++in) {
+        trianglemesh.getCoordsVertices()[i_verts] = pt[in];
+        ++i_verts;
+    }
+
+    // colours and colours indexes
+    for (int in = 0; in < 8; ++in) {
+        trianglemesh.getCoordsColors()[i_vcols] =
+            ComputeFalseColor(ComputeScalarOutput(nodes[in], in, element));
+        ++i_vcols;
+    }
+
+    // faces indexes
+    ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 2, 1) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 3, 2) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(4, 5, 6) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(4, 6, 7) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 7, 3) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 4, 7) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 5, 4) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 5) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 7, 6) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 6, 2) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 5, 1) + ivert_offset;
+    ++i_triindex;
+    trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 6, 5) + ivert_offset;
+    ++i_triindex;
+
+    // normals indices (if not defaulting to flat triangles)
+    if (this->smooth_faces) {
+        ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
+        trianglemesh.getIndicesNormals()[i_triindex - 12] = ChVector<int>(0, 2, 1) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 11] = ChVector<int>(0, 3, 2) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 10] = ChVector<int>(4, 5, 6) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 9] = ChVector<int>(4, 6, 7) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 8] = ChVector<int>(8, 9, 10) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 7] = ChVector<int>(8, 11, 9) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 6] = ChVector<int>(12, 13, 14) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 5] = ChVector<int>(12, 15, 13) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(16, 18, 17) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 3] = ChVector<int>(16, 17, 19) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 2] = ChVector<int>(20, 21, 23) + inorm_offset;
+        trianglemesh.getIndicesNormals()[i_triindex - 1] = ChVector<int>(20, 22, 21) + inorm_offset;
+        i_vnorms += 24;
+    }
+}
+
 void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
 	if (!this->FEMmesh) 
 		return;
@@ -244,8 +336,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 n_vcols += 4;
                 n_vnorms += 4;     // flat faces
                 n_triangles += 4;  // n. triangle faces
-            } else if (std::dynamic_pointer_cast<ChElementHexa_8>(this->FEMmesh->GetElement(iel))) {
-                // ELEMENT IS A HEXAEDRON
+            } else if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
+                       std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
+                       std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+                // ELEMENT IS A HEXAHEDRON
                 n_verts += 8;
                 n_vcols += 8;
                 n_vnorms += 24;
@@ -507,88 +601,10 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
             }
 
             // ------------ELEMENT IS A HEXAHEDRON 8 NODES?
-            if (auto mytetra = std::dynamic_pointer_cast<ChElementHexa_8>(this->FEMmesh->GetElement(iel))) {
-                unsigned int ivert_el = i_verts;
-                unsigned int inorm_el = i_vnorms;
-
-                std::shared_ptr<ChNodeFEAxyz> nodes[8];
-                ChVector<> pt[8];
-
-                for (int in = 0; in < 8; ++in) {
-                    nodes[in] = std::static_pointer_cast<ChNodeFEAxyz>(mytetra->GetNodeN(in));
-                    if (!undeformed_reference)
-                        pt[in] = nodes[in]->GetPos();
-                    else
-                        pt[in] = nodes[in]->GetX0();
-                }
-
-                // vertexes
-
-                if (this->shrink_elements) {
-                    ChVector<> vc(0, 0, 0);
-                    for (int in = 0; in < 8; ++in)
-                        vc += pt[in];
-                    vc = vc * (1.0 / 8.0);  // average, center of element
-                    for (int in = 0; in < 8; ++in)
-                        pt[in] = vc + this->shrink_factor * (pt[in] - vc);
-                }
-
-                for (int in = 0; in < 8; ++in) {
-                    trianglemesh.getCoordsVertices()[i_verts] = pt[in];
-                    ++i_verts;
-                }
-
-                // colours and colours indexes
-                for (int in = 0; in < 8; ++in) {
-                    trianglemesh.getCoordsColors()[i_vcols] =
-                        ComputeFalseColor(ComputeScalarOutput(nodes[in], in, this->FEMmesh->GetElement(iel)));
-                    ++i_vcols;
-                }
-
-                // faces indexes
-                ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 2, 1) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 3, 2) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(4, 5, 6) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(4, 6, 7) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 7, 3) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 4, 7) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 5, 4) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(0, 1, 5) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 7, 6) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(3, 6, 2) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 5, 1) + ivert_offset;
-                ++i_triindex;
-                trianglemesh.getIndicesVertexes()[i_triindex] = ChVector<int>(2, 6, 5) + ivert_offset;
-                ++i_triindex;
-
-                // normals indices (if not defaulting to flat triangles)
-                if (this->smooth_faces) {
-                    ChVector<int> inorm_offset = ChVector<int>(inorm_el, inorm_el, inorm_el);
-                    trianglemesh.getIndicesNormals()[i_triindex - 12] = ChVector<int>(0, 2, 1) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 11] = ChVector<int>(0, 3, 2) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 10] = ChVector<int>(4, 5, 6) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 9] = ChVector<int>(4, 6, 7) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 8] = ChVector<int>(8, 9, 10) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 7] = ChVector<int>(8, 11, 9) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 6] = ChVector<int>(12, 13, 14) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 5] = ChVector<int>(12, 15, 13) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 4] = ChVector<int>(16, 18, 17) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 3] = ChVector<int>(16, 17, 19) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 2] = ChVector<int>(20, 21, 23) + inorm_offset;
-                    trianglemesh.getIndicesNormals()[i_triindex - 1] = ChVector<int>(20, 22, 21) + inorm_offset;
-                    i_vnorms += 24;
-                }
+            if (std::dynamic_pointer_cast<ChElementHexa_8>(FEMmesh->GetElement(iel)) ||
+                std::dynamic_pointer_cast<ChElementBrick>(FEMmesh->GetElement(iel)) ||
+                std::dynamic_pointer_cast<ChElementBrick_9>(FEMmesh->GetElement(iel))) {
+                UpdateBuffers_Hex(FEMmesh->GetElement(iel), trianglemesh, i_verts, i_vnorms, i_vcols, i_triindex);
             }
 
             // ------------ELEMENT IS A BEAM?
@@ -1117,8 +1133,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
     //***TEST***
     if (true)
     for (unsigned int iel = 0; iel < this->FEMmesh->GetNelements(); ++iel) {
-            // ------------ELEMENT IS A ChElementShellEANS4?
-            if (auto myshell = std::dynamic_pointer_cast<ChElementShellEANS4>(this->FEMmesh->GetElement(iel))) {
+            // ------------ELEMENT IS A ChElementShellReissner4?
+            if (auto myshell = std::dynamic_pointer_cast<ChElementShellReissner4>(this->FEMmesh->GetElement(iel))) {
                 glyphs_asset->SetGlyphsSize(0.4);
                 // average rotation
                 if (false) {

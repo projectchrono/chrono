@@ -8,6 +8,12 @@ SET(TESTS
     #utest_CH_stream
 )
 
+if(AVX_FOUND)
+   set(TESTS ${TESTS} 
+       utest_CH_AVX
+   )
+endif()
+
 MESSAGE(STATUS "Unit test programs for CORE module...")
 
 FOREACH(PROGRAM ${TESTS})

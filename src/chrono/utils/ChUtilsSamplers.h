@@ -251,20 +251,14 @@ class PDSampler : public Sampler<T> {
     // minimum distance, we switch to a 2D sampling. All sample points will
     // have p.z = m_center.z
     if (this->m_size.z < m_minDist) {
-      assert(this->m_size.x > m_minDist);
-      assert(this->m_size.y > m_minDist);
       m_2D = Z_DIR;
       m_cellSize = m_minDist / std::sqrt(2.0);
       this->m_size.z = 0;
     } else if (this->m_size.y < m_minDist) {
-      assert(this->m_size.x > m_minDist);
-      assert(this->m_size.z > m_minDist);
       m_2D = Y_DIR;
       m_cellSize = m_minDist / std::sqrt(2.0);
       this->m_size.y = 0;
     } else if (this->m_size.x < m_minDist) {
-      assert(this->m_size.y > m_minDist);
-      assert(this->m_size.z > m_minDist);
       m_2D = X_DIR;
       m_cellSize = m_minDist / std::sqrt(2.0);
       this->m_size.x = 0;

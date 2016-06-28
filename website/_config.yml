@@ -7,8 +7,10 @@ url: "https://projectchrono.org" # the base hostname & protocol for your site
 twitter_username: projectchrono
 github_username:  projectchrono
 permalink: /blog/:year/:month/:title/
+include: ['.htaccess']
+exclude: ['metrics-database', 'quickstart.sh', '*.log']
 
 # Build settings
 markdown: kramdown
 highlighter: rouge
-gems:      [jekyll-sitemap]
+gems:      [jekyll-sitemap, 'jekyll-lunr-js-search']

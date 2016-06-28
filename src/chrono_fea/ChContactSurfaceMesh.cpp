@@ -16,9 +16,11 @@
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChElementTetra_4.h"
+#include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChFaceTetra_4.h"
+#include "chrono_fea/ChFaceBrick_9.h"
 #include "chrono_fea/ChMesh.h"
 
 #include <unordered_map>
@@ -65,7 +67,7 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactSurfaceMesh
 
-void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
+void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::vector<std::array<ChNodeFEAxyz*, 3>> triangles;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyz>, 3>> triangles_ptrs;
 
@@ -92,9 +94,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
                 std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map.count(mface_key) == 1) {  
-                    // Found a face that is not shared.. so it is a boundary face. 
-                    triangles.push_back( {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()} );
-                    triangles_ptrs.push_back( {mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)} );
+                    // Found a face that is not shared.. so it is a boundary face.
+                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
+                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
                 }
             }
         }
@@ -103,23 +105,25 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
     ///
     /// Case2. skin of ANCF SHELLS:
     ///
-    for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(mmesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
             std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
             std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
-            std::array<ChNodeFEAxyz*, 3> tri1 = { nA.get(), nD.get(), nB.get() };
-            std::array<ChNodeFEAxyz*, 3> tri2 = { nB.get(), nD.get(), nC.get() };
-            std::array<std::shared_ptr<ChNodeFEAxyz>, 3> tri1_ptrs = { nA, nD, nB };
-            std::array<std::shared_ptr<ChNodeFEAxyz>, 3> tri2_ptrs = { nB, nD, nC };
-            triangles.push_back( tri1 );
-            triangles.push_back( tri2 );
-            triangles_ptrs.push_back( tri1_ptrs );
-            triangles_ptrs.push_back( tri2_ptrs );
+            if (ccw) {
+                triangles.push_back({{nA.get(), nD.get(), nB.get()}});
+                triangles.push_back({{nB.get(), nD.get(), nC.get()}});
+                triangles_ptrs.push_back({{nA, nD, nB}});
+                triangles_ptrs.push_back({{nB, nD, nC}});
+            } else {
+                triangles.push_back({{nA.get(), nB.get(), nD.get()}});
+                triangles.push_back({{nB.get(), nC.get(), nD.get()}});
+                triangles_ptrs.push_back({{nA, nB, nD}});
+                triangles_ptrs.push_back({{nB, nC, nD}});
+            }
         }
     }
-
 
     ///
     /// Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
@@ -165,6 +169,40 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept) {
         }
     }
 
+    ///
+    /// Case5. Outer surface boundaries of 9-node brick meshes:
+    ///
+
+    std::multimap<std::array<ChNodeFEAxyz*, 4>, ChFaceBrick_9> face_map_brick;
+
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+            for (int nface = 0; nface < 6; ++nface) {
+                ChFaceBrick_9 mface(mbrick, nface);
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::sort(mface_key.begin(), mface_key.end());
+                face_map_brick.insert({ mface_key, mface });
+            }
+        }
+    }
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mbrick = std::dynamic_pointer_cast<ChElementBrick_9>(mmesh->GetElement(ie))) {
+            for (int nface = 0; nface < 6; ++nface) { // Each of the 6 faces of a brick
+                ChFaceBrick_9 mface(mbrick, nface); // Create a face of the element
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
+                    mface.GetNodeN(2).get(), mface.GetNodeN(3).get() };
+                std::sort(mface_key.begin(), mface_key.end());
+                if (face_map_brick.count(mface_key) == 1) {
+                    // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
+                    triangles.push_back({{mface.GetNodeN(0).get(), mface.GetNodeN(1).get(), mface.GetNodeN(2).get()}});
+                    triangles.push_back({ { mface.GetNodeN(0).get(), mface.GetNodeN(2).get(), mface.GetNodeN(3).get() } });
+                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
+                    triangles_ptrs.push_back({ { mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3) } });
+                }
+            }
+        }
+    }
     // Compute triangles connectivity 
 
     std::multimap< std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;

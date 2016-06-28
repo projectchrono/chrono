@@ -1,31 +1,4 @@
 # ------------------------------------------------------------------------------
-# Additional include paths and libraries
-# ------------------------------------------------------------------------------
-
-MESSAGE(STATUS "Additional test programs for FSI module...")
-
-INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
-
-SET(LIBRARIES
-    ChronoEngine   
-    ChronoEngine_fsi
-)
-IF(ENABLE_MODULE_PARALLEL)
-SET(LIBRARIES ${LIBRARIES} 
-    ChronoEngine_parallel
-)
-ENDIF()
-IF(ENABLE_MODULE_VEHICLE)
-SET(LIBRARIES ${LIBRARIES}
-    ChronoEngine_vehicle   
-)
-ENDIF()
-IF(ENABLE_MODULE_OPENGL)
-    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
-    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
-ENDIF()
-
-# ------------------------------------------------------------------------------
 # List of all executables
 # ------------------------------------------------------------------------------
 
@@ -37,7 +10,6 @@ SET(FSI_TESTS
 # List all FSI TESTS that use chrono-parallel
 SET(FSI_PARALLEL_TESTS
 # add fsi parallel TESTS here
-test_fsi_cylinderDrop_new
 )
 
 # List all FSI TESTS use vehicle
@@ -49,6 +21,41 @@ SET(FSI_VEHICLE_TESTS
 SET(FSI_PARALLEL_VEHICLE_TESTS
 # add fsi parallel vehicle TESTS here
 )
+
+# ------------------------------------------------------------------------------
+# Additional include paths and libraries
+# ------------------------------------------------------------------------------
+
+MESSAGE(STATUS "Additional test programs for FSI module...")
+
+INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
+
+SET(LIBRARIES
+    ChronoEngine   
+    ChronoEngine_fsi
+)
+
+IF(ENABLE_MODULE_PARALLEL)
+SET(LIBRARIES ${LIBRARIES} 
+    ChronoEngine_parallel
+)
+ENDIF()
+
+IF(ENABLE_MODULE_OPENGL)
+INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+ENDIF()
+
+IF(ENABLE_MODULE_VEHICLE)
+SET(LIBRARIES ${LIBRARIES}
+    ChronoEngine_vehicle   
+)
+ENDIF()
+
+IF(ENABLE_MODULE_OPENGL)
+    INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+    SET(LIBRARIES ${LIBRARIES} ChronoEngine_opengl)
+ENDIF()
 
 #--------------------------------------------------------------
 # Add executables for TESTS that have no other dependencies
