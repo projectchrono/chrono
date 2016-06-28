@@ -9,6 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
+#include <algorithm>
+#include <string>
+
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
@@ -22,13 +25,8 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
-#include "../BaseTest.h"
-
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
-////#define USE_MKL
-#else
-#undef USE_MKL
 #endif
 
 #ifdef CHRONO_OPENMP_ENABLED
@@ -38,74 +36,49 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-int num_threads = 4;
+// -----------------------------------------------------------------------------
 
-double step_size = 1e-3;
-int num_steps = 20;
+int num_threads = 4;      // default number of threads
+double step_size = 1e-3;  // integration step size
+int num_steps = 22;       // number of integration steps
+int skip_steps = 2;       // initial number of steps excluded from timing
 
-int numDiv_x = 50;
-int numDiv_y = 50;
-int numDiv_z = 1;
+int numDiv_x = 50;  // mesh divisions in X direction
+int numDiv_y = 50;  // mesh divisions in Y direction
+int numDiv_z = 1;   // mesh divisions in Z direction
 
-/// A new test class that extends the BaseTest class so that it outputs proper JSON to be used in the metricsAPI
-class test_FEA_shellANCF : public BaseTest {
-  public:
-    test_FEA_shellANCF(const std::string& testName, const std::string& testProjectName)
-        : BaseTest(testName, testProjectName), m_execTime(-1) {
-        std::cout << "Constructing Derived Test" << std::endl;
-    }
+std::string out_dir = "../TEST_SHELL_ANCF";  // name of output directory
+bool output = false;                         // generate output file?
+bool verbose = false;                        // verbose output?
 
-    ~test_FEA_shellANCF() {}
+// -----------------------------------------------------------------------------
 
-    // Override corresponding functions in BaseTest
-    virtual bool execute() { return m_passed; }
-    virtual double getExecutionTime() const { return m_execTime; }
-    void setPassed(bool passed) { m_passed = passed; }
-    void setExecTime(double time) { m_execTime = time; }
-
-  private:
-    /// Used to measure total test execution time for unit test
-    double m_execTime;
-    bool m_passed;
-};
-
-int main(int argc, char* argv[]) {
-    test_FEA_shellANCF t("test_FEA_shellANCF", "chrono");
-    // If no command line arguments, run in "performance" mode and only report run time.
-    // Otherwise, generate output files to verify correctness.
-    bool output = (argc > 1);
-    if (output) {
-        GetLog() << "Output file: ../TEST_SHELL_ANCF/tip_position.txt\n";
-    } else {
-        GetLog() << "Running in performance test mode.\n";
-    }
-
-    // --------------------------
-    // Set number of threads
-    // --------------------------
-#ifdef CHRONO_OPENMP_ENABLED
-    int max_threads = CHOMPfunctions::GetNumProcs();
-
-    if (num_threads > max_threads)
-        num_threads = max_threads;
-
-    CHOMPfunctions::SetNumThreads(num_threads);
-    GetLog() << "Using " << num_threads << " thread(s)\n";
-#else
-    GetLog() << "No OpenMP\n";
+void RunModel(bool use_mkl,              // use MKL solver (if available)
+              bool use_adaptiveStep,     // allow step size reduction
+              bool use_modifiedNewton,   // use modified Newton method
+              const std::string& suffix  // output filename suffix
+              ) {
+#ifndef CHRONO_MKL
+    use_mkl = false;
 #endif
 
-    // --------------------------
+    std::cout << std::endl;
+    std::cout << "===================================================================" << std::endl;
+    std::cout << "Solver:          " << (use_mkl ? "MKL" : "MINRES") << std::endl;
+    std::cout << "Adaptive step:   " << (use_adaptiveStep ? "Yes" : "No") << std::endl;
+    std::cout << "Modified Newton: " << (use_modifiedNewton ? "Yes" : "No") << std::endl;
+    std::cout << std::endl;
+    std::cout << "Mesh divisions:  " << numDiv_x << " x " << numDiv_y << std::endl;
+    std::cout << std::endl;
+
     // Create the physical system
-    // --------------------------
     ChSystem my_system;
 
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
-    GetLog() << "Using " << numDiv_x << " x " << numDiv_y << " mesh divisions\n";
+    // Create a mesh, that is a container for groups of elements and their referenced nodes.
     auto my_mesh = std::make_shared<ChMesh>();
+
     // Geometry of the plate
     double plate_lenght_x = 1.0;
     double plate_lenght_y = 1.0;
@@ -124,7 +97,6 @@ int main(int argc, char* argv[]) {
     double dz = plate_lenght_z / numDiv_z;
 
     // Create and add the nodes
-
     for (int i = 0; i < TotalNumNodes; i++) {
         // Parametric location and direction of nodal coordinates
         double loc_x = (i % (numDiv_x + 1)) * dx;
@@ -188,23 +160,23 @@ int main(int argc, char* argv[]) {
     // Mark completion of system construction
     my_system.SetupInitial();
 
-// Set up solver
-#ifdef USE_MKL
-    GetLog() << "Using MKL solver\n";
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-#else
-    GetLog() << "Using MINRES solver\n";
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetTolForce(1e-10);
+    // Set up solver
+    if (use_mkl) {
+#ifdef CHRONO_MKL
+        ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+        ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+        my_system.ChangeSolverStab(mkl_solver_stab);
+        my_system.ChangeSolverSpeed(mkl_solver_speed);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
 #endif
+    } else {
+        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        msolver->SetDiagonalPreconditioning(true);
+        my_system.SetMaxItersSolverSpeed(100);
+        my_system.SetTolForce(1e-10);
+    }
 
     // Set up integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
@@ -213,70 +185,138 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxiters(100);
     mystepper->SetAbsTolerances(1e-5);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetStepControl(use_adaptiveStep);
+    mystepper->SetModifiedNewton(use_modifiedNewton);
     mystepper->SetScaling(true);
-    //// mystepper->SetVerbose(true);
+    mystepper->SetVerbose(verbose);
 
-    // ---------------
+    // Initialize the output stream and set precision.
+    utils::CSV_writer out("\t");
+    out.stream().setf(std::ios::scientific | std::ios::showpos);
+    out.stream().precision(6);
+
+    // Get handle to tracked node.
+    auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
+
     // Simulation loop
-    // ---------------
+    double time_total = 0;
+    double time_setup = 0;
+    double time_solve = 0;
+    double time_update = 0;
+    double time_force = 0;
+    double time_jacobian = 0;
+    double time_skipped = 0;
+    int num_iterations = 0;
+    int num_setup_calls = 0;
+    int num_solver_calls = 0;
+    int num_force_calls = 0;
+    int num_jacobian_calls = 0;
+
+    for (int istep = 0; istep < num_steps; istep++) {
+        my_mesh->ResetCounters();
+        my_mesh->ResetTimers();
+
+        my_system.DoStepDynamics(step_size);
+
+        if (istep == skip_steps) {
+            time_skipped = time_total;
+            time_total = 0;
+            time_setup = 0;
+            time_solve = 0;
+            time_update = 0;
+            time_force = 0;
+            time_jacobian = 0;
+            num_iterations = 0;
+            num_setup_calls = 0;
+            num_solver_calls = 0;
+            num_force_calls = 0;
+            num_jacobian_calls = 0;
+        }
+
+        time_total += my_system.GetTimerStep();
+        time_setup += my_system.GetTimerSetup();
+        time_solve += my_system.GetTimerSolver();
+        time_update += my_system.GetTimerUpdate();
+
+        time_force += my_mesh->GetTimingInternalForces();
+        time_jacobian += my_mesh->GetTimingJacobianLoad();
+
+        num_iterations += mystepper->GetNumIterations();
+        num_setup_calls += mystepper->GetNumSetupCalls();
+        num_solver_calls += mystepper->GetNumSolveCalls();
+
+        num_force_calls += my_mesh->GetNumCallsInternalForces();
+        num_jacobian_calls += my_mesh->GetNumCallsJacobianLoad();
+
+        const ChVector<>& p = nodetip->GetPos();
+
+        if (verbose) {
+            std::cout << "-------------------------------------------------------------------" << std::endl;
+            std::cout << my_system.GetChTime() << "  ";
+            std::cout << "   " << my_system.GetTimerStep();
+            std::cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << std::endl;
+        }
+
+        if (output) {
+            out << my_system.GetChTime() << my_system.GetTimerStep() << nodetip->GetPos() << std::endl;
+        }
+    }
+
+    double time_other = time_total - time_setup - time_solve - time_update - time_force - time_jacobian;
+
+    std::cout << "-------------------------------------------------------------------" << std::endl;
+    std::cout << "Total number of steps:        " << num_steps - skip_steps << std::endl;
+    std::cout << "Total number of iterations:   " << num_iterations << std::endl;
+    std::cout << "Total number of setup calls:  " << num_setup_calls << std::endl;
+    std::cout << "Total number of solver calls: " << num_solver_calls << std::endl;
+    std::cout << "Total number of internal force calls: " << num_force_calls << std::endl;
+    std::cout << "Total number of Jacobian calls:       " << num_jacobian_calls << std::endl;
+    std::cout << std::endl;
+    std::cout << std::setprecision(3) << std::fixed;
+    std::cout << "Total time: " << time_total << std::endl;
+    std::cout << "  Setup:    " << time_setup << "\t (" << (time_setup/time_total)*100 << "%)" << std::endl;
+    std::cout << "  Solve:    " << time_solve << "\t (" << (time_solve / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Forces:   " << time_force << "\t (" << (time_force / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Jacobian: " << time_jacobian << "\t (" << (time_jacobian / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Update:   " << time_update << "\t (" << (time_update / time_total) * 100 << "%)" << std::endl;
+    std::cout << "  Other:    " << time_other << "\t (" << (time_other / time_total) * 100 << "%)" << std::endl;
+    std::cout << std::endl;
+    std::cout << "Time for skipped steps (" << skip_steps << "): " << time_skipped << std::endl;
 
     if (output) {
-        // Create output directory (if it does not already exist).
+        char name[100];
+        std::sprintf(name, "%s/out_%s_%d.txt", out_dir.c_str(), suffix.c_str(), num_threads);
+        std::cout << "Write output to: " << name << std::endl;
+        out.write_to_file(name);
+    }
+}
+
+int main(int argc, char* argv[]) {
+    // Create output directory (if it does not already exist).
+    if (output) {
         if (ChFileutils::MakeDirectory("../TEST_SHELL_ANCF") < 0) {
             GetLog() << "Error creating directory ../TEST_SHELL_ANCF\n";
             return 1;
         }
-
-        // Initialize the output stream and set precision.
-        utils::CSV_writer out("\t");
-
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(6);
-
-        auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(TotalNumNodes - 1));
-
-        // Simulate to final time, while saving position of tip node.
-        for (int istep = 0; istep < num_steps; istep++) {
-            my_system.DoStepDynamics(step_size);
-            out << my_system.GetChTime() << nodetip->GetPos() << std::endl;
-        }
-
-        // Write results to output file.
-        out.write_to_file("../TEST_SHELL_ANCF/tip_position.txt");
-    } else {
-        // Initialize total number of iterations and timer.
-        int num_iterations = 0;
-        ChTimer<> timer;
-        timer.start();
-
-        // Simulate to final time, while accumulating number of iterations.
-        for (int istep = 0; istep < num_steps; istep++) {
-            ////GetLog() << " step number: " << istep << "  time: " << my_system.GetChTime() << "\n";
-            my_system.DoStepDynamics(step_size);
-            num_iterations += mystepper->GetNumIterations();
-        }
-
-        timer.stop();
-
-        // Report run time and total number of iterations.
-        
-        GetLog() << "Number of iterations: " << num_iterations << "\n";
-        t.addMetric("num_iterations", num_iterations);
-        GetLog() << "Simulation time:  " << timer() << "\n";
-        t.setExecTime(timer());
-        GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
-                 << "):  " << my_mesh->GetTimingInternalForces() << "\n";
-        t.addMetric("internal_forces", my_mesh->GetTimingInternalForces());
-        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad()
-                 << "\n";
-        t.addMetric("jacobian", my_mesh->GetTimingJacobianLoad());
-        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad()
-                 << "\n";
-        t.addMetric("extra_time", timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad());
-        t.setPassed(true);
     }
-    
-    t.print();
-    t.run();
+
+#ifdef CHRONO_OPENMP_ENABLED
+    // Set number of threads
+    if (argc > 1)
+        num_threads = std::stoi(argv[1]);
+    num_threads = std::min(num_threads, CHOMPfunctions::GetNumProcs());
+    CHOMPfunctions::SetNumThreads(num_threads);
+    GetLog() << "Using " << num_threads << " thread(s)\n";
+#else
+    GetLog() << "No OpenMP\n";
+#endif
+
+    // Run simulations.
+    RunModel(true, true, false, "MKL_adaptive_full");     // MKL, adaptive step, full Newton
+    RunModel(true, true, true, "MKL_adaptive_modified");  // MKL, adaptive step, modified Newton
+
+    RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
+    RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
+
     return 0;
 }

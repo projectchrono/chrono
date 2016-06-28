@@ -22,6 +22,7 @@
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/timestepper/ChTimestepper.h"
+#include "chrono/timestepper/ChTimestepperHHT.h"
 
 #include "chrono_postprocess/ChGnuPlot.h"
 
@@ -47,22 +48,23 @@ int main(int argc, char* argv[]) {
             MyIntegrable() {}
 
             /// the number of coordinates in the state:
-            virtual int GetNcoords_y() { return 1; }
+            virtual int GetNcoords_y() override { return 1; }
 
             /// compute  dy/dt=f(y,t)
-            virtual void StateSolve(ChStateDelta& dydt,    ///< result: computed dy/dt
-                                    ChVectorDynamic<>& L,  ///< result: computed lagrangian multipliers, if any
-                                    const ChState& y,      ///< current state y
-                                    const double T,        ///< current time T
-                                    const double dt,       ///< timestep (if needed)
-                                    bool force_state_scatter = true  ///< if false, y and T are not scattered to the
-                                    /// system, assuming that someone has done
-                                    /// StateScatter just before
-                                    ) {
+            virtual bool StateSolve(
+                ChStateDelta& dydt,              ///< result: computed dy/dt
+                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
+                const ChState& y,                ///< current state y
+                const double T,                  ///< current time T
+                const double dt,                 ///< timestep (if needed)
+                bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                ) override {
                 if (force_state_scatter)
                     StateScatter(y, T);  // state -> system   (not needed here, btw.)
 
                 dydt(0) = exp(T);  // dx/dt=e^t
+
+                return true;
             }
         };
 
@@ -126,32 +128,31 @@ int main(int argc, char* argv[]) {
             }
 
             /// the number of coordinates in the state:
-            virtual int GetNcoords_y() { return 2; }
+            virtual int GetNcoords_y() override { return 2; }
 
             /// system -> state
-            virtual void StateGather(ChState& y, double& mT) {
+            virtual void StateGather(ChState& y, double& mT) override {
                 y(0) = x;
                 y(1) = v;
                 mT = T;
             };
 
             /// state -> system
-            virtual void StateScatter(const ChState& y, const double mT) {
+            virtual void StateScatter(const ChState& y, const double mT) override {
                 x = y(0);
                 v = y(1);
                 T = mT;
             };
 
             /// compute  dy/dt=f(y,t)
-            virtual void StateSolve(ChStateDelta& dydt,    ///< result: computed dy/dt
-                                    ChVectorDynamic<>& L,  ///< result: computed lagrangian multipliers, if any
-                                    const ChState& y,      ///< current state y
-                                    const double T,        ///< current time T
-                                    const double dt,       ///< timestep (if needed)
-                                    bool force_state_scatter = true  ///< if false, y and T are not scattered to the
-                                    /// system, assuming that someone has done
-                                    /// StateScatter just before
-                                    ) {
+            virtual bool StateSolve(
+                ChStateDelta& dydt,              ///< result: computed dy/dt
+                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
+                const ChState& y,                ///< current state y
+                const double T,                  ///< current time T
+                const double dt,                 ///< timestep (if needed)
+                bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                ) override {
                 if (force_state_scatter)
                     StateScatter(y, T);
 
@@ -159,6 +160,8 @@ int main(int argc, char* argv[]) {
 
                 dydt(0) = v;                               // speed
                 dydt(1) = (1. / M) * (F - K * x - R * v);  // acceleration
+
+                return true;
             }
         };
 
@@ -237,38 +240,38 @@ int main(int argc, char* argv[]) {
             }
 
             /// the number of coordinates in the state, x position part:
-            virtual int GetNcoords_x() { return 1; }
+            virtual int GetNcoords_x() override { return 1; }
 
             /// system -> state
-            virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) {
+            virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) override {
                 x(0) = mx;
                 v(0) = mv;
                 mT = T;
             };
 
             /// state -> system
-            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT) {
+            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT) override {
                 mx = x(0);
                 mv = v(0);
                 T = mT;
             };
 
             /// compute  dy/dt=f(y,t)
-            virtual void StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a = dv/dt
+            virtual bool StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a = dv/dt
                                      ChVectorDynamic<>& L,   ///< result: computed lagrangian multipliers, if any
                                      const ChState& x,       ///< current state, x
                                      const ChStateDelta& v,  ///< current state, v
                                      const double T,         ///< current time T
                                      const double dt,        ///< timestep (if needed)
-                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the
-                                     /// system, assuming that someone has done
-                                     /// StateScatter just before
-                                     ) {
+                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                                     ) override {
                 if (force_state_scatter)
                     StateScatter(x, v, T);
 
                 double F = cos(T * 5) * 2;
                 dvdt(0) = (1. / M) * (F - K * mx - R * mv);
+
+                return true;
             }
         };
 
@@ -342,65 +345,67 @@ int main(int argc, char* argv[]) {
             }
 
             /// the number of coordinates in the state, x position part:
-            virtual int GetNcoords_x() { return 1; }
+            virtual int GetNcoords_x() override { return 1; }
 
             /// system -> state
-            virtual void StateGather(ChState& x, ChStateDelta& v, double& T) {
+            virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
                 x(0) = mx;
                 v(0) = mv;
                 T = mT;
             };
 
             /// state -> system
-            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
+            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) override {
                 mx = x(0);
                 mv = v(0);
                 mT = T;
             };
 
             /// compute  dy/dt=f(y,t)
-            virtual void StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a=dv/dt
+            virtual bool StateSolveA(ChStateDelta& dvdt,     ///< result: computed accel. a=dv/dt
                                      ChVectorDynamic<>& L,   ///< result: computed lagrangian multipliers, if any
                                      const ChState& x,       ///< current state, x
                                      const ChStateDelta& v,  ///< current state, v
                                      const double T,         ///< current time T
                                      const double dt,        ///< timestep (if needed)
-                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the
-                                     /// system, assuming that someone has done
-                                     /// StateScatter just before
-                                     ) {
+                                     bool force_state_scatter = true  ///< if false, y and T are not scattered to the system
+                                     ) override {
                 if (force_state_scatter)
                     StateScatter(x, v, T);
                 double F = sin(mT * 20) * 0.02;
                 dvdt(0) = (1. / M) * (F - K * mx - R * mv);
+
+                return true;
             }
 
             /// Compute the correction with linear system
             ///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-            virtual void StateSolveCorrection(
-                ChStateDelta& Dv,                ///< result: computed Dv
-                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
-                const ChVectorDynamic<>& R,      ///< the R residual
-                const ChVectorDynamic<>& Qc,     ///< the Qc residual
-                const double c_a,                ///< the factor in c_a*M
-                const double c_v,                ///< the factor in c_v*dF/dv
-                const double c_x,                ///< the factor in c_x*dF/dv
-                const ChState& x,                ///< current state, x part
-                const ChStateDelta& v,           ///< current state, v part
-                const double T,                  ///< current time T
-                bool force_state_scatter = true  ///< if false, x,v and T are not scattered to the system, assuming that
-                /// someone has done StateScatter just before
-                ) {
+            virtual bool StateSolveCorrection(
+                ChStateDelta& Dv,                 ///< result: computed Dv
+                ChVectorDynamic<>& L,             ///< result: computed lagrangian multipliers, if any
+                const ChVectorDynamic<>& R,       ///< the R residual
+                const ChVectorDynamic<>& Qc,      ///< the Qc residual
+                const double c_a,                 ///< the factor in c_a*M
+                const double c_v,                 ///< the factor in c_v*dF/dv
+                const double c_x,                 ///< the factor in c_x*dF/dv
+                const ChState& x,                 ///< current state, x part
+                const ChStateDelta& v,            ///< current state, v part
+                const double T,                   ///< current time T
+                bool force_state_scatter = true,  ///< if false, x,v and T are not scattered to the system
+                bool force_setup = true           ///< if true, call the solver's Setup() function
+                ) override {
                 if (force_state_scatter)
                     this->StateScatter(x, v, T);
 
                 Dv(0) = R(0) * 1.0 / (c_a * this->M + c_v * (-this->R) + c_x * (-this->K));
+
+                return true;
             }
 
             ///    R += c*F
             void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
-                                ) {
+                                ) override {
                 R(0) += c * (sin(mT * 20) * 0.02 - this->K * mx - this->R * mv);
             };
 
@@ -408,7 +413,7 @@ int main(int argc, char* argv[]) {
             void LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                  const ChVectorDynamic<>& w,  ///< the w vector
                                  const double c               ///< a scaling factor
-                                 ) {
+                                 ) override {
                 R(0) += c * this->M * w(0);
             };
 
@@ -416,19 +421,19 @@ int main(int argc, char* argv[]) {
             virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                           const ChVectorDynamic<>& L,  ///< the L vector
                                           const double c               ///< a scaling factor
-                                          ){};
+                                          ) override {}
 
             /// nothing to do here- no constraints
             virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        ///< result: the Qc residual, Qc += c*C
                                           const double c,               ///< a scaling factor
                                           const bool do_clamp = false,  ///< enable optional clamping of Qc
                                           const double mclam = 1e30     ///< clamping value
-                                          ){};
+                                          ) override {}
 
             /// nothing to do here- no constraints
             virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                            const double c          ///< a scaling factor
-                                           ){};
+                                           ) override {}
         };
 
         // Create a file to dump results
@@ -510,7 +515,7 @@ int main(int argc, char* argv[]) {
         //  We assume   M*a = F(x,v,t)
         //            C(x,t)=0;
 
-        class MyIntegrable : public ChIntegrableIIorderEasy {
+        class MyIntegrable : public ChIntegrableIIorder {
           private:
             double M;
             double K;
@@ -538,13 +543,13 @@ int main(int argc, char* argv[]) {
             }
 
             /// the number of coordinates in the state, x position part:
-            virtual int GetNcoords_x() { return 2; }
+            virtual int GetNcoords_x() override { return 2; }
 
             /// Tells the number of lagrangian multipliers (constraints)
-            virtual int GetNconstr() { return 1; }
+            virtual int GetNconstr() override { return 1; }
 
             /// system -> state
-            virtual void StateGather(ChState& x, ChStateDelta& v, double& T) {
+            virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
                 x(0) = mpx;
                 x(1) = mpy;
                 v(0) = mvx;
@@ -553,7 +558,7 @@ int main(int argc, char* argv[]) {
             };
 
             /// state -> system
-            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
+            virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T) override {
                 mpx = x(0);
                 mpy = x(1);
                 mvx = v(0);
@@ -562,25 +567,25 @@ int main(int argc, char* argv[]) {
             };
 
             /// Some timesteppers exploit persistence of reaction information
-            virtual void StateGatherReactions(ChVectorDynamic<>& L) { L(0) = mreaction; };
-            virtual void StateScatterReactions(const ChVectorDynamic<>& L) { mreaction = L(0); };
+            virtual void StateGatherReactions(ChVectorDynamic<>& L) override { L(0) = mreaction; };
+            virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { mreaction = L(0); };
 
             /// Compute the correction with linear system
             ///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
-            virtual void StateSolveCorrection(
-                ChStateDelta& Dv,                ///< result: computed Dv
-                ChVectorDynamic<>& L,            ///< result: computed lagrangian multipliers, if any
-                const ChVectorDynamic<>& R,      ///< the R residual
-                const ChVectorDynamic<>& Qc,     ///< the Qc residual
-                const double c_a,                ///< the factor in c_a*M
-                const double c_v,                ///< the factor in c_v*dF/dv
-                const double c_x,                ///< the factor in c_x*dF/dv
-                const ChState& x,                ///< current state, x part
-                const ChStateDelta& v,           ///< current state, v part
-                const double T,                  ///< current time T
-                bool force_state_scatter = true  ///< if false, x,v and T are not scattered to the system, assuming that
-                /// someone has done StateScatter just before
-                ) {
+            virtual bool StateSolveCorrection(
+                ChStateDelta& Dv,                 ///< result: computed Dv
+                ChVectorDynamic<>& L,             ///< result: computed lagrangian multipliers, if any
+                const ChVectorDynamic<>& R,       ///< the R residual
+                const ChVectorDynamic<>& Qc,      ///< the Qc residual
+                const double c_a,                 ///< the factor in c_a*M
+                const double c_v,                 ///< the factor in c_v*dF/dv
+                const double c_x,                 ///< the factor in c_x*dF/dv
+                const ChState& x,                 ///< current state, x part
+                const ChStateDelta& v,            ///< current state, v part
+                const double T,                   ///< current time T
+                bool force_state_scatter = true,  ///< if false, x,v and T are not scattered to the system
+                bool force_setup = true           ///< if true, call the solver's Setup() function
+                ) override {
                 if (force_state_scatter)
                     this->StateScatter(x, v, T);
 
@@ -602,12 +607,14 @@ int main(int argc, char* argv[]) {
                 Dv(0) = w(0);
                 Dv(1) = w(1);
                 L(0) = -w(2);  // note assume result sign in multiplier is flipped
+
+                return true;
             }
 
             ///    R += c*F
             void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
-                                ) {
+                                ) override {
                 R(0) += c * (sin(mT * 20) * 0.000 - this->K * mpx - this->R * mvx);
                 R(1) += c * -5;  // vertical force
             };
@@ -616,7 +623,7 @@ int main(int argc, char* argv[]) {
             void LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
                                  const ChVectorDynamic<>& w,  ///< the w vector
                                  const double c               ///< a scaling factor
-                                 ) {
+                                 ) override {
                 R(0) += c * this->M * w(0);
                 R(1) += c * this->M * w(1);
             };
@@ -625,7 +632,7 @@ int main(int argc, char* argv[]) {
             virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                           const ChVectorDynamic<>& L,  ///< the L vector
                                           const double c               ///< a scaling factor
-                                          ) {
+                                          ) override {
                 ChVector<> dirpend(-mpx, -mpy, 0);
                 dirpend.Normalize();
                 R(0) += c * dirpend.x * L(0);
@@ -637,7 +644,7 @@ int main(int argc, char* argv[]) {
                                           const double c,               ///< a scaling factor
                                           const bool do_clamp = false,  ///< enable optional clamping of Qc
                                           const double mclam = 1e30     ///< clamping value
-                                          ) {
+                                          ) override {
                 ChVector<> distpend(-mpx, -mpy, 0);
                 Qc(0) += -c * (-distpend.Length() + mlength);
             };
@@ -645,7 +652,7 @@ int main(int argc, char* argv[]) {
             /// nothing to do here- no rheonomic part
             virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                            const double c          ///< a scaling factor
-                                           ){};
+                                           ) override {}
         };
 
         // Create a file to dump results

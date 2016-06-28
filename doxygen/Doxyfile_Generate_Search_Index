@@ -58,7 +58,7 @@ PROJECT_LOGO           = logo_chrono_engine_h90.png
 # entered, it will be relative to the location where doxygen was started. If
 # left blank the current directory will be used.
 
-OUTPUT_DIRECTORY = /var/www
+OUTPUT_DIRECTORY = /tmp/chrono_doxygen/
 
 # If the CREATE_SUBDIRS tag is set to YES then doxygen will create 4096 sub-
 # directories (in 2 levels) under the output directory of each output format and
@@ -1565,7 +1565,7 @@ EXTERNAL_SEARCH        = YES
 # Searching" for details.
 # This tag requires that the tag SEARCHENGINE is set to YES.
 
-SEARCHENGINE_URL       = http://localhost/cgi-bin/doxysearch.cgi
+SEARCHENGINE_URL       = http://projectchrono.org/doxygen
 
 # When SERVER_BASED_SEARCH and EXTERNAL_SEARCH are both enabled the unindexed
 # search data is written to a file for indexing by an external tool. With the

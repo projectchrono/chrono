@@ -47,7 +47,7 @@ main:
        -
          title: Current/Past users
          url: '/testimonials/'
-    - title: Old Website
-      url: 'http://old.projectchrono.org'
+    # - title: Old Website
+    #   url: 'http://old.projectchrono.org'
     - title: Status
       url: '/status'

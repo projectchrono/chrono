@@ -490,15 +490,18 @@ source_group(particlefactory FILES
 # Timestepper group
 
 set(ChronoEngine_timestepper_SOURCES
+    timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
+    timestepper/ChTimestepperHHT.cpp
     )
 
 set(ChronoEngine_timestepper_HEADERS
     timestepper/ChState.h
     timestepper/ChIntegrable.h
     timestepper/ChTimestepper.h
+    timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
-	timestepper/ChAssemblyAnalysis.h
+    timestepper/ChAssemblyAnalysis.h
     )
 
 source_group(timestepper FILES
@@ -673,7 +676,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChConstraintTwoTuplesRollingN.h
     solver/ChConstraintTwoTuplesRollingT.h
     solver/ChSolver.h
-    solver/ChDirectSolver.h
     solver/ChIterativeSolver.h
     solver/ChSolverJacobi.h
     solver/ChSolverMINRES.h
