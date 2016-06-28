@@ -402,9 +402,7 @@ Changing the Simulink integrator from variable time step to fixed time step migh
 </div>
 
 
-# The entire listing
-
-For completeness, here we report the entire .cpp source:
+# The entire code
 
 \include demo_cosim_hydraulics.cpp
 
