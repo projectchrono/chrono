@@ -1,15 +1,14 @@
 -------------------------------------------------------
 
-  HOW TO COMPILE THE API OF CHRONO::ENGINE
+  HOW TO INSTALL/COMPILE CHRONO
   
 -------------------------------------------------------
 
 
 
-   To understand how to install and compile, follow the
-   guidelines at the link 
+   Guidelines for how to install and compile are provided at  
       
-   http://www.chronoengine.info/mediawiki/index.php/Installation
+   http://api.projectchrono.org/tutorial_table_of_content_install.html
    
 
 -------------------------------------------------------

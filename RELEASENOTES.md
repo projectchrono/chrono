@@ -1,11 +1,11 @@
-
-  CHRONO::ENGINE  
+PROJECT CHRONO  
+==============
   
-  History of API changes, bug fixes, new features
+## History of API changes, bug fixes, and new features
 
   
-Release 2.0.0
-14-10-2013
+### Release 2.0.0
+October 14, 2013
 
 - Migration of repository from SVN to GIT
 
@@ -13,14 +13,14 @@ Release 2.0.0
 
 
 
-Release 1.8.0
-1-9-2013
+### Release 1.8.0
+September 1, 2013
 
 - Removed obsolete code in ChObject (old intrusive list members and data)
 
 - Support for stiffness blocks in LCP/CCP/VIs/linear systems. For
   instance, this will foster the development of FEM functionalities.
-  See files source/lcp/ChLcpKstiffness.h and similars.
+  See, for instance, file source/lcp/ChLcpKstiffness.h.
 
 - New functions BuildDiVector, FromVectorToUnknowns, FromUnknownsToVector, 
   BuildDiagonalVector, in source/lcp/ChLcpSystemDescriptor.h
@@ -38,8 +38,8 @@ Release 1.8.0
 
 
 
-Release 1.7.0
-20-05-2013
+### Release 1.7.0
+May 20, 2013
 
 - Python support upgraded to Python 3.3 from 3.2, in pyChrono::Engine
   installer.
@@ -133,7 +133,7 @@ Release 1.7.0
   instead than application.AddLight(..) or AddTypicalLights(..).
   The performance is a bit slower, but much faster and better looking
   than the previous system that used stencil shadows.
-  NOTE!!! This works fine with Irrlicht v.1.7.3, but in Irrlicht v.1.8
+  NOTE: This works fine with Irrlicht v.1.7.3, but in Irrlicht v.1.8
   it does not work with default DirextX driver: you must use video::EDT_OPENGL
   as argument when creating the ChIrrApp for OpenGL driver (and it works
   with a single lamp only).
@@ -157,8 +157,8 @@ Release 1.7.0
   modified and a new demo project is here.
 
 
-Release 1.6.0
-19-07-2012
+### Release 1.6.0
+July 19, 2012
 
 - New asset of 'ChCamera' type, for defining a videocamera point
   ov view, zoom etc. This asset can be interpreted by postprocessing
@@ -198,8 +198,8 @@ Release 1.6.0
   finding Python libraries from Python v.3)
 
 
-Release 1.5.0
-12-05-2012
+### Release 1.5.1
+May 12, 2012
 
 - New asset system. Look in source/assets/ directory. Assets can be
   assigned to ChPhysicsItems. This is extensively used in the new
@@ -237,8 +237,8 @@ Release 1.5.0
   precompiled module for Python
 
   
-Release 1.5.0
-8-2-2012
+### Release 1.5.0
+February 8, 2012
 
 - File logging of system matrices and vectors. This feature
   has been added to allow off-line testing, debugging and 
@@ -264,7 +264,7 @@ Release 1.5.0
   there is a one-to-one mapping - also operator overloading
   is supported).
 
-- Important API change! To modify friction, restitution and
+- To modify friction, restitution and
   other surface properties of ChBody, ChrParticleClones and 
   similar stuff, now one must use mybody->GetMaterialSurface()->..
   In fact now surface properties are contained in a ChMaterialSurface
@@ -334,8 +334,8 @@ Release 1.5.0
 
 
 
-Release 1.4.0
-1-9-2011
+### Release 1.4.0
+September 1, 2011
 
 - The collision family features previously required that a body
   was already added to a ChSystem, now collision families can be
@@ -400,8 +400,8 @@ Release 1.4.0
   decomposition threshold.
   
   
-Release 1.3.0
-2-2-2011
+### Release 1.3.0
+February 2, 2011
 
 - Modified CMakeLists.txt to support also MingW GNU 
   c++ under Windows and GNU C++ under Linux.
@@ -424,7 +424,7 @@ Release 1.3.0
   
 - Various warnings removed.
 
-- Hash table classes improved for better compability with
+- Hash table classes improved for better compatibility with
   the GNU compiler.
   
 - Better Doxygen template 
@@ -441,8 +441,8 @@ Release 1.3.0
   
   
  
-Release 1.2.0
-12-1-2011
+### Release 1.2.0
+January 12, 2011
 
 - MAJOR IMPROVEMENT: new build system based on CMake.  
   This means that developers will exploit the power
@@ -474,8 +474,8 @@ Release 1.2.0
 
 
 
-Release 1.1.0
-3-11-2010
+### Release 1.1.0
+November 3, 2010
 
 - The 64 bit versions of dll and lib are included
   in the Windows distribution.
@@ -543,8 +543,8 @@ Release 1.1.0
   to show debugging GUI).
 
 
-Release 1.0.0
-01-09-2010
+### Release 1.0.0
+September 1, 2010
 
 - Elastic restitution is added. Use mybody->SetImpactC()
   to set the restitution coefficient. The Newton model
@@ -600,8 +600,8 @@ Release 1.0.0
   debugging, testing, etc., allowing to dump full mass and jacobian matrices.
   
 
-Release 0.9.0
-23-2-2010
+### Release 0.9.0
+February 23, 2010
 
 - The convex decomposition code has been updated and improved.
   Now there is a class collision/ChCConvexDecomposition.h that
@@ -620,7 +620,7 @@ Release 0.9.0
   info panel is displayed, pressing 'i').
   
 - Added support for using a 'smoothing factor' lambda in the 
-  iterative complementarity solvers. This can help convergency
+  iterative complementarity solvers. This can help convergence
   and precision.
   
 - New example 'demo_forklift.exe', showing a forklift vehicle that can
@@ -697,8 +697,8 @@ Release 0.9.0
 - Demos updated to newest Irrlicht-1.7.1. Older versions of Irrlich not supported.
 
 
-Release 0.8
-10-7-2009
+### Release 0.8
+July 10, 2009
   
 - New feature: rolling friction, and spinning (drilling) friction.
   The ChBody items can have coefficients for these two additional
@@ -788,8 +788,8 @@ Release 0.8
   suggested over the use of SetSfriction and SetKfriction, for the moment]
   
 
-Release 0.7
-10-5-2009
+### Release 0.7
+May 10, 2009
 
 - New feature: object picking (in demos inherited from the 
   ChIrrAppInterface class, for example demo_collision.cpp).
@@ -823,8 +823,8 @@ Release 0.7
   (causing cylinders to 'sink' a bit into other shapes). Fixed.  
 
 
-Release 0.6
-06-03-2009
+### Release 0.6
+March 6, 2009
 
 - The GPU complementarity solver has been optimized so that
   it skips unneeded compuations when thousands of objects 
@@ -883,9 +883,8 @@ Release 0.6
   
   
 
-
-Release 0.5
-25-12-2008
+### Release 0.5
+December 25, 2008
 
 - Parallel solver for NVIDIA GPU architecture has been improved.
   A bug happened because single-precision in CUDA hardware caused
@@ -939,8 +938,8 @@ Release 0.5
   improved (StreamOUT, StreamIN).
 
   
-Release 0.4
-2-11-2008
+### Release 0.4
+November 2, 2008
 
 - Merged latest Chrono::Engine into the Chrono::R3D development
   trunk (for Realsoft OY). The Chrono::R3D plugin will use the
@@ -1022,8 +1021,8 @@ Release 0.4
 
 
 
-Release 0.3.3
-21-4-2008
+### Release 0.3.4
+April 21, 2008
 
 - The ChLcpIterativeCuda solver now supports also the 
   bilateral links (not only the frictional contacts).
@@ -1052,8 +1051,8 @@ Release 0.3.3
   
   
   
-Release 0.3.3
-1-4-2008
+### Release 0.3.3
+April 1, 2008
   
 - New class ChLcpIterativeCuda: it is a solver which uses the GPU
   via CUDA parallel programming API (still at experimental stage).
@@ -1083,8 +1082,8 @@ Release 0.3.3
 
 
   
-Release 0.3.2
-22-12-2007
+### Release 0.3.2
+December 22, 2007
 
 - All demos use the new Irrlicht-1.4 rendering engine (please UPGRADE
   to Irrlicht-1.4 if you used previous releases, and if you want to 
@@ -1136,10 +1135,8 @@ Release 0.3.2
 
 
 
---------------------------------------------------------
-  
-Release 0.3.1
-28-11-2007
+### Release 0.3.1
+November 28, 2007
 
 - New LCP_ITERATIVE_SOR_MULTITHREAD solver type, which exploits dual-core
   processors. The multithreading allows faster simulation.
@@ -1177,11 +1174,8 @@ Release 0.3.1
   here and there.
 
 
-
---------------------------------------------------------
-
-Release 0.3.0
-13-11-2007
+### Release 0.3.0
+November 13, 2007
 
 - Collision engine updated to Bullet 2.64 rc2. 
   Better handling of collision envelopes, better concave-concave
@@ -1214,10 +1208,8 @@ Release 0.3.0
   contact). Also, it can be used to simulate optical barrier sensors, and so on.
   
 
---------------------------------------------------------
-
-Release 0.2.2
-31-10-2007
+### Release 0.2.2
+October 31, 2007
 
 - New installer: it automatically sets up the config.mak with 
   the correct path to the chrono::engine SDK (and to the Irrlicht
@@ -1279,10 +1271,8 @@ Release 0.2.2
   understand also for novice users.
 
 
---------------------------------------------------------
-
-Release 0.2.1   
-9-10-2007
+### Release 0.2.1   
+October 9, 2007
   
 - A very large refactoring of all classes inherited from
   ChLink has been performed. New ChLinkMasked, ChLinkMarkers
@@ -1341,14 +1331,12 @@ Release 0.2.1
   of Windows.Forms, but a 3D OpenGL view is managed by Irrlicht.
   
 - New ChFunction_Oscilloscope class. Similar to ChFunction_Recorder, 
-  but simplier and more targeted to recording with a circular buffer,
+  but simpler and more targeted to recording with a circular buffer,
   for infinite storage queue of 'fifo' type.
   
   
---------------------------------------------------------
-
-Release 0.1.9    
-12-7-2007
+### Release 0.1.9    
+July 12, 2007
   
 - This last minute release fixes a problem with the 
   previous 0.1.8, that is the installer did not install
@@ -1359,10 +1347,9 @@ Release 0.1.9
   otherwise this caused problems with the 'nmake' command-line building.
   Problem fixed.
   
---------------------------------------------------------
-
-Release 0.1.8    
-11-7-2007
+  
+### Release 0.1.8    
+July 11, 2007
   
 - The previous 0.1.7 release was compatible with Irrlicht 1.3
   only, and gave compilation errors with the new release of
@@ -1381,9 +1368,6 @@ Release 0.1.8
 
 
 
-
---------------------------------------------------------
-
-Release 0.1.7    
+### Release 0.1.7    
 
 - First public downloadable release of the API.
