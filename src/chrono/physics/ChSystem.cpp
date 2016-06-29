@@ -629,14 +629,6 @@ int ChSystem::ResetAllProbes() {
 
 // CONTROLS STUFF
 
-bool ChSystem::ExecuteControlsForStart() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteForStart())
-            return false;
-    }
-    return true;
-}
-
 bool ChSystem::ExecuteControlsForUpdate() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
         if (!controlslist[ip]->ExecuteForUpdate())
@@ -653,29 +645,21 @@ bool ChSystem::ExecuteControlsForStep() {
     return true;
 }
 
-bool ChSystem::ExecuteControlsFor3DStep() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteFor3DStep())
-            return false;
-    }
-    return true;
-}
-
 // -----------------------------------------------------------------------------
 // HIERARCHY HANDLERS
 // -----------------------------------------------------------------------------
 
-void ChSystem::AddProbe(std::shared_ptr<ChProbe>& newprobe) {
-    assert(std::find<std::vector<std::shared_ptr<ChProbe> >::iterator>(probelist.begin(), probelist.end(), newprobe) ==
+void ChSystem::AddProbe(const std::shared_ptr<ChProbe>& newprobe) {
+    assert(std::find<std::vector<std::shared_ptr<ChProbe>>::iterator>(probelist.begin(), probelist.end(), newprobe) ==
            probelist.end());
 
     // newprobe->SetSystem (this);
     probelist.push_back(newprobe);
 }
 
-void ChSystem::AddControls(std::shared_ptr<ChControls>& newcontrols) {
-    assert(std::find<std::vector<std::shared_ptr<ChControls> >::iterator>(controlslist.begin(), controlslist.end(),
-                                                                          newcontrols) == controlslist.end());
+void ChSystem::AddControls(const std::shared_ptr<ChControls>& newcontrols) {
+    assert(std::find<std::vector<std::shared_ptr<ChControls>>::iterator>(controlslist.begin(), controlslist.end(),
+                                                                         newcontrols) == controlslist.end());
 
     // newcontrols->SetSystem (this);
     controlslist.push_back(newcontrols);
