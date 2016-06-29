@@ -1,9 +1,9 @@
 Project CHRONO
 ==============
 
-Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. More information is available at the [project website](http://www.projectchrono.org/)
+Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. More information is available at the [project website](http://www.projectchrono.org/).
 
-### Physical modeling
+### Physics modeling
 
 -   Rigid body support
 -   Flexible body support via Chrono::FEA module - both for ANCF and co-rotational nonlinear finite element analysis
