@@ -4,7 +4,7 @@
 //
 // ------------------------------------------------
 //       Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
+//             http://www.projectchrono.org
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
