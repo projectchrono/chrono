@@ -78,7 +78,9 @@ class RigNode {
 
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
-    double m_step_size;             ///< integration step size
+
+    std::shared_ptr<chrono::ChTimestepperHHT> m_integrator;  ///< HHT integrator object
+    double m_step_size;                                      ///< integration step size
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
     std::shared_ptr<chrono::ChBody> m_rim;      ///< wheel rim body
@@ -98,6 +100,11 @@ class RigNode {
     double m_init_vel;  ///< initial wheel forward linear velocity
     double m_slip;      ///< prescribed longitudinal slip for wheel
 
+    // Current contact forces on tire mesh vertices
+    std::vector<int> m_vert_indices;                ///< indices of vertices experiencing contact forces
+    std::vector<chrono::ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
+    std::vector<chrono::ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
+
     std::ofstream m_outf;  ///< output file stream
     chrono::ChTimer<double> m_timer;
     double m_cumm_sim_time;
@@ -106,6 +113,8 @@ class RigNode {
     void WriteStateInformation(chrono::utils::CSV_writer& csv);
     // Write mesh connectivity and strain information
 	void WriteMeshInformation(chrono::utils::CSV_writer& csv);
+    // Write contact forces on tire mesh vertices
+    void WriteContactInformation(chrono::utils::CSV_writer& csv);
 
     void PrintLowestNode();
     void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos, const std::vector<chrono::ChVector<>>& vert_vel);

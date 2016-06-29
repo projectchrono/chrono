@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
             // B.1) - SEND data
 
-            // - Set the multibody variables into the vector that must
+            // - Set the Chrono variables into the vector that must
             //   be sent to Simulink at the next timestep:
             //      * the velocity of the hydraulic actuator
             //      * the displacement of the hydraulic actuator
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
             // GetLog() << "Receive \n";
             cosimul_interface.ReceiveData(histime, &data_in);  // <-- from Simulink
 
-            // - Update the multibody system with the force value that we received
+            // - Update the Chrono system with the force value that we received
             //   from Simulink using the data_in vector, that contains:
             //      * the force of the hydraulic actuator
 

@@ -103,7 +103,8 @@ class ChAssemblyAnalysis {
                     0,        // factor for  dF/dv
                     0,        // factor for  dF/dx (the stiffness matrix)
                     X, V, T,  // not needed
-                    false     // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                    false,    // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                    true      // force a call to the solver's Setup function
                     );
 
                 X += Dx;
@@ -138,16 +139,18 @@ class ChAssemblyAnalysis {
             mintegrable->LoadResidual_Mv(R, V, 1.0);
             mintegrable->LoadConstraint_C(Qc, 1.0 / mdt, true, mclamping);
             mintegrable->LoadConstraint_Ct(Qc, 1.0);
-            
-            mintegrable->StateSolveCorrection(V, L, R, Qc,
-                                              1.0,           // factor for  M
-                                              -mdt,          // factor for  dF/dv
-                                              -mdt * mdt,    // factor for  dF/dx
-                                              X, V, T + mdt, // not needed
-                                              false  // do not StateScatter update to Xnew Vnew T+dt before computing correction
-                                              );
-            
-            mintegrable->StateScatter(X, V, T);     // state -> system
+
+            mintegrable->StateSolveCorrection(
+                V, L, R, Qc,
+                1.0,            // factor for  M
+                -mdt,           // factor for  dF/dv
+                -mdt * mdt,     // factor for  dF/dx
+                X, V, T + mdt,  // not needed
+                false,          // do not StateScatter update to Xnew Vnew T+dt before computing correction
+                true            // force a call to the solver's Setup() function
+                );
+
+            mintegrable->StateScatter(X, V, T);  // state -> system
 
             L *= (1.0 / mdt);  // Note it is not -(1.0/mdt) because we assume StateSolveCorrection already flips sign of Dl
 

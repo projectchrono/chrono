@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHSOLVERBB_H
 #define CHSOLVERBB_H
@@ -41,10 +43,6 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     bool diag_preconditioning;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChSolverBB(int mmax_iters = 50,       ///< max.number of iterations
                bool mwarm_start = false,  ///< uses warm start?
                double mtolerance = 0.0    ///< tolerance for termination criterion
@@ -57,15 +55,10 @@ class ChApi ChSolverBB : public ChIterativeSolver {
 
     virtual ~ChSolverBB() {}
 
-    //
-    // FUNCTIONS
-    //
-
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
-
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                         );
+                         ) override;
 
     /// Same as Solve(), but this also supports the presence of
     /// ChKblock blocks. If Solve() is called and stiffness is present,
@@ -92,12 +85,8 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     void SetDiagonalPreconditioning(bool mp) { this->diag_preconditioning = mp; }
     bool GetDiagonalPreconditioning() { return this->diag_preconditioning; }
 
-    //
-    // SERIALIZATION
-    //
-
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
         // serialize parent class
@@ -109,8 +98,7 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
         // deserialize parent class
@@ -120,7 +108,6 @@ class ChApi ChSolverBB : public ChIterativeSolver {
         marchive >> CHNVP(max_armijo_backtrace);
         marchive >> CHNVP(diag_preconditioning);
     }
-
 };
 
 }  // end namespace chrono

@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/core/ChLinkedListMatrix.h"
 #include "chrono/solver/ChKblock.h"
@@ -15,8 +18,7 @@
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverSimplex> a_registration_ChSolverSimplex;
 
 ChSolverSimplex::ChSolverSimplex() {
@@ -41,8 +43,7 @@ ChSolverSimplex::~ChSolverSimplex() {
         delete[] unilaterals;
 }
 
-double ChSolverSimplex::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
-                              ) {
+double ChSolverSimplex::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();

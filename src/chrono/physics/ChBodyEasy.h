@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
 #ifndef CHBODYEASY_H
@@ -42,7 +42,8 @@ class ChBodyEasySphere : public ChBody {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
     /// Sphere is assumed with center at body reference coordsystem.
-    ChBodyEasySphere(double radius, double mdensity, bool collide = false, bool visual_asset = true) {
+    ChBodyEasySphere(double radius, double mdensity, bool collide = false, bool visual_asset = true,
+			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
         double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
         double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
@@ -77,7 +78,8 @@ class ChBodyEasyCylinder : public ChBody {
     /// a collision shape. Mass and inertia are set automatically depending
     /// on density.
     /// Cylinder is assumed with body Y axis as vertical, and reference is at half height.
-    ChBodyEasyCylinder(double radius, double height, double mdensity, bool collide = false, bool visual_asset = true) {
+    ChBodyEasyCylinder(double radius, double height, double mdensity, bool collide = false, bool visual_asset = true,
+			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
         double mmass = mdensity * (CH_C_PI * pow(radius, 2) * height);
 
         this->SetDensity((float)mdensity);
@@ -119,7 +121,8 @@ class ChBodyEasyBox : public ChBody {
                   double Zsize,
                   double mdensity,
                   bool collide = false,
-                  bool visual_asset = true) {
+                  bool visual_asset = true,
+				  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
         double mmass = mdensity * (Xsize * Ysize * Zsize);
 
         this->SetDensity((float)mdensity);
@@ -159,7 +162,8 @@ class ChBodyEasyConvexHull : public ChBody {
     ChBodyEasyConvexHull(std::vector<ChVector<> >& points,
                          double mdensity,
                          bool collide = false,
-                         bool visual_asset = true) {
+                         bool visual_asset = true,
+						 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
@@ -218,7 +222,8 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         std::vector<ChVector<> >& points,  ///< points defined respect REF c.sys of body (initially REF=0,0,0 pos.)
         double mdensity,
         bool collide = false,
-        bool visual_asset = true) {
+        bool visual_asset = true,
+		ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBodyAuxRef(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
@@ -282,7 +287,8 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
         bool compute_mass = true,
         bool collide = false,
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
-        bool visual_asset = true) {
+        bool visual_asset = true,
+		ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBodyAuxRef(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         vshape->GetMesh().LoadWavefrontMesh(filename, true, true);
         this->AddAsset(vshape);  // assets are respect to REF c.sys
@@ -338,7 +344,8 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
                                std::vector<double>& radii,
                                double mdensity,
                                bool collide = false,
-                               bool visual_asset = true) {
+                               bool visual_asset = true,
+							   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
         assert(positions.size() == radii.size());
 
         double totmass = 0;

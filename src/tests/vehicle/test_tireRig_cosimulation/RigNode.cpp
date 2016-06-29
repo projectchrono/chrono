@@ -135,13 +135,13 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
     // Integrator settings
     m_system->SetIntegrationType(ChSystem::INT_HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(5e-05, 1.8e00);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
-    integrator->SetVerbose(true);
+    m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
+    m_integrator->SetAlpha(-0.2);
+    m_integrator->SetMaxiters(50);
+    m_integrator->SetAbsTolerances(5e-05, 1.8e00);
+    m_integrator->SetMode(ChTimestepperHHT::POSITION);
+    m_integrator->SetScaling(true);
+    m_integrator->SetVerbose(true);
 
     // -------------------------------
     // Create the rig mechanism bodies
@@ -392,9 +392,6 @@ void RigNode::Synchronize(int step_number, double time) {
     MPI_Send(vert_data, 2 * 3 * num_vert, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
     MPI_Send(tri_data, 3 * num_tri, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    delete[] vert_data;
-    delete[] tri_data;
-
     // Receive terrain forces.
     // Note that we use MPI_Probe to figure out the number of indices and forces received.
     MPI_Status status;
@@ -409,15 +406,21 @@ void RigNode::Synchronize(int step_number, double time) {
     std::cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << std::endl;
 
     // Repack data and apply forces to the mesh vertices
-    std::vector<ChVector<>> vert_forces;
-    std::vector<int> vert_indices;
+    m_vert_indices.resize(count);
+    m_vert_pos.resize(count);
+    m_vert_forces.resize(count);
     for (int iv = 0; iv < count; iv++) {
-        vert_forces.push_back(ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]));
-        vert_indices.push_back(index_data[iv]);
+        int index = index_data[iv];
+        m_vert_indices[iv] = index;
+        m_vert_pos[iv] = vert_pos[index];
+        m_vert_forces[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
     }
-    m_contact_load->InputSimpleForces(vert_forces, vert_indices);
+    m_contact_load->InputSimpleForces(m_vert_forces, m_vert_indices);
 
-    PrintContactData(vert_forces, vert_indices);
+    PrintContactData(m_vert_forces, m_vert_indices);
+
+    delete[] vert_data;
+    delete[] tri_data;
 
     delete[] index_data;
     delete[] force_data;
@@ -431,6 +434,8 @@ void RigNode::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
+        m_tire->GetMesh()->ResetCounters();
+        m_tire->GetMesh()->ResetTimers();
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -450,6 +455,7 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
 		const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
+
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
         const ChVector<>& rfrc_act = m_lin_actuator->Get_react_force();  // drawbar pull
@@ -457,16 +463,25 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rfrc_motor = m_rev_motor->Get_react_force();
         const ChVector<>& rtrq_motor = m_rev_motor->Get_react_torque();
 
+        auto mesh = m_tire->GetMesh();
+
         m_outf << m_system->GetChTime() << del;
+        // Body states
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
         m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
 		m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
         m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
+        // Joint reactions
         m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
         m_outf << rtrq_prsm.x << del << rtrq_prsm.y << del << rtrq_prsm.z << del;
         m_outf << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del;
         m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
         m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
+        // Solver statistics (for last integration step)
+        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver() << del << m_system->GetTimerUpdate();
+        m_outf << mesh->GetTimingInternalForces() << del << mesh->GetTimingJacobianLoad();
+        m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del << m_integrator->GetNumSolveCalls();
+        m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();
         m_outf << std::endl;
     }
 
@@ -478,7 +493,10 @@ void RigNode::OutputData(int frame) {
     csv << m_system->GetChTime() << std::endl;  // current time
     WriteStateInformation(csv);                 // state of bodies and tire
     WriteMeshInformation(csv);                  // connectivity and strain state
+    WriteContactInformation(csv);               // vertex contact forces
     csv.write_to_file(filename);
+
+    std::cout << "[Rig node    ] write output file ==> " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -573,6 +591,15 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
 		}
 		csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
 	}
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
+    csv << m_vert_indices.size() << std::endl;
+    for (unsigned int iv = 0; iv < m_vert_indices.size(); iv++) {
+        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv] << std::endl;
+    }
 }
 
 // -----------------------------------------------------------------------------

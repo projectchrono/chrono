@@ -1,6 +1,6 @@
 %%
-%% This is file `chrono.cls',
-%% a LaTeX document class for generating Chrono::Engine 
+%% `chrono.cls',
+%% a LaTeX document class for generating Chrono 
 %% technical reports.
 %%
 
@@ -69,7 +69,7 @@
 	}
 
 \newcommand{\Chrono}{%
-  {\sffamily{\bfseries Chrono}::Engine}\space%
+  {\sffamily{\bfseries Chrono}}\space%
 	}
 \newcommand{\urlChrono}{%
   \href{http://www.projectchrono.org}{\Chrono}%
@@ -121,7 +121,7 @@
 \pagestyle{fancy}
 \fancyhead{}
 \fancyfoot[C]{\thepage}
-\fancyhead[L]{\fontfamily{phv}\selectfont {\footnotesize Chrono::Engine technical documentation}}
+\fancyhead[L]{\fontfamily{phv}\selectfont {\footnotesize Chrono technical documentation}}
 
 \hypersetup{
     bookmarks=true,         % show bookmarks bar?

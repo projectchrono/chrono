@@ -21,13 +21,9 @@ ChSolverMKL::ChSolverMKL()
       sparsity_pattern_lock(false),
       use_perm(false),
       use_rhs_sparsity(false),
-      manual_factorization(false),
       nnz(0) {}
 
 double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
-    if (!manual_factorization)
-        Factorize(sysd);
-
     sysd.ConvertToMatrixForm(nullptr, &rhs);
 
     mkl_engine.SetProblem(matCSR3, rhs, sol);
@@ -54,7 +50,7 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     return 0.0f;
 }
 
-double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
+bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     // Initial resizing;
     if (solver_call == 0)
     {
@@ -77,7 +73,6 @@ double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     //     - if sparsity_pattern_lock is ON the matrix will have some uninitialized element flagged with -1 in the
     //     colIndex;
     //          those have to be removed by Compress().
-    // manual_factorization ? sysd.ConvertToMatrixForm(&matCSR3, nullptr) : sysd.ConvertToMatrixForm(&matCSR3, &rhs);
     sysd.ConvertToMatrixForm(&matCSR3, nullptr);
 
     // Set up the locks;
@@ -115,13 +110,16 @@ double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
 
-    if (pardiso_message_phase12) {
-        GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
-        GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
-        GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+    if (pardiso_message_phase12 == 0) {
+        // Successful factorization
+        return true;
     }
 
-    return pardiso_message_phase12;
+    GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
+    GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+    GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+
+    return false;
 }
 
 }  // end namespace chrono
