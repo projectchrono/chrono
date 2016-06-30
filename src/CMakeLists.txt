@@ -259,7 +259,7 @@ endif()
 #------------------------------------------------------------
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
-        DESTINATION include
+        DESTINATION include/chrono
         FILES_MATCHING PATTERN "*.h")
 
 #------------------------------------------------------------
@@ -394,7 +394,7 @@ set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
-               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake"
+               "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake"
                @ONLY)
 
 # For the INSTALL tree
@@ -407,9 +407,9 @@ set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
-               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
+               "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake.install"
                @ONLY)
 
-install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
-        DESTINATION cmake
+install(FILES "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake.install"
+        DESTINATION lib64/cmake
         RENAME ChronoConfig.cmake)

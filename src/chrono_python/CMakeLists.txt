@@ -81,8 +81,8 @@ ADD_DEPENDENCIES(ChronoEngine_pyparser ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_pyparser
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 # Let some variables be visible also from outside this directory, using the PARENT_SCOPE trick
 

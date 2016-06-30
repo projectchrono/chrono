@@ -5,5 +5,5 @@ if(ENABLE_MODULE_VEHICLE)
 endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/models
+        DESTINATION include/chrono/models
         FILES_MATCHING PATTERN "*.h")

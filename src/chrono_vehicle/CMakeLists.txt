@@ -526,8 +526,8 @@ target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
 
 install(TARGETS ChronoEngine_vehicle
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle

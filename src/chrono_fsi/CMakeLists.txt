@@ -145,8 +145,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_fsi ${LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_fsi
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 INSTALL(FILES ${ChronoEngine_FSI_HEADERS}
         DESTINATION include/chrono_fsi)

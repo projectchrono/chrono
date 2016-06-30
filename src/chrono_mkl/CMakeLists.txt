@@ -108,8 +108,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_mkl
 
 INSTALL(TARGETS ChronoEngine_mkl
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 INSTALL(FILES ${ChronoEngine_MKL_HEADERS} 
         DESTINATION include/chrono_mkl)
