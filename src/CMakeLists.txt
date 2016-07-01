@@ -394,7 +394,7 @@ set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
 set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/share/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
-               "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake"
+               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake"
                @ONLY)
 
 # For the INSTALL tree
@@ -407,9 +407,9 @@ set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
 set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
-               "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake.install"
+               "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
                @ONLY)
 
-install(FILES "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake.install"
+install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
         DESTINATION lib64/cmake
         RENAME ChronoConfig.cmake)
