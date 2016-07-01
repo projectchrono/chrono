@@ -391,7 +391,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collisi
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_SOURCE_DIR}/src/chrono/collision/convexdecomposition/HACD" )
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${PROJECT_BINARY_DIR}")
 set(CH_BINARY_DIR "${PROJECT_BINARY_DIR}")
-set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/data/")
+set(CH_DATA_DIR "${PROJECT_SOURCE_DIR}/share/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake"
@@ -404,7 +404,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/c
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
-set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data/")
+set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/share/data/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                "${LIBRARY_OUTPUT_PATH}/cmake/ChronoConfig.cmake.install"
