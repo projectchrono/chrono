@@ -117,9 +117,9 @@ target_link_libraries(ChronoModels_vehicle ${LIBRARIES})
 
 install(TARGETS ChronoModels_vehicle
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/models/vehicle
+        DESTINATION include/chrono_vehicle/models/vehicle
         FILES_MATCHING PATTERN "*.h")
