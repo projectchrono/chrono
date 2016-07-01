@@ -6,10 +6,10 @@ permalink: /download/
 
 {::options parse_block_html="true" /}
 
+### Linux users:
+Project Chrono release RPMs are available from our [repositories](http://projectchrono.org/repos/projectchrono-repo-0.1.0-1.noarch.rpm).
 
-
-Note that there is no download for Project Chrono. Chrono should be **cloned** from the public 
-[GIT repository](https://github.com/projectchrono/chrono) and **compiled** from its C++ source code.
+Note that there is currently no Windows download for Project Chrono. On Windows, Project Chrono should be **cloned** from the public [GIT repository](https://github.com/projectchrono/chrono) and **compiled** from its C++ source code.
 
 <div>
 <a href="https://github.com/projectchrono/chrono">
