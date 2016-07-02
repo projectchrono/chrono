@@ -377,7 +377,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
     /// the inertia tensor and mass are automatically recomputed from the
     /// geometry (in case a CAD plugin for example provides the surfaces.)
-    float GetDensity() const { return density; }
+    //float GetDensity() const { return density; } //  obsolete, use the base ChLoadable::GetDensity()
     void SetDensity(float mdensity) { density = mdensity; }
 
     //
@@ -782,7 +782,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     }
 
     /// This is not needed because not used in quadrature.
-    virtual double GetDensity() override { return 1; }
+    virtual double GetDensity() override { return density; }
 
     //
     // SERIALIZATION

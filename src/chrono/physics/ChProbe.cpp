@@ -17,9 +17,24 @@
 
 namespace chrono {
 
-ChProbe::ChProbe() {
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegisterABSTRACT<ChProbe> a_registration_ChProbe;
+
+void ChProbe::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+
+    // serialize parent class
+    ChObj::ArchiveOUT(marchive);
 }
 
-ChProbe::ChProbe(const ChProbe& other) : ChObj(other) {}
+/// Method to allow de serialization of transient data from archives.
+void ChProbe::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+
+    // deserialize parent class
+    ChObj::ArchiveIN(marchive);
+}
 
 }  // end namespace chrono

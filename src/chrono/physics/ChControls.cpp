@@ -25,8 +25,6 @@ void ChControls::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize parent class
     ChObj::ArchiveOUT(marchive);
-
-    // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -36,8 +34,6 @@ void ChControls::ArchiveIN(ChArchiveIn& marchive) {
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);
-
-    // deserialize all member data:
 }
 
 }  // end namespace chrono

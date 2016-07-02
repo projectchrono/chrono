@@ -375,9 +375,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI); }
 
     /// Attach a probe to this system.
-    void AddProbe(std::shared_ptr<ChProbe>& newprobe);
+    void AddProbe(const std::shared_ptr<ChProbe>& newprobe);
     /// Attach a control to this system.
-    void AddControls(std::shared_ptr<ChControls>& newcontrols);
+    void AddControls(const std::shared_ptr<ChControls>& newcontrols);
 
     /// Remove all probes from this system.
     void RemoveAllProbes();
@@ -658,10 +658,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// If ChControl() objects are added to this system, using the following commands
     /// you call the execution of their scripts. You seldom call these functions directly,
     /// since the ChSystem() methods already call them automatically, at each step, update, etc.
-    bool ExecuteControlsForStart();
     bool ExecuteControlsForUpdate();
     bool ExecuteControlsForStep();
-    bool ExecuteControlsFor3DStep();
 
     /// All bodies with collision detection data are requested to
     /// store the current position as "last position collision-checked"
@@ -676,7 +674,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
     class ChApi ChCustomComputeCollisionCallback {
       public:
-        virtual void PerformCustomCollision(ChSystem* msys){};
+        virtual void PerformCustomCollision(ChSystem* msys) {}
     };
 
     /// Use this if you want that some specific callback function is executed at each

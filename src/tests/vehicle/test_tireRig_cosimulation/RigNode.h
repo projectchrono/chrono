@@ -78,7 +78,9 @@ class RigNode {
 
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
-    double m_step_size;             ///< integration step size
+
+    std::shared_ptr<chrono::ChTimestepperHHT> m_integrator;  ///< HHT integrator object
+    double m_step_size;                                      ///< integration step size
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
     std::shared_ptr<chrono::ChBody> m_rim;      ///< wheel rim body

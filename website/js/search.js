@@ -93,6 +93,9 @@ jQuery(function() {
   function docshow(result) {
     console.log("result is: " + JSON.stringify(result, null, 4));
     var hits = result["items"];
+
+    var ul = document.getElementById("doc_results");
+    ul.innerHTML="";
     for (var i = 0; i < hits.length; i++) {
       var hit = hits[i];
       // console.log(hit);
@@ -100,7 +103,6 @@ jQuery(function() {
       var url = hit["url"];
       var url_base = "http://api.projectchrono.org/";
       url = url_base + url;
-      var ul = document.getElementById("doc_results");
       var li = document.createElement("li");
       ul.appendChild(li);
       var a = document.createElement("a");

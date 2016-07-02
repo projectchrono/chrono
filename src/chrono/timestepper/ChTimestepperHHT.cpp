@@ -168,6 +168,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             A = Anew;
             L = Lnew;
 
+        /*
         } else if (!matrix_is_current) {
             // ------ NR did not converge but the matrix was out-of-date
 
@@ -180,6 +181,7 @@ void ChTimestepperHHT::Advance(const double dt) {
             }
 
             call_setup = true;
+        */
 
         } else if (!step_control) {
             // ------ NR did not converge and we do not control stepsize

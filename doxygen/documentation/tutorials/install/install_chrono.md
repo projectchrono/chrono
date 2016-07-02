@@ -10,12 +10,12 @@ A summary of the process required to **build** Chrono is provided in the picture
 
 ## 1) Check/Install a C++ compiler
 
-We recommend the following compilers:
+Recommended compilers:
 - Microsoft C++: Visual Studio from 2013 (free Community edition is fine, both 32 or 64 bit are ok)
 - MingW GNU C++ compiler for Windows
 - GNU C++ compiler for Linux-based platforms.
 
-<small>Other compilers might work as well, but they might require some changes to the CMake scripts.</small>
+<small>Other compilers could work as well, but they might require changes to the CMake scripts.</small>
 
 <div class="ce-danger">
 The initial release of Visual Studio 2015 gives an 

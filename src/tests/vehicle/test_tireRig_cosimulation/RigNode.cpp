@@ -135,13 +135,13 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
     // Integrator settings
     m_system->SetIntegrationType(ChSystem::INT_HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(5e-05, 1.8e00);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetScaling(true);
-    integrator->SetVerbose(true);
+    m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
+    m_integrator->SetAlpha(-0.2);
+    m_integrator->SetMaxiters(50);
+    m_integrator->SetAbsTolerances(5e-05, 1.8e00);
+    m_integrator->SetMode(ChTimestepperHHT::POSITION);
+    m_integrator->SetScaling(true);
+    m_integrator->SetVerbose(true);
 
     // -------------------------------
     // Create the rig mechanism bodies
@@ -434,6 +434,8 @@ void RigNode::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
+        m_tire->GetMesh()->ResetCounters();
+        m_tire->GetMesh()->ResetTimers();
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -453,6 +455,7 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
 		const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
+
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
         const ChVector<>& rfrc_act = m_lin_actuator->Get_react_force();  // drawbar pull
@@ -460,16 +463,25 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rfrc_motor = m_rev_motor->Get_react_force();
         const ChVector<>& rtrq_motor = m_rev_motor->Get_react_torque();
 
+        auto mesh = m_tire->GetMesh();
+
         m_outf << m_system->GetChTime() << del;
+        // Body states
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
         m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
 		m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
         m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
+        // Joint reactions
         m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
         m_outf << rtrq_prsm.x << del << rtrq_prsm.y << del << rtrq_prsm.z << del;
         m_outf << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del;
         m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
         m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
+        // Solver statistics (for last integration step)
+        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver() << del << m_system->GetTimerUpdate();
+        m_outf << mesh->GetTimingInternalForces() << del << mesh->GetTimingJacobianLoad();
+        m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del << m_integrator->GetNumSolveCalls();
+        m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();
         m_outf << std::endl;
     }
 

@@ -235,6 +235,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
     static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations
 
+public:
     // Interface to ChElementBase base class
     // -------------------------------------
 
