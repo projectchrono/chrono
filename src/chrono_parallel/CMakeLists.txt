@@ -176,30 +176,12 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChIterativeSolverParallelDVI.cpp
     solver/ChIterativeSolverParallelDEM.cpp
     solver/ChSolverParallel.h
-    #solver/ChSolverJacobi.h
-    #solver/ChSolverCGS.h
-    #solver/ChSolverPGS.h
-    #solver/ChSolverGD.h
-    #solver/ChSolverSD.h
-    #solver/ChSolverBiCG.h
-    #solver/ChSolverBiCGStab.h
-    #solver/ChSolverPDIP.h
     solver/ChSolverParallel.cpp
-    #solver/ChSolverJacobi.cpp
-    #solver/ChSolverCG.cpp
-    #solver/ChSolverCGS.cpp
-    #solver/ChSolverPGS.cpp
-    #solver/ChSolverGD.cpp
-    #solver/ChSolverSD.cpp
-    #solver/ChSolverFN.cpp
     solver/ChSolverParallelAPGD.cpp
     solver/ChSolverParallelAPGDREF.cpp
     solver/ChSolverParallelMinRes.cpp
-    #solver/ChSolverBiCG.cpp
-    #solver/ChSolverBiCGStab.cpp
-    #solver/ChSolverPDIP.cpp
-    solver/ChSolverBB.cpp
-    solver/ChSolverSPGQP.cpp
+    solver/ChSolverParallelBB.cpp
+    solver/ChSolverParallelSPGQP.cpp
     solver/ChShurProduct.cpp
     )
 
