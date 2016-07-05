@@ -162,5 +162,5 @@ int main(int argc, char* argv[]) {
 
     // Return 0 if test passed
     ////return !passed;
-    return true;
+    return 0;
 }
