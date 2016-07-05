@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <iostream>
+#include <cmath>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
@@ -27,6 +28,7 @@ int main(int argc, char* argv[]) {
     double mass = 1.0;                     // mass of pendulum
     double length = 4.0;                   // length of pendulum
     ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    double g = 9.80665;                    // gravitational acceleration
 
     ChVector<> jointLoc(1, 2, 3);                       // absolute location of revolute joint
     double jointAngle = -CH_C_PI_4;                     // joint rotation angle (about global X axis)
@@ -34,7 +36,7 @@ int main(int argc, char* argv[]) {
 
     // Create the mechanical system
     ChSystem my_system;
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.80665));
+    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
     // Integrator settings
     my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
@@ -71,7 +73,6 @@ int main(int argc, char* argv[]) {
 
     // Perform a system assembly.
     my_system.DoFullAssembly();
-    ////my_system.DoStepDynamics(1e-7);
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector<> pos = pendulum->GetPos();
@@ -105,7 +106,61 @@ int main(int argc, char* argv[]) {
     std::cout << "React. force:  " << rfrc.x << "  " << rfrc.y << "  " << rfrc.z << std::endl;
     std::cout << "React. torque: " << rtrq.x << "  " << rtrq.y << "  " << rtrq.z << std::endl;
 
-    //// TODO: compare to analytical solution
+    // Analytical solution
 
-    return 0;
+    // Position and orientation
+    ChVector<> pos_ref = jointLoc + ChVector<>(0.5 * length, 0, 0);
+    ChQuaternion<> rot_ref(std::cos(jointAngle / 2), std::sin(jointAngle / 2), 0, 0);
+
+    // Linear and angular velocities (expressed in absolute frame)
+    ChVector<> lin_vel_ref(0, 0, 0);
+    ChVector<> ang_vel_ref(0, 0, 0);
+
+    // Angular acceleration (expressed in local frame)
+    double omg_z = -0.5 * mass * g * length * std::sin(jointAngle) / (inertiaXX.z + 0.25 * mass * length * length);
+
+    // Angular acceleration (expressed in absolute frame)
+    ChVector<> ang_acc_ref(0, -std::sin(jointAngle) * omg_z, std::cos(jointAngle) * omg_z);
+
+    // Linear acceleration (expressed in absolute frame)
+    ChVector<> lin_acc_ref(0, 0.5 * length * std::cos(jointAngle) * omg_z, 0.5 * length * std::sin(jointAngle) * omg_z);
+
+    // Lagrange multipliers
+    double lambda_1 = 0;
+    double lambda_2 = -0.5 * mass * length * std::cos(jointAngle) * omg_z;
+    double lambda_3 = -mass * g - 0.5 * mass * length * std::sin(jointAngle) * omg_z;
+    double lambda_4 = -0.5 * length * std::sin(jointAngle) * lambda_2 + 0.5 * length * std::cos(jointAngle) * lambda_3;
+    double lambda_5 = 0;
+
+    // Reaction force and torque on first body (ground), at joint location, expressed in absolute frame
+    ChVector<> rfrc_ref(lambda_1, lambda_2, lambda_3);
+    ChVector<> rtrq_ref(lambda_5, -std::cos(jointAngle) * lambda_4, -std::sin(jointAngle) * lambda_4);
+
+    std::cout << std::endl << "Analytical solution" << std::endl;
+    std::cout << "Position:      " << pos_ref.x << "  " << pos_ref.y << "  " << pos_ref.z << std::endl;
+    std::cout << "Orientation:   " << rot_ref.e0 << "  " << rot_ref.e1 << "  " << rot_ref.e2 << "  " << rot_ref.e3 << std::endl;
+    std::cout << "Lin. vel.:     " << lin_vel_ref.x << "  " << lin_vel_ref.y << "  " << lin_vel_ref.z << std::endl;
+    std::cout << "Ang. vel.:     " << ang_vel_ref.x << "  " << ang_vel_ref.y << "  " << ang_vel_ref.z << std::endl;
+    std::cout << "Lin. acc.:     " << lin_acc_ref.x << "  " << lin_acc_ref.y << "  " << lin_acc_ref.z << std::endl;
+    std::cout << "Ang. acc.:     " << ang_acc_ref.x << "  " << ang_acc_ref.y << "  " << ang_acc_ref.z << std::endl;
+    std::cout << "React. force:  " << rfrc_ref.x << "  " << rfrc_ref.y << "  " << rfrc_ref.z << std::endl;
+    std::cout << "React. torque: " << rtrq_ref.x << "  " << rtrq_ref.y << "  " << rtrq_ref.z << std::endl;
+
+    // Compare simulation and analytical solution
+    bool passed = true;
+    double tolerance = 1e-5;
+    passed &= pos.Equals(pos_ref, tolerance);
+    passed &= rot.Equals(rot_ref, tolerance);
+    passed &= lin_vel.Equals(lin_vel_ref, tolerance);
+    passed &= ang_vel.Equals(ang_vel_ref, tolerance);
+    passed &= lin_acc.Equals(lin_acc_ref, tolerance);
+    passed &= ang_acc.Equals(ang_acc_ref, tolerance);
+    passed &= rfrc.Equals(rfrc_ref, tolerance);
+    passed &= rtrq.Equals(rtrq_ref, tolerance);
+
+    std::cout << std::endl << "Test " << (passed ? "PASSED" : "FAILED") << std::endl;
+
+    // Return 0 if test passed
+    ////return !passed;
+    return true;
 }
