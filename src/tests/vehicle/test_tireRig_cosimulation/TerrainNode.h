@@ -100,6 +100,7 @@ class TerrainNode {
 
     chrono::ChMaterialSurfaceBase::ContactMethod m_method;  ///< contact method (penalty or complementarity)
     chrono::ChSystemParallel* m_system;                     ///< containing system
+    double m_step_size;                                     ///< integration step size
 
     std::shared_ptr<chrono::ChMaterialSurfaceBase> m_material_tire;  ///< material properties for proxy bodies
     std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index

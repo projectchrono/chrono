@@ -89,6 +89,8 @@ TerrainNode::TerrainNode(Type type,
     // Model parameters
     // ----------------
 
+    m_step_size = 1e-4;
+
     // Container dimensions
     m_hdimX = 5.0;
     m_hdimY = 0.25;
@@ -429,12 +431,11 @@ void TerrainNode::Settle() {
         // Simulate settling of granular terrain
         // -------------------------------------
         double time_end = 0.4;
-        double time_step = 1e-4;
 
         while (m_system->GetChTime() < time_end) {
             m_timer.reset();
             m_timer.start();
-            m_system->DoStepDynamics(time_step);
+            m_system->DoStepDynamics(m_step_size);
             m_timer.stop();
             m_cumm_sim_time += m_timer();
             std::cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
@@ -811,9 +812,15 @@ void TerrainNode::ForcesFaceProxies(std::vector<double>& vert_forces, std::vecto
 void TerrainNode::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
-    m_system->DoStepDynamics(step_size);
+    double t = 0;
+    while (t < step_size) {
+        double h = std::min<>(m_step_size, step_size - t);
+        m_system->DoStepDynamics(h);
+        t += h;
+    }
     m_timer.stop();
     m_cumm_sim_time += m_timer();
+
 #ifdef CHRONO_OPENGL
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -826,12 +833,12 @@ void TerrainNode::Advance(double step_size) {
 #endif
 
     switch (m_type) {
-    case RIGID:
-        PrintNodeProxiesContactData();
-        break;
-    case GRANULAR:
-        PrintFaceProxiesContactData();
-        break;
+        case RIGID:
+            PrintNodeProxiesContactData();
+            break;
+        case GRANULAR:
+            PrintFaceProxiesContactData();
+            break;
     }
 }
 
