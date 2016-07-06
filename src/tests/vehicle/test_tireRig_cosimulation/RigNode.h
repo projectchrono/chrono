@@ -23,17 +23,13 @@
 // =============================================================================
 
 //// TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
 
 #ifndef TESTRIG_RIGNODE_H
 #define TESTRIG_RIGNODE_H
 
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <vector>
 
-#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -41,6 +37,8 @@
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+
+#include "BaseNode.h"
 
 // =============================================================================
 
@@ -58,7 +56,7 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
 
 // =============================================================================
 
-class RigNode {
+class RigNode : public BaseNode {
   public:
     RigNode(double init_vel,  ///< initial wheel linear velocity
             double slip,      ///< longitudinal slip value
@@ -66,21 +64,15 @@ class RigNode {
             );
     ~RigNode();
 
-    void SetOutputFile(const std::string& name);
-
-    void Initialize();
-    void Synchronize(int step_number, double time);
-    void Advance(double step_size);
-
-    double GetSimTime() { return m_timer.GetTimeSeconds(); }
-    double GetTotalSimTime() { return m_cumm_sim_time; }
-    void OutputData(int frame);
+    virtual void Initialize() override;
+    virtual void Synchronize(int step_number, double time) override;
+    virtual void Advance(double step_size) override;
+    virtual void OutputData(int frame) override;
 
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
 
     std::shared_ptr<chrono::ChTimestepperHHT> m_integrator;  ///< HHT integrator object
-    double m_step_size;                                      ///< integration step size
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
     std::shared_ptr<chrono::ChBody> m_rim;      ///< wheel rim body
@@ -105,19 +97,16 @@ class RigNode {
     std::vector<chrono::ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
     std::vector<chrono::ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
 
-    std::ofstream m_outf;  ///< output file stream
-    chrono::ChTimer<double> m_timer;
-    double m_cumm_sim_time;
-
     // Write mesh node state information
     void WriteStateInformation(chrono::utils::CSV_writer& csv);
     // Write mesh connectivity and strain information
-	void WriteMeshInformation(chrono::utils::CSV_writer& csv);
+    void WriteMeshInformation(chrono::utils::CSV_writer& csv);
     // Write contact forces on tire mesh vertices
     void WriteContactInformation(chrono::utils::CSV_writer& csv);
 
     void PrintLowestNode();
-    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos, const std::vector<chrono::ChVector<>>& vert_vel);
+    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos,
+                           const std::vector<chrono::ChVector<>>& vert_vel);
     void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
 };
 

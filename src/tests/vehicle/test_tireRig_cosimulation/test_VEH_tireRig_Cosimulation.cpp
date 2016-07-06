@@ -16,7 +16,7 @@
 // system is co-simulated with a Chrono::Parallel system for the granular terrain.
 //
 // MAIN DRIVER
-// 
+//
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
@@ -31,7 +31,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "thirdparty/SimpleOpt/SimpleOpt.h"
 
-#include "Settings.h"
 #include "RigNode.h"
 #include "TerrainNode.h"
 
@@ -41,6 +40,20 @@ using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+// =============================================================================
+
+// Cosimulation step size
+double step_size = 1e-4;
+
+// Output frequency (frames per second)
+double output_fps = 200;
+
+// Checkpointing frequency (frames per second)
+double checkpoint_fps = 100;
+
+// Output directory
+std::string out_dir = "../TIRE_RIG_COSIM";
 
 // =============================================================================
 
@@ -104,7 +117,7 @@ int main(int argc, char** argv) {
     int rank;
     int name_len;
     char procname[MPI_MAX_PROCESSOR_NAME];
-  
+
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -135,22 +148,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Append suffix to output directories
-    rig_dir = rig_dir + suffix;
-    terrain_dir = terrain_dir + suffix;
-
-    // Prepare output directories.
+    // Prepare output directory.
     if (rank == 0) {
         if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
             cout << "Error creating directory " << out_dir << endl;
-            return 1;
-        }
-        if (ChFileutils::MakeDirectory(rig_dir.c_str()) < 0) {
-            cout << "Error creating directory " << rig_dir << endl;
-            return 1;
-        }
-        if (ChFileutils::MakeDirectory(terrain_dir.c_str()) < 0) {
-            cout << "Error creating directory " << terrain_dir << endl;
             return 1;
         }
     }
@@ -170,16 +171,18 @@ int main(int argc, char** argv) {
         case RIG_NODE_RANK:
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
-            if (output) {
-                my_rig->SetOutputFile(rig_dir + "/rig_results.txt");
-            }
+            my_rig->SetStepSize(1e-4);
+            my_rig->SetOutDir(out_dir, suffix);
+            cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
             break;
         case TERRAIN_NODE_RANK:
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
-            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, render, nthreads_terrain);
-            if (output) {
-                ////my_terrain->SetOutputFile(terrain_dir + "/terrain_results.txt");
-            }
+            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, render,
+                                         nthreads_terrain);
+            my_terrain->SetStepSize(1e-4);
+            my_terrain->UseMaterialProperties(true);
+            my_terrain->SetOutDir(out_dir, suffix);
+            cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
             my_terrain->Settle();
             break;
     }
@@ -300,9 +303,8 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
-                     std::string& suffix
-                     ) {
-    // Create the option parser and pass it the program arguments and the array of valid options. 
+                     std::string& suffix) {
+    // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
 
     // Then loop for as long as there are arguments to be processed.

@@ -26,18 +26,14 @@
 ////    better approximation of mass / inertia? (CreateFaceProxies)
 ////    angular velocity (UpdateFaceProxies)
 ////    implement (PrintFaceProxiesContactData)
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
 
 #ifndef TESTRIG_TERRAINNODE_H
 #define TESTRIG_TERRAINNODE_H
 
 #include <omp.h>
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <vector>
 
-#include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -48,9 +44,11 @@
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
+#include "BaseNode.h"
+
 // =============================================================================
 
-class TerrainNode {
+class TerrainNode : public BaseNode {
   public:
     enum Type { RIGID, GRANULAR };
 
@@ -62,16 +60,15 @@ class TerrainNode {
                 );
     ~TerrainNode();
 
-    void SetOutputFile(const std::string& name);
+    virtual void Initialize() override;
+    virtual void Synchronize(int step_number, double time) override;
+    virtual void Advance(double step_size) override;
+    virtual void OutputData(int frame) override;
+
+    /// Specify whether contact coefficients are based on material properties (default: true).
+    void UseMaterialProperties(bool flag) { m_use_mat_properties = flag; }
 
     void Settle();
-    void Initialize();
-    void Synchronize(int step_number, double time);
-    void Advance(double step_size);
-
-    double GetSimTime() { return m_timer.GetTimeSeconds(); }
-    double GetTotalSimTime() { return m_cumm_sim_time; }
-    void OutputData(int frame);
     void WriteCheckpoint();
 
   private:
@@ -98,9 +95,9 @@ class TerrainNode {
 
     Type m_type;  ///< terrain type (RIGID or GRANULAR)
 
-    chrono::ChMaterialSurfaceBase::ContactMethod m_method;  ///< contact method (penalty or complementarity)
     chrono::ChSystemParallel* m_system;                     ///< containing system
-    double m_step_size;                                     ///< integration step size
+    chrono::ChMaterialSurfaceBase::ContactMethod m_method;  ///< contact method (penalty or complementarity)
+    bool m_use_mat_properties;                              ///< contact coefficients based on material properties?
 
     std::shared_ptr<chrono::ChMaterialSurfaceBase> m_material_tire;  ///< material properties for proxy bodies
     std::vector<ProxyBody> m_proxies;  ///< list of proxy bodies with associated mesh index
@@ -132,10 +129,6 @@ class TerrainNode {
     unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
 
     bool m_render;  ///< if true, use OpenGL rendering
-
-    std::ofstream m_outf;  ///< output file stream
-    chrono::ChTimer<double> m_timer;
-    double m_cumm_sim_time;
 
     static const std::string m_checkpoint_filename;  ///< name of checkpointing file
 

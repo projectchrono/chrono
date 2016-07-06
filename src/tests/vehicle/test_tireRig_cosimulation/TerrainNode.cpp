@@ -30,10 +30,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include <fstream>
-#include <iostream>
 #include <set>
-#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -41,8 +38,6 @@
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChFileutils.h"
-#include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -53,12 +48,14 @@
 #include "chrono_opengl/ChOpenGLWindow.h"
 #endif
 
-#include "Settings.h"
 #include "TerrainNode.h"
+
+using std::cout;
+using std::endl;
 
 using namespace chrono;
 
-const std::string TerrainNode::m_checkpoint_filename = out_dir + "/checkpoint.dat";
+const std::string TerrainNode::m_checkpoint_filename = "checkpoint.dat";
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
@@ -72,24 +69,22 @@ TerrainNode::TerrainNode(Type type,
                          bool use_checkpoint,
                          bool render,
                          int num_threads)
-    : m_type(type),
+    : BaseNode("TERRAIN"),
+      m_type(type),
       m_method(method),
+      m_use_mat_properties(true),
       m_use_checkpoint(use_checkpoint),
       m_render(render),
       m_num_particles(0),
       m_particles_start_index(0),
       m_proxy_start_index(0),
-      m_init_height(0),
-      m_cumm_sim_time(0) {
-    std::cout << "[Terrain node] type = " << type << " method = " << method << " use_checkpoint = " << use_checkpoint
-              << " num_threads = " << num_threads << std::endl;
-    std::cout << "[Terrain node] output directory: " << terrain_dir << std::endl;
+      m_init_height(0) {
+    cout << "[Terrain node] type = " << type << " method = " << method << " use_checkpoint = " << use_checkpoint
+         << " num_threads = " << num_threads << endl;
 
     // ----------------
     // Model parameters
     // ----------------
-
-    m_step_size = 1e-4;
 
     // Container dimensions
     m_hdimX = 5.0;
@@ -121,7 +116,7 @@ TerrainNode::TerrainNode(Type type,
     int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
     int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
     int binsZ = 1;
-    std::cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << std::endl;
+    cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
 
     // Proxy bodies properties
     m_fixed_proxies = false;
@@ -139,7 +134,7 @@ TerrainNode::TerrainNode(Type type,
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
             sys->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
-            sys->GetSettings()->solver.use_material_properties = use_mat_properties;
+            sys->GetSettings()->solver.use_material_properties = m_use_mat_properties;
             m_system = sys;
 
             break;
@@ -161,7 +156,7 @@ TerrainNode::TerrainNode(Type type,
     }
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector<>(0, 0, gacc));
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
     m_system->GetSettings()->perform_thread_tuning = false;
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
@@ -176,7 +171,7 @@ TerrainNode::TerrainNode(Type type,
 // Sanity check: print number of threads in a parallel region
 #pragma omp parallel
 #pragma omp master
-    { std::cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << std::endl; }
+    { cout << "[Terrain node] actual number of OpenMP threads: " << omp_get_num_threads() << endl; }
 
     // ---------------------
     // Create terrain bodies
@@ -279,7 +274,7 @@ TerrainNode::TerrainNode(Type type,
 
         // Create particles in layers until reaching the desired number of particles
         double r = 1.01 * m_radius_g;
-		ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
+        ChVector<> hdims(m_hdimX - r, m_hdimY - r, 0);
         ChVector<> center(0, 0, 2 * r);
 
         for (int il = 0; il < num_layers; il++) {
@@ -288,21 +283,21 @@ TerrainNode::TerrainNode(Type type,
         }
 
         m_num_particles = gen.getTotalNumBodies();
-        std::cout << "[Terrain node] Generated particles:  " << m_num_particles << std::endl;
+        cout << "[Terrain node] Generated particles:  " << m_num_particles << endl;
     }
 
-    // Cache the number of contact shapes that have been added so far to the parallel system.  
+    // Cache the number of contact shapes that have been added so far to the parallel system.
     // ATTENTION: This will be used to index into the various global arrays to access/modify
     // information on contact shapes for the proxy bodies.  The implicit assumption here is
     // that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
 
     m_proxy_start_index = m_system->data_manager->num_rigid_shapes;
 
+#ifdef CHRONO_OPENGL
     // -------------------------------
     // Create the visualization window
     // -------------------------------
 
-#ifdef CHRONO_OPENGL
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node", m_system);
@@ -349,21 +344,13 @@ TerrainNode::TerrainNode(Type type,
         }
     }
 
-    std::cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << std::endl;
+    cout << "[Terrain node] received tire material:  friction = " << mat_props[0] << endl;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TerrainNode::~TerrainNode() {
     delete m_system;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void TerrainNode::SetOutputFile(const std::string& name) {
-    m_outf.open(name, std::ios::out);
-    m_outf.precision(7);
-    m_outf << std::scientific;
 }
 
 // -----------------------------------------------------------------------------
@@ -385,7 +372,8 @@ void TerrainNode::Settle() {
         // ------------------------------------------------
 
         // Open input file stream
-        std::ifstream ifile(m_checkpoint_filename);
+        std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+        std::ifstream ifile(checkpoint_filename);
         std::string line;
 
         // Read and discard line with current time
@@ -399,7 +387,7 @@ void TerrainNode::Settle() {
             iss >> num_particles;
 
             if (num_particles != m_num_particles) {
-                std::cout << "ERROR: inconsistent number of particles in checkpoint file!" << std::endl;
+                cout << "ERROR: inconsistent number of particles in checkpoint file!" << endl;
                 MPI_Abort(MPI_COMM_WORLD, 1);
             }
         }
@@ -424,7 +412,8 @@ void TerrainNode::Settle() {
             body->SetRot_dt(ChQuaternion<>(rot_dt.e0, rot_dt.e1, rot_dt.e2, rot_dt.e3));
         }
 
-        std::cout << "[Terrain node] read checkpoint <=== " << m_checkpoint_filename << "   num. particles = " << num_particles << std::endl;
+        cout << "[Terrain node] read checkpoint <=== " << checkpoint_filename << "   num. particles = " << num_particles
+             << endl;
 
     } else {
         // -------------------------------------
@@ -437,9 +426,9 @@ void TerrainNode::Settle() {
             m_timer.start();
             m_system->DoStepDynamics(m_step_size);
             m_timer.stop();
-            m_cumm_sim_time += m_timer();
-            std::cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
-                      << m_timer.GetTimeSeconds() << "]" << std::flush;
+            m_cum_sim_time += m_timer();
+            cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
+                 << m_timer.GetTimeSeconds() << "]" << std::flush;
 #ifdef CHRONO_OPENGL
             if (m_render) {
                 opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
@@ -452,8 +441,8 @@ void TerrainNode::Settle() {
 #endif
         }
 
-        std::cout << "[Terrain node] settling time = " << m_cumm_sim_time << std::endl;
-        m_cumm_sim_time = 0;
+        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+        m_cum_sim_time = 0;
     }
 
     // Find "height" of granular material
@@ -480,11 +469,11 @@ void TerrainNode::Initialize() {
 
     // This includes the terrain height and the container half-length.
     // Note: take into account dimension of proxy bodies
-	double init_dim[2] = { m_init_height + m_radius_pN, m_hdimX };
+    double init_dim[2] = {m_init_height + m_radius_pN, m_hdimX};
     MPI_Send(init_dim, 2, MPI_DOUBLE, RIG_NODE_RANK, 0, MPI_COMM_WORLD);
 
-	std::cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << std::endl;
-	std::cout << "[Terrain node] Sent container half-length = " << init_dim[1] << std::endl;
+    cout << "[Terrain node] Sent initial terrain height = " << init_dim[0] << endl;
+    cout << "[Terrain node] Sent container half-length = " << init_dim[1] << endl;
 
     // ------------------------------------------
     // Receive tire contact surface specification
@@ -499,8 +488,7 @@ void TerrainNode::Initialize() {
     m_vertex_states.resize(m_num_vert);
     m_triangles.resize(m_num_tri);
 
-    std::cout << "[Terrain node] Received vertices = " << surf_props[0] << " triangles = " << surf_props[1]
-              << std::endl;
+    cout << "[Terrain node] Received vertices = " << surf_props[0] << " triangles = " << surf_props[1] << endl;
 
     // -------------------
     // Create proxy bodies
@@ -615,14 +603,14 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
     // Set position, rotation, and velocity of proxy bodies.
     switch (m_type) {
-    case RIGID:
-        UpdateNodeProxies();
-        PrintNodeProxiesUpdateData();
-        break;
-    case GRANULAR:
-        UpdateFaceProxies();
-        PrintFaceProxiesUpdateData();
-        break;
+        case RIGID:
+            UpdateNodeProxies();
+            PrintNodeProxiesUpdateData();
+            break;
+        case GRANULAR:
+            UpdateFaceProxies();
+            PrintFaceProxiesUpdateData();
+            break;
     }
 
     // Calculate cumulative contact forces for all bodies in system.
@@ -635,12 +623,12 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
     if (step_number > 0) {
         switch (m_type) {
-        case RIGID:
-            ForcesNodeProxies(vert_forces, vert_indices);
-            break;
-        case GRANULAR:
-            ForcesFaceProxies(vert_forces, vert_indices);
-            break;
+            case RIGID:
+                ForcesNodeProxies(vert_forces, vert_indices);
+                break;
+            case GRANULAR:
+                ForcesFaceProxies(vert_forces, vert_indices);
+                break;
         }
     }
 
@@ -649,8 +637,8 @@ void TerrainNode::Synchronize(int step_number, double time) {
     MPI_Send(vert_indices.data(), num_vert, MPI_INT, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
     MPI_Send(vert_forces.data(), 3 * num_vert, MPI_DOUBLE, RIG_NODE_RANK, step_number, MPI_COMM_WORLD);
 
-    std::cout << "[Terrain node] step number: " << step_number << "  num contacts: " << m_system->GetNcontacts()
-              << "  vertices in contact: " << num_vert << std::endl;
+    cout << "[Terrain node] step number: " << step_number << "  num contacts: " << m_system->GetNcontacts()
+         << "  vertices in contact: " << num_vert << endl;
 }
 
 // Set position and velocity of proxy bodies based on tire mesh vertices.
@@ -729,9 +717,9 @@ void TerrainNode::ForcesNodeProxies(std::vector<double>& vert_forces, std::vecto
 // Calculate barycentric coordinates (a1, a2, a3) for a given point P
 // with respect to the triangle with vertices {v1, v2, v3}
 ChVector<> TerrainNode::CalcBarycentricCoords(const ChVector<>& v1,
-    const ChVector<>& v2,
-    const ChVector<>& v3,
-    const ChVector<>& vP) {
+                                              const ChVector<>& v2,
+                                              const ChVector<>& v3,
+                                              const ChVector<>& vP) {
     ChVector<> v12 = v2 - v1;
     ChVector<> v13 = v3 - v1;
     ChVector<> v1P = vP - v1;
@@ -773,24 +761,21 @@ void TerrainNode::ForcesFaceProxies(std::vector<double>& vert_forces, std::vecto
         auto v1 = my_map.find(m_triangles[it].v1);
         if (v1 != my_map.end()) {
             v1->second += force;
-        }
-        else {
+        } else {
             my_map[m_triangles[it].v1] = force;
         }
 
         auto v2 = my_map.find(m_triangles[it].v2);
         if (v2 != my_map.end()) {
             v2->second += force;
-        }
-        else {
+        } else {
             my_map[m_triangles[it].v2] = force;
         }
 
         auto v3 = my_map.find(m_triangles[it].v3);
         if (v3 != my_map.end()) {
             v3->second += force;
-        }
-        else {
+        } else {
             my_map[m_triangles[it].v3] = force;
         }
     }
@@ -819,7 +804,7 @@ void TerrainNode::Advance(double step_size) {
         t += h;
     }
     m_timer.stop();
-    m_cumm_sim_time += m_timer();
+    m_cum_sim_time += m_timer();
 
 #ifdef CHRONO_OPENGL
     if (m_render) {
@@ -852,19 +837,19 @@ void TerrainNode::OutputData(int frame) {
 
     // Create and write frame output file.
     char filename[100];
-    sprintf(filename, "%s/data_%04d.dat", terrain_dir.c_str(), frame + 1);
+    sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
-    
+
     // Write current time, number of granular particles and their radius
-    csv << m_system->GetChTime() << std::endl;
-    csv << m_num_particles << m_radius_g << std::endl;
+    csv << m_system->GetChTime() << endl;
+    csv << m_num_particles << m_radius_g << endl;
 
     // Write particle positions and linear velocities
     for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() < m_Id_g)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << std::endl;
+        csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
     }
 
     csv.write_to_file(filename);
@@ -874,10 +859,10 @@ void TerrainNode::OutputData(int frame) {
 // -----------------------------------------------------------------------------
 void TerrainNode::WriteCheckpoint() {
     utils::CSV_writer csv(" ");
-    
+
     // Write current time and number of granular material bodies.
-    csv << m_system->GetChTime() << std::endl;
-    csv << m_num_particles << std::endl;
+    csv << m_system->GetChTime() << endl;
+    csv << m_num_particles << endl;
 
     // Loop over all bodies in the system and write state for granular material bodies.
     // Filter granular material using the body identifier.
@@ -885,12 +870,12 @@ void TerrainNode::WriteCheckpoint() {
         if (body->GetIdentifier() < m_Id_g)
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPos_dt() << body->GetRot_dt()
-            << std::endl;
+            << endl;
     }
 
-    csv.write_to_file(m_checkpoint_filename);
-
-    std::cout << "[Terrain node] write checkpoint ===> " << m_checkpoint_filename << std::endl;
+    std::string checkpoint_filename = m_out_dir + "/" + m_checkpoint_filename;
+    csv.write_to_file(checkpoint_filename);
+    cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -906,7 +891,7 @@ void TerrainNode::PrintNodeProxiesContactData() {
     auto& dpth = dm->host_data.dpth_rigid_rigid;
     auto& norm = dm->host_data.norm_rigid_rigid;
     std::set<int> vertices_in_contact;
-    std::cout << "[Terrain node] contact information (" << dm->num_rigid_contacts << ")" << std::endl;
+    cout << "[Terrain node] contact information (" << dm->num_rigid_contacts << ")" << endl;
     for (uint ic = 0; ic < dm->num_rigid_contacts; ic++) {
         int idA = bids[ic].x;
         int idB = bids[ic].y;
@@ -917,18 +902,18 @@ void TerrainNode::PrintNodeProxiesContactData() {
         if (indexB > 0)
             vertices_in_contact.insert(indexB);
 
-        std::cout << "  id1 = " << indexA << "  id2 = " << indexB << "   dpth = " << dpth[ic]
-            << "  normal = " << norm[ic].x << "  " << norm[ic].y << "  " << norm[ic].z << std::endl;
+        cout << "  id1 = " << indexA << "  id2 = " << indexB << "   dpth = " << dpth[ic] << "  normal = " << norm[ic].x
+             << "  " << norm[ic].y << "  " << norm[ic].z << endl;
     }
 
     // Cumulative contact forces on proxy bodies.
     m_system->CalculateContactForces();
-    std::cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << std::endl;
+    cout << "[Terrain node] vertex forces (" << vertices_in_contact.size() << ")" << endl;
     for (unsigned int iv = 0; iv < m_num_vert; iv++) {
         if (vertices_in_contact.find(iv) != vertices_in_contact.end()) {
             real3 force = m_system->GetBodyContactForce(m_proxies[iv].m_body);
-            std::cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  "
-                << force.z << std::endl;
+            cout << "  id = " << m_proxies[iv].m_index << "  force = " << force.x << "  " << force.y << "  " << force.z
+                 << endl;
         }
     }
 
@@ -939,7 +924,7 @@ void TerrainNode::PrintNodeProxiesContactData() {
     ////    ChBody* bodyA = static_cast<ChBody*>((*it)->GetObjA());
     ////    ChBody* bodyB = static_cast<ChBody*>((*it)->GetObjA());
 
-    ////    std::cout << " id1 = " << bodyA->GetIdentifier() << "  id2 = " << bodyB->GetIdentifier() << std::endl;
+    ////    cout << " id1 = " << bodyA->GetIdentifier() << "  id2 = " << bodyB->GetIdentifier() << endl;
     ////}
 }
 
@@ -950,41 +935,39 @@ void TerrainNode::PrintFaceProxiesContactData() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TerrainNode::PrintNodeProxiesUpdateData() {
-    auto lowest = std::min_element(
-        m_proxies.begin(), m_proxies.end(),
-        [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
+    auto lowest = std::min_element(m_proxies.begin(), m_proxies.end(), [](const ProxyBody& a, const ProxyBody& b) {
+        return a.m_body->GetPos().z < b.m_body->GetPos().z;
+    });
     const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
     double height = (*lowest).m_body->GetPos().z;
-    std::cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
-        << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+    cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+         << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << endl;
 }
 
 void TerrainNode::PrintFaceProxiesUpdateData() {
     {
-        auto lowest = std::min_element(
-            m_proxies.begin(), m_proxies.end(),
-            [](const ProxyBody& a, const ProxyBody& b) { return a.m_body->GetPos().z < b.m_body->GetPos().z; });
+        auto lowest = std::min_element(m_proxies.begin(), m_proxies.end(), [](const ProxyBody& a, const ProxyBody& b) {
+            return a.m_body->GetPos().z < b.m_body->GetPos().z;
+        });
         const ChVector<>& vel = (*lowest).m_body->GetPos_dt();
         double height = (*lowest).m_body->GetPos().z;
-        std::cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
-            << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+        cout << "[Terrain node] lowest proxy:  index = " << (*lowest).m_index << "  height = " << height
+             << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << endl;
     }
 
     {
-        auto lowest = std::min_element(
-            m_vertex_states.begin(), m_vertex_states.end(),
-            [](const VertexState& a, const VertexState& b){return a.pos.z < b.pos.z; });
-        std::cout << "[Terrain node] lowest vertex:  height = " << (*lowest).pos.z << std::endl;
+        auto lowest = std::min_element(m_vertex_states.begin(), m_vertex_states.end(),
+                                       [](const VertexState& a, const VertexState& b) { return a.pos.z < b.pos.z; });
+        cout << "[Terrain node] lowest vertex:  height = " << (*lowest).pos.z << endl;
     }
 }
 
 // Print vertex and face connectivity data, as received from the rig node at synchronization.
 void TerrainNode::PrintMeshUpdateData() {
-    std::cout << "[Terrain node] mesh vertices and faces" << std::endl;
-    std::for_each(m_vertex_states.begin(), m_vertex_states.end(), [](const VertexState& a) {
-        std::cout << a.pos.x << "  " << a.pos.y << "  " << a.pos.z << std::endl;
-    });
+    cout << "[Terrain node] mesh vertices and faces" << endl;
+    std::for_each(m_vertex_states.begin(), m_vertex_states.end(),
+                  [](const VertexState& a) { cout << a.pos.x << "  " << a.pos.y << "  " << a.pos.z << endl; });
 
     std::for_each(m_triangles.begin(), m_triangles.end(),
-        [](const Triangle& a) { std::cout << a.v1 << "  " << a.v2 << "  " << a.v3 << std::endl; });
+                  [](const Triangle& a) { cout << a.v1 << "  " << a.v2 << "  " << a.v3 << endl; });
 }

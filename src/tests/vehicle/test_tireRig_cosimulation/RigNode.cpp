@@ -23,21 +23,16 @@
 // =============================================================================
 
 //// TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
 ////    complete OutputData() function
 
 #include <omp.h>
 #include <algorithm>
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <set>
 #include <vector>
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChFileutils.h"
-#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/timestepper/ChState.h"
@@ -53,12 +48,13 @@
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
 
-#include "Settings.h"
 #include "RigNode.h"
+
+using std::cout;
+using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
-
 
 // =============================================================================
 
@@ -83,26 +79,21 @@ double ChFunction_SlipAngle::Get_y(double t) const {
 // - create (but do not initialize) the tire
 // - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(double init_vel, double slip, int num_threads)
-    : m_init_vel(init_vel), m_slip(slip), m_cumm_sim_time(0) {
-    std::cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads
-              << std::endl;
-    std::cout << "[Rig node    ] output directory: " << rig_dir << std::endl;
+RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"), m_init_vel(init_vel), m_slip(slip) {
+    cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads << endl;
 
     // ----------------
     // Model parameters
     // ----------------
 
-    m_step_size = 1e-4;
-
     double chassis_mass = 0.1;
     double set_toe_mass = 0.1;
-	double axle_mass = 0.1;
+    double axle_mass = 0.1;
     double rim_mass = 100;
 
     ChVector<> chassis_inertia(1, 1, 1);
-    ChVector<> set_toe_inertia(0.1, 0.1, 0.1);  
-	ChVector<> axle_inertia(0.1, 0.1, 0.1);
+    ChVector<> set_toe_inertia(0.1, 0.1, 0.1);
+    ChVector<> axle_inertia(0.1, 0.1, 0.1);
     ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
 
     // ----------------------------------
@@ -110,7 +101,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     // ----------------------------------
 
     m_system = new ChSystemDEM;
-    m_system->Set_G_acc(ChVector<>(0, 0, gacc));
+    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
 
     // Set number threads
     m_system->SetParallelThreadNumber(num_threads);
@@ -170,10 +161,10 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_rim->SetInertiaXX(rim_inertia);
     m_system->AddBody(m_rim);
 
-	// Create the axle body.
-	m_axle = std::make_shared<ChBody>();
-	m_axle->SetMass(axle_mass);
-	m_axle->SetInertiaXX(axle_inertia);
+    // Create the axle body.
+    m_axle = std::make_shared<ChBody>();
+    m_axle->SetMass(axle_mass);
+    m_axle->SetInertiaXX(axle_inertia);
     m_system->AddBody(m_axle);
 
     // -------------------------------
@@ -194,7 +185,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     // Impose velocity actuation on the prismatic joint
     m_lin_actuator = std::make_shared<ChLinkLinActuator>();
     m_lin_actuator->SetName("Prismatic_actuator");
-    m_lin_actuator->Set_lin_offset(1); // Set actuator distance offset
+    m_lin_actuator->Set_lin_offset(1);  // Set actuator distance offset
     m_system->AddLink(m_lin_actuator);
 
     // Prismatic constraint on the toe-axle: Connects chassis to axle
@@ -236,21 +227,13 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
     MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    std::cout << "[Rig node    ] friction = " << mat_props[0] << std::endl;
+    cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RigNode::~RigNode() {
     delete m_system;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigNode::SetOutputFile(const std::string& name) {
-    m_outf.open(name, std::ios::out);
-    m_outf.precision(7);
-    m_outf << std::scientific;
 }
 
 // -----------------------------------------------------------------------------
@@ -271,8 +254,8 @@ void RigNode::Initialize() {
     MPI_Status status;
     MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
 
-    std::cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << std::endl;
-    std::cout << "[Rig node    ] Received container half-length = " << init_dim[1] << std::endl;
+    cout << "[Rig node    ] Received initial terrain height = " << init_dim[0] << endl;
+    cout << "[Rig node    ] Received container half-length = " << init_dim[1] << endl;
 
     // Slighlty perturb terrain height to ensure there is no initial contact
     double init_height = init_dim[0] + 1e-5;
@@ -350,7 +333,7 @@ void RigNode::Initialize() {
     surf_props[1] = contact_surface->GetNumTriangles();
     MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
-    std::cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << std::endl;
+    cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -403,7 +386,7 @@ void RigNode::Synchronize(int step_number, double time) {
     MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
     MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
 
-    std::cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << std::endl;
+    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << endl;
 
     // Repack data and apply forces to the mesh vertices
     m_vert_indices.resize(count);
@@ -441,7 +424,7 @@ void RigNode::Advance(double step_size) {
         t += h;
     }
     m_timer.stop();
-    m_cumm_sim_time += m_timer();
+    m_cum_sim_time += m_timer();
 }
 
 // -----------------------------------------------------------------------------
@@ -454,7 +437,7 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rim_pos = m_rim->GetPos();
         const ChVector<>& chassis_pos = m_chassis->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
-		const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
+        const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
 
         const ChVector<>& rfrc_prsm = m_prism_vel->Get_react_force();
         const ChVector<>& rtrq_prsm = m_prism_vel->Get_react_torque();
@@ -469,7 +452,7 @@ void RigNode::OutputData(int frame) {
         // Body states
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
         m_outf << rim_vel.x << del << rim_vel.y << del << rim_vel.z << del;
-		m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
+        m_outf << rim_angvel.x << del << rim_angvel.y << del << rim_angvel.z << del;
         m_outf << chassis_pos.x << del << chassis_pos.y << del << chassis_pos.z << del;
         // Joint reactions
         m_outf << rfrc_prsm.x << del << rfrc_prsm.y << del << rfrc_prsm.z << del;
@@ -478,42 +461,44 @@ void RigNode::OutputData(int frame) {
         m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
         m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
         // Solver statistics (for last integration step)
-        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver() << del << m_system->GetTimerUpdate();
+        m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
+               << del << m_system->GetTimerUpdate();
         m_outf << mesh->GetTimingInternalForces() << del << mesh->GetTimingJacobianLoad();
-        m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del << m_integrator->GetNumSolveCalls();
+        m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
+               << m_integrator->GetNumSolveCalls();
         m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();
-        m_outf << std::endl;
+        m_outf << endl;
     }
 
     // Create and write frame output file.
     char filename[100];
-    sprintf(filename, "%s/data_%04d.dat", rig_dir.c_str(), frame + 1);
+    sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
-    csv << m_system->GetChTime() << std::endl;  // current time
-    WriteStateInformation(csv);                 // state of bodies and tire
-    WriteMeshInformation(csv);                  // connectivity and strain state
-    WriteContactInformation(csv);               // vertex contact forces
+    csv << m_system->GetChTime() << endl;  // current time
+    WriteStateInformation(csv);            // state of bodies and tire
+    WriteMeshInformation(csv);             // connectivity and strain state
+    WriteContactInformation(csv);          // vertex contact forces
     csv.write_to_file(filename);
 
-    std::cout << "[Rig node    ] write output file ==> " << filename << std::endl;
+    cout << "[Rig node    ] write output file ==> " << filename << endl;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
     // Write number of bodies
-    csv << "4" << std::endl;
+    csv << "4" << endl;
 
     // Write body state information
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPos_dt()
-        << m_chassis->GetRot_dt() << std::endl;
+        << m_chassis->GetRot_dt() << endl;
     csv << m_set_toe->GetIdentifier() << m_set_toe->GetPos() << m_set_toe->GetRot() << m_set_toe->GetPos_dt()
-        << m_set_toe->GetRot_dt() << std::endl;
+        << m_set_toe->GetRot_dt() << endl;
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
-        << std::endl;
-	csv << m_axle->GetIdentifier() << m_axle->GetPos() << m_axle->GetRot() << m_axle->GetPos_dt() << m_axle->GetRot_dt()
-		<< std::endl;
+        << endl;
+    csv << m_axle->GetIdentifier() << m_axle->GetPos() << m_axle->GetRot() << m_axle->GetPos_dt() << m_axle->GetRot_dt()
+        << endl;
 
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
@@ -530,13 +515,13 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
     }
 
     // Write number of vertices, number of DOFs
-    csv << mesh->GetNnodes() << mesh->GetDOF() << mesh->GetDOF_w() << std::endl;
+    csv << mesh->GetNnodes() << mesh->GetDOF() << mesh->GetDOF_w() << endl;
 
     // Write mesh vertex positions and velocities
     for (int ix = 0; ix < x.GetLength(); ix++)
-        csv << x(ix) << std::endl;
+        csv << x(ix) << endl;
     for (int iv = 0; iv < v.GetLength(); iv++)
-        csv << v(iv) << std::endl;
+        csv << v(iv) << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -555,50 +540,50 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
     for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
         myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
     }
-	csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
+    csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
 
-	for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
-		auto element = my_mesh->GetElement(iele);
-		int nodeOrder[] = { 0, 1, 2, 3 };
-		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
-			auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
-			std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
-			it = find(myvector.begin(), myvector.end(), nodeA);
-			if (it != myvector.end()) {
-				auto index = std::distance(myvector.begin(), it);
-				csv << (unsigned int)index << " ";
-				NodeNeighborElement[index].push_back(iele);
-			}
-		}
-		csv << "\n";
-	}
+    for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
+        auto element = my_mesh->GetElement(iele);
+        int nodeOrder[] = {0, 1, 2, 3};
+        for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
+            auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
+            std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
+            it = find(myvector.begin(), myvector.end(), nodeA);
+            if (it != myvector.end()) {
+                auto index = std::distance(myvector.begin(), it);
+                csv << (unsigned int)index << " ";
+                NodeNeighborElement[index].push_back(iele);
+            }
+        }
+        csv << "\n";
+    }
 
-	// Print strain information: eps_xx, eps_yy, eps_xy averaged over 4 surrounding elements
-	csv << "\n Vectors of Strains \n";
-	for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
-		double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
-		double myarea = 0;
+    // Print strain information: eps_xx, eps_yy, eps_xy averaged over 4 surrounding elements
+    csv << "\n Vectors of Strains \n";
+    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
+        double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
+        double myarea = 0;
         for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
             int myelemInx = NodeNeighborElement[i][j];
             auto element = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx));
             ChVector<> StrainVector = element->EvaluateSectionStrains();
             double dx = element->GetLengthX();
             double dy = element->GetLengthY();
-			myarea += dx * dy / 4;
-			areaAve1 += StrainVector.x * dx * dy / 4;
-			areaAve2 += StrainVector.y * dx * dy / 4;
-			areaAve3 += StrainVector.z * dx * dy / 4;
-		}
-		csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
-	}
+            myarea += dx * dy / 4;
+            areaAve1 += StrainVector.x * dx * dy / 4;
+            areaAve2 += StrainVector.y * dx * dy / 4;
+            areaAve3 += StrainVector.z * dx * dy / 4;
+        }
+        csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
+    }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
-    csv << m_vert_indices.size() << std::endl;
+    csv << m_vert_indices.size() << endl;
     for (unsigned int iv = 0; iv < m_vert_indices.size(); iv++) {
-        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv] << std::endl;
+        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv] << endl;
     }
 }
 
@@ -620,8 +605,8 @@ void RigNode::PrintLowestNode() {
     }
 
     ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
-    std::cout << "[Rig node    ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
-              << "  " << vel.y << "  " << vel.z << std::endl;
+    cout << "[Rig node    ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
+         << "  " << vel.y << "  " << vel.z << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -631,16 +616,16 @@ void RigNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const s
                                    [](const ChVector<>& a, const ChVector<>& b) { return a.z < b.z; });
     int index = lowest - vert_pos.begin();
     const ChVector<>& vel = vert_vel[index];
-    std::cout << "[Rig node    ] lowest vertex:  index = " << index << "  height = " << (*lowest).z
-              << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << std::endl;
+    cout << "[Rig node    ] lowest vertex:  index = " << index << "  height = " << (*lowest).z
+         << "  velocity = " << vel.x << "  " << vel.y << "  " << vel.z << endl;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void RigNode::PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices) {
-    std::cout << "[Rig node    ] contact forces" << std::endl;
+    cout << "[Rig node    ] contact forces" << endl;
     for (int i = 0; i < indices.size(); i++) {
-        std::cout << "  id = " << indices[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  "
-                  << forces[i].z << std::endl;
+        cout << "  id = " << indices[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  " << forces[i].z
+             << endl;
     }
 }
