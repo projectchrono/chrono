@@ -18,10 +18,14 @@
 // composed of brick elements. It serves to validate the elastic, isotropic,
 // large deformation internal forces and the element inertia.
 //
-// This element is a regular 8-noded trilinear brick element with enhanced assumed
-// strain that alleviates locking. More information on the validation of this element
-// may be found in Chrono's documentation. This simulation uses an external force
-// that builds up with time using a smooth cosine function. The user may increase
+// This element is a regular 8-noded trilinear brick element with enhanced
+// assumed
+// strain that alleviates locking. More information on the validation of this
+// element
+// may be found in Chrono's documentation. This simulation uses an external
+// force
+// that builds up with time using a smooth cosine function. The user may
+// increase
 // the number of brick elements to achieve convergence.
 // =============================================================================
 #include "chrono/core/ChFileutils.h"
@@ -36,6 +40,8 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
+#include "../BaseTest.h"
+
 using namespace chrono;
 using namespace fea;
 double step_size = 1e-3;
@@ -43,9 +49,47 @@ double sim_time = 15;       // Simulation time for generation of reference file
 double precision = 4e-7;    // Precision value used to assess results
 double sim_time_UT = 0.05;  // Simulation time for unit test 0.05
 
+// ====================================================================================
+
+// Test class
+class BrickIsoTest : public BaseTest {
+  public:
+    BrickIsoTest(const std::string& testName, const std::string& testProjectName, ChMatrixDynamic<> FileInputMat)
+        : BaseTest(testName, testProjectName), m_matrix(FileInputMat), m_execTime(0) {}
+
+    ~BrickIsoTest() {}
+
+    // Override corresponding functions in BaseTest
+    virtual bool execute() override;
+    virtual double getExecutionTime() const override { return m_execTime; }
+
+  private:
+    ChMatrixDynamic<> m_matrix;
+    double m_execTime;
+};
+
+// ====================================================================================
+
 int main(int argc, char* argv[]) {
+    bool passed = true;
+
+    BrickIsoTest test("utest_FEA_EASBrickIso", "Chrono::FEA", ChMatrixDynamic<>(15000, 3));
+    if (argc > 1) {
+        // Generate metrics JSON output files
+        test.setOutDir(argv[1]);
+        test.setVerbose(true);
+        passed &= test.run();
+        test.print();
+    } else {
+        // Run in unit test mode
+        passed &= test.execute();
+    }
+
+    return !passed;
+}
+
+bool BrickIsoTest::execute() {
     bool output = (0);  // Determines whether it tests (0) or generates golden file (1)
-    ChMatrixDynamic<> FileInputMat(15000, 3);
     if (output) {
         GetLog() << "Output file: ../TEST_Brick/tip_position.txt\n";
     } else {
@@ -61,12 +105,11 @@ int main(int argc, char* argv[]) {
             exit(1);
         }
         for (int x = 0; x < 15000; x++) {
-            fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2];
+            fileMid >> m_matrix[x][0] >> m_matrix[x][1] >> m_matrix[x][2];
         }
         fileMid.close();
         GetLog() << "Running in unit test mode.\n";
     }
-
     // --------------------------
     // Create the physical system
     // --------------------------
@@ -144,7 +187,6 @@ int main(int argc, char* argv[]) {
         NumNodes(i, 5) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 1);
         NumNodes(i, 6) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 2);
         NumNodes(i, 7) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 3);
-
 
         // All the elements have the same lenght in this example
         ElemLengthXY(i, 0) = dx;
@@ -226,8 +268,9 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Perform a dynamic time integration:
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other
+                                                       // solvers can't handle
+                                                       // stiffness matrices
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(10000);
@@ -247,6 +290,8 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     double T_F = 10;
     double t_sim = 0;
+    int stepNo = 0;
+    ChTimer<> timer;
     if (output) {
         // Create output directory (if it does not already exist).
         if (ChFileutils::MakeDirectory("../TEST_Brick") < 0) {
@@ -267,7 +312,9 @@ int main(int argc, char* argv[]) {
             else {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
+            timer.start();
             my_system.DoStepDynamics(step_size);
+            timer.stop();
             out << my_system.GetChTime() << nodetip->GetPos().z << nodetip->GetForce().z << std::endl;
             GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
                      << nodetip->GetForce().z << "\n";
@@ -278,7 +325,6 @@ int main(int argc, char* argv[]) {
         // Initialize total number of iterations and timer.
         int Iterations = 0;
         double start = std::clock();
-        int stepNo = 0;
         double AbsVal = 0.0;
         // Simulate to final time, while accumulating number of iterations.
         while (my_system.GetChTime() < sim_time_UT) {
@@ -288,8 +334,10 @@ int main(int argc, char* argv[]) {
             else {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
+            timer.start();
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
+            timer.stop();
+            AbsVal = abs(nodetip->GetPos().z - m_matrix[stepNo][1]);
             GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
@@ -298,11 +346,16 @@ int main(int argc, char* argv[]) {
             stepNo++;
             Iterations += mystepper->GetNumIterations();
         }
+        addMetric("num_iterations", Iterations);
+
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
         GetLog() << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
         std::cout << "Unit test check succeeded \n";
     }
+    m_execTime = timer.GetTimeSeconds();
+    addMetric("num_steps", stepNo);
+    addMetric("avg_time_per_step", m_execTime / stepNo);
 
-    return 0;
+    return true;
 }
