@@ -30,8 +30,8 @@
 #endif
 
 #if defined _MSC_VER
-#define fmax max
-#define fmin min
+#define fmax fmax
+#define fmin fmin
 #endif
 
 #if defined(WIN32) || defined(WIN64)
