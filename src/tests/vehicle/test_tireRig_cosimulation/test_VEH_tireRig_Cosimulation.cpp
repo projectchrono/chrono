@@ -29,6 +29,7 @@
 #include "mpi.h"
 
 #include "chrono/core/ChFileutils.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "thirdparty/SimpleOpt/SimpleOpt.h"
 
 #include "RigNode.h"
@@ -161,36 +162,89 @@ int main(int argc, char** argv) {
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
     int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
-    // Create the two systems and run settling phase for terrain.
-    // Data exchange:
-    //   rig => terrain (tire contact material properties)
+    // Create the two systems and run the settling phase for terrain.
     RigNode* my_rig = NULL;
     TerrainNode* my_terrain = NULL;
 
     switch (rank) {
-        case RIG_NODE_RANK:
+        case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
             my_rig->SetStepSize(1e-4);
             my_rig->SetOutDir(out_dir, suffix);
             cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
+
+            my_rig->SetBodyMasses(1, 1, 450, 15);
+            my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+            my_rig->EnableTirePressure(true);
+
             break;
-        case TERRAIN_NODE_RANK:
+        }
+        case TERRAIN_NODE_RANK: {
+            auto type = TerrainNode::GRANULAR;
+            auto method = ChMaterialSurfaceBase::DEM;
+
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
-            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, render,
-                                         nthreads_terrain);
+            my_terrain = new TerrainNode(type, method, use_checkpoint, render, nthreads_terrain);
             my_terrain->SetStepSize(1e-4);
-            my_terrain->UseMaterialProperties(true);
             my_terrain->SetOutDir(out_dir, suffix);
             cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
+
+            my_terrain->SetContainerDimensions(10, 0.5, 1, 0.2);
+
+            double radius = 0.006;
+            double coh_pressure = 2e4;
+            double coh_force = CH_C_PI * radius * radius * coh_pressure;
+
+            my_terrain->SetGranularMaterial(radius, 2500, 10);
+            my_terrain->SetSettlingTime(0.5);
+
+            switch (method) {
+                case ChMaterialSurfaceBase::DEM: {
+                    auto material = std::make_shared<ChMaterialSurfaceDEM>();
+                    material->SetFriction(0.9f);
+                    material->SetRestitution(0.0f);
+                    material->SetYoungModulus(8e5f);
+                    material->SetPoissonRatio(0.3f);
+                    material->SetAdhesion(coh_force);
+                    material->SetKn(5.0e7f);
+                    material->SetGn(6.0e2f);
+                    material->SetKt(1e7f);
+                    material->SetGt(4.0e2f);
+                    my_terrain->SetMaterialSurface(material);
+                    my_terrain->UseMaterialProperties(false);
+                    my_terrain->SetContactForceModel(ChSystemDEM::Hertz);
+                    break;
+                }
+                case ChMaterialSurfaceBase::DVI: {
+                    auto material = std::make_shared<ChMaterialSurface>();
+                    material->SetFriction(0.9f);
+                    material->SetRestitution(0.0f);
+                    material->SetCohesion(coh_force);
+                    my_terrain->SetMaterialSurface(material);
+                    break;
+                }
+            }
+
+            switch (type) {
+                case TerrainNode::RIGID:
+                    my_terrain->SetProxyProperties(1, 0.01, false);
+                    break;
+                case TerrainNode::GRANULAR:
+                    my_terrain->SetProxyProperties(1, false);
+                    break;
+            }
+
             my_terrain->Settle();
             break;
+        }
     }
 
     // Initialize systems.
     // Data exchange:
     //   terrain => rig (terrain height)
     //   rig => terrain (tire mesh topology information)
+    //   rig => terrain (tire contact material properties)
     switch (rank) {
         case RIG_NODE_RANK:
             my_rig->Initialize();

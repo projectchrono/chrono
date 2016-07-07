@@ -75,26 +75,21 @@ double ChFunction_SlipAngle::Get_y(double t) const {
 // -----------------------------------------------------------------------------
 // Construction of the rig node:
 // - create the (sequential) Chrono system and set solver parameters
-// - create (but do not initialize) the rig mechanism bodies and joints
-// - create (but do not initialize) the tire
-// - send information on tire contact material
 // -----------------------------------------------------------------------------
-RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"), m_init_vel(init_vel), m_slip(slip) {
+RigNode::RigNode(double init_vel, double slip, int num_threads)
+    : BaseNode("RIG"), m_init_vel(init_vel), m_slip(slip), m_constructed(false) {
     cout << "[Rig node    ] init_vel = " << init_vel << " slip = " << slip << " num_threads = " << num_threads << endl;
 
-    // ----------------
-    // Model parameters
-    // ----------------
+    // ------------------------
+    // Default model parameters
+    // ------------------------
 
-    double chassis_mass = 0.1;
-    double set_toe_mass = 0.1;
-    double axle_mass = 0.1;
-    double rim_mass = 100;
+    m_chassis_mass = 1;
+    m_set_toe_mass = 1;
+    m_upright_mass = 450;
+    m_rim_mass = 15;
 
-    ChVector<> chassis_inertia(1, 1, 1);
-    ChVector<> set_toe_inertia(0.1, 0.1, 0.1);
-    ChVector<> axle_inertia(0.1, 0.1, 0.1);
-    ChVector<> rim_inertia(1, 1, 1);  //// (1e-2, 1e-2, 1e-2);
+    m_tire_pressure = true;
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -119,7 +114,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"
     // Solver settings
     m_system->SetMaxItersSolverSpeed(100);
     m_system->SetMaxItersSolverStab(100);
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);nu
     m_system->SetTol(1e-10);
     m_system->SetTolForce(1e-8);
 #endif
@@ -133,10 +128,49 @@ RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
     m_integrator->SetVerbose(true);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+RigNode::~RigNode() {
+    delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::SetBodyMasses(double chassis_mass, double set_toe_mass, double upright_mass, double rim_mass) {
+    m_chassis_mass = chassis_mass;
+    m_set_toe_mass = set_toe_mass;
+    m_upright_mass = upright_mass;
+    m_rim_mass = rim_mass;
+}
+
+void RigNode::SetTireJSONFile(const std::string& filename) {
+    m_tire_json = filename;
+}
+
+void RigNode::EnableTirePressure(bool val) {
+    m_tire_pressure = val;
+}
+
+// -----------------------------------------------------------------------------
+// Complete construction of the mechanical system.
+// This function is invoked automatically from Initialize.
+// - create (but do not initialize) the rig mechanism bodies and joints
+// - create (but do not initialize) the tire
+// -----------------------------------------------------------------------------
+void RigNode::Construct() {
+    if (m_constructed)
+        return;
 
     // -------------------------------
     // Create the rig mechanism bodies
     // -------------------------------
+
+    ChVector<> chassis_inertia(0.1, 0.1, 0.1);
+    ChVector<> set_toe_inertia(0.1, 0.1, 0.1);
+    ChVector<> upright_inertia(1, 1, 1);
+    ChVector<> rim_inertia(1, 1, 1);
 
     // Create ground body.
     m_ground = std::make_shared<ChBody>();
@@ -145,27 +179,27 @@ RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"
 
     // Create the chassis body.
     m_chassis = std::make_shared<ChBody>();
-    m_chassis->SetMass(chassis_mass);
+    m_chassis->SetMass(m_chassis_mass);
     m_chassis->SetInertiaXX(chassis_inertia);
     m_system->AddBody(m_chassis);
 
     // Create the set toe body.
     m_set_toe = std::make_shared<ChBody>();
-    m_set_toe->SetMass(set_toe_mass);
+    m_set_toe->SetMass(m_set_toe_mass);
     m_set_toe->SetInertiaXX(set_toe_inertia);
     m_system->AddBody(m_set_toe);
 
     // Create the rim body.
     m_rim = std::make_shared<ChBody>();
-    m_rim->SetMass(rim_mass);
+    m_rim->SetMass(m_rim_mass);
     m_rim->SetInertiaXX(rim_inertia);
     m_system->AddBody(m_rim);
 
-    // Create the axle body.
-    m_axle = std::make_shared<ChBody>();
-    m_axle->SetMass(axle_mass);
-    m_axle->SetInertiaXX(axle_inertia);
-    m_system->AddBody(m_axle);
+    // Create the upright body.
+    m_upright = std::make_shared<ChBody>();
+    m_upright->SetMass(m_upright_mass);
+    m_upright->SetInertiaXX(upright_inertia);
+    m_system->AddBody(m_upright);
 
     // -------------------------------
     // Create the rig mechanism joints
@@ -203,48 +237,47 @@ RigNode::RigNode(double init_vel, double slip, int num_threads) : BaseNode("RIG"
     // Create the tire
     // ---------------
 
-    std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
-
-    m_tire = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
-    m_tire->EnablePressure(true);
+    m_tire = std::make_shared<ANCFTire>(m_tire_json);
+    m_tire->EnablePressure(m_tire_pressure);
     m_tire->EnableContact(true);
     m_tire->EnableRimConnection(true);
     m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
 
-    // -------------------------------------
-    // Send tire contact material properties
-    // -------------------------------------
+    // ---------------------------------
+    // Write file with rig node settings
+    // ---------------------------------
 
-    auto contact_mat = m_tire->GetContactMaterial();
-    float mat_props[8] = {m_tire->GetCoefficientFriction(),
-                          m_tire->GetCoefficientRestitution(),
-                          m_tire->GetYoungModulus(),
-                          m_tire->GetPoissonRatio(),
-                          m_tire->GetKn(),
-                          m_tire->GetGn(),
-                          m_tire->GetKt(),
-                          m_tire->GetGt()};
+    std::ofstream outf;
+    outf.open(m_node_out_dir + "/settings.dat", std::ios::out);
 
-    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+    outf << "System settings" << endl;
+    outf << "   Integration step size = " << m_step_size << endl;
+    outf << "Tire specification" << endl;
+    outf << "   JSON file: " << m_tire_json << endl;
+    outf << "   Pressure enabled? " << (m_tire_pressure ? "YES" : "NO") << endl;
+    outf << "Rig body masses" << endl;
+    outf << "   chassis = " << m_chassis_mass << endl;
+    outf << "   set_toe = " << m_set_toe_mass << endl;
+    outf << "   upright = " << m_upright_mass << endl;
+    outf << "   rim     = " << m_rim_mass << endl;
 
-    cout << "[Rig node    ] friction = " << mat_props[0] << endl;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-RigNode::~RigNode() {
-    delete m_system;
+    // Mark system as constructed.
+    m_constructed = true;
 }
 
 // -----------------------------------------------------------------------------
 // Initialization of the rig node:
+// - complete system construction
 // - receive terrain height and container half-length
 // - initialize the mechanism bodies
 // - initialize the mechanism joints
 // - initialize the tire and extract contact surface
 // - send information on tire mesh topology (number verices and triangles)
+// - send information on tire contact material
 // -----------------------------------------------------------------------------
 void RigNode::Initialize() {
+    Construct();
+
     // --------------------------------------
     // Initialize the rig bodies and the tire
     // --------------------------------------
@@ -282,9 +315,9 @@ void RigNode::Initialize() {
     m_rim->SetWvel_loc(ChVector<>(0, m_init_vel / tire_radius, 0));
 
     // Initialize axle body
-    m_axle->SetPos(origin);
-    m_axle->SetRot(QUNIT);
-    m_axle->SetPos_dt(init_vel);
+    m_upright->SetPos(origin);
+    m_upright->SetRot(QUNIT);
+    m_upright->SetPos_dt(init_vel);
 
     // -----------------------------------
     // Initialize the rig mechanism joints
@@ -302,12 +335,12 @@ void RigNode::Initialize() {
     m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
                                ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
-    // Prismatic constraint on the toe-axle: Connects chassis to axle
-    m_prism_axl->Initialize(m_set_toe, m_axle, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
+    // Prismatic constraint on the toe-upright: Connects chassis to axle
+    m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
-    // Connect rim to axle: Impose rotation on the rim
+    // Connect rim to upright: Impose rotation on the rim
     m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
-    m_rev_motor->Initialize(m_rim, m_axle, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
+    m_rev_motor->Initialize(m_rim, m_upright, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
     // ------------------------------------------
     // Initialize tire and create contact surface
@@ -334,6 +367,24 @@ void RigNode::Initialize() {
     MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
 
     cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
+
+    // -------------------------------------
+    // Send tire contact material properties
+    // -------------------------------------
+
+    auto contact_mat = m_tire->GetContactMaterial();
+    float mat_props[8] = {m_tire->GetCoefficientFriction(),
+                          m_tire->GetCoefficientRestitution(),
+                          m_tire->GetYoungModulus(),
+                          m_tire->GetPoissonRatio(),
+                          m_tire->GetKn(),
+                          m_tire->GetGn(),
+                          m_tire->GetKt(),
+                          m_tire->GetGt()};
+
+    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -497,8 +548,8 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         << m_set_toe->GetRot_dt() << endl;
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
         << endl;
-    csv << m_axle->GetIdentifier() << m_axle->GetPos() << m_axle->GetRot() << m_axle->GetPos_dt() << m_axle->GetRot_dt()
-        << endl;
+    csv << m_upright->GetIdentifier() << m_upright->GetPos() << m_upright->GetRot() << m_upright->GetPos_dt()
+        << m_upright->GetRot_dt() << endl;
 
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
