@@ -99,6 +99,10 @@ class TerrainNode : public BaseNode {
     /// Set simulation length for settling of granular material (default: 0.4).
     void SetSettlingTime(double time) { m_time_settling = time; }
 
+    /// Enable/disable output during settling (default: false).
+    /// If enabled, output files are generated with a frequency of 100 FPS.
+    void EnableSettlingOutput(bool val) { m_settling_output = val; }
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -177,7 +181,10 @@ class TerrainNode : public BaseNode {
     unsigned int m_num_particles;  ///< number of granular material bodies
     double m_radius_g;             ///< radius of one particle of granular material
     double m_rho_g;                ///< particle material density
-    double m_time_settling;        ///< simulation length for settling of granular material
+
+    double m_time_settling;  ///< simulation length for settling of granular material
+    bool m_settling_output;  ///< output files during settling?
+
 
     unsigned int m_num_vert;  ///< number of tire mesh vertices
     unsigned int m_num_tri;   ///< number of tire mesh triangles
@@ -204,6 +211,8 @@ class TerrainNode : public BaseNode {
 
     void ForcesNodeProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices);
     void ForcesFaceProxies(std::vector<double>& vert_forces, std::vector<int>& vert_indices);
+
+    void WriteParticleInformation(chrono::utils::CSV_writer& csv);
 
     void PrintMeshUpdateData();
     void PrintNodeProxiesUpdateData();

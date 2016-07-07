@@ -198,6 +198,7 @@ int main(int argc, char** argv) {
 
             my_terrain->SetGranularMaterial(radius, 2500, 10);
             my_terrain->SetSettlingTime(0.5);
+            ////my_terrain->EnableSettlingOutput(true);
 
             switch (method) {
                 case ChMaterialSurfaceBase::DEM: {

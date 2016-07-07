@@ -67,6 +67,7 @@ TerrainNode::TerrainNode(Type type,
       m_use_checkpoint(use_checkpoint),
       m_render(render),
       m_constructed(false),
+      m_settling_output(false),
       m_num_particles(0),
       m_particles_start_index(0),
       m_proxy_start_index(0),
@@ -469,7 +470,13 @@ void TerrainNode::Settle() {
         // -------------------------------------
         // Simulate settling of granular terrain
         // -------------------------------------
-        while (m_system->GetChTime() < m_time_settling) {
+        double output_fps = 100;
+        int sim_steps = (int)std::ceil(m_time_settling / m_step_size);
+        int output_steps = (int)std::ceil(1 / (output_fps * m_step_size));
+        int output_frame = 0;
+
+        for (int is = 0; is < sim_steps; is++) {
+            // Advance step
             m_timer.reset();
             m_timer.start();
             m_system->DoStepDynamics(m_step_size);
@@ -477,7 +484,19 @@ void TerrainNode::Settle() {
             m_cum_sim_time += m_timer();
             cout << '\r' << std::fixed << std::setprecision(6) << m_system->GetChTime() << "  ["
                  << m_timer.GetTimeSeconds() << "]" << std::flush;
+
+            // Output (if enabled)
+            if (m_settling_output && is % output_steps == 0) {
+                char filename[100];
+                sprintf(filename, "%s/settling_%04d.dat", m_node_out_dir.c_str(), output_frame + 1);
+                utils::CSV_writer csv(" ");
+                WriteParticleInformation(csv);
+                csv.write_to_file(filename);
+                output_frame++;
+            }
+
 #ifdef CHRONO_OPENGL
+            // OpenGL rendering
             if (m_render) {
                 opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
                 if (gl_window.Active()) {
@@ -931,7 +950,13 @@ void TerrainNode::OutputData(int frame) {
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
 
     utils::CSV_writer csv(" ");
+    WriteParticleInformation(csv);
+    csv.write_to_file(filename);
+}
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void TerrainNode::WriteParticleInformation(utils::CSV_writer& csv) {
     // Write current time, number of granular particles and their radius
     csv << m_system->GetChTime() << endl;
     csv << m_num_particles << m_radius_g << endl;
@@ -942,8 +967,6 @@ void TerrainNode::OutputData(int frame) {
             continue;
         csv << body->GetIdentifier() << body->GetPos() << body->GetPos_dt() << endl;
     }
-
-    csv.write_to_file(filename);
 }
 
 // -----------------------------------------------------------------------------
