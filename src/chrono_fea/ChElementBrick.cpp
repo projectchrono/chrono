@@ -15,9 +15,7 @@
 // =============================================================================
 
 #include "chrono/core/ChException.h"
-#include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono_fea/ChElementGeneric.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChUtilsFEA.h"
 
