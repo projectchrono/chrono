@@ -1690,7 +1690,7 @@ int ChSystem::Integrate_Y() {
 // **** ALSO AUXILIARY MATRICES).
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoAssembly(int action, int mflags) {
+int ChSystem::DoAssembly(int action) {
     solvecount = 0;
     setupcount = 0;
 
@@ -1700,6 +1700,13 @@ int ChSystem::DoAssembly(int action, int mflags) {
     int old_maxsteps = GetMaxItersSolverSpeed();
     SetMaxItersSolverSpeed(300);
 
+    double old_step = GetStep();
+    double new_step = 1e-6;
+    SetStep(new_step);
+
+    double old_tol = GetTolForce();
+    SetTolForce(1e-4);
+
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
 
@@ -1707,9 +1714,11 @@ int ChSystem::DoAssembly(int action, int mflags) {
     manalysis.SetMaxAssemblyIters(GetMaxiter());
 
     // Perform analysis
-    manalysis.AssemblyAnalysis(action, mflags);
+    manalysis.AssemblyAnalysis(action, new_step);
 
     SetMaxItersSolverSpeed(old_maxsteps);
+    SetStep(old_step);
+    SetTolForce(old_tol);
 
     return 0;
 }
@@ -1843,17 +1852,21 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
 int ChSystem::DoEntireKinematics() {
     Setup();
 
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
+
+    DoAssembly(action);
     // first check if there are redundant links (at least one NR cycle
     // even if the structure is already assembled)
 
     while (ChTime < end_time) {
-        DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // >>> Newton-Raphson iteration, closing constraints
+        // Newton-Raphson iteration, closing constraints
+        DoAssembly(action);
 
         if (last_err)
             return FALSE;
 
-        ChTime += step;  // >>> Update the time and repeat.
+        // Update time and repeat.
+        ChTime += step;
     }
 
     return TRUE;
@@ -1872,7 +1885,7 @@ int ChSystem::DoEntireDynamics() {
     // the system may have wrong layout, or too large
     // clearances in costraints, so it is better to
     // check for costraint violation each time the integration starts
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     // Perform the integration steps until the end
     // time is reached.
@@ -1958,7 +1971,7 @@ int ChSystem::DoEntireUniformDynamics(double frame_step) {
     // the initial system may have wrong layout, or too large
     // clearances in constraints.
     Setup();
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     while (ChTime < end_time) {
         double goto_time = (ChTime + frame_step);
@@ -1998,7 +2011,8 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
             restore_oldstep = TRUE;
         }
 
-        DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // ***  Newton Raphson kinematic equations solver
+        // Newton Raphson kinematic equations solver
+        DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
         if (last_err)
             return FALSE;
@@ -2017,7 +2031,8 @@ int ChSystem::DoStepKinematics(double m_step) {
 
     Update();
 
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // ***  Newton Raphson kinematic equations solver
+    // Newton Raphson kinematic equations solver
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     if (last_err)
         return FALSE;
@@ -2025,12 +2040,9 @@ int ChSystem::DoStepKinematics(double m_step) {
     return TRUE;
 }
 
-//
 // Full assembly -computes also forces-
-//
-
 int ChSystem::DoFullAssembly() {
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     return last_err;
 }

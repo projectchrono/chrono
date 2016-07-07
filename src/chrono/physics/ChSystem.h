@@ -806,18 +806,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // ---- CONSTRAINT ASSEMBLATION
 
-    /// Given the current time and state, the
-    /// sw tries to satisfy all costraints, with
-    /// the Newton-Raphson iteration. Used iteratively
-    /// in inverse kinematics.
-    /// Different tolerance checking allowable (norm 1/2/inf)
-    ///  mode = [action flags, see above], ASS_POSITION , ASS_SPEED , ASS_ACCEL (also together)
-    ///  flags = [see above]
-    ///  ASF_COLLISION , perform also collision detection
+    /// Given the current time and state, attempt to satisfy all constraints, using
+    /// a Newton-Raphson iteration loop. Used iteratively in inverse kinematics.
+    /// Action can be one of AssemblyLevel::POSITION, AssemblyLevel::VELOCITY, or 
+    /// AssemblyLevel::ACCELERATION (or a combination of these)
     /// Returns 0 if no errors, returns TRUE if error happened (impossible assemblation?)
-    int DoAssembly(int action = ASS_POSITION | ASS_SPEED | ASS_ACCEL, int mflags = 0);
+    int DoAssembly(int action);
 
-    /// Shortcut for full pos/speed/acc assembly, also computes forces
+    /// Shortcut for full position/velocity/acceleration assembly.
     int DoFullAssembly();
 
     // ---- STATICS

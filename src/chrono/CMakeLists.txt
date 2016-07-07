@@ -493,6 +493,7 @@ set(ChronoEngine_timestepper_SOURCES
     timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
     timestepper/ChTimestepperHHT.cpp
+    timestepper/ChAssemblyAnalysis.cpp
     )
 
 set(ChronoEngine_timestepper_HEADERS
