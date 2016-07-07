@@ -16,6 +16,9 @@
 //
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include <iostream>
 #include <cmath>
 
@@ -49,6 +52,8 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     auto ground = std::make_shared<ChBody>();
     my_system.AddBody(ground);
+    ground->SetIdentifier(0);
+    ground->SetName("ground");
     ground->SetBodyFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
@@ -57,6 +62,8 @@ int main(int argc, char* argv[]) {
     // The pendulum CG is assumed to be at half its length.
     auto pendulum = std::make_shared<ChBody>();
     my_system.AddBody(pendulum);
+    pendulum->SetIdentifier(1);
+    pendulum->SetName("pendulum");
     pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(length / 2, 0, 0)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
@@ -72,6 +79,7 @@ int main(int argc, char* argv[]) {
     my_system.AddLink(revoluteJoint);
 
     // Perform a system assembly.
+    ////my_system.DoAssembly(AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
     my_system.DoFullAssembly();
 
     // Extract position, velocity, and acceleration of pendulum body.
@@ -138,7 +146,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << std::endl << "Analytical solution" << std::endl;
     std::cout << "Position:      " << pos_ref.x << "  " << pos_ref.y << "  " << pos_ref.z << std::endl;
-    std::cout << "Orientation:   " << rot_ref.e0 << "  " << rot_ref.e1 << "  " << rot_ref.e2 << "  " << rot_ref.e3 << std::endl;
+    std::cout << "Orientation:   " << rot_ref.e0 << "  " << rot_ref.e1 << "  " << rot_ref.e2 << "  " << rot_ref.e3
+              << std::endl;
     std::cout << "Lin. vel.:     " << lin_vel_ref.x << "  " << lin_vel_ref.y << "  " << lin_vel_ref.z << std::endl;
     std::cout << "Ang. vel.:     " << ang_vel_ref.x << "  " << ang_vel_ref.y << "  " << ang_vel_ref.z << std::endl;
     std::cout << "Lin. acc.:     " << lin_acc_ref.x << "  " << lin_acc_ref.y << "  " << lin_acc_ref.z << std::endl;
@@ -148,19 +157,17 @@ int main(int argc, char* argv[]) {
 
     // Compare simulation and analytical solution
     bool passed = true;
-    double tolerance = 1e-5;
-    passed &= pos.Equals(pos_ref, tolerance);
-    passed &= rot.Equals(rot_ref, tolerance);
-    passed &= lin_vel.Equals(lin_vel_ref, tolerance);
-    passed &= ang_vel.Equals(ang_vel_ref, tolerance);
-    passed &= lin_acc.Equals(lin_acc_ref, tolerance);
-    passed &= ang_acc.Equals(ang_acc_ref, tolerance);
-    passed &= rfrc.Equals(rfrc_ref, tolerance);
-    passed &= rtrq.Equals(rtrq_ref, tolerance);
+    passed &= pos.Equals(pos_ref, 1e-3);
+    passed &= rot.Equals(rot_ref, 1e-3);
+    passed &= lin_vel.Equals(lin_vel_ref, 1e-4);
+    passed &= ang_vel.Equals(ang_vel_ref, 1e-4);
+    passed &= lin_acc.Equals(lin_acc_ref, 1e-2);
+    passed &= ang_acc.Equals(ang_acc_ref, 1e-2);
+    passed &= rfrc.Equals(rfrc_ref, 1e-2);
+    passed &= rtrq.Equals(rtrq_ref, 1e-2);
 
     std::cout << std::endl << "Test " << (passed ? "PASSED" : "FAILED") << std::endl;
 
     // Return 0 if test passed
-    ////return !passed;
-    return 0;
+    return !passed;
 }
