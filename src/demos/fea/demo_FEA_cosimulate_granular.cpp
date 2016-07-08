@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
   systemG->GetSettings()->collision.collision_envelope = 0.01;
-  systemG->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  systemG->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
   auto triMat = std::make_shared<ChMaterialSurface>();
   triMat->SetFriction(0.4f);
@@ -455,9 +455,9 @@ int main(int argc, char* argv[]) {
         //            }
 
         // Update collision information
-        systemG->data_manager->host_data.ObA_rigid[i] = R3(vert_pos[triangles[i].x].x-pos.x, vert_pos[triangles[i].x].y-pos.y, vert_pos[triangles[i].x].z-pos.z);
-        systemG->data_manager->host_data.ObB_rigid[i] = R3(vert_pos[triangles[i].y].x-pos.x, vert_pos[triangles[i].y].y-pos.y, vert_pos[triangles[i].y].z-pos.z);
-        systemG->data_manager->host_data.ObC_rigid[i] = R3(vert_pos[triangles[i].z].x-pos.x, vert_pos[triangles[i].z].y-pos.y, vert_pos[triangles[i].z].z-pos.z);
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 0] = real3(vert_pos[triangles[i].x].x - pos.x, vert_pos[triangles[i].x].y - pos.y, vert_pos[triangles[i].x].z - pos.z);
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 1] = real3(vert_pos[triangles[i].y].x - pos.x, vert_pos[triangles[i].y].y - pos.y, vert_pos[triangles[i].y].z - pos.z);
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 2] = real3(vert_pos[triangles[i].z].x - pos.x, vert_pos[triangles[i].z].y - pos.y, vert_pos[triangles[i].z].z - pos.z);
       }
       // END STEP 4
 
