@@ -618,7 +618,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (uint i = start; i < end; i++) {
+            for (int i = start; i < end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
@@ -758,7 +758,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (uint i = start; i < end; i++) {
+            for (int i = start; i < end; i++) {
                 uint p = t_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];
@@ -905,7 +905,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
             uint rigid_start = f_bin_start_index[rigid_index];
             uint rigid_end = f_bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (uint i = start; i < end; i++) {
+            for (int i = start; i < end; i++) {
                 uint p = t_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];

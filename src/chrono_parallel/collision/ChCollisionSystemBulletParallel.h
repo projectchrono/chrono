@@ -103,7 +103,7 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
 
     ChParallelDataManager* data_manager;
 
-    uint counter;
+    unsigned int counter;
 };
 
 }  // end namespace collision

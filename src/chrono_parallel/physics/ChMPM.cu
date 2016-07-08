@@ -25,7 +25,7 @@ std::vector<int> particle_node_mapping;
 std::vector<int> node_particle_mapping;
 std::vector<int> node_start_index;
 std::vector<int> particle_number;
-uint num_mpm_nodes_active;
+unsigned int  num_mpm_nodes_active;
 
 // GPU Things
 float3* lower_bound;
@@ -650,7 +650,7 @@ float time_shur = 0;
 void MPM_BBSolver(gpu_vector<float>& r, gpu_vector<float>& delta_v) {
     time_shur = 0;
     time_no_shur = 0;
-    const uint size = r.size();
+    const unsigned int size = r.size();
     float lastgoodres = 10e30;
     {
         CudaEventTimer timer(start, stop, true, time_no_shur);
