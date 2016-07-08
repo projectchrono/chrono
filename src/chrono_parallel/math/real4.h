@@ -135,13 +135,13 @@ class CH_PARALLEL_API quaternion {
 		array[3] = a;
 	}
     CUDA_HOST_DEVICE quaternion(real _w, real _x, real _y, real _z) {
-		array[0] = w;
-		array[1] = x;
-		array[2] = y;
-		array[3] = z;
+		array[0] = _w;
+		array[1] = _x;
+		array[2] = _y;
+		array[3] = _z;
 	}
     CUDA_HOST_DEVICE quaternion(const real3& v, real w) {
-		array[0] = v.w;
+		array[0] = w;
 		array[1] = v.x;
 		array[2] = v.y;
 		array[3] = v.z;
