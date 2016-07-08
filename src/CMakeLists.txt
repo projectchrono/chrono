@@ -129,18 +129,6 @@ else()
   message("  No AVX support")
 endif()
 
-message(STATUS "Searching for FMA...")
-FIND_PACKAGE(FMA)
-
-# Set substitution variables for configuration file.
-IF(FMA_FOUND)
-	MESSAGE(STATUS "FMA found")
-	SET(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
-  ELSE()
-    MESSAGE("No FMA support")
-  ENDIF()  
-
-
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
@@ -159,6 +147,18 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # using Visual Studio C++
 endif()
+
+message(STATUS "Searching for FMA...")
+find_package(FMA)
+
+# Set substitution variables for configuration file.
+if(FMA_FOUND)
+	message(STATUS "  FMA found")
+	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+else()
+  message("  No FMA support")
+endif()  
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
