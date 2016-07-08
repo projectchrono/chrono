@@ -149,22 +149,31 @@ SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
 
 SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
-    math/matrix.h
-    #math/matrix.cu
     math/matrix.cpp
+    #math/matrix.cu
+    math/matrix.h
     #math/matrixf.cu
-    math/sse.h
+    #math/matrixf.cuh
+    math/other_types.h
     math/real.h
+    math/real_double.h
+    math/real_single.h
     math/real2.h
     math/real2.cpp
-    math/real3.h
-    #math/real3.cu
     math/real3.cpp
-    math/real4.h
-    #math/real4.cu
+    #math/real3.cu
+    math/real3.h
     math/real4.cpp
-    #math/vec3.cu
+    #math/real4.cu
+    math/real4.h
+    math/simd_avx.h
+    math/simd_non.h
+    math/simd_sse.h
+    math/sse.h
+    math/svd.h
+    math/utility.h
     math/vec3.cpp
+    #math/vec3.cu
     )
 
 SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
