@@ -21,10 +21,10 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
     data_manager->system_timer.AddTimer("ChSolverParallel_Project");
     data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
     data_manager->system_timer.AddTimer("ShurProduct");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_D");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_E");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_R");
-    data_manager->system_timer.AddTimer("ChLcpSolverParallel_N");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_D");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_E");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_R");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_N");
 }
 
 ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChSystemParallel(other) {

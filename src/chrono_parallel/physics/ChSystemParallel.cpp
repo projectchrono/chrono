@@ -51,10 +51,10 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
     data_manager->system_timer.AddTimer("collision_narrow");
     data_manager->system_timer.AddTimer("solver");
 
-    data_manager->system_timer.AddTimer("ChSolverParallel_Solve");
-    data_manager->system_timer.AddTimer("ChSolverParallel_Setup");
-    data_manager->system_timer.AddTimer("ChSolverParallel_Stab");
-    data_manager->system_timer.AddTimer("ChSolverParallel_M");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Solve");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Setup");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_Stab");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallel_M");
 
 #ifdef LOGGINGENABLED
     el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");

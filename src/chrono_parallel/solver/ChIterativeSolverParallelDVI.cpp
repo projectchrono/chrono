@@ -65,7 +65,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
     ComputeE();
     ComputeR();
     ComputeN();
-    data_manager->system_timer.start("ChLcpSolverParallel_Solve");
+    data_manager->system_timer.start("ChIterativeSolverParallel_Solve");
 
     data_manager->node_container->PreSolve();
     data_manager->fea_container->PreSolve();
@@ -158,7 +158,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
     data_manager->node_container->PostSolve();
     data_manager->fea_container->PostSolve();
 
-    data_manager->system_timer.stop("ChLcpSolverParallel_Solve");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_Solve");
 
     ComputeImpulses();
     for (int i = 0; i < data_manager->measures.solver.maxd_hist.size(); i++) {
@@ -168,7 +168,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
     tot_iterations = data_manager->measures.solver.maxd_hist.size();
 
     LOG(TRACE) << "ChIterativeSolverParallelDVI::RunTimeStep E solve: "
-               << data_manager->system_timer.GetTime("ChLcpSolverParallel_Solve")
+               << data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve")
                << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
                //<< " residual: " << data_manager->measures.solver.residual
                //<< " objective: " << data_manager->measures.solver.maxdeltalambda_hist.back()
@@ -177,7 +177,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
 
 void ChIterativeSolverParallelDVI::ComputeD() {
     LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeD()";
-    data_manager->system_timer.start("ChLcpSolverParallel_D");
+    data_manager->system_timer.start("ChIterativeSolverParallel_D");
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
         return;
@@ -257,12 +257,12 @@ void ChIterativeSolverParallelDVI::ComputeD() {
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 
-    data_manager->system_timer.stop("ChLcpSolverParallel_D");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_D");
 }
 
 void ChIterativeSolverParallelDVI::ComputeE() {
     LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeE()";
-    data_manager->system_timer.start("ChLcpSolverParallel_E");
+    data_manager->system_timer.start("ChIterativeSolverParallel_E");
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -276,12 +276,12 @@ void ChIterativeSolverParallelDVI::ComputeE() {
     data_manager->fea_container->Build_E();
     data_manager->node_container->Build_E();
 
-    data_manager->system_timer.stop("ChLcpSolverParallel_E");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_E");
 }
 
 void ChIterativeSolverParallelDVI::ComputeR() {
     LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeR()";
-    data_manager->system_timer.start("ChLcpSolverParallel_R");
+    data_manager->system_timer.start("ChIterativeSolverParallel_R");
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -303,7 +303,7 @@ void ChIterativeSolverParallelDVI::ComputeR() {
     // update rhs after presolve!
     // R = -b - D_T * M_invk;
 
-    data_manager->system_timer.stop("ChLcpSolverParallel_R");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_R");
 }
 
 void ChIterativeSolverParallelDVI::ComputeN() {
@@ -312,12 +312,12 @@ void ChIterativeSolverParallelDVI::ComputeN() {
     }
 
     LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeN";
-    data_manager->system_timer.start("ChLcpSolverParallel_N");
+    data_manager->system_timer.start("ChIterativeSolverParallel_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     Nshur = D_T * data_manager->host_data.M_invD;
-    data_manager->system_timer.stop("ChLcpSolverParallel_N");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_N");
 }
 
 void ChIterativeSolverParallelDVI::SetR() {

@@ -189,7 +189,7 @@ void ChIterativeSolverParallel::PerformStabilization() {
         const DynamicVector<real> R_b = blaze::subvector(R_full, num_unilaterals, num_bilaterals);
         DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
-        data_manager->system_timer.start("ChLcpSolverParallel_Stab");
+        data_manager->system_timer.start("ChIterativeSolverParallel_Stab");
 
         data_manager->measures.solver.total_iteration +=
             bilateral_solver->Solve(ShurProductBilateral,                                   //
@@ -219,5 +219,5 @@ void ChIterativeSolverParallel::PerformStabilization() {
                                     gamma_fem);                                       //
         blaze::subvector(gamma, start_tet, num_constraints) = gamma_fem;
     }
-    data_manager->system_timer.stop("ChLcpSolverParallel_Stab");
+    data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }

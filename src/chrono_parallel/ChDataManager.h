@@ -42,7 +42,6 @@ using custom_vector;
 namespace chrono {
 
 class ChBody;
-class ChLcpSystemDescriptor;
 class ChLink;
 class ChPhysicsItem;
 class real2;
