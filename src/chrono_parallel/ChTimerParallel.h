@@ -18,6 +18,8 @@
 #pragma once
 
 #include <map>
+#include <iostream>
+#include <string>
 
 #include "core/ChTimer.h"
 
