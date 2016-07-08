@@ -36,7 +36,10 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
+
+#if defined(CHRONO_FEA)
 #include "chrono_fea/ChMesh.h"
+#endif
 
 namespace chrono {
 
