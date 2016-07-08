@@ -87,6 +87,10 @@ bool ChOpenGLBars::PostInitialize() {
   if (this->GLReturnedError("ChOpenGLBars::PostInitialize - on entry"))
     return false;
   // Generation complete bind everything!
+  if (this->data.size() == 0){
+	  return false;
+  }
+
   if (!this->PostGLInitialize((GLuint*)(&this->data[0]), this->data.size() * pcn_size)) {
     return false;
   }

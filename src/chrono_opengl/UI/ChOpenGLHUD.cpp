@@ -185,10 +185,10 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   real narrow_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow) / timer_step);
   real lcp_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow + timer_lcp) / timer_step);
 
-  bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
+  /*bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
   bars.AddBar(broad_v, narrow_v, BOTTOM + thick, BOTTOM, ColorConverter(0x48CFAD));
   bars.AddBar(narrow_v, lcp_v, BOTTOM + thick, BOTTOM, ColorConverter(0xA0D468));
-  bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
+  bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));*/
 
   //if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
   //  real build_m = parallel_system->data_manager->system_timer.GetTime("ChLcpSolverParallel_M");
@@ -434,9 +434,9 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
   //}
 }
 void ChOpenGLHUD::Draw() {
-  bars.Update();
-  text.Draw();
-  bars.Draw();
+  //bars.Update();
+  //text.Draw();
+  //bars.Draw();
 }
 }
 }
