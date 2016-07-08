@@ -181,6 +181,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallelAPGDREF.cpp
     solver/ChSolverParallelMinRes.cpp
     solver/ChSolverParallelBB.cpp
+    solver/ChSolverParallelCG.cpp
     solver/ChSolverParallelSPGQP.cpp
     solver/ChShurProduct.cpp
     )
@@ -192,6 +193,8 @@ SET(ChronoEngine_Parallel_CONSTRAINTS
     constraints/ChConstraintRigidRigid.h
     constraints/ChConstraintBilateral.cpp
     constraints/ChConstraintBilateral.h
+    constraints/ChConstraintUtils.cpp
+    constraints/ChConstraintUtils.h
     )
 
 SOURCE_GROUP(constraints FILES ${ChronoEngine_Parallel_CONSTRAINTS})

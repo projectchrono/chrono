@@ -152,16 +152,18 @@ CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
 }
 }
 //=========MACROS
-#define OPERATOR_EQUALS(op, tin, tout)       \
-    inline tout& operator op##=(tin scale) { \
-        *this = *this op scale;              \
-        return *this;                        \
-    }
-#define OPERATOR_EQUALSALT(op, tin, tout)                            \
-    static inline tout& operator op##=(tout & a, const tin& scale) { \
-        a = a op scale;                                              \
-        return a;                                                    \
-    }
+#define OPERATOR_EQUALS(op, tin, tout)         \
+	inline tout& operator op## = (tin scale) { \
+	*this = *this op scale;                    \
+	return *this;                              \
+	}
+#define OPERATOR_EQUALSALT_PROTO(op, tin, tout)  tout& operator op## = (tout & a, const tin& scale);
+
+#define OPERATOR_EQUALSALT(op, tin, tout)                \
+	tout& operator op## = (tout & a, const tin& scale) { \
+	a = a op scale;                                      \
+	return a;                                            \
+	}
 
 #define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin& scale);
 

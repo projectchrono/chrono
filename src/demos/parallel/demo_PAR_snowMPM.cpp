@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
     msystem.Initialize();
 // Perform the simulation
 // ----------------------
-//#undef CHRONO_OPENGL
-#if 1
+
+#ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
     gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
