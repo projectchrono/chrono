@@ -13,8 +13,10 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 #include "chrono_parallel/math/matrix.h"  // for quaternion, real4
 
+#if defined(CHRONO_FEA)
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChElementTetra_4.h"
+#endif
 
 #include <numeric>
 
@@ -266,6 +268,7 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 // Mesh gets blown up into different data structures, connectivity and nodes are preserved
 // Adding multiple meshes isn't a problem
 void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
+#if defined(CHRONO_FEA)
     uint num_nodes = mesh->GetNnodes();
     uint num_elements = mesh->GetNelements();
 
@@ -321,6 +324,9 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     }
     container->AddNodes(positions, velocities);
     container->AddElements(elements);
+#else
+	printf("Enable FEA module to use ChSystemParallel::AddMesh function\n");
+#endif
 }
 
 //
