@@ -33,6 +33,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -52,7 +53,6 @@ void TimingHeader() {
     printf("# BODIES |");
     printf("# CONTACT|");
     printf(" # ITERS |");
-    printf("   RESID |");
     printf("\n\n");
 }
 
@@ -63,19 +63,17 @@ void TimingOutput(chrono::ChSystem* mSys) {
     double NARR = mSys->GetTimerCollisionNarrow();
     double SOLVER = mSys->GetTimerSolver();
     double UPDT = mSys->GetTimerUpdate();
-    double RESID = 0;
     int REQ_ITS = 0;
     int BODS = mSys->GetNbodies();
     int CNTC = mSys->GetNcontacts();
     if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
-        RESID = ((chrono::ChIterativeSolverParallel*)(mSys->GetSolverSpeed()))->GetResidual();
         REQ_ITS = ((chrono::ChIterativeSolverParallel*)(mSys->GetSolverSpeed()))->GetTotalIterations();
         BODS = parallel_sys->GetNbodies();
         CNTC = parallel_sys->GetNcontacts();
     }
 
-    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f |\n", TIME, STEP, BROD, NARR, SOLVER,
-        UPDT, BODS, CNTC, REQ_ITS, RESID);
+    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f |\n", TIME, STEP, BROD, NARR,
+           SOLVER, UPDT, BODS, CNTC, REQ_ITS);
 }
 
 // --------------------------------------------------------------------------
@@ -168,7 +166,7 @@ int main(int argc, char** argv) {
     system->GetSettings()->solver.tolerance = 0.1;
     system->GetSettings()->solver.max_iteration_bilateral = 100;
     system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
-    system->GetSettings()->collision.bins_per_axis = I3(binsX, binsY, binsZ);
+    system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
 
     // Set number of threads
     system->SetParallelThreadNumber(num_threads);
