@@ -23,10 +23,9 @@
 #include "chrono_parallel/ChCudaDefines.h"
 
 #ifndef __CUDACC__
-// Check if SSE was found in CMake
+
+// Include appropriate SSE header, depending on supported level
 #ifdef CHRONO_HAS_SSE
-// Depending on the SSE variable in CMake include the proper header file for that
-// version of sse
 #ifdef CHRONO_SSE_1_0
 #include <xmmintrin.h>
 #elif defined CHRONO_SSE_2_0
@@ -40,18 +39,30 @@
 #endif
 #endif
 
+// Include AVX header
 #ifdef CHRONO_HAS_AVX
 #include <immintrin.h>
 #endif
 
-#if defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+// Decide whether to use AVX, SSE, or neither
+#if defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
 #define USE_AVX
 #undef USE_SSE
-#elif defined(CHRONO_USE_SIMD) && defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+#elif defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
 #undef USE_AVX
 #define USE_SSE
 #else
 #undef USE_AVX
 #undef USE_SSE
 #endif
+
+// Disable AVX support on Windows
+#ifdef _MSC_VER
+// To address Visual Studio C2593 errors (ambiguous operator) in simd_avx & matrix
+#undef USE_AVX
+// Fix for Blaze
+#undef __AVX__
+#undef __AVX2__
 #endif
+
+#endif  // __CUDACC__

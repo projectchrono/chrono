@@ -18,17 +18,22 @@
 
 #pragma once
 
+#include <thread>
+
+// Chrono::Parallel headers
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/math/matrix.h"
-#include "chrono/physics/ChPhysicsItem.h"
+#include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/physics/ChMPM.cuh"
 
-#include "physics/ChBody.h"
-#include <thread>
+// Chrono headers
+#include "chrono/physics/ChBody.h"
 
+// Blaze headers
+// ATTENTION: It is important for these to be included after sse.h!
 #include <blaze/math/DynamicVector.h>
 
 using blaze::DynamicVector;

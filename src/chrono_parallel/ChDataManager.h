@@ -20,17 +20,19 @@
 
 #pragma once
 
-// Blaze Includes
-#include <blaze/math/CompressedMatrix.h>
-#include <blaze/math/DynamicVector.h>
-#include <blaze/math/DenseSubvector.h>
-
-// Chrono Parallel Includes
+// Chrono::Parallel headers
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/ChMeasures.h"
 #include "chrono_parallel/math/matrix.h"
+#include "chrono_parallel/math/sse.h"
+
+// Blaze headers
+// ATTENTION: It is important for these to be included after sse.h!
+#include <blaze/math/CompressedMatrix.h>
+#include <blaze/math/DynamicVector.h>
+#include <blaze/math/DenseSubvector.h>
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
