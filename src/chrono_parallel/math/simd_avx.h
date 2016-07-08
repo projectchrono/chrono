@@ -398,7 +398,7 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c) {
     __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
 
     // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
-    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
@@ -419,7 +419,7 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c, __m256d d) {
     __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
 
     // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
-    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;

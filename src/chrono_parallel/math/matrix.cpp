@@ -37,7 +37,7 @@ inline __m256d DotMM(const real* M) {
     __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
 
     // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
-    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
@@ -66,7 +66,7 @@ inline __m256d DotMM(const real* M, const real* N) {
     __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
 
     // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
-    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
 
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
     return dotproduct;
@@ -107,7 +107,7 @@ inline Mat33 MulM_TM(const real* M, const real* N) {
         // low to high: xy02+xy03 xy12+xy13 xy20+xy21 xy30+xy31
         __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
         // low to high: xy00+xy01 xy10+xy11 xy22+xy23 xy32+xy33
-        __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+        __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
         __m256d dotproduct = _mm256_add_pd(swapped, blended);
         _mm256_storeu_pd(&result.array[i * 4], dotproduct);
     }
@@ -169,7 +169,7 @@ inline SymMat33 NormalEquations(const real* M) {
     __m256d temp01 = _mm256_hadd_pd(xy0, xy1);
     __m256d temp23 = _mm256_hadd_pd(xy2, xy3);
     __m256d swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
-    __m256d blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    __m256d blended = _mm256_blend_pd(temp01, temp23, 0xC);
     __m256d dotproduct = _mm256_add_pd(swapped, blended);
 
     _mm256_storeu_pd(&result.array[0], dotproduct);
@@ -177,7 +177,7 @@ inline SymMat33 NormalEquations(const real* M) {
     temp01 = _mm256_hadd_pd(xy4, xy5);
     temp23 = _mm256_hadd_pd(xy6, xy7);  // This should be zero
     swapped = _mm256_permute2f128_pd(temp01, temp23, 0x21);
-    blended = _mm256_blend_pd(temp01, temp23, 0b1100);
+    blended = _mm256_blend_pd(temp01, temp23, 0xC);
     dotproduct = _mm256_add_pd(swapped, blended);
     _mm256_storeu_pd(&result.array[4], dotproduct);
     return result;
