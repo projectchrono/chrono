@@ -30,7 +30,7 @@
 #include "physics/ChSystem.h"
 #include "core/ChTimer.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+//#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChTimerParallel.h"
 #include <glfw3.h>
 

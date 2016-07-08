@@ -17,9 +17,9 @@
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_opengl/ChOpenGLViewer.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/Ch3DOFContainer.h"
+//#include "chrono_parallel/physics/ChSystemParallel.h"
+//#include "chrono_parallel/ChDataManager.h"
+//#include "chrono_parallel/physics/Ch3DOFContainer.h"
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -476,7 +476,7 @@ void ChOpenGLViewer::RenderAABB() {
         return;
     }
 
-    if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    /*if (ChSystemParallel* system = dynamic_cast<ChSystemParallel*>(physics_system)) {
         ChParallelDataManager* data_manager = system->data_manager;
         model_box.clear();
 
@@ -500,10 +500,10 @@ void ChOpenGLViewer::RenderAABB() {
             box.Update(model_box);
             box.Draw(projection, view);
         }
-    }
+    }*/
 }
 void ChOpenGLViewer::RenderFluid() {
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+   /* if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
         if (parallel_system->data_manager->num_fluid_bodies <= 0) {
             return;
         }
@@ -532,11 +532,11 @@ void ChOpenGLViewer::RenderFluid() {
         fluid.Update(fluid_data);
         glm::mat4 model(1);
         fluid.Draw(projection, view * model);
-    }
+    }*/
 }
 
 void ChOpenGLViewer::RenderFEA() {
-    fea_element_data.clear();
+   /* fea_element_data.clear();
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
         if (parallel_system->data_manager->num_fea_nodes <= 0) {
             return;
@@ -560,7 +560,7 @@ void ChOpenGLViewer::RenderFEA() {
     }
     fea_elements.Update(fea_element_data);
     glm::mat4 model(1);
-    fea_elements.Draw(projection, view * model);
+    fea_elements.Draw(projection, view * model);*/
 }
 
 void ChOpenGLViewer::RenderGrid() {
@@ -568,7 +568,7 @@ void ChOpenGLViewer::RenderGrid() {
         return;
     }
     grid_data.clear();
-    if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    /*if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
         vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
         real3 bin_size_vec = parallel_sys->data_manager->measures.collision.bin_size;
         real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
@@ -603,7 +603,7 @@ void ChOpenGLViewer::RenderGrid() {
         }
 
         grid.Update(grid_data);
-    }
+    }*/
 
     glm::mat4 model(1);
     grid.Draw(projection, view * model);

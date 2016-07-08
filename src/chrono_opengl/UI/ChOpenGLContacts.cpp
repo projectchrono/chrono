@@ -17,8 +17,8 @@
 #include <iostream>
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
+//#include "chrono_parallel/physics/ChSystemParallel.h"
+//#include "chrono_parallel/ChDataManager.h"
 namespace chrono {
 using namespace collision;
 namespace opengl {
@@ -53,84 +53,84 @@ void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
     //  }
 }
 void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
-    ChParallelDataManager* data_manager = system->data_manager;
-    int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
-                       data_manager->num_rigid_tet_contacts + data_manager->num_rigid_tet_node_contacts;
+    //ChParallelDataManager* data_manager = system->data_manager;
+    //int num_contacts = data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts +
+    //                   data_manager->num_rigid_tet_contacts + data_manager->num_rigid_tet_node_contacts;
 
-    // std::cout << "CONTACT RENDER: " << num_contacts << std::endl;
+    //// std::cout << "CONTACT RENDER: " << num_contacts << std::endl;
 
-    if (num_contacts == 0) {
-        return;
-    }
+    //if (num_contacts == 0) {
+    //    return;
+    //}
 
-    contact_data.resize(data_manager->num_rigid_contacts * 2 + data_manager->num_rigid_tet_contacts * 2 +
-                        data_manager->num_rigid_tet_node_contacts + data_manager->num_rigid_fluid_contacts);
+    //contact_data.resize(data_manager->num_rigid_contacts * 2 + data_manager->num_rigid_tet_contacts * 2 +
+    //                    data_manager->num_rigid_tet_node_contacts + data_manager->num_rigid_fluid_contacts);
 
-    //#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-        real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
-        real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
+    ////#pragma omp parallel for
+    //for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
+    //    real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
+    //    real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
 
-        contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
-        contact_data[i + data_manager->num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
-    }
-    int offset = data_manager->num_rigid_contacts * 2;
-    int index = 0;
-    if (data_manager->num_rigid_tet_contacts > 0) {
-        for (int p = 0; p < data_manager->host_data.boundary_element_fea.size(); p++) {
-            int start = data_manager->host_data.c_counts_rigid_tet[p];
-            int end = data_manager->host_data.c_counts_rigid_tet[p + 1];
-            for (int index = start; index < end; index++) {
-                int i = index - start;  // index that goes from 0
-                int rigid = data_manager->host_data.neighbor_rigid_tet[p * max_rigid_neighbors + i];
-                int node = p;  // node body is in second index
-                real3 cpta = data_manager->host_data.cpta_rigid_tet[p * max_rigid_neighbors + i];
-                real3 cptb = data_manager->host_data.cptb_rigid_tet[p * max_rigid_neighbors + i];
+    //    contact_data[i] = glm::vec3(cpta.x, cpta.y, cpta.z);
+    //    contact_data[i + data_manager->num_rigid_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
+    //}
+    //int offset = data_manager->num_rigid_contacts * 2;
+    //int index = 0;
+    //if (data_manager->num_rigid_tet_contacts > 0) {
+    //    for (int p = 0; p < data_manager->host_data.boundary_element_fea.size(); p++) {
+    //        int start = data_manager->host_data.c_counts_rigid_tet[p];
+    //        int end = data_manager->host_data.c_counts_rigid_tet[p + 1];
+    //        for (int index = start; index < end; index++) {
+    //            int i = index - start;  // index that goes from 0
+    //            int rigid = data_manager->host_data.neighbor_rigid_tet[p * max_rigid_neighbors + i];
+    //            int node = p;  // node body is in second index
+    //            real3 cpta = data_manager->host_data.cpta_rigid_tet[p * max_rigid_neighbors + i];
+    //            real3 cptb = data_manager->host_data.cptb_rigid_tet[p * max_rigid_neighbors + i];
 
-                contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-                contact_data[index + offset + data_manager->num_rigid_tet_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
-                index++;
-            }
-        }
-    }
+    //            contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
+    //            contact_data[index + offset + data_manager->num_rigid_tet_contacts] = glm::vec3(cptb.x, cptb.y, cptb.z);
+    //            index++;
+    //        }
+    //    }
+    //}
 
-    offset += (data_manager->num_rigid_tet_contacts) * 2;
-    index = 0;
-    for (int p = 0; p < data_manager->num_fea_nodes; p++) {
-        int start = data_manager->host_data.c_counts_rigid_tet_node[p];
-        int end = data_manager->host_data.c_counts_rigid_tet_node[p + 1];
-        for (int index = start; index < end; index++) {
-            int i = index - start;  // index that goes from 0
-            int rigid = data_manager->host_data.neighbor_rigid_tet_node[p * max_rigid_neighbors + i];
-            int node = p;  // node body is in second index
-            real3 cpta = data_manager->host_data.cpta_rigid_tet_node[p * max_rigid_neighbors + i];
+    //offset += (data_manager->num_rigid_tet_contacts) * 2;
+    //index = 0;
+    //for (int p = 0; p < data_manager->num_fea_nodes; p++) {
+    //    int start = data_manager->host_data.c_counts_rigid_tet_node[p];
+    //    int end = data_manager->host_data.c_counts_rigid_tet_node[p + 1];
+    //    for (int index = start; index < end; index++) {
+    //        int i = index - start;  // index that goes from 0
+    //        int rigid = data_manager->host_data.neighbor_rigid_tet_node[p * max_rigid_neighbors + i];
+    //        int node = p;  // node body is in second index
+    //        real3 cpta = data_manager->host_data.cpta_rigid_tet_node[p * max_rigid_neighbors + i];
 
-            contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-            index++;
-        }
-    }
+    //        contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
+    //        index++;
+    //    }
+    //}
 
-    offset += (data_manager->num_rigid_tet_node_contacts);
-    index = 0;
-    for (int p = 0; p < data_manager->num_fluid_bodies; p++) {
-        int start = data_manager->host_data.c_counts_rigid_fluid[p];
-        int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
-        for (int index = start; index < end; index++) {
-            int i = index - start;
-            real3 cpta = data_manager->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
-            contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
-            index++;
-        }
-    }
+    //offset += (data_manager->num_rigid_tet_node_contacts);
+    //index = 0;
+    //for (int p = 0; p < data_manager->num_fluid_bodies; p++) {
+    //    int start = data_manager->host_data.c_counts_rigid_fluid[p];
+    //    int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
+    //    for (int index = start; index < end; index++) {
+    //        int i = index - start;
+    //        real3 cpta = data_manager->host_data.cpta_rigid_fluid[p * max_rigid_neighbors + i];
+    //        contact_data[index + offset] = glm::vec3(cpta.x, cpta.y, cpta.z);
+    //        index++;
+    //    }
+    //}
 }
 
 void ChOpenGLContacts::Update(ChSystem* physics_system) {
     contact_data.clear();
-    if (ChSystemParallel* system_parallel = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        UpdateChronoParallel(system_parallel);
-    } else {
+    //if (ChSystemParallel* system_parallel = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    //    UpdateChronoParallel(system_parallel);
+    //} else {
         UpdateChrono(physics_system);
-    }
+    //}
 
     contacts.Update(contact_data);
 }

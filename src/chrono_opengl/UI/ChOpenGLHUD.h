@@ -23,7 +23,8 @@
 #include "chrono_opengl/ChOpenGLCamera.h"
 #include "chrono_opengl/shapes/ChOpenGLBars.h"
 
-#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono/physics/ChSystem.h"
+//#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChTimerParallel.h"
 namespace chrono {
 namespace opengl {
