@@ -1,5 +1,5 @@
 # This script checks for the highest level of AVX support on the host
-# by compiling and running small C++ programs that uses AVX intrinsics.
+# by compiling and running small C++ programs that use AVX intrinsics.
 #
 # You can invoke this module using the following command:
 #

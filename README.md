@@ -1,7 +1,7 @@
 Project CHRONO
 ==============
 
-Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. More information is available at the [project website](http://www.projectchrono.org/).
+Project Chrono represents a community effort aimed at producing a physics-based modelling and simulation infrastructure based on a platform-independent, open-source design. The name of this software infrastructure is Chrono. Some of its features are listed below. More information is available at the [project website](http://www.projectchrono.org/). The applications areas in which Chrono is most often used are **vehicle dynamics**, **robotics**, and **machine design**. In vehicle dynamics, Chrono has mature support for tire/terrain interaction modeling and simulation.
 
 ### Physics modeling
 

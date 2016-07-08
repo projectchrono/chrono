@@ -23,17 +23,13 @@
 // =============================================================================
 
 //// TODO:
-////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)  
+////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
 
 #ifndef TESTRIG_RIGNODE_H
 #define TESTRIG_RIGNODE_H
 
-#include <string>
-#include <fstream>
-#include <iostream>
 #include <vector>
 
-#include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -41,6 +37,8 @@
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+
+#include "BaseNode.h"
 
 // =============================================================================
 
@@ -58,7 +56,7 @@ class ChFunction_SlipAngle : public chrono::ChFunction {
 
 // =============================================================================
 
-class RigNode {
+class RigNode : public BaseNode {
   public:
     RigNode(double init_vel,  ///< initial wheel linear velocity
             double slip,      ///< longitudinal slip value
@@ -66,28 +64,57 @@ class RigNode {
             );
     ~RigNode();
 
-    void SetOutputFile(const std::string& name);
+    /// Set body masses.
+    void SetBodyMasses(double chassis_mass,  ///< mass of the (quarter-vehicle) chassis (default: 1)
+                       double set_toe_mass,  ///< mass of the set-toe body (default: 1)
+                       double upright_mass,  ///< mass of the upright body (default: 450)
+                       double rim_mass       ///< mass of the wheel rim body (default: 15)
+                       );
 
-    void Initialize();
-    void Synchronize(int step_number, double time);
-    void Advance(double step_size);
+    /// Specify the tire JSON specification file name.
+    void SetTireJSONFile(const std::string& filename);
 
-    double GetSimTime() { return m_timer.GetTimeSeconds(); }
-    double GetTotalSimTime() { return m_cumm_sim_time; }
-    void OutputData(int frame);
+    /// Enable/disable tire pressure (default: true).
+    void EnableTirePressure(bool val);
+
+    /// Initialize this node.
+    /// This function allows the node to initialize itself and, optionally, perform an
+    /// initial data exchange with any other node.
+    virtual void Initialize() override;
+
+    /// Synchronize this node.
+    /// This function is called at every co-simulation synchronization time to
+    /// allow the node to exchange information with any other node.
+    virtual void Synchronize(int step_number, double time) override;
+
+    /// Advance simulation.
+    /// This function is called after a synchronization to allow the node to advance
+    /// its state by the specified time step.  A node is allowed to take as many internal
+    /// integration steps as required, but no inter-node communication should occur.
+    virtual void Advance(double step_size) override;
+
+    /// Output logging and debugging data.
+    virtual void OutputData(int frame) override;
 
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
+    bool m_constructed;             ///< system construction completed?
 
     std::shared_ptr<chrono::ChTimestepperHHT> m_integrator;  ///< HHT integrator object
-    double m_step_size;                                      ///< integration step size
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
     std::shared_ptr<chrono::ChBody> m_rim;      ///< wheel rim body
     std::shared_ptr<chrono::ChBody> m_set_toe;  ///< set toe body
     std::shared_ptr<chrono::ChBody> m_chassis;  ///< chassis body
-    std::shared_ptr<chrono::ChBody> m_axle;     ///< axle body
+    std::shared_ptr<chrono::ChBody> m_upright;  ///< upright body
 
+    double m_chassis_mass;
+    double m_set_toe_mass;
+    double m_upright_mass;
+    double m_rim_mass;
+
+    std::string m_tire_json;                                                ///< name of tire JSON specification file
+    bool m_tire_pressure;                                                   ///< tire pressure enabled?
     std::shared_ptr<chrono::vehicle::ChDeformableTire> m_tire;              ///< deformable tire
     std::shared_ptr<chrono::fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
 
@@ -105,19 +132,20 @@ class RigNode {
     std::vector<chrono::ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
     std::vector<chrono::ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
 
-    std::ofstream m_outf;  ///< output file stream
-    chrono::ChTimer<double> m_timer;
-    double m_cumm_sim_time;
+    // Private methods
+
+    void Construct();
 
     // Write mesh node state information
     void WriteStateInformation(chrono::utils::CSV_writer& csv);
     // Write mesh connectivity and strain information
-	void WriteMeshInformation(chrono::utils::CSV_writer& csv);
+    void WriteMeshInformation(chrono::utils::CSV_writer& csv);
     // Write contact forces on tire mesh vertices
     void WriteContactInformation(chrono::utils::CSV_writer& csv);
 
     void PrintLowestNode();
-    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos, const std::vector<chrono::ChVector<>>& vert_vel);
+    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos,
+                           const std::vector<chrono::ChVector<>>& vert_vel);
     void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
 };
 

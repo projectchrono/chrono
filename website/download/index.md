@@ -6,19 +6,12 @@ permalink: /download/
 
 {::options parse_block_html="true" /}
 
-### CentOS/RedHat/Fedora users:
+## CentOS/RedHat/Fedora users:
 Project Chrono release RPMs are available from our [repositories](http://projectchrono.org/repos/projectchrono-repo-0.1.0-1.noarch.rpm).
 
-### Other Users:
-Note that there is currently no Windows download for Project Chrono. On Windows, Project Chrono should be **cloned** from the public [GIT repository](https://github.com/projectchrono/chrono) and **compiled** from its C++ source code.
+## Other Users:
+Project Chrono should be **cloned** from the public [GIT repository](https://github.com/projectchrono/chrono) and **compiled** from its C++ source code as described below.
 
-<div>
-<a href="https://github.com/projectchrono/chrono">
-<button type="button" class="btn btn-default btn-lg"> <i class="fa fa-github-square fa-1x"></i> 
-View on Github 
-</button>
-</a>
-</div>
 
 
 Required tools
@@ -50,16 +43,15 @@ In case you do not have a C++ compiler already installed on your computer, you c
 </div>
 
 <div class="ce-danger">
-Warning! The initial release of Visual Studio 2015 gives an 
-error compiling Chrono::Engine! If you use it, you must upgrade it to 
-the **update 2** that fixed the problem. Download it from 
-[this page](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). 
+The initial release of Visual Studio 2015 gives an 
+error when compiling Chrono. Using **update 2** of Visual Studio 2015 fixes this problem (download it from 
+[this page](https://www.visualstudio.com/en-us/news/vs2015-update2-vs.aspx). )
 </div>
 
 
 ### GIT client
 
-The C++ source code of Chrono::Engine is hosted on a GIT versioning system. 
+The C++ source code of Chrono is hosted on a GIT versioning system. 
 You need a GIT client that allows you to clone and pull the most recent release from GIThub. 
 There are many alternatives, but we suggest the following:
 
@@ -71,7 +63,7 @@ There are many alternatives, but we suggest the following:
 ### CMake
 
 The CMake tool is **required** in order to perform the building of the
-Chrono::Engine libraries and demos. It is cross-platform and available
+Chrono libraries and demos. It is cross-platform and available
 for many operating systems (choose the one that you need, ex. Windows,
 Linux, etc.):
 
@@ -83,7 +75,7 @@ Linux, etc.):
 ### Irrlicht 3D
 
 The [Irrlicht](http://irrlicht.sourceforge.net/downloads.html) library
-is **required** in order to compile the Chrono::Engine demos that use a
+is **required** in order to compile the Chrono demos that use a
 3D visualization. It is a cross-platform 3D visualization library, based
 on OpenGL and DirectX.
 
@@ -94,13 +86,13 @@ on OpenGL and DirectX.
 
 
 {:info: .ce-info}
-The new release v.1.8.2 of Irrlicht is tested to be stable and working well with Chrono::Engine.  
+The new release v.1.8.2 of Irrlicht is tested to be stable and working well with Chrono.  
 Release v.1.8.3 does not contain the precompiled 64bit dlls.  
 Release v.1.8.0 has some issues with soft shadows.
 {:info}
 
 {:warning: .ce-warning}
-You cannot link 64bit Chrono::Engine libraries and 32bit Irrlicht libraries, or viceversa. If you decide to build Chrono::Engine in 64bit (suggested), you must link 64 bit Irrlicht .lib and .dll. 
+You cannot link 64bit Chrono libraries and 32bit Irrlicht libraries, or viceversa. If you decide to build Chrono in 64bit (suggested), you must link 64 bit Irrlicht .lib and .dll. 
 {:warning}
 
 
@@ -109,18 +101,18 @@ Optional tools
 
 ### Matlab
 
-The *optional* **MATLAB module** in Chrono::Engine provides the support
+The *optional* **MATLAB module** in Chrono provides the support
 for interoperation with Matlab(TM). If you want to build that unit and
 to test its demos, you must have the Matlab API installed in your
 computer: that is distributed in the main Matlab software, so if you
 already have Matlab installed you are fine. If not, just do not compile and use the
-MATLAB module in the Chrono::Engine project. If you want to buy the
+MATLAB module in the Chrono project. If you want to buy the
 Matlab software, go to
 [<http://www.mathworks.com>](http://www.mathworks.com).
 
 ### MPI
 
-The *optional* **MPI module** in Chrono::Engine provides functionality
+The *optional* **MPI module** in Chrono provides functionality
 for performing distributed parallel computing on large clusters of
 computers, using the Message Passing Interface (MPI) standard. If you
 want to build that unit and to test its demos, you must have the MPICH 2
@@ -129,7 +121,7 @@ site](http://www.mcs.anl.gov/research/projects/mpich2/downloads/index.php?s=down
 
 ### CUDA
 
-The *optional* **PARALLEL module** in Chrono::Engine provides functionality
+The *optional* **PARALLEL module** in Chrono provides functionality
 for performing parallel computation on NVIDIA GPU boards. If you want to
 build that unit and to test its demos, you must have the CUDA SDK and
 toolkit installed in your computer. They can be downloaded from [this
@@ -137,7 +129,7 @@ site](http://developer.nvidia.com/object/cuda_downloads.html).
 
 ### POVray
 
-The *optional* **POSTPROCESSING module** in Chrono::Engine provides
+The *optional* **POSTPROCESSING module** in Chrono provides
 functionality for exporting simulation data in formats that can be
 rendered by external software. No libraries are needed to build or use
 this unit; however you may need raytracing software for
@@ -147,7 +139,7 @@ site](http://www.povray.org).
 
 ### GNUplot
 
-The *optional* **POSTPROCESSING module** in Chrono::Engine provides
+The *optional* **POSTPROCESSING module** in Chrono provides
 functionality for exporting simulation data. One of the output file formats 
 is for plotting graphs with the free GNUplot tool. Download it from [this
 site](http://www.gnuplot.info).
@@ -163,21 +155,21 @@ Chrono::PyEngine
 
 This is the ready-to-use Chrono::PyEngine for Python. It is a module
 that can be installed in your Python environment so that you can access
-the functions of Chrono::Engine via the [Python
+the functions of Chrono via the [Python
 language](http://www.python.org). This can be an easier way to use
-Chrono::Engine because Python is more friendly than C++ (but remember
+Chrono because Python is more friendly than C++ (but remember
 that not all C++ functions are mapped to Python, moreover Python is
 slower than C++).
 
 The installer automatically detects your Python installation and adds
-the Chrono::Engine module.
+the Chrono module.
 
 Note! currently only Python versions 3.2, 3.3 are supported. Also, only
 the 32 bit version of Python is currently supported with this installer.
 
 
 <div class="well">
-<h4> <span class="glyphicon glyphicon-download-alt"></span> Download PyChrono::Engine for Python</h4>
+<h4> <span class="glyphicon glyphicon-download-alt"></span> Download PyChrono for Python</h4>
 
 <a href="http://www.chronoengine.info/download/PyChronoEngine_v1.8.0.exe"> Download Chrono::PyEngine v.1.8.0 module for Python v.3.3 64bit</a><br />
 <a href="http://www.chronoengine.info/download/PyChronoEngine_v1.7.1.exe"> Download Chrono::PyEngine v.1.7.1 module for Python v.3.3 32bit</a><br />
@@ -214,12 +206,12 @@ This optional tool can be installed as an add-in for the
 [SolidWorks](http://www.SolidWorks.com) 3D CAD, that is widely used by
 many engineering companies. After you install this add-in, you will find
 a new exporter tool in the right panel of SolidWorks: this can be used
-to generate .py files with PyChrono::Engine scene descriptions
+to generate .py files with PyChrono scene descriptions
 containing masses, constraints, etc.
 
 The installer automatically detects your SolidWorks installation (v.2011
 and v.2012 64bit supported and tested, for the moment) and adds the
-Chrono::Engine add-in.
+Chrono add-in.
 
 		  
 <div class="well">

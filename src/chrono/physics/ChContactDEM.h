@@ -225,6 +225,14 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                     if (forceN < 0)
                         forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
+                    switch (adhesion_model) {
+                        case ChSystemDEM::Constant:
+                            forceN -= mat.adhesion_eff;
+                            break;
+                        case ChSystemDEM::DMT:
+                            forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
+                            break;
+                    }
                     ChVector<> force = forceN * normal_dir;
                     if (relvel_t_mag >= sys->GetSlipVelocitythreshold())
                         force -= (forceT / relvel_t_mag) * relvel_t;

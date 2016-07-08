@@ -44,8 +44,8 @@ set(PROGRAM test_VEH_tireRig_Cosimulation)
 
 set(TEST_FILES 
     test_VEH_tireRig_Cosimulation.cpp
-    Settings.h
-    Settings.cpp
+    BaseNode.h
+    BaseNode.cpp
     RigNode.h
     RigNode.cpp
     TerrainNode.h

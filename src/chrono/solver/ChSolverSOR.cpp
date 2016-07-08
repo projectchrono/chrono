@@ -56,9 +56,10 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with
     // 2)  Compute, for all items with variables, the initial guess for
     //     still unconstrained system:
 
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++)
+    for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+    }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of contraints, if a warm start is desired.

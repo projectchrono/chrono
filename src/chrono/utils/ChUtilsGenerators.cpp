@@ -189,6 +189,12 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceD
         mat->SetAdhesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
     else
         mat->SetAdhesion(m_defMaterialDEM->GetAdhesion());
+
+    // Explicit contact coefficients always copied from the default material
+    mat->SetKn(m_defMaterialDEM->GetKn());
+    mat->SetGn(m_defMaterialDEM->GetGn());
+    mat->SetKt(m_defMaterialDEM->GetKt());
+    mat->SetGt(m_defMaterialDEM->GetGt());
 }
 
 // Return a size for an object created based on attributes of this ingredient.

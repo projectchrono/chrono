@@ -292,6 +292,14 @@ void function_CalcContactForces(
                 if (forceN_mag < 0)
                     forceN_mag = 0;
                 real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
+                switch (adhesion_model) {
+                    case ChSystemDEM::AdhesionForceModel::Constant:
+                        forceN_mag -= adhesion_eff;
+                        break;
+                    case ChSystemDEM::AdhesionForceModel::DMT:
+                        forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
+                        break;
+                }
                 real3 force = forceN_mag * normal[index];
                 if (relvel_t_mag >= (real)1e-4)
                     force -= (forceT_mag / relvel_t_mag) * relvel_t;
