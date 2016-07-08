@@ -70,7 +70,6 @@ TerrainNode::TerrainNode(Type type,
       m_settling_output(false),
       m_num_particles(0),
       m_particles_start_index(0),
-      m_proxy_start_index(0),
       m_init_height(0) {
     cout << "[Terrain node] type = " << type << " method = " << method << " use_checkpoint = " << use_checkpoint
          << " num_threads = " << num_threads << endl;
@@ -334,13 +333,6 @@ void TerrainNode::Construct() {
         m_num_particles = gen.getTotalNumBodies();
         cout << "[Terrain node] Generated particles:  " << m_num_particles << endl;
     }
-
-    // Cache the number of contact shapes that have been added so far to the parallel system.
-    // ATTENTION: This will be used to index into the various global arrays to access/modify
-    // information on contact shapes for the proxy bodies.  The implicit assumption here is
-    // that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
-
-    m_proxy_start_index = m_system->data_manager->num_rigid_shapes;
 
     // --------------------------------------
     // Write file with terrain node settings
@@ -799,12 +791,13 @@ void TerrainNode::UpdateFaceProxies() {
         //// TODO: angular velocity
         m_proxies[it].m_body->SetWvel_loc(ChVector<>(0, 0, 0));
 
-        // Update contact shape (expressed in local frame).
-        // Write directly into the Chrono::Parallel data structures, properly offsetting
-        // to the entries corresponding to the proxy bodies.
-        shape_data[m_proxy_start_index + 3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
-        shape_data[m_proxy_start_index + 3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
-        shape_data[m_proxy_start_index + 3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
+        // Update triangle contact shape (expressed in local frame) by writting directly
+        // into the Chrono::Parallel data structures.
+        // ATTENTION: It is assumed that no other triangle contact shapes have been added
+        // to the system BEFORE those corresponding to the tire mesh faces!
+        shape_data[3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
+        shape_data[3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
+        shape_data[3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
     }
 }
 
