@@ -8,14 +8,8 @@
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
-<<<<<<< HEAD:src/demos/vehicle/demo_VehicleAssembly/demo_VehicleAssembly.cpp
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
-=======
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
->>>>>>> develop:src/demos/vehicle/demo_WheeledAssembly/demo_VEH_WheeledAssembly.cpp
-
+#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
 // Chrono::Parallel OpenGL header files
 #include "chrono_opengl/ChOpenGLWindow.h"
 

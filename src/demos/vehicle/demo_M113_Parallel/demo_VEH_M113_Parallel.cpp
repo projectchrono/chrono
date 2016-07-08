@@ -25,13 +25,8 @@
 
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
-<<<<<<< HEAD:src/demos/vehicle/demo_M113_Parallel/demo_M113_Parallel.cpp
-#include "chrono_parallel/lcp/ChLcpSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
-=======
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
->>>>>>> develop:src/demos/vehicle/demo_M113_Parallel/demo_VEH_M113_Parallel.cpp
+#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files
 //#undef CHRONO_OPENGL
@@ -304,7 +299,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
 #endif
 
-    system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+    system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
 #endif
 
