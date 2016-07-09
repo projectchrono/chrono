@@ -202,6 +202,11 @@ void Sync(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
   }
 }
 bool CompareContacts(ChSystemParallel* msystem) {
+    if (msystem->data_manager->num_rigid_contacts == 0) {
+        cout << "No contacts" << endl;
+        return true;
+    }
+
   real3* norm = msystem->data_manager->host_data.norm_rigid_rigid.data();
   real3* ptA = msystem->data_manager->host_data.cpta_rigid_rigid.data();
   real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
@@ -215,20 +220,20 @@ bool CompareContacts(ChSystemParallel* msystem) {
                                     msystem->data_manager->num_dof);
   SubMatrixType D_t_T = submatrix(msystem->data_manager->host_data.D_T, msystem->data_manager->num_rigid_contacts, 0,
                                     2 * msystem->data_manager->num_rigid_contacts, msystem->data_manager->num_dof);
-  SubMatrixType D_s_T = submatrix(msystem->data_manager->host_data.D_T, 3 * msystem->data_manager->num_rigid_contacts,
-                                    0, 3 * msystem->data_manager->num_rigid_contacts, msystem->data_manager->num_dof);
+  ////SubMatrixType D_s_T = submatrix(msystem->data_manager->host_data.D_T, 3 * msystem->data_manager->num_rigid_contacts,
+  ////                                  0, 3 * msystem->data_manager->num_rigid_contacts, msystem->data_manager->num_dof);
 
   int nnz_normal = 6 * 2 * msystem->data_manager->num_rigid_contacts;
   int nnz_tangential = 6 * 4 * msystem->data_manager->num_rigid_contacts;
   int nnz_spinning = 6 * 3 * msystem->data_manager->num_rigid_contacts;
 
-  //  StrictEqual(D_n_T.nonZeros(), nnz_normal);
-  //  StrictEqual(D_t_T.nonZeros(), nnz_tangential);
-  //  StrictEqual(D_s_T.nonZeros(), nnz_spinning);
+  ////StrictEqual(D_n_T.nonZeros(), nnz_normal);
+  ////StrictEqual(D_t_T.nonZeros(), nnz_tangential);
+  ////StrictEqual(D_s_T.nonZeros(), nnz_spinning);
 
   cout << D_n_T.nonZeros() << " " << nnz_normal << endl;
   cout << D_t_T.nonZeros() << " " << nnz_tangential << endl;
-  cout << D_s_T.nonZeros() << " " << nnz_spinning << endl;
+  ////cout << D_s_T.nonZeros() << " " << nnz_spinning << endl;
 
   //#pragma omp parallel for
   for (int index = 0; index < msystem->data_manager->num_rigid_contacts; index++) {
