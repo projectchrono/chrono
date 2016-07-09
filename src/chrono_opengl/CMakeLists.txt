@@ -21,7 +21,6 @@ find_package(OpenGL)
 find_package(GLM)
 find_package(GLEW)
 find_package(GLFW)
-find_package(THRUST)
 
 # On windows, ask for the GLEW and GLFW DLLs so that we can copy. This is
 # optional.  If not specified, it is the user's responsibility to make them
@@ -43,14 +42,13 @@ ELSE()
 ENDIF()
 
 # ------------------------------------------------------------------------------
-# Collect all include directories necessary for the PARALLEL module
+# Collect all include directories necessary for the OpenGL module
 # ------------------------------------------------------------------------------
 
 SET(CH_OPENGL_INCLUDES
     ${GLM_INCLUDE_DIRS}
     ${GLEW_INCLUDE_DIR}
     ${GLFW_INCLUDE_DIR}
-    ${THRUST_INCLUDE_DIR}
 )
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
