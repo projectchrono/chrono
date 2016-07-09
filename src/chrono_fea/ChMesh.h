@@ -105,10 +105,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         timer_internal_forces.reset();
         timer_KRMload.reset();
     }
-    /// Get cumulative timing for internal force evaluation.
-    double GetTimingInternalForces() { return timer_internal_forces(); }
-    /// Get cumulative timing for Jacobian load calls.
-    double GetTimingJacobianLoad() { return timer_KRMload(); }
+    /// Get cumulative time for internal force evaluation.
+    double GetTimeInternalForces() { return timer_internal_forces(); }
+    /// Get cumulative time for Jacobian load calls.
+    double GetTimeJacobianLoad() { return timer_KRMload(); }
 
     /// Add a contact surface
     void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
