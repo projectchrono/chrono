@@ -704,21 +704,21 @@ int main(int argc, char* argv[]) {
              << TireMesh1->GetNumCallsInternalForces() + TireMesh2->GetNumCallsInternalForces() +
                     TireMesh3->GetNumCallsInternalForces() + TireMesh4->GetNumCallsInternalForces()
              << "):  "
-             << TireMesh1->GetTimingInternalForces() + TireMesh2->GetTimingInternalForces() +
-                    TireMesh3->GetTimingInternalForces() + TireMesh4->GetTimingInternalForces()
+             << TireMesh1->GetTimeInternalForces() + TireMesh2->GetTimeInternalForces() +
+                    TireMesh3->GetTimeInternalForces() + TireMesh4->GetTimeInternalForces()
              << "\n";
     GetLog() << "Jacobian ("
              << TireMesh1->GetNumCallsJacobianLoad() + TireMesh2->GetNumCallsJacobianLoad() +
                     TireMesh3->GetNumCallsJacobianLoad() + TireMesh4->GetNumCallsJacobianLoad()
              << "):  "
-             << TireMesh1->GetTimingJacobianLoad() + TireMesh2->GetTimingJacobianLoad() +
-                    TireMesh3->GetTimingJacobianLoad() + TireMesh4->GetTimingJacobianLoad()
+             << TireMesh1->GetTimeJacobianLoad() + TireMesh2->GetTimeJacobianLoad() + TireMesh3->GetTimeJacobianLoad() +
+                    TireMesh4->GetTimeJacobianLoad()
              << "\n";
     GetLog() << "Extra time:  "
-             << timer() - TireMesh1->GetTimingInternalForces() - TireMesh2->GetTimingInternalForces() -
-                    TireMesh3->GetTimingInternalForces() - TireMesh4->GetTimingInternalForces() -
-                    TireMesh1->GetTimingJacobianLoad() - TireMesh2->GetTimingJacobianLoad() -
-                    TireMesh3->GetTimingJacobianLoad() - TireMesh4->GetTimingJacobianLoad()
+             << timer() - TireMesh1->GetTimeInternalForces() - TireMesh2->GetTimeInternalForces() -
+                    TireMesh3->GetTimeInternalForces() - TireMesh4->GetTimeInternalForces() -
+                    TireMesh1->GetTimeJacobianLoad() - TireMesh2->GetTimeJacobianLoad() -
+                    TireMesh3->GetTimeJacobianLoad() - TireMesh4->GetTimeJacobianLoad()
              << "\n";
     getchar();
 

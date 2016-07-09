@@ -265,8 +265,8 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
             time_solve_pardiso += mkl_solver_speed->GetTimeSolvePardiso();
         }
 #endif
-        time_force += my_mesh->GetTimingInternalForces();
-        time_jacobian += my_mesh->GetTimingJacobianLoad();
+        time_force += my_mesh->GetTimeInternalForces();
+        time_jacobian += my_mesh->GetTimeJacobianLoad();
 
         num_iterations += mystepper->GetNumIterations();
         num_setup_calls += mystepper->GetNumSetupCalls();

@@ -393,8 +393,8 @@ void DPCapPress() {
 	}
 	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 	GetLog() << "Simulation Time: " << duration << "\n";
-	GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+	GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+	GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
 }
@@ -755,8 +755,8 @@ void ShellBrickContact() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }
@@ -1064,8 +1064,8 @@ void SimpleBoxContact() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }
@@ -1411,8 +1411,8 @@ void SoilBin() {
 	}
 	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
 	GetLog() << "Simulation Time: " << duration << "\n";
-	GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-	GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+	GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+	GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
 	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
 	GetLog() << Iter << "\n";
 }
@@ -1681,8 +1681,8 @@ void AxialDynamics() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }
