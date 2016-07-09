@@ -22,6 +22,9 @@ namespace collision {
 void ChCBroadphase::RigidBoundingBox() {
     custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+    if (aabb_min.size() == 0)
+        return;
+
     // determine the bounds on the total space and subdivide based on the bins per axis
     bbox res(aabb_min[0], aabb_min[0]);
     bbox_transformation unary_op;
