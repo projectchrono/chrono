@@ -51,8 +51,8 @@ void function_CalcContactForces(
     real* mu,                                             // coefficient of friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
-    int2* body_id,                                        // body IDs (per contact)
-    int2* shape_id,                                       // shape IDs (per contact)
+    vec2* body_id,                                        // body IDs (per contact)
+    vec2* shape_id,                                       // shape IDs (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
     real3* pt2,                                           // point on shape 2 (per contact)
     real3* normal,                                        // contact normal (per contact)
@@ -414,7 +414,7 @@ void function_CalcContactForces(
 void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
                                                           custom_vector<real3>& ext_body_force,
                                                           custom_vector<real3>& ext_body_torque,
-                                                          custom_vector<int2>& shape_pairs,
+                                                          custom_vector<vec2>& shape_pairs,
                                                           custom_vector<char>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
@@ -494,7 +494,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     custom_vector<int> ext_body_id(2 * data_manager->num_rigid_contacts);
     custom_vector<real3> ext_body_force(2 * data_manager->num_rigid_contacts);
     custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
-    custom_vector<int2> shape_pairs;
+    custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
@@ -503,7 +503,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
         thrust::fill(shear_touch.begin(), shear_touch.end(), false);
 #pragma omp parallel for
         for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-            int2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+            vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
                            int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }

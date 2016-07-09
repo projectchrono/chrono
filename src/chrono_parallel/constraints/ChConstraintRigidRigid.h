@@ -51,7 +51,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
 #pragma omp parallel for
             for (int i = 0; i < num_contacts; i++) {
-                int2 body = data_manager->host_data.bids_rigid_rigid[i];
+                vec2 body = data_manager->host_data.bids_rigid_rigid[i];
                 uint b1 = body.x;
                 uint b2 = body.y;
 
@@ -96,11 +96,11 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
 
     void Project(real* gamma);
     void Project_Single(int index, real* gamma);
-    void host_Project_single(int index, int2* ids, real3* friction, real* cohesion, real* gamma);
+    void host_Project_single(int index, vec2* ids, real3* friction, real* cohesion, real* gamma);
 
-    void func_Project_normal(int index, const int2* ids, const real* cohesion, real* gam);
-    void func_Project_sliding(int index, const int2* ids, const real3* fric, const real* cohesion, real* gam);
-    void func_Project_spinning(int index, const int2* ids, const real3* fric, real* gam);
+    void func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gam);
+    void func_Project_sliding(int index, const vec2* ids, const real3* fric, const real* cohesion, real* gam);
+    void func_Project_spinning(int index, const vec2* ids, const real3* fric, real* gam);
     void Dx(const DynamicVector<real>& x, DynamicVector<real>& output);
     void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
 

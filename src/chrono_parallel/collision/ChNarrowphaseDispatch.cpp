@@ -74,7 +74,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
 #pragma omp parallel for
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         // Identify the two candidate shapes and get their types.
-        int2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
+        vec2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
         shape_type type1 = obj_data_T[pair.x];
         shape_type type2 = obj_data_T[pair.y];
 
@@ -143,7 +143,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
     real3* convex_data = data_manager->shape_data.convex_rigid.data();
 
     long long p = contact_pair[index];
-    int2 pair =
+    vec2 pair =
         I2(int(p >> 32), int(p & 0xffffffff));  // Get the identifiers for the two shapes involved in this collision
 
     ID_A = obj_data_ID[pair.x];
@@ -160,7 +160,7 @@ void ChCNarrowphaseDispatch::Dispatch_Init(uint index,
 }
 
 void ChCNarrowphaseDispatch::Dispatch_Finalize(uint icoll, uint ID_A, uint ID_B, int nC) {
-    custom_vector<int2>& body_ids = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<vec2>& body_ids = data_manager->host_data.bids_rigid_rigid;
 
     // Mark the active contacts and set their body IDs
     for (int i = 0; i < nC; i++) {
@@ -256,7 +256,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     custom_vector<real3>& cptb_data = data_manager->host_data.cptb_rigid_rigid;
     custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
-    custom_vector<int2>& bids_data = data_manager->host_data.bids_rigid_rigid;
+    custom_vector<vec2>& bids_data = data_manager->host_data.bids_rigid_rigid;
     uint& num_rigid_contacts = data_manager->num_rigid_contacts;
     // Set maximum possible number of contacts for each potential collision
     // (depending on the narrowphase algorithm and on the types of shapes in

@@ -265,13 +265,13 @@ bool CompareContacts(ChSystemParallel* msystem_A, ChSystemParallel* msystem_B) {
   //
   //    cout << "MPR:" << endl;
   //    for (int i = 0; i < num_contacts_A; i++) {
-  //      int2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
+  //      vec2 id = msystem_A->data_manager->host_data.bids_rigid_rigid[i];
   //      real depth = msystem_A->data_manager->host_data.dpth_rigid_rigid[i];
   //      cout << id.x << " " << id.y << " " << depth << endl;
   //    }
   //    cout << "R:" << endl;
   //    for (int i = 0; i < num_contacts_B; i++) {
-  //      int2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
+  //      vec2 id = msystem_B->data_manager->host_data.bids_rigid_rigid[i];
   //      real depth = msystem_B->data_manager->host_data.dpth_rigid_rigid[i];
   //      cout << id.x << " " << id.y << " " << depth << endl;
   //    }

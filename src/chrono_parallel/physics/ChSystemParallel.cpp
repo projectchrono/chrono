@@ -225,8 +225,10 @@ void ChSystemParallel::AddBody(std::shared_ptr<ChBody> newbody) {
 void ChSystemParallel::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) {
     if (auto shaft = std::dynamic_pointer_cast<ChShaft>(newitem)) {
         AddShaft(shaft);
+#ifdef CHRONO_FEA
     } else if (auto mesh = std::dynamic_pointer_cast<fea::ChMesh>(newitem)) {
         AddMesh(mesh);
+#endif
     } else {
         newitem->SetSystem(this);
         otherphysicslist.push_back(newitem);
@@ -267,8 +269,8 @@ void ChSystemParallel::AddShaft(std::shared_ptr<ChShaft> shaft) {
 // The mesh is passed to the FEM container where it gets added to the system
 // Mesh gets blown up into different data structures, connectivity and nodes are preserved
 // Adding multiple meshes isn't a problem
-void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 #if defined(CHRONO_FEA)
+void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     uint num_nodes = mesh->GetNnodes();
     uint num_elements = mesh->GetNelements();
 
@@ -324,10 +326,8 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
     }
     container->AddNodes(positions, velocities);
     container->AddElements(elements);
-#else
-	printf("Enable FEA module to use ChSystemParallel::AddMesh function\n");
-#endif
 }
+#endif
 
 //
 // Reset forces for all variables

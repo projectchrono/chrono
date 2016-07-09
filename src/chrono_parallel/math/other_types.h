@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: definition of other types such as vec3 and int2
+// Description: definition of other types such as vec3 and vec2
 // =============================================================================
 
 #pragma once
@@ -26,7 +26,7 @@
 
 #define S2 _make_short2
 #define U3 _make_uvec3
-#define I2 _make_int2
+#define I2 _make_vec2
 
 typedef unsigned int uint;
 
@@ -42,21 +42,21 @@ struct short2 {
     short x, y;
 };
 
-class int2 {
+class vec2 {
   public:
-    inline int2() : x(0), y(0) {}
-    inline int2(int a) : x(a), y(a) {}
-    inline int2(int a, int b) : x(a), y(b) {}
-    inline int2(const int2& v) : x(v.x), y(v.y) {}
-    inline int2(const real2& v) : x(v.x), y(v.y) {}
+    inline vec2() : x(0), y(0) {}
+    inline vec2(int a) : x(a), y(a) {}
+    inline vec2(int a, int b) : x(a), y(b) {}
+    inline vec2(const vec2& v) : x(v.x), y(v.y) {}
+    inline vec2(const real2& v) : x(v.x), y(v.y) {}
     inline int operator[](unsigned int i) const { return array[i]; }
     inline int& operator[](unsigned int i) { return array[i]; }
-    inline int2& operator=(const int2& rhs) {
+    inline vec2& operator=(const vec2& rhs) {
         x = rhs.x;
         y = rhs.y;
         return *this;
     }
-    inline int2& operator=(const real2& rhs) {
+    inline vec2& operator=(const real2& rhs) {
         x = rhs.x;
         y = rhs.y;
         return *this;
@@ -106,7 +106,7 @@ class vec3 {
     };
 };
 
-struct int4 {
+struct vec4 {
     int x, y, z, w;
 };
 
@@ -130,8 +130,8 @@ static inline short2 _make_short2(const short& a, const short& b) {
     return t;
 }
 
-static inline int2 _make_int2(const int& a, const int& b) {
-    int2 t;
+static inline vec2 _make_vec2(const int& a, const int& b) {
+    vec2 t;
     t.x = a;
     t.y = b;
     return t;
@@ -196,7 +196,7 @@ static inline uvec3 operator-(const uvec3& a, const uvec3& b) {
     return U3(a.x - b.x, a.y - b.y, a.z - b.z);
 }
 
-static inline std::ostream& operator<<(std::ostream& out, const int2& a) {
+static inline std::ostream& operator<<(std::ostream& out, const vec2& a) {
     out << "[" << a.x << ", " << a.y << "]" << std::endl;
     return out;
 }

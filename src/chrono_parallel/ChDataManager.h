@@ -223,16 +223,16 @@ struct host_container {
     custom_vector<real3> cptb_rigid_rigid;
     custom_vector<real> dpth_rigid_rigid;
     custom_vector<real> erad_rigid_rigid;
-    custom_vector<int2> bids_rigid_rigid;
+    custom_vector<vec2> bids_rigid_rigid;
 
     custom_vector<real3> norm_rigid_fluid;
     custom_vector<real3> cpta_rigid_fluid;
     custom_vector<real> dpth_rigid_fluid;
     custom_vector<int> neighbor_rigid_fluid;
-    // custom_vector<int2> bids_rigid_fluid;
+    // custom_vector<vec2> bids_rigid_fluid;
     custom_vector<int> c_counts_rigid_fluid;
 
-    // custom_vector<int2> bids_fluid_fluid;
+    // custom_vector<vec2> bids_fluid_fluid;
     // each particle has a finite number of neighbors preallocated
     custom_vector<int> neighbor_3dof_3dof;
     custom_vector<int> c_counts_3dof_3dof;

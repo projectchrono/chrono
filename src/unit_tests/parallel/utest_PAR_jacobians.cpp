@@ -211,7 +211,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
   real3* ptA = msystem->data_manager->host_data.cpta_rigid_rigid.data();
   real3* ptB = msystem->data_manager->host_data.cptb_rigid_rigid.data();
   real3* pos_data = msystem->data_manager->host_data.pos_rigid.data();
-  chrono::int2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
+  chrono::vec2* ids = msystem->data_manager->host_data.bids_rigid_rigid.data();
   quaternion* rot = msystem->data_manager->host_data.rot_rigid.data();
 
   ((ChIterativeSolverParallelDVI*)msystem->GetSolverSpeed())->ComputeD();
@@ -244,7 +244,7 @@ bool CompareContacts(ChSystemParallel* msystem) {
 
     Orthogonalize(U, V, W);
 
-    chrono::int2 body_id = ids[index];
+    chrono::vec2 body_id = ids[index];
 
     int row = index;
 

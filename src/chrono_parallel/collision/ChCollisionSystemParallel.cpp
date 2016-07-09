@@ -186,11 +186,11 @@ void ChCollisionSystemParallel::GetOverlappingAABB(custom_vector<char>& active_i
     }
 }
 
-std::vector<int2> ChCollisionSystemParallel::GetOverlappingPairs() {
-    std::vector<int2> pairs;
+std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
+    std::vector<vec2> pairs;
     pairs.resize(data_manager->host_data.contact_pairs.size());
     for (int i = 0; i < data_manager->host_data.contact_pairs.size(); i++) {
-        int2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+        vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
                        int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
         pairs[i] = pair;
     }

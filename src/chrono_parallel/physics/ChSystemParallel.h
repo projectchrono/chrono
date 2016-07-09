@@ -132,7 +132,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
+#ifdef CHRONO_FEA
     void AddMesh(std::shared_ptr<fea::ChMesh> mesh);
+#endif
 
     std::vector<ChShaft*> shaftlist;
 };

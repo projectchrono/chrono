@@ -140,7 +140,7 @@ void ChSystemParallelDVI::AssembleSystem() {
     contact_container->BeginAddContact();
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-        int2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
+        vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
         icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
         icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
         icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
