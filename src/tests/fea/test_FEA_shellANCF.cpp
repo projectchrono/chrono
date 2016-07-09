@@ -36,6 +36,9 @@
 using namespace chrono;
 using namespace chrono::fea;
 
+using std::cout;
+using std::endl;
+
 // -----------------------------------------------------------------------------
 
 int num_threads = 4;      // default number of threads
@@ -62,14 +65,14 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     use_mkl = false;
 #endif
 
-    std::cout << std::endl;
-    std::cout << "===================================================================" << std::endl;
-    std::cout << "Solver:          " << (use_mkl ? "MKL" : "MINRES") << std::endl;
-    std::cout << "Adaptive step:   " << (use_adaptiveStep ? "Yes" : "No") << std::endl;
-    std::cout << "Modified Newton: " << (use_modifiedNewton ? "Yes" : "No") << std::endl;
-    std::cout << std::endl;
-    std::cout << "Mesh divisions:  " << numDiv_x << " x " << numDiv_y << std::endl;
-    std::cout << std::endl;
+    cout << endl;
+    cout << "===================================================================" << endl;
+    cout << "Solver:          " << (use_mkl ? "MKL" : "MINRES") << endl;
+    cout << "Adaptive step:   " << (use_adaptiveStep ? "Yes" : "No") << endl;
+    cout << "Modified Newton: " << (use_modifiedNewton ? "Yes" : "No") << endl;
+    cout << endl;
+    cout << "Mesh divisions:  " << numDiv_x << " x " << numDiv_y << endl;
+    cout << endl;
 
     // Create the physical system
     ChSystem my_system;
@@ -161,16 +164,21 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     my_system.SetupInitial();
 
     // Set up solver
-    if (use_mkl) {
 #ifdef CHRONO_MKL
-        ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-        ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL* mkl_solver_stab = nullptr;
+    ChSolverMKL* mkl_solver_speed = nullptr;
+
+    if (use_mkl) {
+        mkl_solver_stab = new ChSolverMKL;
+        mkl_solver_speed = new ChSolverMKL;
         my_system.ChangeSolverStab(mkl_solver_stab);
         my_system.ChangeSolverSpeed(mkl_solver_speed);
         mkl_solver_speed->SetSparsityPatternLock(true);
         mkl_solver_stab->SetSparsityPatternLock(true);
+    }
 #endif
-    } else {
+
+    if (!use_mkl) {
         my_system.SetSolverType(ChSystem::SOLVER_MINRES);
         ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
         msolver->SetDiagonalPreconditioning(true);
@@ -201,11 +209,16 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     // Simulation loop
     double time_total = 0;
     double time_setup = 0;
+    double time_setup_assembly = 0;
+    double time_setup_pardiso = 0;
     double time_solve = 0;
+    double time_solve_assembly = 0;
+    double time_solve_pardiso = 0;
     double time_update = 0;
     double time_force = 0;
     double time_jacobian = 0;
     double time_skipped = 0;
+
     int num_iterations = 0;
     int num_setup_calls = 0;
     int num_solver_calls = 0;
@@ -215,14 +228,21 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     for (int istep = 0; istep < num_steps; istep++) {
         my_mesh->ResetCounters();
         my_mesh->ResetTimers();
-
+#ifdef CHRONO_MKL
+        if (use_mkl)
+            mkl_solver_speed->ResetTimers();
+#endif
         my_system.DoStepDynamics(step_size);
 
         if (istep == skip_steps) {
             time_skipped = time_total;
             time_total = 0;
             time_setup = 0;
+            time_setup_assembly = 0;
+            time_setup_pardiso = 0;
             time_solve = 0;
+            time_solve_assembly = 0;
+            time_solve_pardiso = 0;
             time_update = 0;
             time_force = 0;
             time_jacobian = 0;
@@ -237,7 +257,14 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         time_setup += my_system.GetTimerSetup();
         time_solve += my_system.GetTimerSolver();
         time_update += my_system.GetTimerUpdate();
-
+#ifdef CHRONO_MKL
+        if (use_mkl) {
+            time_setup_assembly += mkl_solver_speed->GetTimeSetupAssembly();
+            time_setup_pardiso += mkl_solver_speed->GetTimeSetupPardiso();
+            time_solve_assembly += mkl_solver_speed->GetTimeSolveAssembly();
+            time_solve_pardiso += mkl_solver_speed->GetTimeSolvePardiso();
+        }
+#endif
         time_force += my_mesh->GetTimingInternalForces();
         time_jacobian += my_mesh->GetTimingJacobianLoad();
 
@@ -251,42 +278,54 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         const ChVector<>& p = nodetip->GetPos();
 
         if (verbose) {
-            std::cout << "-------------------------------------------------------------------" << std::endl;
-            std::cout << my_system.GetChTime() << "  ";
-            std::cout << "   " << my_system.GetTimerStep();
-            std::cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << std::endl;
+            cout << "-------------------------------------------------------------------" << endl;
+            cout << my_system.GetChTime() << "  ";
+            cout << "   " << my_system.GetTimerStep();
+            cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << endl;
         }
 
         if (output) {
-            out << my_system.GetChTime() << my_system.GetTimerStep() << nodetip->GetPos() << std::endl;
+            out << my_system.GetChTime() << my_system.GetTimerStep() << nodetip->GetPos() << endl;
         }
     }
 
     double time_other = time_total - time_setup - time_solve - time_update - time_force - time_jacobian;
 
-    std::cout << "-------------------------------------------------------------------" << std::endl;
-    std::cout << "Total number of steps:        " << num_steps - skip_steps << std::endl;
-    std::cout << "Total number of iterations:   " << num_iterations << std::endl;
-    std::cout << "Total number of setup calls:  " << num_setup_calls << std::endl;
-    std::cout << "Total number of solver calls: " << num_solver_calls << std::endl;
-    std::cout << "Total number of internal force calls: " << num_force_calls << std::endl;
-    std::cout << "Total number of Jacobian calls:       " << num_jacobian_calls << std::endl;
-    std::cout << std::endl;
-    std::cout << std::setprecision(3) << std::fixed;
-    std::cout << "Total time: " << time_total << std::endl;
-    std::cout << "  Setup:    " << time_setup << "\t (" << (time_setup/time_total)*100 << "%)" << std::endl;
-    std::cout << "  Solve:    " << time_solve << "\t (" << (time_solve / time_total) * 100 << "%)" << std::endl;
-    std::cout << "  Forces:   " << time_force << "\t (" << (time_force / time_total) * 100 << "%)" << std::endl;
-    std::cout << "  Jacobian: " << time_jacobian << "\t (" << (time_jacobian / time_total) * 100 << "%)" << std::endl;
-    std::cout << "  Update:   " << time_update << "\t (" << (time_update / time_total) * 100 << "%)" << std::endl;
-    std::cout << "  Other:    " << time_other << "\t (" << (time_other / time_total) * 100 << "%)" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Time for skipped steps (" << skip_steps << "): " << time_skipped << std::endl;
+    cout << "-------------------------------------------------------------------" << endl;
+    cout << "Total number of steps:        " << num_steps - skip_steps << endl;
+    cout << "Total number of iterations:   " << num_iterations << endl;
+    cout << "Total number of setup calls:  " << num_setup_calls << endl;
+    cout << "Total number of solver calls: " << num_solver_calls << endl;
+    cout << "Total number of internal force calls: " << num_force_calls << endl;
+    cout << "Total number of Jacobian calls:       " << num_jacobian_calls << endl;
+    cout << endl;
+    cout << std::setprecision(3) << std::fixed;
+    cout << "Total time: " << time_total << endl;
+    cout << "  Setup:    " << time_setup << "\t (" << (time_setup / time_total) * 100 << "%)" << endl;
+    if (use_mkl) {
+        cout << "    Assembly: " << time_setup_assembly << "\t (" << (time_setup_assembly / time_setup) * 100
+             << "% setup)" << endl;
+        cout << "    Pardiso:  " << time_setup_pardiso << "\t (" << (time_setup_pardiso / time_setup) * 100
+             << "% setup)" << endl;
+    }
+    cout << "  Solve:    " << time_solve << "\t (" << (time_solve / time_total) * 100 << "%)" << endl;
+    if (use_mkl) {
+        cout << "    Assembly: " << time_solve_assembly << "\t (" << (time_solve_assembly / time_solve) * 100
+             << "% solve)" << endl;
+        cout << "    Pardiso:  " << time_solve_pardiso << "\t (" << (time_solve_pardiso / time_solve) * 100
+             << "% solve)" << endl;
+    }
+    cout << "  Forces:   " << time_force << "\t (" << (time_force / time_total) * 100 << "%)" << endl;
+    cout << "  Jacobian: " << time_jacobian << "\t (" << (time_jacobian / time_total) * 100 << "%)" << endl;
+    cout << "  Update:   " << time_update << "\t (" << (time_update / time_total) * 100 << "%)" << endl;
+    cout << "  Other:    " << time_other << "\t (" << (time_other / time_total) * 100 << "%)" << endl;
+    cout << endl;
+    cout << "Time for skipped steps (" << skip_steps << "): " << time_skipped << endl;
 
     if (output) {
         char name[100];
         std::sprintf(name, "%s/out_%s_%d.txt", out_dir.c_str(), suffix.c_str(), num_threads);
-        std::cout << "Write output to: " << name << std::endl;
+        cout << "Write output to: " << name << endl;
         out.write_to_file(name);
     }
 }

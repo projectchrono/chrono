@@ -24,10 +24,14 @@ ChSolverMKL::ChSolverMKL()
       nnz(0) {}
 
 double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
+    timer_solve_assembly.start();
     sysd.ConvertToMatrixForm(nullptr, &rhs);
+    timer_solve_assembly.stop();
 
+    timer_solve_pardiso.start();
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase33 = mkl_engine.PardisoCall(33, 0);
+    timer_solve_pardiso.stop();
 
     solver_call++;
     if (pardiso_message_phase33) {
@@ -45,12 +49,16 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     }
 
     // Replicate the changes to vvariables and vconstraint into SystemDescriptor
+    timer_solve_assembly.start();
     sysd.FromVectorToUnknowns(sol);
+    timer_solve_assembly.stop();
 
     return 0.0f;
 }
 
 bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
+    timer_setup_assembly.start();
+
     // Initial resizing;
     if (solver_call == 0)
     {
@@ -105,21 +113,24 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     if (use_rhs_sparsity && !use_perm)
         mkl_engine.UsePartialSolution(2);
 
+    timer_setup_assembly.stop();
+
     // Solve with Pardiso Sparse Direct Solver
     // the problem size must be updated also in the Engine: this is done by SetProblem() itself.
+    timer_setup_pardiso.start();
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
+    timer_setup_pardiso.stop();
 
-    if (pardiso_message_phase12 == 0) {
-        // Successful factorization
-        return true;
+    if (pardiso_message_phase12 != 0) {
+        // Factorization failed.
+        GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
+        GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
+        GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+        return false;
     }
 
-    GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
-    GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
-    GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
-
-    return false;
+    return true;
 }
 
 }  // end namespace chrono
