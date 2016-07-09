@@ -34,12 +34,13 @@ class ChApi ChControls : public ChObj {
     ChControls(const ChControls& other) : ChObj(other) {}
     virtual ~ChControls() {}
 
-    virtual bool ExecuteForStart() = 0;
-    virtual bool ExecuteForUpdate() = 0;
-    virtual bool ExecuteForStep() = 0;
-    virtual bool ExecuteFor3DStep() = 0;
+    /// "Virtual" copy constructor.
+    virtual ChControls* Clone() const override { return new ChControls(*this); }
 
-    /// Method to allow serialization of transient data in archives.
+    virtual bool ExecuteForUpdate() { return true; }
+    virtual bool ExecuteForStep() { return true; }
+
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de serialization of transient data from archives.

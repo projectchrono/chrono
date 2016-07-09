@@ -21,17 +21,17 @@ ChSolverMKL::ChSolverMKL()
       sparsity_pattern_lock(false),
       use_perm(false),
       use_rhs_sparsity(false),
-      manual_factorization(false),
       nnz(0) {}
 
 double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
-    if (!manual_factorization)
-        Factorize(sysd);
-
+    timer_solve_assembly.start();
     sysd.ConvertToMatrixForm(nullptr, &rhs);
+    timer_solve_assembly.stop();
 
+    timer_solve_pardiso.start();
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase33 = mkl_engine.PardisoCall(33, 0);
+    timer_solve_pardiso.stop();
 
     solver_call++;
     if (pardiso_message_phase33) {
@@ -49,12 +49,16 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     }
 
     // Replicate the changes to vvariables and vconstraint into SystemDescriptor
+    timer_solve_assembly.start();
     sysd.FromVectorToUnknowns(sol);
+    timer_solve_assembly.stop();
 
     return 0.0f;
 }
 
-double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
+bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
+    timer_setup_assembly.start();
+
     // Initial resizing;
     if (solver_call == 0)
     {
@@ -77,7 +81,6 @@ double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     //     - if sparsity_pattern_lock is ON the matrix will have some uninitialized element flagged with -1 in the
     //     colIndex;
     //          those have to be removed by Compress().
-    // manual_factorization ? sysd.ConvertToMatrixForm(&matCSR3, nullptr) : sysd.ConvertToMatrixForm(&matCSR3, &rhs);
     sysd.ConvertToMatrixForm(&matCSR3, nullptr);
 
     // Set up the locks;
@@ -110,18 +113,24 @@ double ChSolverMKL::Factorize(ChSystemDescriptor& sysd) {
     if (use_rhs_sparsity && !use_perm)
         mkl_engine.UsePartialSolution(2);
 
+    timer_setup_assembly.stop();
+
     // Solve with Pardiso Sparse Direct Solver
     // the problem size must be updated also in the Engine: this is done by SetProblem() itself.
+    timer_setup_pardiso.start();
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
+    timer_setup_pardiso.stop();
 
-    if (pardiso_message_phase12) {
+    if (pardiso_message_phase12 != 0) {
+        // Factorization failed.
         GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
         GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
         GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+        return false;
     }
 
-    return pardiso_message_phase12;
+    return true;
 }
 
 }  // end namespace chrono

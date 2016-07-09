@@ -62,27 +62,27 @@ jQuery(function() {
         });
       } else {
         // If there are no results, let the user know.
-        $search_results.html('<li>No results found.<br/>Please check spelling, spacing, etc...</li>');
+        $search_results.html('<li>No website results found.<br/>Please check spelling, spacing, etc...</li>');
       }
     });
   }
   // Searches through doxygen site using embedded doxysearch capabilities
   // See https://www.stack.nl/~dimitri/doxygen/manual/extsearch.html for more information
   function search_documentation(query) {
-    var doc_url = "http://api.chrono.projectchrono.org/";
-    var doc_search_url = "cgi-bin/doxysearch.cgi";
-    var callback = "docshow";
-    var page = "1";
-    var number = "20";
+    var doc_url = "http://projectchrono.org";
+    var doc_search_url = "/doxygen";
+    var page = "0";
+    var number = "25";
+    var callback = "docshow"
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
-    // Gets list of test names
     $.ajax({
           url: doc_url + doc_search_url + search_string,
           method: "GET",
           data: "",
           dataType:"jsonp",
-          jsonpCallback: 'docshow',
+          jsonpCallback: "docshow",
           success: function (response, status, xhr) {
+              docshow(response);
               console.log(response);
               },
           error: function (xhr, status, error_code) {
@@ -91,16 +91,18 @@ jQuery(function() {
     })
   }
   function docshow(result) {
+    console.log("result is: " + JSON.stringify(result, null, 4));
     var hits = result["items"];
 
+    var ul = document.getElementById("doc_results");
+    ul.innerHTML="";
     for (var i = 0; i < hits.length; i++) {
       var hit = hits[i];
       // console.log(hit);
       var name = hit["name"];
       var url = hit["url"];
-      var url_base = "http://projectchrono.org/";
+      var url_base = "http://api.projectchrono.org/";
       url = url_base + url;
-      var ul = document.getElementById("doc_results");
       var li = document.createElement("li");
       ul.appendChild(li);
       var a = document.createElement("a");

@@ -1,7 +1,7 @@
 #--------------------------------------------------------------
 # 
 # Example of CMake configuration file to build an external 
-# project depending on Chrono and on optionam Chrono modules.
+# project depending on Chrono and on optional Chrono modules.
 # 
 # This minimal sample project can be used as a template for a
 # user project.  Modify sections 1, 2, and 3 below as appropriate.

@@ -3,37 +3,37 @@ White Papers {#whitepaper_root}
 
 ## Technical documentation and theory
 
-- **Rotations in Chrono::Engine**
-  [download PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/rotations.pdf)
+- **Handling of rotations in Chrono**
+  [PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/rotations.pdf)
 
-- **Frame kinematics in Chrono::Engine** 
-  [download PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/frame_kinematics.pdf)
+- **Frame kinematics in Chrono** 
+  [PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/frame_kinematics.pdf)
 
 - **Time integrators** 
-  [download PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/integrator.pdf)
+  [PDF](http://www.projectchrono.org/assets/white_papers/ChronoCore/integrator.pdf)
   
-- **ANCF support** 
-  [download PDF](http://www.projectchrono.org/assets/white_papers/FEA/WP_ANCF.pdf)
+- **Support for nonlinear finite element analysis via ANCF** 
+  [PDF](http://www.projectchrono.org/assets/white_papers/FEA/WP_ANCF.pdf)
   
 - **Corotational Euler-Bernoulli beams** 
-  [download PDF1](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)   [download PDF2](http://www.projectchrono.org/assets/white_papers/FEA/WhitePaper_Co-rotational.pdf)
+  [PDF1](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)   [download PDF2](http://www.projectchrono.org/assets/white_papers/FEA/WhitePaper_Co-rotational.pdf)
 
 
 ## Journal papers
 
 - H. Mazhar, T. Heyn, D. Negrut, A. Tasora,  <br>
   **Using Nesterov's Method to Accelerate Multibody Dynamics with Friction and Contact** <br>
-  ACM TRANSACTIONS ON GRAPHICS, vol.34(3), 2015,  <br>
+  ACM Transactions on Graphics, vol.34(3), 2015,  <br>
   [download PDF](http://dx.doi.org/10.1145/2735627)
 
 - T. Heyn, M. Anitescu, A. Tasora, D. Negrut,   <br>
   **Using Krylov Subspace and Spectral Methods for Solving Complementarity Problems in Many-Body Contact Dynamics Simulation**, <br>
-  INT. JOURNAL FOR NUMERICAL METHODS IN ENGINEERING, vol.95(7), p.541-561, 2013,  <br>
+  International Journal for Numerical Methods in Engineering, vol.95(7), p.541-561, 2013,  <br>
   [download PDF](http://www.chronoengine.info/tasora/pubblicazioni/IJNME_2012_preprint.pdf)
 
 - Tasora, A., Anitescu, M., <br>
   **A complementarity-based rolling friction model for rigid contacts**,  <br>
-  MECCANICA, vol.48(7), p.1643-1659, 2013  <br>
+  Meccanica, vol.48(7), p.1643-1659, 2013  <br>
   [download PDF](http://www.mcs.anl.gov/~anitescu/PUBLICATIONS/2012/TasoraAnitescu2012RollingComplementarity.pdf)
 
 - Anitescu, M., Tasora, A., <br>

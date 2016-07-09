@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChSolverSOR.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverSOR> a_registration_ChSolverSOR;
 
 double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
@@ -54,9 +56,10 @@ double ChSolverSOR::Solve(ChSystemDescriptor& sysd  ///< system description with
     // 2)  Compute, for all items with variables, the initial guess for
     //     still unconstrained system:
 
-    for (unsigned int iv = 0; iv < mvariables.size(); iv++)
+    for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+    }
 
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of contraints, if a warm start is desired.

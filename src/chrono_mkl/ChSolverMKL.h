@@ -13,6 +13,7 @@
 #define CHSOLVERMKL_H
 
 #include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono_mkl/ChMklEngine.h"
@@ -24,11 +25,6 @@ namespace chrono {
 
 /// Class that wraps the Intel MKL Pardiso parallel direct solver.
 /// It can solve linear systems, but not VI and complementarity problems.
-/// This class is usually set up by the end-user in its main program.
-/// ::Solve(ChLcpSystemDescriptor&) and ::Factorize(ChLcpSystemDescriptor&) are instead called automatically during the integration step,
-/// so they are not usually called by the end-user.
-
-
 class ChApiMkl ChSolverMKL : public ChSolver {
     // Chrono RTTI, needed for serialization
     CH_RTTI(ChSolverMKL, ChSolver);
@@ -46,7 +42,11 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     bool sparsity_pattern_lock;
     bool use_perm;
     bool use_rhs_sparsity;
-    bool manual_factorization;
+
+    ChTimer<> timer_setup_assembly;
+    ChTimer<> timer_setup_pardiso;
+    ChTimer<> timer_solve_assembly;
+    ChTimer<> timer_solve_pardiso;
 
   public:
     ChSolverMKL();
@@ -55,32 +55,51 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     ChMklEngine& GetMklEngine() { return mkl_engine; }
     ChCSR3Matrix& GetMatrix() { return matCSR3; }
 
-    /// If \a on_off is set to \c true then \c matCSR3 ChCSR3Matrix::Reset(int,int,int) function
-    /// will keep the sparsity structure i.e. it is supposed that, during the next allocation,
-    /// the matrix will have its nonzeros placed in the same position as the current allocation.
+    /// Enable/disable locking the sparsity pattern. 
+    /// If on_off is set to true, then the sparsity pattern of the problem matrix is assumed
+    /// to be unchanged from call to call.
     void SetSparsityPatternLock(bool on_off) { sparsity_pattern_lock = on_off; }
-    void UsePermutationVector(bool on_off) { use_perm = on_off; }
-    void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; }
-    void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
-    /// If \a on_off is set to \c true then ::Solve(ChSystemDescriptor&) call
-    /// must be preceded by a ::Factorize(ChSystemDescriptor&) call.
-    void SetManualFactorization(bool on_off) { manual_factorization = on_off; }
-    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; };
 
+    void UsePermutationVector(bool on_off) { use_perm = on_off; }
+
+    void LeverageRhsSparsity(bool on_off) { use_rhs_sparsity = on_off; }
+
+    void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
+
+    /// Set the number of non-zero entries in the problem matrix.
+    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; }
+
+    /// Reset timers for internal phases in Solve and Setup.
+    void ResetTimers() {
+        timer_setup_assembly.reset();
+        timer_setup_pardiso.reset();
+        timer_solve_assembly.reset();
+        timer_solve_pardiso.reset();
+    }
+
+    /// Get cumulative time for assembly operations in Solve phase.
+    double GetTimeSolveAssembly() { return timer_solve_assembly(); }
+    /// Get cumulative time for Pardiso calls in Solve phase.
+    double GetTimeSolvePardiso() { return timer_solve_pardiso(); }
+    /// Get cumulative time for assembly operations in Setup phase.
+    double GetTimeSetupAssembly() { return timer_setup_assembly(); }
+    /// Get cumulative time for Pardiso calls in Setup phase.
+    double GetTimeSetupPardiso() { return timer_setup_pardiso(); }
+
+    /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
+    /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
+    virtual bool SolveRequiresMatrix() const override { return false; }
 
     /// Solve using the MKL Pardiso sparse direct solver.
-    /// If ::manual_factorization is turned off (i.e. set to \c false) then
-    /// it automatically calls ::Factorize(ChSystemDescriptor&) in order to perform analysis,
-    /// reordering and factorization (MKL Pardiso phase 12).
-    /// In any case a call to this function will end with a solve and refinement phase (Pardiso phase 33)
+    /// It uses the matrix factorization obtained at the last call to Setup().
     virtual double Solve(ChSystemDescriptor& sysd) override;
-    /// Performs a factorization of the system matrix.
-    virtual double Factorize(ChSystemDescriptor& sysd) override;
 
-    //
-    // SERIALIZATION
-    //
+    /// Perform the solver setup operations.
+    /// For the MKL solver, this means assembling and factorizing the system matrix.
+    /// Returns true if successful and false otherwise.
+    virtual bool Setup(ChSystemDescriptor& sysd) override;
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
         marchive.VersionWrite(1);
@@ -90,7 +109,6 @@ class ChApiMkl ChSolverMKL : public ChSolver {
         marchive << CHNVP(sparsity_pattern_lock);
         marchive << CHNVP(use_perm);
         marchive << CHNVP(use_rhs_sparsity);
-        marchive << CHNVP(manual_factorization);
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -103,7 +121,6 @@ class ChApiMkl ChSolverMKL : public ChSolver {
         marchive >> CHNVP(sparsity_pattern_lock);
         marchive >> CHNVP(use_perm);
         marchive >> CHNVP(use_rhs_sparsity);
-        marchive >> CHNVP(manual_factorization);
     }
 };
 

@@ -25,11 +25,11 @@ namespace chrono {
 
 class ChApi ChProbe : public ChObj {
   public:
-    ChProbe();
-    ChProbe(const ChProbe& other);
+    ChProbe() {}
+    ChProbe(const ChProbe& other) : ChObj(other) {}
     virtual ~ChProbe() {}
 
-    /// "Virtual" copy constructor (covariant return type).
+    /// "Virtual" copy constructor.
     virtual ChProbe* Clone() const override { return new ChProbe(*this); }
 
     /// Record the value.
@@ -41,6 +41,12 @@ class ChApi ChProbe : public ChObj {
 
     // If some data is recorded, delete.
     virtual void Reset() {}
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
+
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 }  // end namespace chrono

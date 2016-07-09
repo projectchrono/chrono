@@ -66,7 +66,7 @@ class ChApiFea ChMaterialShellANCF {
 // ----------------------------------------------------------------------------
 /// ANCF laminated shell element with four nodes.
 /// This class implements composite material elastic force formulations.
-/// 
+///
 /// The node numbering is in ccw fashion as in the following scheme:
 ///         v
 ///         ^
@@ -205,8 +205,9 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 8 columns matrix!
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
-	/// Return a vector with three strain components
-	ChVector<> EvaluateSectionStrains();
+    /// Return a vector with three strain components
+    ChVector<> EvaluateSectionStrains();
+
   private:
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > m_nodes;  ///< element nodes
     std::vector<Layer> m_layers;                           ///< element layers
@@ -234,6 +235,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     static const double m_toleranceEAS;   ///< tolerance for nonlinear EAS solver (on residual)
     static const int m_maxIterationsEAS;  ///< maximum number of nonlinear EAS iterations
 
+public:
     // Interface to ChElementBase base class
     // -------------------------------------
 

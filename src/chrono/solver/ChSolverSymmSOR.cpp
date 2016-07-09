@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono/solver/ChSolverSymmSOR.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverSymmSOR> a_registration_ChSolverSymmSOR;
 
 double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
@@ -35,7 +37,6 @@ double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description 
         mconstraints[ic]->Update_auxiliary();
 
     // Average all g_i for the triplet of contact constraints n,u,v.
-    //
     int j_friction_comp = 0;
     double gi_values[3];
     for (unsigned int ic = 0; ic < nConstr; ic++) {
@@ -54,7 +55,6 @@ double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description 
 
     // 2)  Compute, for all items with variables, the initial guess for
     //     still uncostrained system:
-
     for (unsigned int iv = 0; iv < nVars; iv++)
         if (mvariables[iv]->IsActive())
             mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
@@ -72,12 +72,10 @@ double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description 
     }
 
     // 4)  Perform the iteration loops
-    //
     for (int iter = 0; iter < max_iterations;) {
         //
         // Forward sweep, for symmetric SOR
         //
-
         maxviolation = 0;
         maxdeltalambda = 0;
         i_friction_comp = 0;

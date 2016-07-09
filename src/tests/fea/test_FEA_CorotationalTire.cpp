@@ -347,10 +347,10 @@ int main(int argc, char* argv[]) {
         // Report run time.
         GetLog() << "Simulation time:  " << timer() << "\n";
         GetLog() << "Internal forces (" << my_mesh->GetNumCallsInternalForces()
-                 << "):  " << my_mesh->GetTimingInternalForces() << "\n";
-        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimingJacobianLoad()
+                 << "):  " << my_mesh->GetTimeInternalForces() << "\n";
+        GetLog() << "Jacobian (" << my_mesh->GetNumCallsJacobianLoad() << "):  " << my_mesh->GetTimeJacobianLoad()
                  << "\n";
-        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimingInternalForces() - my_mesh->GetTimingJacobianLoad()
+        GetLog() << "Extra time:  " << timer() - my_mesh->GetTimeInternalForces() - my_mesh->GetTimeJacobianLoad()
                  << "\n";
     }
 

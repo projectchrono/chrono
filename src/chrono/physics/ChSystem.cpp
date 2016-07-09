@@ -14,12 +14,12 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/physics/ChContactContainerDVI.h"
-#include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChProximityContainerBase.h"
 #include "chrono/physics/ChSystem.h"
-
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
 #include "chrono/solver/ChSolverJacobi.h"
@@ -30,14 +30,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSimplex.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
-#include "chrono/solver/ChSystemDescriptor.h"
-
-#include "chrono/collision/ChCCollisionSystemBullet.h"
-#include "chrono/collision/ChCModelBullet.h"
-#include "chrono/core/ChTimer.h"
-#include "chrono/parallel/ChOpenMP.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
-#include "chrono/timestepper/ChTimestepper.h"
 
 using namespace chrono::collision;
 
@@ -218,6 +211,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
       solvecount(0),
+      setupcount(0),
       dump_matrices(false),
       last_err(0),
       scriptEngine(NULL),
@@ -268,6 +262,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     step_max = other.step_max;
     stepcount = other.stepcount;
     solvecount = other.solvecount;
+    setupcount = other.setupcount;
     dump_matrices = other.dump_matrices;
     SetIntegrationType(other.integration_type);
     tol = other.tol;
@@ -509,39 +504,39 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
 void ChSystem::ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor) {
     assert(newdescriptor);
-    if (this->descriptor)
-        delete (this->descriptor);
-    this->descriptor = newdescriptor;
+    if (descriptor)
+        delete descriptor;
+    descriptor = newdescriptor;
 }
 void ChSystem::ChangeSolverSpeed(ChSolver* newsolver) {
     assert(newsolver);
-    if (this->solver_speed)
-        delete (this->solver_speed);
-    this->solver_speed = newsolver;
-    this->solver_type = SOLVER_CUSTOM;
+    if (solver_speed)
+        delete solver_speed;
+    solver_speed = newsolver;
+    solver_type = SOLVER_CUSTOM;
 }
 
 void ChSystem::ChangeSolverStab(ChSolver* newsolver) {
     assert(newsolver);
-    if (this->solver_stab)
-        delete (this->solver_stab);
-    this->solver_stab = newsolver;
-    this->solver_type = SOLVER_CUSTOM;
+    if (solver_stab)
+        delete solver_stab;
+    solver_stab = newsolver;
+    solver_type = SOLVER_CUSTOM;
 }
 
 void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
     assert(newcontainer);
 
-    this->contact_container = newcontainer;
-    this->contact_container->SetSystem(this);
+    contact_container = newcontainer;
+    contact_container->SetSystem(this);
 }
 
 void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
-    assert(this->GetNbodies() == 0);
+    assert(GetNbodies() == 0);
     assert(newcollsystem);
-    if (this->collision_system)
-        delete (this->collision_system);
-    this->collision_system = newcollsystem;
+    if (collision_system)
+        delete collision_system;
+    collision_system = newcollsystem;
 }
 
 // Initial system setup before analysis.
@@ -561,53 +556,53 @@ void ChSystem::SetupInitial() {
 // JS commands
 
 int ChSystem::SetScriptForStartFile(const std::string& mfile) {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    this->scriptForStartFile = mfile;
-    this->scriptForStart = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStart, mfile.c_str());
+    scriptForStartFile = mfile;
+    scriptForStart = scriptEngine->CreateScript();
+    return scriptEngine->FileToScript(*scriptForStart, mfile.c_str());
 }
 int ChSystem::SetScriptForUpdateFile(const std::string& mfile) {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    this->scriptForUpdateFile = mfile;
-    this->scriptForUpdate = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForUpdate, mfile.c_str());
+    scriptForUpdateFile = mfile;
+    scriptForUpdate = scriptEngine->CreateScript();
+    return scriptEngine->FileToScript(*scriptForUpdate, mfile.c_str());
 }
 int ChSystem::SetScriptForStepFile(const std::string& mfile) {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    this->scriptForStepFile = mfile;
-    this->scriptForStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptForStep, mfile.c_str());
+    scriptForStepFile = mfile;
+    scriptForStep = scriptEngine->CreateScript();
+    return scriptEngine->FileToScript(*scriptForStep, mfile.c_str());
 }
 int ChSystem::SetScriptFor3DStepFile(const std::string& mfile) {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    this->scriptFor3DStepFile = mfile;
-    this->scriptFor3DStep = this->scriptEngine->CreateScript();
-    return this->scriptEngine->FileToScript(*this->scriptFor3DStep, mfile.c_str());
+    scriptFor3DStepFile = mfile;
+    scriptFor3DStep = scriptEngine->CreateScript();
+    return scriptEngine->FileToScript(*scriptFor3DStep, mfile.c_str());
 }
 
 int ChSystem::ExecuteScriptForStart() {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    return this->scriptEngine->ExecuteScript(*this->scriptForStart);
+    return scriptEngine->ExecuteScript(*scriptForStart);
 }
 int ChSystem::ExecuteScriptForUpdate() {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    return this->scriptEngine->ExecuteScript(*this->scriptForUpdate);
+    return scriptEngine->ExecuteScript(*scriptForUpdate);
 }
 int ChSystem::ExecuteScriptForStep() {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    return this->scriptEngine->ExecuteScript(*this->scriptForStep);
+    return scriptEngine->ExecuteScript(*scriptForStep);
 }
 int ChSystem::ExecuteScriptFor3DStep() {
-    if (!this->scriptEngine)
+    if (!scriptEngine)
         return 0;
-    return this->scriptEngine->ExecuteScript(*this->scriptFor3DStep);
+    return scriptEngine->ExecuteScript(*scriptFor3DStep);
 }
 
 // PROBE STUFF
@@ -616,7 +611,7 @@ int ChSystem::RecordAllProbes() {
     int pcount = 0;
 
     for (unsigned int ip = 0; ip < probelist.size(); ++ip) {
-        probelist[ip]->Record(this->GetChTime());
+        probelist[ip]->Record(GetChTime());
     }
 
     return pcount;
@@ -634,14 +629,6 @@ int ChSystem::ResetAllProbes() {
 
 // CONTROLS STUFF
 
-bool ChSystem::ExecuteControlsForStart() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteForStart())
-            return false;
-    }
-    return true;
-}
-
 bool ChSystem::ExecuteControlsForUpdate() {
     for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
         if (!controlslist[ip]->ExecuteForUpdate())
@@ -658,29 +645,21 @@ bool ChSystem::ExecuteControlsForStep() {
     return true;
 }
 
-bool ChSystem::ExecuteControlsFor3DStep() {
-    for (unsigned int ip = 0; ip < controlslist.size(); ++ip) {
-        if (!controlslist[ip]->ExecuteFor3DStep())
-            return false;
-    }
-    return true;
-}
-
 // -----------------------------------------------------------------------------
 // HIERARCHY HANDLERS
 // -----------------------------------------------------------------------------
 
-void ChSystem::AddProbe(std::shared_ptr<ChProbe>& newprobe) {
-    assert(std::find<std::vector<std::shared_ptr<ChProbe> >::iterator>(probelist.begin(), probelist.end(), newprobe) ==
+void ChSystem::AddProbe(const std::shared_ptr<ChProbe>& newprobe) {
+    assert(std::find<std::vector<std::shared_ptr<ChProbe>>::iterator>(probelist.begin(), probelist.end(), newprobe) ==
            probelist.end());
 
     // newprobe->SetSystem (this);
     probelist.push_back(newprobe);
 }
 
-void ChSystem::AddControls(std::shared_ptr<ChControls>& newcontrols) {
-    assert(std::find<std::vector<std::shared_ptr<ChControls> >::iterator>(controlslist.begin(), controlslist.end(),
-                                                                          newcontrols) == controlslist.end());
+void ChSystem::AddControls(const std::shared_ptr<ChControls>& newcontrols) {
+    assert(std::find<std::vector<std::shared_ptr<ChControls>>::iterator>(controlslist.begin(), controlslist.end(),
+                                                                         newcontrols) == controlslist.end());
 
     // newcontrols->SetSystem (this);
     controlslist.push_back(newcontrols);
@@ -787,7 +766,7 @@ void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
 }
 
 bool ChSystem::ManageSleepingBodies() {
-    if (!this->GetUseSleeping())
+    if (!GetUseSleeping())
         return 0;
 
     // STEP 1:
@@ -845,7 +824,7 @@ bool ChSystem::ManageSleepingBodies() {
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
                 b2->BFlagSet(BF_COULDSLEEP, false);
             }
-            this->someone_sleeps = sleep1 | sleep2 | this->someone_sleeps;
+            someone_sleeps = sleep1 | sleep2 | someone_sleeps;
 
             return true;  // to continue scanning contacts
         }
@@ -896,7 +875,7 @@ bool ChSystem::ManageSleepingBodies() {
         }
 
         // scan all contacts and wake neighbouring bodies
-        this->contact_container->ReportAllContacts(&my_waker);
+        contact_container->ReportAllContacts(&my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
         if (!my_waker.someone_sleeps)
@@ -915,7 +894,7 @@ bool ChSystem::ManageSleepingBodies() {
     // if some body has been activated/deactivated because of sleep state changes,
     // the offsets and DOF counts must be updated:
     if (my_waker.need_Setup_A || need_Setup_B || need_Setup_L) {
-        this->Setup();
+        Setup();
         return true;
     }
     return false;
@@ -954,7 +933,7 @@ void ChSystem::Setup() {
 
     // also compute offsets for contact container
     {
-        contact_container->SetOffset_L(this->offset_L + ndoc_w);
+        contact_container->SetOffset_L(offset_L + ndoc_w);
 
         ndoc_w += contact_container->GetDOC();
         ndoc_w_C += contact_container->GetDOC_c();
@@ -974,10 +953,10 @@ void ChSystem::Setup() {
 #ifdef _DEBUG
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
-        ChState test_x(this->GetNcoords_x(), this);
-        ChStateDelta test_v(this->GetNcoords_w(), this);
-        ChStateDelta test_a(this->GetNcoords_w(), this);
-        ChVectorDynamic<> test_L(this->GetNconstr());
+        ChState test_x(GetNcoords_x(), this);
+        ChStateDelta test_v(GetNcoords_w(), this);
+        ChStateDelta test_a(GetNcoords_w(), this);
+        ChVectorDynamic<> test_L(GetNconstr());
         double poison_x = -8888.888;
         double poison_v = -9999.999;
         double poison_a = -7777.777;
@@ -987,9 +966,9 @@ void ChSystem::Setup() {
         test_v.FillElem(poison_v);  // poison v
         test_a.FillElem(poison_a);  // poison a
         test_L.FillElem(poison_L);  // poison L
-        this->StateGather(test_x, test_v, test_T);
-        this->StateGatherAcceleration(test_a);
-        this->StateGatherReactions(test_L);
+        StateGather(test_x, test_v, test_T);
+        StateGatherAcceleration(test_a);
+        StateGatherReactions(test_L);
         for (int i = 0; i < test_x.GetRows(); ++i)
             assert(test_x(i) != poison_x);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for positions
@@ -1030,7 +1009,7 @@ void ChSystem::Update(bool update_assets) {
     ChAssembly::Update(update_assets);
 
     // Update all contacts, if any
-    this->contact_container->Update(ChTime, update_assets);
+    contact_container->Update(ChTime, update_assets);
 
     timer_update.stop();
 }
@@ -1041,8 +1020,8 @@ void ChSystem::IntStateGather(const unsigned int off_x,  // offset in x state ve
                               ChStateDelta& v,           // state vector, speed part
                               double& T)                 // time
 {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    unsigned int displ_x = off_x - offset_x;
+    unsigned int displ_v = off_v - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateGather(off_x, x, off_v, v, T);
@@ -1057,8 +1036,8 @@ void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state v
                                const ChStateDelta& v,     // state vector, speed part
                                const double T)            // time
 {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    unsigned int displ_x = off_x - offset_x;
+    unsigned int displ_v = off_v - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateScatter(off_x, x, off_v, v, T);
@@ -1068,7 +1047,7 @@ void ChSystem::IntStateScatter(const unsigned int off_x,  // offset in x state v
 }
 
 void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    unsigned int displ_a = off_a - this->offset_w;
+    unsigned int displ_a = off_a - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateGatherAcceleration(off_a, a);
@@ -1078,7 +1057,7 @@ void ChSystem::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta
 
 /// From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    unsigned int displ_a = off_a - this->offset_w;
+    unsigned int displ_a = off_a - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateScatterAcceleration(off_a, a);
@@ -1088,7 +1067,7 @@ void ChSystem::IntStateScatterAcceleration(const unsigned int off_a, const ChSta
 
 /// From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateGatherReactions(off_L, L);
@@ -1098,7 +1077,7 @@ void ChSystem::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic
 
 /// From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateScatterReactions(off_L, L);
@@ -1112,8 +1091,8 @@ void ChSystem::IntStateIncrement(const unsigned int off_x,  // offset in x state
                                  const unsigned int off_v,  // offset in v state vector
                                  const ChStateDelta& Dv)    // state vector, increment
 {
-    unsigned int displ_x = off_x - this->offset_x;
-    unsigned int displ_v = off_v - this->offset_w;
+    unsigned int displ_x = off_x - offset_x;
+    unsigned int displ_v = off_v - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntStateIncrement(off_x, x_new, x, off_v, Dv);
@@ -1126,7 +1105,7 @@ void ChSystem::IntLoadResidual_F(const unsigned int off,  // offset in R residua
                                  ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                  const double c           // a scaling factor
                                  ) {
-    unsigned int displ_v = off - this->offset_w;
+    unsigned int displ_v = off - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntLoadResidual_F(off, R, c);
@@ -1139,7 +1118,7 @@ void ChSystem::IntLoadResidual_Mv(const unsigned int off,      // offset in R re
                                   const ChVectorDynamic<>& w,  // the w vector
                                   const double c               // a scaling factor
                                   ) {
-    unsigned int displ_v = off - this->offset_w;
+    unsigned int displ_v = off - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntLoadResidual_Mv(off, R, w, c);
@@ -1152,7 +1131,7 @@ void ChSystem::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L m
                                    const ChVectorDynamic<>& L,  // the L vector
                                    const double c               // a scaling factor
                                    ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntLoadResidual_CqL(off_L, R, L, c);
@@ -1166,7 +1145,7 @@ void ChSystem::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc re
                                    bool do_clamp,             // apply clamping to c*C?
                                    double recovery_clamp      // value for min/max clamping of c*C
                                    ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
@@ -1178,7 +1157,7 @@ void ChSystem::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc r
                                     ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                     const double c             // a scaling factor
                                     ) {
-    unsigned int displ_L = off_L - this->offset_L;
+    unsigned int displ_L = off_L - offset_L;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntLoadConstraint_Ct(off_L, Qc, c);
@@ -1192,8 +1171,8 @@ void ChSystem::IntToDescriptor(const unsigned int off_v,
                                const unsigned int off_L,
                                const ChVectorDynamic<>& L,
                                const ChVectorDynamic<>& Qc) {
-    unsigned int displ_L = off_L - this->offset_L;
-    unsigned int displ_v = off_v - this->offset_w;
+    unsigned int displ_L = off_L - offset_L;
+    unsigned int displ_v = off_v - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntToDescriptor(off_v, v, R, off_L, L, Qc);
@@ -1206,8 +1185,8 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
                                  ChStateDelta& v,
                                  const unsigned int off_L,
                                  ChVectorDynamic<>& L) {
-    unsigned int displ_L = off_L - this->offset_L;
-    unsigned int displ_v = off_v - this->offset_w;
+    unsigned int displ_L = off_L - offset_L;
+    unsigned int displ_v = off_v - offset_w;
 
     // Inherit: operate parent method on sub objects (bodies, links, etc.)
     ChAssembly::IntFromDescriptor(off_v, v, off_L, L);
@@ -1343,34 +1322,34 @@ void ChSystem::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
 
 // From system to state y={x,v}
 void ChSystem::StateGather(ChState& x, ChStateDelta& v, double& T) {
-    this->IntStateGather(0, x, 0, v, T);
+    IntStateGather(0, x, 0, v, T);
 }
 
 // From state Y={x,v} to system.
 void ChSystem::StateScatter(const ChState& x, const ChStateDelta& v, const double T) {
-    this->IntStateScatter(0, x, 0, v, T);
+    IntStateScatter(0, x, 0, v, T);
 
-    this->Update();  //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
+    Update();  //***TODO*** optimize because maybe IntStateScatter above might have already called Update?
 }
 
 // From system to state derivative (acceleration), some timesteppers might need last computed accel.
 void ChSystem::StateGatherAcceleration(ChStateDelta& a) {
-    this->IntStateGatherAcceleration(0, a);
+    IntStateGatherAcceleration(0, a);
 }
 
 // From state derivative (acceleration) to system, sometimes might be needed
 void ChSystem::StateScatterAcceleration(const ChStateDelta& a) {
-    this->IntStateScatterAcceleration(0, a);
+    IntStateScatterAcceleration(0, a);
 }
 
 // From system to reaction forces (last computed) - some timestepper might need this
 void ChSystem::StateGatherReactions(ChVectorDynamic<>& L) {
-    this->IntStateGatherReactions(0, L);
+    IntStateGatherReactions(0, L);
 }
 
 // From reaction forces to system, ex. store last computed reactions in ChLink objects for plotting etc.
 void ChSystem::StateScatterReactions(const ChVectorDynamic<>& L) {
-    this->IntStateScatterReactions(0, L);
+    IntStateScatterReactions(0, L);
 }
 
 // Perform x_new = x + dx    for x in    Y = {x, dx/dt}
@@ -1381,65 +1360,64 @@ void ChSystem::StateIncrementX(ChState& x_new,         ///< resulting x_new = x 
                                const ChState& x,       ///< initial state x
                                const ChStateDelta& Dx  ///< state increment Dx
                                ) {
-    this->IntStateIncrement(0, x_new, x, 0, Dx);
+    IntStateIncrement(0, x_new, x, 0, Dx);
 }
 
-// Assuming an explicit DAE in the form
-//        M*a = F(x,v,t) + Cq'*L
+// Assuming a DAE of the form
+//       M*a = F(x,v,t) + Cq'*L
 //       C(x,t) = 0
-// this must compute the solution of the change Du (in a or v or x) to satisfy
-// the equation required in a Newton Raphson iteration for an
-// implicit integrator equation:
+// this function computes the solution of the change Du (in a or v or x) for a Newton
+// iteration within an implicit integration scheme.
 //  |Du| = [ G   Cq' ]^-1 * | R |
 //  |DL|   [ Cq  0   ]      | Qc|
 // for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
-void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                    ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
-                                    const ChVectorDynamic<>& R,   ///< the R residual
-                                    const ChVectorDynamic<>& Qc,  ///< the Qc residual
-                                    const double c_a,             ///< the factor in c_a*M
-                                    const double c_v,             ///< the factor in c_v*dF/dv
-                                    const double c_x,             ///< the factor in c_x*dF/dv
-                                    const ChState& x,             ///< current state, x part
-                                    const ChStateDelta& v,        ///< current state, v part
-                                    const double T,               ///< current time T
-                                    bool force_state_scatter  ///< if false, x,v and T are not scattered to the system,
-                                    /// assuming that someone has done StateScatter just before
+// This function returns true if successful and false otherwise.
+bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
+                                    ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
+                                    const ChVectorDynamic<>& R,   // the R residual
+                                    const ChVectorDynamic<>& Qc,  // the Qc residual
+                                    const double c_a,             // the factor in c_a*M
+                                    const double c_v,             // the factor in c_v*dF/dv
+                                    const double c_x,             // the factor in c_x*dF/dv
+                                    const ChState& x,             // current state, x part
+                                    const ChStateDelta& v,        // current state, v part
+                                    const double T,               // current time T
+                                    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+                                    bool force_setup              // if true, call the solver's Setup() function
                                     ) {
-    this->solvecount++;
-
     if (force_state_scatter)
-        this->StateScatter(x, v, T);
+        StateScatter(x, v, T);
 
     // R and Qc vectors  --> solver sparse solver structures  (also sets L and Dv to warmstart)
+    IntToDescriptor(0, Dv, R, 0, L, Qc);
 
-    this->IntToDescriptor(0, Dv, R, 0, L, Qc);
+    // If the solver's Setup() must be called or if the solver's Solve() requires it,
+    // fill the sparse system structures with information in G and Cq.
+    if (force_setup || GetSolverSpeed()->SolveRequiresMatrix()) {
+        // Cq  matrix
+        ConstraintsLoadJacobians();
 
-    // G and Cq  matrices:  fill the sparse solver structures:
+        // G matrix: M, K, R components
+        if (c_a || c_v || c_x)
+            KRMmatricesLoad(-c_x, -c_v, c_a);
 
-    this->ConstraintsLoadJacobians();
+        // For ChVariable objects without a ChKblock, just use the 'a' coefficient
+        descriptor->SetMassFactor(c_a);
+    }
 
-    // M, K, R matrices:  fill the sparse solver structures:
-
-    if (c_a || c_v || c_x)
-        this->KRMmatricesLoad(-c_x, -c_v, c_a);  // for KRM blocks in ChKblock objects: fill them
-    this->descriptor->SetMassFactor(
-        c_a);  // for ChVariable objects, that does not have ChKblock: just use a coeff., to avoid duplicated data
-
-    // diagnostics:
-
-    if (this->dump_matrices) {
+    // Diagnostics:
+    if (dump_matrices) {
         // GetLog() << "StateSolveCorrection R=" << R << "\n\n";
         // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
         std::string sprefix(cprefix);
 
-        this->descriptor->DumpLastMatrices(true, sprefix.c_str());
-        this->descriptor->DumpLastMatrices(false, sprefix.c_str());
+        descriptor->DumpLastMatrices(true, sprefix.c_str());
+        descriptor->DumpLastMatrices(false, sprefix.c_str());
 
         chrono::ChStreamOutAsciiFile file_x((sprefix + "x_pre.dat").c_str());
         file_x.SetNumFormat(numformat);
@@ -1458,24 +1436,32 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);  // already saved as b from DumpLastMatrices?
     }
 
+    // If indicated, first perform a solver setup.
+    // Return 'false' if the setup phase fails.
+    if (force_setup) {
+        timer_setup.start();
+        bool success = GetSolverSpeed()->Setup(*descriptor);
+        timer_setup.stop();
+        setupcount++;
+        if (!success)
+            return false;
+    }
+
     // Solve the problem
-
+    // The solution is scattered in the provided system descriptor
     timer_solver.start();
-
-    GetSolverSpeed()->Solve(*this->descriptor);
-
+    GetSolverSpeed()->Solve(*descriptor);
     timer_solver.stop();
+    solvecount++;
 
     // Dv and L vectors  <-- sparse solver structures
+    IntFromDescriptor(0, Dv, 0, L);
 
-    this->IntFromDescriptor(0, Dv, 0, L);
-
-    // diagnostics:
-
-    if (this->dump_matrices) {
+    // Diagnostics:
+    if (dump_matrices) {
         const char* numformat = "%.12g";
         char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", this->stepcount, this->solvecount);
+        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
         std::string sprefix(cprefix);
 
         chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
@@ -1489,6 +1475,8 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
         // GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
         // GetLog() << "StateSolveCorrection L="  << L << "\n\n";
     }
+
+    return true;
 }
 
 // Increment a vector R with the term c*F:
@@ -1496,7 +1484,7 @@ void ChSystem::StateSolveCorrection(ChStateDelta& Dv,             ///< result: c
 void ChSystem::LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                               const double c         ///< a scaling factor
                               ) {
-    this->IntLoadResidual_F(0, R, c);
+    IntLoadResidual_F(0, R, c);
 }
 
 // Increment a vector R with a term that has M multiplied a given vector w:
@@ -1505,7 +1493,7 @@ void ChSystem::LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R r
                                const ChVectorDynamic<>& w,  ///< the w vector
                                const double c               ///< a scaling factor
                                ) {
-    this->IntLoadResidual_Mv(0, R, w, c);
+    IntLoadResidual_Mv(0, R, w, c);
 }
 
 // Increment a vectorR with the term Cq'*L:
@@ -1514,7 +1502,7 @@ void ChSystem::LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R 
                                 const ChVectorDynamic<>& L,  ///< the L vector
                                 const double c               ///< a scaling factor
                                 ) {
-    this->IntLoadResidual_CqL(0, R, L, c);
+    IntLoadResidual_CqL(0, R, L, c);
 }
 
 // Increment a vector Qc with the term C:
@@ -1524,7 +1512,7 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
                                 const bool mdo_clamp,   ///< enable optional clamping of Qc
                                 const double mclam      ///< clamping value
                                 ) {
-    this->IntLoadConstraint_C(0, Qc, c, mdo_clamp, mclam);
+    IntLoadConstraint_C(0, Qc, c, mdo_clamp, mclam);
 }
 
 // Increment a vector Qc with the term Ct = partial derivative dC/dt:
@@ -1532,14 +1520,14 @@ void ChSystem::LoadConstraint_C(ChVectorDynamic<>& Qc,  ///< result: the Qc resi
 void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                  const double c          ///< a scaling factor
                                  ) {
-    this->IntLoadConstraint_Ct(0, Qc, c);
+    IntLoadConstraint_Ct(0, Qc, c);
 }
 // -----------------------------------------------------------------------------
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
 int ChSystem::GetNcontacts() {
-    return this->contact_container->GetNcontacts();
+    return contact_container->GetNcontacts();
 }
 
 void ChSystem::SynchronizeLastCollPositions() {
@@ -1575,9 +1563,10 @@ double ChSystem::ComputeCollisions() {
     SystemAddCollisionPointCallback mpointcallback;
     if (collisionpoint_callback) {
         mpointcallback.client_system = this;
-        this->contact_container->SetAddContactCallback(&mpointcallback);
-    } else
-        this->contact_container->SetAddContactCallback(0);
+        contact_container->SetAddContactCallback(&mpointcallback);
+    } else {
+        contact_container->SetAddContactCallback(0);
+    }
 
     // !!! Perform the collision detection ( broadphase and narrowphase ) !!!
 
@@ -1587,7 +1576,7 @@ double ChSystem::ComputeCollisions() {
     // containers in the physic system. The default contact container
     // for ChBody and ChParticles is used always.
 
-    collision_system->ReportContacts(this->contact_container.get());
+    collision_system->ReportContacts(contact_container.get());
 
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
         if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainerBase>(otherphysicslist[ip])) {
@@ -1604,7 +1593,7 @@ double ChSystem::ComputeCollisions() {
         collision_callbacks[ic]->PerformCustomCollision(this);
 
     // Count the contacts of body-body type.
-    this->ncontacts = this->contact_container->GetNcontacts();
+    ncontacts = contact_container->GetNcontacts();
 
     timer_collision_broad.stop();
 
@@ -1624,7 +1613,7 @@ double ChSystem::ComputeCollisions() {
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStepDynamics(double m_step) {
-    this->step = m_step;
+    step = m_step;
     return Integrate_Y();
 }
 
@@ -1643,12 +1632,12 @@ int ChSystem::Integrate_Y() {
 
     // Executes the "forStep" script, if any
     ExecuteScriptForStep();
-    // Executes the "forStep" script
-    // in all controls of controlslist
+    // Executes the "forStep" script in all controls of controlslist
     ExecuteControlsForStep();
 
-    this->stepcount++;
-    this->solvecount = 0;
+    stepcount++;
+    solvecount = 0;
+    setupcount = 0;
 
     // Compute contacts and create contact constraints
     ComputeCollisions();
@@ -1668,17 +1657,15 @@ int ChSystem::Integrate_Y() {
     DescriptorPrepareInject(*descriptor);
     descriptor->UpdateCountsAndOffsets();
 
-    timer_solver.reset();
-
     // Set some settings in timestepper object
     timestepper->SetQcDoClamp(true);
-    timestepper->SetQcClamping(this->max_penetration_recovery_speed);
+    timestepper->SetQcClamping(max_penetration_recovery_speed);
     if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
         std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
         timestepper->SetQcDoClamp(false);
 
     // PERFORM TIME STEP HERE!
-    this->timestepper->Advance(step);
+    timestepper->Advance(step);
 
     // Executes custom processing at the end of step
     CustomEndOfStep();
@@ -1703,25 +1690,35 @@ int ChSystem::Integrate_Y() {
 // **** ALSO AUXILIARY MATRICES).
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoAssembly(int action, int mflags) {
-    this->solvecount = 0;
+int ChSystem::DoAssembly(int action) {
+    solvecount = 0;
+    setupcount = 0;
 
     Setup();
     Update();
 
-    int old_maxsteps = this->GetMaxItersSolverSpeed();
-    this->SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetMaxItersSolverSpeed();
+    SetMaxItersSolverSpeed(300);
+
+    double old_step = GetStep();
+    double new_step = 1e-6;
+    SetStep(new_step);
+
+    double old_tol = GetTolForce();
+    SetTolForce(1e-4);
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
 
     ChAssemblyAnalysis manalysis(*this);
-    manalysis.SetMaxAssemblyIters(this->GetMaxiter());
+    manalysis.SetMaxAssemblyIters(GetMaxiter());
 
     // Perform analysis
-    manalysis.AssemblyAnalysis(action, mflags);
+    manalysis.AssemblyAnalysis(action, new_step);
 
-    this->SetMaxItersSolverSpeed(old_maxsteps);
+    SetMaxItersSolverSpeed(old_maxsteps);
+    SetStep(old_step);
+    SetTolForce(old_tol);
 
     return 0;
 }
@@ -1731,13 +1728,14 @@ int ChSystem::DoAssembly(int action, int mflags) {
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStaticLinear() {
-    this->solvecount = 0;
+    solvecount = 0;
+    setupcount = 0;
 
     Setup();
     Update();
 
-    int old_maxsteps = this->GetMaxItersSolverSpeed();
-    this->SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetMaxItersSolverSpeed();
+    SetMaxItersSolverSpeed(300);
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1747,7 +1745,7 @@ int ChSystem::DoStaticLinear() {
     // Perform analysis
     manalysis.StaticAnalysis();
 
-    this->SetMaxItersSolverSpeed(old_maxsteps);
+    SetMaxItersSolverSpeed(old_maxsteps);
 
     bool dump_data = false;
 
@@ -1778,13 +1776,14 @@ int ChSystem::DoStaticLinear() {
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStaticNonlinear(int nsteps) {
-    this->solvecount = 0;
+    solvecount = 0;
+    setupcount = 0;
 
     Setup();
     Update();
 
-    int old_maxsteps = this->GetMaxItersSolverSpeed();
-    this->SetMaxItersSolverSpeed(300);
+    int old_maxsteps = GetMaxItersSolverSpeed();
+    SetMaxItersSolverSpeed(300);
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1795,7 +1794,7 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
     // Perform analysis
     manalysis.StaticAnalysis();
 
-    this->SetMaxItersSolverSpeed(old_maxsteps);
+    SetMaxItersSolverSpeed(old_maxsteps);
 
     return 0;
 }
@@ -1806,7 +1805,8 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 // -----------------------------------------------------------------------------
 
 int ChSystem::DoStaticRelaxing(int nsteps) {
-    this->solvecount = 0;
+    solvecount = 0;
+    setupcount = 0;
 
     int err = 0;
     int reached_tolerance = FALSE;
@@ -1821,9 +1821,9 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
                 otherphysicslist[ip]->SetNoSpeedNoAcceleration();
             }
 
-            double m_undotime = this->GetChTime();
+            double m_undotime = GetChTime();
             DoFrameDynamics(m_undotime + (step * 1.8) * (((double)nsteps - (double)m_iter)) / (double)nsteps);
-            this->SetChTime(m_undotime);
+            SetChTime(m_undotime);
         }
 
         for (int ip = 0; ip < bodylist.size(); ++ip) {
@@ -1852,17 +1852,21 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
 int ChSystem::DoEntireKinematics() {
     Setup();
 
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
+
+    DoAssembly(action);
     // first check if there are redundant links (at least one NR cycle
     // even if the structure is already assembled)
 
     while (ChTime < end_time) {
-        DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // >>> Newton-Raphson iteration, closing constraints
+        // Newton-Raphson iteration, closing constraints
+        DoAssembly(action);
 
         if (last_err)
             return FALSE;
 
-        ChTime += step;  // >>> Update the time and repeat.
+        // Update time and repeat.
+        ChTime += step;
     }
 
     return TRUE;
@@ -1881,7 +1885,7 @@ int ChSystem::DoEntireDynamics() {
     // the system may have wrong layout, or too large
     // clearances in costraints, so it is better to
     // check for costraint violation each time the integration starts
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     // Perform the integration steps until the end
     // time is reached.
@@ -1967,7 +1971,7 @@ int ChSystem::DoEntireUniformDynamics(double frame_step) {
     // the initial system may have wrong layout, or too large
     // clearances in constraints.
     Setup();
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     while (ChTime < end_time) {
         double goto_time = (ChTime + frame_step);
@@ -2007,7 +2011,8 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
             restore_oldstep = TRUE;
         }
 
-        DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // ***  Newton Raphson kinematic equations solver
+        // Newton Raphson kinematic equations solver
+        DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
         if (last_err)
             return FALSE;
@@ -2026,7 +2031,8 @@ int ChSystem::DoStepKinematics(double m_step) {
 
     Update();
 
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);  // ***  Newton Raphson kinematic equations solver
+    // Newton Raphson kinematic equations solver
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     if (last_err)
         return FALSE;
@@ -2034,12 +2040,9 @@ int ChSystem::DoStepKinematics(double m_step) {
     return TRUE;
 }
 
-//
 // Full assembly -computes also forces-
-//
-
 int ChSystem::DoFullAssembly() {
-    DoAssembly(ASS_POSITION | ASS_SPEED | ASS_ACCEL);
+    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     return last_err;
 }
@@ -2166,10 +2169,10 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     //***TODO*** complete...
 
     //  Rebuild link pointers to markers
-    this->Reference_LM_byID();
+    Reference_LM_byID();
 
     // Recompute statistics, offsets, etc.
-    this->Setup();
+    Setup();
 }
 
 #define CH_CHUNK_START "Chrono binary file start"
@@ -2182,7 +2185,7 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
     if (mchunk != CH_CHUNK_START)
         throw ChException("Not a ChR data file.");
 
-    // this->StreamINall(m_file);
+    // StreamINall(m_file);
 
     m_file >> mchunk;
     if (mchunk != CH_CHUNK_END)
@@ -2194,7 +2197,7 @@ int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
 int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
     m_file << CH_CHUNK_START;
 
-    // this->StreamOUTall(m_file);
+    // StreamOUTall(m_file);
 
     m_file << CH_CHUNK_END;
 
