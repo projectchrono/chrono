@@ -133,10 +133,10 @@ void function_CalcContactForces(
         G_eff = 1 / inv_G;
         cr_eff = (cr[body1] + cr[body2]) / 2;
     } else {
-        user_kn = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
-        user_kt = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
-        user_gn = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
-        user_gt = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
+        user_kn = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
+        user_kt = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
+        user_gn = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
+        user_gt = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
     }
 
     // Contact force
