@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that c%an be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHLLMATRIX_H
 #define CHLLMATRIX_H
@@ -18,8 +20,7 @@
 
 namespace chrono {
 
-/// Generic element of a sparse matrix ChLinkedListMatrix
-///
+/// Generic element of a sparse matrix ChLinkedListMatrix.
 class ChApi ChMelement {
   public:
     double val;
@@ -28,25 +29,17 @@ class ChApi ChMelement {
     int row;
     int col;
 
-    ChMelement(double val, ChMelement* mnext, ChMelement* mprev, int row, int col);
-    void Initialize(double val, ChMelement* mnext, ChMelement* mprev, int row, int col);
+    ChMelement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol)
+        : val(mval), next(mnext), prev(mprev), row(mrow), col(mcol) {}
+
+    void Initialize(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol) {
+        val = mval;
+        next = mnext;
+        prev = mprev;
+        col = mcol;
+        row = mrow;
+    }
 };
-
-inline ChMelement::ChMelement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol) {
-    val = mval;
-    next = mnext;
-    prev = mprev;
-    col = mcol;
-    row = mrow;
-}
-
-inline void ChMelement::Initialize(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol) {
-    val = mval;
-    next = mnext;
-    prev = mprev;
-    col = mcol;
-    row = mrow;
-}
 
 #define SOLVER_MAX_ITERS 200
 #define CONSTR_UNILATERAL_NONE 0
@@ -56,9 +49,7 @@ inline void ChMelement::Initialize(double mval, ChMelement* mnext, ChMelement* m
 
 class ChUnilateralData {
   public:
-    void Reset() {
-        status = CONSTR_UNILATERAL_OFF;
-    }
+    void Reset() { status = CONSTR_UNILATERAL_OFF; }
 
     char status;
 };
@@ -91,11 +82,11 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     int mbuffer_added;  // mbuffer_added grows all time a new element is set non-zero,
     // until it reaches mbuffer_size (if so, allocation of another buffer is needed). Handled internally.
 
-    ChMelement* NewElement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol);  // used internally
-    ChMelement** GetElarray() { return elarray; };
+    ChMelement* NewElement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol);
+    ChMelement** GetElarray() { return elarray; }
     ChMelement* GetElarrayMel(int num) { return (*(elarray + num)); }
-    double GetElarrayN(int num) { return (*(elarray + num))->val; };
-    void SetElarrayN(double val, int num) { (*(elarray + num))->val = val; };
+    double GetElarrayN(int num) { return (*(elarray + num))->val; }
+    void SetElarrayN(double val, int num) { (*(elarray + num))->val = val; }
 
   public:
     /// Creates a sparse matrix with given size.
@@ -135,12 +126,9 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     /// Reset to null matrix.
     void Reset();
     /// Reset to null matrix and (if needed) changes the size.
-    virtual void Reset(int row,
-                       int col,
-                       int nonzeros = 0) override;
+    virtual void Reset(int row, int col, int nonzeros = 0) override;
     /// If size changes, is like the above, otherwise just sets the elements to zero.
-    void ResetBlocks(int row,
-                     int col);  
+    void ResetBlocks(int row, int col);
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
@@ -152,8 +140,6 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
     virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
-    virtual void PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) override;
     virtual void PasteClippedMatrix(ChMatrix<>* matra,
                                     int cliprow,
                                     int clipcol,
@@ -173,8 +159,11 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
 
     // Specialized functions
-    virtual void PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
-    virtual void PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
+
+    void PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
+    void PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
+
+    // Matrix operations
 
     void MatrMultiply(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
     void MatrMultiplyT(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
@@ -264,7 +253,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     /// Used to convert to CSR3 format (ChEigenMatrix).
     /// Returns the array to 1st column elements.
-    ChMelement* GetElarrayDereferenced() { return *elarray; };  // used to scan the matrix faster than GetElement
+    ChMelement* GetElarrayDereferenced() { return *elarray; }  // used to scan the matrix faster than GetElement
 
     /// Used to convert to CSR3 format (ChEigenMatrix).
     /// Returns a pointer to an array/vector of type \areserveSizeType.

@@ -1,26 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   ChLinkedListMatrix.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChLinkedListMatrix.h"
-#include "core/ChMath.h"
+#include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChMath.h"
 
 #define PIVOT_ACCEPT_TRESHOLD 0.8
 #define ACCEPT_PIVOT 0.001
@@ -160,7 +153,7 @@ void ChLinkedListMatrix::MoreBuffer(double inflate) {
 
 bool ChLinkedListMatrix::Resize(int nrows, int ncols, int nonzeros) {
     assert(false);
-    return 0;
+    return false;
 }
 
 void ChLinkedListMatrix::Reset() {
@@ -411,42 +404,6 @@ void ChLinkedListMatrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, 
 }
 
 void ChLinkedListMatrix::PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
-    int i, j;
-    int maxrows = matra->GetRows();
-    int maxcol = matra->GetColumns();
-    ChMelement* eguess;
-    double val;
-
-    for (j = 0; j < maxcol; j++) {
-        eguess = *(elarray + j + insrow);
-
-        for (i = 0; i < maxrows; i++) {
-            val = (matra->GetElement(i, j));
-            if (val)
-                eguess = SetElement(j + insrow, i + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) {
-    int i, j;
-    int maxrows = matra->GetRows();
-    int maxcol = matra->GetColumns();
-    ChMelement* eguess;
-    double val;
-
-    for (i = 0; i < maxrows; i++) {
-        eguess = *(elarray + i + insrow);
-
-        for (j = 0; j < maxcol; j++) {
-            val = (matra->GetElement(i, j));
-            if (val)
-                eguess = SetElement(i + insrow, j + inscol, val, eguess);
-        }
-    }
-}
-
-void ChLinkedListMatrix::PasteTranspMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol) {
     int i, j;
     int maxrows = matra->GetRows();
     int maxcol = matra->GetColumns();
@@ -1496,8 +1453,8 @@ int ChLinkedListMatrix::Solve(ChMatrix<>* B,
             constr_data[id].status = CONSTR_UNILATERAL_ON;
 
             while (true) {
-                // Guess a destination, hoping that solution is reached without
-                // clamping or unclamping any constraint (if not, will repeat from rewound position..)
+// Guess a destination, hoping that solution is reached without
+// clamping or unclamping any constraint (if not, will repeat from rewound position..)
 #ifdef UNOPTIMIZED_FACTORIZATION
                 DecomposeAndSolve_LDL(B, &Xguess, mdet, i_D, i_C, n_unilaterals, constr_data);
 #else
@@ -1597,6 +1554,4 @@ void ChLinkedListMatrix::StreamOUT(ChStreamOutAscii& mstream) {
         mstream << "... \n\n";
 }
 
-}  // END_OF_NAMESPACE____
-
-// END
+}  // end namespace chrono

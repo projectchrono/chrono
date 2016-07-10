@@ -22,9 +22,6 @@
 
 namespace chrono {
 
-// Forward reference
-class ChLinkedListMatrix;
-
 /// Modes for constraint
 enum eChConstraintMode {
     CONSTRAINT_FREE = 0,        ///< the constraint does not enforce anything
