@@ -128,6 +128,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
     m_integrator->SetVerbose(true);
+	m_integrator->SetMaxItersSuccess(5);
 }
 
 // -----------------------------------------------------------------------------

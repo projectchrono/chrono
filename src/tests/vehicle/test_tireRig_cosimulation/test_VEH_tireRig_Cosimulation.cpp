@@ -45,7 +45,7 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // Cosimulation step size
-double step_size = 1e-4;
+double step_size = 4e-5;
 
 // Output frequency (frames per second)
 double output_fps = 200;
@@ -170,11 +170,11 @@ int main(int argc, char** argv) {
         case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
-            my_rig->SetStepSize(1e-4);
+			my_rig->SetStepSize(step_size);
             my_rig->SetOutDir(out_dir, suffix);
             cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
 
-            my_rig->SetBodyMasses(1, 1, 450, 15);
+            my_rig->SetBodyMasses(1, 1, 450, 15); 
             my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
             my_rig->EnableTirePressure(true);
 
@@ -186,18 +186,18 @@ int main(int argc, char** argv) {
 
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
             my_terrain = new TerrainNode(type, method, use_checkpoint, render, nthreads_terrain);
-            my_terrain->SetStepSize(1e-4);
+			my_terrain->SetStepSize(step_size);
             my_terrain->SetOutDir(out_dir, suffix);
             cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
-
-            my_terrain->SetContainerDimensions(10, 0.5, 1, 0.2);
-
+			 
+            my_terrain->SetContainerDimensions(10, 0.6, 1, 0.2);
+ 
             double radius = 0.006;
-            double coh_pressure = 2e4;
+            double coh_pressure = 8e4;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-            my_terrain->SetGranularMaterial(radius, 2500, 10);
-            my_terrain->SetSettlingTime(0.5);
+            my_terrain->SetGranularMaterial(radius, 2500, 15);
+            my_terrain->SetSettlingTime(0.2);
             ////my_terrain->EnableSettlingOutput(true);
 
             switch (method) {
@@ -208,13 +208,13 @@ int main(int argc, char** argv) {
                     material->SetYoungModulus(8e5f);
                     material->SetPoissonRatio(0.3f);
                     material->SetAdhesion(coh_force);
-                    material->SetKn(5.0e7f);
-                    material->SetGn(6.0e2f);
-                    material->SetKt(1e7f);
-                    material->SetGt(4.0e2f);
+                    material->SetKn(1.0e6f);
+                    material->SetGn(6.0e1f);
+                    material->SetKt(4.0e5f);
+                    material->SetGt(4.0e1f);
                     my_terrain->SetMaterialSurface(material);
                     my_terrain->UseMaterialProperties(false);
-                    my_terrain->SetContactForceModel(ChSystemDEM::Hertz);
+                    my_terrain->SetContactForceModel(ChSystemDEM::PlainCoulomb);
                     break;
                 }
                 case ChMaterialSurfaceBase::DVI: {

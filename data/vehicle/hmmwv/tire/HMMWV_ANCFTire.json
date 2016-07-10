@@ -22,9 +22,9 @@
 
       "Coefficients":
       {
-          "Normal Stiffness":           1.3e6,
-          "Normal Damping":             1.3e3,
-          "Tangential Stiffness":       0,
+          "Normal Stiffness":           2.0e6,
+          "Normal Damping":             1.3e1,
+          "Tangential Stiffness":       1.0e6,
           "Tangential Damping":         0
       }
   },
@@ -58,7 +58,7 @@
 
   "Structural Damping Coefficient":  0.005,
 
-  "Default Pressure":                220.0e3,
+  "Default Pressure":                200.0e3,
 
   "Bead Section":
   {
