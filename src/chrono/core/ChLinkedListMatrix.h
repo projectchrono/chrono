@@ -48,8 +48,6 @@ inline void ChMelement::Initialize(double mval, ChMelement* mnext, ChMelement* m
     row = mrow;
 }
 
-//***TO DO*** move into ChSolverSimplex
-
 #define SOLVER_MAX_ITERS 200
 #define CONSTR_UNILATERAL_NONE 0
 #define CONSTR_UNILATERAL_REDUNDANT 1

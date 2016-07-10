@@ -21,7 +21,6 @@
 #include "chrono/solver/ChSolverSOR.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverBB.h"
-#include "chrono/solver/ChSolverSimplex.h"
 #include "chrono/core/ChLinearAlgebra.h"
 #include "chrono/core/ChLinkedListMatrix.h"
 
@@ -165,14 +164,12 @@ void test_1() {
 
     matrM.StreamOUT(GetLog());
     matrCq.StreamOUT(GetLog());
-    // Other checks
 
     GetLog() << "**** Using ChSolverSOR  ********** \n\n";
     GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
     GetLog() << "vars q_a and q_b -------------------\n";
     GetLog() << mvarA.Get_qb();
     GetLog() << mvarB.Get_qb() << "  \n";
-    ;
     GetLog() << "multipliers l_1 and l_2 ------------\n\n";
     GetLog() << mca.Get_l_i() << " \n";
     GetLog() << mcb.Get_l_i() << " \n\n";
@@ -183,30 +180,6 @@ void test_1() {
     // reset variables
     mvarA.Get_qb().FillElem(0.);
     mvarB.Get_qb().FillElem(0.);
-
-    // Now solve it again, but using the simplex solver.
-    // The simplex solver is much slower, and it cannot handle
-    // the case of unilateral constraints. This is reccomended
-    // only for reference or very precise solution of systems with only
-    // bilateral constraints, in a limited number.
-
-    ChSolverSimplex msolver_simpl;
-
-    msolver_simpl.Solve(mdescriptor);
-
-    mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
-    GetLog() << "**** Using ChSolverSimplex ********* \n\n";
-    GetLog() << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "  \n\n";
-    GetLog() << "vars q_a and q_b -------------------\n";
-    GetLog() << mvarA.Get_qb();
-    GetLog() << mvarB.Get_qb() << "  \n";
-    ;
-    GetLog() << "multipliers l_1 and l_2 ------------\n\n";
-    GetLog() << mca.Get_l_i() << " \n";
-    GetLog() << mcb.Get_l_i() << " \n\n";
-    GetLog() << "constraint residuals c_1 and c_2 ---\n";
-    GetLog() << mca.Get_c_i() << "  \n";
-    GetLog() << mcb.Get_c_i() << "  \n";
 }
 
 // Test 2
@@ -239,7 +212,6 @@ void test_2() {
             constraints[im - 1]->Set_b_i(0);
             constraints[im - 1]->Get_Cq_a()->ElementN(0) = 1;
             constraints[im - 1]->Get_Cq_b()->ElementN(0) = -1;
-            // constraints[im-1]->SetMode(CONSTRAINT_UNILATERAL); // not supported by  ChSolverSimplex
             mdescriptor.InsertConstraint(constraints[im - 1]);
         }
     }
@@ -283,25 +255,6 @@ void test_2() {
     msolver_krylov.Solve(mdescriptor);
 
     // Output values
-    GetLog() << "VARIABLES: \n";
-    for (int im = 0; im < vars.size(); im++)
-        GetLog() << "   " << vars[im]->Get_qb()(0) << "\n";
-
-    GetLog() << "CONSTRAINTS: \n";
-    for (int ic = 0; ic < constraints.size(); ic++)
-        GetLog() << "   " << constraints[ic]->Get_l_i() << "\n";
-
-    // Try again, for reference, using a direct solver.
-    // This type of solver is much slower, and it cannot handle
-    // the case of unilateral constraints. This is reccomended
-    // only for reference or very precise solution of systems with only
-    // bilateral constraints, in a limited number.
-
-    GetLog() << "\n\nTEST: 1D vertical pendulum - ChSolverSimplex \n\n";
-
-    ChSolverSimplex msolver_simpl;
-    msolver_simpl.Solve(mdescriptor);
-
     GetLog() << "VARIABLES: \n";
     for (int im = 0; im < vars.size(); im++)
         GetLog() << "   " << vars[im]->Get_qb()(0) << "\n";

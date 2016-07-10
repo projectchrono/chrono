@@ -303,15 +303,9 @@ class ChApi ChConstraint {
     /// Puts the jacobian portions into the 'insrow' row of a sparse matrix,
     /// where each portion of jacobian is shifted in order to match the
     /// offset of the corresponding ChVariable.
-    /// This is used only by the ChSolverSimplex solver (iterative solvers
-    /// don't need to know jacobians explicitly)
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes!
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes!
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)

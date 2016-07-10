@@ -55,8 +55,7 @@ class ChApi ChConstraintTwoTuplesFrictionT : public ChConstraintTwoTuples<Ta, Tb
         return *this;
     }
 
-    /// Tells that this constraint is not linear, that is: it cannot
-    /// be solved with a plain simplex solver.
+    /// Indicate whether or not this constraint is linear.
     virtual bool IsLinear() const override { return false; }
 
     /// The constraint is satisfied?

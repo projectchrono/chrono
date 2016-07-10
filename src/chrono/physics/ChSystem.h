@@ -221,13 +221,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
-    /// Available types of solvers. Note: compared to iterative methods,
-    /// the simplex solver is so slow that it's mostly for experiments.
-    /// Also, Jacobi is slower than SOR - hence it's here for benchmarks & tests.
+    /// Available types of solvers.
     enum eCh_solverType {
         SOLVER_SOR = 0,
         SOLVER_SYMMSOR,
-        SOLVER_SIMPLEX,  // OBSOLETE!
         SOLVER_JACOBI,
         SOLVER_SOR_MULTITHREAD,
         SOLVER_PMINRES,
@@ -241,7 +238,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     CH_ENUM_MAPPER_BEGIN(eCh_solverType);
     CH_ENUM_VAL(SOLVER_SOR);
     CH_ENUM_VAL(SOLVER_SYMMSOR);
-    CH_ENUM_VAL(SOLVER_SIMPLEX);
     CH_ENUM_VAL(SOLVER_JACOBI);
     CH_ENUM_VAL(SOLVER_SOR_MULTITHREAD);
     CH_ENUM_VAL(SOLVER_PMINRES);
