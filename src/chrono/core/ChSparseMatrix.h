@@ -44,7 +44,27 @@ class ChApi ChSparseMatrix {
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) = 0;
 
     /// Paste the specified matrix into this sparse matrix at (insrow,inscol).
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) = 0;
+    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
+        int maxrows = matra->GetRows();
+        int maxcols = matra->GetColumns();
+        int i, j;
+
+        if (transp) {
+            for (i = 0; i < maxcols; i++) {
+                for (j = 0; j < maxrows; j++) {
+                    if ((*matra)(j, i) != 0)
+                        this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
+                }
+            }
+        } else {
+            for (i = 0; i < maxrows; i++) {
+                for (j = 0; j < maxcols; j++) {
+                    if ((*matra)(i, j) != 0)
+                        this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
+                }
+            }
+        }
+    }
 
     /// Paste a clipped portion of the specified matrix into this sparse matrix at (insrow,inscol).
     virtual void PasteClippedMatrix(ChMatrix<>* matra,
@@ -54,7 +74,11 @@ class ChApi ChSparseMatrix {
                                     int ncolumns,
                                     int insrow,
                                     int inscol,
-                                    bool overwrite = true) = 0;
+                                    bool overwrite = true) {
+        for (int i = 0; i < nrows; ++i)
+            for (int j = 0; j < ncolumns; ++j)
+                this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
+    }
 
     // Wrapper functions
 

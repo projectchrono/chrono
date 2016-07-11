@@ -113,20 +113,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     double& operator()(int row, int col) { return Element(row, col); }
     double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
 
-    virtual void PasteMatrix(ChMatrix<>* matra,
-                             int insrow,
-                             int inscol,
-                             bool overwrite = true,
-                             bool transp = false) override;
-    virtual void PasteClippedMatrix(ChMatrix<>* matra,
-                                    int cliprow,
-                                    int clipcol,
-                                    int nrows,
-                                    int ncolumns,
-                                    int insrow,
-                                    int inscol,
-                                    bool overwrite = true) override;
-
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
