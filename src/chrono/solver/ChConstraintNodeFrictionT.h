@@ -48,8 +48,7 @@ class ChApi ChConstraintNodeFrictionT : public ChConstraintTwoGeneric {
     /// Assignment operator: copy from other object
     ChConstraintNodeFrictionT& operator=(const ChConstraintNodeFrictionT& other);
 
-    /// Tells that this constraint is not linear, that is: it cannot
-    /// be solved with a plain simplex solver.
+    /// Indicate whether or not this constraint is linear.
     virtual bool IsLinear() const override { return false; }
 
     /// The constraint is satisfied?

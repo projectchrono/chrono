@@ -22,15 +22,14 @@
 
 namespace chrono {
 
-// Forward reference
-class ChLinkedListMatrix;
-
 /// Modes for constraint
 enum eChConstraintMode {
     CONSTRAINT_FREE = 0,        ///< the constraint does not enforce anything
     CONSTRAINT_LOCK = 1,        ///< the constraint enforces c_i=0;
-    CONSTRAINT_UNILATERAL = 2,  ///< the constraint enforces linear complementarity c_i>=0, l_i>=0, l_1*c_i=0;
-    CONSTRAINT_FRIC = 3,        ///< the constraint is one of three reactions in friction (cone complementarity problem)
+    CONSTRAINT_UNILATERAL = 2,  ///< the constraint enforces linear complementarity
+                                /// c_i>=0, l_i>=0, l_1*c_i=0;
+    CONSTRAINT_FRIC = 3,        ///< the constraint is one of three reactions in friction
+                                ///(cone complementarity problem)
 };
 
 /// Base class for representing constraints to be used
@@ -63,9 +62,11 @@ class ChApi ChConstraint {
     CH_RTTI_ROOT(ChConstraint)
 
   protected:
-    double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be =0)
+    double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be
+                 ///=0)
     double l_i;  ///< The 'l_i' lagrangian multiplier (reaction)
-    double b_i;  ///< The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q + b_i
+    double b_i;  ///< The 'b_i' right term in [Cq_i]*q+b_i=0 , note: c_i= [Cq_i]*q
+                 ///+ b_i
 
     /// The constraint force mixing, if needed (usually is zero) to add some
     /// numerical 'compliance' in the constraint, that is the equation becomes:
@@ -74,11 +75,13 @@ class ChApi ChConstraint {
     double cfm_i;
 
   private:
-    bool valid;      ///< the link has no formal problems (references restored correctly, etc)
+    bool valid;      ///< the link has no formal problems (references restored
+                     /// correctly, etc)
     bool disabled;   ///< the user can turn on/off the link easily
     bool redundant;  ///< the constraint is redundant or singular
     bool broken;     ///< the constraint is broken (someone pulled too much..)
-    bool _active;    ///< Cached active state depending on previous flags. Internal update.
+    bool _active;    ///< Cached active state depending on previous flags. Internal
+                     /// update.
 
   protected:
     eChConstraintMode mode;  ///< mode of the constraint: free / lock / complementar
@@ -149,7 +152,8 @@ class ChApi ChConstraint {
         UpdateActiveFlag();
     }
 
-    /// Tells if the constraint is unilateral (typical complementarity constraint).
+    /// Tells if the constraint is unilateral (typical complementarity
+    /// constraint).
     virtual bool IsUnilateral() const { return mode == CONSTRAINT_UNILATERAL; }
 
     /// Tells if the constraint is linear (if non linear, returns false).
@@ -169,7 +173,8 @@ class ChApi ChConstraint {
     /// Tells if the constraint is currently active, in general,
     /// that is tells if it must be included into the system solver or not.
     /// This method cumulates the effect of all flags (so a constraint may
-    /// be not active either because 'disabled', or 'broken', o 'redundant', or not 'valid'.)
+    /// be not active either because 'disabled', or 'broken', o 'redundant', or
+    /// not 'valid'.)
     virtual bool IsActive() const {
         /*
 						return ( valid &&
@@ -177,9 +182,17 @@ class ChApi ChConstraint {
 								!redundant &&
 								!broken &&
 								mode!=(CONSTRAINT_FREE));
-								*/  // Optimized: booleans precomputed and cached in _active.
+								*/  // Optimized:
+                                    // booleans
+                                    // precomputed
+                                    // and cached
+                                    // in
+                                    // _active.
         return _active;
     }
+
+    /// Set the status of the constraint to active
+    virtual void SetActive(bool isactive) { _active = isactive; }
 
     /// Compute the residual of the constraint using the LINEAR
     /// expression   c_i= [Cq_i]*q + cfm_i*l_i + b_i . For a satisfied bilateral
@@ -259,7 +272,8 @@ class ChApi ChConstraint {
     virtual void MultiplyAndAdd(double& result, const ChMatrix<double>& vect) const = 0;
 
     /// Computes the product of the corresponding transposed block in the
-    /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
+    /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to
+    /// 'result'.
     /// NOTE: the 'result' vectors must already have
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
@@ -286,15 +300,9 @@ class ChApi ChConstraint {
     /// Puts the jacobian portions into the 'insrow' row of a sparse matrix,
     /// where each portion of jacobian is shifted in order to match the
     /// offset of the corresponding ChVariable.
-    /// This is used only by the ChSolverSimplex solver (iterative solvers
-    /// don't need to know jacobians explicitly)
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes!
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
 
     /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes!
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)

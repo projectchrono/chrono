@@ -2,6 +2,7 @@
 #define CHCSR3MATRIX_H
 
 #include <limits>
+#include <string>
 
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
@@ -107,7 +108,8 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
-    double& Element(int row, int col) override;
+
+    double& Element(int row, int col);
     double& operator()(int row, int col) { return Element(row, col); }
     double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
 
@@ -116,11 +118,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
                              int inscol,
                              bool overwrite = true,
                              bool transp = false) override;
-    virtual void PasteMatrixFloat(ChMatrix<float>* matra,
-                                  int insrow,
-                                  int inscol,
-                                  bool overwrite = true,
-                                  bool transp = false) override;
     virtual void PasteClippedMatrix(ChMatrix<>* matra,
                                     int cliprow,
                                     int clipcol,
@@ -133,6 +130,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
+
     void Compress();  // purge the matrix from all the unininitialized elements
     void Trim();      // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
     void Prune(double pruning_threshold = 0);

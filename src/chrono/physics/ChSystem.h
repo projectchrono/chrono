@@ -221,13 +221,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
-    /// Available types of solvers. Note: compared to iterative methods,
-    /// the simplex solver is so slow that it's mostly for experiments.
-    /// Also, Jacobi is slower than SOR - hence it's here for benchmarks & tests.
+    /// Available types of solvers.
     enum eCh_solverType {
         SOLVER_SOR = 0,
         SOLVER_SYMMSOR,
-        SOLVER_SIMPLEX,  // OBSOLETE!
         SOLVER_JACOBI,
         SOLVER_SOR_MULTITHREAD,
         SOLVER_PMINRES,
@@ -241,7 +238,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     CH_ENUM_MAPPER_BEGIN(eCh_solverType);
     CH_ENUM_VAL(SOLVER_SOR);
     CH_ENUM_VAL(SOLVER_SYMMSOR);
-    CH_ENUM_VAL(SOLVER_SIMPLEX);
     CH_ENUM_VAL(SOLVER_JACOBI);
     CH_ENUM_VAL(SOLVER_SOR_MULTITHREAD);
     CH_ENUM_VAL(SOLVER_PMINRES);
@@ -806,18 +802,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     // ---- CONSTRAINT ASSEMBLATION
 
-    /// Given the current time and state, the
-    /// sw tries to satisfy all costraints, with
-    /// the Newton-Raphson iteration. Used iteratively
-    /// in inverse kinematics.
-    /// Different tolerance checking allowable (norm 1/2/inf)
-    ///  mode = [action flags, see above], ASS_POSITION , ASS_SPEED , ASS_ACCEL (also together)
-    ///  flags = [see above]
-    ///  ASF_COLLISION , perform also collision detection
+    /// Given the current time and state, attempt to satisfy all constraints, using
+    /// a Newton-Raphson iteration loop. Used iteratively in inverse kinematics.
+    /// Action can be one of AssemblyLevel::POSITION, AssemblyLevel::VELOCITY, or 
+    /// AssemblyLevel::ACCELERATION (or a combination of these)
     /// Returns 0 if no errors, returns TRUE if error happened (impossible assemblation?)
-    int DoAssembly(int action = ASS_POSITION | ASS_SPEED | ASS_ACCEL, int mflags = 0);
+    int DoAssembly(int action);
 
-    /// Shortcut for full pos/speed/acc assembly, also computes forces
+    /// Shortcut for full position/velocity/acceleration assembly.
     int DoFullAssembly();
 
     // ---- STATICS

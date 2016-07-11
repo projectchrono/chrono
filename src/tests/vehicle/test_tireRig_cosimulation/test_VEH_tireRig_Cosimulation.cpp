@@ -16,7 +16,7 @@
 // system is co-simulated with a Chrono::Parallel system for the granular terrain.
 //
 // MAIN DRIVER
-// 
+//
 // The global reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
@@ -29,9 +29,9 @@
 #include "mpi.h"
 
 #include "chrono/core/ChFileutils.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "thirdparty/SimpleOpt/SimpleOpt.h"
 
-#include "Settings.h"
 #include "RigNode.h"
 #include "TerrainNode.h"
 
@@ -41,6 +41,20 @@ using std::endl;
 
 using namespace chrono;
 using namespace chrono::vehicle;
+
+// =============================================================================
+
+// Cosimulation step size
+double step_size = 4e-5;
+
+// Output frequency (frames per second)
+double output_fps = 200;
+
+// Checkpointing frequency (frames per second)
+double checkpoint_fps = 100;
+
+// Output directory
+std::string out_dir = "../TIRE_RIG_COSIM";
 
 // =============================================================================
 
@@ -104,7 +118,7 @@ int main(int argc, char** argv) {
     int rank;
     int name_len;
     char procname[MPI_MAX_PROCESSOR_NAME];
-  
+
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &num_procs);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -135,22 +149,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    // Append suffix to output directories
-    rig_dir = rig_dir + suffix;
-    terrain_dir = terrain_dir + suffix;
-
-    // Prepare output directories.
+    // Prepare output directory.
     if (rank == 0) {
         if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
             cout << "Error creating directory " << out_dir << endl;
-            return 1;
-        }
-        if (ChFileutils::MakeDirectory(rig_dir.c_str()) < 0) {
-            cout << "Error creating directory " << rig_dir << endl;
-            return 1;
-        }
-        if (ChFileutils::MakeDirectory(terrain_dir.c_str()) < 0) {
-            cout << "Error creating directory " << terrain_dir << endl;
             return 1;
         }
     }
@@ -160,34 +162,90 @@ int main(int argc, char** argv) {
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
     int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
-    // Create the two systems and run settling phase for terrain.
-    // Data exchange:
-    //   rig => terrain (tire contact material properties)
+    // Create the two systems and run the settling phase for terrain.
     RigNode* my_rig = NULL;
     TerrainNode* my_terrain = NULL;
 
     switch (rank) {
-        case RIG_NODE_RANK:
+        case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
-            if (output) {
-                my_rig->SetOutputFile(rig_dir + "/rig_results.txt");
-            }
+			my_rig->SetStepSize(step_size);
+            my_rig->SetOutDir(out_dir, suffix);
+            cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
+
+            my_rig->SetBodyMasses(1, 1, 450, 15); 
+            my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+            my_rig->EnableTirePressure(true);
+
             break;
-        case TERRAIN_NODE_RANK:
+        }
+        case TERRAIN_NODE_RANK: {
+            auto type = TerrainNode::GRANULAR;
+            auto method = ChMaterialSurfaceBase::DEM;
+
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
-            my_terrain = new TerrainNode(TerrainNode::GRANULAR, ChMaterialSurfaceBase::DEM, use_checkpoint, render, nthreads_terrain);
-            if (output) {
-                ////my_terrain->SetOutputFile(terrain_dir + "/terrain_results.txt");
+            my_terrain = new TerrainNode(type, method, use_checkpoint, render, nthreads_terrain);
+			my_terrain->SetStepSize(step_size);
+            my_terrain->SetOutDir(out_dir, suffix);
+            cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
+			 
+            my_terrain->SetContainerDimensions(10, 0.6, 1, 0.2);
+ 
+            double radius = 0.006;
+            double coh_pressure = 8e4;
+            double coh_force = CH_C_PI * radius * radius * coh_pressure;
+
+            my_terrain->SetGranularMaterial(radius, 2500, 15);
+            my_terrain->SetSettlingTime(0.2);
+            ////my_terrain->EnableSettlingOutput(true);
+
+            switch (method) {
+                case ChMaterialSurfaceBase::DEM: {
+                    auto material = std::make_shared<ChMaterialSurfaceDEM>();
+                    material->SetFriction(0.9f);
+                    material->SetRestitution(0.0f);
+                    material->SetYoungModulus(8e5f);
+                    material->SetPoissonRatio(0.3f);
+                    material->SetAdhesion(coh_force);
+                    material->SetKn(1.0e6f);
+                    material->SetGn(6.0e1f);
+                    material->SetKt(4.0e5f);
+                    material->SetGt(4.0e1f);
+                    my_terrain->SetMaterialSurface(material);
+                    my_terrain->UseMaterialProperties(false);
+                    my_terrain->SetContactForceModel(ChSystemDEM::PlainCoulomb);
+                    break;
+                }
+                case ChMaterialSurfaceBase::DVI: {
+                    auto material = std::make_shared<ChMaterialSurface>();
+                    material->SetFriction(0.9f);
+                    material->SetRestitution(0.0f);
+                    material->SetCohesion(coh_force);
+                    my_terrain->SetMaterialSurface(material);
+                    break;
+                }
             }
+
+            switch (type) {
+                case TerrainNode::RIGID:
+                    my_terrain->SetProxyProperties(1, 0.01, false);
+                    break;
+                case TerrainNode::GRANULAR:
+                    my_terrain->SetProxyProperties(1, false);
+                    break;
+            }
+
             my_terrain->Settle();
             break;
+        }
     }
 
     // Initialize systems.
     // Data exchange:
     //   terrain => rig (terrain height)
     //   rig => terrain (tire mesh topology information)
+    //   rig => terrain (tire contact material properties)
     switch (rank) {
         case RIG_NODE_RANK:
             my_rig->Initialize();
@@ -300,9 +358,8 @@ bool GetProblemSpecs(int argc,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
-                     std::string& suffix
-                     ) {
-    // Create the option parser and pass it the program arguments and the array of valid options. 
+                     std::string& suffix) {
+    // Create the option parser and pass it the program arguments and the array of valid options.
     CSimpleOptA args(argc, argv, g_options);
 
     // Then loop for as long as there are arguments to be processed.

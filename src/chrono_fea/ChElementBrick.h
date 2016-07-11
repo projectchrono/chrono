@@ -18,7 +18,9 @@
 
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChLoadable.h"
 #include "chrono_fea/ChApiFEA.h"
+#include "chrono_fea/ChElementGeneric.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 
 namespace chrono {

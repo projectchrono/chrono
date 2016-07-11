@@ -493,6 +493,7 @@ set(ChronoEngine_timestepper_SOURCES
     timestepper/ChIntegrable.cpp
     timestepper/ChTimestepper.cpp
     timestepper/ChTimestepperHHT.cpp
+    timestepper/ChAssemblyAnalysis.cpp
     )
 
 set(ChronoEngine_timestepper_HEADERS
@@ -635,7 +636,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverBB.cpp
     solver/ChSolverPCG.cpp
     solver/ChSolverAPGD.cpp
-    solver/ChSolverSimplex.cpp
     solver/ChConstraint.cpp
     solver/ChConstraintTwo.cpp
     solver/ChConstraintTwoGeneric.cpp
@@ -686,7 +686,6 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverSOR.h
     solver/ChSolverSORmultithread.h
     solver/ChSolverSymmSOR.h
-    solver/ChSolverSimplex.h
     solver/ChSystemDescriptor.h
     solver/ChVariables.h
     solver/ChVariablesBody.h

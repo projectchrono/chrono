@@ -26,10 +26,9 @@ namespace chrono {
 /// @addtogroup chrono_solver
 /// @{
 
-/// Base class for solvers aimed at solving complementarity problems arising
-/// from QP optimization problems.
-/// This class does nothing: it is up to derived classes to implement specific
-/// solution methods, such as iterative SOR, APGD, simplex, etc.
+/// Base class for solvers aimed at solving complementarity problems arising from QP optimization
+/// problems. This is an abstract class and specific solution methods are implemented in derived
+/// classes (e.g., SOR, APGD, etc.)
 /// The problem is described by a variational inequality VI(Z*x-d,K):
 ///
 ///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y

@@ -115,8 +115,6 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.The same is done
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    /// This is used only by the ChSolverSimplex solver (iterative solvers
-    /// don't need to know jacobians explicitly)
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override {
         tuple_a.Build_Cq(storage, insrow);
         tuple_b.Build_Cq(storage, insrow);

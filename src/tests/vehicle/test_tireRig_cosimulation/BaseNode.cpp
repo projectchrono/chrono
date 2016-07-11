@@ -9,11 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Antonio Recuero
+// Authors: Radu Serban
 // =============================================================================
 //
-// Mechanism for testing tires over granular terrain.  The mechanism + tire
-// system is co-simulated with a Chrono::Parallel system for the granular terrain.
+// Base class for a co-simulation node.
 //
 // Global settings.
 //
@@ -22,25 +21,23 @@
 //
 // =============================================================================
 
-#include "Settings.h"
+#include "BaseNode.h"
+#include "chrono/core/ChFileutils.h"
 
+const double BaseNode::m_gacc = -9.81;
 
-// Value of gravitational acceleration (Z direction), common on both systems
-double gacc = -9.81;
+BaseNode::BaseNode(const std::string& name) : m_name(name), m_step_size(1e-4), m_cum_sim_time(0) {}
 
-// Specify whether or not contact coefficients are based on material properties
-bool use_mat_properties = true;
+void BaseNode::SetOutDir(const std::string& dir_name, const std::string& suffix) {
+    m_out_dir = dir_name;
+    m_node_out_dir = dir_name + "/" + m_name + suffix;
 
-// Cosimulation step size
-double step_size = 1e-4;
+    if (chrono::ChFileutils::MakeDirectory(m_node_out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << m_node_out_dir << std::endl;
+        return;
+    }
 
-// Output directories
-std::string out_dir = "../TIRE_RIG_COSIM";
-std::string rig_dir = out_dir + "/RIG";
-std::string terrain_dir = out_dir + "/TERRAIN";
-
-// Output frequency (frames per second)
-double output_fps = 200;
-
-// Checkpointing frequency (frames per second)
-double checkpoint_fps = 100;
+    m_outf.open(m_node_out_dir + "/results.dat", std::ios::out);
+    m_outf.precision(7);
+    m_outf << std::scientific;
+}

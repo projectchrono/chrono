@@ -231,9 +231,8 @@ int main(int argc, char* argv[]) {
     // msolver->SetDiagonalPreconditioning(true);
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
-    // my_system.SetSolverType(ChSystem::SOLVER_SIMPLEX);
-    //***TEST***
     /*
+    //// TEST
     ChMatlabEngine matlab_engine;
     ChSolverMatlab* matlab_solver_stab  = new ChSolverMatlab(matlab_engine);
     ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);

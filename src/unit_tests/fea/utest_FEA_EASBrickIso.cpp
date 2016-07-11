@@ -14,71 +14,101 @@
 //
 // Unit test for EAS Brick Element
 //
-// This unit test checks the elastic deflection of a cantilever plate
-// composed of brick elements. It serves to validate the elastic, isotropic,
-// large deformation internal forces and the element inertia.
+// This unit test checks the elastic deflection of a cantilever plate composed
+// of brick elements. It serves to validate the elastic, isotropic, large
+// deformation internal forces and the element inertia.
 //
-// This element is a regular 8-noded trilinear brick element with enhanced assumed
-// strain that alleviates locking. More information on the validation of this element
-// may be found in Chrono's documentation. This simulation uses an external force
-// that builds up with time using a smooth cosine function. The user may increase
-// the number of brick elements to achieve convergence.
+// This element is a regular 8-noded trilinear brick element with enhanced
+// assumed strain that alleviates locking. More information on the validation of
+// this element may be found in Chrono's documentation. This simulation uses an
+// external force that builds up with time using a smooth cosine function.
 // =============================================================================
+
+#include <cstdlib>
+#include <iostream>
+
 #include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_fea/ChElementBar.h"
+#include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementSpring.h"
-#include "chrono_fea/ChLinkDirFrame.h"
-#include "chrono_fea/ChLinkPointFrame.h"
-#include "chrono_fea/ChVisualizationFEAmesh.h"
+
+#include "../BaseTest.h"
 
 using namespace chrono;
-using namespace fea;
-double step_size = 1e-3;
-double sim_time = 15;       // Simulation time for generation of reference file
-double precision = 4e-7;    // Precision value used to assess results
-double sim_time_UT = 0.05;  // Simulation time for unit test 0.05
+using namespace chrono::fea;
+
+// ====================================================================================
+
+double step_size = 1e-3;  // Integration step size
+double precision = 1e-6;  // Precision value used to assess results
+
+int num_steps_GF = 15000;  // Number steps for generating golden file
+int num_steps_UT = 50;     // Number of steps used in unit testing
+
+// ====================================================================================
+
+// Test class
+class BrickIsoTest : public BaseTest {
+  public:
+    BrickIsoTest(const std::string& testName, const std::string& testProjectName)
+        : BaseTest(testName, testProjectName), m_execTime(0) {}
+
+    ~BrickIsoTest() {}
+
+    // Override corresponding functions in BaseTest
+    virtual bool execute() override;
+    virtual double getExecutionTime() const override { return m_execTime; }
+
+  private:
+    double m_execTime;
+    static const double m_TF;
+
+    ChVector<> GetTipForce(double t) {
+        if (t < m_TF)
+            return ChVector<>(0, 0, -50 / 2 * (1 - cos(CH_C_PI * (t / m_TF))));
+        return ChVector<>(0, 0, -50);
+    }
+};
+
+const double BrickIsoTest::m_TF = 10;
+
+// ====================================================================================
 
 int main(int argc, char* argv[]) {
-    bool output = (0);  // Determines whether it tests (0) or generates golden file (1)
-    ChMatrixDynamic<> FileInputMat(15000, 3);
-    if (output) {
-        GetLog() << "Output file: ../TEST_Brick/tip_position.txt\n";
-    } else {
-        // Utils to open/read files: Load reference solution ("golden") file
-        std::string EASBrick_val_file = GetChronoDataPath() + "testing/" + "UT_EASBrickIso.txt";
-        std::ifstream fileMid(EASBrick_val_file);
-
-        if (!fileMid.is_open()) {
-            fileMid.open(EASBrick_val_file);
-        }
-        if (!fileMid) {
-            std::cout << "Cannot open validation file.\n";
-            exit(1);
-        }
-        for (int x = 0; x < 15000; x++) {
-            fileMid >> FileInputMat[x][0] >> FileInputMat[x][1] >> FileInputMat[x][2];
-        }
-        fileMid.close();
-        GetLog() << "Running in unit test mode.\n";
-    }
-
-    // --------------------------
-    // Create the physical system
-    // --------------------------
-    ChSystem my_system;
-
     GetLog() << "-----------------------------------------------------------\n";
     GetLog() << "     Brick Element Unit Test \n";
     GetLog() << "-----------------------------------------------------------\n";
 
-    // The physical system: it contains all physical objects.
-    // Create a mesh, that is a container for groups
-    // of elements and their referenced nodes.
+    bool passed;
+
+    BrickIsoTest test("utest_FEA_EASBrickIso", "Chrono::FEA");
+    if (argc > 1) {
+        // Generate metrics JSON output files
+        test.setOutDir(argv[1]);
+        test.setVerbose(true);
+        passed = test.run();
+        test.print();
+    } else {
+        // Run in unit test mode
+        passed = test.execute();
+    }
+
+    // Return 0 if test passed
+    return !passed;
+}
+
+bool BrickIsoTest::execute() {
+    // Decide if generating golden file (true) or testing (false)
+    bool output = false;
+
+    // Create the physical system
+    ChSystem my_system;
+
+    // Create a mesh, a container for groups of elements and their referenced nodes.
     auto my_mesh = std::make_shared<ChMesh>();
     int numFlexBody = 1;
     // Geometry of the plate
@@ -111,10 +141,7 @@ int main(int argc, char* argv[]) {
     ChMatrixDynamic<double> ElemLengthXY(TotalNumElements, 3);
     ChMatrixNM<double, 10, 12> MPROP;
 
-    //!------------------------------------------------!
-    //!------------ Read Material Data-----------------!
-    //!------------------------------------------------!
-
+    // Set material data
     for (int i = 0; i < MaxMNUM; i++) {
         MPROP(i, 0) = 500;      // Density [kg/m3]
         MPROP(i, 1) = 2.1E+08;  // H(m)
@@ -129,7 +156,7 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
     mmaterial->Set_v(MPROP(0, 2));
 
-    //!--------------- Element data--------------------!
+    // Element data
     for (int i = 0; i < TotalNumElements; i++) {
         // All the elements belong to the same layer
         // I.e. this is not a composite material
@@ -145,7 +172,6 @@ int main(int argc, char* argv[]) {
         NumNodes(i, 6) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 2);
         NumNodes(i, 7) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 3);
 
-
         // All the elements have the same lenght in this example
         ElemLengthXY(i, 0) = dx;
         ElemLengthXY(i, 1) = dy;
@@ -156,8 +182,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    //!--------- Constraints, Coordinates, and Velocities --------------!//
-
+    // Constraints, Coordinates, and Velocities
     for (int i = 0; i < TotalNumNodes; i++) {
         // Assign constrained (1) and unconstrained (0) components of the nodes
         NDR(i, 0) = (i % (numDiv_x + 1) == 0) ? 1 : 0;
@@ -174,7 +199,8 @@ int main(int argc, char* argv[]) {
         VELCYFlex(i, 1) = 0;
         VELCYFlex(i, 2) = 0;
     }
-    // Adding the nodes to the mesh
+
+    // Add the nodes to the mesh
     int i = 0;
     while (i < TotalNumNodes) {
         auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
@@ -186,6 +212,7 @@ int main(int argc, char* argv[]) {
         }
         i++;
     }
+
     // Create a node at the tip by dynamic casting
     auto nodetip = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(TotalNumNodes - 1));
 
@@ -222,17 +249,18 @@ int main(int argc, char* argv[]) {
 
     // Deactivate automatic gravity in mesh
     my_mesh->SetAutomaticGravity(false);
-    // Remember to add the mesh to the system!
+
+    // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // Perform a dynamic time integration:
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
+    // Solver settings
+    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(10000);
     my_system.SetTolForce(1e-09);
 
+    // Integrator settings
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
@@ -244,15 +272,12 @@ int main(int argc, char* argv[]) {
     // Mark completion of system construction
     my_system.SetupInitial();
 
-    // Simulation loop
-    double T_F = 10;
-    double t_sim = 0;
+    // Name of golden file
+    std::string filename = GetChronoDataFile("testing/UT_EASBrickIso.txt");
+
+    // Generate golden file and return
     if (output) {
-        // Create output directory (if it does not already exist).
-        if (ChFileutils::MakeDirectory("../TEST_Brick") < 0) {
-            GetLog() << "Error creating directory ../TEST_Brick\n";
-            return 1;
-        }
+        GetLog() << "Generating golden file\n";
 
         // Initialize the output stream and set precision.
         utils::CSV_writer out("\t");
@@ -260,49 +285,63 @@ int main(int argc, char* argv[]) {
         out.stream().precision(7);
 
         // Simulate to final time, while saving position of tip node.
-        while (my_system.GetChTime() < sim_time) {
-            t_sim = my_system.GetChTime();
-            if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
-            else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
-            }
+        for (int is = 0; is < num_steps_GF; is++) {
+            nodetip->SetForce(GetTipForce(my_system.GetChTime()));
             my_system.DoStepDynamics(step_size);
             out << my_system.GetChTime() << nodetip->GetPos().z << nodetip->GetForce().z << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
-                     << nodetip->GetForce().z << "\n";
+            std::cout << '\r' << std::fixed << std::setprecision(6) << my_system.GetChTime();
         }
+
         // Write results to output file.
-        out.write_to_file("../TEST_Brick/tip_position.txt");
-    } else {
-        // Initialize total number of iterations and timer.
-        int Iterations = 0;
-        double start = std::clock();
-        int stepNo = 0;
-        double AbsVal = 0.0;
-        // Simulate to final time, while accumulating number of iterations.
-        while (my_system.GetChTime() < sim_time_UT) {
-            t_sim = my_system.GetChTime();
-            if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
-            else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
-            }
-            my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
-            if (AbsVal > precision) {
-                std::cout << "Unit test check failed \n";
-                return 1;
-            }
-            stepNo++;
-            Iterations += mystepper->GetNumIterations();
-        }
-        // Report run time and total number of iterations.
-        double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        GetLog() << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
-        std::cout << "Unit test check succeeded \n";
+        out.write_to_file(filename);
+        GetLog() << "\nOutput written to: " << filename << "\n";
+
+        return true;
     }
 
-    return 0;
+    // Run unit test
+    GetLog() << "Compare against golden file: " << filename << "\n";
+
+    // Open file and read data
+    std::ifstream infile(GetChronoDataFile("testing/UT_EASBrickIso.txt"), std::ifstream::in);
+    if (!infile.is_open()) {
+        GetLog() << "Cannot open validation file.\n";
+        return false;
+    }
+
+    ChMatrixDynamic<> data(num_steps_GF, 3);
+    for (int x = 0; x < num_steps_GF; x++) {
+        infile >> data[x][0] >> data[x][1] >> data[x][2];
+    }
+
+    // Simulate for the specified number of steps, while accumulating number of iterations.
+    ChTimer<> timer;
+    int num_iterations = 0;
+
+    for (int is = 0; is < num_steps_UT; is++) {
+        nodetip->SetForce(GetTipForce(my_system.GetChTime()));
+
+        timer.start();
+        my_system.DoStepDynamics(step_size);
+        timer.stop();
+
+        num_iterations += mystepper->GetNumIterations();
+
+        double diff = std::abs(nodetip->GetPos().z - data[is][1]);
+        GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
+        if (diff > precision) {
+            GetLog() << "Unit test check failed:  |diff| = " << diff << "\n";
+            return false;
+        }
+    }
+
+    // Report run time and total number of iterations
+    GetLog() << "Computation Time: " << timer.GetTimeSeconds() << "   Number of iterations: " << num_iterations << "\n";
+    GetLog() << "Unit test check succeeded \n";
+
+    m_execTime = timer.GetTimeSeconds();
+    addMetric("num_iterations", num_iterations);
+    addMetric("avg_time_per_step", m_execTime / num_steps_UT);
+
+    return true;
 }

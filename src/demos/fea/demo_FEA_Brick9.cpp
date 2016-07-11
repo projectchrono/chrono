@@ -12,14 +12,16 @@
 // Authors: Bryan Peterson, Antonio Recuero
 // =============================================================================
 // Demo for 9-node, large deformation brick element
-// The user can run three demos in the main function. 1) Axial dynamics excites
+// The user can run seven demos in the main function. 1) Axial dynamics excites
 // a beam made up of brick elements axially; 2) BendingQuasiStatic applies a qua-
 // sistatic load at a corner of a plate and is used for convergence verification;
 // 3) Swinging shell is used for verification of dynamics, rigid body and large
 // deformation problems, 4) ShellBrickContact is used to visualize contact between
 //  ANCF shell elements and 9-node bricks, 5) SimpleBoxContact is intended to
-// visualize contact between rigid bodies and bricks.
-// The user can uncomment and run any of the five demos
+// visualize contact between rigid bodies and bricks. 6) DPCapPress is a soil bin
+// scenario in which a set of nodal forces is applied to validate the Drucker-
+// Prager Cap Model.
+// The user can uncomment and run any of the seven demos
 // =============================================================================
 
 #include "chrono/solver/ChSolverMINRES.h"
@@ -48,8 +50,10 @@ void SwingingShell();
 void SoilBin();
 void SimpleBoxContact();
 void ShellBrickContact();
+void DPCapPress();
 
 int main(int argc, char* argv[]) {
+	DPCapPress();
     // ShellBrickContact();
     // SimpleBoxContact();
     // SoilBin();
@@ -57,6 +61,342 @@ int main(int argc, char* argv[]) {
     // BendingQuasiStatic();
     // SwingingShell();
     return 0;
+}
+
+// Soil Bin case testing Drucker-Prager Cap model
+void DPCapPress() {
+	FILE* outputfile;
+	ChSystemDEM my_system;
+	my_system.UseMaterialProperties(false);
+	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.Set_G_acc(ChVector<>(0, 0, 0));
+
+	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
+	ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
+		false, true);
+
+	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+	application.AddTypicalLogo();
+	application.AddTypicalSky();
+	application.AddTypicalLights();
+	application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+		core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
+
+	GetLog() << "-----------------------------------------------------------------------\n";
+	GetLog() << "-----------------------------------------------------------------------\n";
+	GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
+	GetLog() << "-----------------------------------------------------------------------\n";
+
+	// Create a mesh, that is a container for groups of elements and their referenced nodes.
+	auto my_mesh = std::make_shared<ChMesh>();
+
+	// Geometry of the plate
+	double plate_lenght_x = 0.48;// 0.4;
+	double plate_lenght_y = 0.48;// 0.4;
+	double plate_lenght_z = 0.6;// 0.6;
+
+	// Specification of the mesh
+	int numDiv_x = 12;// 10;
+	int numDiv_y = 12;// 10;
+	int numDiv_z = 8;// 8;
+
+	int N_x = numDiv_x + 1;
+	int N_y = numDiv_y + 1;
+	int N_z = numDiv_z + 1;
+
+	// Number of elements in the z direction is considered as 1
+	int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
+	int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
+	int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
+
+	// For uniform mesh
+	double dx = plate_lenght_x / numDiv_x;
+	double dy = plate_lenght_y / numDiv_y;
+	double dz = plate_lenght_z / numDiv_z;
+	bool Plasticity = true;
+	double timestep = 1e-4;
+
+	// Create and add the nodes
+	for (int j = 0; j <= numDiv_z; j++) {
+		for (int i = 0; i < XYNumNodes; i++) {
+			// Node location
+			double loc_x = (i % (numDiv_x + 1)) * dx;
+			double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+			double loc_z = j * dz;
+			// Create the node
+			auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+			node->SetMass(0);
+
+			// Fix all nodes along the axis X=0
+			if (j == 0) {
+				node->SetFixed(true);
+			}
+			// Add node to mesh
+			my_mesh->AddNode(node);
+		}
+	}
+
+	for (int i = 0; i < TotalNumElements; i++) {
+		auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+			ChVector<>(0.0, 0.0, 0.0));
+		node->SetMass(0);
+		my_mesh->AddNode(node);
+	}
+
+	// Create an orthotropic material.
+	double rho = 2149.0;
+	ChVector<> E(54.1e6, 54.1e6, 54.1e6);// (1.379e7, 1.379e7, 1.379e7);
+	ChVector<> nu(0.293021, 0.293021, 0.293021);// (0.3, 0.3, 0.3);
+	//ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+	auto material = std::make_shared<ChContinuumElastic>();
+	material->Set_RayleighDampingK(0.0);
+	material->Set_RayleighDampingM(0.0);
+	material->Set_density(rho);
+	material->Set_E(E.x);
+	// material->Set_G(G.x);
+	material->Set_v(nu.x);
+
+	// Read hardening parameter look-up table
+	FILE* inputfile;
+	char str1[100];
+	int MAXCOUNT = 100;
+	int RowN;
+
+	//inputfile = fopen(GetChronoDataFile("fea/Hardening_parameter_table.INP").c_str(), "r");
+	inputfile = fopen(GetChronoDataFile("fea/CapHardeningInformation_TriaxialAxial.INP").c_str(), "r");
+	if (inputfile == NULL) {
+		printf("Input data file not found!!\n");
+		system("pause");
+		exit(1);
+	}
+	fgets(str1, MAXCOUNT, inputfile);
+	printf("%s\n", str1);
+
+	fscanf(inputfile, "%d\n", &RowN);
+	ChVectorDynamic<double> m_DPVector1(RowN);
+	ChVectorDynamic<double> m_DPVector2(RowN);
+	for (int i = 0; i < RowN; i++) {
+		fscanf(inputfile, " %lf %lf\n", &m_DPVector1(i), &m_DPVector2(i));
+	}
+	//Modified hardening parameter to be consistent with ABAQUS !!! 
+	for (int i = 0; i < RowN; i++) {
+		m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) / (0.5*tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
+	}
+
+	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	my_surfacematerial->SetKn(3200);//(10e6);
+	my_surfacematerial->SetKt(3200);//(10e6);
+	my_surfacematerial->SetGn(32);// (10e3);
+	my_surfacematerial->SetGt(32);// (10e3);
+
+	std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);
+	my_mesh->AddContactSurface(my_contactsurface);
+	my_contactsurface->AddAllNodes(0.005);
+
+
+	my_contactsurface->SetMaterialSurface(my_surfacematerial);
+	ChMatrixNM<double, 9, 8> CCPInitial;
+	for (int k = 0; k < 8; k++) {
+		CCPInitial(0, k) = 1;
+		CCPInitial(4, k) = 1;
+		CCPInitial(8, k) = 1;
+	}
+	int jj = -1;
+	int kk;
+	// Create the elements
+	for (int i = 0; i < TotalNumElements; i++) {
+		if (i % (numDiv_x*numDiv_y) == 0) {
+			jj++;
+			kk = 0;
+		}
+		// Adjacent nodes
+		int node0 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + jj*(N_x*N_y);
+		int node1 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + jj*(N_x*N_y);
+		int node2 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + N_x + jj*(N_x*N_y);
+		int node3 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + N_x + jj*(N_x*N_y);
+		int node4 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + XYNumNodes + jj*(N_x*N_y);
+		int node5 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + XYNumNodes + jj*(N_x*N_y);
+		int node6 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + N_x + XYNumNodes + jj*(N_x*N_y);
+		int node7 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + N_x + XYNumNodes + jj*(N_x*N_y);
+		int node8 = (numDiv_z + 1) * XYNumNodes + i;
+
+		// Create the element and set its nodes.
+		auto element = std::make_shared<ChElementBrick_9>();
+		element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node3)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node4)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node5)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node6)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node7)),
+			std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
+
+		// Set element dimensions
+		element->SetDimensions(ChVector<>(dx, dy, dz));
+
+		// Add a single layers with a fiber angle of 0 degrees.
+		element->SetMaterial(material);
+
+		// Set other element properties
+		element->SetAlphaDamp(0.0);    // Structural damping for this element
+		element->SetGravityOn(false);  // turn internal gravitational force calculation off
+		element->SetDPIterationNo(50); // Set maximum number of iterations for Drucker-Prager Newton-Raphson
+		element->SetDPYieldTol(1e-5);  // Set stop tolerance for Drucker-Prager Newton-Raphson
+		element->SetStrainFormulation(ChElementBrick_9::Hencky);
+		element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager_Cap);
+		if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
+			element->SetPlasticity(Plasticity);
+			if (Plasticity) {
+				element->SetYieldStress(210926.0);
+				element->SetHardeningSlope(0.0);
+				element->SetCCPInitial(CCPInitial);
+				if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
+					element->SetFriction(10.0);
+					element->SetDilatancy(0.0);
+					element->SetDPType(3);
+				}
+				if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager_Cap) {
+					element->SetFriction(51.7848);
+					element->SetDilatancy(51.7848);
+					element->SetDPType(3);
+					element->SetDPVector1(m_DPVector1);
+					element->SetDPVector2(m_DPVector2);
+					element->SetDPVectorSize(RowN);
+					element->SetDPCapBeta(0.5*tan(51.7848 * 3.141592653589793 / 180.0));
+				}
+			}
+		}
+
+		// Add element to mesh
+		my_mesh->AddElement(element);
+		kk++;
+	}
+
+	// Add the mesh to the system
+	my_system.Add(my_mesh);
+
+	// Mark completion of system construction
+	my_system.SetupInitial();
+
+	// -------------------------------------
+	// Options for visualization in irrlicht
+	// -------------------------------------
+
+	auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+	mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+	mvisualizemesh->SetShrinkElements(true, 0.85);
+	mvisualizemesh->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizemesh);
+
+	auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizemeshref->SetWireframe(true);
+	mvisualizemeshref->SetDrawInUndeformedReference(true);
+	my_mesh->AddAsset(mvisualizemeshref);
+
+	auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+	mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizemeshC->SetSymbolsThickness(0.004);
+	my_mesh->AddAsset(mvisualizemeshC);
+
+	auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+	mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizemeshD->SetSymbolsScale(1);
+	mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+	mvisualizemeshD->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizemeshD);
+
+	auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
+	mvisualizemeshcoll->SetWireframe(true);
+	mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
+	my_mesh->AddAsset(mvisualizemeshcoll);
+
+	application.AssetBindAll();
+	application.AssetUpdateAll();
+
+	// Use the MKL Solver
+	ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+	ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+	my_system.ChangeSolverStab(mkl_solver_stab);
+	my_system.ChangeSolverSpeed(mkl_solver_speed);
+	mkl_solver_stab->SetSparsityPatternLock(true);
+	mkl_solver_speed->SetSparsityPatternLock(true);
+	my_system.Update();
+
+	// Set the time integrator parameters
+	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+	mystepper->SetAlpha(0.0);
+	mystepper->SetMaxiters(25);//20
+	mystepper->SetAbsTolerances(5e-5, 1e-2);//1e-5
+	mystepper->SetMode(ChTimestepperHHT::POSITION);
+	mystepper->SetVerbose(true);
+	mystepper->SetScaling(true);
+	application.SetTimestep(timestep);
+
+	my_system.Setup();
+	my_system.Update();
+
+	outputfile = fopen("SolidBenchmark.txt", "w");
+
+	double ChTime = 0.0;
+	double start = std::clock();
+	int Iter = 0;
+	application.SetPaused(true);
+
+	double force = 0.0;
+	int i1;
+	double wx;
+	double x;
+
+	while (application.GetDevice()->run() && (my_system.GetChTime() <= 0.5)) {
+		application.BeginScene();
+		application.DrawAll();
+		application.DoStep();
+
+		int offset_top = N_x*N_y*numDiv_z;
+		int offset_mid = (numDiv_y / 2 - 1)*N_x;
+		int inc = 0;
+		//node force
+		force = -1700 * std::sin(my_system.GetChTime() * CH_C_PI);
+		for (inc = 0; inc < numDiv_x / 4; inc++) {
+			for (int ii = 0; ii < numDiv_x / 2 + 1; ii++) {
+				auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(offset_top + offset_mid + N_y*inc + numDiv_x / 4 + ii));
+				nodeforce->SetForce(ChVector<>(0.0, 0.0, force));
+			}
+		}
+
+		//my_system.DoStepDynamics(timestep);
+		application.EndScene();
+		Iter += mystepper->GetNumIterations();
+		GetLog() << "t = " << my_system.GetChTime() << "\n";
+		GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
+		if (!application.GetPaused()) {
+			fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+			inc = inc / 2;
+			for (int ii = 0; ii < N_x; ii++) {
+				auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(offset_top + offset_mid + N_y*inc + ii));
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().x);
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().y);
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().z);
+			}
+			fprintf(outputfile, "\n  ");
+		}
+	}
+	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	GetLog() << "Simulation Time: " << duration << "\n";
+	GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+	GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
+	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+	GetLog() << Iter << "\n";
 }
 
 // Test1 Case
@@ -415,8 +755,8 @@ void ShellBrickContact() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }
@@ -724,358 +1064,357 @@ void SimpleBoxContact() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }
 
 // SoilBin Dynamic
 void SoilBin() {
-    FILE* outputfile;
-    ChSystemDEM my_system;
-    my_system.UseMaterialProperties(false);
-    my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-    my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-    my_system.Set_G_acc(ChVector<>(0, 0, 0));
+	FILE* outputfile;
+	ChSystemDEM my_system;
+	my_system.UseMaterialProperties(false);
+	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
-    ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
-                         false, true);
+	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
+	ChIrrApp application(&my_system, L"9-Node, Large Deformation Brick Element", core::dimension2d<u32>(800, 600),
+		false, true);
 
-    // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
-    application.AddTypicalLogo();
-    application.AddTypicalSky();
-    application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
-                                 core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
+	// Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
+	application.AddTypicalLogo();
+	application.AddTypicalSky();
+	application.AddTypicalLights();
+	application.AddTypicalCamera(core::vector3df(-0.4f, -0.3f, 0.0f),  // camera location
+		core::vector3df(0.0f, 0.5f, -0.1f));  // "look at" location
 
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "-----------------------------------------------------------------------\n";
-    GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
-    GetLog() << "-----------------------------------------------------------------------\n";
+	GetLog() << "-----------------------------------------------------------------------\n";
+	GetLog() << "-----------------------------------------------------------------------\n";
+	GetLog() << "     9-Node, Large Deformation Brick Element with implicit integration \n";
+	GetLog() << "-----------------------------------------------------------------------\n";
 
-    // Create a mesh, that is a container for groups of elements and their referenced nodes.
-    auto my_mesh = std::make_shared<ChMesh>();
+	// Create a mesh, that is a container for groups of elements and their referenced nodes.
+	auto my_mesh = std::make_shared<ChMesh>();
 
-    // Geometry of the plate
-    double plate_lenght_x = 0.4;
-    double plate_lenght_y = 0.4;
-    double plate_lenght_z = 0.6;
+	// Geometry of the plate
+	double plate_lenght_x = 0.4;
+	double plate_lenght_y = 0.4;
+	double plate_lenght_z = 0.6;
 
-    // Specification of the mesh
-    int numDiv_x = 10;
-    int numDiv_y = 10;
-    int numDiv_z = 8;
+	// Specification of the mesh
+	int numDiv_x = 10;
+	int numDiv_y = 10;
+	int numDiv_z = 8;
 
-    int N_x = numDiv_x + 1;
-    int N_y = numDiv_y + 1;
-    int N_z = numDiv_z + 1;
+	int N_x = numDiv_x + 1;
+	int N_y = numDiv_y + 1;
+	int N_z = numDiv_z + 1;
 
-    // Number of elements in the z direction is considered as 1
-    int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
-    int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
-    int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
+	// Number of elements in the z direction is considered as 1
+	int TotalNumElements = numDiv_x * numDiv_y * numDiv_z;
+	int XYNumNodes = (numDiv_x + 1) * (numDiv_y + 1);
+	int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
-    // For uniform mesh
-    double dx = plate_lenght_x / numDiv_x;
-    double dy = plate_lenght_y / numDiv_y;
-    double dz = plate_lenght_z / numDiv_z;
-    bool Plasticity = true;
-    double timestep = 2.5e-5;
+	// For uniform mesh
+	double dx = plate_lenght_x / numDiv_x;
+	double dy = plate_lenght_y / numDiv_y;
+	double dz = plate_lenght_z / numDiv_z;
+	bool Plasticity = true;
+	double timestep = 5e-5;//
 
-    // Create and add the nodes
-    for (int j = 0; j <= numDiv_z; j++) {
-        for (int i = 0; i < XYNumNodes; i++) {
-            // Node location
-            double loc_x = (i % (numDiv_x + 1)) * dx;
-            double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-            double loc_z = j * dz;
-            // Create the node
-            auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
-            node->SetMass(0);
+	// Create and add the nodes
+	for (int j = 0; j <= numDiv_z; j++) {
+		for (int i = 0; i < XYNumNodes; i++) {
+			// Node location
+			double loc_x = (i % (numDiv_x + 1)) * dx;
+			double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+			double loc_z = j * dz;
+			// Create the node
+			auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));
+			node->SetMass(0);
 
-            // Fix all nodes along the axis X=0
-            if (j == 0) {
-                node->SetFixed(true);
-            }
-            // Add node to mesh
-            my_mesh->AddNode(node);
-        }
-    }
+			// Fix all nodes along the axis X=0
+			if (j == 0) {
+				node->SetFixed(true);
+			}
+			// Add node to mesh
+			my_mesh->AddNode(node);
+		}
+	}
 
-    for (int i = 0; i < TotalNumElements; i++) {
-        auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
-                                                    ChVector<>(0.0, 0.0, 0.0));
-        node->SetMass(0);
-        my_mesh->AddNode(node);
-    }
+	for (int i = 0; i < TotalNumElements; i++) {
+		auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
+			ChVector<>(0.0, 0.0, 0.0));
+		node->SetMass(0);
+		my_mesh->AddNode(node);
+	}
 
-    // Get a handle to the tip node.
-    auto nodetip1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode((numDiv_z + 1) * XYNumNodes - XYNumNodes));
-    // nodetip1->SetForce(ChVector<>(0.0, 0.0, -5.0));
-    // auto nodetip2 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(2 * XYNumNodes - 1 - numDiv_x - 1));
-    // auto nodetip3 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(XYNumNodes - 1));
-    // auto nodetip4 = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(XYNumNodes - 1 - numDiv_x - 1));
-    // Create an orthotropic material.
-    double rho = 200.0;
-    ChVector<> E(1.379e7, 1.379e7, 1.379e7);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    // ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
-    auto material = std::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
-    std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
-    my_surfacematerial->SetKn(10e10f);
-    my_surfacematerial->SetKt(10e10f);
-    my_surfacematerial->SetGn(10e7f);
-    my_surfacematerial->SetGt(10e7f);
-    ChMatrixNM<double, 9, 8> CCPInitial;
-    for (int k = 0; k < 8; k++) {
-        CCPInitial(0, k) = 1;
-        CCPInitial(4, k) = 1;
-        CCPInitial(8, k) = 1;
-    }
-    int jj = -1;
-    int kk;
-    // Create the elements
-    for (int i = 0; i < TotalNumElements; i++) {
-        if (i % (numDiv_x * numDiv_y) == 0) {
-            jj++;
-            kk = 0;
-        }
-        // Adjacent nodes
-        int node0 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + jj * (N_x * N_y);
-        int node1 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + 1 + jj * (N_x * N_y);
-        int node2 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + 1 + N_x + jj * (N_x * N_y);
-        int node3 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + N_x + jj * (N_x * N_y);
-        int node4 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + XYNumNodes + jj * (N_x * N_y);
-        int node5 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + 1 + XYNumNodes + jj * (N_x * N_y);
-        int node6 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + 1 + N_x + XYNumNodes + jj * (N_x * N_y);
-        int node7 = (kk / (numDiv_x)) * (N_x) + kk % numDiv_x + N_x + XYNumNodes + jj * (N_x * N_y);
-        int node8 = (numDiv_z + 1) * XYNumNodes + i;
+	auto nodecenter = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + (N_x - 1) / 2));
 
-        // Create the element and set its nodes.
-        auto element = std::make_shared<ChElementBrick_9>();
-        element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node3)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node4)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node5)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node6)),
-                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node7)),
-                          std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
+	// Create an orthotropic material.
+	double rho = 200.0;
+	ChVector<> E(1.379e7, 1.379e7, 1.379e7);
+	ChVector<> nu(0.3, 0.3, 0.3);
+	//ChVector<> G(3.8461538e6, 3.8461538e6, 3.8461538e6);
+	auto material = std::make_shared<ChContinuumElastic>();
+	material->Set_RayleighDampingK(0.0);
+	material->Set_RayleighDampingM(0.0);
+	material->Set_density(rho);
+	material->Set_E(E.x);
+	// material->Set_G(G.x);
+	material->Set_v(nu.x);
+	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	my_surfacematerial->SetKn(0.2e4);//0.2e6
+	my_surfacematerial->SetKt(0.2e4);//0.2e6
+	my_surfacematerial->SetGn(0.2e2);//0.2e4
+	my_surfacematerial->SetGt(0.2e2);//0.2e4
+	ChMatrixNM<double, 9, 8> CCPInitial;
+	for (int k = 0; k < 8; k++) {
+		CCPInitial(0, k) = 1;
+		CCPInitial(4, k) = 1;
+		CCPInitial(8, k) = 1;
+	}
+	int jj = -1;
+	int kk;
+	// Create the elements
+	for (int i = 0; i < TotalNumElements; i++) {
+		if (i % (numDiv_x*numDiv_y) == 0) {
+			jj++;
+			kk = 0;
+		}
+		// Adjacent nodes
+		int node0 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + jj*(N_x*N_y);
+		int node1 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + jj*(N_x*N_y);
+		int node2 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + N_x + jj*(N_x*N_y);
+		int node3 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + N_x + jj*(N_x*N_y);
+		int node4 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + XYNumNodes + jj*(N_x*N_y);
+		int node5 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + XYNumNodes + jj*(N_x*N_y);
+		int node6 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + 1 + N_x + XYNumNodes + jj*(N_x*N_y);
+		int node7 = (kk / (numDiv_x)) * (N_x)+kk % numDiv_x + N_x + XYNumNodes + jj*(N_x*N_y);
+		int node8 = (numDiv_z + 1) * XYNumNodes + i;
 
-        // Set element dimensions
-        element->SetDimensions(ChVector<>(dx, dy, dz));
+		// Create the element and set its nodes.
+		auto element = std::make_shared<ChElementBrick_9>();
+		element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node0)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node1)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node2)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node3)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node4)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node5)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node6)),
+			std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(node7)),
+			std::dynamic_pointer_cast<ChNodeFEAcurv>(my_mesh->GetNode(node8)));
 
-        // Add a single layers with a fiber angle of 0 degrees.
-        element->SetMaterial(material);
+		// Set element dimensions
+		element->SetDimensions(ChVector<>(dx, dy, dz));
 
-        // Set other element properties
-        element->SetAlphaDamp(0.0);     // Structural damping for this element
-        element->SetGravityOn(false);   // turn internal gravitational force calculation off
-        element->SetDPIterationNo(50);  // Set maximum number of iterations for Drucker-Prager Newton-Raphson
-        element->SetDPYieldTol(1e-8);   // Set stop tolerance for Drucker-Prager Newton-Raphson
-        element->SetStrainFormulation(ChElementBrick_9::Hencky);
-        element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
-        if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
-            element->SetPlasticity(Plasticity);
-            if (Plasticity) {
-                element->SetYieldStress(1e5);
-                element->SetHardeningSlope(5e5);
-                element->SetCCPInitial(CCPInitial);
-                if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
-                    element->SetFriction(10.0);
-                    element->SetDilatancy(0.0);
-                    element->SetDPType(3);
-                }
-            }
-        }
+		// Add a single layers with a fiber angle of 0 degrees.
+		element->SetMaterial(material);
 
-        // Add element to mesh
-        my_mesh->AddElement(element);
-        kk++;
-    }
+		// Set other element properties
+		element->SetAlphaDamp(5e-4);    // Structural damping for this element
+		element->SetGravityOn(false);  // turn internal gravitational force calculation off
+		element->SetDPIterationNo(50); // Set maximum number of iterations for Drucker-Prager Newton-Raphson
+		element->SetDPYieldTol(1e-8);  // Set stop tolerance for Drucker-Prager Newton-Raphson
+		element->SetStrainFormulation(ChElementBrick_9::Hencky);
+		element->SetPlasticityFormulation(ChElementBrick_9::DruckerPrager);
+		if (element->GetStrainFormulation() == ChElementBrick_9::Hencky) {
+			element->SetPlasticity(Plasticity);
+			if (Plasticity) {
+				element->SetYieldStress(10000.0);
+				element->SetHardeningSlope(5000);
+				element->SetCCPInitial(CCPInitial);
+				if (element->GetPlasticityFormulation() == ChElementBrick_9::DruckerPrager) {
+					element->SetFriction(0.00001);
+					element->SetDilatancy(0.00001);
+					element->SetDPType(3);
+				}
+			}
+		}
 
-    // Add the mesh to the system
-    my_system.Add(my_mesh);
+		// Add element to mesh
+		my_mesh->AddElement(element);
+		kk++;
+	}
 
-    // std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);
-    std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);
-    my_mesh->AddContactSurface(my_contactsurface);
-    my_contactsurface->AddFacesFromBoundary(0.0);
-    // my_contactsurface->AddAllNodes(0.001);
-    my_contactsurface->SetMaterialSurface(my_surfacematerial);
+	// Add the mesh to the system
+	my_system.Add(my_mesh);
 
-    double plate_w = 0.15;
-    double plate_l = 0.15;
-    double plate_h = 0.1;
-    auto Plate = std::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
-    my_system.Add(Plate);
-    Plate->SetBodyFixed(false);
-    Plate->SetPos(ChVector<>(0.2, 0.2, 0.602 + plate_h / 2));
-    Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetMaterialSurface(my_surfacematerial);
-    // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
+	std::shared_ptr<ChContactSurfaceNodeCloud> my_contactsurface(new ChContactSurfaceNodeCloud);///node cloud
+	//std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);///surface mesh
 
-    my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
-    my_mesh->SetAutomaticGravity(false);
+	my_mesh->AddContactSurface(my_contactsurface);
 
-    // Mark completion of system construction
-    my_system.SetupInitial();
+	//my_contactsurface->AddFacesFromBoundary(0.0002);//0.001///surface mesh
+	my_contactsurface->AddAllNodes(0.006);//0.001///node cloud
 
-    // -------------------------------------
-    // Options for visualization in irrlicht
-    // -------------------------------------
+	my_contactsurface->SetMaterialSurface(my_surfacematerial);
 
-    auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
-    mvisualizemesh->SetShrinkElements(true, 0.85);
-    mvisualizemesh->SetSmoothFaces(true);
-    my_mesh->AddAsset(mvisualizemesh);
+	// Creat punch
+	double plate_w = 0.2;//0.15
+	double plate_l = 0.2;//0.15
+	double plate_h = 0.1;
+	auto Plate = std::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true);
+	my_system.Add(Plate);
+	Plate->SetBodyFixed(false);
+	Plate->SetPos(ChVector<>(0.2, 0.2, 0.6001 + plate_h / 2));
+	Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
+	Plate->SetPos_dt(ChVector<>(0.0, 0.0, 0.0));
+	Plate->SetRot_dt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
+	Plate->SetMass(1.2265625);
+	Plate->SetMaterialSurface(my_surfacematerial);
 
-    auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
-    mvisualizemeshref->SetWireframe(true);
-    mvisualizemeshref->SetDrawInUndeformedReference(true);
-    my_mesh->AddAsset(mvisualizemeshref);
+	//// Create ground body
+	auto Ground = std::make_shared<ChBody>();
+	Ground->SetBodyFixed(true);
+	Ground->SetPos(ChVector<>(0.0, 0.0, -0.02));
+	Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
+	my_system.Add(Ground);
 
-    auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
-    mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshC->SetSymbolsThickness(0.004);
-    my_mesh->AddAsset(mvisualizemeshC);
+	my_system.Set_G_acc(ChVector<>(0.0, 0.0, -9.81));
+	my_mesh->SetAutomaticGravity(false);
 
-    auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
-    mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
-    mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
-    mvisualizemeshD->SetSymbolsScale(1);
-    mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
-    mvisualizemeshD->SetZbufferHide(false);
-    my_mesh->AddAsset(mvisualizemeshD);
+	std::shared_ptr<ChLinkLockPointPlane> constraintLateral;
+	std::shared_ptr<ChLinkLockPointPlane> constraintLongitudinal;
 
-    auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
-    mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
-    mvisualizemeshcoll->SetWireframe(true);
-    mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
-    my_mesh->AddAsset(mvisualizemeshcoll);
+	////// Constrain only the lateral displacement of the Rim
+	constraintLateral = std::make_shared<ChLinkLockPointPlane>();
+	my_system.AddLink(constraintLateral);
+	constraintLateral->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), Q_from_AngX(CH_C_PI_2)));
 
-    application.AssetBindAll();
-    application.AssetUpdateAll();
+	constraintLongitudinal = std::make_shared<ChLinkLockPointPlane>();
+	my_system.AddLink(constraintLongitudinal);
+	constraintLongitudinal->Initialize(Plate, Ground, ChCoordsys<>(Plate->GetPos(), Q_from_AngY(CH_C_PI_2)));
 
-    // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    my_system.Update();
 
-    // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
-    auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
-    mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
-    mystepper->SetAbsTolerances(1e-8, 1e-2);
-    mystepper->SetMode(ChTimestepperHHT::POSITION);
-    mystepper->SetVerbose(true);
-    mystepper->SetScaling(true);
-    application.SetTimestep(timestep);
+	// Mark completion of system construction
+	my_system.SetupInitial();
 
-    my_system.Setup();
-    my_system.Update();
+	// -------------------------------------
+	// Options for visualization in irrlicht
+	// -------------------------------------
 
-    outputfile = fopen("SolidBenchmark.txt", "w");
-    fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
-    fprintf(outputfile, "\n  ");
+	auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+	mvisualizemesh->SetColorscaleMinMax(0.0, 5.50);
+	mvisualizemesh->SetShrinkElements(true, 0.85);
+	mvisualizemesh->SetSmoothFaces(true);
+	my_mesh->AddAsset(mvisualizemesh);
 
-    double ChTime = 0.0;
-    double start = std::clock();
-    int Iter = 0;
-    application.SetPaused(true);
-    while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
-        Plate->Empty_forces_accumulators();
-        Plate->Accumulate_force(ChVector<>(0.0, 0.0, -5000.0), Plate->GetPos(), 0);
-        if (my_system.GetChTime() > 0.05) {
-            Plate->Accumulate_force(ChVector<>(0.0, 0.0, 6000.0), Plate->GetPos(), 0);
-        }
-        // Plate->SetPos_dt(ChVector<>(0.0, 0.0, -0.1));
-        // Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-        // for (int iz = 0; iz < numDiv_z; iz++)
-        //{
-        //	for (int ix = 0; ix < 11; ix++)
-        //	{
-        //		auto sidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(iz*N_x*N_y + ix));
-        //		sidenode->SetPos(ChVector<>(sidenode->GetPos().x, sidenode->GetX0().y, sidenode->GetPos().z));
-        //		//GetLog() << iz*N_x*N_y + ix << "\n";
+	auto mvisualizemeshref = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshref->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_SURFACE);
+	mvisualizemeshref->SetWireframe(true);
+	mvisualizemeshref->SetDrawInUndeformedReference(true);
+	my_mesh->AddAsset(mvisualizemeshref);
 
-        //		auto farsidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode((N_x*numDiv_y) + iz*N_x*N_y
-        //+
-        // ix));
-        //		farsidenode->SetPos(ChVector<>(farsidenode->GetX0().x, farsidenode->GetX0().y,
-        // farsidenode->GetPos().z));
-        //		//GetLog() << (N_x*numDiv_y) + iz*N_x*N_y + ix << "\n";
-        //	}
-        //	//system("pause");
-        //}
-        // for (int iz = 0; iz < numDiv_z; iz++)
-        //{
-        //	for (int iy = 0; iy < N_y; iy++)
-        //	{
-        //		auto sidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode((iy + iz*N_y)*N_y));
-        //		sidenode->SetPos(ChVector<>(sidenode->GetX0().x, sidenode->GetPos().y, sidenode->GetPos().z));
-        //		//GetLog() << (iy + iz*N_y)*N_y << "\n";
+	auto mvisualizemeshC = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshC->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_DOT_POS);
+	mvisualizemeshC->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizemeshC->SetSymbolsThickness(0.004);
+	my_mesh->AddAsset(mvisualizemeshC);
 
-        //		auto farsidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(numDiv_x + iz*N_x*N_y +
-        // iy*N_y));
-        //		farsidenode->SetPos(ChVector<>(farsidenode->GetX0().x, farsidenode->GetX0().y,
-        // farsidenode->GetPos().z));
-        //		//GetLog() << numDiv_x + iz*N_x*N_y + iy*N_y << "\n";
-        //	}
-        //	//system("pause");
-        //}
+	auto mvisualizemeshD = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_NODE_VECT_SPEED);
+	mvisualizemeshD->SetFEMglyphType(ChVisualizationFEAmesh::E_GLYPH_ELEM_TENS_STRAIN);
+	mvisualizemeshD->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NONE);
+	mvisualizemeshD->SetSymbolsScale(1);
+	mvisualizemeshD->SetColorscaleMinMax(-0.5, 5);
+	mvisualizemeshD->SetZbufferHide(false);
+	my_mesh->AddAsset(mvisualizemeshD);
 
-        application.BeginScene();
-        application.DrawAll();
-        application.DoStep();
+	auto mvisualizemeshcoll = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
+	mvisualizemeshcoll->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_CONTACTSURFACES);
+	mvisualizemeshcoll->SetWireframe(true);
+	mvisualizemeshcoll->SetDefaultMeshColor(ChColor(1, 0.5, 0));
+	my_mesh->AddAsset(mvisualizemeshcoll);
 
-        // my_system.DoStepDynamics(timestep);
-        application.EndScene();
-        Iter += mystepper->GetNumIterations();
-        GetLog() << "t = " << my_system.GetChTime() << "\n";
-        GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
-        GetLog() << "Plate Pos: " << Plate->GetPos();
-        GetLog() << "Plate Vel: " << Plate->GetPos_dt();
-        GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        GetLog() << nodetip1->GetPos().x << "\n";
-        GetLog() << nodetip1->GetPos().y << "\n";
-        GetLog() << nodetip1->GetPos().z << "\n";
-        if (!application.GetPaused()) {
-            fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
-            fprintf(outputfile, "\n  ");
-        }
-    }
-    double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-    GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
-    GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
-    GetLog() << Iter << "\n";
+	application.AssetBindAll();
+	application.AssetUpdateAll();
+
+	// Use the MKL Solver
+	ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+	ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+	my_system.ChangeSolverStab(mkl_solver_stab);
+	my_system.ChangeSolverSpeed(mkl_solver_speed);
+	mkl_solver_stab->SetSparsityPatternLock(true);
+	mkl_solver_speed->SetSparsityPatternLock(true);
+	my_system.Update();
+
+	// Set the time integrator parameters
+	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+	mystepper->SetAlpha(0.0);
+	mystepper->SetMaxiters(20);
+	mystepper->SetAbsTolerances(1e-8, 1e-2);
+	mystepper->SetMode(ChTimestepperHHT::POSITION);
+	mystepper->SetVerbose(true);
+	mystepper->SetScaling(true);
+	application.SetTimestep(timestep);
+
+	my_system.Setup();
+	my_system.Update();
+
+	outputfile = fopen("SolidBenchmark0.txt", "w");
+	fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+	for (int ii = 0; ii < N_x; ii++) {
+		auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+	}
+	fprintf(outputfile, "\n  ");
+
+
+	double ChTime = 0.0;
+	double start = std::clock();
+	int Iter = 0;
+	application.SetPaused(true);
+	while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
+		Plate->Empty_forces_accumulators();
+		Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0*sin(my_system.GetChTime()*CH_C_PI)), Plate->GetPos(), 0);
+		Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
+
+		application.BeginScene();
+		application.DrawAll();
+		application.DoStep();
+
+		//my_system.DoStepDynamics(timestep);
+		application.EndScene();
+		Iter += mystepper->GetNumIterations();
+		GetLog() << "t = " << my_system.GetChTime() << "\n";
+		GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
+		GetLog() << "Plate Pos: " << Plate->GetPos();
+		GetLog() << "Plate Vel: " << Plate->GetPos_dt();
+		GetLog() << "Plate Rot: " << Plate->GetRot();
+		GetLog() << "Plate Rot_v: " << Plate->GetRot_dt();
+		GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
+		GetLog() << nodecenter->GetPos().x << "\n";
+		GetLog() << nodecenter->GetPos().y << "\n";
+		GetLog() << nodecenter->GetPos().z << "\n";
+		if (!application.GetPaused()) {
+			fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
+			for (int ii = 0; ii < N_x; ii++) {
+				auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+			}
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().x);
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().y);
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
+			fprintf(outputfile, "%15.7e  ", Plate->GetPos().z);
+			fprintf(outputfile, "\n  ");
+		}
+	}
+	double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
+	GetLog() << "Simulation Time: " << duration << "\n";
+	GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+	GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
+	GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
+	GetLog() << Iter << "\n";
 }
 
 // Axial Dynamic
@@ -1342,8 +1681,8 @@ void AxialDynamics() {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     GetLog() << "Simulation Time: " << duration << "\n";
-    GetLog() << "Force Time: " << my_mesh->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian Time: " << my_mesh->GetTimingJacobianLoad() << "\n";
+    GetLog() << "Force Time: " << my_mesh->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian Time: " << my_mesh->GetTimeJacobianLoad() << "\n";
     GetLog() << "Solver Time: " << my_system.GetTimerSolver() << "\n";
     GetLog() << Iter << "\n";
 }

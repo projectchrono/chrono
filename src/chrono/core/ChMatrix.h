@@ -172,28 +172,6 @@ class ChMatrix {
         return *this;
     }
 
-    //   // Virtualizable functions
-
-    // virtual void SetElement(int row, int col, double elem) { this->SetElement(row, col, elem); }
-    // virtual void PasteMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow,
-    // inscol); }
-    // virtual void PasteTranspMatrix(const ChMatrix<double>* matra, int insrow, int inscol) { PasteTranspMatrix(matra,
-    // insrow, inscol); }
-    // virtual void PasteMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) { PasteMatrix(matra, insrow,
-    // inscol); }
-    // virtual void PasteTranspMatrixFloat(const ChMatrix<float>* matra, int insrow, int inscol) {
-    // PasteTranspMatrix(matra, insrow, inscol); }
-    // virtual void PasteClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int ncolumns,
-    // int insrow, int inscol)
-    //{
-    //	PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-    //}
-    // virtual void PasteSumClippedMatrix(const ChMatrix<double>* matra, int cliprow, int clipcol, int nrows, int
-    // ncolumns, int insrow, int inscol)
-    //{
-    //	PasteSumClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol)
-    //}
-
     //
     // FUNCTIONS
     //
@@ -1222,6 +1200,6 @@ class ChMatrix {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif
