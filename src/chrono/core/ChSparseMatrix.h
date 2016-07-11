@@ -31,6 +31,7 @@ class ChApi ChSparseMatrix {
 
   public:
     ChSparseMatrix() : rows(-1), columns(-1) {}
+    ChSparseMatrix(int nrows, int ncols) : rows(nrows), columns(ncols) {}
     virtual ~ChSparseMatrix() {}
 
     int GetRows() const { return rows; }

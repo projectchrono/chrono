@@ -15,6 +15,8 @@
 #ifndef CHLLMATRIX_H
 #define CHLLMATRIX_H
 
+#include <vector>
+
 #include "chrono/core/ChLists.h"
 #include "chrono/core/ChSparseMatrix.h"
 
@@ -41,35 +43,12 @@ class ChApi ChMelement {
     }
 };
 
-#define SOLVER_MAX_ITERS 200
-#define CONSTR_UNILATERAL_NONE 0
-#define CONSTR_UNILATERAL_REDUNDANT 1
-#define CONSTR_UNILATERAL_OFF 2
-#define CONSTR_UNILATERAL_ON 102
-
-class ChUnilateralData {
-  public:
-    void Reset() { status = CONSTR_UNILATERAL_OFF; }
-
-    char status;
-};
-
 // -------------------------------
 // SPARSE LINKED LIST MATRIX CLASS
 // -------------------------------
 
-/// This class defines a sparse matrix, using the method of
-/// linked lists of non-structural-zeros per each row.
-///
-/// Note that this class is inherited from the ChMatrix class,
-/// however, since ChMatrix has no 'virtual' members for speed
-/// reasons (especially, the Set/GetElement fundamental methods
-/// are not virtual!) this means that MOST ChMatrix methods
-/// must be overridden and re-implemented, even if you
-/// would stick with the implementation in the base class!
-/// (here, only few of them are reimplemented, more will
-/// come later in future releases.).
-///
+/// This class defines a sparse matrix, implemented using linked lists of
+/// non-zero elements in each row.
 class ChApi ChLinkedListMatrix : public ChSparseMatrix {
   private:
     ChMelement** elarray;  // array of 1st column elements
@@ -82,33 +61,27 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     int mbuffer_added;  // mbuffer_added grows all time a new element is set non-zero,
     // until it reaches mbuffer_size (if so, allocation of another buffer is needed). Handled internally.
 
-    ChMelement* NewElement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol);
-    ChMelement** GetElarray() { return elarray; }
-    ChMelement* GetElarrayMel(int num) { return (*(elarray + num)); }
-    double GetElarrayN(int num) { return (*(elarray + num))->val; }
-    void SetElarrayN(double val, int num) { (*(elarray + num))->val = val; }
+    std::vector<int> m_pindices;
+    double m_determinant;
 
   public:
-    /// Creates a sparse matrix with given size.
-    /// fullness = predicted initial "density" of matrix,
-    /// between 0..1, to have best buffer handling and
-    /// memory allocations.
-    ChLinkedListMatrix(int row, int col, double fullness);
-
-    /// Creates a sparse matrix with given size.
-    /// and default 'predicted' fullness as SPM_DEF_FULLNESS
-    ChLinkedListMatrix(int row, int col);
-
-    /// Creates a default 3x3 (a bit unuseful, use
-    /// ChLinkedListMatrix for _large_ matrices! :)
+    /// Default constructor.
     ChLinkedListMatrix();
+
+    /// Create a sparse matrix with given dimensions and fill-in.
+    ChLinkedListMatrix(int nrows, int ncols, double fill_in = SPM_DEF_FULLNESS);
+
+    /// Create a sparse matrix from a given dense matrix.
+    ChLinkedListMatrix(const ChMatrix<>& mat);
+
+    /// Copy constructor.
+    ChLinkedListMatrix(const ChLinkedListMatrix& other);
+
+    /// Destructor.
     ~ChLinkedListMatrix();
 
-    void Build(int row, int col, double fullness);  ///< mostly used internally
-
-    void CopyFromMatrix(ChMatrix<>* matra);
-    void CopyFromMatrix(ChLinkedListMatrix* matra);
-    void CopyToMatrix(ChMatrix<>* matra);
+    /// Copy this sparse matrix to a dense matrix.
+    void CopyToMatrix(ChMatrix<>& mat);
 
     /// Optimized SetElement,  returning the fetched Melement*
     ChMelement* SetElement(int row, int col, double val, ChMelement* guess);
@@ -132,9 +105,6 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
-
-    void SwapColumns(int a, int b);
-    void SwapRows(int a, int b);
 
     // Customized functions, speed-optimized for sparse matrices:
 
@@ -165,80 +135,43 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     // Matrix operations
 
-    void MatrMultiply(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
-    void MatrMultiplyT(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
-    void MatrTMultiply(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
-    void MatrAdd(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
-    void MatrSub(ChLinkedListMatrix* matra, ChLinkedListMatrix* matrb);
-    void MatrInc(ChLinkedListMatrix* matra);
     void MatrScale(double factor);
-    void MatrTranspose();
     void Neg();
 
     // Linear algebra functions
 
-    // Basic Gauss solver
-    int BestPivotRow(int current);
-    int BestPivotDiag(int current);
-    void DiagPivotSymmetric(int rowA, int rowB);
-    int Solve_LinSys(ChMatrix<>* B, ChMatrix<>* X, int* pivarray, double* det);
-    void Solve_LinSys(ChMatrix<>* B, ChMatrix<>* X);  // the object is the [A] matrix.
+    /// Perform in-place LU factorization with partial (row) pivoting.
+    /// The matrix determinant is calculated as a by-product of the factorization and
+    /// can be obtained with GetDeterminant().
+    int Setup_LU();
 
-    // LU decomposition, in place. (matrix [A] is overwritten)
-    // Pivot array must exist! (it will be filled with the _row_ pivots, if any)
-    int Decompose_LU(int* pivarray, double* det);
-    int Solve_LU(ChMatrix<>* B, ChMatrix<>* X, int* pivarray);
-    /// Extract the L and U factors, for a matrix factorized in place with Decompose_LU().
-    int Extract_LU(ChMatrix<>* L, ChMatrix<>* U);
+    /// Solve the system A*x = b, using an existing LU factorization.
+    void Solve_LU(const ChMatrix<>& b, ChMatrix<>& x);
 
-    /// LDL decomposition, only for symmetric matrices [A]!! Note: pivarray is for both
-    /// row and col swap (full diagonal pivot)! Note: only upper part of [A] is used.
-    /// The decomposition can be made to start from the 'from_eq' equation, if matrix was
-    /// already decomposed and only a basis has been modified under the right-lower part
-    /// at 'from_eq, from_eq' cell.
-    int Decompose_LDL(int* pivarray, double* det, int from_eq = 0);
-    int Solve_LDL(ChMatrix<>* B, ChMatrix<>* X, int* pivarray);
-    int Extract_LDL(ChMatrix<>* L, ChMatrix<>* D, ChMatrix<>* Lu);
-    int DecomposeAndSolve_LDL(ChMatrix<>* B, ChMatrix<>* X, double& mdet, int from_eq = 0);
+    /// Solve the general system A*x = b.
+    /// Note that the matrix is modified in-place to contain the LU factors.
+    int SolveGeneral(const ChMatrix<>& b, ChMatrix<>& x);
 
-    int DecomposeAndSolve_LDL(ChMatrix<>* B,
-                              ChMatrix<>* X,
-                              double& mdet,
-                              int i_D,
-                              int i_C,
-                              int n_unilaterals,
-                              ChUnilateralData constr_data[],
-                              int from_eq = 0);
-    static int DecomposeAndSolve_LDL(ChLinkedListMatrix* Afact,
-                                     ChLinkedListMatrix* Aorig,
-                                     ChMatrix<>* B,
-                                     ChMatrix<>* X,
-                                     double& mdet,
-                                     int i_D,
-                                     int i_C,
-                                     int n_unilaterals,
-                                     ChUnilateralData constr_data[],
-                                     int from_eq,
-                                     int backup_from);
+    /// Perform in-place LDL factorization with full pivoting.
+    /// Note that this factorization can only be performed for symmetric matrices.
+    /// During the factorization, only the upper triangular part of A is accessed.
+    int Setup_LDL();
 
-    /// Solver for dynamic problems: the matrix must contain the mass matrix
-    /// on the upper left part, bordered with the jacobians of bilateral constraints C,
-    /// then bordered with 'n_unilaterals' unilateral constraints D:
-    ///       this      *  X   =   B
-    ///
-    ///   | M  C'  D' |   |q	|	|Qf |
-    ///   | C  0   0  | * |fc| = |Qc |
-    ///   | D  0   0  |   |fd|   |Qd |
-    ///
-    /// Only the upper part of the matrix is modified (the one with transpose jacobians C' and D'),
-    /// the lower is used to store the original jacobians.
-    int Solve(ChMatrix<>* B,
-              ChMatrix<>* X,
-              int n_bilaterals,
-              int n_unilaterals,
-              int maxiters = 200,
-              bool keep_unilateral_status = false,
-              ChUnilateralData constr_data[] = NULL);
+    /// Solve the symmetric system A*x=b, using an existing LDL factorization.
+    void Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x);
+
+    /// Solve the symmetric system A*x = b.
+    /// Note that the matrix is modified in-place to contain the LU factors.
+    int SolveSymmetric(const ChMatrix<>& b, ChMatrix<>& x);
+
+    /// Get the pivot indices after the last factorization.
+    const std::vector<int>& GetPivots() const { return m_pindices; }
+
+    /// Get matrix determinant.
+    /// Available after a factorization.
+    double GetDeterminant() const { return m_determinant; }
+
+    // Output functions (for debugging)
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
@@ -274,26 +207,35 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
             // that points to (j-th row, 1st column) element also if it is zero
         }
     }
-};
 
-// used internally:
-inline ChMelement* ChLinkedListMatrix::NewElement(double mval,
-                                                  ChMelement* mnext,
-                                                  ChMelement* mprev,
-                                                  int mrow,
-                                                  int mcol) {
-    if (mbuffer_added >= mbuffer_size) {
-        MoreBuffer(2.0);
+  private:
+    ChMelement** GetElarray() { return elarray; }
+    ChMelement* GetElarrayMel(int num) { return (*(elarray + num)); }
+    double GetElarrayN(int num) { return (*(elarray + num))->val; }
+    void SetElarrayN(double val, int num) { (*(elarray + num))->val = val; }
+    ChMelement* NewElement(double mval, ChMelement* mnext, ChMelement* mprev, int mrow, int mcol) {
+        if (mbuffer_added >= mbuffer_size) {
+            MoreBuffer(2.0);
+        }
+
+        ChMelement* newel = mnextel;
+        mnextel->Initialize(mval, mnext, mprev, mrow, mcol);
+
+        mbuffer_added++;
+        mnextel++;
+
+        return (newel);
     }
 
-    ChMelement* newel = mnextel;
-    mnextel->Initialize(mval, mnext, mprev, mrow, mcol);
+    void Build(double fill_in);
 
-    mbuffer_added++;
-    mnextel++;
+    void SwapColumns(int a, int b);
+    void SwapRows(int a, int b);
 
-    return (newel);
-}
+    int BestPivotRow(int current);
+    int BestPivotDiag(int current);
+    void DiagPivotSymmetric(int rowA, int rowB);
+};
 
 }  // end namespace chrono
 
