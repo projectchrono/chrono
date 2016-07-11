@@ -1491,6 +1491,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
         std::vector<int>& marked_tris,  ///< triangles to refine (aso surrounding triangles might be affected by refinements)
         double edge_maxlen,             ///< maximum length of edge (small values give higher resolution)
         ChRefineEdgeCriterion* criterion, ///< criterion for computing lenght (or other merit function) of edge, if =0 uses default (euclidean length)
+        std::vector<std::array<int, 4>>* atri_map, ///< triangle connectivity map: use and modify it. Optional. If =0, creates a temporary one just for life span of function.
         std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
@@ -1500,9 +1501,15 @@ void ChTriangleMeshConnected::RefineMeshEdges(
     // initialize the list of triangles to refine, copying from marked triangles:
     std::list<int> S(marked_tris.begin(), marked_tris.end());
     
+    
     // compute the connectivity map between triangles:
-    std::vector<std::array<int, 4>> tri_map;
-    this->ComputeNeighbouringTriangleMap(tri_map);
+    std::vector<std::array<int, 4>> tmp_tri_map;
+    std::vector<std::array<int, 4>>& tri_map = tmp_tri_map;
+    if (atri_map) {
+        tri_map = *atri_map;
+    } else {
+        this->ComputeNeighbouringTriangleMap(tri_map);
+    }
 
     std::vector<bool> marked_tris_flagged;
     marked_tris_flagged.resize(this->m_face_v_indices.size());

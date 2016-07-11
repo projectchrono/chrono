@@ -416,6 +416,8 @@ void DeformableSoil::SetupAuxData() {
         connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].x);
         connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].y);
     }
+
+    m_trimesh_shape->GetMesh().ComputeNeighbouringTriangleMap(this->tri_map);
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
@@ -596,11 +598,12 @@ void DeformableSoil::UpdateInternalForces() {
         refinement_criterion.A = ChMatrix33<>(this->plane.rot);
 
         // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
-        for (int i=0; i<2; ++i) {
+        for (int i=0; i<1; ++i) {
             m_trimesh_shape->GetMesh().RefineMeshEdges(
                 marked_tris, 
                 refinement_resolution, 
                 &refinement_criterion,
+                0, //&tri_map, // note, update triangle connectivity map incrementally
                 aux_data_double, 
                 aux_data_int, 
                 aux_data_bool, 

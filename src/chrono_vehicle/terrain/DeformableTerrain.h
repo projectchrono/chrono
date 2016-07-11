@@ -264,6 +264,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
 
     // aux. topology data
     std::vector<std::set<int>> connected_vertexes;
+    std::vector<std::array<int, 4>> tri_map;
 
     bool do_bulldozing;
     double bulldozing_flow_factor;

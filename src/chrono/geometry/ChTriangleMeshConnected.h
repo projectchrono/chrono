@@ -194,6 +194,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<int>& marked_tris,  ///< indexes of triangles to refine (also surrounding triangles might be affected by refinements)
         double edge_maxlen,              ///< maximum length of edge (small values give higher resolution)
         ChRefineEdgeCriterion* criterion, ///< criterion for computing lenght (or other merit function) of edge, if =0 uses default (euclidean length)
+        std::vector<std::array<int, 4>>* atri_map, ///< triangle connectivity map: use and modify it. Optional. If =0, creates a temporary one just for life span of function.
         std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
