@@ -92,7 +92,7 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     if (!sparsity_pattern_lock || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken()) {
         // breaking the row_index_block means that the size has changed so every dimension has to be reset
         if (matCSR3.IsRowIndexLockBroken()) {
-            n = matCSR3.GetRows();
+            n = matCSR3.GetNumRows();
         }
 
         // if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be

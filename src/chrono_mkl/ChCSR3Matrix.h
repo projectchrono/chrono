@@ -98,8 +98,8 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int insrow = 3, int inscol = 3, int nonzeros = 0);
-    ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
+    ChCSR3Matrix(int nrows = 3, int ncols = 3, int nonzeros = 0);
+    ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
     virtual ~ChCSR3Matrix();
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
@@ -107,7 +107,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
     double& Element(int row, int col);
     double& operator()(int row, int col) { return Element(row, col); }
-    double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
+    double& operator()(int index) { return Element(index / m_num_cols, index % m_num_cols); }
 
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
@@ -123,11 +123,11 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void Prune(double pruning_threshold = 0);
 
     // Auxiliary functions
-    int GetColIndexLength() const { return rowIndex[rows]; };
-    int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
-    int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
+    int GetColIndexLength() const { return rowIndex[m_num_rows]; }
+    int GetColIndexMemOccupancy() const { return colIndex_occupancy; }
+    int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
-    void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
+    void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
     void SetRowIndexLock(bool on_off) { rowIndex_lock = on_off; }
     void SetColIndexLock(bool on_off) { colIndex_lock = on_off; }
     bool IsCompressed() const { return isCompressed; }

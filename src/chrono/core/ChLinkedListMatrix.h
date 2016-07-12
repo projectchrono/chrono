@@ -99,9 +99,9 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     /// Reset to null matrix.
     void Reset();
     /// Reset to null matrix and (if needed) changes the size.
-    virtual void Reset(int row, int col, int nonzeros = 0) override;
+    virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     /// If size changes, is like the above, otherwise just sets the elements to zero.
-    void ResetBlocks(int row, int col);
+    void ResetBlocks(int nrows, int ncols);
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;

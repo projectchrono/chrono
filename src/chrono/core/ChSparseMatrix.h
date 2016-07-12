@@ -25,17 +25,12 @@ namespace chrono {
 
 /// Base class for all sparse matrices.
 class ChApi ChSparseMatrix {
-  protected:
-    int rows;
-    int columns;
-
   public:
-    ChSparseMatrix() : rows(-1), columns(-1) {}
-    ChSparseMatrix(int nrows, int ncols) : rows(nrows), columns(ncols) {}
+    ChSparseMatrix(int nrows = 0, int ncols = 0) : m_num_rows(nrows), m_num_cols(ncols) {}
     virtual ~ChSparseMatrix() {}
 
-    int GetRows() const { return rows; }
-    int GetColumns() const { return columns; }
+    int GetNumRows() const { return m_num_rows; }
+    int GetNumColumns() const { return m_num_cols; }
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
     virtual double GetElement(int row, int col) = 0;
@@ -104,6 +99,10 @@ class ChApi ChSparseMatrix {
                                        int inscol) {
         PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol, false);
     }
+
+  protected:
+    int m_num_rows;  ///< number of rows
+    int m_num_cols;  ///< number of columns
 };
 
 }  // end namespace chrono

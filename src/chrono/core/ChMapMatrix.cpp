@@ -23,11 +23,11 @@ ChMapMatrix::ChMapMatrix(int nrows = 1, int ncols = 1) : ChSparseMatrix(nrows, n
 }
 
 ChMapMatrix::ChMapMatrix(const ChMatrix<>& mat) {
-    rows = mat.GetRows();
-    columns = mat.GetColumns();
+    m_num_rows = mat.GetRows();
+    m_num_cols = mat.GetColumns();
     m_rows.resize(mat.GetRows());
-    for (int ir = 0; ir < rows; ir++) {
-        for (int ic = 0; ic < columns; ic++) {
+    for (int ir = 0; ir < m_num_rows; ir++) {
+        for (int ic = 0; ic < m_num_cols; ic++) {
             double val = mat.GetElement(ir, ic);
             if (val != 0) {
                 SetElement(ir, ic, val);
@@ -37,8 +37,8 @@ ChMapMatrix::ChMapMatrix(const ChMatrix<>& mat) {
 }
 
 ChMapMatrix::ChMapMatrix(const ChMapMatrix& other) {
-    rows = other.rows;
-    columns = other.columns;
+    m_num_rows = other.m_num_rows;
+    m_num_cols = other.m_num_cols;
     m_nnz = other.m_nnz;
     m_rows = other.m_rows;
 }
@@ -51,13 +51,13 @@ bool ChMapMatrix::Resize(int nrows, int ncols, int nonzeros) {
 }
 
 void ChMapMatrix::Reset(int nrows, int ncols, int nonzeros) {
-    for (int ir = 0; ir < std::min(nrows, rows); ir++) {
+    for (int ir = 0; ir < std::min(nrows, m_num_rows); ir++) {
         m_rows[ir].m_data.clear();
         m_rows[ir].m_nnz = 0;
     }
     m_rows.resize(nrows);
-    rows = nrows;
-    columns = ncols;
+    m_num_rows = nrows;
+    m_num_cols = ncols;
     m_nnz = 0;
 }
 
@@ -90,8 +90,8 @@ double ChMapMatrix::GetElement(int row, int col) {
 }
 
 void ChMapMatrix::ConvertToDense(ChMatrixDynamic<double>& mat) {
-    mat.Reset(rows, columns);
-    for (int ir = 0; ir < rows; ir++) {
+    mat.Reset(m_num_rows, m_num_cols);
+    for (int ir = 0; ir < m_num_rows; ir++) {
         for (auto it : m_rows[ir].m_data) {
             mat.SetElement(ir, it.first, it.second);
         }
@@ -99,13 +99,13 @@ void ChMapMatrix::ConvertToDense(ChMatrixDynamic<double>& mat) {
 }
 
 void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) {
-    ia.resize(rows + 1);
+    ia.resize(m_num_rows + 1);
     ja.resize(m_nnz);
     a.resize(m_nnz);
 
     ia[0] = 0;
     int nnz = 0;
-    for (int ir = 0; ir < rows; ir++) {
+    for (int ir = 0; ir < m_num_rows; ir++) {
         ia[ir + 1] = ia[ir] + m_rows[ir].m_nnz;
 
         std::vector<int> col_idx;
@@ -126,10 +126,10 @@ void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::
 // -----------------------------------------------------------------------------
 
 void ChMapMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
-    for (int ii = 0; ii < rows; ii++) {
-        for (int jj = 0; jj < columns; jj++) {
+    for (int ii = 0; ii < m_num_rows; ii++) {
+        for (int jj = 0; jj < m_num_cols; jj++) {
             double elVal = GetElement(ii, jj);
-            if (elVal || (ii + 1 == rows && jj + 1 == columns)) {
+            if (elVal || (ii + 1 == m_num_rows && jj + 1 == m_num_cols)) {
                 mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
             }
         }
@@ -137,15 +137,15 @@ void ChMapMatrix::StreamOUTsparseMatlabFormat(ChStreamOutAscii& mstream) {
 }
 
 void ChMapMatrix::StreamOUT(ChStreamOutAscii& mstream) {
-    mstream << "\nMatrix  nrows=" << rows << " ncols=" << columns << " nnz=" << m_nnz << "\n";
-    for (int i = 0; i < ChMin(rows, 8); i++) {
-        for (int j = 0; j < ChMin(columns, 8); j++)
+    mstream << "\nMatrix  nrows=" << m_num_rows << " ncols=" << m_num_cols << " nnz=" << m_nnz << "\n";
+    for (int i = 0; i < ChMin(m_num_rows, 8); i++) {
+        for (int j = 0; j < ChMin(m_num_cols, 8); j++)
             mstream << GetElement(i, j) << "  ";
-        if (columns > 8)
+        if (m_num_cols > 8)
             mstream << "...";
         mstream << "\n";
     }
-    if (rows > 8)
+    if (m_num_rows > 8)
         mstream << "... \n\n";
 }
 

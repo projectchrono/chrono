@@ -59,7 +59,7 @@ void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
     ////if (Z.GetSymmetry() != mtype)
     ////    ResetSolver(Z.GetSymmetry());
 
-    SetProblemSize(Z.GetRows());
+    SetProblemSize(Z.GetNumRows());
 }
 
 void ChMklEngine::SetSolutionVector(ChMatrix<>& insx) {

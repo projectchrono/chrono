@@ -93,7 +93,7 @@ void test_CSR3()
 	std::cout << std::endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << std::endl;
 	matCSR3_1.SetRowIndexLock(true);
 	matCSR3_1.SetColIndexLock(true);
-	matCSR3_1.Reset(matCSR3_1.GetRows(), matCSR3_1.GetColumns());
+	matCSR3_1.Reset(matCSR3_1.GetNumRows(), matCSR3_1.GetNumColumns());
 
 	for (int i = 0; i < m; i++)
 	{
