@@ -45,7 +45,7 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
         mkl_engine.GetResidual(res);
         double res_norm = mkl_engine.GetResidualNorm(res);
 
-        GetLog() << "Pardiso call " << solver_call << "  |residual| = " << res_norm << "\n";
+        GetLog() << " MKL call " << solver_call << "  |residual| = " << res_norm << "\n";
     }
 
     // Replicate the changes to vvariables and vconstraint into SystemDescriptor
@@ -121,6 +121,10 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     mkl_engine.SetProblem(matCSR3, rhs, sol);
     int pardiso_message_phase12 = mkl_engine.PardisoCall(12, 0);
     timer_setup_pardiso.stop();
+
+    if (verbose) {
+        GetLog() << " MKL setup n = " << n << "  nnz = " << matCSR3.GetColIndexLength() << "\n";
+    }
 
     if (pardiso_message_phase12 != 0) {
         // Factorization failed.
