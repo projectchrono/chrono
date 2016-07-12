@@ -1,4 +1,21 @@
-﻿#include <algorithm>
+﻿// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+// Interfacing to the Pardiso Sparse Direct Solver from the Intel® MKL Library.
+// =============================================================================
+
+#include <algorithm>
+
 #include "chrono_mkl/ChMklEngine.h"
 
 namespace chrono {
@@ -21,7 +38,7 @@ enum phase_t {
 // maxfct - max. number of factors with identical sparsity structure that must be kept in
 //          memory at the same time
 // mnum   - actual matrix for the solution phase (1 ≤ mnum ≤ maxfct)
-ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
+ChMklEngine::ChMklEngine(int problem_size, ChSparseMatrix::SymmetryType matrix_type)
     : a(nullptr),
       ia(nullptr),
       ja(nullptr),
@@ -32,7 +49,8 @@ ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
       nrhs(1),
       maxfct(1),
       mnum(1) {
-    ResetSolver(matrix_type);
+    mtype = ConvertMatrixType(matrix_type);
+    ResetSolver();
 }
 
 ChMklEngine::~ChMklEngine() {
@@ -51,15 +69,19 @@ void ChMklEngine::SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex) 
 }
 
 void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
+    assert(Z.GetNumRows() == Z.GetNumColumns());
+
+    n = Z.GetNumRows();
+
     a = Z.GetCSR_ValueArray();
     ja = Z.GetCSR_ColIndexArray();
     ia = Z.GetCSR_RowIndexArray();
 
-    //// TODO
-    ////if (Z.GetSymmetry() != mtype)
-    ////    ResetSolver(Z.GetSymmetry());
-
-    SetProblemSize(Z.GetNumRows());
+    int type = ConvertMatrixType(Z.GetType());
+    if (mtype != type) {
+        mtype = type;
+        ResetSolver();
+    }
 }
 
 void ChMklEngine::SetSolutionVector(ChMatrix<>& insx) {
@@ -202,10 +224,24 @@ int ChMklEngine::PardisoCall(int set_phase, int message_level) {
     return error;
 }
 
-void ChMklEngine::ResetSolver(int new_mat_type) {
+// Convert the symmetry matrix type to the corresponding Pardiso code.
+MKL_INT ChMklEngine::ConvertMatrixType(ChSparseMatrix::SymmetryType type) {
+    switch (type) {
+        case ChSparseMatrix::GENERAL:
+            return 11;
+        case ChSparseMatrix::SYMMETRIC_POSDEF:
+            return 2;
+        case ChSparseMatrix::SYMMETRIC_INDEF:
+            return -2;
+        case ChSparseMatrix::STRUCTURAL_SYMMETRIC:
+            return 1;
+    }
+
+    return 11;
+}
+
+void ChMklEngine::ResetSolver() {
     // After the first call to pardiso do not directly modify "pt", as that could cause a serious memory leak.
-    if (new_mat_type)
-        mtype = new_mat_type;
     pardisoinit(pt, &mtype, iparm);
 
     /*
@@ -232,7 +268,6 @@ void ChMklEngine::ResetSolver(int new_mat_type) {
     iparm[3] = 0;                /* Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED */
     iparm[4] = 0;                /* User fill-in reducing permutation [def:0, default filling]*/
     iparm[7] = 10;                /* Maximum number of iterative refinement steps */
-
 }
 
 void ChMklEngine::GetResidual(double* res) const {

@@ -5,17 +5,6 @@
 
 using namespace chrono;
 
-
-template<class ChMatrixIN>
-void PrintMatrix(ChMatrixIN& matrice){
-	for (int i = 0; i < matrice.GetRows(); i++){
-		for (int j = 0; j < matrice.GetColumns(); j++){
-			printf("%f ", matrice.GetElement(i,j));
-		}
-		printf("\n");
-	}
-}
-
 void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
 {
 	std::ifstream my_file;
@@ -142,7 +131,7 @@ void test_MklEngine()
 
 
 	// Solve with Pardiso Sparse Direct Solver
-	ChMklEngine pardiso_solver(n, 11);
+	ChMklEngine pardiso_solver(n, ChSparseMatrix::GENERAL);
 	matCSR3.Compress();
 	pardiso_solver.SetProblem(matCSR3, rhs, sol);
 

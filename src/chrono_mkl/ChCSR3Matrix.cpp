@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+
 #include <mkl.h>
 #include <algorithm>
 #include "chrono_mkl/ChCSR3Matrix.h"
@@ -13,8 +27,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
       rowIndex_lock(false),
       colIndex_lock(false),
       rowIndex_lock_broken(false),
-      colIndex_lock_broken(false),
-      symmetry(NO_SYMMETRY) {
+      colIndex_lock_broken(false) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     if (nonzeros == 0) nonzeros = static_cast<int>(m_num_rows*(m_num_cols*SPM_DEF_FULLNESS));
@@ -38,8 +51,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int* nonzeros_vector)
       rowIndex_lock(false),
       colIndex_lock(false),
       rowIndex_lock_broken(false),
-      colIndex_lock_broken(false),
-      symmetry(NO_SYMMETRY) {
+      colIndex_lock_broken(false) {
     assert(nrows > 0 && ncols > 0);
 
     colIndex_occupancy = 0;
@@ -66,8 +78,7 @@ void ChCSR3Matrix::SetElement(int insrow, int inscol, double insval, bool overwr
     assert(insrow < m_num_rows && inscol < m_num_cols);
     assert(insrow >= 0 && inscol >= 0);
 
-    if ((symmetry == UPPER_SYMMETRY_POSDEF || symmetry == UPPER_SYMMETRY_INDEF) && insrow < inscol ||
-        symmetry == LOWER_SYMMETRY && insrow > inscol)
+    if ((m_type == SYMMETRIC_POSDEF || m_type == SYMMETRIC_INDEF) && insrow < inscol)
         return;
 
     // WARNING: you MUST check if insval!=0 because of known issues of current release of Pardiso (11.2 Update 2);

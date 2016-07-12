@@ -26,11 +26,21 @@ namespace chrono {
 /// Base class for all sparse matrices.
 class ChApi ChSparseMatrix {
   public:
-    ChSparseMatrix(int nrows = 0, int ncols = 0) : m_num_rows(nrows), m_num_cols(ncols) {}
+    enum SymmetryType {
+        GENERAL,              ///< unsymmetric matrix
+        SYMMETRIC_POSDEF,     ///< symmetric positive definite
+        SYMMETRIC_INDEF,      ///< symmetric indefinite
+        STRUCTURAL_SYMMETRIC  ///< structurally symmetric
+    };
+
+    ChSparseMatrix(int nrows = 0, int ncols = 0) : m_num_rows(nrows), m_num_cols(ncols), m_type(GENERAL) {}
     virtual ~ChSparseMatrix() {}
 
     int GetNumRows() const { return m_num_rows; }
     int GetNumColumns() const { return m_num_cols; }
+
+    void SetType(SymmetryType type) { m_type = type; }
+    SymmetryType GetType() const { return m_type; }
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
     virtual double GetElement(int row, int col) = 0;
@@ -101,8 +111,9 @@ class ChApi ChSparseMatrix {
     }
 
   protected:
-    int m_num_rows;  ///< number of rows
-    int m_num_cols;  ///< number of columns
+    int m_num_rows;       ///< number of rows
+    int m_num_cols;       ///< number of columns
+    SymmetryType m_type;  ///< matrix type
 };
 
 }  // end namespace chrono

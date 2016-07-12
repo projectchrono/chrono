@@ -1,21 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-// Class for interfacing with Pardiso Sparse Direct Solver
-// from the Intel® MKL Library.
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+// Interfacing to the Pardiso Sparse Direct Solver from the Intel® MKL Library.
+// =============================================================================
 
 #ifndef CHMKLENGINE_H
 #define CHMKLENGINE_H
 
 #include <mkl.h>
+
 #include "chrono_mkl/ChApiMkl.h"
 #include "chrono/core/ChSparseMatrix.h"
 
@@ -54,11 +57,8 @@ class ChApiMkl ChMklEngine {
     // Auxiliary variables
     int last_phase_called;
 
-  protected:
-    void resetIparmElement(int iparm_num, int reset_value = 0);
-
   public:
-    ChMklEngine(int problem_size = 3, int matrix_type = 11);
+    ChMklEngine(int problem_size = 0, ChSparseMatrix::SymmetryType matrix_type = ChSparseMatrix::GENERAL);
     ~ChMklEngine();
 
     /** Setting the linear system <tt>A*x=b</tt> to be solved means that the user must provide:
@@ -87,7 +87,7 @@ class ChApiMkl ChMklEngine {
     int PardisoCall(int set_phase, int message_level = 0);
 
     /// Reinitializes the solver to default values.
-    void ResetSolver(int new_mat_type = 0);
+    void ResetSolver();
 
     /// Set problem dimension.
     void SetProblemSize(int new_size) { n = new_size; }
@@ -118,6 +118,11 @@ class ChApiMkl ChMklEngine {
     void UsePartialSolution(int option = 1, int start_row = 0, int end_row = 0);
     void OutputSchurComplement(int option, int start_row, int end_row = 0);
     void SetPreconditionedCGS(bool on_off, int L);
+
+private:
+    MKL_INT ConvertMatrixType(ChSparseMatrix::SymmetryType type);
+    void resetIparmElement(int iparm_num, int reset_value = 0);
+
 };
 
 /// @} mkl_module

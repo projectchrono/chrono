@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+
 #include "chrono_mkl/ChSolverMKL.h"
 
 namespace chrono {
@@ -14,9 +28,9 @@ ChClassRegister<ChSolverMKL> a_registration_ChSolverMKL;
 */
 
 ChSolverMKL::ChSolverMKL()
-    : solver_call(0),
+    : mkl_engine(0, ChSparseMatrix::GENERAL),
       matCSR3(1, 1, 1),
-      mkl_engine(1, 11),
+      solver_call(0),
       n(0),
       sparsity_pattern_lock(false),
       use_perm(false),
