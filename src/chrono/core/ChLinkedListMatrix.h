@@ -196,7 +196,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     void CountNonZeros(reserveSizeType& reserveSize, int offset = 0) {
         ChMelement* el_temp;
         // from the first element of each row scan until there's no "next" linked element
-        for (int i = 0; i < GetRows(); i++) {  // for each row
+        for (int i = 0; i < m_num_rows; i++) {  // for each row
             el_temp = elarray[i];              // start from the element [i,0]
             while (el_temp) {
                 if (el_temp->val != 0)

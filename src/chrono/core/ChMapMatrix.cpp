@@ -77,8 +77,8 @@ void ChMapMatrix::SetElement(int row, int col, double elem, bool overwrite) {
 }
 
 double ChMapMatrix::GetElement(int row, int col) {
-    assert(row < rows);
-    assert(col < columns);
+    assert(row < m_num_rows);
+    assert(col < m_num_cols);
 
     // Find the element in the row data
     auto my_elem = m_rows[row].m_data.find(col);

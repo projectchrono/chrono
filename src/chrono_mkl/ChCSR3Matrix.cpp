@@ -15,7 +15,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
       rowIndex_lock_broken(false),
       colIndex_lock_broken(false),
       symmetry(NO_SYMMETRY) {
-    assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
+    assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     if (nonzeros == 0) nonzeros = static_cast<int>(m_num_rows*(m_num_cols*SPM_DEF_FULLNESS));
 
@@ -40,7 +40,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int* nonzeros_vector)
       rowIndex_lock_broken(false),
       colIndex_lock_broken(false),
       symmetry(NO_SYMMETRY) {
-    assert(insrow > 0 && inscol > 0);
+    assert(nrows > 0 && ncols > 0);
 
     colIndex_occupancy = 0;
     for (int row_sel = 0; row_sel < m_num_rows; row_sel++) {

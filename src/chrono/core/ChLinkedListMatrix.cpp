@@ -569,7 +569,7 @@ void ChLinkedListMatrix::Neg() {
 
 // LU factorization
 int ChLinkedListMatrix::Setup_LU() {
-    assert(GetRows() == GetColumns());
+    assert(m_num_rows == m_num_cols);
 
     ChMelement* rowel;
     ChMelement* subrowel;
@@ -653,8 +653,8 @@ int ChLinkedListMatrix::Setup_LU() {
 
 // Substitution using existing LU factorization
 void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
-    assert(GetRows() == b.GetRows());
-    assert(GetRows() == x.GetRows());
+    assert(m_num_rows == b.GetRows());
+    assert(m_num_cols == x.GetRows());
 
     // BACKWARD substitution - L
     double xlast = b.GetElement(m_pindices[0], 0);
@@ -723,7 +723,7 @@ int ChLinkedListMatrix::BestPivotRow(int current) {
 
 // LDL decomposition (only upper triangular part of A is used)
 int ChLinkedListMatrix::Setup_LDL() {
-    assert(GetRows() == GetColumns());
+    assert(m_num_rows == m_num_cols);
 
     ChMelement* rowel;
     ChMelement* subrowel;
@@ -812,8 +812,8 @@ int ChLinkedListMatrix::Setup_LDL() {
 
 // Substitution using existing LDL factorization
 void ChLinkedListMatrix::Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x) {
-    assert(GetRows() == b.GetRows());
-    assert(GetRows() == x.GetRows());
+    assert(m_num_rows == b.GetRows());
+    assert(m_num_rows == x.GetRows());
 
     // BACKWARD substitution - L
     double xlast = b.GetElement(m_pindices[0], 0);
