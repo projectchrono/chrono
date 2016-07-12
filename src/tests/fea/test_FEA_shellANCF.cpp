@@ -175,6 +175,7 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         my_system.ChangeSolverSpeed(mkl_solver_speed);
         mkl_solver_speed->SetSparsityPatternLock(true);
         mkl_solver_stab->SetSparsityPatternLock(true);
+        mkl_solver_speed->SetVerbose(verbose);
     }
 #endif
 
@@ -226,6 +227,11 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     int num_jacobian_calls = 0;
 
     for (int istep = 0; istep < num_steps; istep++) {
+        if (verbose) {
+            cout << "-------------------------------------------------------------------" << endl;
+            cout << "STEP: " << istep << endl;
+        }
+
         my_mesh->ResetCounters();
         my_mesh->ResetTimers();
 #ifdef CHRONO_MKL
@@ -235,6 +241,8 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         my_system.DoStepDynamics(step_size);
 
         if (istep == skip_steps) {
+            if (verbose)
+                cout << "Resetting counters at step = " << istep << endl;
             time_skipped = time_total;
             time_total = 0;
             time_setup = 0;
@@ -278,10 +286,20 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         const ChVector<>& p = nodetip->GetPos();
 
         if (verbose) {
-            cout << "-------------------------------------------------------------------" << endl;
-            cout << my_system.GetChTime() << "  ";
-            cout << "   " << my_system.GetTimerStep();
-            cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << endl;
+            cout << endl;
+            cout << "t = " << my_system.GetChTime() << "  ";
+            cout << "node: [ " << p.x << " " << p.y << " " << p.z << " ]  " << endl;
+            cout << "step:  " << my_system.GetTimerStep() << endl;
+            cout << "setup: " << my_system.GetTimerSetup();
+            if (use_mkl) {
+                cout << "  assembly: " << mkl_solver_speed->GetTimeSetupAssembly();
+                cout << "  pardiso: " << mkl_solver_speed->GetTimeSetupPardiso();
+                cout << endl;
+            } else {
+                cout << endl;
+            }
+            cout << "solve: " << my_system.GetTimerSolver() << "  ";
+            cout << endl << endl;
         }
 
         if (output) {
