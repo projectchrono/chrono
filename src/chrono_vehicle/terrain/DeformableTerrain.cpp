@@ -112,6 +112,21 @@ void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle
     m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
 }
 
+void DeformableTerrain::SetAutomaticRefinement(bool mr) { 
+    m_ground->do_refinement = mr;
+}
+
+bool DeformableTerrain::GetAutomaticRefinement() const {
+    return m_ground->do_refinement;
+}
+
+void DeformableTerrain::SetAutomaticRefinementResolution(double mr) {
+    m_ground->refinement_resolution = mr;
+}
+
+bool DeformableTerrain::GetAutomaticRefinementResolution() const {
+    return m_ground->refinement_resolution;
+}
 
 // Set the color plot type.
 void DeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
@@ -156,11 +171,14 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     // Create the default triangle mesh asset
     m_trimesh_shape = std::shared_ptr<ChTriangleMeshShape>(new ChTriangleMeshShape);
     this->AddAsset(m_trimesh_shape);
-    m_trimesh_shape->SetWireframe(false);
+    m_trimesh_shape->SetWireframe(true);
 
     do_bulldozing = false;
     bulldozing_flow_factor = 1.2;
     bulldozing_erosion_angle = 40;
+
+    do_refinement = false;
+    refinement_resolution = 0.01;
 
     Bekker_Kphi = 2e6;
     Bekker_Kc = 0;
@@ -398,10 +416,13 @@ void DeformableSoil::SetupAuxData() {
         connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].x);
         connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].y);
     }
+
+    m_trimesh_shape->GetMesh().ComputeNeighbouringTriangleMap(this->tri_map);
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void DeformableSoil::UpdateInternalForces() {
+
     // Readibility aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
@@ -525,7 +546,99 @@ void DeformableSoil::UpdateInternalForces() {
 
     } // end loop on vertexes
 
+    
+    //
+    // Refine the mesh detail
+    //
 
+    if (do_refinement) {  
+        
+        std::vector<std::vector<double>*> aux_data_double; 
+        aux_data_double.push_back(&p_sinkage);
+        aux_data_double.push_back(&p_sinkage_plastic);
+        aux_data_double.push_back(&p_sinkage_elastic);
+        aux_data_double.push_back(&p_step_plastic_flow);
+        aux_data_double.push_back(&p_kshear);
+        aux_data_double.push_back(&p_area);
+        aux_data_double.push_back(&p_sigma);
+        aux_data_double.push_back(&p_sigma_yeld);
+        aux_data_double.push_back(&p_tau); 
+        std::vector<std::vector<int>*> aux_data_int;  
+        aux_data_int.push_back(&p_id_island);
+        std::vector<std::vector<bool>*> aux_data_bool; 
+        aux_data_bool.push_back(&p_erosion);
+        std::vector<std::vector<ChVector<>>*> aux_data_vect;
+        aux_data_vect.push_back(&p_vertices_initial);
+        aux_data_vect.push_back(&p_speeds);
+
+        // loop on triangles to see which needs refinement
+        std::vector<int> marked_tris;
+        for (int it = 0; it< idx_vertices.size(); ++it) {
+            // see if at least one of the vertexes are touching
+            if ( p_sigma[idx_vertices[it].x] >0 || 
+                 p_sigma[idx_vertices[it].y] >0 ||
+                 p_sigma[idx_vertices[it].z] >0 ) {
+                marked_tris.push_back(it);
+            }
+        }
+    
+        // custom edge refinement criterion: do not use default edge length, 
+        // length of the edge as projected on soil plane
+        class MyRefinement : public geometry::ChTriangleMeshConnected::ChRefineEdgeCriterion {
+        public:
+            virtual double ComputeLength(const int vert_a, const int  vert_b, geometry::ChTriangleMeshConnected* mmesh) {
+                ChVector<> d = A.MatrT_x_Vect(mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
+                d.y = 0;
+                return d.Length();
+            }
+            ChMatrix33<> A;
+        };
+
+        MyRefinement refinement_criterion;
+        refinement_criterion.A = ChMatrix33<>(this->plane.rot);
+
+        // perform refinement using the LEPP  algorithm, also refining the soil-specific vertex attributes
+        for (int i=0; i<1; ++i) {
+            m_trimesh_shape->GetMesh().RefineMeshEdges(
+                marked_tris, 
+                refinement_resolution, 
+                &refinement_criterion,
+                0, //&tri_map, // note, update triangle connectivity map incrementally
+                aux_data_double, 
+                aux_data_int, 
+                aux_data_bool, 
+                aux_data_vect);
+        }
+        // TO DO adjust this incrementally
+        
+        //connected_vertexes.clear();
+        connected_vertexes.resize( vertices.size() );
+        for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
+            connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].y);
+            connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].z);
+            connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].x);
+            connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].z);
+            connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].x);
+            connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].y);
+        }
+
+        // Recompute areas (could be optimized)
+        for (unsigned int iv = 0; iv < vertices.size(); ++iv) {
+            p_area[iv] = 0;
+        }
+        for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
+            ChVector<> AB = vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x];
+            ChVector<> AC = vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x];
+            AB = plane.TransformDirectionParentToLocal(AB);
+            AC = plane.TransformDirectionParentToLocal(AC);
+            AB.y=0;
+            AC.y=0;
+            double triangle_area = 0.5*(Vcross(AB,AC)).Length();
+            p_area[idx_normals[it].x] += triangle_area /3.0;
+            p_area[idx_normals[it].y] += triangle_area /3.0;
+            p_area[idx_normals[it].z] += triangle_area /3.0;
+        }
+    }
 
     //
     // Flow material to the side of rut, using heuristics

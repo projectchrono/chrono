@@ -831,63 +831,6 @@ void ChCSR3Matrix::Trim() {
     }
 }
 
-void ChCSR3Matrix::PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) {
-    int maxrows = matra->GetRows();
-    int maxcols = matra->GetColumns();
-    int i, j;
-
-    if (transp) {
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
-            }
-        }
-    } else {
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
-            }
-        }
-    }
-}
-
-void ChCSR3Matrix::PasteMatrixFloat(ChMatrix<float>* matra, int insrow, int inscol, bool overwrite, bool transp) {
-    int maxrows = matra->GetRows();
-    int maxcols = matra->GetColumns();
-    int i, j;
-
-    if (transp) {
-        for (i = 0; i < maxcols; i++) {
-            for (j = 0; j < maxrows; j++) {
-                if ((*matra)(j, i) != 0)
-                    this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
-            }
-        }
-    } else {
-        for (i = 0; i < maxrows; i++) {
-            for (j = 0; j < maxcols; j++) {
-                if ((*matra)(i, j) != 0)
-                    this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
-            }
-        }
-    }
-};
-
-void ChCSR3Matrix::PasteClippedMatrix(ChMatrix<>* matra,
-                                      int cliprow,
-                                      int clipcol,
-                                      int nrows,
-                                      int ncolumns,
-                                      int insrow,
-                                      int inscol,
-                                      bool overwrite) {
-    for (int i = 0; i < nrows; ++i)
-        for (int j = 0; j < ncolumns; ++j)
-            this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
-}
-
 void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const {
     std::ofstream a_file, ia_file, ja_file;
     a_file.open(filepath + "a.dat");

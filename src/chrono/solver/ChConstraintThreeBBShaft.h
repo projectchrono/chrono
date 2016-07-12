@@ -112,8 +112,6 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.
-    /// This is used only by the ChSolverSimplex solver (iterative solvers
-    /// don't need to know jacobians explicitly)
     virtual void Build_Cq(ChSparseMatrix& storage, int insrow) override;
     virtual void Build_CqT(ChSparseMatrix& storage, int inscol) override;
 

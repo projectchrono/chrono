@@ -44,11 +44,15 @@ function makeChart(data, prop_name) {
             legend: "bottom",
             // vAxis: {title: metric_name},
             // hAxis: {title: "timestamp"},
-            explorer: {axis: "horizontal",
-                actions: ["dragToZoom","rightClickToReset"]},
+            explorer: {
+                axis: "horizontal",
+                actions: ["dragToZoom","rightClickToReset"],
+                keepInBounds: true,
+                maxZoomIn: .1
+            },
             chartArea: {
                 height: "50%",
-                width: "90%",
+                width: "90%"
             },
         };
 

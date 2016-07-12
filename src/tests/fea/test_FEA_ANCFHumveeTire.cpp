@@ -654,10 +654,10 @@ int main(int argc, char* argv[]) {
     GetLog() << "Number of iterations: " << num_iterations << "\n";
     GetLog() << "Simulation time:  " << timer() << "\n";
     GetLog() << "Internal forces (" << TireMesh1->GetNumCallsInternalForces()
-             << "):  " << TireMesh1->GetTimingInternalForces() << "\n";
-    GetLog() << "Jacobian (" << TireMesh1->GetNumCallsJacobianLoad() << "):  " << TireMesh1->GetTimingJacobianLoad()
+             << "):  " << TireMesh1->GetTimeInternalForces() << "\n";
+    GetLog() << "Jacobian (" << TireMesh1->GetNumCallsJacobianLoad() << "):  " << TireMesh1->GetTimeJacobianLoad()
              << "\n";
-    GetLog() << "Extra time:  " << timer() - TireMesh1->GetTimingInternalForces() - TireMesh1->GetTimingJacobianLoad()
+    GetLog() << "Extra time:  " << timer() - TireMesh1->GetTimeInternalForces() - TireMesh1->GetTimeJacobianLoad()
              << "\n";
     getchar();
 

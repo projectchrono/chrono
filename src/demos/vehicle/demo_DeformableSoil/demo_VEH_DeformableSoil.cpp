@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
 
     // Initialize the geometry of the soil: use either a regular grid:
-     mterrain.Initialize(0.2,1.5,5,100,200);
+     mterrain.Initialize(0.2,1.5,5,20,60);
     // or use a height map:
     //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
@@ -121,9 +121,13 @@ int main(int argc, char* argv[]) {
                                     0.01,// Janosi shear coefficient (m)
                                     5e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
                                     );
-    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
+    mterrain.SetBulldozingFlow(false);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(40, // angle of frictionfor erosion of displaced material at the border of the rut
                                     1.6);// displaced material vs downward pressed material.
+    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+    // is automatically improved by adding more points under the wheel contact patch:
+    mterrain.SetAutomaticRefinement(true);
+    mterrain.SetAutomaticRefinementResolution(0.02);
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
@@ -135,7 +139,7 @@ int main(int argc, char* argv[]) {
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
-
+    
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
 

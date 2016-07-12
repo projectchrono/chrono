@@ -119,6 +119,19 @@ public:
                                  );
 
 
+    /// If true, enable the dynamic refinement of mesh LOD, so that additional
+    /// points are added under the contact patch, up to reach the desired resolution.
+    void SetAutomaticRefinement(bool mr);
+    bool GetAutomaticRefinement() const;
+
+    /// Additional points are added under the contact patch, up to reach the desired resolution.
+    /// Using smaller resolution value (in meters) means that triangles in the mesh are subdivided up to 
+    /// when the largest side is equal or less than the resolution. Triangles out of the contact patch are not refined.
+    /// Note, you must turn on automatic refinement via SetAutomaticRefinement(true)!
+    void SetAutomaticRefinementResolution(double mr);
+    bool GetAutomaticRefinementResolution() const;
+
+
     /// Set the color plot type for the soil mesh.
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
     void SetPlotType(DataPlotType mplot, double mmin, double mmax);
@@ -198,7 +211,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
     void UpdateInternalForces();
 
-    /*
+    
     // Override the ChLoadContainer method for computing the generalized force F term:
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
@@ -211,7 +224,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
-    */
+    
 
     // This is called after Initialize(), it precomputes aux.topology
     // data structures for the mesh, aux. material data, etc.
@@ -251,10 +264,14 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
 
     // aux. topology data
     std::vector<std::set<int>> connected_vertexes;
+    std::vector<std::array<int, 4>> tri_map;
 
     bool do_bulldozing;
     double bulldozing_flow_factor;
     double bulldozing_erosion_angle;
+
+    bool do_refinement;
+    double refinement_resolution;
 
     friend class DeformableTerrain;
 };

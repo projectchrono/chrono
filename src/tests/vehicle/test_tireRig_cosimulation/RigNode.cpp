@@ -128,6 +128,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
     m_integrator->SetVerbose(true);
+	m_integrator->SetMaxItersSuccess(5);
 }
 
 // -----------------------------------------------------------------------------
@@ -514,7 +515,7 @@ void RigNode::OutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
                << del << m_system->GetTimerUpdate();
-        m_outf << mesh->GetTimingInternalForces() << del << mesh->GetTimingJacobianLoad();
+        m_outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad();
         m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
                << m_integrator->GetNumSolveCalls();
         m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();

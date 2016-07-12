@@ -3,7 +3,6 @@ layout: default
 title: Status
 permalink: /status/
 ---
-{::options parse_block_html="true" /}
 
 ### Stats
 
@@ -13,10 +12,10 @@ permalink: /status/
 <br>
 
 ### Project Chrono Benchmark Test Results:
+A set of tests are run on Project Chrono every time a push is made to our [GIT repository](https://github.com/projectchrono/chrono). The results of those tests are pushed to a database and posted here.
 
-** NOTICE ** 
----
-The benchmark API feature is still in development and may have bugs. All data is for testing purposes only and does not reflect any real information about Project Chrono's performance. 
+To zoom in on a chart, click and drag your mouse across the area of interest. Right click on the chart to reset to its original size.
+
 <html>
 <body>
 
@@ -28,10 +27,8 @@ The benchmark API feature is still in development and may have bugs. All data is
     <option value="default"> Tests Loading! </option>
 </select>
 
-<div id="metrics" ></div>
-<script>
-{% include plot_charts.js %}
-</script>
+<div id="metrics"></div>
+<script src="/js/plot_charts.js"></script>
 </body>
 </html>
 

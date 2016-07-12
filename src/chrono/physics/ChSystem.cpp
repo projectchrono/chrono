@@ -28,7 +28,6 @@
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/solver/ChSolverSOR.h"
 #include "chrono/solver/ChSolverSORmultithread.h"
-#include "chrono/solver/ChSolverSimplex.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
 
@@ -374,10 +373,6 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
         case SOLVER_SYMMSOR:
             solver_speed = new ChSolverSymmSOR();
             solver_stab = new ChSolverSymmSOR();
-            break;
-        case SOLVER_SIMPLEX:
-            solver_speed = new ChSolverSimplex();
-            solver_stab = new ChSolverSimplex();
             break;
         case SOLVER_JACOBI:
             solver_speed = new ChSolverJacobi();

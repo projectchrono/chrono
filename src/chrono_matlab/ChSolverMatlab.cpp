@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #include "chrono_matlab/ChSolverMatlab.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverMatlab> a_registration_ChSolverMatlab;
 
 ChSolverMatlab::ChSolverMatlab(ChMatlabEngine& me) {
@@ -60,4 +62,22 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
     return 0;
 }
 
-}  // END_OF_NAMESPACE____
+void ChSolverMatlab::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite(1);
+    // serialize parent class
+    ChSolver::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(mengine);
+}
+
+void ChSolverMatlab::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead();
+    // deserialize parent class
+    ChSolver::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(mengine);
+}
+
+}  // end namespace chrono

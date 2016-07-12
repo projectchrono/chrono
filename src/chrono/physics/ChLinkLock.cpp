@@ -9,14 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Arman Pazouki
 // =============================================================================
 
 #include "chrono/physics/ChLinkLock.h"
 
 namespace chrono {
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and
+// persistence
 ChClassRegister<ChLinkLock> a_registration_ChLinkLock;
 
 ChLinkLock::ChLinkLock()
@@ -53,7 +54,8 @@ ChLinkLock::ChLinkLock()
 
     if (mask)
         delete mask;            // delete the class mask created by base constructor, and,
-    mask = new ChLinkMaskLF();  // create the LF-mask (the extended version,for lock-formulation)
+    mask = new ChLinkMaskLF();  // create the LF-mask (the extended version,for
+                                // lock-formulation)
                                 // instead.
 
     BuildLinkType(LNK_SPHERICAL);  // default type: spherical link
@@ -132,7 +134,8 @@ ChLinkLock::~ChLinkLock() {
     if (limit_D)
         delete limit_D;
 
-    // jacobians etc. are deleted by base class, which also calls DestroyLinkType()
+    // jacobians etc. are deleted by base class, which also calls
+    // DestroyLinkType()
 }
 
 void ChLinkLock::BuildLinkType(int link_type) {
@@ -565,7 +568,7 @@ void ChLinkLock::UpdateState() {
     ChMatrixNM<double, 4, 4> mtempQ1;
     ChMatrixNM<double, 4, 4> mtempQ2;
 
-    ChMatrix33<> CqxT;              // the 3x3 piece of Cq_temp for trasl. link,   trasl.coords,
+    ChMatrix33<> CqxT;              // the 3x3 piece of Cq_temp for trasl. link, trasl.coords,
     ChMatrixNM<double, 3, 4> CqxR;  // the 3x4 piece of Cq_temp for trasl. link,   rotat. coords,
     ChMatrixNM<double, 4, 4> CqrR;  // the 4x4 piece of Cq_temp for rotat..link,   rotat. coords,
     ChVector<> Qcx;                 // the 3x1 vector of Qc     for trasl. link
@@ -609,7 +612,8 @@ void ChLinkLock::UpdateState() {
         Qadd(Qadd(Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot), Qcross(Qconjugate(deltaC.rot), relM_dtdt.rot)),
              Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
 
-    // +++++++++ COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock contraint)
+    // +++++++++ COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock
+    // contraint)
 
     ChMatrix33<> m2_Rel_A_dt;
     marker2->Compute_Adt(m2_Rel_A_dt);
@@ -708,8 +712,8 @@ void ChLinkLock::UpdateState() {
 
     Qcr = Qcross(Qconjugate(deltaC.rot), q_8);
     Qcr = Qadd(Qcr, Qscale(Qcross(Qconjugate(deltaC_dt.rot), relM_dt.rot), 2));
-    Qcr = Qadd(Qcr, Qcross(Qconjugate(deltaC_dtdt.rot),
-                           relM.rot));  // = deltaC'*q_8 + 2*deltaC_dt'*q_dt,po + deltaC_dtdt'*q,po
+    Qcr = Qadd(Qcr, Qcross(Qconjugate(deltaC_dtdt.rot), relM.rot));  // = deltaC'*q_8 + 2*deltaC_dt'*q_dt,po +
+                                                                     // deltaC_dtdt'*q,po
 
     Qc_temp->PasteQuaternion(Qcr, 3, 0);  // * Qc_temp, for all rotational coords
 
@@ -911,7 +915,8 @@ void ChLinkLock::UpdateForces(double mytime) {
 }
 
 //
-// Reimplement parent solver methods because 'upper/lower limits' may add constraints
+// Reimplement parent solver methods because 'upper/lower limits' may add
+// constraints
 //
 
 int ChLinkLock::GetDOC_d() {
@@ -1008,7 +1013,8 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChMatrixNM<double, 3, 4> Ts;
-    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites "this" during the calculation.  i.e.
+    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites
+                                    // "this" during the calculation.  i.e.
                                     // Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
 
     Ts.MatrTMultiply(Cs, Gl_q2);
@@ -1061,10 +1067,12 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
-    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
+    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if
+    // non-default delta
     // if delta rotation?
 
-    // add also the contribution from link limits to the react_force and react_torque.
+    // add also the contribution from link limits to the react_force and
+    // react_torque.
     if (limit_X && limit_X->Get_active()) {
         if (limit_X->constr_lower.IsActive()) {
             react_force.x -= L(off_L + local_off);
@@ -1461,52 +1469,64 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     ChLinkMasked::InjectConstraints(mdescriptor);
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_X->constr_lower.IsActive())
+        if (limit_X->constr_lower.IsActive()) {
+            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_lower);
-        if (limit_X->constr_upper.IsActive())
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_upper);
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Y->constr_lower.IsActive())
+        if (limit_Y->constr_lower.IsActive()) {
+            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_lower);
-        if (limit_Y->constr_upper.IsActive())
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_upper);
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Z->constr_lower.IsActive())
+        if (limit_Z->constr_lower.IsActive()) {
+            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_lower);
-        if (limit_Z->constr_upper.IsActive())
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_upper);
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Rx->constr_lower.IsActive())
+        if (limit_Rx->constr_lower.IsActive()) {
+            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
-        if (limit_Rx->constr_upper.IsActive())
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Ry->constr_lower.IsActive())
+        if (limit_Ry->constr_lower.IsActive()) {
+            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
-        if (limit_Ry->constr_upper.IsActive())
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        if (limit_Rz->constr_lower.IsActive())
+        if (limit_Rz->constr_lower.IsActive()) {
+            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
-        if (limit_Rz->constr_upper.IsActive())
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
+        }
     }
 }
 
@@ -1515,28 +1535,52 @@ void ChLinkLock::ConstraintsBiReset() {
     ChLinkMasked::ConstraintsBiReset();
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.Set_b_i(0.);
-        limit_X->constr_upper.Set_b_i(0.);
+        if (limit_X->constr_lower.IsActive()) {
+            limit_X->constr_lower.Set_b_i(0.);
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            limit_X->constr_upper.Set_b_i(0.);
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.Set_b_i(0.);
-        limit_Y->constr_upper.Set_b_i(0.);
+        if (limit_Y->constr_lower.IsActive()) {
+            limit_Y->constr_lower.Set_b_i(0.);
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            limit_Y->constr_upper.Set_b_i(0.);
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.Set_b_i(0.);
-        limit_Z->constr_upper.Set_b_i(0.);
+        if (limit_Z->constr_lower.IsActive()) {
+            limit_Z->constr_lower.Set_b_i(0.);
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            limit_Z->constr_upper.Set_b_i(0.);
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.Set_b_i(0.);
-        limit_Rx->constr_upper.Set_b_i(0.);
+        if (limit_Rx->constr_lower.IsActive()) {
+            limit_Rx->constr_lower.Set_b_i(0.);
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            limit_Rx->constr_upper.Set_b_i(0.);
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.Set_b_i(0.);
-        limit_Ry->constr_upper.Set_b_i(0.);
+        if (limit_Ry->constr_lower.IsActive()) {
+            limit_Ry->constr_lower.Set_b_i(0.);
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            limit_Ry->constr_upper.Set_b_i(0.);
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.Set_b_i(0.);
-        limit_Rz->constr_upper.Set_b_i(0.);
+        if (limit_Rz->constr_lower.IsActive()) {
+            limit_Rz->constr_lower.Set_b_i(0.);
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            limit_Rz->constr_upper.Set_b_i(0.);
+        }
     }
 }
 
@@ -1705,64 +1749,88 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     ChLinkMasked::ConstraintsLoadJacobians();
 
     if (limit_X && limit_X->Get_active()) {
-        limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_X->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_X->constr_lower.Get_Cq_a());
-        limit_X->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_X->constr_lower.Get_Cq_b());
-        limit_X->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_X->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_X->constr_lower.IsActive()) {
+            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_X->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_X->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Y->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Y->constr_lower.Get_Cq_a());
-        limit_Y->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Y->constr_lower.Get_Cq_b());
-        limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_Y->constr_lower.IsActive()) {
+            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_Y->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_Y->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Z->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Z->constr_lower.Get_Cq_a());
-        limit_Z->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Z->constr_lower.Get_Cq_b());
-        limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_Z->constr_lower.IsActive()) {
+            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_Z->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_Z->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Rx->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Rx->constr_lower.Get_Cq_a());
-        limit_Rx->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Rx->constr_lower.Get_Cq_b());
-        limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_Rx->constr_lower.IsActive()) {
+            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_Rx->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_Rx->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Ry->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Ry->constr_lower.Get_Cq_a());
-        limit_Ry->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Ry->constr_lower.Get_Cq_b());
-        limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_Ry->constr_lower.IsActive()) {
+            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_Ry->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_Ry->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
-        limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
-        Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Body1);
-        Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Body2);
-        limit_Rz->constr_upper.Get_Cq_a()->CopyFromMatrix(*limit_Rz->constr_lower.Get_Cq_a());
-        limit_Rz->constr_upper.Get_Cq_b()->CopyFromMatrix(*limit_Rz->constr_lower.Get_Cq_b());
-        limit_Rz->constr_upper.Get_Cq_a()->MatrNeg();
-        limit_Rz->constr_upper.Get_Cq_b()->MatrNeg();
+        if (limit_Rz->constr_lower.IsActive()) {
+            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Body2);
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Body1);
+            Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Body2);
+            limit_Rz->constr_upper.Get_Cq_a()->MatrNeg();
+            limit_Rz->constr_upper.Get_Cq_b()->MatrNeg();
+        }
     }
 }
 
@@ -1817,7 +1885,8 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChMatrixNM<double, 3, 4> Ts;
-    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites "this" during the calculation.  i.e.
+    ChMatrixNM<double, 3, 4> Temp;  // temp matrix since MatrMultiply overwrites
+                                    // "this" during the calculation.  i.e.
                                     // Ts.MatrMultiply(Ts,A) ~= Ts=[Ts]*[A]
 
     Ts.MatrTMultiply(Cs, Gl_q2);
@@ -1869,33 +1938,59 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
         n_constraint++;
     }
 
-    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if non-default delta
+    // ***TO DO***?: TRASFORMATION FROM delta COORDS TO LINK COORDS, if
+    // non-default delta
     // if delta rotation?
 
-    // add also the contribution from link limits to the react_force and react_torque.
+    // add also the contribution from link limits to the react_force and
+    // react_torque.
     if (limit_X && limit_X->Get_active()) {
-        react_force.x -= factor * limit_X->constr_lower.Get_l_i();
-        react_force.x += factor * limit_X->constr_upper.Get_l_i();
+        if (limit_X->constr_lower.IsActive()) {
+            react_force.x -= factor * limit_X->constr_lower.Get_l_i();
+        }
+        if (limit_X->constr_upper.IsActive()) {
+            react_force.x += factor * limit_X->constr_upper.Get_l_i();
+        }
     }
     if (limit_Y && limit_Y->Get_active()) {
-        react_force.y -= factor * limit_Y->constr_lower.Get_l_i();
-        react_force.y += factor * limit_Y->constr_upper.Get_l_i();
+        if (limit_Y->constr_lower.IsActive()) {
+            react_force.y -= factor * limit_Y->constr_lower.Get_l_i();
+        }
+        if (limit_Y->constr_upper.IsActive()) {
+            react_force.y += factor * limit_Y->constr_upper.Get_l_i();
+        }
     }
     if (limit_Z && limit_Z->Get_active()) {
-        react_force.z -= factor * limit_Z->constr_lower.Get_l_i();
-        react_force.z += factor * limit_Z->constr_upper.Get_l_i();
+        if (limit_Z->constr_lower.IsActive()) {
+            react_force.z -= factor * limit_Z->constr_lower.Get_l_i();
+        }
+        if (limit_Z->constr_upper.IsActive()) {
+            react_force.z += factor * limit_Z->constr_upper.Get_l_i();
+        }
     }
     if (limit_Rx && limit_Rx->Get_active()) {
-        react_torque.x -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
-        react_torque.x += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+        if (limit_Rx->constr_lower.IsActive()) {
+            react_torque.x -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
+        }
+        if (limit_Rx->constr_upper.IsActive()) {
+            react_torque.x += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+        }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
-        react_torque.y -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
-        react_torque.y += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+        if (limit_Ry->constr_lower.IsActive()) {
+            react_torque.y -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
+        }
+        if (limit_Ry->constr_upper.IsActive()) {
+            react_torque.y += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+        }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
-        react_torque.z -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
-        react_torque.z += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+        if (limit_Rz->constr_lower.IsActive()) {
+            react_torque.z -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
+        }
+        if (limit_Rz->constr_upper.IsActive()) {
+            react_torque.z += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+        }
     }
 
     // the internal forces add their contribute to the reactions
@@ -1946,7 +2041,8 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // deserialize all member data:
     int ifoo;
     marchive >> CHNVP(ifoo);
-    ChangeLinkType(ifoo);  // this also setup mask flags and lot of stuff, simplifying the serialization
+    ChangeLinkType(ifoo);  // this also setup mask flags and lot of stuff,
+                           // simplifying the serialization
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);
     marchive >> CHNVP(motion_Z);
@@ -1969,7 +2065,8 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
 // ---------------------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and
+// persistence
 
 ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
 ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;

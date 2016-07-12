@@ -13,6 +13,7 @@
 #define CHSOLVERMKL_H
 
 #include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono_mkl/ChMklEngine.h"
@@ -42,6 +43,11 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     bool use_perm;
     bool use_rhs_sparsity;
 
+    ChTimer<> timer_setup_assembly;
+    ChTimer<> timer_setup_pardiso;
+    ChTimer<> timer_solve_assembly;
+    ChTimer<> timer_solve_pardiso;
+
   public:
     ChSolverMKL();
     virtual ~ChSolverMKL() {}
@@ -62,6 +68,23 @@ class ChApiMkl ChSolverMKL : public ChSolver {
 
     /// Set the number of non-zero entries in the problem matrix.
     void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; }
+
+    /// Reset timers for internal phases in Solve and Setup.
+    void ResetTimers() {
+        timer_setup_assembly.reset();
+        timer_setup_pardiso.reset();
+        timer_solve_assembly.reset();
+        timer_solve_pardiso.reset();
+    }
+
+    /// Get cumulative time for assembly operations in Solve phase.
+    double GetTimeSolveAssembly() { return timer_solve_assembly(); }
+    /// Get cumulative time for Pardiso calls in Solve phase.
+    double GetTimeSolvePardiso() { return timer_solve_pardiso(); }
+    /// Get cumulative time for assembly operations in Setup phase.
+    double GetTimeSetupAssembly() { return timer_setup_assembly(); }
+    /// Get cumulative time for Pardiso calls in Setup phase.
+    double GetTimeSetupPardiso() { return timer_setup_pardiso(); }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.

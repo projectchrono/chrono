@@ -100,7 +100,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         this->getCoordsColors().clear();
         this->getIndicesVertexes().clear();
         this->getIndicesNormals().clear();
-        this->getIndicesNormals().clear();
+        this->getIndicesUV().clear();
         this->getIndicesColors().clear();
     }
 
@@ -145,6 +145,62 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     ///       so this is mostly meant to be a fast tool for making small offsets.
 
     bool MakeOffset(const double offset);
+
+    /// Return the indexes of the two vertexes of the i-th edge of the triangle
+    std::pair<int, int> GetTriangleEdgeIndexes (
+        const std::vector<ChVector<int>>& indexes, ///< indexes, xyz per each face, ex. getIndicesVertexes()
+        int it,      ///< triangle index
+        int nedge,   ///< number of edge: 0,1,2 
+        bool unique  ///< if true, swaps the pair so that 1st is always < 2nd id, so can test sharing wiht other triangle
+        );
+
+    /// Split a given edge by inserting a vertex in the middle: from two triangles one
+    /// gets four triangles. It also interpolate normals, colors, uv. It also used and modifies the
+    /// triangle neighbouring map.
+    /// If the two triangles do not share an edge, returns false.
+    bool SplitEdge (
+        int itA,      ///< triangle A index,
+        int itB,      ///< triangle B index, -1 if not existing (means free edge on A)
+        int neA,      ///< n.edge on tri A: 0,1,2
+        int neB,      ///< n.edge on tri B: 0,1,2
+        int& itA_1,   ///< returns the index of split triangle A, part1
+        int& itA_2,   ///< returns the index of split triangle A, part2
+        int& itB_1,   ///< returns the index of split triangle B, part1
+        int& itB_2,   ///< returns the index of split triangle B, part2
+        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighbouring map
+        std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<ChVector<>>*>& aux_data_vect///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
+        );
+
+    /// Class to be used optionally in RefineMeshEdges()
+    class ChRefineEdgeCriterion {
+    public:
+        // Compute lenght of an edge or more in general a 
+        // merit function - the higher, the more likely the edge must be cut
+        virtual double ComputeLength(const int vert_a, const int  vert_b, ChTriangleMeshConnected* mmesh) = 0;
+    };
+
+    /// Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.
+    /// Given a conforming, non-degenerate triangulation, it construct a locally refined
+    /// triangulation with a prescribed resolution. This algorithm, for increasing resolution,
+    /// tends to produce triangles with bounded angles even if starting from skewed/skinny 
+    /// triangles in the coarse mesh.
+    /// Based on "Multithread parallelization of Lepp-bisection algorithms"
+    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
+
+    void RefineMeshEdges(
+        std::vector<int>& marked_tris,  ///< indexes of triangles to refine (also surrounding triangles might be affected by refinements)
+        double edge_maxlen,              ///< maximum length of edge (small values give higher resolution)
+        ChRefineEdgeCriterion* criterion, ///< criterion for computing lenght (or other merit function) of edge, if =0 uses default (euclidean length)
+        std::vector<std::array<int, 4>>* atri_map, ///< triangle connectivity map: use and modify it. Optional. If =0, creates a temporary one just for life span of function.
+        std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
+        std::vector<std::vector<ChVector<>>*>& aux_data_vect///< auxiliary buffers to refine (assuming indexed as vertexes: each with same size as vertex buffer)
+        );
+
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_CONNECTED; }
 
