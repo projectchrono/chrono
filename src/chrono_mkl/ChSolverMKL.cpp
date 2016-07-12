@@ -26,6 +26,7 @@ ChSolverMKL::ChSolverMKL()
 double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     timer_solve_assembly.start();
     sysd.ConvertToMatrixForm(nullptr, &rhs);
+    sol.Resize(rhs.GetRows(), 1);
     timer_solve_assembly.stop();
 
     timer_solve_pardiso.start();
@@ -60,17 +61,14 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     timer_setup_assembly.start();
 
     // Initial resizing;
-    if (solver_call == 0)
-    {
-        // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE ConvertToMatrixForm()
+    if (solver_call == 0) {
+        // not mandatory, but it speeds up the first build of the matrix, guessing its sparsity; needs to stay BEFORE
+        // ConvertToMatrixForm()
         n = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-        nnz ? matCSR3.Reset(n, n, nnz) : matCSR3.Reset(n, n, static_cast<int>(n*(n*SPM_DEF_FULLNESS)));
-        sol.Resize(n, 1); // ConvertToMatrixForm() takes care of eventually resizing matCSR3 and rhs, but not sol; this can be done also AFTER CTMF()
-        res.Resize(n, 1);
+        nnz ? matCSR3.Reset(n, n, nnz) : matCSR3.Reset(n, n, static_cast<int>(n * (n * SPM_DEF_FULLNESS)));
+    } else if (nnz) {
+        matCSR3.Reset(n, n, nnz);
     }
-    else
-        if (nnz)
-            matCSR3.Reset(n, n, nnz);
 
     // Build matrix and rhs;
     // in case the matrix changes size (rows) then RowIndexLockBroken is turned on
@@ -95,8 +93,6 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
         // breaking the row_index_block means that the size has changed so every dimension has to be reset
         if (matCSR3.IsRowIndexLockBroken()) {
             n = matCSR3.GetRows();
-            sol.Resize(n, 1);
-            res.Resize(n, 1);
         }
 
         // if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be

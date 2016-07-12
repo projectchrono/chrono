@@ -484,8 +484,8 @@ int ChCSR3Matrix::VerifyMatrix() const {
 int ChCSR3Matrix::VerifyMatrixByMKL() const {
     sparse_struct mat_sparse;
     mat_sparse.n = rows;
-    mat_sparse.csr_ia = GetRowIndexAddress();
-    mat_sparse.csr_ja = GetColIndexAddress();
+    mat_sparse.csr_ia = rowIndex;
+    mat_sparse.csr_ja = colIndex;
     mat_sparse.indexing = MKL_ZERO_BASED;
     mat_sparse.matrix_structure = MKL_GENERAL_STRUCTURE;
     mat_sparse.matrix_format = MKL_CSR;
@@ -840,17 +840,13 @@ void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const {
     ja_file << std::scientific << std::setprecision(precision);
     ia_file << std::scientific << std::setprecision(precision);
 
-    double* a = GetValuesAddress();
-    int* ja = GetColIndexAddress();
-    int* ia = GetRowIndexAddress();
-
-    for (int col_sel = 0; col_sel < ia[GetRows()]; col_sel++) {
-        a_file << a[col_sel] << "\n";
-        ja_file << ja[col_sel] << "\n";
+    for (int col_sel = 0; col_sel < rowIndex[GetRows()]; col_sel++) {
+        a_file << rowIndex[col_sel] << "\n";
+        ja_file << colIndex[col_sel] << "\n";
     }
 
     for (int row_sel = 0; row_sel <= GetRows(); row_sel++) {
-        ia_file << ia[row_sel] << "\n";
+        ia_file << rowIndex[row_sel] << "\n";
     }
 
     a_file.close();

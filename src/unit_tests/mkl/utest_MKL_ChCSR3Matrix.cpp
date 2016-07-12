@@ -30,9 +30,9 @@ void PrintMatrix(matrix_t& mat) {
 void PrintMatrixCSR(const ChCSR3Matrix& mat) {
     int ncols = mat.GetColumns();
     int nrows = mat.GetRows();
-    int* rowindex = mat.GetRowIndexAddress();
-    int* colindex = mat.GetColIndexAddress();
-    double* values = mat.GetValuesAddress();
+    int* rowindex = mat.GetCSR_RowIndexArray();
+    int* colindex = mat.GetCSR_ColIndexArray();
+    double* values = mat.GetCSR_ValueArray();
     int nnz = rowindex[nrows];
 
     std::cout << "Num. rows: " << nrows << std::endl;
@@ -64,29 +64,29 @@ bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
     }
 
     for (int cont = 0; cont <= rows; cont++) {
-        if (mat1.GetRowIndexAddress()[cont] != mat2.GetRowIndexAddress()[cont]) {
+        if (mat1.GetCSR_RowIndexArray()[cont] != mat2.GetCSR_RowIndexArray()[cont]) {
             std::cout << "Row indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetRowIndexAddress()[cont];
-            std::cout << "   mat2 -> " << mat2.GetRowIndexAddress()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCSR_RowIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCSR_RowIndexArray()[cont] << std::endl;
             return false;
         }
     }
 
-    for (int cont = 0; cont < mat1.GetRowIndexAddress()[rows]; cont++) {
+    for (int cont = 0; cont < mat1.GetCSR_RowIndexArray()[rows]; cont++) {
 
-        if (mat1.GetColIndexAddress()[cont] != mat2.GetColIndexAddress()[cont]) {
+        if (mat1.GetCSR_ColIndexArray()[cont] != mat2.GetCSR_ColIndexArray()[cont]) {
             std::cout << "Column indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetColIndexAddress()[cont];
-            std::cout << "   mat2 -> " << mat2.GetColIndexAddress()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCSR_ColIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCSR_ColIndexArray()[cont] << std::endl;
             return false;
         }
 
-        if (mat1.GetColIndexAddress()[cont] != -1 && mat2.GetColIndexAddress()[cont] != -1)
+        if (mat1.GetCSR_ColIndexArray()[cont] != -1 && mat2.GetCSR_ColIndexArray()[cont] != -1)
         {
-            if (mat1.GetValuesAddress()[cont] != mat2.GetValuesAddress()[cont]) {
+            if (mat1.GetCSR_ValueArray()[cont] != mat2.GetCSR_ValueArray()[cont]) {
                 std::cout << "Values do not match at entry " << cont << ":";
-                std::cout << "   mat1 -> " << mat1.GetValuesAddress()[cont];
-                std::cout << "   mat2 -> " << mat2.GetValuesAddress()[cont] << std::endl;
+                std::cout << "   mat1 -> " << mat1.GetCSR_ValueArray()[cont];
+                std::cout << "   mat2 -> " << mat2.GetCSR_ValueArray()[cont] << std::endl;
                 return false;
             }
         }

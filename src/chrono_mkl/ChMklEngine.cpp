@@ -16,6 +16,11 @@ enum phase_t {
     RELEASE_ALL = -1
 };
 
+// Constructor.
+// nrhs   - number of RHS vectors (currently only 1 supported)
+// maxfct - max. number of factors with identical sparsity structure that must be kept in
+//          memory at the same time
+// mnum   - actual matrix for the solution phase (1 ≤ mnum ≤ maxfct)
 ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
     : a(nullptr),
       ia(nullptr),
@@ -23,13 +28,10 @@ ChMklEngine::ChMklEngine(int problem_size, int matrix_type)
       b(nullptr),
       x(nullptr),
       last_phase_called(-1),
-      /*Currently only one rhs is supported*/
-      nrhs(1),    //< Number of KnownVectors
-      maxfct(1),  //< Maximum number of factors with identical sparsity structure that must be kept in memory at the
-                  //same time [def: 1]
-      mnum(1)     //< Actual matrix for the solution phase (1 ≤ mnum ≤ maxfct) [def: 1]
-{
-    SetProblemSize(problem_size);
+      n(problem_size),
+      nrhs(1),
+      maxfct(1),
+      mnum(1) {
     ResetSolver(matrix_type);
 }
 
@@ -48,12 +50,15 @@ void ChMklEngine::SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex) 
     ia = Z_rowIndex;
 }
 
-void ChMklEngine::SetMatrix(ChCSR3Matrix& Z) {
-    a = Z.GetValuesAddress();
-    ja = Z.GetColIndexAddress();
-    ia = Z.GetRowIndexAddress();
-    if (Z.GetSymmetry() != mtype)
-        ResetSolver(Z.GetSymmetry());
+void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
+    a = Z.GetCSR_ValueArray();
+    ja = Z.GetCSR_ColIndexArray();
+    ia = Z.GetCSR_RowIndexArray();
+
+    //// TODO
+    ////if (Z.GetSymmetry() != mtype)
+    ////    ResetSolver(Z.GetSymmetry());
+
     SetProblemSize(Z.GetRows());
 }
 
@@ -80,7 +85,7 @@ void ChMklEngine::SetKnownVector(ChMatrix<>& insf_chrono, ChMatrix<>& insb_chron
     SetKnownVector(bdest);
 }
 
-void ChMklEngine::SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx) {
+void ChMklEngine::SetProblem(ChSparseMatrix& Z, ChMatrix<>& insb, ChMatrix<>& insx) {
     SetMatrix(Z);
     SetSolutionVector(insx);
     SetKnownVector(insb);

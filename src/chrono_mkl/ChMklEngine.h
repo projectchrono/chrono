@@ -17,7 +17,7 @@
 
 #include <mkl.h>
 #include "chrono_mkl/ChApiMkl.h"
-#include "chrono_mkl/ChCSR3Matrix.h"
+#include "chrono/core/ChSparseMatrix.h"
 
 namespace chrono {
 
@@ -37,7 +37,7 @@ class ChApiMkl ChMklEngine {
     MKL_INT* ja;  ///< columns indices
     MKL_INT* ia;  ///< row index
 
-    double* b;  ///< rhs
+    double* b;  ///< rhs vector
     double* x;  ///< solution vector
 
     // Problem properties
@@ -49,9 +49,7 @@ class ChApiMkl ChMklEngine {
     MKL_INT iparm[64];      ///< Pardiso solver parameter
     MKL_INT maxfct;         ///< maximum number of numerical factorizations
     std::vector<int> perm;  ///< vector in which the permutation is stored
-
-    // Pardiso solver settings
-    MKL_INT mnum;  ///< 1 <= mnum <= maxfct : which factorizations to use; usually 1
+    MKL_INT mnum;           ///< 1 <= mnum <= maxfct : which factorizations to use; usually 1
 
     // Auxiliary variables
     int last_phase_called;
@@ -72,7 +70,7 @@ class ChApiMkl ChMklEngine {
     // Problem input functions
 
     /// Set the matrix, as well as the problem size \c n and the matrix type \c mtype.
-    void SetMatrix(ChCSR3Matrix& Z);
+    void SetMatrix(ChSparseMatrix& Z);
     void SetMatrix(double* Z_values, int* Z_colIndex, int* Z_rowIndex);
 
     void SetSolutionVector(ChMatrix<>& insx);
@@ -83,7 +81,7 @@ class ChApiMkl ChMklEngine {
     void SetKnownVector(double* insb) { b = insb; }
 
     /// Set the matrix, as well as the right-hand side and solution arrays.
-    void SetProblem(ChCSR3Matrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
+    void SetProblem(ChSparseMatrix& Z, ChMatrix<>& insb, ChMatrix<>& insx);
 
     /// Solver routine.
     int PardisoCall(int set_phase, int message_level = 0);

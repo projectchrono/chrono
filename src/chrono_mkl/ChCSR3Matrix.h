@@ -102,10 +102,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
     virtual ~ChCSR3Matrix();
 
-    double* GetValuesAddress() const { return values; };
-    int* GetColIndexAddress() const { return colIndex; };
-    int* GetRowIndexAddress() const { return rowIndex; };
-
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
 
@@ -116,6 +112,11 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
+
+    // Return CSR arrays.
+    virtual int* GetCSR_RowIndexArray() const override { return rowIndex; }
+    virtual int* GetCSR_ColIndexArray() const override { return colIndex; }
+    virtual double* GetCSR_ValueArray() const override { return values; }
 
     void Compress();  // purge the matrix from all the unininitialized elements
     void Trim();      // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)

@@ -80,6 +80,10 @@ class ChApi ChSparseMatrix {
                 this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
     }
 
+    virtual int* GetCSR_RowIndexArray() const { return nullptr; }
+    virtual int* GetCSR_ColIndexArray() const { return nullptr; }
+    virtual double* GetCSR_ValueArray() const { return nullptr; }
+
     // Wrapper functions
 
     virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
