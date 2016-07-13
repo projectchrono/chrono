@@ -199,6 +199,7 @@ int main(int argc, char* argv[]) {
 
     // Setup solver
     if (use_mkl) {
+#ifdef CHRONO_MKL
         ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
         ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
         my_system.ChangeSolverStab(mkl_solver_stab);
@@ -206,6 +207,7 @@ int main(int argc, char* argv[]) {
         mkl_solver_speed->SetSparsityPatternLock(true);
         mkl_solver_stab->SetSparsityPatternLock(true);
         mkl_solver_speed->SetVerbose(true);
+#endif
     } else {
         my_system.SetSolverType(ChSystem::SOLVER_MINRES);
         ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
