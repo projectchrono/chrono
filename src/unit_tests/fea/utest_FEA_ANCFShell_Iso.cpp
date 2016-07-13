@@ -28,6 +28,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <algorithm>
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
@@ -40,13 +41,16 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChMesh.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
 
 using namespace chrono;
 using namespace fea;
 
-const double precision = 1e-5;  // Used to accept/reject implementation
+bool use_mkl = true;            // Use the MKL solver (if available)
+const double precision = 5e-5;  // Used to accept/reject implementation
+const int num_steps = 10;       // Number of time steps for unit test (range 1 to 4000)
 
 int main(int argc, char* argv[]) {
     // Utils to open/read files: Load reference solution ("golden") file
@@ -66,7 +70,6 @@ int main(int argc, char* argv[]) {
     fileMid.close();
 
     // Simulation and validation parameters
-    const int num_steps = 10;        // Number of time steps for unit test (range 1 to 4000)
     const double time_step = 0.001;  // Time step
 
     // -----------------
@@ -167,29 +170,31 @@ int main(int argc, char* argv[]) {
     // Add the mesh to the system
     my_system.Add(my_mesh);
 
-    // ---------------
-    // Simulation loop
-    // ---------------
-
     // Mark completion of system construction
     my_system.SetupInitial();
 
-    // Setup solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(100);
-    my_system.SetMaxItersSolverStab(100);
-    my_system.SetTolForce(1e-6);
+#ifndef CHRONO_MKL
+    use_mkl = false;
+#endif
 
-    /*ChSolverMKL * mkl_solver_stab = new ChSolverMKL; // MKL Solver option
-    ChSolverMKL * mkl_solver_speed = new ChSolverMKL;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetProblemSizeLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(false);
-    my_system.Update();*/
+    // Setup solver
+    if (use_mkl) {
+        ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+        ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+        my_system.ChangeSolverStab(mkl_solver_stab);
+        my_system.ChangeSolverSpeed(mkl_solver_speed);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
+        mkl_solver_speed->SetVerbose(true);
+    } else {
+        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        msolver->SetDiagonalPreconditioning(true);
+        my_system.SetSolverWarmStarting(true);
+        my_system.SetMaxItersSolverSpeed(100);
+        my_system.SetMaxItersSolverStab(100);
+        my_system.SetTolForce(1e-6);
+    }
 
     // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
@@ -208,26 +213,31 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
     std::ifstream file2("UT_ANCFShellIso.txt");
 
-    ChVector<> mforce(0, 0, 0);
-    mforce(2) = -50;
-    nodetip->SetForce(mforce);
+    ChVector<> mforce(0, 0, -50);
+
+    // ---------------
+    // Simulation loop
+    // ---------------
 
     std::cout << "test_ANCFShell_Iso" << std::endl;
+
+    double max_err = 0;
     for (unsigned int it = 0; it < num_steps; it++) {
         nodetip->SetForce(mforce);
         my_system.DoStepDynamics(time_step);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking tip Z displacement
-        double AbsVal = std::abs(nodetip->pos.z - FileInputMat[it][1]);
-        if (AbsVal > precision) {
-            std::cout << "Unit test check failed \n";
+        double err = std::abs(nodetip->pos.z - FileInputMat[it][1]);
+        max_err = std::max(max_err, err);
+        if (err > precision) {
+            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+                      << "  reference: " << FileInputMat[it][1] << std::endl;
             return 1;
         }
     }
-    std::cout << "Unit test check succeeded \n";
-    // std::cout << "Clamped z = " << noderclamped->pos.z << "\n";
-    // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
-    // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
+
+    std::cout << "Maximum error = " << max_err << std::endl;
+    std::cout << "Unit test check succeeded" << std::endl;
 
     // Code snippet to generate golden file
     /*m_data[0][it] = my_system.GetChTime();
