@@ -111,6 +111,9 @@ class ChApiIrr ChIrrAssetConverter {
     void _recursePopulateIrrlicht(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
+
+	void BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
+	void UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
 };
 
 /// @} irrlicht_module
