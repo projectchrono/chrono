@@ -80,22 +80,8 @@ void ChIrrAssetConverter::Bind(std::shared_ptr<ChPhysicsItem> mitem) {
 
 void ChIrrAssetConverter::BindAll() {
     ChSystem* msystem = minterface->GetSystem();
-
-    ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
-    while (myiter != msystem->IterEndBodies()) {
-        Bind(*myiter);
-        ++myiter;
-    }
-    ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
-    while (myiterB != msystem->IterEndOtherPhysicsItems()) {
-        Bind(*myiterB);
-        ++myiterB;
-    }
-    ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
-    while (myiterC != msystem->IterEndLinks()) {
-        Bind(*myiterC);
-        ++myiterC;
-    }
+	std::unordered_set<ChAssembly*> mtrace;
+	BindAllContentsOfAssembly(msystem, mtrace);
 }
 
 void ChIrrAssetConverter::Update(std::shared_ptr<ChPhysicsItem> mitem) {
@@ -105,22 +91,8 @@ void ChIrrAssetConverter::Update(std::shared_ptr<ChPhysicsItem> mitem) {
 
 void ChIrrAssetConverter::UpdateAll() {
     ChSystem* msystem = minterface->GetSystem();
-
-    ChSystem::IteratorBodies myiter = msystem->IterBeginBodies();
-    while (myiter != msystem->IterEndBodies()) {
-        Update(*myiter);
-        ++myiter;
-    }
-    ChSystem::IteratorOtherPhysicsItems myiterB = msystem->IterBeginOtherPhysicsItems();
-    while (myiterB != msystem->IterEndOtherPhysicsItems()) {
-        Update(*myiterB);
-        ++myiterB;
-    }
-    ChSystem::IteratorLinks myiterC = msystem->IterBeginLinks();
-    while (myiterC != msystem->IterEndLinks()) {
-        Update(*myiterC);
-        ++myiterC;
-    }
+	std::unordered_set<ChAssembly*> mtrace;
+	UpdateAllContentsOfAssembly(msystem, mtrace);
 }
 
 void ChIrrAssetConverter::CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem) {
