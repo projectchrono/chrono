@@ -56,7 +56,7 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     }
 
     if (verbose) {
-        // Get residual;
+        ChMatrixDynamic<> res(rhs.GetRows(), 1);
         mkl_engine.GetResidual(res);
         double res_norm = mkl_engine.GetResidualNorm(res);
 
@@ -111,6 +111,9 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
 
         // if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be
         // recompressed
+        if (verbose) {
+            GetLog() << " MKL compress matrix\n";
+        }
         matCSR3.Compress();
 
         // the permutation vector is based on the sparsity of the matrix;

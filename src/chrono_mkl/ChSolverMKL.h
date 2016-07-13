@@ -39,7 +39,6 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     ChCSR3Matrix matCSR3;
     ChMatrixDynamic<double> rhs;
     ChMatrixDynamic<double> sol;
-    ChMatrixDynamic<double> res;
     ChMklEngine mkl_engine;
     size_t n;
     size_t nnz;
