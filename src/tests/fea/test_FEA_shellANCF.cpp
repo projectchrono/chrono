@@ -44,16 +44,16 @@ using std::endl;
 
 int num_threads = 4;      // default number of threads
 double step_size = 1e-3;  // integration step size
-int num_steps = 22;       // number of integration steps
-int skip_steps = 2;       // initial number of steps excluded from timing
+int num_steps = 20;       // number of integration steps
+int skip_steps = 0;       // initial number of steps excluded from timing
 
 int numDiv_x = 50;  // mesh divisions in X direction
 int numDiv_y = 50;  // mesh divisions in Y direction
 int numDiv_z = 1;   // mesh divisions in Z direction
 
 std::string out_dir = "../TEST_SHELL_ANCF";  // name of output directory
-bool output = false;                         // generate output file?
-bool verbose = false;                        // verbose output?
+bool output = true;                         // generate output file?
+bool verbose = true;                        // verbose output?
 
 // -----------------------------------------------------------------------------
 
@@ -178,8 +178,8 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         ////mkl_solver_speed = new ChSolverMKL<ChMapMatrix>;
         my_system.ChangeSolverStab(mkl_solver_stab);
         my_system.ChangeSolverSpeed(mkl_solver_speed);
-        mkl_solver_speed->SetSparsityPatternLock(true);
-        mkl_solver_stab->SetSparsityPatternLock(true);
+        mkl_solver_speed->SetSparsityPatternLock(false);
+        mkl_solver_stab->SetSparsityPatternLock(false);
         mkl_solver_speed->SetVerbose(verbose);
     }
 #endif
@@ -244,6 +244,12 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
             mkl_solver_speed->ResetTimers();
 #endif
         my_system.DoStepDynamics(step_size);
+
+        if (istep==3 && use_mkl)
+        {
+            mkl_solver_speed->SetSparsityPatternLock(true);
+            mkl_solver_stab->SetSparsityPatternLock(true);
+        }
 
         if (istep == skip_steps) {
             if (verbose)
@@ -380,5 +386,5 @@ int main(int argc, char* argv[]) {
     RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
     RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
 
-    return 0;
+     return 0;
 }

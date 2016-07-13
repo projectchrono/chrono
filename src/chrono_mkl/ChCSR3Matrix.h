@@ -20,6 +20,7 @@
 
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
+#include "ChAlignedAllocator.h"
 
 namespace chrono {
 
@@ -78,10 +79,10 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
     // CSR matrix arrays.
     // Note that m_capacity may be larger than NNZ before a call to Trim()
-    int m_capacity;  ///< actual size of 'colIndex' and 'values' arrays in memory
-    double* values;  ///< array of matrix values (length: m_capacity)
-    int* colIndex;   ///< array of column indices (length: m_capacity)
-    int* rowIndex;   ///< array of row indices (length: m_num_rows+1)
+
+    std::vector<double, aligned_allocator<double, 64>> values_vect;
+    std::vector<int, aligned_allocator<int, 64>> colIndex_vect;
+    std::vector<int, aligned_allocator<int, 64>> rowIndex_vect;
 
     bool m_lock_broken = false;  ///< true if a modification was made that overrules m_lock
 
@@ -100,7 +101,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
   public:
     ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1);
     ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
-    virtual ~ChCSR3Matrix();
+    virtual ~ChCSR3Matrix(){};
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
@@ -115,19 +116,19 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override {
         Reset(nrows, ncols, nonzeros);
         return true;
-    }
+    };
 
     /// Get the number of non-zero elements in this matrix.
-    virtual int GetNNZ() const override { return rowIndex[m_num_rows]; }
+    virtual int GetNNZ() const override { return colIndex_vect.size(); }
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_RowIndexArray() const override { return rowIndex; }
+    virtual int* GetCSR_RowIndexArray() const override { return const_cast<int*>(rowIndex_vect.data()); }
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_ColIndexArray() const override { return colIndex; }
+    virtual int* GetCSR_ColIndexArray() const override { return const_cast<int*>(colIndex_vect.data()); }
 
     /// Return the array of matrix values in the CSR representation of this matrix.
-    virtual double* GetCSR_ValueArray() const override { return values; }
+    virtual double* GetCSR_ValueArray() const override { return const_cast<double*>(values_vect.data()); }
 
     /// Compress the internal arrays and purge all uninitialized elements.
     virtual bool Compress() override;
@@ -138,17 +139,18 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void Prune(double pruning_threshold = 0);
 
     // Auxiliary functions
-    int GetColIndexLength() const { return rowIndex[m_num_rows]; }
-    int GetColIndexCapacity() const { return m_capacity; }
+    //int GetColIndexLength() const { return rowIndex_vect.back(); }
+    int GetColIndexLength() const { return rowIndex_vect[m_num_rows]; }
+    int GetColIndexCapacity() const { return colIndex_vect.capacity(); }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
+    bool CheckArraysAlignment(int alignment) const;
+
     void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
     bool IsCompressed() const { return isCompressed; }
 
     // Testing functions
-    bool CheckArraysAlignment(int alignment = 0) const;
     void GetMemoryInfo() const;
     int VerifyMatrix() const;
-    int VerifyMatrixByMKL() const;
 
     // Import/Export functions
     void ImportFromDatFile(std::string filepath);

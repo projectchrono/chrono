@@ -73,6 +73,7 @@ SET(ChronoEngine_MKL_HEADERS
   ChSolverMKL.h
   ChMklEngine.h
   ChCSR3Matrix.h
+  ChAlignedAllocator.h
 )
 
 SET(ChronoEngine_MKL_SOURCES
