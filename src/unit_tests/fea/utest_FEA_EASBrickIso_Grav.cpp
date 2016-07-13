@@ -24,6 +24,9 @@
 // the sudden action of a gravity field.
 // =============================================================================
 
+#include <cmath>
+#include <algorithm>
+
 #include "chrono/core/ChFileutils.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -36,13 +39,18 @@
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 
+#ifdef CHRONO_MKL
+#include "chrono_mkl/ChSolverMKL.h"
+#endif
+
 using namespace chrono;
 using namespace fea;
 
+bool use_mkl = true;           // Use the MKL solver (if available)
 const double step_size = 1e-3;  // Step size
 double sim_time = 2;            // Simulation time for generation of reference file
-double precision = 1e-6;        // Precision value used to assess results
-double sim_time_UT = 0.05;       // Simulation time for unit test 0.05
+double precision = 1e-7;        // Precision value used to assess results
+const int num_steps_UT = 40;    // Number of time steps for unit test (range 1 to 2000)
 
 int main(int argc, char* argv[]) {
     bool output = 0;  // Determines whether it tests (0) or generates golden file (1)
@@ -220,14 +228,30 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 
-    // Perform a dynamic time integration:
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
-    msolver->SetDiagonalPreconditioning(true);
-    my_system.SetMaxItersSolverSpeed(10000);
-    my_system.SetTolForce(1e-09);
+#ifndef CHRONO_MKL
+    use_mkl = false;
+#endif
 
+    // Setup solver
+    if (use_mkl) {
+#ifdef CHRONO_MKL
+        ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
+        ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+        my_system.ChangeSolverStab(mkl_solver_stab);
+        my_system.ChangeSolverSpeed(mkl_solver_speed);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
+        mkl_solver_speed->SetVerbose(true);
+#endif
+    } else {
+        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        msolver->SetDiagonalPreconditioning(true);
+        my_system.SetMaxItersSolverSpeed(10000);
+        my_system.SetTolForce(1e-09);
+    }
+
+    // Setup integrator
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.01);
@@ -262,27 +286,21 @@ int main(int argc, char* argv[]) {
         // Write results to output file.
         out.write_to_file("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
     } else {
-        // Initialize total number of iterations and timer.
-        int Iterations = 0;
-        double start = std::clock();
-        int stepNo = 0;
-        double AbsVal = 0.0;
-        // Simulate to final time, while accumulating number of iterations.
-        while (my_system.GetChTime() < sim_time_UT) {
+        double max_err = 0;
+        for (unsigned int it = 0; it < num_steps_UT; it++) {
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
-            if (AbsVal > precision) {
-                std::cout << "Unit test check failed \n";
+            std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << std::endl;
+            double err = abs(nodetip->GetPos().z - FileInputMat[it][1]);
+            max_err = std::max(max_err, err);
+            if (err > precision) {
+                std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+                          << "  reference: " << FileInputMat[it][1] << std::endl;
                 return 1;
             }
-            stepNo++;
-            Iterations += mystepper->GetNumIterations();
         }
-        // Report run time and total number of iterations.
-        double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        GetLog() << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
-        std::cout << "Unit test check succeeded \n";
+
+        std::cout << "Maximum error = " << max_err << std::endl;
+        std::cout << "Unit test check succeeded" << std::endl;
     }
 
     return 0;
