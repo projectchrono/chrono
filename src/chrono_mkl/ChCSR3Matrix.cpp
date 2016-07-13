@@ -263,8 +263,9 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         } else {
             // Actual reallocation
 
-            int storage_augmentation = 4;
-            m_capacity = m_capacity + storage_augmentation;
+            int new_capacity = ceil(1.75*m_capacity);
+            int storage_augmentation = new_capacity - m_capacity;
+            m_capacity = new_capacity;
 
             if (ALIGNMENT_REQUIRED) {
                 double* new_values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
@@ -701,7 +702,7 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     // if nonzeros are not specified then the current size is kept
-    int nonzeros_old = GetColIndexLength();
+    int nonzeros_old = GetColIndexCapacity();
     if (nonzeros == 0)
         nonzeros = nonzeros_old;
 
