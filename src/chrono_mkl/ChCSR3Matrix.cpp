@@ -243,7 +243,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         }
     } else if (col_sel_empty < col_sel && col_sel - col_shift > -1 && col_shift < max_shifts) {
         // case 2
-        assert(!rowIndex_lock);
+        assert(!m_lock);
         col_sel--;
         for (int col_sel_temp = col_sel_empty; col_sel_temp < col_sel; col_sel_temp++) {
             values[col_sel_temp] = values[col_sel_temp + 1];
