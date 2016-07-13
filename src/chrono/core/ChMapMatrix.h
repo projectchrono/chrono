@@ -54,13 +54,22 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     /// Get the element at the specified location.
     virtual double GetElement(int row, int col) override;
 
+    /// Return the row index array in the CSR representation of this matrix.
+    virtual int* GetCSR_RowIndexArray() const override;
+
+    /// Return the column index array in the CSR representation of this matrix.
+    virtual int* GetCSR_ColIndexArray() const override;
+
+    /// Return the array of matrix values in the CSR representation of this matrix.
+    virtual double* GetCSR_ValueArray() const override;
+
     int GetNNZ() const { return m_nnz; }
 
     /// Convert to dense matrix.
     void ConvertToDense(ChMatrixDynamic<double>& mat);
 
     /// Convert to CSR arrays.
-    void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a);
+    void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
@@ -80,6 +89,13 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
 
     int m_nnz;                      ///< number of non-zero elements in the matrix
     std::vector<MatrixRow> m_rows;  ///< vector of data structures for each row
+
+    // Storage for CSR arrays. These are allocated only if needed.
+    mutable std::vector<int> m_ia;    ///< CSR row index array
+    mutable std::vector<int> m_ja;    ///< CSR column index array
+    mutable std::vector<double> m_a;  ///< CSR values array
+
+    mutable bool m_CSR_current;  ///< flag indicating whether or not the CSR arrays are up-to-date
 };
 
 }  // end namespace chrono

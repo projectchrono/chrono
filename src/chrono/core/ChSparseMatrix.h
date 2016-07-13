@@ -85,8 +85,13 @@ class ChApi ChSparseMatrix {
                 this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
     }
 
+    /// Return the row index array in the CSR representation of this matrix.
     virtual int* GetCSR_RowIndexArray() const { return nullptr; }
+
+    /// Return the column index array in the CSR representation of this matrix.
     virtual int* GetCSR_ColIndexArray() const { return nullptr; }
+
+    /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const { return nullptr; }
 
     // Wrapper functions

@@ -117,9 +117,13 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
 
-    // Return CSR arrays.
+    /// Return the row index array in the CSR representation of this matrix.
     virtual int* GetCSR_RowIndexArray() const override { return rowIndex; }
+
+    /// Return the column index array in the CSR representation of this matrix.
     virtual int* GetCSR_ColIndexArray() const override { return colIndex; }
+
+    /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override { return values; }
 
     void Compress();  // purge the matrix from all the unininitialized elements
