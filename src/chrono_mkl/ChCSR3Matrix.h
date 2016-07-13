@@ -84,10 +84,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     int* colIndex;   ///< array of column indices (length: m_capacity)
     int* rowIndex;   ///< array of row indices (length: m_num_rows+1)
 
-    bool rowIndex_lock;  ///< TRUE if the matrix should always keep the same number of element for each row
-    bool colIndex_lock;  ///< TRUE if the matrix elements should keep always the same position
-    bool rowIndex_lock_broken;
-    bool colIndex_lock_broken;
+    bool m_lock_broken;  ///< true if a modification was made that overrules m_lock
 
   protected:
     void insert(int insrow, int inscol, double insval, int& col_sel);
@@ -135,11 +132,11 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     int GetColIndexCapacity() const { return m_capacity; }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
     void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
-    void SetRowIndexLock(bool on_off) { rowIndex_lock = on_off; }
-    void SetColIndexLock(bool on_off) { colIndex_lock = on_off; }
     bool IsCompressed() const { return isCompressed; }
-    bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
-    bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
+
+    /// Indicate whether or not the sparsity lock is currently broken.
+    /// Note that this alwyas returns false if the lock was not enabled.
+    bool IsSparsityPatternLockBroken() const { return m_lock_broken; }
 
     // Testing functions
     bool CheckArraysAlignment(int alignment = 0) const;

@@ -94,30 +94,17 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     //     colIndex;
     //          those have to be removed by Compress().
     sysd.ConvertToMatrixForm(&matCSR3, nullptr);
+    n = matCSR3.GetNumRows();
 
-    // Set up the locks;
-    // after the first build the sparsity pattern is eventually locked; needs to stay AFTER ConvertToMatrixForm()
-    if (solver_call == 0) {
-        matCSR3.SetRowIndexLock(sparsity_pattern_lock);
-        matCSR3.SetColIndexLock(sparsity_pattern_lock);
-    }
+    // Set up the lock (if enabled).
+    // This must be done only after a first call to ChSystemDescriptor::ConvertToMatrixForm();
+    matCSR3.SetSparsityPatternLock(sparsity_pattern_lock);
 
-    // remember: the matrix is constructed with broken locks; so for solver_call==0 they are broken!
-    if (!sparsity_pattern_lock || matCSR3.IsRowIndexLockBroken() || matCSR3.IsColIndexLockBroken()) {
-        // breaking the row_index_block means that the size has changed so every dimension has to be reset
-        if (matCSR3.IsRowIndexLockBroken()) {
-            n = matCSR3.GetNumRows();
-        }
-
-        // if sparsity is not locked OR the sparsity_lock is broken (like in the first cycle!); the matrix must be
-        // recompressed
-        if (verbose) {
-            GetLog() << " MKL compress matrix\n";
-        }
+    // If the sparsity pattern is unlocked or the lock is broken, compress the matrix.
+    if (!sparsity_pattern_lock || matCSR3.IsSparsityPatternLockBroken()) {
         matCSR3.Compress();
 
-        // the permutation vector is based on the sparsity of the matrix;
-        // if ColIndexLockBroken/RowIndexLockBroken are on then the permutation must be updated
+        // If the sparsity pattern has changed, flag update of permutation vector.
         if (use_perm)
             mkl_engine.UsePermutationVector(true);
     }

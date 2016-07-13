@@ -14,6 +14,8 @@
 
 #include <mkl.h>
 #include <algorithm>
+#include <cmath>
+
 #include "chrono_mkl/ChCSR3Matrix.h"
 
 #define ALIGNMENT_REQUIRED true
@@ -26,10 +28,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
       array_alignment(64),
       isCompressed(false),
       max_shifts(std::numeric_limits<int>::max()),
-      rowIndex_lock(false),
-      colIndex_lock(false),
-      rowIndex_lock_broken(false),
-      colIndex_lock_broken(false) {
+      m_lock_broken(false) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     if (nonzeros == 0) nonzeros = static_cast<int>(m_num_rows*(m_num_cols*SPM_DEF_FULLNESS));
@@ -49,10 +48,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int* nonzeros_vector)
       array_alignment(64),
       isCompressed(false),
       max_shifts(std::numeric_limits<int>::max()),
-      rowIndex_lock(false),
-      colIndex_lock(false),
-      rowIndex_lock_broken(false),
-      colIndex_lock_broken(false) {
+      m_lock_broken(false) {
     assert(nrows > 0 && ncols > 0);
 
     m_capacity = 0;
@@ -116,7 +112,7 @@ void ChCSR3Matrix::SetElement(int insrow, int inscol, double insval, bool overwr
 
 /// This function arranges the space to let the new element be put in the arrays.
 void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
-    colIndex_lock_broken = true;
+    m_lock_broken = true;
     int col_shift = 1;            // an offset from the current position that points to the empty location found
     int col_sel_empty = col_sel;  // the location in which the new element will be put (if a space will be found it
                                   // will be different from col_sel)
@@ -145,7 +141,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     // very rarely.
     while (col_shift < max_shifts && col_sel - col_shift > -1 && col_sel + col_shift < rowIndex[m_num_rows]) {
         // backward check
-        if (colIndex[col_sel - col_shift] == -1 && !rowIndex_lock) {
+        if (colIndex[col_sel - col_shift] == -1 && !m_lock) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
             // uninitialized;
             for (; rowIndex[row_sel_bw] > col_sel - col_shift && row_sel_bw >= 0; row_sel_bw--) {
@@ -183,7 +179,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     }  // end 1st While
 
     // 2nd While: scan the last elements not already checked to the left (backward)
-    while (!rowIndex_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift > -1) {
+    while (!m_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift > -1) {
         // backward check
         if (colIndex[col_sel - col_shift] == -1) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
@@ -259,7 +255,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         }
     } else {
         // case 3
-        rowIndex_lock_broken = true;
+        m_lock_broken = true;
 
         if (m_capacity > GetColIndexLength()) {
             // This is the case where a Compress() or Reset() is not followed by Trim()
@@ -312,7 +308,7 @@ void ChCSR3Matrix::initialize(int* nonzeros_vector) {
 }
 
 void ChCSR3Matrix::initialize(int colIndex_length) {
-    if (!rowIndex_lock || rowIndex_lock_broken) {
+    if (!m_lock || m_lock_broken) {
         if (colIndex_length == 0)
             colIndex_length = m_capacity;
 
@@ -330,11 +326,10 @@ void ChCSR3Matrix::initialize(int colIndex_length) {
 }
 
 void ChCSR3Matrix::initialize_ValuesColIndex() {
-    if (colIndex_lock && !colIndex_lock_broken)
+    if (m_lock && !m_lock_broken) {
         for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
             values[col_sel] = 0;
-
-    else {
+    } else {
         // colIndex is initialized with -1; it means that the cell has been stored but contains an uninitialized value
         for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
             colIndex[col_sel] = -1;
@@ -598,8 +593,8 @@ double& ChCSR3Matrix::Element(int row, int col) {
 //    - if number of rows unchanged, ONLY the last row is expanded and filled with uninitialized spaces
 bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
-    if (rowIndex_lock)
-        rowIndex_lock_broken = true;
+    if (m_lock)
+        m_lock_broken = true;
 
     // we can't preserve data if any row will be cut
     if (nrows < m_num_rows)
@@ -696,8 +691,7 @@ bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros) {
     m_capacity = new_capacity;
     m_num_rows = nrows;
     m_num_cols = ncols;
-    rowIndex_lock_broken = true;
-    colIndex_lock_broken = true;
+    m_lock_broken = true;
     isCompressed = false;
 
     return true;
@@ -716,8 +710,7 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
 
     if (nrows != m_num_rows || ncols != m_num_cols || nonzeros != nonzeros_old) {
         isCompressed = false;
-        rowIndex_lock_broken = true;
-        colIndex_lock_broken = true;
+        m_lock_broken = true;
     }
 
     /* Size update */
@@ -751,8 +744,7 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
 
     initialize(nonzeros);
 
-    rowIndex_lock_broken = false;
-    colIndex_lock_broken = false;
+    m_lock_broken = false;
 }
 
 void ChCSR3Matrix::Compress() {
@@ -782,8 +774,7 @@ void ChCSR3Matrix::Compress() {
 
     rowIndex[row_sel] = col_sel_new;
     isCompressed = true;
-    rowIndex_lock_broken = false;
-    colIndex_lock_broken = false;
+    m_lock_broken = false;
 }
 
 void ChCSR3Matrix::Prune(double pruning_threshold) {
@@ -822,7 +813,7 @@ void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const {
     ia_file << std::scientific << std::setprecision(precision);
 
     for (int col_sel = 0; col_sel < rowIndex[m_num_rows]; col_sel++) {
-        a_file << rowIndex[col_sel] << "\n";
+        a_file << values[col_sel] << "\n";
         ja_file << colIndex[col_sel] << "\n";
     }
 
