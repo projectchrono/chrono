@@ -21,8 +21,6 @@
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
 
-#define ALIGNMENT_REQUIRED true
-
 namespace chrono {
 
 /// @addtogroup mkl_module
@@ -78,15 +76,14 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     const int array_alignment;
     bool isCompressed;
     int max_shifts;
-    double* values;
-    int* colIndex;
-    int* rowIndex;
-    int colIndex_occupancy;  ///< effective occupancy of \c values (and so of \c colIndex) arrays in memory;
-    ///< \c colIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred
-    ///without a \c Trim();
-    int rowIndex_occupancy;
-    ///< \c rowIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred
-    ///without a \c Trim();
+
+    // CSR matrix arrays.
+    // Note that m_capacity may be larger than NNZ before a call to Trim()
+    int m_capacity;  ///< actual size of 'colIndex' and 'values' arrays in memory
+    double* values;  ///< array of matrix values (length: m_capacity)
+    int* colIndex;   ///< array of column indices (length: m_capacity)
+    int* rowIndex;   ///< array of row indices (length: m_num_rows+1)
+
     bool rowIndex_lock;  ///< TRUE if the matrix should always keep the same number of element for each row
     bool colIndex_lock;  ///< TRUE if the matrix elements should keep always the same position
     bool rowIndex_lock_broken;
@@ -131,8 +128,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
     // Auxiliary functions
     int GetColIndexLength() const { return rowIndex[m_num_rows]; }
-    int GetColIndexMemOccupancy() const { return colIndex_occupancy; }
-    int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; }
+    int GetColIndexCapacity() const { return m_capacity; }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
     void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
     void SetRowIndexLock(bool on_off) { rowIndex_lock = on_off; }
