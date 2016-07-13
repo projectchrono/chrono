@@ -417,5 +417,61 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
     }
 }
 
+void ChIrrAssetConverter::BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace) {
+	// Skip to extract contents if the assembly has been already treated (to avoid circular references).
+	if (!mtrace.insert(massy).second) {
+		return;
+	}
+
+	auto myiter = massy->IterBeginBodies();
+	while (myiter != massy->IterEndBodies()) {
+		Bind(*myiter);
+		++myiter;
+	}
+	ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
+	while (myiterB != massy->IterEndOtherPhysicsItems()) {
+		Bind(*myiterB);
+
+		// If the assembly holds another assemblies, also bind their contents.
+		if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+			BindAllContentsOfAssembly(myassy.get(), mtrace);
+		}
+		++myiterB;
+	}
+	ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
+	while (myiterC != massy->IterEndLinks()) {
+		Bind(*myiterC);
+		++myiterC;
+	}
+}
+
+void ChIrrAssetConverter::UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace) {
+	// Skip to extract contents if the assembly has been already treated (to avoid circular references).
+	if (!mtrace.insert(massy).second) {
+		return;
+	}
+
+	auto myiter = massy->IterBeginBodies();
+	while (myiter != massy->IterEndBodies()) {
+		Update(*myiter);
+		++myiter;
+	}
+	ChSystem::IteratorOtherPhysicsItems myiterB = massy->IterBeginOtherPhysicsItems();
+	while (myiterB != massy->IterEndOtherPhysicsItems()) {
+		Update(*myiterB);
+
+		// If the assembly holds another assemblies, also update their contents.
+		if (auto myassy = std::dynamic_pointer_cast<ChAssembly>(*myiterB)) {
+			UpdateAllContentsOfAssembly(myassy.get(), mtrace);
+		}
+		++myiterB;
+	}
+	ChSystem::IteratorLinks myiterC = massy->IterBeginLinks();
+	while (myiterC != massy->IterEndLinks()) {
+		Update(*myiterC);
+		++myiterC;
+	}
+}
+
 }  // end namespace irrlicht
 }  // end namespace chrono
