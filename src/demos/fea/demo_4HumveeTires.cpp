@@ -641,8 +641,8 @@ int main(int argc, char* argv[]) {
     mrigidBody->AddAsset(mtexture);
     
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;  // MKL Solver option
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;  // MKL Solver option
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);

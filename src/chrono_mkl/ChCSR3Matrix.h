@@ -99,7 +99,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 0);
+    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1);
     ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
     virtual ~ChCSR3Matrix();
 

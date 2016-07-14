@@ -104,8 +104,8 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
 #ifdef CHRONO_MKL
     // Solver settings
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     m_system->ChangeSolverStab(mkl_solver_stab);
     m_system->ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);

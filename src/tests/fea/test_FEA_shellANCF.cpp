@@ -15,6 +15,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChMapMatrix.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
@@ -165,12 +166,16 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
 
     // Set up solver
 #ifdef CHRONO_MKL
-    ChSolverMKL* mkl_solver_stab = nullptr;
-    ChSolverMKL* mkl_solver_speed = nullptr;
+    ChSolverMKL<>* mkl_solver_stab = nullptr;
+    ChSolverMKL<>* mkl_solver_speed = nullptr;
+    ////ChSolverMKL<ChMapMatrix>* mkl_solver_stab = nullptr;
+    ////ChSolverMKL<ChMapMatrix>* mkl_solver_speed = nullptr;
 
     if (use_mkl) {
-        mkl_solver_stab = new ChSolverMKL;
-        mkl_solver_speed = new ChSolverMKL;
+        mkl_solver_stab = new ChSolverMKL<>;
+        mkl_solver_speed = new ChSolverMKL<>;
+        ////mkl_solver_stab = new ChSolverMKL<ChMapMatrix>;
+        ////mkl_solver_speed = new ChSolverMKL<ChMapMatrix>;
         my_system.ChangeSolverStab(mkl_solver_stab);
         my_system.ChangeSolverSpeed(mkl_solver_speed);
         mkl_solver_speed->SetSparsityPatternLock(true);

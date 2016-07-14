@@ -307,8 +307,8 @@ int main(int argc, char* argv[]) {
 
    
         // Change solver to pluggable MKL
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     application.GetSystem()->Update();

@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+            ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
             system.ChangeSolverStab(mkl_solver_stab);
             system.ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);
