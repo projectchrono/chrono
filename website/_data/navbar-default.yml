@@ -22,6 +22,9 @@ main:
        -
          title: White Papers
          url: 'http://api.chrono.projectchrono.org/whitepaper_root.html'
+       -
+         title: PDF Version
+         url: '/docpdf/'
     - title: Movies
       url: '/gallery/'
       sub:
