@@ -99,7 +99,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int nrows = 3, int ncols = 3, int nonzeros = 0);
+    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 0);
     ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
     virtual ~ChCSR3Matrix();
 
@@ -126,8 +126,12 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override { return values; }
 
-    void Compress();  // purge the matrix from all the unininitialized elements
-    void Trim();      // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
+    /// Compress the internal arrays and purge all uninitialized elements.
+    virtual bool Compress() override;
+
+    /// Trims the internal arrays to have exactly the dimension needed, nothing more.
+    /// Data arrays are not moved.
+    void Trim();
     void Prune(double pruning_threshold = 0);
 
     // Auxiliary functions
@@ -136,10 +140,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void GetNonZerosDistribution(int* nonzeros_vector) const;
     void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
     bool IsCompressed() const { return isCompressed; }
-
-    /// Indicate whether or not the sparsity lock is currently broken.
-    /// Note that this alwyas returns false if the lock was not enabled.
-    bool IsSparsityPatternLockBroken() const { return m_lock_broken; }
 
     // Testing functions
     bool CheckArraysAlignment(int alignment = 0) const;
@@ -154,6 +154,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
 /// @} mkl_module
 
-};  // END namespace chrono
+};  // end namespace chrono
 
 #endif

@@ -15,8 +15,7 @@
 #include "chrono_mkl/ChSolverMKL.h"
 
 namespace chrono {
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
+// Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChSolverMKL> a_registration_ChSolverMKL;
 
 /** \brief It calls Intel MKL Pardiso Sparse Direct Solver.
@@ -51,8 +50,7 @@ double ChSolverMKL::Solve(ChSystemDescriptor& sysd) {
     solver_call++;
     if (pardiso_message_phase33) {
         GetLog() << "Pardiso solve+refine error code = " << pardiso_message_phase33 << "\n";
-        GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
-        GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
+        return -1.0;
     }
 
     if (verbose) {
@@ -96,20 +94,19 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     sysd.ConvertToMatrixForm(&matCSR3, nullptr);
     n = matCSR3.GetNumRows();
 
-    // Set up the lock (if enabled).
+    // Set the lock on the matrix sparsity pattern (if enabled).
     // This must be done only after a first call to ChSystemDescriptor::ConvertToMatrixForm();
     matCSR3.SetSparsityPatternLock(sparsity_pattern_lock);
 
-    // If the sparsity pattern is unlocked or the lock is broken, compress the matrix.
-    if (!sparsity_pattern_lock || matCSR3.IsSparsityPatternLockBroken()) {
-        matCSR3.Compress();
+    // Allow the matrix to be compressed.
+    bool change = matCSR3.Compress();
 
-        // If the sparsity pattern has changed, flag update of permutation vector.
-        if (use_perm)
-            mkl_engine.UsePermutationVector(true);
+    // If compression made any change, flag for update of permutation vector.
+    if (change && use_perm) {
+        mkl_engine.UsePermutationVector(true);
     }
 
-    // the sparsity of rhs must be updated at every cycle (am I wrong?)
+    // The sparsity of rhs must be updated at every cycle (is this true?)
     if (use_rhs_sparsity && !use_perm)
         mkl_engine.UsePartialSolution(2);
 
@@ -123,14 +120,12 @@ bool ChSolverMKL::Setup(ChSystemDescriptor& sysd) {
     timer_setup_pardiso.stop();
 
     if (verbose) {
-        GetLog() << " MKL setup n = " << n << "  nnz = " << matCSR3.GetColIndexLength() << "\n";
+        GetLog() << " MKL setup n = " << n << "  nnz = " << matCSR3.GetNNZ() << "\n";
     }
 
     if (pardiso_message_phase12 != 0) {
         // Factorization failed.
         GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
-        GetLog() << "Matrix verification code = " << matCSR3.VerifyMatrix() << "\n";
-        GetLog() << "Matrix MKL verification code = " << matCSR3.VerifyMatrixByMKL() << "\n";
         return false;
     }
 

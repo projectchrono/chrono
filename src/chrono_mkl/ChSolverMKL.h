@@ -40,8 +40,8 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     ChMatrixDynamic<double> rhs;
     ChMatrixDynamic<double> sol;
     ChMklEngine mkl_engine;
-    size_t n;
-    size_t nnz;
+    int n;
+    int nnz;
 
     bool sparsity_pattern_lock;
     bool use_perm;
@@ -71,7 +71,7 @@ class ChApiMkl ChSolverMKL : public ChSolver {
     void SetPreconditionedCGS(bool on_off, int L) { mkl_engine.SetPreconditionedCGS(on_off, L); }
 
     /// Set the number of non-zero entries in the problem matrix.
-    void SetMatrixNNZ(size_t nnz_input) { nnz = nnz_input; }
+    void SetMatrixNNZ(int nnz_input) { nnz = nnz_input; }
 
     /// Reset timers for internal phases in Solve and Setup.
     void ResetTimers() {

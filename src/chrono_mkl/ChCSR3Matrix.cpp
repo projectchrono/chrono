@@ -751,7 +751,12 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
     m_lock_broken = false;
 }
 
-void ChCSR3Matrix::Compress() {
+bool ChCSR3Matrix::Compress() {
+    // Do nothing if the sparsity pattern is locked and the locks are not broken.
+    if (m_lock && !m_lock_broken)
+        return false;
+
+    // Compress the matrix
     int col_sel_new = 0;
     int row_sel = 0;
 
@@ -779,6 +784,8 @@ void ChCSR3Matrix::Compress() {
     rowIndex[row_sel] = col_sel_new;
     isCompressed = true;
     m_lock_broken = false;
+
+    return true;
 }
 
 void ChCSR3Matrix::Prune(double pruning_threshold) {

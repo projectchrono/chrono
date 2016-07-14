@@ -74,6 +74,12 @@ class ChApi ChSparseMatrix {
     virtual void Reset(int row, int col, int nonzeros = 0) = 0;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) = 0;
 
+    /// Optional compression method, typically invoked after all elements have been inserted.
+    /// Depending on the internal data structures, a derived class may perform additional operations
+    /// for improved space or speed performance. A typical implementation should respect the sparsity
+    /// pattern lock status. This function should return true if it makes any modifications.
+    virtual bool Compress() { return false; }
+
     /// Paste the specified matrix into this sparse matrix at (insrow,inscol).
     virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
         int maxrows = matra->GetRows();
