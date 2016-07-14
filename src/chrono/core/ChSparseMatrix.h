@@ -38,7 +38,7 @@ class ChApi ChSparseMatrix {
     ChSparseMatrix(int nrows = 0, int ncols = 0, int nnz = 0)
         : m_num_rows(nrows), m_num_cols(ncols), m_nnz(nnz), m_type(GENERAL), m_lock(false) {}
 
-    ChSparseMatrix::ChSparseMatrix(const ChSparseMatrix& other) {
+    ChSparseMatrix(const ChSparseMatrix& other) {
         m_num_rows = other.m_num_rows;
         m_num_cols = other.m_num_cols;
         m_nnz = other.m_nnz;
