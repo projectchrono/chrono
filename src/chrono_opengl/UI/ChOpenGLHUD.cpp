@@ -42,7 +42,7 @@ ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
   fps = 0;
 }
 
-bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer) {
+bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimer<>* t_render, ChTimer<>* t_text, ChTimer<>* t_geometry) {
   if (this->GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
     return false;
 
@@ -57,7 +57,9 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_tim
   bars.Initialize(&bar_shader);
 
   render_camera = camera;
-  timer = viewer_timer;
+  timer_render = t_render;
+  timer_text = t_text;
+  timer_geometry = t_geometry;
   return true;
 }
 
@@ -160,11 +162,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_fluid_bodies = 0;
   int num_contacts = 0;
   int num_bilaterals = 0;
-  real timer_step = physics_system->GetTimerStep();
-  real timer_collision_broad = physics_system->GetTimerCollisionBroad();
-  real timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-  real timer_lcp = physics_system->GetTimerSolver();
-  real timer_update = physics_system->GetTimerUpdate();
+  double timer_step = physics_system->GetTimerStep();
+  double timer_collision_broad = physics_system->GetTimerCollisionBroad();
+  double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
+  double timer_lcp = physics_system->GetTimerSolver();
+  double timer_update = physics_system->GetTimerUpdate();
   /*if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
     num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
@@ -178,12 +180,12 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     num_contacts = physics_system->GetNcontacts();
   }*/
 
-  real left_b = LEFT + RIGHT;
-  real right_b = -LEFT;
-  real thick = 0.05;
-  real broad_v = glm::mix(left_b, right_b, timer_collision_broad / timer_step);
-  real narrow_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow) / timer_step);
-  real lcp_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow + timer_lcp) / timer_step);
+  double left_b = LEFT + RIGHT;
+  double right_b = -LEFT;
+  double thick = 0.05;
+  double broad_v = glm::mix(left_b, right_b, timer_collision_broad / timer_step);
+  double narrow_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow) / timer_step);
+  double lcp_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow + timer_lcp) / timer_step);
 
   /*bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
   bars.AddBar(broad_v, narrow_v, BOTTOM + thick, BOTTOM, ColorConverter(0x48CFAD));

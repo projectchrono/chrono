@@ -129,7 +129,7 @@ bool ChOpenGLViewer::Initialize() {
     cylinder.InitializeString(cylinder_mesh_data, cylinder_color, &main_shader);
     cone.InitializeString(cone_mesh_data, cone_color, &main_shader);
 
-    HUD_renderer.Initialize(&render_camera, &timer);
+    HUD_renderer.Initialize(&render_camera, &timer_render, &timer_text, &timer_render);
 
     cloud_data.push_back(glm::vec3(0, 0, 0));
     grid_data.push_back(glm::vec3(0, 0, 0));
@@ -150,9 +150,6 @@ bool ChOpenGLViewer::Initialize() {
     contact_renderer.Initialize(contact_color, &dot_shader);
     graph_renderer.Initialize(white, &cloud_shader);
 
-    timer.AddTimer("render");
-    timer.AddTimer("text");
-    timer.AddTimer("geometry");
 
     // glEnable(GL_MULTISAMPLE);
     glEnable(GL_POINT_SPRITE);
@@ -174,11 +171,13 @@ bool ChOpenGLViewer::Update(double time_step) {
     return true;
 }
 void ChOpenGLViewer::Render() {
-    timer.Reset();
+    timer_render.reset();
+    timer_text.reset();
+    timer_geometry.reset();
 
-    timer.start("render");
+    timer_render.start();
     if (pause_vis == false) {
-        timer.start("geometry");
+    	timer_geometry.start();
         render_camera.aspect = window_aspect;
         render_camera.window_width = window_size.x;
         render_camera.window_height = window_size.y;
@@ -254,16 +253,16 @@ void ChOpenGLViewer::Render() {
         RenderPlots();
         RenderContacts();
 
-        timer.stop("geometry");
-        time_geometry = .5 * timer.GetTime("geometry") + .5 * time_geometry;
+        timer_geometry.stop();
+        time_geometry = .5 * timer_geometry() + .5 * time_geometry;
 
-        timer.start("text");
+        timer_text.start();
         DisplayHUD();
-        timer.stop("text");
-        time_text = .5 * timer.GetTime("text") + .5 * time_text;
+        timer_text.stop();
+        time_text = .5 * timer_text() + .5 * time_text;
     }
-    timer.stop("render");
-    time_total = .5 * timer.GetTime("render") + .5 * time_total;
+    timer_render.stop();
+    time_total = .5 * timer_render() + .5 * time_total;
     current_time = time_total;
     current_time = current_time * 0.5 + old_time * 0.5;
     old_time = current_time;

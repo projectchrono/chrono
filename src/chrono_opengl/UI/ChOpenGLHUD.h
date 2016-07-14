@@ -25,7 +25,6 @@
 
 #include "chrono/physics/ChSystem.h"
 //#include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChTimerParallel.h"
 namespace chrono {
 namespace opengl {
 
@@ -36,7 +35,7 @@ namespace opengl {
 class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
   public:
     ChOpenGLHUD();
-    bool Initialize(ChOpenGLCamera* camera, ChTimerParallel* viewer_timer);
+    bool Initialize(ChOpenGLCamera* camera, ChTimer<>* render, ChTimer<>* text, ChTimer<>* geometry);
     void GenerateHelp();
     void GenerateCamera();
     void GenerateSystem(ChSystem* physics_system);
@@ -66,7 +65,9 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
     ChOpenGLCamera* render_camera;
     float time_geometry, time_text, time_total, fps;
 
-    ChTimerParallel* timer;
+    ChTimer<>* timer_render;
+    ChTimer<>* timer_text;
+    ChTimer<>* timer_geometry;
 };
 
 /// @} opengl
