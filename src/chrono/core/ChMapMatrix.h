@@ -63,8 +63,6 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override;
 
-    int GetNNZ() const { return m_nnz; }
-
     /// Convert to dense matrix.
     void ConvertToDense(ChMatrixDynamic<double>& mat);
 
@@ -87,7 +85,6 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
         std::unordered_map<int, double> m_data;  ///< column - value pairs in row
     };
 
-    int m_nnz;                      ///< number of non-zero elements in the matrix
     std::vector<MatrixRow> m_rows;  ///< vector of data structures for each row
 
     // Storage for CSR arrays. These are allocated only if needed.

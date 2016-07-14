@@ -33,10 +33,18 @@ class ChApi ChSparseMatrix {
         STRUCTURAL_SYMMETRIC  ///< structurally symmetric
     };
 
-    /// Construct a sparse matrix with 'nrows' and 'ncols'.
+    /// Construct a sparse matrix with 'nrows' and 'ncols' and with 'nnz' non-zero elements.
     /// By default, the matrix type is GENERAL (i.e., unsymmetric) and the sparsity pattern is unlocked.
-    ChSparseMatrix(int nrows = 0, int ncols = 0)
-        : m_num_rows(nrows), m_num_cols(ncols), m_type(GENERAL), m_lock(false) {}
+    ChSparseMatrix(int nrows = 0, int ncols = 0, int nnz = 0)
+        : m_num_rows(nrows), m_num_cols(ncols), m_nnz(nnz), m_type(GENERAL), m_lock(false) {}
+
+    ChSparseMatrix::ChSparseMatrix(const ChSparseMatrix& other) {
+        m_num_rows = other.m_num_rows;
+        m_num_cols = other.m_num_cols;
+        m_nnz = other.m_nnz;
+        m_type = other.m_type;
+        m_lock = other.m_lock;
+    }
 
     virtual ~ChSparseMatrix() {}
 
@@ -45,6 +53,9 @@ class ChApi ChSparseMatrix {
 
     /// Get the number of columns of this matrix.
     int GetNumColumns() const { return m_num_cols; }
+
+    /// Get the number of non-zero elements in this matrix.
+    virtual int GetNNZ() const { return m_nnz; }
 
     /// Set the symmetry type for this sparse matrix (default: GENERAL).
     /// A derived class should always support GENERAL (i.e. unsymmetric matrices), but is free
@@ -133,6 +144,7 @@ class ChApi ChSparseMatrix {
   protected:
     int m_num_rows;       ///< number of rows
     int m_num_cols;       ///< number of columns
+    int m_nnz;            ///< number of non-zero elements
     SymmetryType m_type;  ///< matrix type
     bool m_lock;          ///< indicate whether or not the matrix sparsity pattern should be locked
 };

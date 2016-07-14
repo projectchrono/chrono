@@ -114,6 +114,9 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
 
+    /// Get the number of non-zero elements in this matrix.
+    virtual int GetNNZ() const override { return rowIndex[m_num_rows]; }
+
     /// Return the row index array in the CSR representation of this matrix.
     virtual int* GetCSR_RowIndexArray() const override { return rowIndex; }
 

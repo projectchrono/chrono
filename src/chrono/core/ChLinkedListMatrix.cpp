@@ -45,7 +45,7 @@ ChLinkedListMatrix::ChLinkedListMatrix(const ChMatrix<>& mat) {
     }
 }
 
-ChLinkedListMatrix::ChLinkedListMatrix(const ChLinkedListMatrix& other) {
+ChLinkedListMatrix::ChLinkedListMatrix(const ChLinkedListMatrix& other) : ChSparseMatrix(other) {
     Reset(other.m_num_rows, other.m_num_cols);
 
     for (int r = 0; r < m_num_rows; r++) {
