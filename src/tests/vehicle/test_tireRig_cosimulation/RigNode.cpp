@@ -114,8 +114,8 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     // Solver settings
     m_system->SetMaxItersSolverSpeed(100);
     m_system->SetMaxItersSolverStab(100);
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);nu
-    m_system->SetTol(1e-10);
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);
+    nu m_system->SetTol(1e-10);
     m_system->SetTolForce(1e-8);
 #endif
 
@@ -128,7 +128,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
     m_integrator->SetVerbose(true);
-	m_integrator->SetMaxItersSuccess(5);
+    m_integrator->SetMaxItersSuccess(5);
 }
 
 // -----------------------------------------------------------------------------
@@ -512,6 +512,7 @@ void RigNode::OutputData(int frame) {
         m_outf << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del;
         m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
         m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
+        m_outf << rtrq_motor.x << del << rtrq_motor.y << del << rtrq_motor.z << del;
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
                << del << m_system->GetTimerUpdate();
