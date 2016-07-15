@@ -138,9 +138,7 @@ void test_MklEngine()
 	printf("\nPardiso exited with code: %d\n", pardiso_message);
 
 	// Print statistics
-	ChMatrixDynamic<double> res(n, 1);
-	pardiso_solver.GetResidual(res);
-	double res_norm = pardiso_solver.GetResidualNorm(res);
+	double res_norm = pardiso_solver.GetResidualNorm();
 	GetLog() << "\nResidual Norm: " << res_norm << "\n\n";
 }
 

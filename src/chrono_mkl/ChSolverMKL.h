@@ -111,10 +111,7 @@ class ChSolverMKL : public ChSolver {
         }
 
         if (verbose) {
-            ChMatrixDynamic<> res(m_rhs.GetRows(), 1);
-            m_engine.GetResidual(res);
-            double res_norm = m_engine.GetResidualNorm(res);
-
+            double res_norm = m_engine.GetResidualNorm();
             GetLog() << " MKL call " << m_solver_call << "  |residual| = " << res_norm << "\n";
         }
 
