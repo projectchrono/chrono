@@ -95,11 +95,12 @@ class ChSolverMKL : public ChSolver {
         m_timer_solve_assembly.start();
         sysd.ConvertToMatrixForm(nullptr, &m_rhs);
         m_sol.Resize(m_rhs.GetRows(), 1);
+        m_engine.SetRhsVector(m_rhs);
+        m_engine.SetSolutionVector(m_sol);
         m_timer_solve_assembly.stop();
 
         // Solve the problem using Pardiso.
         m_timer_solve_pardiso.start();
-        m_engine.SetProblem(m_mat, m_rhs, m_sol);
         int pardiso_message_phase33 = m_engine.PardisoCall(33, 0);
         m_timer_solve_pardiso.stop();
 
@@ -112,7 +113,7 @@ class ChSolverMKL : public ChSolver {
 
         if (verbose) {
             double res_norm = m_engine.GetResidualNorm();
-            GetLog() << " MKL call " << m_solver_call << "  |residual| = " << res_norm << "\n";
+            GetLog() << " MKL solve call " << m_solver_call << "  |residual| = " << res_norm << "\n";
         }
 
         // Scatter solution vector to the system descriptor.
@@ -154,6 +155,9 @@ class ChSolverMKL : public ChSolver {
         // Allow the matrix to be compressed.
         bool change = m_mat.Compress();
 
+        // Set current matrix in the MKL engine.
+        m_engine.SetMatrix(m_mat);
+
         // If compression made any change, flag for update of permutation vector.
         if (change && m_use_perm) {
             m_engine.UsePermutationVector(true);
@@ -171,7 +175,6 @@ class ChSolverMKL : public ChSolver {
 
         // Perform the factorization with the Pardiso sparse direct solver.
         m_timer_setup_pardiso.start();
-        m_engine.SetProblem(m_mat, m_rhs, m_sol);
         int pardiso_message_phase12 = m_engine.PardisoCall(12, 0);
         m_timer_setup_pardiso.stop();
 
