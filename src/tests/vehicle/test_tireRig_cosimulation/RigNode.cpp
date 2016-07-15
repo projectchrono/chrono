@@ -115,7 +115,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_system->SetMaxItersSolverSpeed(100);
     m_system->SetMaxItersSolverStab(100);
     m_system->SetSolverType(ChSystem::SOLVER_SOR);
-    nu m_system->SetTol(1e-10);
+    m_system->SetTol(1e-10);
     m_system->SetTolForce(1e-8);
 #endif
 
