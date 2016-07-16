@@ -66,7 +66,7 @@ class CH_MODELS_API HMMWV {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_vehicle->GetChassis(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
-    ChTire& GetTire(WheelID which) { return *m_tires[which.id()]; }
+    ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
 
     void Initialize();
 
