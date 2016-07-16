@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "models/vehicle/hmmwv/HMMWV.h"
@@ -88,6 +90,12 @@ void HMMWV::Initialize() {
     }
 
     m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+
+#ifndef CHRONO_FEA
+    // If ANCF tire selected but not available, fall back on rigid tire.
+    if (m_tireType == ANCF)
+        m_tireType = RIGID;
+#endif
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
@@ -179,6 +187,20 @@ void HMMWV::Initialize() {
             m_tires[2] = tire_RL;
             m_tires[3] = tire_RR;
 
+            break;
+        }
+        case ANCF: {
+#ifdef CHRONO_FEA
+            HMMWV_ANCFTire* tire_FL = new HMMWV_ANCFTire("FL");
+            HMMWV_ANCFTire* tire_FR = new HMMWV_ANCFTire("FR");
+            HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
+            HMMWV_ANCFTire* tire_RR = new HMMWV_ANCFTire("RR");
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+#endif
             break;
         }
     }

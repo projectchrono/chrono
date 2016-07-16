@@ -26,13 +26,17 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 #include "models/ChApiModels.h"
-#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "models/vehicle/hmmwv/HMMWV_LugreTire.h"
-#include "models/vehicle/hmmwv/HMMWV_Powertrain.h"
-#include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
-#include "models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
 #include "models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
+#include "models/vehicle/hmmwv/HMMWV_Powertrain.h"
+#include "models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
+#include "models/vehicle/hmmwv/HMMWV_LugreTire.h"
+#include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
+
+#ifdef CHRONO_FEA
+#include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
