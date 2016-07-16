@@ -59,8 +59,12 @@ void RigidTire::Create(const rapidjson::Document& d) {
     float cr = d["Coefficient of Restitution"].GetDouble();
     float ym = d["Young Modulus"].GetDouble();
     float pr = d["Poisson Ratio"].GetDouble();
+    float kn = d["Normal Stiffness"].GetDouble();
+    float gn = d["Normal Damping"].GetDouble();
+    float kt = d["Tangential Stiffness"].GetDouble();
+    float gt = d["Tangential Damping"].GetDouble();
 
-    SetContactMaterial(mu, cr, ym, pr);
+    SetContactMaterial(mu, cr, ym, pr, kn, gn, kt, gt);
 
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();

@@ -24,19 +24,34 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRigidTire::ChRigidTire(const std::string& name)
-    : ChTire(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
-}
+    : ChTire(name),
+      m_friction(0.6f),
+      m_restitution(0.1f),
+      m_young_modulus(2e5f),
+      m_poisson_ratio(0.3f),
+      m_kn(2e5f),
+      m_gn(40),
+      m_kt(2e5f),
+      m_gt(20) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChRigidTire::SetContactMaterial(float friction_coefficient,
                                      float restitution_coefficient,
                                      float young_modulus,
-                                     float poisson_ratio) {
+                                     float poisson_ratio,
+                                     float kn,
+                                     float gn,
+                                     float kt,
+                                     float gt) {
     m_friction = friction_coefficient;
     m_restitution = restitution_coefficient;
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------
@@ -60,6 +75,10 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
             wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
             wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
             wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
             break;
     }
 }
