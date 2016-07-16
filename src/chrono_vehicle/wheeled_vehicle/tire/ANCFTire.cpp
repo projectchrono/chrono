@@ -91,23 +91,16 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     SetContactFrictionCoefficient(mu);
     SetContactRestitutionCoefficient(cr);
 
-    assert(d["Contact Material"].HasMember("Use Physical Properties"));
-
-    if (d["Contact Material"]["Use Physical Properties"].GetBool()) {
-        assert(d["Contact Material"].HasMember("Properties"));
-
+    if (d["Contact Material"].HasMember("Properties")) {
         float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
         float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
-
         SetContactMaterialProperties(ym, pr);
-    } else {
-        assert(d["Contact Material"].HasMember("Coefficients"));
-        
+    }
+    if (d["Contact Material"].HasMember("Coefficients")) {
         float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
         float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
         float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
         float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
-
         SetContactMaterialCoefficients(kn, gn, kt, gt);
     }
 

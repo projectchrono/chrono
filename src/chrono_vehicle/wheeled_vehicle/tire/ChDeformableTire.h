@@ -72,16 +72,17 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 
     /// Set contact material properties.
-    /// Alternatively, the contact material coefficients can be set explicitly, using the
-    /// function SetContactMaterialCoefficients.
+    /// These values are used to calculate contact material coefficients (if the containing 
+    /// system is so configured and if the DEM-P contact method is being used).
     /// The default values are: Y = 2e5 and nu = 0.3
     void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
                                       float poisson_ratio   ///< [in] Poisson ratio
                                       );
 
     /// Set contact material coefficients.
-    /// Alternatively, physical material properties can be set, using the function
-    /// SetContactMaterialProperties.
+    /// These values are used directly to compute contact forces (if the containing system
+    /// is so configured and if the DEM-P contact method is being used).
+    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
     void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
                                         float gn,  ///< [in] normal contact damping
                                         float kt,  ///< [in] tangential contact stiffness
@@ -208,7 +209,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    bool m_use_mat_props;   ///< specify contact material using physical properties
     float m_friction;       ///< contact coefficient of friction
     float m_restitution;    ///< contact coefficient of restitution
     float m_young_modulus;  ///< contact material Young modulus
