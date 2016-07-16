@@ -44,6 +44,34 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
+class MyDriver : public ChDriver {
+  public:
+    MyDriver(ChVehicle& vehicle, double delay) : ChDriver(vehicle), m_delay(delay) {}
+    ~MyDriver() {}
+
+    virtual void Synchronize(double time) override {
+        m_throttle = 0;
+        m_steering = 0;
+        m_braking = 0;
+
+        double eff_time = time - m_delay;
+
+        // Do not generate any driver inputs for a duration equal to m_delay.
+        if (eff_time < 0)
+            return;
+
+        if (eff_time > 0.2)
+            m_throttle = 0.8;
+        else
+            m_throttle = 4 * eff_time;
+    }
+
+  private:
+    double m_delay;
+};
+
+// =============================================================================
+
 // Number of OpenMP threads
 int num_threads = 4;
 
@@ -54,16 +82,6 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
 ////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 ////ChQuaternion<> initRot(0, 0, 0, 1);
-
-// Type of driver inputs
-enum DriverMode {
-    DEFAULT,   // interactive driver (keyboard inputs)
-    RECORD,    // interactive driver with input recording
-    PLAYBACK,  // playback recorded inputs
-    USER_FILE  // read inputs from specified data file
-};
-DriverMode driver_mode = USER_FILE;
-std::string driver_file("generic/driver/Sample_Maneuver.txt");
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
 VisualizationType vis_type = PRIMITIVES;
@@ -87,7 +105,7 @@ ChVector<> trackPoint(0.0, 0.0, 1.75);
 // Simulation step sizes
 double step_size = 1e-4;
 // Simulation end time
-double t_end = 1000;
+double t_end = 5;
 // Verbose solver output
 bool verbose = false;
 
@@ -109,7 +127,6 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-
     // ----------------------------------
     // Create the (sequential) DEM system
     // ----------------------------------
@@ -171,7 +188,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     switch (terrain_model) {
         case RigidTerrain::FLAT:
@@ -213,36 +230,11 @@ int main(int argc, char* argv[]) {
         terrain.ExportMeshPovray(out_dir);
     }
 
-    std::string driver_rec_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
-
     // ------------------------
     // Create the driver system
     // ------------------------
 
-    // Create the interactive driver system
-    ChIrrGuiDriver driver(app);
-
-    // Set the time response for steering and throttle keyboard inputs.
-    double steering_time = 1.0;  // time to go from 0 to +1 (or from 0 to -1)
-    double throttle_time = 1.0;  // time to go from 0 to +1
-    double braking_time = 0.3;   // time to go from 0 to +1
-    driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetThrottleDelta(render_step_size / throttle_time);
-    driver.SetBrakingDelta(render_step_size / braking_time);
-
-    // If needed, set input file for the driver and change the driver's mode.
-    if (driver_mode == PLAYBACK) {
-        // ATTENTION: It is assumed that the code was previously run in RECORD
-        // mode and the driver_rec_file exists!
-        driver.SetInputDataFile(driver_rec_file);
-        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
-    } else if (driver_mode == USER_FILE) {
-        // Use an existing file in the Chrono::Vehicle data directory.
-        driver.SetInputDataFile(vehicle::GetDataFile(driver_file));
-        driver.SetInputMode(ChIrrGuiDriver::DATAFILE);
-    }
-
+    MyDriver driver(my_hmmwv.GetVehicle(), 0.5);
     driver.Initialize();
 
     // ---------------
@@ -298,16 +290,11 @@ int main(int argc, char* argv[]) {
         double steering_input = driver.GetSteering();
         double braking_input = driver.GetBraking();
 
-        // Driver output
-        if (driver_mode == RECORD) {
-            driver_csv << time << steering_input << throttle_input << braking_input << std::endl;
-        }
-
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
         terrain.Synchronize(time);
         my_hmmwv.Synchronize(time, steering_input, braking_input, throttle_input, terrain);
-        app.Synchronize(driver.GetInputModeAsString(), steering_input, throttle_input, braking_input);
+        app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
@@ -318,10 +305,6 @@ int main(int argc, char* argv[]) {
 
         // Increment frame number
         step_number++;
-    }
-
-    if (driver_mode == RECORD) {
-        driver_csv.write_to_file(driver_rec_file);
     }
 
     return 0;
