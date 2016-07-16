@@ -44,34 +44,6 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
-class MyDriver : public ChDriver {
-  public:
-    MyDriver(ChVehicle& vehicle, double delay) : ChDriver(vehicle), m_delay(delay) {}
-    ~MyDriver() {}
-
-    virtual void Synchronize(double time) override {
-        m_throttle = 0;
-        m_steering = 0;
-        m_braking = 0;
-
-        double eff_time = time - m_delay;
-
-        // Do not generate any driver inputs for a duration equal to m_delay.
-        if (eff_time < 0)
-            return;
-
-        if (eff_time > 0.2)
-            m_throttle = 0.8;
-        else
-            m_throttle = 4 * eff_time;
-    }
-
-  private:
-    double m_delay;
-};
-
-// =============================================================================
-
 // Number of OpenMP threads
 int num_threads = 4;
 
@@ -95,6 +67,10 @@ DrivelineType drive_type = AWD;
 // Rigid terrain (RigidTerrain::FLAT, RigidTerrain::HEIGHT_MAP, RigidTerrain::MESH)
 RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
 
+// Use material properties for DEM-P contact method?
+bool use_mat_properties = true;
+
+// Terrain dimensions (for FLAT terrain)
 double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 100.0;  // size in X direction
 double terrainWidth = 100.0;   // size in Y direction
@@ -126,12 +102,40 @@ bool povray_output = false;
 
 // =============================================================================
 
+class MyDriver : public ChDriver {
+public:
+    MyDriver(ChVehicle& vehicle, double delay) : ChDriver(vehicle), m_delay(delay) {}
+    ~MyDriver() {}
+
+    virtual void Synchronize(double time) override {
+        m_throttle = 0;
+        m_steering = 0;
+        m_braking = 0;
+
+        double eff_time = time - m_delay;
+
+        // Do not generate any driver inputs for a duration equal to m_delay.
+        if (eff_time < 0)
+            return;
+
+        if (eff_time > 0.2)
+            m_throttle = 0.8;
+        else
+            m_throttle = 4 * eff_time;
+    }
+
+private:
+    double m_delay;
+};
+
+// =============================================================================
+
 int main(int argc, char* argv[]) {
     // ----------------------------------
     // Create the (sequential) DEM system
     // ----------------------------------
 
-    ChSystemDEM* system = new ChSystemDEM;
+    ChSystemDEM* system = new ChSystemDEM(use_mat_properties);
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Set number threads
@@ -188,7 +192,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
+    terrain.SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f, 2e5f, 40.0f, 2e5f, 20.0f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     switch (terrain_model) {
         case RigidTerrain::FLAT:
