@@ -23,12 +23,7 @@
 namespace chrono {
 
 ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
-    : ChSparseMatrix(nrows, ncols),
-      reallocation_occurred(false),
-      array_alignment(64),
-      isCompressed(false),
-      max_shifts(std::numeric_limits<int>::max()),
-      m_lock_broken(false) {
+    : ChSparseMatrix(nrows, ncols) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     if (nonzeros == 0) nonzeros = static_cast<int>(m_num_rows*(m_num_cols*SPM_DEF_FULLNESS));
@@ -43,12 +38,7 @@ ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
 }
 
 ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int* nonzeros_vector)
-    : ChSparseMatrix(nrows, ncols),
-      reallocation_occurred(false),
-      array_alignment(64),
-      isCompressed(false),
-      max_shifts(std::numeric_limits<int>::max()),
-      m_lock_broken(false) {
+    : ChSparseMatrix(nrows, ncols) {
     assert(nrows > 0 && ncols > 0);
 
     m_capacity = 0;
@@ -273,7 +263,6 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
             if (ALIGNMENT_REQUIRED) {
                 double* new_values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
                 int* new_colIndex = static_cast<int*>(mkl_malloc(m_capacity * sizeof(int), array_alignment));
-                reallocation_occurred = true;
                 copy(new_values, new_colIndex, false, insrow, col_sel, storage_augmentation);
                 if (new_values != values)
                     mkl_free(values);
@@ -284,7 +273,6 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
             } else {
                 values = static_cast<double*>(mkl_realloc(values, m_capacity * sizeof(double)));
                 colIndex = static_cast<int*>(mkl_realloc(colIndex, m_capacity * sizeof(int)));
-                reallocation_occurred = true;
                 copy(values, colIndex, false, insrow, col_sel, storage_augmentation);
             }
 
@@ -587,6 +575,7 @@ double& ChCSR3Matrix::Element(int row, int col) {
     return values[col_sel];
 }
 
+
 // Resize.
 // If nonzeros = 0, do not change the capacity of the 'values' and 'colIndex' arrays
 //    - if increasing the number of rows, allocate additional space for eash new row
@@ -649,8 +638,6 @@ bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros) {
             colIndex = static_cast<int*>(mkl_realloc(colIndex, new_capacity * sizeof(int)));
         }
 
-        reallocation_occurred = true;
-
     } else if (new_capacity < m_capacity) {
         // New size below current capacity (but still large than current nnz)
         values = static_cast<double*>(mkl_realloc(values, new_capacity * sizeof(double)));
@@ -671,8 +658,6 @@ bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros) {
         } else {
             rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (nrows + 1) * sizeof(int)));
         }
-
-        reallocation_occurred = true;
 
         // Equally distribute the newly acquired space the each added row
         double effective_augmentation_foreachrow = (new_capacity - rowIndex[m_num_rows]) / static_cast<double>(nrows - m_num_rows);
@@ -723,7 +708,6 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
     if (nrows > m_num_rows) {
         mkl_free(rowIndex);
         rowIndex = static_cast<int*>(mkl_malloc((nrows + 1) * sizeof(int), array_alignment));
-        reallocation_occurred = true;
     }
 
     if (nonzeros > m_capacity) {
@@ -731,7 +715,6 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
         mkl_free(colIndex);
         values = static_cast<double*>(mkl_malloc(nonzeros * sizeof(double), array_alignment));
         colIndex = static_cast<int*>(mkl_malloc(nonzeros * sizeof(int), array_alignment));
-        reallocation_occurred = true;
         m_capacity = nonzeros;
     }
 
@@ -808,7 +791,6 @@ void ChCSR3Matrix::Trim() {
         int* old_colIndex = colIndex;
         values = static_cast<double*>(mkl_realloc(values, rowIndex[m_num_rows] * sizeof(double)));
         colIndex = static_cast<int*>(mkl_realloc(colIndex, rowIndex[m_num_rows] * sizeof(int)));
-        reallocation_occurred = true;
         m_capacity = rowIndex[m_num_rows];
         assert(old_values == values && old_colIndex);
     }

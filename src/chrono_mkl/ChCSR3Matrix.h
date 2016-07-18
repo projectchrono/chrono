@@ -72,10 +72,9 @@ arrays
 
 class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
   private:
-    bool reallocation_occurred;
-    const int array_alignment;
-    bool isCompressed;
-    int max_shifts;
+    const int array_alignment = 64;
+    bool isCompressed = false;
+    int max_shifts = std::numeric_limits<int>::max();
 
     // CSR matrix arrays.
     // Note that m_capacity may be larger than NNZ before a call to Trim()
@@ -84,7 +83,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     int* colIndex;   ///< array of column indices (length: m_capacity)
     int* rowIndex;   ///< array of row indices (length: m_num_rows+1)
 
-    bool m_lock_broken;  ///< true if a modification was made that overrules m_lock
+    bool m_lock_broken = false;  ///< true if a modification was made that overrules m_lock
 
   protected:
     void insert(int insrow, int inscol, double insval, int& col_sel);
@@ -106,6 +105,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
 
+    //double& Element(int row, int col);
     double& Element(int row, int col);
     double& operator()(int row, int col) { return Element(row, col); }
     double& operator()(int index) { return Element(index / m_num_cols, index % m_num_cols); }
