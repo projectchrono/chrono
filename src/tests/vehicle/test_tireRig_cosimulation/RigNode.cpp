@@ -662,7 +662,6 @@ void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
             it = find(myvector.begin(), myvector.end(), nodeA);
             if (it != myvector.end()) {
                 auto index = std::distance(myvector.begin(), it);
-                csv << (unsigned int)index << " ";
                 NodeNeighborElement[index].push_back(iele);
             }
         }
