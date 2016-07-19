@@ -69,6 +69,7 @@ enum {
     OPT_NO_RENDERING,
     OPT_INIT_VEL,
     OPT_LONG_SLIP,
+    OPT_COHESION,
     OPT_SUFFIX
 };
 
@@ -89,6 +90,8 @@ CSimpleOptA::SOption g_options[] = {{OPT_THREADS_RIG, "--num-threads-rig", SO_RE
                                     {OPT_INIT_VEL, "--initial-velocity", SO_REQ_CMB},
                                     {OPT_LONG_SLIP, "-s", SO_REQ_CMB},
                                     {OPT_LONG_SLIP, "--longitudinal-slip", SO_REQ_CMB},
+                                    {OPT_COHESION, "-h", SO_REQ_CMB},
+                                    {OPT_COHESION, "--cohesion-terrain", SO_REQ_CMB},
                                     {OPT_SUFFIX, "--suffix", SO_REQ_CMB},
                                     {OPT_HELP, "-?", SO_NONE},
                                     {OPT_HELP, "-h", SO_NONE},
@@ -105,6 +108,7 @@ bool GetProblemSpecs(int argc,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
+                     double& cohesion,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
@@ -139,12 +143,13 @@ int main(int argc, char** argv) {
     double sim_time = 10;
     double init_vel = 0;
     double slip = 0;
+    double coh_pressure = 8e4;
     bool use_checkpoint = false;
     bool output = true;
     bool render = true;
     std::string suffix = "";
-    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, use_checkpoint,
-                         output, render, suffix)) {
+    if (!GetProblemSpecs(argc, argv, rank, nthreads_rig, nthreads_terrain, sim_time, init_vel, slip, coh_pressure,
+                         use_checkpoint, output, render, suffix)) {
         MPI_Finalize();
         return 1;
     }
@@ -170,11 +175,11 @@ int main(int argc, char** argv) {
         case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
             my_rig = new RigNode(init_vel, slip, nthreads_rig);
-			my_rig->SetStepSize(step_size);
+            my_rig->SetStepSize(step_size);
             my_rig->SetOutDir(out_dir, suffix);
             cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;
 
-            my_rig->SetBodyMasses(1, 1, 450, 15); 
+            my_rig->SetBodyMasses(1, 1, 450, 15);
             my_rig->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
             my_rig->EnableTirePressure(true);
 
@@ -186,14 +191,13 @@ int main(int argc, char** argv) {
 
             cout << "[Terrain node] rank = " << rank << " running on: " << procname << endl;
             my_terrain = new TerrainNode(type, method, use_checkpoint, render, nthreads_terrain);
-			my_terrain->SetStepSize(step_size);
+            my_terrain->SetStepSize(step_size);
             my_terrain->SetOutDir(out_dir, suffix);
             cout << "[Terrain node] output directory: " << my_terrain->GetOutDirName() << endl;
-			 
+
             my_terrain->SetContainerDimensions(10, 0.6, 1, 0.2);
- 
+
             double radius = 0.006;
-            double coh_pressure = 8e4;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
             my_terrain->SetGranularMaterial(radius, 2500, 15);
@@ -336,6 +340,8 @@ void ShowUsage() {
     cout << " -s=LONG_SLIP" << endl;
     cout << " --longitudinal-slip=LONG_SLIP" << endl;
     cout << "        Specify the value of the longitudinal slip [default: 0]" << endl;
+    cout << " --cohesion-terrain=COHESION" << endl;
+    cout << "        Specify the value of the terrain cohesion in Pa [default: 80e3]" << endl;
     cout << " --no-output" << endl;
     cout << "        Disable generation of output files" << endl;
     cout << " --no-rendering" << endl;
@@ -355,6 +361,7 @@ bool GetProblemSpecs(int argc,
                      double& sim_time,
                      double& init_vel,
                      double& slip,
+                     double& cohesion,
                      bool& use_checkpoint,
                      bool& output,
                      bool& render,
@@ -394,6 +401,9 @@ bool GetProblemSpecs(int argc,
                 break;
             case OPT_LONG_SLIP:
                 slip = std::stod(args.OptionArg());
+                break;
+            case OPT_COHESION:
+                cohesion = std::stod(args.OptionArg());
                 break;
             case OPT_NO_OUTPUT:
                 output = false;
