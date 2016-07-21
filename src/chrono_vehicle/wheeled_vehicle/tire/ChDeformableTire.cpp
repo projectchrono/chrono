@@ -30,6 +30,7 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_pressure_enabled(true),
       m_contact_enabled(true),
       m_connection_enabled(true),
+      m_vis_enabled(true),
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
@@ -111,11 +112,13 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     }
 
     // Attach mesh visualization (with default settings)
-    m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    m_visualization->SetColorscaleMinMax(0.0, 1);
-    m_visualization->SetSmoothFaces(true);
-    m_mesh->AddAsset(m_visualization);
+    if (m_vis_enabled) {
+        m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+        m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+        m_visualization->SetColorscaleMinMax(0.0, 1);
+        m_visualization->SetSmoothFaces(true);
+        m_mesh->AddAsset(m_visualization);
+    }
 }
 
 // -----------------------------------------------------------------------------

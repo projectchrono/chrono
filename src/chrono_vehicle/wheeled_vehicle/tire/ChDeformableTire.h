@@ -110,17 +110,21 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Note that this is not set until after tire initialization.
     std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
 
-    /// Enable/disable tire pressure.
+    /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
     bool IsPressureEnabled() const { return m_pressure_enabled; }
 
-    /// Enable/disable tire contact.
+    /// Enable/disable tire contact (default: true).
     void EnableContact(bool val) { m_contact_enabled = val; }
     bool IsContactEnabled() const { return m_contact_enabled; }
 
-    /// Enable/disable tire-rim connection.
+    /// Enable/disable tire-rim connection (default: true).
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
+
+    /// Enable/disable mesh visualization (default: true).
+    void EnableVisualization(bool val) { m_vis_enabled = val; }
+    bool IsVisualizationEnabled() const { return m_vis_enabled; }
 
     /// Get a handle to the mesh visualization.
     /// Note that this function can only be invoked after initialization.
@@ -202,8 +206,9 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure
     bool m_contact_enabled;     ///< enable tire-terrain contact
+    bool m_vis_enabled;         ///< enable tire mesh visualization
 
-    double m_pressure; ///< internal tire pressure
+    double m_pressure;  ///< internal tire pressure
 
     ContactSurfaceType m_contact_type;  ///< type of contact surface model (node cloud or mesh)
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
