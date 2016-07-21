@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
     mkl_solver_speed->SetVerbose(verbose);
 #else
     // Default solver settings
-    m_system->SetMaxItersSolverSpeed(100);
-    m_system->SetMaxItersSolverStab(100);
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);
-    m_system->SetTol(1e-10);
-    m_system->SetTolForce(1e-8);
+    system->SetMaxItersSolverSpeed(100);
+    system->SetMaxItersSolverStab(100);
+    system->SetSolverType(ChSystem::SOLVER_SOR);
+    system->SetTol(1e-10);
+    system->SetTolForce(1e-8);
 #endif
 
     // Integrator settings
