@@ -122,10 +122,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
-    /// Enable/disable mesh visualization (default: true).
-    void EnableVisualization(bool val) { m_vis_enabled = val; }
-    bool IsVisualizationEnabled() const { return m_vis_enabled; }
-
     /// Get a handle to the mesh visualization.
     /// Note that this function can only be invoked after initialization.
     std::shared_ptr<fea::ChVisualizationFEAmesh> GetMeshVisualization() { return m_visualization; }
@@ -206,7 +202,6 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure
     bool m_contact_enabled;     ///< enable tire-terrain contact
-    bool m_vis_enabled;         ///< enable tire mesh visualization
 
     double m_pressure;  ///< internal tire pressure
 

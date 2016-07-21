@@ -19,6 +19,9 @@
 //
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -55,8 +58,11 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
 ////ChQuaternion<> initRot(0, 0, 0, 1);
 
-// Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = PRIMITIVES;
+// Visualization type for chassis (PRIMITIVES, MESH, or NONE)
+VisualizationType chassis_vis_type = PRIMITIVES;
+
+// Enable/disable tire visualization
+bool tire_vis = true;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = SHAFTS;
@@ -83,7 +89,7 @@ double step_size = 1e-4;
 // Simulation end time
 double t_end = 5;
 // Verbose solver output
-bool verbose = false;
+bool verbose = true;
 
 // Time interval between two render frames (1/FPS)
 double render_step_size = 1.0 / 50;
@@ -167,6 +173,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxiters(50);
     integrator->SetAbsTolerances(5e-05, 1.8);
     integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
     integrator->SetVerbose(verbose);
     integrator->SetMaxItersSuccess(5);
@@ -178,8 +185,9 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv(system);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(vis_type);
-    my_hmmwv.SetWheelVis(vis_type);
+    my_hmmwv.SetChassisVis(chassis_vis_type);
+    my_hmmwv.SetWheelVis(NONE);
+    my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
@@ -255,7 +263,6 @@ int main(int argc, char* argv[]) {
     int debug_steps = (int)std::ceil(debug_step_size / step_size);
 
     // Initialize simulation frame counter and simulation time
-    ChRealtimeStepTimer realtime_timer;
     int step_number = 0;
     int render_frame = 0;
     double time = 0;
@@ -267,18 +274,15 @@ int main(int argc, char* argv[]) {
         if (time >= t_end)
             break;
 
+        app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
+        app.DrawAll();
+        app.EndScene();
+
         // Render scene and output POV-Ray data
-        if (step_number % render_steps == 0) {
-            app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
-            app.DrawAll();
-            app.EndScene();
-
-            if (povray_output) {
-                char filename[100];
-                sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
-                utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
-            }
-
+        if (povray_output && step_number % render_steps == 0) {
+            char filename[100];
+            sprintf(filename, "%s/data_%03d.dat", pov_dir.c_str(), render_frame + 1);
+            utils::WriteShapesPovray(my_hmmwv.GetSystem(), filename);
             render_frame++;
         }
 
@@ -301,11 +305,10 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        terrain.Advance(step);
-        my_hmmwv.Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        terrain.Advance(step_size);
+        my_hmmwv.Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;

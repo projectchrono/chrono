@@ -29,6 +29,9 @@
 //   Make more general purpose
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include "chrono/ChConfig.h"
 #include <algorithm>
 
@@ -55,7 +58,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #endif
 
-// #define USE_IRRLICHT
+#define USE_IRRLICHT
 
 #ifdef CHRONO_OPENMP_ENABLED
 #include <omp.h>
@@ -385,6 +388,7 @@ int main() {
                    tire_ancf->EnablePressure(enable_tire_pressure);
                    tire_ancf->EnableContact(enable_tire_contact);
                    tire_ancf->EnableRimConnection(enable_rim_conection);
+                   tire_ancf->EnableVisualization(true);
                    rim->SetWvel_loc(ChVector<>(0, desired_speed/0.463, 0));
                    tire_ancf->Initialize(rim, LEFT);
                    tire_radius = tire_ancf->GetRadius();
@@ -398,9 +402,10 @@ int main() {
 #ifdef CHRONO_FEA
                   auto tire_fea = std::make_shared<FEATire>(vehicle::GetDataFile(featire_file));
 
-                  tire_fea->EnablePressure(true);
-                  tire_fea->EnableContact(true);
-                  tire_fea->EnableRimConnection(true);
+                  tire_fea->EnablePressure(enable_tire_pressure);
+                  tire_fea->EnableContact(enable_tire_contact);
+                  tire_fea->EnableRimConnection(enable_rim_conection);
+                  tire_fea->EnableVisualization(true);
                   rim->SetWvel_loc(ChVector<>(0, desired_speed/0.7, 0));
                   tire_fea->Initialize(rim, LEFT);
                   tire_radius = tire_fea->GetRadius();
@@ -515,14 +520,16 @@ int main() {
     wheel->SetWvel_par(ChVector<>(0, desired_speed / tire_radius, 0));
     wheel->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system->AddBody(wheel);
-    auto cyl_wheel = std::make_shared<ChCylinderShape>();
-    cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -tire_width / 2, 0);
-    cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, tire_width / 2, 0);
-    cyl_wheel->GetCylinderGeometry().rad = tire_radius;
-    wheel->AddAsset(cyl_wheel);
-    auto tex_wheel = std::make_shared<ChTexture>();
-    tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-    wheel->AddAsset(tex_wheel);
+    if (tire_model != ANCF && tire_model != FEA && tire_model != LUGRE) {
+        auto cyl_wheel = std::make_shared<ChCylinderShape>();
+        cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -tire_width / 2, 0);
+        cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, tire_width / 2, 0);
+        cyl_wheel->GetCylinderGeometry().rad = tire_radius;
+        wheel->AddAsset(cyl_wheel);
+        auto tex_wheel = std::make_shared<ChTexture>();
+        tex_wheel->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+        wheel->AddAsset(tex_wheel);
+    }
 
     // Create the joints for the mechanical system
     // -------------------------------------------
@@ -706,6 +713,7 @@ int main() {
             integrator->SetMaxiters(50);
             integrator->SetAbsTolerances(5e-05, 1.8e00);
             integrator->SetMode(ChTimestepperHHT::POSITION);
+            integrator->SetModifiedNewton(false);
             integrator->SetScaling(true);
             integrator->SetVerbose(true);
 #endif

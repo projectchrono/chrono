@@ -227,6 +227,7 @@ int main(int argc, char* argv[]) {
     tire->EnablePressure(true);
     tire->EnableRimConnection(true);
     tire->EnableContact(true);
+    tire->EnableVisualization(true);
 
     tire->SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
     tire->SetContactNodeRadius(node_radius);

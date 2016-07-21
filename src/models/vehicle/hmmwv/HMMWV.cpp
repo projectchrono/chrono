@@ -42,6 +42,7 @@ HMMWV::HMMWV()
       m_pacejkaParamFile(""),
       m_chassisVis(PRIMITIVES),
       m_wheelVis(PRIMITIVES),
+      m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::HMMWV(ChSystem* system)
@@ -58,6 +59,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_pacejkaParamFile(""),
       m_chassisVis(PRIMITIVES),
       m_wheelVis(PRIMITIVES),
+      m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::~HMMWV() {
@@ -117,13 +119,6 @@ void HMMWV::Initialize() {
             HMMWV_LugreTire* tire_FR = new HMMWV_LugreTire("FR");
             HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
             HMMWV_LugreTire* tire_RR = new HMMWV_LugreTire("RR");
-
-            if (m_wheelVis == NONE) {
-                tire_FL->SetDiscVisualization(true);
-                tire_FR->SetDiscVisualization(true);
-                tire_RL->SetDiscVisualization(true);
-                tire_RR->SetDiscVisualization(true);
-            }
 
             if (m_tire_step_size > 0) {
                 tire_FL->SetStepsize(m_tire_step_size);
@@ -196,13 +191,6 @@ void HMMWV::Initialize() {
             HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
             HMMWV_ANCFTire* tire_RR = new HMMWV_ANCFTire("RR");
 
-            if (m_wheelVis != NONE) {
-                tire_FL->EnableVisualization(false);
-                tire_FR->EnableVisualization(false);
-                tire_RL->EnableVisualization(false);
-                tire_RR->EnableVisualization(false);
-            }
-
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
@@ -211,6 +199,12 @@ void HMMWV::Initialize() {
             break;
         }
     }
+
+    // Enable/disable tire visualization
+    m_tires[0]->EnableVisualization(m_tireVis);
+    m_tires[1]->EnableVisualization(m_tireVis);
+    m_tires[2]->EnableVisualization(m_tireVis);
+    m_tires[3]->EnableVisualization(m_tireVis);
 
     // Initialize the tires.
     m_tires[0]->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT), LEFT);

@@ -30,7 +30,6 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_pressure_enabled(true),
       m_contact_enabled(true),
       m_connection_enabled(true),
-      m_vis_enabled(true),
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),

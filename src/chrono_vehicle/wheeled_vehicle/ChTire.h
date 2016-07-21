@@ -59,6 +59,10 @@ class CH_VEHICLE_API ChTire {
     /// Set the name for this tire.
     void SetName(const std::string& name) { m_name = name; }
 
+    /// Enable/disable tire visualization (default: false).
+    void EnableVisualization(bool val) { m_vis_enabled = val; }
+    bool IsVisualizationEnabled() const { return m_vis_enabled; }
+
     /// Initialize this tire subsystem.
     /// A derived class must call this base implementation (which simply caches the
     /// associated wheel body and vehicle side flag).
@@ -130,6 +134,8 @@ class CH_VEHICLE_API ChTire {
     std::string m_name;               ///< name of this tire subsystem
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
+
+    bool m_vis_enabled;  ///< tire-specific visualization enabled?
 
   private:
     /// Calculate kinematics quantities based on the current state of the associated

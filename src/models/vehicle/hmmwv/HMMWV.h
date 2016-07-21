@@ -56,6 +56,7 @@ class CH_MODELS_API HMMWV {
 
     void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
     void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
+    void EnableTireVis(bool val) { m_tireVis = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
 
@@ -89,6 +90,7 @@ class CH_MODELS_API HMMWV {
     bool m_fixed;
     VisualizationType m_chassisVis;
     VisualizationType m_wheelVis;
+    bool m_tireVis;
 
     DrivelineType m_driveType;
     PowertrainModelType m_powertrainType;
