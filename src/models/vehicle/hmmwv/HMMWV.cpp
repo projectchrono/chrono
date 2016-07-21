@@ -196,6 +196,13 @@ void HMMWV::Initialize() {
             HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
             HMMWV_ANCFTire* tire_RR = new HMMWV_ANCFTire("RR");
 
+            if (m_wheelVis != NONE) {
+                tire_FL->EnableVisualization(false);
+                tire_FR->EnableVisualization(false);
+                tire_RL->EnableVisualization(false);
+                tire_RR->EnableVisualization(false);
+            }
+
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;
             m_tires[2] = tire_RL;
