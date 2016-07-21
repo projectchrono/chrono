@@ -21,7 +21,7 @@ set(VEH_TESTS_IRRLICHT
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
-set(LIBRARIES ChronoEngine ChronoEngine_vehicle)
+set(LIBRARIES ChronoEngine ChronoEngine_vehicle ChronoModels_vehicle)
 
 if(ENABLE_MODULE_FEA)
     list(APPEND LIBRARIES ChronoEngine_fea)
