@@ -66,21 +66,21 @@ void ChCSR3Matrix::SetElement(int insrow, int inscol, double insval, bool overwr
     if ((m_type == SYMMETRIC_POSDEF || m_type == SYMMETRIC_INDEF) && insrow < inscol)
         return;
 
-    // WARNING: you MUST check if insval!=0 because of known issues of current release of Pardiso (11.2 Update 2);
-    // if the matrix is filled with too many zeros it gives unpredictable behaviour
-    // if you need to insert a 0 use Element() instead
+    // WARNING: if you fill the matrix with too many zeros Pardiso will give unpredictable behavior,
+    // at least up until MKL 11.3 update 3
+    // if you want to avoid the insertion of zeros just turn off the sparsity pattern lock
     int col_sel = rowIndex[insrow];
     while (1) {
         // case: element not found in the row OR another element with a higher col number is already been stored
         if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol) {
-            if (insval != 0)  // avoid to insert zero elements
+            if (insval != 0 || m_lock)  // avoid to insert zero elements
                 insert(insrow, inscol, insval, col_sel);
             break;
         }
 
         // case: empty space
         if (colIndex[col_sel] == -1) {
-            if (insval != 0)  // avoid to insert zero elements
+            if (insval != 0 || m_lock)  // avoid to insert zero elements
             {
                 values[col_sel] = insval;
                 colIndex[col_sel] = inscol;
@@ -253,12 +253,12 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         } else {
             // Actual reallocation
 
-            ////int new_capacity = ceil(1.75*m_capacity);
-            ////int storage_augmentation = new_capacity - m_capacity;
-            ////m_capacity = new_capacity;
+            int new_capacity = ceil(1.75*m_capacity);
+            int storage_augmentation = new_capacity - m_capacity;
+            m_capacity = new_capacity;
 
-            int storage_augmentation = 4;
-            m_capacity = m_capacity + storage_augmentation;
+            //int storage_augmentation = 4;
+            //m_capacity = m_capacity + storage_augmentation;
 
             if (ALIGNMENT_REQUIRED) {
                 double* new_values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));

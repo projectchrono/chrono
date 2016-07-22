@@ -130,6 +130,9 @@ class ChSolverMKL : public ChSolver {
     virtual bool Setup(ChSystemDescriptor& sysd) override {
         m_timer_setup_assembly.start();
 
+        // Set the lock on the matrix sparsity pattern (if enabled).
+        m_mat.SetSparsityPatternLock(m_lock);
+
         // Calculate problem size at first call.
         if (m_solver_call == 0) {
             m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
@@ -148,9 +151,6 @@ class ChSolverMKL : public ChSolver {
         sysd.ConvertToMatrixForm(&m_mat, nullptr);
         m_dim = m_mat.GetNumRows();
 
-        // Set the lock on the matrix sparsity pattern (if enabled).
-        // This must be done only after a first call to ChSystemDescriptor::ConvertToMatrixForm();
-        m_mat.SetSparsityPatternLock(m_lock);
 
         // Allow the matrix to be compressed.
         bool change = m_mat.Compress();
