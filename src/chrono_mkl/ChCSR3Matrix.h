@@ -112,7 +112,10 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
-    virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
+    virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override {
+        Reset(nrows, ncols, nonzeros);
+        return true;
+    }
 
     /// Get the number of non-zero elements in this matrix.
     virtual int GetNNZ() const override { return rowIndex[m_num_rows]; }
