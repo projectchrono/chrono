@@ -59,7 +59,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
     real3 h_gravity = data_manager->settings.step_size * mass * data_manager->settings.gravity;
-
+#ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_init) {
         temp_settings.dt = data_manager->settings.step_size;
         temp_settings.kernel_radius = kernel_radius;
@@ -107,6 +107,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
             //            }
         }
     }
+#endif
 
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
@@ -275,6 +276,7 @@ void Ch3DOFRigidContainer::Setup(int start_constraint) {
 }
 
 void Ch3DOFRigidContainer::Initialize() {
+#ifdef CHRONO_PARALLEL_USE_CUDA
     temp_settings.dt = data_manager->settings.step_size;
     temp_settings.kernel_radius = kernel_radius;
     temp_settings.inv_radius = 1.0 / kernel_radius;
@@ -305,6 +307,7 @@ void Ch3DOFRigidContainer::Initialize() {
         MPM_Initialize(temp_settings, mpm_pos);
     }
     mpm_init = true;
+#endif
 }
 
 void Ch3DOFRigidContainer::Build_D() {
@@ -537,6 +540,7 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 void Ch3DOFRigidContainer::PreSolve() {
+#ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_thread.joinable()) {
         mpm_thread.join();
 #pragma omp parallel for
@@ -547,6 +551,7 @@ void Ch3DOFRigidContainer::PreSolve() {
             data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
         }
     }
+#endif
 }
 void Ch3DOFRigidContainer::PostSolve() {}
 

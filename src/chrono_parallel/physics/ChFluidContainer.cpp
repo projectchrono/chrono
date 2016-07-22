@@ -70,7 +70,7 @@ void ChFluidContainer::Update(double ChTime) {
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     real3 g_acc = data_manager->settings.gravity;
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
-
+#ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_init) {
         temp_settings.dt = data_manager->settings.step_size;
         temp_settings.kernel_radius = kernel_radius;
@@ -117,8 +117,9 @@ void ChFluidContainer::Update(double ChTime) {
                 data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
             }
         }
-    }
 
+    }
+#endif
 #pragma omp parallel for
     for (int i = 0; i < num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
@@ -282,6 +283,7 @@ void ChFluidContainer::Setup(int start_constraint) {
 }
 
 void ChFluidContainer::Initialize() {
+#ifdef CHRONO_PARALLEL_USE_CUDA
     temp_settings.dt = data_manager->settings.step_size;
     temp_settings.kernel_radius = kernel_radius;
     temp_settings.inv_radius = 1.0 / kernel_radius;
@@ -312,6 +314,7 @@ void ChFluidContainer::Initialize() {
         MPM_Initialize(temp_settings, mpm_pos);
     }
     mpm_init = true;
+#endif
 }
 void ChFluidContainer::Density_FluidMPM() {
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
@@ -637,6 +640,7 @@ void ChFluidContainer::GenerateSparsity() {
 }
 
 void ChFluidContainer::PreSolve() {
+#ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_thread.joinable()) {
         mpm_thread.join();
 #pragma omp parallel for
@@ -647,6 +651,7 @@ void ChFluidContainer::PreSolve() {
             data_manager->host_data.v[body_offset + index * 3 + 2] = mpm_vel[p * 3 + 2];
         }
     }
+#endif
 
     if (gamma_old.size() > 0) {
         if (enable_viscosity) {

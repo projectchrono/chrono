@@ -28,5 +28,9 @@
 //   #define CHRONO_PARALLEL_USE_DOUBLE
 @CHRONO_PARALLEL_USE_DOUBLE@
 
+// If using cuda in parallel module
+//   #define CHRONO_PARALLEL_USE_CUDA
+@CHRONO_PARALLEL_USE_CUDA@
+
 
 #endif

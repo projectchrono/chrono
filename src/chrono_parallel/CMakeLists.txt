@@ -23,6 +23,7 @@ message(STATUS "==== Chrono Parallel module ====")
 mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR BOOST_DIR)
 mark_as_advanced(CLEAR USE_PARALLEL_DOUBLE)
+mark_as_advanced(CLEAR USE_PARALLEL_CUDA)
 
 # ------------------------------------------------------------------------------
 # Additional compiler flags
@@ -35,10 +36,19 @@ set(CH_PARALLEL_C_FLAGS "")
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
 # Find CUDA
-find_package(CUDA REQUIRED)
-SET(CUDA_SEPARABLE_COMPILATION ON)
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
-SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode arch=compute_30,code=sm_30)
+find_package(CUDA)
+
+cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
+IF(USE_PARALLEL_CUDA)
+	SET(CUDA_SEPARABLE_COMPILATION ON)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+	SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; -gencode arch=compute_30,code=sm_30)
+	SET(CHRONO_PARALLEL_USE_CUDA "#define CHRONO_PARALLEL_USE_CUDA")
+ELSE()
+	SET(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
+ENDIF()
+
+
 
 OPTION(USE_PARALLEL_DOUBLE "Compile Chrono::Parallel with double precision math (no SSE support)" ON)
 
@@ -142,18 +152,27 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/ChFluidContainer.cpp
     physics/ChFEAContainer.cpp
     physics/Ch3DOFRigidContainer.cpp
-    physics/ChMPM.cu
     )
     
 SOURCE_GROUP(physics FILES ${ChronoEngine_Parallel_PHYSICS})
 
+SET(ChronoEngine_Parallel_CUDA
+	#math/matrix.cu
+	#math/matrixf.cu
+    #math/matrixf.cuh
+    #math/real3.cu
+    #math/real4.cu
+    #math/vec3.cu
+    physics/ChMPM.cu
+    )
+    
+    
+SOURCE_GROUP(cuda FILES ${ChronoEngine_Parallel_CUDA})
+    
 SET(ChronoEngine_Parallel_MATH
     math/ChParallelMath.h
     math/matrix.cpp
-    #math/matrix.cu
     math/matrix.h
-    #math/matrixf.cu
-    #math/matrixf.cuh
     math/other_types.h
     math/real.h
     math/real_double.h
@@ -161,10 +180,8 @@ SET(ChronoEngine_Parallel_MATH
     math/real2.h
     math/real2.cpp
     math/real3.cpp
-    #math/real3.cu
     math/real3.h
     math/real4.cpp
-    #math/real4.cu
     math/real4.h
     math/simd_avx.h
     math/simd_non.h
@@ -173,7 +190,6 @@ SET(ChronoEngine_Parallel_MATH
     math/svd.h
     math/utility.h
     math/vec3.cpp
-    #math/vec3.cu
     )
 
 SOURCE_GROUP(math FILES ${ChronoEngine_Parallel_MATH})
@@ -359,7 +375,20 @@ ENDIF()
 # Add the ChronoEngine_parallel library
 # ------------------------------------------------------------------------------
 
+
+IF(USE_PARALLEL_CUDA)
 CUDA_ADD_LIBRARY(ChronoEngine_parallel SHARED
+            ${ChronoEngine_Parallel_BASE}
+            ${ChronoEngine_Parallel_PHYSICS}
+            ${ChronoEngine_Parallel_CUDA}
+            ${ChronoEngine_Parallel_COLLISION}
+            ${ChronoEngine_Parallel_CONSTRAINTS}
+            ${ChronoEngine_Parallel_SOLVER}
+            ${ChronoEngine_Parallel_MATH}
+            )
+	SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
+ELSE()
+ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_BASE}
             ${ChronoEngine_Parallel_PHYSICS}
             ${ChronoEngine_Parallel_COLLISION}
@@ -367,16 +396,11 @@ CUDA_ADD_LIBRARY(ChronoEngine_parallel SHARED
             ${ChronoEngine_Parallel_SOLVER}
             ${ChronoEngine_Parallel_MATH}
             )
-
- SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${CUDA_FRAMEWORK} ${MPI_LIBRARIES} ${TBB_LIBRARIES})
-
- IF(ENABLE_MODULE_FEA)
-	SET(CHRONO_PARALLEL_LINKED_LIBRARIES ${CHRONO_PARALLEL_LINKED_LIBRARIES} ChronoEngine_fea)
+	SET(CHRONO_PARALLEL_LINKED_LIBRARIES ChronoEngine ${MPI_LIBRARIES} ${TBB_LIBRARIES})
 ENDIF()
 
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    SET_TARGET_PROPERTIES( ChronoEngine_parallel PROPERTIES XCODE_ATTRIBUTE_ENABLE_OPENMP_SUPPORT YES)
-    FIND_LIBRARY(CUDA_FRAMEWORK CUDA)
+IF(ENABLE_MODULE_FEA)
+	SET(CHRONO_PARALLEL_LINKED_LIBRARIES ${CHRONO_PARALLEL_LINKED_LIBRARIES} ChronoEngine_fea)
 ENDIF()
 
 SET_TARGET_PROPERTIES(ChronoEngine_parallel PROPERTIES
