@@ -226,8 +226,6 @@ ELSE()
   SET(CE_OpenGL_BULLET_FILES "")
 ENDIF()
 
-INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
-
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
