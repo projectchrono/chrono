@@ -194,9 +194,15 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireType(ANCF);
     my_hmmwv.Initialize();
 
-    // Access one of the ANCF tires of the vehicle.
-    ////HMMWV_ANCFTire* tire_FL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_LEFT));
-    ////tire_FL->EnablePressure(true);
+    // Access the vehicle ANCF tires
+    HMMWV_ANCFTire* tire_FL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_LEFT));
+    HMMWV_ANCFTire* tire_FR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
+    HMMWV_ANCFTire* tire_RL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_LEFT));
+    HMMWV_ANCFTire* tire_RR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_RIGHT));
+    ////tire_FL->EnablePressure(false);
+    ////tire_FR->EnablePressure(false);
+    ////tire_RL->EnablePressure(false);
+    ////tire_RR->EnablePressure(false);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
@@ -248,6 +254,12 @@ int main(int argc, char* argv[]) {
 
     MyDriver driver(my_hmmwv.GetVehicle(), 0.5);
     driver.Initialize();
+
+    // ----------------------------
+    // Complete system construction
+    // ----------------------------
+
+    system->SetupInitial();
 
     // ---------------
     // Simulation loop
