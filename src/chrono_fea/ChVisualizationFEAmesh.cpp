@@ -184,8 +184,8 @@ void TriangleNormalsCompute(ChVector<int> norm_indexes,
 	accumul[norm_indexes.y] +=1;
 	accumul[norm_indexes.z] +=1;
 }
-void TriangleNormalsSmooth(std::vector<ChVector<> >& normals, std::vector<int>& accumul, int nvertices) {
-	for (unsigned int nn = 0; nn < nvertices; ++nn) {
+void TriangleNormalsSmooth(std::vector<ChVector<> >& normals, std::vector<int>& accumul) {
+    for (unsigned int nn = 0; nn < normals.size(); ++nn) {
 		normals[nn] = normals[nn] * (1.0 / (double)accumul[nn]);
 	}
 }
@@ -996,7 +996,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                                    trianglemesh.getCoordsVertices(), trianglemesh.getCoordsNormals(),
                                    normal_accumulators);
 
-		TriangleNormalsSmooth(trianglemesh.getCoordsNormals(), normal_accumulators, trianglemesh.getIndicesVertexes().size());
+		TriangleNormalsSmooth( trianglemesh.getCoordsNormals(), normal_accumulators);
 	}
 
 	// other flags
