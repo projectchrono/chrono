@@ -62,13 +62,17 @@ void ChMapMatrix::Reset(int nrows, int ncols, int nonzeros) {
 }
 
 void ChMapMatrix::SetElement(int row, int col, double elem, bool overwrite) {
-    // Check if an element at this column already exists
+    // Check if an element at this column already exists.
     auto my_elem = m_rows[row].m_data.find(col);
     if (my_elem == m_rows[row].m_data.end()) {
-        m_rows[row].m_data.insert(std::make_pair(col, elem));
-        m_rows[row].m_nnz++;
-        m_nnz++;
+        // The element did not exist. Only insert a non-zero value.
+        if (elem != 0) {
+            m_rows[row].m_data.insert(std::make_pair(col, elem));
+            m_rows[row].m_nnz++;
+            m_nnz++;
+        }
     } else {
+        // The element exists. Overwrite (zero element allowed) or increment.
         if (overwrite)
             my_elem->second = elem;
         else
