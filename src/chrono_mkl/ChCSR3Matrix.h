@@ -1,3 +1,17 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+
 #ifndef CHCSR3MATRIX_H
 #define CHCSR3MATRIX_H
 
@@ -6,8 +20,6 @@
 
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono_mkl/ChApiMkl.h"
-
-#define ALIGNMENT_REQUIRED true
 
 namespace chrono {
 
@@ -60,30 +72,18 @@ arrays
 
 class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
   private:
-    bool reallocation_occurred;
-    const int array_alignment;
-    bool isCompressed;
-    int max_shifts;
-    double* values;
-    int* colIndex;
-    int* rowIndex;
-    int colIndex_occupancy;  ///< effective occupancy of \c values (and so of \c colIndex) arrays in memory;
-    ///< \c colIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred
-    ///without a \c Trim();
-    int rowIndex_occupancy;
-    ///< \c rowIndex_occupancy differs from \c rowIndex[rows] when a \c Compress(), \c Reset() or \c Resize occurred
-    ///without a \c Trim();
-    bool rowIndex_lock;  ///< TRUE if the matrix should always keep the same number of element for each row
-    bool colIndex_lock;  ///< TRUE if the matrix elements should keep always the same position
-    bool rowIndex_lock_broken;
-    bool colIndex_lock_broken;
-    enum symmetry_type {
-        NO_SYMMETRY = 11,
-        UPPER_SYMMETRY_POSDEF = 2,
-        UPPER_SYMMETRY_INDEF = -2,
-        LOWER_SYMMETRY = 20,
-        STRUCTURAL_SYMMETRY = 1
-    } symmetry;
+    const int array_alignment = 64;
+    bool isCompressed = false;
+    int max_shifts = std::numeric_limits<int>::max();
+
+    // CSR matrix arrays.
+    // Note that m_capacity may be larger than NNZ before a call to Trim()
+    int m_capacity;  ///< actual size of 'colIndex' and 'values' arrays in memory
+    double* values;  ///< array of matrix values (length: m_capacity)
+    int* colIndex;   ///< array of column indices (length: m_capacity)
+    int* rowIndex;   ///< array of row indices (length: m_num_rows+1)
+
+    bool m_lock_broken = false;  ///< true if a modification was made that overrules m_lock
 
   protected:
     void insert(int insrow, int inscol, double insval, int& col_sel);
@@ -98,42 +98,51 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int insrow = 3, int inscol = 3, int nonzeros = 0);
-    ChCSR3Matrix(int insrow, int inscol, int* nonzeros);
+    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1);
+    ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
     virtual ~ChCSR3Matrix();
-
-    double* GetValuesAddress() const { return values; };
-    int* GetColIndexAddress() const { return colIndex; };
-    int* GetRowIndexAddress() const { return rowIndex; };
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
 
+    //double& Element(int row, int col);
     double& Element(int row, int col);
     double& operator()(int row, int col) { return Element(row, col); }
-    double& operator()(int index) { return Element(index / GetColumns(), index % GetColumns()); }
+    double& operator()(int index) { return Element(index / m_num_cols, index % m_num_cols); }
 
     // Size manipulation
     virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
-    virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override;
+    virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override {
+        Reset(nrows, ncols, nonzeros);
+        return true;
+    }
 
-    void Compress();  // purge the matrix from all the unininitialized elements
-    void Trim();      // trims the arrays so to have exactly the dimension needed, nothing more. (arrays are not moved)
+    /// Get the number of non-zero elements in this matrix.
+    virtual int GetNNZ() const override { return rowIndex[m_num_rows]; }
+
+    /// Return the row index array in the CSR representation of this matrix.
+    virtual int* GetCSR_RowIndexArray() const override { return rowIndex; }
+
+    /// Return the column index array in the CSR representation of this matrix.
+    virtual int* GetCSR_ColIndexArray() const override { return colIndex; }
+
+    /// Return the array of matrix values in the CSR representation of this matrix.
+    virtual double* GetCSR_ValueArray() const override { return values; }
+
+    /// Compress the internal arrays and purge all uninitialized elements.
+    virtual bool Compress() override;
+
+    /// Trims the internal arrays to have exactly the dimension needed, nothing more.
+    /// Data arrays are not moved.
+    void Trim();
     void Prune(double pruning_threshold = 0);
 
     // Auxiliary functions
-    int GetColIndexLength() const { return rowIndex[rows]; };
-    int GetColIndexMemOccupancy() const { return colIndex_occupancy; };
-    int GetRowIndexMemOccupancy() const { return rowIndex_occupancy; };
+    int GetColIndexLength() const { return rowIndex[m_num_rows]; }
+    int GetColIndexCapacity() const { return m_capacity; }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
-    void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; };
-    void SetRowIndexLock(bool on_off) { rowIndex_lock = on_off; }
-    void SetColIndexLock(bool on_off) { colIndex_lock = on_off; }
+    void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
     bool IsCompressed() const { return isCompressed; }
-    bool IsRowIndexLockBroken() const { return rowIndex_lock_broken; }
-    bool IsColIndexLockBroken() const { return colIndex_lock_broken; }
-    void SetSymmetry(symmetry_type sym) { symmetry = sym; }
-    symmetry_type GetSymmetry() const { return symmetry; }
 
     // Testing functions
     bool CheckArraysAlignment(int alignment = 0) const;
@@ -148,6 +157,6 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
 
 /// @} mkl_module
 
-};  // END namespace chrono
+};  // end namespace chrono
 
 #endif

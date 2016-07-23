@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "chrono/core/ChLinkedListMatrix.h"
+#include "chrono/core/ChMapMatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
@@ -28,6 +29,8 @@ using std::cout;
 using std::endl;
 
 bool testLinkedListMatrix() {
+    cout << endl << "---  LinkedListMatrix ---" << endl << endl;
+
     bool passed = true;
     double tolerance = 1e-10;
 
@@ -176,10 +179,78 @@ bool testLinkedListMatrix() {
     return passed;
 }
 
+bool testMapMatrix() {
+    bool passed = true;
+    double tolerance = 1e-10;
+
+    cout << endl << "---  MapMatrix ---" << endl;
+
+    // Set and get elements
+    cout << "\nTest set and get elements" << endl;
+    cout << "-------------------------" << endl;
+    ChMapMatrix A(5, 5);
+    A.SetElement(1, 0, 0.130);
+    A.SetElement(3, 0, 0.012);
+    A.SetElement(2, 1, 1);
+    A.SetElement(0, 2, -1);
+    A.SetElement(3, 2, 0.337);
+    A.SetElement(1, 3, 0.569);
+    A.SetElement(4, 3, -0.1);
+    A.SetElement(2, 4, 0.469);
+    A.SetElement(4, 4, 1);
+    A.StreamOUTsparseMatlabFormat(GetLog());
+    A.StreamOUT(GetLog());
+
+    cout << "\nTest changing existing element" << endl;
+    cout << "------------------------------" << endl;
+    cout << "   replace A(3,2) = -2" << endl;
+    A.SetElement(3, 2, -2);
+    A.StreamOUTsparseMatlabFormat(GetLog());
+    cout << "   increment A(1,3) += 1" << endl;
+    A.SetElement(1, 3, 1, false);
+    A.StreamOUTsparseMatlabFormat(GetLog());
+
+    cout << "\nTest copy constructor" << endl;
+    cout << "---------------------" << endl;
+    ChMapMatrix B(A);
+    B.StreamOUTsparseMatlabFormat(GetLog());
+
+    cout << "\nTest conversion to CSR" << endl;
+    cout << "----------------------" << endl;
+    std::vector<int> ia;
+    std::vector<int> ja;
+    std::vector<double> a;
+    A.ConvertToCSR(ia, ja, a);
+    cout << " IA: ";
+    for (auto i : ia)
+        cout << i << "  ";
+    cout << endl << " JA: ";
+    for (auto i : ja)
+        cout << i << "  ";
+    cout << endl << "  A: ";
+    for (auto i : a)
+        cout << i << "  ";
+    cout << endl;
+
+    cout << "\nTest conversion to dense matrix" << endl;
+    cout << "-------------------------------" << endl;
+    ChMatrixDynamic<double> Afull;
+    A.ConvertToDense(Afull);
+    Afull.StreamOUT(GetLog());
+
+    cout << "\nTest constructor from dense matrix" << endl;
+    cout << "----------------------------------" << endl;
+    ChMapMatrix C(Afull);
+    C.StreamOUTsparseMatlabFormat(GetLog());
+
+    return passed;
+}
+
 int main(int argc, char* argv[]) {
     bool passed = true;
 
     passed &= testLinkedListMatrix();
+    passed &= testMapMatrix();
 
     cout << endl << "UNIT TEST " << (passed ? "PASSED" : "FAILED") << endl;
     return !passed;

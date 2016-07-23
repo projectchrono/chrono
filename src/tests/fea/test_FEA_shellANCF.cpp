@@ -15,6 +15,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChMapMatrix.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystem.h"
@@ -165,16 +166,21 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
 
     // Set up solver
 #ifdef CHRONO_MKL
-    ChSolverMKL* mkl_solver_stab = nullptr;
-    ChSolverMKL* mkl_solver_speed = nullptr;
+    ChSolverMKL<>* mkl_solver_stab = nullptr;
+    ChSolverMKL<>* mkl_solver_speed = nullptr;
+    ////ChSolverMKL<ChMapMatrix>* mkl_solver_stab = nullptr;
+    ////ChSolverMKL<ChMapMatrix>* mkl_solver_speed = nullptr;
 
     if (use_mkl) {
-        mkl_solver_stab = new ChSolverMKL;
-        mkl_solver_speed = new ChSolverMKL;
+        mkl_solver_stab = new ChSolverMKL<>;
+        mkl_solver_speed = new ChSolverMKL<>;
+        ////mkl_solver_stab = new ChSolverMKL<ChMapMatrix>;
+        ////mkl_solver_speed = new ChSolverMKL<ChMapMatrix>;
         my_system.ChangeSolverStab(mkl_solver_stab);
         my_system.ChangeSolverSpeed(mkl_solver_speed);
         mkl_solver_speed->SetSparsityPatternLock(true);
         mkl_solver_stab->SetSparsityPatternLock(true);
+        mkl_solver_speed->SetVerbose(verbose);
     }
 #endif
 
@@ -226,6 +232,11 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
     int num_jacobian_calls = 0;
 
     for (int istep = 0; istep < num_steps; istep++) {
+        if (verbose) {
+            cout << "-------------------------------------------------------------------" << endl;
+            cout << "STEP: " << istep << endl;
+        }
+
         my_mesh->ResetCounters();
         my_mesh->ResetTimers();
 #ifdef CHRONO_MKL
@@ -235,6 +246,8 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         my_system.DoStepDynamics(step_size);
 
         if (istep == skip_steps) {
+            if (verbose)
+                cout << "Resetting counters at step = " << istep << endl;
             time_skipped = time_total;
             time_total = 0;
             time_setup = 0;
@@ -278,10 +291,20 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         const ChVector<>& p = nodetip->GetPos();
 
         if (verbose) {
-            cout << "-------------------------------------------------------------------" << endl;
-            cout << my_system.GetChTime() << "  ";
-            cout << "   " << my_system.GetTimerStep();
-            cout << "   [ " << p.x << " " << p.y << " " << p.z << " ]" << endl;
+            cout << endl;
+            cout << "t = " << my_system.GetChTime() << "  ";
+            cout << "node: [ " << p.x << " " << p.y << " " << p.z << " ]  " << endl;
+            cout << "step:  " << my_system.GetTimerStep() << endl;
+            cout << "setup: " << my_system.GetTimerSetup();
+#ifdef CHRONO_MKL
+            if (use_mkl) {
+                cout << "  assembly: " << mkl_solver_speed->GetTimeSetupAssembly();
+                cout << "  pardiso: " << mkl_solver_speed->GetTimeSetupPardiso();
+            }
+#endif
+            cout << endl;
+            cout << "solve: " << my_system.GetTimerSolver() << "  ";
+            cout << endl << endl;
         }
 
         if (output) {

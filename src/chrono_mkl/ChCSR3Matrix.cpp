@@ -1,61 +1,54 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
+
 #include <mkl.h>
 #include <algorithm>
+#include <cmath>
+
 #include "chrono_mkl/ChCSR3Matrix.h"
+
+#define ALIGNMENT_REQUIRED true
 
 namespace chrono {
 
-ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int nonzeros)
-    : reallocation_occurred(false),
-      array_alignment(64),
-      isCompressed(false),
-      max_shifts(std::numeric_limits<int>::max()),
-      rowIndex_lock(false),
-      colIndex_lock(false),
-      rowIndex_lock_broken(false),
-      colIndex_lock_broken(false),
-      symmetry(NO_SYMMETRY) {
-    assert(insrow > 0 && inscol > 0 && nonzeros >= 0);
+ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int nonzeros)
+    : ChSparseMatrix(nrows, ncols) {
+    assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
-    rows = insrow;
-    columns = inscol;
+    if (nonzeros == 0) nonzeros = static_cast<int>(m_num_rows*(m_num_cols*SPM_DEF_FULLNESS));
 
-    if (nonzeros == 0) nonzeros = static_cast<int>(rows*(columns*SPM_DEF_FULLNESS));
+    m_capacity = std::max(m_num_rows, nonzeros);
 
-    colIndex_occupancy = std::max(rows, nonzeros);
-    rowIndex_occupancy = rows + 1;
-
-    values = static_cast<double*>(mkl_malloc(colIndex_occupancy * sizeof(double), array_alignment));
-    colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy * sizeof(int), array_alignment));
-    rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy * sizeof(int), array_alignment));
+    values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
+    colIndex = static_cast<int*>(mkl_malloc(m_capacity * sizeof(int), array_alignment));
+    rowIndex = static_cast<int*>(mkl_malloc((m_num_rows + 1) * sizeof(int), array_alignment));
 
     initialize();
 }
 
-ChCSR3Matrix::ChCSR3Matrix(int insrow, int inscol, int* nonzeros_vector)
-    : reallocation_occurred(false),
-      array_alignment(64),
-      isCompressed(false),
-      max_shifts(std::numeric_limits<int>::max()),
-      rowIndex_lock(false),
-      colIndex_lock(false),
-      rowIndex_lock_broken(false),
-      colIndex_lock_broken(false),
-      symmetry(NO_SYMMETRY) {
-    assert(insrow > 0 && inscol > 0);
+ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, int* nonzeros_vector)
+    : ChSparseMatrix(nrows, ncols) {
+    assert(nrows > 0 && ncols > 0);
 
-    rows = insrow;
-    columns = inscol;
-
-    colIndex_occupancy = 0;
-    for (int row_sel = 0; row_sel < rows; row_sel++) {
-        colIndex_occupancy += nonzeros_vector[row_sel];
+    m_capacity = 0;
+    for (int row_sel = 0; row_sel < m_num_rows; row_sel++) {
+        m_capacity += nonzeros_vector[row_sel];
     }
 
-    rowIndex_occupancy = rows + 1;
-
-    values = static_cast<double*>(mkl_malloc(colIndex_occupancy * sizeof(double), array_alignment));
-    colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy * sizeof(int), array_alignment));
-    rowIndex = static_cast<int*>(mkl_malloc(rowIndex_occupancy * sizeof(int), array_alignment));
+    values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
+    colIndex = static_cast<int*>(mkl_malloc(m_capacity * sizeof(int), array_alignment));
+    rowIndex = static_cast<int*>(mkl_malloc((m_num_rows + 1) * sizeof(int), array_alignment));
 
     initialize(nonzeros_vector);
 }
@@ -67,28 +60,27 @@ ChCSR3Matrix::~ChCSR3Matrix() {
 }
 
 void ChCSR3Matrix::SetElement(int insrow, int inscol, double insval, bool overwrite) {
-    assert(insrow < rows && inscol < columns);
+    assert(insrow < m_num_rows && inscol < m_num_cols);
     assert(insrow >= 0 && inscol >= 0);
 
-    if ((symmetry == UPPER_SYMMETRY_POSDEF || symmetry == UPPER_SYMMETRY_INDEF) && insrow < inscol ||
-        symmetry == LOWER_SYMMETRY && insrow > inscol)
+    if ((m_type == SYMMETRIC_POSDEF || m_type == SYMMETRIC_INDEF) && insrow < inscol)
         return;
 
-    // WARNING: you MUST check if insval!=0 because of known issues of current release of Pardiso (11.2 Update 2);
-    // if the matrix is filled with too many zeros it gives unpredictable behaviour
-    // if you need to insert a 0 use Element() instead
+    // WARNING: if you fill the matrix with too many zeros Pardiso will give unpredictable behavior,
+    // at least up until MKL 11.3 update 3
+    // if you want to avoid the insertion of zeros just turn off the sparsity pattern lock
     int col_sel = rowIndex[insrow];
     while (1) {
         // case: element not found in the row OR another element with a higher col number is already been stored
         if (col_sel >= rowIndex[insrow + 1] || colIndex[col_sel] > inscol) {
-            if (insval != 0)  // avoid to insert zero elements
+            if (insval != 0 || m_lock)  // avoid to insert zero elements
                 insert(insrow, inscol, insval, col_sel);
             break;
         }
 
         // case: empty space
         if (colIndex[col_sel] == -1) {
-            if (insval != 0)  // avoid to insert zero elements
+            if (insval != 0 || m_lock)  // avoid to insert zero elements
             {
                 values[col_sel] = insval;
                 colIndex[col_sel] = inscol;
@@ -110,10 +102,10 @@ void ChCSR3Matrix::SetElement(int insrow, int inscol, double insval, bool overwr
 
 /// This function arranges the space to let the new element be put in the arrays.
 void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
-    colIndex_lock_broken = true;
+    m_lock_broken = true;
     int col_shift = 1;            // an offset from the current position that points to the empty location found
-    int col_sel_empty = col_sel;  // the location in which the new element will be put (if a space will be found it will
-                                  // be different from col_sel)
+    int col_sel_empty = col_sel;  // the location in which the new element will be put (if a space will be found it
+                                  // will be different from col_sel)
 
     /****************** STEP 1 ******************/
 
@@ -137,10 +129,9 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     // but
     // this will introduce another 2 more condition check that have to be done at every iteration also if they'll be hit
     // very rarely.
-    while (col_shift < max_shifts && col_sel - col_shift > -1 && col_sel + col_shift < rowIndex[rows])  // 1st While
-    {
-        if (colIndex[col_sel - col_shift] == -1 && !rowIndex_lock)  // backward check
-        {
+    while (col_shift < max_shifts && col_sel - col_shift > -1 && col_sel + col_shift < rowIndex[m_num_rows]) {
+        // backward check
+        if (colIndex[col_sel - col_shift] == -1 && !m_lock) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
             // uninitialized;
             for (; rowIndex[row_sel_bw] > col_sel - col_shift && row_sel_bw >= 0; row_sel_bw--) {
@@ -156,14 +147,14 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
             break;
         }
 
-        if (colIndex[col_sel + col_shift] == -1)  // forward check
-        {
+        // forward check
+        if (colIndex[col_sel + col_shift] == -1) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
             // uninitialized;
-            for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= rows; row_sel_fw++) {
+            for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= m_num_rows; row_sel_fw++) {
             }
             if (rowIndex[row_sel_fw] == col_sel + col_shift) {
-                if (row_sel_fw == rows)
+                if (row_sel_fw == m_num_rows)
                     break;
                 col_shift++;
                 continue;
@@ -174,12 +165,13 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         }
 
         col_shift++;
+
     }  // end 1st While
 
     // 2nd While: scan the last elements not already checked to the left (backward)
-    while (!rowIndex_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift > -1) {
-        if (colIndex[col_sel - col_shift] == -1)  // backward check
-        {
+    while (!m_lock && col_sel_empty == col_sel && col_shift < max_shifts && col_sel - col_shift > -1) {
+        // backward check
+        if (colIndex[col_sel - col_shift] == -1) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
             // uninitialized;
             for (; rowIndex[row_sel_bw] > col_sel - col_shift && row_sel_bw >= 0; row_sel_bw--) {
@@ -198,15 +190,15 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     }
 
     // 3rd While: scan the last elements not already checked to the right (forward)
-    while (col_sel_empty == col_sel && col_shift < max_shifts && col_sel + col_shift < rowIndex[rows]) {
-        if (colIndex[col_sel + col_shift] == -1)  // forward check
-        {
+    while (col_sel_empty == col_sel && col_shift < max_shifts && col_sel + col_shift < rowIndex[m_num_rows]) {
+        // forward check
+        if (colIndex[col_sel + col_shift] == -1) {
             // This part is very specific: it avoids to write to another row that has only one element that it's
             // uninitialized;
-            for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= rows; row_sel_fw++) {
+            for (; rowIndex[row_sel_fw] < col_sel + col_shift && row_sel_fw <= m_num_rows; row_sel_fw++) {
             }
             if (rowIndex[row_sel_fw] == col_sel + col_shift) {
-                if (row_sel_fw == rows)
+                if (row_sel_fw == m_num_rows)
                     break;
                 col_shift++;
                 continue;
@@ -229,8 +221,8 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     // case 3: the location is not found in the neighborhood ("max_shifts") of the "col_sel" cell; a reallocation is
     // needed.
 
-    // case 1
-    if (col_sel_empty > col_sel && col_sel + col_shift < rowIndex[rows] && col_shift < max_shifts) {
+    if (col_sel_empty > col_sel && col_sel + col_shift < rowIndex[m_num_rows] && col_shift < max_shifts) {
+        // case 1
         for (int col_sel_temp = col_sel_empty; col_sel_temp > col_sel; col_sel_temp--) {
             values[col_sel_temp] = values[col_sel_temp - 1];
             colIndex[col_sel_temp] = colIndex[col_sel_temp - 1];
@@ -239,10 +231,9 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         for (int row_sel = insrow + 1; rowIndex[row_sel] < col_sel_empty; row_sel++) {
             rowIndex[row_sel]++;
         }
-    }
-    // case 2
-    else if (col_sel_empty < col_sel && col_sel - col_shift > -1 && col_shift < max_shifts) {
-        assert(!rowIndex_lock);
+    } else if (col_sel_empty < col_sel && col_sel - col_shift > -1 && col_shift < max_shifts) {
+        // case 2
+        assert(!m_lock);
         col_sel--;
         for (int col_sel_temp = col_sel_empty; col_sel_temp < col_sel; col_sel_temp++) {
             values[col_sel_temp] = values[col_sel_temp + 1];
@@ -252,25 +243,26 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         for (int row_sel = insrow; row_sel > -1 && rowIndex[row_sel] > col_sel_empty; row_sel--) {
             rowIndex[row_sel]--;
         }
-    }
-    // case 3
-    else {
-        rowIndex_lock_broken = true;
+    } else {
+        // case 3
+        m_lock_broken = true;
 
-        if (colIndex_occupancy >
-            GetColIndexLength())  // that happens when a Compress() or a Reset() is not followed by a Trim()
-        {
+        if (m_capacity > GetColIndexLength()) {
+            // This is the case where a Compress() or Reset() is not followed by Trim()
             copy(values, colIndex, false, insrow, col_sel, 1);
-        } else {  // effective reallocation
+        } else {
+            // Actual reallocation
 
-            int storage_augmentation = 4;
-            colIndex_occupancy = colIndex_occupancy + storage_augmentation;
+            int new_capacity = ceil(1.75*m_capacity);
+            int storage_augmentation = new_capacity - m_capacity;
+            m_capacity = new_capacity;
+
+            //int storage_augmentation = 4;
+            //m_capacity = m_capacity + storage_augmentation;
 
             if (ALIGNMENT_REQUIRED) {
-                double* new_values =
-                    static_cast<double*>(mkl_malloc(colIndex_occupancy * sizeof(double), array_alignment));
-                int* new_colIndex = static_cast<int*>(mkl_malloc(colIndex_occupancy * sizeof(int), array_alignment));
-                reallocation_occurred = true;
+                double* new_values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
+                int* new_colIndex = static_cast<int*>(mkl_malloc(m_capacity * sizeof(int), array_alignment));
                 copy(new_values, new_colIndex, false, insrow, col_sel, storage_augmentation);
                 if (new_values != values)
                     mkl_free(values);
@@ -279,15 +271,13 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
                 values = new_values;
                 colIndex = new_colIndex;
             } else {
-                values = static_cast<double*>(mkl_realloc(values, colIndex_occupancy * sizeof(double)));
-                colIndex = static_cast<int*>(mkl_realloc(colIndex, colIndex_occupancy * sizeof(int)));
-                reallocation_occurred = true;
+                values = static_cast<double*>(mkl_realloc(values, m_capacity * sizeof(double)));
+                colIndex = static_cast<int*>(mkl_realloc(colIndex, m_capacity * sizeof(int)));
                 copy(values, colIndex, false, insrow, col_sel, storage_augmentation);
             }
 
         }  // end effective reallocation
-
-    }  // end case 3
+    }
 
     // In any case the new location should has been found; write the new values
     values[col_sel] = insval;
@@ -301,7 +291,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
 void ChCSR3Matrix::initialize(int* nonzeros_vector) {
     // rowIndex is initialized based on nonzeros_vector specification
     rowIndex[0] = 0;
-    for (int row_sel = 0; row_sel < rows; row_sel++)  // rowIndex is initialized with equally spaced indexes
+    for (int row_sel = 0; row_sel < m_num_rows; row_sel++)  // rowIndex is initialized with equally spaced indexes
     {
         rowIndex[row_sel + 1] = rowIndex[row_sel] + nonzeros_vector[row_sel];
     }
@@ -310,15 +300,16 @@ void ChCSR3Matrix::initialize(int* nonzeros_vector) {
 }
 
 void ChCSR3Matrix::initialize(int colIndex_length) {
-    if (!rowIndex_lock || rowIndex_lock_broken) {
+    if (!m_lock || m_lock_broken) {
         if (colIndex_length == 0)
-            colIndex_length = colIndex_occupancy;
+            colIndex_length = m_capacity;
 
         // rowIndex is initialized with equally spaced indexes
-        for (int row_sel = 0; row_sel <= rows; row_sel++)
+        for (int row_sel = 0; row_sel <= m_num_rows; row_sel++) {
             rowIndex[row_sel] =
                 static_cast<int>(ceil(static_cast<double>(row_sel) * (static_cast<double>(colIndex_length) + 1.0) /
-                                      (static_cast<double>(rows) + 1.0)));
+                                      (static_cast<double>(m_num_rows) + 1.0)));
+        }
 
         isCompressed = false;
     }
@@ -327,11 +318,10 @@ void ChCSR3Matrix::initialize(int colIndex_length) {
 }
 
 void ChCSR3Matrix::initialize_ValuesColIndex() {
-    if (colIndex_lock && !colIndex_lock_broken)
+    if (m_lock && !m_lock_broken) {
         for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
             values[col_sel] = 0;
-
-    else {
+    } else {
         // colIndex is initialized with -1; it means that the cell has been stored but contains an uninitialized value
         for (int col_sel = 0; col_sel < GetColIndexLength(); col_sel++)
             colIndex[col_sel] = -1;
@@ -382,7 +372,7 @@ void ChCSR3Matrix::copy(double* values_temp,
     // allow expansion
     int remaining_shifts = shifts;
     int col_sel_destination;
-    for (col_sel_destination = rowIndex[rows] + shifts - 1;
+    for (col_sel_destination = rowIndex[m_num_rows] + shifts - 1;
          col_sel_destination - remaining_shifts >= rowIndex[insrow + 1]; col_sel_destination--) {
         values_destination[col_sel_destination] = values_source[col_sel_destination - remaining_shifts];
         colIndex_destination[col_sel_destination] = colIndex_source[col_sel_destination - remaining_shifts];
@@ -413,7 +403,7 @@ void ChCSR3Matrix::copy(double* values_temp,
     // update of rowIndex
     if (shifts > 0) {
         int row_sel = insrow + 1;
-        while (row_sel <= rows) {
+        while (row_sel <= m_num_rows) {
             rowIndex[row_sel] += shifts;
             row_sel++;
         }
@@ -422,8 +412,9 @@ void ChCSR3Matrix::copy(double* values_temp,
 }
 
 void ChCSR3Matrix::GetNonZerosDistribution(int* nonzeros_vector) const {
-    for (int row_sel = 0; row_sel < rows; row_sel++)
+    for (int row_sel = 0; row_sel < m_num_rows; row_sel++) {
         nonzeros_vector[row_sel] = rowIndex[row_sel + 1] - rowIndex[row_sel];
+    }
 }
 
 bool ChCSR3Matrix::CheckArraysAlignment(int alignment) const {
@@ -440,8 +431,8 @@ bool ChCSR3Matrix::CheckArraysAlignment(int alignment) const {
 }
 
 void ChCSR3Matrix::GetMemoryInfo() const {
-    printf("\nMemory allocated: %.2f MB",
-           static_cast<double>((2 * colIndex_occupancy * sizeof(double) + rowIndex_occupancy * sizeof(int))) / 1000000);
+    size_t sizeMB = (m_capacity + m_num_rows + 1) * sizeof(int) + m_capacity * sizeof(double);
+    printf("\nMemory allocated: %.2f MB", sizeMB / 1000000.0);
 }
 
 // Verify Matrix; output:
@@ -454,7 +445,7 @@ void ChCSR3Matrix::GetMemoryInfo() const {
 
 int ChCSR3Matrix::VerifyMatrix() const {
     bool uninitialized_elements_found = false;
-    for (int row_sel = 0; row_sel < rows; row_sel++) {
+    for (int row_sel = 0; row_sel < m_num_rows; row_sel++) {
         // Check ascending order of rowIndex
         if (rowIndex[row_sel] >= rowIndex[row_sel + 1])
             return -1;
@@ -483,9 +474,9 @@ int ChCSR3Matrix::VerifyMatrix() const {
 
 int ChCSR3Matrix::VerifyMatrixByMKL() const {
     sparse_struct mat_sparse;
-    mat_sparse.n = rows;
-    mat_sparse.csr_ia = GetRowIndexAddress();
-    mat_sparse.csr_ja = GetColIndexAddress();
+    mat_sparse.n = m_num_rows;
+    mat_sparse.csr_ia = rowIndex;
+    mat_sparse.csr_ja = colIndex;
     mat_sparse.indexing = MKL_ZERO_BASED;
     mat_sparse.matrix_structure = MKL_GENERAL_STRUCTURE;
     mat_sparse.matrix_format = MKL_CSR;
@@ -507,16 +498,16 @@ void ChCSR3Matrix::ImportFromDatFile(std::string path) {
         assert(0);
 
     int row_sel = -1;
-    for (row_sel = 0; row_sel <= rows; row_sel++)
+    for (row_sel = 0; row_sel <= m_num_rows; row_sel++)
         ia_file >> rowIndex[row_sel];
     row_sel--;
 
-    Reset(rows, columns);
+    Reset(m_num_rows, m_num_cols);
 
     ia_file.seekg(0);
 
     row_sel = -1;
-    for (row_sel = 0; row_sel <= rows; row_sel++)
+    for (row_sel = 0; row_sel <= m_num_rows; row_sel++)
         ia_file >> rowIndex[row_sel];
     row_sel--;
 
@@ -535,7 +526,7 @@ void ChCSR3Matrix::ImportFromDatFile(std::string path) {
 }
 
 double ChCSR3Matrix::GetElement(int row, int col) {
-    assert(row < rows && col < columns);
+    assert(row < m_num_rows && col < m_num_cols);
     assert(row >= 0 && col >= 0);
     for (int col_sel = rowIndex[row]; col_sel < rowIndex[row + 1]; col_sel++) {
         if (colIndex[col_sel] == col) {
@@ -546,7 +537,7 @@ double ChCSR3Matrix::GetElement(int row, int col) {
 }
 
 double& ChCSR3Matrix::Element(int row, int col) {
-    assert(row < rows && col < columns);
+    assert(row < m_num_rows && col < m_num_cols);
     assert(row >= 0 && col >= 0);
 
     // It scans the array SINCE it finds the place in which the element should be;
@@ -584,168 +575,36 @@ double& ChCSR3Matrix::Element(int row, int col) {
     return values[col_sel];
 }
 
-/** Resize. If it will be asked to:
-*  - LeaveStoreAsIs: \c nonzeros==0    the algorithm doesn't change the occupancy of the \c values and \c colIndex
-* arrays
-*        -# if rows++ (row_increment) a certain amount of space is allocated for each new row
-*        -# if rows== nothing will happen
-*  - SetStorage: \c nonzeros>0    the new dimension is prescribed.
-*        -# if rows++ it's verified that the prescribed dimension fits the row increment (there must be at least one
-* element for each new row)
-*        -# if rows== ONLY the last row is expanded and filled with uninitialized spaces
-*/
-
-bool ChCSR3Matrix::Resize(int nrows, int ncols, int nonzeros) {
-    assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
-    if (rowIndex_lock)
-        rowIndex_lock_broken = true;
-
-    // we can't preserve data if any row will be cut
-    if (nrows < rows)
-        return false;
-
-    // STEP1: figure out the new storage dimension
-    int new_mat_rows = nrows;
-    int new_mat_cols = ncols;
-
-    int new_colIndex_occupancy = 0;
-    int storage_augmentation_foreachrow = 4;
-
-    if (nonzeros == 0)  // case LeaveStoreAsIs
-    {
-        if (rows == new_mat_rows)  // case LeaveStoreAsIs&row==
-            return true;
-
-        if (new_mat_rows > rows)  // case LeaveStoreAsIs&row++
-            new_colIndex_occupancy = colIndex_occupancy + (new_mat_rows - rows) * storage_augmentation_foreachrow;
-    } else  // case SetStorage
-    {
-        new_colIndex_occupancy = nonzeros;
-
-        // if the new number of rows require more space than the one imposed by the user
-        if (new_mat_rows > rows && new_colIndex_occupancy < colIndex_occupancy + (new_mat_rows - rows) * 1)
-            return false;
-    }
-
-    // if the nonzeros size requested would led to data losses then stop and return FALSE
-    if (new_colIndex_occupancy < rowIndex[rows] - 1)
-        return false;
-
-    // STEP 2: find the space for the new storage and paste the arrays in their new location
-
-    // if new the size exceeds the current storage size a reallocation is required
-    if (new_colIndex_occupancy > colIndex_occupancy) {
-        if (ALIGNMENT_REQUIRED) {
-            double* new_values =
-                static_cast<double*>(mkl_malloc(new_colIndex_occupancy * sizeof(double), array_alignment));
-            int* new_colIndex = static_cast<int*>(mkl_malloc(new_colIndex_occupancy * sizeof(int), array_alignment));
-            reallocation_occurred = true;
-            copy(new_values, new_colIndex, false);
-            if (new_values != values)
-                mkl_free(values);
-            if (new_colIndex != colIndex)
-                mkl_free(colIndex);
-            values = new_values;
-            colIndex = new_colIndex;
-        } else {
-            values = static_cast<double*>(mkl_realloc(values, new_colIndex_occupancy * sizeof(double)));
-            colIndex = static_cast<int*>(mkl_realloc(colIndex, new_colIndex_occupancy * sizeof(int)));
-            reallocation_occurred = true;
-        }
-    }
-    // if the new size is between the current storage size and the effective length of the arrays there is no need to
-    // reallocate
-    else if (new_colIndex_occupancy < colIndex_occupancy) {
-        values = static_cast<double*>(mkl_realloc(values, new_colIndex_occupancy * sizeof(double)));
-        colIndex = static_cast<int*>(mkl_realloc(colIndex, new_colIndex_occupancy * sizeof(int)));
-    }
-
-    // STEP 3: expand the arrays. Update rowIndex
-    // case row++
-    if (new_mat_rows > rows) {
-        if (new_mat_rows + 1 > rowIndex_occupancy) {
-            if (ALIGNMENT_REQUIRED) {
-                int* new_rowIndex = static_cast<int*>(mkl_malloc((new_mat_rows + 1) * sizeof(int), array_alignment));
-                reallocation_occurred = true;
-                for (int row_sel = 0; row_sel <= rows; row_sel++)
-                    new_rowIndex[row_sel] = rowIndex[row_sel];
-                if (new_rowIndex != rowIndex)
-                    mkl_free(rowIndex);
-                rowIndex = new_rowIndex;
-            } else {
-                rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (new_mat_rows + 1) * sizeof(int)));
-                reallocation_occurred = true;
-            }
-
-            rowIndex_occupancy = new_mat_rows + 1;
-        }
-
-        // the newly acquired space is equally distributed to the new rows
-        double effective_augmentation_foreachrow =
-            (static_cast<double>(new_colIndex_occupancy) - static_cast<double>(rowIndex[rows])) /
-            static_cast<double>(new_mat_rows - rows);
-
-        for (int row_sel = 1; row_sel <= new_mat_rows - rows; row_sel++) {
-            rowIndex[rows + row_sel] =
-                rowIndex[rows] +
-                static_cast<int>(ceil(static_cast<double>(row_sel) * effective_augmentation_foreachrow));
-        }
-
-    }
-    // case row==
-    else if (rows == new_mat_rows)
-        rowIndex[new_mat_rows] = new_colIndex_occupancy + 1;
-
-    // Update colInde. Set the new elements in colIndex as "not-initialized" i.e. "-1"
-    for (int col_sel = rowIndex[rows]; col_sel < rowIndex[new_mat_rows]; col_sel++) {
-        colIndex[col_sel] = -1;
-    }
-
-    colIndex_occupancy = new_colIndex_occupancy;
-    rows = new_mat_rows;
-    columns = new_mat_cols;
-    rowIndex_lock_broken = true;
-    colIndex_lock_broken = true;
-    isCompressed = false;
-
-    return true;
-
-}  // Resize
-
 void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
     assert(nrows > 0 && ncols > 0 && nonzeros >= 0);
 
     // if nonzeros are not specified then the current size is kept
-    int nonzeros_old = GetColIndexLength();
+    int nonzeros_old = GetColIndexCapacity();
     if (nonzeros == 0)
         nonzeros = nonzeros_old;
 
     // exception: if the current size is lower than the new number of rows then it must be updated
     nonzeros = std::max(nrows, nonzeros);
 
-    if (nrows != rows || ncols != columns || nonzeros != nonzeros_old) {
+    if (nrows != m_num_rows || ncols != m_num_cols || nonzeros != nonzeros_old) {
         isCompressed = false;
-        rowIndex_lock_broken = true;
-        colIndex_lock_broken = true;
+        m_lock_broken = true;
     }
 
     /* Size update */
     // after this stage the length of all the arrays must be at LEAST as long as needed;
     // all the memory-descripting variables are updated;
-    if (nrows > rows) {
+    if (nrows > m_num_rows) {
         mkl_free(rowIndex);
         rowIndex = static_cast<int*>(mkl_malloc((nrows + 1) * sizeof(int), array_alignment));
-        reallocation_occurred = true;
-        rowIndex_occupancy = nrows + 1;
     }
 
-    if (nonzeros > colIndex_occupancy) {
+    if (nonzeros > m_capacity) {
         mkl_free(values);
         mkl_free(colIndex);
         values = static_cast<double*>(mkl_malloc(nonzeros * sizeof(double), array_alignment));
         colIndex = static_cast<int*>(mkl_malloc(nonzeros * sizeof(int), array_alignment));
-        reallocation_occurred = true;
-        colIndex_occupancy = nonzeros;
+        m_capacity = nonzeros;
     }
 
     /* Values initialization */
@@ -756,21 +615,24 @@ void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros) {
     // sparsity lock status;
     // rows and columns are updated;
 
-    rows = nrows;
-    columns = ncols;
+    m_num_rows = nrows;
+    m_num_cols = ncols;
 
     initialize(nonzeros);
 
-    rowIndex_lock_broken = false;
-    colIndex_lock_broken = false;
+    m_lock_broken = false;
+}
 
-}  // Reset
+bool ChCSR3Matrix::Compress() {
+    // Do nothing if the sparsity pattern is locked and the locks are not broken.
+    if (m_lock && !m_lock_broken)
+        return false;
 
-void ChCSR3Matrix::Compress() {
+    // Compress the matrix
     int col_sel_new = 0;
     int row_sel = 0;
 
-    for (int col_sel = 0; col_sel < rowIndex[rows]; col_sel++) {
+    for (int col_sel = 0; col_sel < rowIndex[m_num_rows]; col_sel++) {
         // if an element is not initialized it would simply skip its copy
         if (colIndex[col_sel] > -1) {
             colIndex[col_sel_new] = colIndex[col_sel];
@@ -782,7 +644,7 @@ void ChCSR3Matrix::Compress() {
         // rectangular matrices)
         if (col_sel == rowIndex[row_sel]) {
             if (colIndex[col_sel] == -1) {
-                colIndex[col_sel_new] = std::min(row_sel, columns);
+                colIndex[col_sel_new] = std::min(row_sel, m_num_cols);
                 values[col_sel_new] = 0;
                 col_sel_new++;
             }
@@ -793,18 +655,19 @@ void ChCSR3Matrix::Compress() {
 
     rowIndex[row_sel] = col_sel_new;
     isCompressed = true;
-    rowIndex_lock_broken = false;
-    colIndex_lock_broken = false;
+    m_lock_broken = false;
+
+    return true;
 }
 
 void ChCSR3Matrix::Prune(double pruning_threshold) {
     if (pruning_threshold == 0) {
-        for (int col_sel = 0; col_sel < rowIndex[rows]; col_sel++) {
+        for (int col_sel = 0; col_sel < rowIndex[m_num_rows]; col_sel++) {
             if (values[col_sel] == 0)
                 colIndex[col_sel] = -1;
         }
     } else {
-        for (int col_sel = 0; col_sel < rowIndex[rows]; col_sel++) {
+        for (int col_sel = 0; col_sel < rowIndex[m_num_rows]; col_sel++) {
             if (std::abs(values[col_sel]) < pruning_threshold)
                 colIndex[col_sel] = -1;
         }
@@ -812,22 +675,13 @@ void ChCSR3Matrix::Prune(double pruning_threshold) {
 }
 
 void ChCSR3Matrix::Trim() {
-    if (colIndex_occupancy > rowIndex[rows]) {
+    if (m_capacity > rowIndex[m_num_rows]) {
         double* old_values = values;
         int* old_colIndex = colIndex;
-        values = static_cast<double*>(mkl_realloc(values, rowIndex[rows] * sizeof(double)));
-        colIndex = static_cast<int*>(mkl_realloc(colIndex, rowIndex[rows] * sizeof(int)));
-        reallocation_occurred = true;
-        colIndex_occupancy = rowIndex[rows];
+        values = static_cast<double*>(mkl_realloc(values, rowIndex[m_num_rows] * sizeof(double)));
+        colIndex = static_cast<int*>(mkl_realloc(colIndex, rowIndex[m_num_rows] * sizeof(int)));
+        m_capacity = rowIndex[m_num_rows];
         assert(old_values == values && old_colIndex);
-    }
-
-    if (rowIndex_occupancy > rows + 1) {
-        int* old_rowIndex = rowIndex;
-        rowIndex = static_cast<int*>(mkl_realloc(rowIndex, (rows + 1) * sizeof(int)));
-        rowIndex_occupancy = rows + 1;
-        reallocation_occurred = true;
-        assert(old_rowIndex == rowIndex);
     }
 }
 
@@ -840,17 +694,13 @@ void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const {
     ja_file << std::scientific << std::setprecision(precision);
     ia_file << std::scientific << std::setprecision(precision);
 
-    double* a = GetValuesAddress();
-    int* ja = GetColIndexAddress();
-    int* ia = GetRowIndexAddress();
-
-    for (int col_sel = 0; col_sel < ia[GetRows()]; col_sel++) {
-        a_file << a[col_sel] << "\n";
-        ja_file << ja[col_sel] << "\n";
+    for (int col_sel = 0; col_sel < rowIndex[m_num_rows]; col_sel++) {
+        a_file << values[col_sel] << "\n";
+        ja_file << colIndex[col_sel] << "\n";
     }
 
-    for (int row_sel = 0; row_sel <= GetRows(); row_sel++) {
-        ia_file << ia[row_sel] << "\n";
+    for (int row_sel = 0; row_sel <= m_num_rows; row_sel++) {
+        ia_file << rowIndex[row_sel] << "\n";
     }
 
     a_file.close();

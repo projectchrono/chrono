@@ -5,17 +5,6 @@
 
 using namespace chrono;
 
-
-template<class ChMatrixIN>
-void PrintMatrix(ChMatrixIN& matrice){
-	for (int i = 0; i < matrice.GetRows(); i++){
-		for (int j = 0; j < matrice.GetColumns(); j++){
-			printf("%f ", matrice.GetElement(i,j));
-		}
-		printf("\n");
-	}
-}
-
 void LoadFromMatrix(ChMatrix<>& output_mat, std::string filename)
 {
 	std::ifstream my_file;
@@ -91,9 +80,8 @@ void test_CSR3()
 
 	/////////////////
 	std::cout << std::endl << "//////////// CSR3 Matrix: Sparsity pattern testing //////////////" << std::endl;
-	matCSR3_1.SetRowIndexLock(true);
-	matCSR3_1.SetColIndexLock(true);
-	matCSR3_1.Reset(matCSR3_1.GetRows(), matCSR3_1.GetColumns());
+	matCSR3_1.SetSparsityPatternLock(true);
+	matCSR3_1.Reset(matCSR3_1.GetNumRows(), matCSR3_1.GetNumColumns());
 
 	for (int i = 0; i < m; i++)
 	{
@@ -142,7 +130,7 @@ void test_MklEngine()
 
 
 	// Solve with Pardiso Sparse Direct Solver
-	ChMklEngine pardiso_solver(n, 11);
+	ChMklEngine pardiso_solver(n, ChSparseMatrix::GENERAL);
 	matCSR3.Compress();
 	pardiso_solver.SetProblem(matCSR3, rhs, sol);
 
@@ -150,9 +138,7 @@ void test_MklEngine()
 	printf("\nPardiso exited with code: %d\n", pardiso_message);
 
 	// Print statistics
-	ChMatrixDynamic<double> res(n, 1);
-	pardiso_solver.GetResidual(res);
-	double res_norm = pardiso_solver.GetResidualNorm(res);
+	double res_norm = pardiso_solver.GetResidualNorm();
 	GetLog() << "\nResidual Norm: " << res_norm << "\n\n";
 }
 
