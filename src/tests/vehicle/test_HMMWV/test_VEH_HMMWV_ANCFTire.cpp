@@ -150,8 +150,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_MKL
     // MKL solver settings
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     system->ChangeSolverStab(mkl_solver_stab);
     system->ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
