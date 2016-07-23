@@ -33,7 +33,6 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
       m_contact_type(NODE_CLOUD),
       m_contact_node_radius(0.001),
       m_contact_face_thickness(0.0),
-      m_use_mat_props(true),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
       m_friction(0.6f),
@@ -48,15 +47,11 @@ ChDeformableTire::ChDeformableTire(const std::string& name)
 // -----------------------------------------------------------------------------
 void ChDeformableTire::SetContactMaterialProperties(float young_modulus,
                                                     float poisson_ratio) {
-    m_use_mat_props = true;
-
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
 }
 
 void ChDeformableTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_use_mat_props = false;
-
     m_kn = kn;
     m_gn = gn;
     m_kt = kt;
@@ -96,20 +91,12 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     m_contact_mat = std::make_shared<ChMaterialSurfaceDEM>();
     m_contact_mat->SetFriction(m_friction);
     m_contact_mat->SetRestitution(m_restitution);
-
-    if (m_use_mat_props) {
-        m_contact_mat->SetYoungModulus(m_young_modulus);
-        m_contact_mat->SetPoissonRatio(m_poisson_ratio);
-
-        system->UseMaterialProperties(true);
-    } else {
-        m_contact_mat->SetKn(m_kn);
-        m_contact_mat->SetGn(m_gn);
-        m_contact_mat->SetKt(m_kt);
-        m_contact_mat->SetGt(m_gt);
-
-        system->UseMaterialProperties(false);
-    }
+    m_contact_mat->SetYoungModulus(m_young_modulus);
+    m_contact_mat->SetPoissonRatio(m_poisson_ratio);
+    m_contact_mat->SetKn(m_kn);
+    m_contact_mat->SetGn(m_gn);
+    m_contact_mat->SetKt(m_kt);
+    m_contact_mat->SetGt(m_gt);
 
     // Enable tire contact
     if (m_contact_enabled) {
@@ -124,11 +111,13 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
     }
 
     // Attach mesh visualization (with default settings)
-    m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-    m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-    m_visualization->SetColorscaleMinMax(0.0, 1);
-    m_visualization->SetSmoothFaces(true);
-    m_mesh->AddAsset(m_visualization);
+    if (m_vis_enabled) {
+        m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+        m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+        m_visualization->SetColorscaleMinMax(0.0, 1);
+        m_visualization->SetSmoothFaces(true);
+        m_mesh->AddAsset(m_visualization);
+    }
 }
 
 // -----------------------------------------------------------------------------

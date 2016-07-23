@@ -152,6 +152,7 @@ int main(int argc, char* argv[]) {
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
+    tire->EnableVisualization(true);
 
     tire->Initialize(wheel, LEFT);
     double tire_radius = tire->GetRadius();

@@ -72,16 +72,17 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 
     /// Set contact material properties.
-    /// Alternatively, the contact material coefficients can be set explicitly, using the
-    /// function SetContactMaterialCoefficients.
+    /// These values are used to calculate contact material coefficients (if the containing 
+    /// system is so configured and if the DEM-P contact method is being used).
     /// The default values are: Y = 2e5 and nu = 0.3
     void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
                                       float poisson_ratio   ///< [in] Poisson ratio
                                       );
 
     /// Set contact material coefficients.
-    /// Alternatively, physical material properties can be set, using the function
-    /// SetContactMaterialProperties.
+    /// These values are used directly to compute contact forces (if the containing system
+    /// is so configured and if the DEM-P contact method is being used).
+    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
     void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
                                         float gn,  ///< [in] normal contact damping
                                         float kt,  ///< [in] tangential contact stiffness
@@ -109,15 +110,15 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Note that this is not set until after tire initialization.
     std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
 
-    /// Enable/disable tire pressure.
+    /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
     bool IsPressureEnabled() const { return m_pressure_enabled; }
 
-    /// Enable/disable tire contact.
+    /// Enable/disable tire contact (default: true).
     void EnableContact(bool val) { m_contact_enabled = val; }
     bool IsContactEnabled() const { return m_contact_enabled; }
 
-    /// Enable/disable tire-rim connection.
+    /// Enable/disable tire-rim connection (default: true).
     void EnableRimConnection(bool val) { m_connection_enabled = val; }
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
@@ -202,13 +203,12 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool m_pressure_enabled;    ///< enable internal tire pressure
     bool m_contact_enabled;     ///< enable tire-terrain contact
 
-    double m_pressure; ///< internal tire pressure
+    double m_pressure;  ///< internal tire pressure
 
     ContactSurfaceType m_contact_type;  ///< type of contact surface model (node cloud or mesh)
     double m_contact_node_radius;       ///< node radius (for node cloud contact surface)
     double m_contact_face_thickness;    ///< face thickness (for mesh contact surface)
 
-    bool m_use_mat_props;   ///< specify contact material using physical properties
     float m_friction;       ///< contact coefficient of friction
     float m_restitution;    ///< contact coefficient of restitution
     float m_young_modulus;  ///< contact material Young modulus

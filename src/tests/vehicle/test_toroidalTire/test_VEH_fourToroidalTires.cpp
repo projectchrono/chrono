@@ -98,6 +98,7 @@ void MakeANCFWheel(ChSystem& my_system,
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
+    tire->EnableVisualization(true);
 
     tire->SetDivCircumference(N_Diameter);
     tire->SetDivWidth(N_Thread);

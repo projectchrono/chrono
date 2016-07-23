@@ -62,12 +62,6 @@ std::string speed_controller_file("generic/driver/SpeedController.json");
 // std::string path_file("paths/NATO_double_lane_change.txt");
 std::string path_file("paths/ISO_double_lane_change.txt");
 
-// JSON file names for vehicle model, tire models, and (simple) powertrain
-std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
-std::string rigidtire_file("generic/tire/RigidTire.json");
-std::string lugretire_file("generic/tire/LugreTire.json");
-std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
-
 // Initial vehicle location and orientation
 ChVector<> initLoc(-125, -125, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);

@@ -36,7 +36,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3), m_visualize_discs(false) {
+ChLugreTire::ChLugreTire(const std::string& name) : ChTire(name), m_stepsize(1e-3) {
     m_tireForce.force = ChVector<>(0, 0, 0);
     m_tireForce.point = ChVector<>(0, 0, 0);
     m_tireForce.moment = ChVector<>(0, 0, 0);
@@ -59,7 +59,7 @@ void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     }
 
     // Add visualization assets.
-    if (m_visualize_discs) {
+    if (m_vis_enabled) {
         double discWidth = 0.04;
         double disc_radius = GetRadius();
         const double* disc_locs = GetDiscLocations();

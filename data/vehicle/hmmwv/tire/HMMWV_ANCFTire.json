@@ -9,10 +9,8 @@
 
   "Contact Material":
   {
-     "Coefficient of Friction":    0.9,
-     "Coefficient of Restitution": 0.1,
-
-     "Use Physical Properties":  false,
+      "Coefficient of Friction":    0.9,
+      "Coefficient of Restitution": 0.1,
 
       "Properties":
       {

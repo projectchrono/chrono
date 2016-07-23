@@ -40,10 +40,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
 
     virtual ~ChLugreTire() {}
 
-    /// Enable/disable visualization of the discs.
-    /// By default, the discs defined by the LuGre tire model are not visualized.
-    void SetDiscVisualization(bool val) { m_visualize_discs = val; }
-
     /// Initialize this tire system and enable visualization of the discs.
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side
@@ -114,8 +110,6 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
         double z0;  // longitudinal direction
         double z1;  // lateral direction
     };
-
-    bool m_visualize_discs;
 
     double m_stepsize;
 

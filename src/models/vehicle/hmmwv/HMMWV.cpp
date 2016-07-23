@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include "chrono/ChConfig.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "models/vehicle/hmmwv/HMMWV.h"
@@ -40,6 +42,7 @@ HMMWV::HMMWV()
       m_pacejkaParamFile(""),
       m_chassisVis(PRIMITIVES),
       m_wheelVis(PRIMITIVES),
+      m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::HMMWV(ChSystem* system)
@@ -56,6 +59,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_pacejkaParamFile(""),
       m_chassisVis(PRIMITIVES),
       m_wheelVis(PRIMITIVES),
+      m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::~HMMWV() {
@@ -89,6 +93,12 @@ void HMMWV::Initialize() {
 
     m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
 
+#ifndef CHRONO_FEA
+    // If ANCF tire selected but not available, fall back on rigid tire.
+    if (m_tireType == ANCF)
+        m_tireType = RIGID;
+#endif
+
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
         case RIGID: {
@@ -109,13 +119,6 @@ void HMMWV::Initialize() {
             HMMWV_LugreTire* tire_FR = new HMMWV_LugreTire("FR");
             HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
             HMMWV_LugreTire* tire_RR = new HMMWV_LugreTire("RR");
-
-            if (m_wheelVis == NONE) {
-                tire_FL->SetDiscVisualization(true);
-                tire_FR->SetDiscVisualization(true);
-                tire_RL->SetDiscVisualization(true);
-                tire_RR->SetDiscVisualization(true);
-            }
 
             if (m_tire_step_size > 0) {
                 tire_FL->SetStepsize(m_tire_step_size);
@@ -181,7 +184,27 @@ void HMMWV::Initialize() {
 
             break;
         }
+        case ANCF: {
+#ifdef CHRONO_FEA
+            HMMWV_ANCFTire* tire_FL = new HMMWV_ANCFTire("FL");
+            HMMWV_ANCFTire* tire_FR = new HMMWV_ANCFTire("FR");
+            HMMWV_ANCFTire* tire_RL = new HMMWV_ANCFTire("RL");
+            HMMWV_ANCFTire* tire_RR = new HMMWV_ANCFTire("RR");
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+#endif
+            break;
+        }
     }
+
+    // Enable/disable tire visualization
+    m_tires[0]->EnableVisualization(m_tireVis);
+    m_tires[1]->EnableVisualization(m_tireVis);
+    m_tires[2]->EnableVisualization(m_tireVis);
+    m_tires[3]->EnableVisualization(m_tireVis);
 
     // Initialize the tires.
     m_tires[0]->Initialize(m_vehicle->GetWheelBody(FRONT_LEFT), LEFT);

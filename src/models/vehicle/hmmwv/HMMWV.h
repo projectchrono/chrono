@@ -26,13 +26,17 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 #include "models/ChApiModels.h"
-#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
-#include "models/vehicle/hmmwv/HMMWV_LugreTire.h"
-#include "models/vehicle/hmmwv/HMMWV_Powertrain.h"
-#include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
-#include "models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
 #include "models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
+#include "models/vehicle/hmmwv/HMMWV_Powertrain.h"
+#include "models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
+#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
+#include "models/vehicle/hmmwv/HMMWV_LugreTire.h"
+#include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
+
+#ifdef CHRONO_FEA
+#include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#endif
 
 namespace chrono {
 namespace vehicle {
@@ -52,6 +56,7 @@ class CH_MODELS_API HMMWV {
 
     void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
     void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
+    void EnableTireVis(bool val) { m_tireVis = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
 
@@ -62,7 +67,7 @@ class CH_MODELS_API HMMWV {
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_vehicle->GetChassis(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
-    ChTire& GetTire(WheelID which) { return *m_tires[which.id()]; }
+    ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
 
     void Initialize();
 
@@ -85,6 +90,7 @@ class CH_MODELS_API HMMWV {
     bool m_fixed;
     VisualizationType m_chassisVis;
     VisualizationType m_wheelVis;
+    bool m_tireVis;
 
     DrivelineType m_driveType;
     PowertrainModelType m_powertrainType;
