@@ -296,13 +296,13 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
             cout << "node: [ " << p.x << " " << p.y << " " << p.z << " ]  " << endl;
             cout << "step:  " << my_system.GetTimerStep() << endl;
             cout << "setup: " << my_system.GetTimerSetup();
+#ifdef CHRONO_MKL
             if (use_mkl) {
                 cout << "  assembly: " << mkl_solver_speed->GetTimeSetupAssembly();
                 cout << "  pardiso: " << mkl_solver_speed->GetTimeSetupPardiso();
-                cout << endl;
-            } else {
-                cout << endl;
             }
+#endif
+            cout << endl;
             cout << "solve: " << my_system.GetTimerSolver() << "  ";
             cout << endl << endl;
         }
