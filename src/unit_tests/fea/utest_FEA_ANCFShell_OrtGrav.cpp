@@ -191,8 +191,8 @@ int main(int argc, char* argv[]) {
     my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-09);
 
-    /*ChSolverMKL * mkl_solver_stab = new ChSolverMKL; // MKL Solver option
-    ChSolverMKL * mkl_solver_speed = new ChSolverMKL;
+    /*ChSolverMKL<> * mkl_solver_stab = new ChSolverMKL<>; // MKL Solver option
+    ChSolverMKL<> * mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetProblemSizeLock(true);

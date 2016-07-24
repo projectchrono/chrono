@@ -104,8 +104,8 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
 #ifdef CHRONO_MKL
     // Solver settings
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     m_system->ChangeSolverStab(mkl_solver_stab);
     m_system->ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_speed->SetSparsityPatternLock(true);
@@ -114,7 +114,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     // Solver settings
     m_system->SetMaxItersSolverSpeed(100);
     m_system->SetMaxItersSolverStab(100);
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);nu
+    m_system->SetSolverType(ChSystem::SOLVER_SOR);
     m_system->SetTol(1e-10);
     m_system->SetTolForce(1e-8);
 #endif
@@ -128,7 +128,7 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
     m_integrator->SetVerbose(true);
-	m_integrator->SetMaxItersSuccess(5);
+    m_integrator->SetMaxItersSuccess(5);
 }
 
 // -----------------------------------------------------------------------------
@@ -512,6 +512,7 @@ void RigNode::OutputData(int frame) {
         m_outf << rfrc_act.x << del << rfrc_act.y << del << rfrc_act.z << del;
         m_outf << rtrq_act.x << del << rtrq_act.y << del << rtrq_act.z << del;
         m_outf << rfrc_motor.x << del << rfrc_motor.y << del << rfrc_motor.z << del;
+        m_outf << rtrq_motor.x << del << rtrq_motor.y << del << rtrq_motor.z << del;
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
                << del << m_system->GetTimerUpdate();
@@ -634,8 +635,55 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
 // -----------------------------------------------------------------------------
 void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
     csv << m_vert_indices.size() << endl;
+    // Output nodal position, contact force, and normal vectors; and
+    // representative nodal area
+
+    // Extract mesh
+    auto my_mesh = m_tire->GetMesh();
+
+    // Vector to identify surrounding elements to a node (4 max, 2 min)
+    std::vector<std::vector<int>> NodeNeighborElement;
+    NodeNeighborElement.resize(my_mesh->GetNnodes());
+
+    // Create vector with all nodes
+    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> myvector;
+    myvector.resize(my_mesh->GetNnodes());
+    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
+        myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
+    }
+
+    // Go through the nodes of all elements and store neighboring elements to each node
+    for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
+        auto element = my_mesh->GetElement(iele);
+        int nodeOrder[] = {0, 1, 2, 3};
+        for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
+            auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
+            std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
+            it = find(myvector.begin(), myvector.end(), nodeA);
+            if (it != myvector.end()) {
+                auto index = std::distance(myvector.begin(), it);
+                NodeNeighborElement[index].push_back(iele);
+            }
+        }
+    }
+
+    // Loop to calculate representative area of a contacting node (node with net contact force)
     for (unsigned int iv = 0; iv < m_vert_indices.size(); iv++) {
-        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv] << endl;
+        double myarea = 0;
+
+        for (int j = 0; j < NodeNeighborElement[iv].size(); j++) {
+            int myelemInx = NodeNeighborElement[iv][j];
+            auto element = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx));
+            double dx = element->GetLengthX();
+            double dy = element->GetLengthY();
+            myarea += dx * dy / NodeNeighborElement[iv].size();
+        }
+        // Output index, position, force, and normal vectors, and representative area
+        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv]
+            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_tire->GetMesh()->GetNode(m_vert_indices[iv]))
+                   ->GetD()
+                   .GetNormalized()
+            << myarea << endl;
     }
 }
 

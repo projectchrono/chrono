@@ -129,7 +129,7 @@ public:
     /// when the largest side is equal or less than the resolution. Triangles out of the contact patch are not refined.
     /// Note, you must turn on automatic refinement via SetAutomaticRefinement(true)!
     void SetAutomaticRefinementResolution(double mr);
-    bool GetAutomaticRefinementResolution() const;
+    double GetAutomaticRefinementResolution() const;
 
 
     /// Set the color plot type for the soil mesh.

@@ -124,7 +124,7 @@ void DeformableTerrain::SetAutomaticRefinementResolution(double mr) {
     m_ground->refinement_resolution = mr;
 }
 
-bool DeformableTerrain::GetAutomaticRefinementResolution() const {
+double DeformableTerrain::GetAutomaticRefinementResolution() const {
     return m_ground->refinement_resolution;
 }
 

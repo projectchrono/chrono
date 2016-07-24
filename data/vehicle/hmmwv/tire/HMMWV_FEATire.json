@@ -12,8 +12,6 @@
       "Coefficient of Friction":    0.3,
       "Coefficient of Restitution": 0.2,
 
-      "Use Physical Properties":  true,
-
       "Properties":
       {       
           "Young Modulus":              1e5,

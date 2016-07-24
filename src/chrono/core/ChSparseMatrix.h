@@ -25,23 +25,60 @@ namespace chrono {
 
 /// Base class for all sparse matrices.
 class ChApi ChSparseMatrix {
-  protected:
-    int rows;
-    int columns;
-
   public:
-    ChSparseMatrix() : rows(-1), columns(-1) {}
-    ChSparseMatrix(int nrows, int ncols) : rows(nrows), columns(ncols) {}
+    enum SymmetryType {
+        GENERAL,              ///< unsymmetric matrix
+        SYMMETRIC_POSDEF,     ///< symmetric positive definite
+        SYMMETRIC_INDEF,      ///< symmetric indefinite
+        STRUCTURAL_SYMMETRIC  ///< structurally symmetric
+    };
+
+    /// Construct a sparse matrix with 'nrows' and 'ncols' and with 'nnz' non-zero elements.
+    /// By default, the matrix type is GENERAL (i.e., unsymmetric) and the sparsity pattern is unlocked.
+    ChSparseMatrix(int nrows = 0, int ncols = 0, int nnz = 0)
+        : m_num_rows(nrows), m_num_cols(ncols), m_nnz(nnz), m_type(GENERAL), m_lock(false) {}
+
+    ChSparseMatrix(const ChSparseMatrix& other) {
+        m_num_rows = other.m_num_rows;
+        m_num_cols = other.m_num_cols;
+        m_nnz = other.m_nnz;
+        m_type = other.m_type;
+        m_lock = other.m_lock;
+    }
+
     virtual ~ChSparseMatrix() {}
 
-    int GetRows() const { return rows; }
-    int GetColumns() const { return columns; }
+    /// Get the number of rows of this matrix.
+    int GetNumRows() const { return m_num_rows; }
+
+    /// Get the number of columns of this matrix.
+    int GetNumColumns() const { return m_num_cols; }
+
+    /// Get the number of non-zero elements in this matrix.
+    virtual int GetNNZ() const { return m_nnz; }
+
+    /// Set the symmetry type for this sparse matrix (default: GENERAL).
+    /// A derived class should always support GENERAL (i.e. unsymmetric matrices), but is free
+    /// to perform optimizations for symmetric or structurally symmetric matrices.
+    void SetType(SymmetryType type) { m_type = type; }
+
+    /// Return the symnmetery type of this matrix.
+    SymmetryType GetType() const { return m_type; }
+
+    /// Enable/disable a lock on the matrix sparsity pattern (default: false).
+    void SetSparsityPatternLock(bool val) { m_lock = val; }
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
     virtual double GetElement(int row, int col) = 0;
 
     virtual void Reset(int row, int col, int nonzeros = 0) = 0;
     virtual bool Resize(int nrows, int ncols, int nonzeros = 0) = 0;
+
+    /// Optional compression method, typically invoked after all elements have been inserted.
+    /// Depending on the internal data structures, a derived class may perform additional operations
+    /// for improved space or speed performance. A typical implementation should respect the sparsity
+    /// pattern lock status. This function should return true if it makes any modifications.
+    virtual bool Compress() { return false; }
 
     /// Paste the specified matrix into this sparse matrix at (insrow,inscol).
     virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
@@ -80,6 +117,15 @@ class ChApi ChSparseMatrix {
                 this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
     }
 
+    /// Return the row index array in the CSR representation of this matrix.
+    virtual int* GetCSR_RowIndexArray() const { return nullptr; }
+
+    /// Return the column index array in the CSR representation of this matrix.
+    virtual int* GetCSR_ColIndexArray() const { return nullptr; }
+
+    /// Return the array of matrix values in the CSR representation of this matrix.
+    virtual double* GetCSR_ValueArray() const { return nullptr; }
+
     // Wrapper functions
 
     virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
@@ -100,6 +146,13 @@ class ChApi ChSparseMatrix {
                                        int inscol) {
         PasteClippedMatrix(matra, cliprow, clipcol, nrows, ncolumns, insrow, inscol, false);
     }
+
+  protected:
+    int m_num_rows;       ///< number of rows
+    int m_num_cols;       ///< number of columns
+    int m_nnz;            ///< number of non-zero elements
+    SymmetryType m_type;  ///< matrix type
+    bool m_lock;          ///< indicate whether or not the matrix sparsity pattern should be locked
 };
 
 }  // end namespace chrono

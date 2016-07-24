@@ -98,6 +98,7 @@ void MakeANCFWheel(ChSystem& my_system,
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
+    tire->EnableVisualization(true);
 
     tire->SetDivCircumference(N_Diameter);
     tire->SetDivWidth(N_Thread);
@@ -243,8 +244,8 @@ int main(int argc, char* argv[]) {
         case MKL: {
 #ifdef CHRONO_MKL
             GetLog() << "Using MKL solver\n";
-            ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-            ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+            ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+            ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
             my_system.ChangeSolverStab(mkl_solver_stab);
             my_system.ChangeSolverSpeed(mkl_solver_speed);
             mkl_solver_speed->SetSparsityPatternLock(true);

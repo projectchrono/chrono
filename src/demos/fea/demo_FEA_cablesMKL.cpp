@@ -86,12 +86,14 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Change solver to MKL
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    auto mkl_solver_stab = new ChSolverMKL<>;
+    auto mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
+	mkl_solver_stab->SetSparsityPatternLock(false);
+	mkl_solver_speed->SetSparsityPatternLock(false);
+    // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
+    // Look at ChCSR3Matrix::SetElement comments to further details.
     application.GetSystem()->Update();
 
     // Change type of integrator:

@@ -1550,8 +1550,8 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
@@ -1565,6 +1565,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMaxiters(20);
     mystepper->SetAbsTolerances(4e-4, 1e-1);
     mystepper->SetMode(ChTimestepperHHT::POSITION);
+    mystepper->SetModifiedNewton(false);
     mystepper->SetVerbose(true);
     mystepper->SetScaling(true);
 

@@ -99,9 +99,9 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     /// Reset to null matrix.
     void Reset();
     /// Reset to null matrix and (if needed) changes the size.
-    virtual void Reset(int row, int col, int nonzeros = 0) override;
+    virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
     /// If size changes, is like the above, otherwise just sets the elements to zero.
-    void ResetBlocks(int row, int col);
+    void ResetBlocks(int nrows, int ncols);
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
     virtual double GetElement(int row, int col) override;
@@ -196,7 +196,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     void CountNonZeros(reserveSizeType& reserveSize, int offset = 0) {
         ChMelement* el_temp;
         // from the first element of each row scan until there's no "next" linked element
-        for (int i = 0; i < GetRows(); i++) {  // for each row
+        for (int i = 0; i < m_num_rows; i++) {  // for each row
             el_temp = elarray[i];              // start from the element [i,0]
             while (el_temp) {
                 if (el_temp->val != 0)

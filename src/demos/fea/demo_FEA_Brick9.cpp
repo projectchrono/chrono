@@ -323,8 +323,8 @@ void DPCapPress() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-	ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
 	my_system.ChangeSolverStab(mkl_solver_stab);
 	my_system.ChangeSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
@@ -353,9 +353,6 @@ void DPCapPress() {
 	application.SetPaused(true);
 
 	double force = 0.0;
-	int i1;
-	double wx;
-	double x;
 
 	while (application.GetDevice()->run() && (my_system.GetChTime() <= 0.5)) {
 		application.BeginScene();
@@ -680,8 +677,8 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
@@ -998,8 +995,8 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
@@ -1335,8 +1332,8 @@ void SoilBin() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-	ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
 	my_system.ChangeSolverStab(mkl_solver_stab);
 	my_system.ChangeSolverSpeed(mkl_solver_speed);
 	mkl_solver_stab->SetSparsityPatternLock(true);
@@ -1624,8 +1621,8 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
@@ -1875,8 +1872,8 @@ void BendingQuasiStatic() {
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
@@ -2124,8 +2121,8 @@ void SwingingShell() {
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL* mkl_solver_stab = new ChSolverMKL;
-    ChSolverMKL* mkl_solver_speed = new ChSolverMKL;
+    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
     my_system.ChangeSolverSpeed(mkl_solver_speed);
     mkl_solver_stab->SetSparsityPatternLock(true);
