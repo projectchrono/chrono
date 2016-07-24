@@ -118,7 +118,7 @@ SET(TESTS_G
     utest_PAR_bodyauxref
     utest_PAR_joints_dvi
     utest_PAR_narrowphase
-    #utest_PAR_jacobians
+    utest_PAR_jacobians
     utest_PAR_contact_forces
 )
 
