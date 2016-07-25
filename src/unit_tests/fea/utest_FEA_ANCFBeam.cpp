@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Antonio Recuero
+// Authors: Antonio Recuero, Conlain Kelly
 // =============================================================================
 //
 // Unit test for ANCF gradient-deficient beam element
@@ -19,7 +19,7 @@
 //
 // The reference file data was validated by digitizing Figs. 4 and 5 of the paper
 // Gerstmayr and Shabana, 2006, "Analysis of Thin Beams and Cables Using the Absolute
-// Nodal Co-ordinate Formulation", Nonlinear Dynamics, 45: 109–130.
+// Nodal Co-ordinate Formulation", Nonlinear Dynamics, 45: 109ï¿½130.
 //
 // Special attention must be paid to the number of Gauss points for gravity. For
 // successful verification, this number must be 2.
@@ -42,12 +42,52 @@
 #include "chrono_fea/ChLoadsBeam.h"
 #include "chrono_fea/ChMesh.h"
 
+#include "../BaseTest.h"
+
 using namespace chrono;
 using namespace chrono::fea;
 
 const double precision = 1e-6;
 
+// ====================================================================================
+
+// Test class
+class ANCFBeamTest : public BaseTest {
+  public:
+    ANCFBeamTest(const std::string& testName, const std::string& testProjectName)
+        : BaseTest(testName, testProjectName), m_execTime(0) {}
+
+    ~ANCFBeamTest() {}
+
+    // Override corresponding functions in BaseTest
+    virtual bool execute() override;
+    virtual double getExecutionTime() const override { return m_execTime; }
+
+  private:
+    double m_execTime;
+};
+
+// ====================================================================================
+
 int main(int argc, char* argv[]) {
+    bool passed;
+
+    ANCFBeamTest test("utest_FEA_ANCFBeam", "Chrono::FEA");
+    if (argc > 1) {
+        // Generate metrics JSON output files
+        test.setOutDir(argv[1]);
+        test.setVerbose(true);
+        passed = test.run();
+        test.print();
+    } else {
+        // Run in unit test mode
+        passed = test.execute();
+    }
+
+    // Return 0 if test passed
+    return !passed;
+}
+bool ANCFBeamTest::execute() {
     // Utils to open/read files: Load reference solution ("golden") file
     ChMatrixDynamic<> FileInputMat(20000, 7);
     std::string beam_validation_file = GetChronoDataPath() + "testing/" + "UT_ANCFBeam.txt";
@@ -167,7 +207,7 @@ int main(int argc, char* argv[]) {
     auto mgravity3 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
     mgravity3->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity3);
- 
+
     auto mgravity4 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
     mgravity4->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity4);
@@ -204,9 +244,12 @@ int main(int argc, char* argv[]) {
 
      for (size_t col = 0; col < 7; col++)
          m_data[col].resize(num_steps);*/
-
+    ChTimer<> timer;
     for (unsigned int it = 0; it < num_steps; it++) {
+        timer.start();
         my_system.DoStepDynamics(0.0001);
+        timer.stop();
+
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
         double AbsVal = std::abs(hnodeancf3->GetPos().y - FileInputMat[it][4]);
@@ -222,6 +265,11 @@ int main(int argc, char* argv[]) {
         }
     }
     std::cout << "Unit test check succeeded \n";
+
+    m_execTime = timer.GetTimeSeconds();
+    addMetric("num_steps", (int)num_steps);
+    addMetric("avg_time_per_step", m_execTime / num_steps);
+
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = my_system.GetChTime();
@@ -237,5 +285,5 @@ int main(int argc, char* argv[]) {
     std::cout << "Time t = " << my_system.GetChTime() << "s \n";
     csv.write_to_file("UT_ANCFBeam.txt"); */
 
-    return 0;
+    return true;
 }
