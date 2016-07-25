@@ -261,7 +261,7 @@ bool ANCFBeamTest::execute() {
                       << "  diff: " << AbsVal << ")\n";
             std::cout << "  z position: " << hnodeancf5->GetPos().z << "  (reference: " << FileInputMat[it][6]
                       << "  diff: " << AbsVal2 << ")\n";
-            return 1;
+            return false;
         }
     }
     std::cout << "Unit test check succeeded \n";
