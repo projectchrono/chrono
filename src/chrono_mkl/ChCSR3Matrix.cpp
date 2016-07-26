@@ -218,8 +218,8 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
     // STEP 2: shift the array to make space for the new element; eventually update "col_sel"
     // case 1: the uninitialized location is found forward;
     // case 2: the uninitialized location is found backward;
-    // case 3: the location is not found in the neighborhood ("max_shifts") of the "col_sel" cell; a reallocation is
-    // needed.
+    // case 3: the location is not found in the neighborhood ("max_shifts") of the "col_sel" cell;
+    // the array must be shifted (and, if the case, reallocated).
 
     if (col_sel_empty > col_sel && col_sel + col_shift < rowIndex[m_num_rows] && col_shift < max_shifts) {
         // case 1
@@ -247,9 +247,17 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
         // case 3
         m_lock_broken = true;
 
+        // If you are reading this comment it means that the arrays must be shifted and this is the most expensive operation.
+        // If you think that many other elements must be inserted 
+        // then you probably want to make room not for just the current element
+        // but, in the meantime, also for some more...
+        // The more elements you think they will be inserted, the higher 'array_shifting' should be.
+        const int array_shifting = 4;
+
         if (m_capacity > GetColIndexLength()) {
-            // This is the case where a Compress() or Reset() is not followed by Trim()
-            copy(values, colIndex, false, insrow, col_sel, 1);
+            // the new element will be inserted in 'col_sel'
+            // but first of all the arrays must shift in order to give room to the new element
+            copy(values, colIndex, false, insrow, col_sel, std::min(array_shifting, m_capacity - GetColIndexLength()));
         } else {
             // Actual reallocation
 
@@ -263,7 +271,7 @@ void ChCSR3Matrix::insert(int insrow, int inscol, double insval, int& col_sel) {
             if (ALIGNMENT_REQUIRED) {
                 double* new_values = static_cast<double*>(mkl_malloc(m_capacity * sizeof(double), array_alignment));
                 int* new_colIndex = static_cast<int*>(mkl_malloc(m_capacity * sizeof(int), array_alignment));
-                copy(new_values, new_colIndex, false, insrow, col_sel, storage_augmentation);
+                copy(new_values, new_colIndex, false, insrow, col_sel, std::min(array_shifting, storage_augmentation));
                 if (new_values != values)
                     mkl_free(values);
                 if (new_colIndex != colIndex)

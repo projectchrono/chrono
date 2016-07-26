@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Milad Rakhsha, Antonio Recuero
+// Authors: Milad Rakhsha, Antonio Recuero, Conlain Kelly
 // =============================================================================
 //
 // Unit test for EAS Brick Element
