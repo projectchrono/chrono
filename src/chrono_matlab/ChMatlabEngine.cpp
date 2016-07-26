@@ -60,22 +60,22 @@ bool ChMatlabEngine::PutVariable(const ChMatrix<double>& mmatr, string varname) 
 /// If a variable with the same name already exist, it is overwritten.
 bool ChMatlabEngine::PutSparseMatrix(const ChLinkedListMatrix& mmatr, string varname) {
     int nels = 0;
-    for (int ii = 0; ii < mmatr.GetRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
+    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
+        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
             double elVal = ((ChLinkedListMatrix&)mmatr).GetElement(ii, jj);
             if (elVal ||
-                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetColumns()))
+                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetNumRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetNumColumns()))
                 ++nels;
         }
 
     ChMatrixDynamic<> transfer(nels, 3);
 
     int eln = 0;
-    for (int ii = 0; ii < mmatr.GetRows(); ii++)
-        for (int jj = 0; jj < mmatr.GetColumns(); jj++) {
+    for (int ii = 0; ii < mmatr.GetNumRows(); ii++)
+        for (int jj = 0; jj < mmatr.GetNumColumns(); jj++) {
             double elVal = ((ChLinkedListMatrix&)mmatr).GetElement(ii, jj);
             if (elVal ||
-                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetColumns())) {
+                (ii + 1 == ((ChLinkedListMatrix&)mmatr).GetNumRows() && jj + 1 == ((ChLinkedListMatrix&)mmatr).GetNumColumns())) {
                 transfer(eln, 0) = ii + 1;
                 transfer(eln, 1) = jj + 1;
                 transfer(eln, 2) = elVal;
