@@ -18,7 +18,7 @@
 
 namespace chrono {
 
-ChMapMatrix::ChMapMatrix(int nrows = 1, int ncols = 1) : ChSparseMatrix(nrows, ncols), m_CSR_current(false) {
+ChMapMatrix::ChMapMatrix(int nrows, int ncols) : ChSparseMatrix(nrows, ncols), m_CSR_current(false) {
     m_rows.resize(nrows);
 }
 
