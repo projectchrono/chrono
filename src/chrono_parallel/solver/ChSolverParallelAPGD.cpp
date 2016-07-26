@@ -1,7 +1,7 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 using namespace chrono;
 
-ChSolverAPGD::ChSolverAPGD()
+ChSolverParallelAPGD::ChSolverParallelAPGD()
     : ChSolverParallel(),
       mg_tmp_norm(0),
       mb_tmp_norm(0),
@@ -16,7 +16,7 @@ ChSolverAPGD::ChSolverAPGD()
       L(0),
       g_diff(0) {}
 
-void ChSolverAPGD::UpdateR() {
+void ChSolverParallelAPGD::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -37,7 +37,7 @@ void ChSolverAPGD::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverAPGD::Solve(ChShurProduct& ShurProduct,
+uint ChSolverParallelAPGD::Solve(ChShurProduct& ShurProduct,
                          ChProjectConstraints& Project,
                          const uint max_iter,
                          const uint size,

@@ -7,8 +7,8 @@ ChIterativeSolverParallel::ChIterativeSolverParallel(ChParallelDataManager* dc) 
     tolerance = 1e-7;
     record_violation_history = true;
     warm_start = false;
-    solver = new ChSolverAPGD();
-    bilateral_solver = new ChSolverMinRes();
+    solver = new ChSolverParallelAPGD();
+    bilateral_solver = new ChSolverParallelMinRes();
     data_manager->rigid_rigid = new ChConstraintRigidRigid();
     data_manager->bilateral = new ChConstraintBilateral();
 }

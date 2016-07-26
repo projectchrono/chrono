@@ -2,9 +2,9 @@
 
 using namespace chrono;
 
-ChSolverSPGQP::ChSolverSPGQP() : ChSolverParallel() {}
+ChSolverParallelSPGQP::ChSolverParallelSPGQP() : ChSolverParallel() {}
 
-void ChSolverSPGQP::UpdateR() {
+void ChSolverParallelSPGQP::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -25,7 +25,7 @@ void ChSolverSPGQP::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverSPGQP::Solve(ChShurProduct& ShurProduct,
+uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
                           ChProjectConstraints& Project,
                           const uint max_iter,
                           const uint size,

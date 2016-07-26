@@ -2,7 +2,7 @@
 
 using namespace chrono;
 
-real ChSolverAPGDREF::Res4(ChShurProduct& ShurProduct,
+real ChSolverParallelAPGDREF::Res4(ChShurProduct& ShurProduct,
                            ChProjectConstraints& Project,
                            DynamicVector<real>& gamma,
                            const DynamicVector<real>& r,
@@ -17,7 +17,7 @@ real ChSolverAPGDREF::Res4(ChShurProduct& ShurProduct,
     return Sqrt((double)(tmp, tmp));
 }
 
-uint ChSolverAPGDREF::Solve(ChShurProduct& ShurProduct,
+uint ChSolverParallelAPGDREF::Solve(ChShurProduct& ShurProduct,
                             ChProjectConstraints& Project,
                             const uint max_iter,
                             const uint size,

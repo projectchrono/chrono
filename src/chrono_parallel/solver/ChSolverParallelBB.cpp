@@ -1,9 +1,9 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
 using namespace chrono;
 
-ChSolverBB::ChSolverBB() : ChSolverParallel() {}
+ChSolverParallelBB::ChSolverParallelBB() : ChSolverParallel() {}
 
-void ChSolverBB::UpdateR() {
+void ChSolverParallelBB::UpdateR() {
     const SubMatrixType& D_n_T = _DNT_;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& b = data_manager->host_data.b;
@@ -24,7 +24,7 @@ void ChSolverBB::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverBB::Solve(ChShurProduct& ShurProduct,
+uint ChSolverParallelBB::Solve(ChShurProduct& ShurProduct,
                        ChProjectConstraints& Project,
                        const uint max_iter,
                        const uint size,

@@ -405,16 +405,16 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
     }
     switch (type) {
         case APGD:
-            solver = new ChSolverAPGD();
+            solver = new ChSolverParallelAPGD();
             break;
         case APGDREF:
-            solver = new ChSolverAPGDREF();
+            solver = new ChSolverParallelAPGDREF();
             break;
         case BB:
-            solver = new ChSolverBB();
+            solver = new ChSolverParallelBB();
             break;
         case SPGQP:
-            solver = new ChSolverSPGQP();
+            solver = new ChSolverParallelSPGQP();
             break;
     }
 }

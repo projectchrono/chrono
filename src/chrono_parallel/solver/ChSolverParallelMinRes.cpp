@@ -2,7 +2,7 @@
 
 using namespace chrono;
 
-uint ChSolverMinRes::Solve(ChShurProduct& ShurProduct,
+uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
                            ChProjectConstraints& Project,
                            const uint max_iter,
                            const uint size,

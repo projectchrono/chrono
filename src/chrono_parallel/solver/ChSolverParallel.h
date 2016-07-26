@@ -132,10 +132,10 @@ class CH_PARALLEL_API ChSolverParallel {
 };
 
 //========================================================================================================
-class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelAPGDREF : public ChSolverParallel {
   public:
-    ChSolverAPGDREF() : ChSolverParallel() {}
-    ~ChSolverAPGDREF() {}
+    ChSolverParallelAPGDREF() : ChSolverParallel() {}
+    ~ChSolverParallelAPGDREF() {}
 
     // Solve using the APGD method
     uint Solve(ChShurProduct& ShurProduct,
@@ -158,10 +158,10 @@ class CH_PARALLEL_API ChSolverAPGDREF : public ChSolverParallel {
     DynamicVector<real> gammaNew, g, y, yNew, tmp;
 };
 
-class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelAPGD : public ChSolverParallel {
   public:
-    ChSolverAPGD();
-    ~ChSolverAPGD() {}
+    ChSolverParallelAPGD();
+    ~ChSolverParallelAPGD() {}
 
     // Solve using a more streamlined but harder to read version of the APGD method
     uint Solve(ChShurProduct& ShurProduct,
@@ -184,10 +184,10 @@ class CH_PARALLEL_API ChSolverAPGD : public ChSolverParallel {
     real dot_g_temp, norm_ms;
 };
 
-class CH_PARALLEL_API ChSolverBB : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelBB : public ChSolverParallel {
   public:
-    ChSolverBB();
-    ~ChSolverBB() {}
+    ChSolverParallelBB();
+    ~ChSolverParallelBB() {}
 
     // Solve using a more streamlined but harder to read version of the BB method
     uint Solve(ChShurProduct& ShurProduct,
@@ -204,10 +204,10 @@ class CH_PARALLEL_API ChSolverBB : public ChSolverParallel {
     DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
     DynamicVector<real> mD, invmD;
 };
-class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelMinRes : public ChSolverParallel {
   public:
-    ChSolverMinRes() : ChSolverParallel() {}
-    ~ChSolverMinRes() {}
+    ChSolverParallelMinRes() : ChSolverParallel() {}
+    ~ChSolverParallelMinRes() {}
 
     // Solve using the minimal residual method
     uint Solve(ChShurProduct& ShurProduct,
@@ -221,10 +221,10 @@ class CH_PARALLEL_API ChSolverMinRes : public ChSolverParallel {
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
 };
 
-class CH_PARALLEL_API ChSolverSPGQP : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelSPGQP : public ChSolverParallel {
   public:
-    ChSolverSPGQP();
-    ~ChSolverSPGQP() {}
+    ChSolverParallelSPGQP();
+    ~ChSolverParallelSPGQP() {}
 
     // Solve using a more streamlined but harder to read version of the BB method
     uint Solve(ChShurProduct& ShurProduct,
@@ -243,10 +243,10 @@ class CH_PARALLEL_API ChSolverSPGQP : public ChSolverParallel {
     std::vector<real> f_hist;
 };
 
-class CH_PARALLEL_API ChSolverCG : public ChSolverParallel {
+class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
   public:
-    ChSolverCG() : ChSolverParallel() {}
-    ~ChSolverCG() {}
+    ChSolverParallelCG() : ChSolverParallel() {}
+    ~ChSolverParallelCG() {}
 
     // Solve using the conjugate gradient method
     uint Solve(ChShurProduct& ShurProduct,

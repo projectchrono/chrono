@@ -11,12 +11,12 @@ real Convergence_Norm(const DynamicVector<real>& r) {
     }
     return result;
 }
-uint ChSolverCG::Solve(ChShurProduct& ShurProduct,
-                       ChProjectConstraints& Project,
-                       const uint max_iter,
-                       const uint size,
-                       const DynamicVector<real>& b,
-                       DynamicVector<real>& x) {
+uint ChSolverParallelCG::Solve(ChShurProduct& ShurProduct,
+                               ChProjectConstraints& Project,
+                               const uint max_iter,
+                               const uint size,
+                               const DynamicVector<real>& b,
+                               DynamicVector<real>& x) {
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
