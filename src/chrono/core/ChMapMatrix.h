@@ -31,7 +31,7 @@ namespace chrono {
 class ChApi ChMapMatrix : public ChSparseMatrix {
   public:
     /// Create a sparse matrix with given dimensions.
-    ChMapMatrix(int nrows, int ncols);
+    ChMapMatrix(int nrows = 1, int ncols = 1);
 
     /// Create a sparse matrix from a given dense matrix.
     ChMapMatrix(const ChMatrix<>& mat);
