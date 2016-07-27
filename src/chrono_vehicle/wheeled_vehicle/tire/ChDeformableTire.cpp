@@ -182,6 +182,16 @@ TireForce ChDeformableTire::GetTireForce(bool cosim) const {
         tire_force.moment += moment;
     }
 
+    for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
+        ChCoordsys<> csys = m_connectionsF[ic]->GetLinkAbsoluteCoords();
+        ChVector<> react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_force());
+        body_frame->To_abs_forcetorque(react, csys.pos, false, force, moment);
+        tire_force.force += force;
+        tire_force.moment += moment;
+        ChVector<> reactMoment = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->Get_react_torque());
+        tire_force.moment += reactMoment;
+    }
+
     return tire_force;
 }
 
