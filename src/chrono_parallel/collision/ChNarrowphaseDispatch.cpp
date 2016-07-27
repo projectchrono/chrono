@@ -121,12 +121,12 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         data_manager->shape_data.obj_data_A_global[index] = TransformLocalToParent(pos, rot, obj_data_A[index]);
         if (T == TRIANGLEMESH) {
             int start = data_manager->shape_data.start_rigid[index];
-            data_manager->shape_data.triangle_global[start * 3 + 0] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 0]);
-            data_manager->shape_data.triangle_global[start * 3 + 1] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 1]);
-            data_manager->shape_data.triangle_global[start * 3 + 2] =
-                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start * 3 + 2]);
+            data_manager->shape_data.triangle_global[start + 0] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 0]);
+            data_manager->shape_data.triangle_global[start + 1] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 1]);
+            data_manager->shape_data.triangle_global[start + 2] =
+                TransformLocalToParent(pos, rot, data_manager->shape_data.triangle_rigid[start + 2]);
         }
         data_manager->shape_data.obj_data_R_global[index] = Mult(rot, obj_data_R[index]);
     }

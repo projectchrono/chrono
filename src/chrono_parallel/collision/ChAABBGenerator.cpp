@@ -154,9 +154,9 @@ void ChCAABBGenerator::GenerateAABB() {
             } else if (type == TRIANGLEMESH) {
                 real3 A, B, C;
 
-                A = data_manager->shape_data.triangle_rigid[start * 3 + 0];
-                B = data_manager->shape_data.triangle_rigid[start * 3 + 1];
-                C = data_manager->shape_data.triangle_rigid[start * 3 + 2];
+                A = data_manager->shape_data.triangle_rigid[start + 0];
+                B = data_manager->shape_data.triangle_rigid[start + 1];
+                C = data_manager->shape_data.triangle_rigid[start + 2];
 
                 A = Rotate(A, body_rot[id]) + position;
                 B = Rotate(B, body_rot[id]) + position;

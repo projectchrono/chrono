@@ -49,7 +49,7 @@ class ConvexShape : public ConvexBase {
     virtual const quaternion R() const { return data->obj_data_R_global[index]; }
     virtual const int Size() const { return data->length_rigid[index]; }
     virtual const real3* Convex() const { return &data->convex_rigid[start()]; }
-    virtual const real3* Triangles() const { return &data->triangle_global[start() * 3]; }
+    virtual const real3* Triangles() const { return &data->triangle_global[start()]; }
     virtual const real Radius() const { return data->sphere_rigid[start()]; }
     virtual const real3 Box() const { return data->box_like_rigid[start()]; }
     virtual const real4 Rbox() const { return data->rbox_like_rigid[start()]; }
