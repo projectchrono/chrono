@@ -278,6 +278,8 @@ if(ENABLE_MODULE_FEA)
         wheeled_vehicle/tire/ChDeformableTire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
+		wheeled_vehicle/tire/ChReissnerTire.h
+        wheeled_vehicle/tire/ChReissnerTire.cpp
         wheeled_vehicle/tire/ChFEATire.h
         wheeled_vehicle/tire/ChFEATire.cpp
 
