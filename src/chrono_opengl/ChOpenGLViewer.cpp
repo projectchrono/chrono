@@ -241,7 +241,7 @@ void ChOpenGLViewer::Render() {
 
         if (render_mode == POINTS) {
             cloud.Update(cloud_data);
-            glm::mat4 model(1);
+            glm::mat4 model(10);
             cloud.Draw(projection, view * model);
         }
 
@@ -435,7 +435,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
 
             if (obj_files.find(trimesh_shape->GetName()) == obj_files.end()) {
-                std::cout << trimesh_shape->GetName() << std::endl;
+                ////std::cout << trimesh_shape->GetName() << std::endl;
                 obj_files[trimesh_shape->GetName()].Initialize(trimesh_shape, mesh_color);
                 obj_files[trimesh_shape->GetName()].AttachShader(&main_shader);
                 model_obj[trimesh_shape->GetName()].push_back(model);
