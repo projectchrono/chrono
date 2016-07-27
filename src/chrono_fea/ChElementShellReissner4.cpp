@@ -1245,13 +1245,13 @@ void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChVector
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
     mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
-    mD.PasteQuaternion(m_nodes[0]->GetRot_dt(), block_offset + 3, 0);
+    mD.PasteVector(m_nodes[0]->GetWvel_loc(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
-    mD.PasteQuaternion(m_nodes[1]->GetRot_dt(), block_offset + 9, 0);
+    mD.PasteVector(m_nodes[1]->GetWvel_loc(), block_offset + 9, 0);
     mD.PasteVector(m_nodes[2]->GetPos_dt(), block_offset + 12, 0);
-    mD.PasteQuaternion(m_nodes[2]->GetRot_dt(), block_offset + 15, 0);
+    mD.PasteVector(m_nodes[2]->GetWvel_loc(), block_offset + 15, 0);
     mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
-    mD.PasteQuaternion(m_nodes[3]->GetRot_dt(), block_offset + 21, 0);
+    mD.PasteVector(m_nodes[3]->GetWvel_loc(), block_offset + 21, 0);
 }
 
 void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {
