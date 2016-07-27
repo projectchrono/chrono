@@ -489,6 +489,35 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+
+// -----------------------------------------------------------------------------
+
+/// Mate constraint that completly fix one frame's rotation and translation
+/// respect to the other frame.
+
+class ChApi ChLinkMateFix : public ChLinkMateGeneric {
+    CH_RTTI(ChLinkMateFix, ChLinkMateGeneric);
+
+  public:
+    ChLinkMateFix() : ChLinkMateGeneric(true, true, true, true, true, true) {}
+    ChLinkMateFix(const ChLinkMateFix& other);
+    virtual ~ChLinkMateFix() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChLinkMateFix* Clone() const override { return new ChLinkMateFix(*this); }
+
+    virtual int GetType() const override { return LNK_MATEFIX; }
+
+    /// Specialized initialization for "fix" mate, given the two bodies to be connected;
+    /// the positions of the two auxiliary frames where the two bodies are connected are
+    /// both automatically initialized as the current absolute position of mbody1.
+    /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
+    void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link, also frame for 
+                    std::shared_ptr<ChBodyFrame> mbody2   ///< second body to link
+                    );
+};
+
+
 }  // end namespace chrono
 
 #endif
