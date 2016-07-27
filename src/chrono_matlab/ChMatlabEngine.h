@@ -87,7 +87,7 @@ class ChApiMatlab ChMatlabEngine {
 
     /// Put a sparse matrix in Matlab environment, specifying its name as variable.
     /// If a variable with the same name already exist, it is overwritten.
-    bool PutSparseMatrix(const ChLinkedListMatrix& mmatr, std::string varname);
+    bool PutSparseMatrix(const ChSparseMatrix& mmatr, std::string varname);
 
     /// Fetch a matrix from Matlab environment, specifying its name as variable.
     /// The used matrix must be of ChMatrixDynamic<double> type because
