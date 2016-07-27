@@ -19,6 +19,8 @@ SET(TESTS
 SET(MODEL_FILES
     ../ancfToroidalTire/ANCFToroidalTire.cpp
     ../ancfToroidalTire/ANCFToroidalTire.h
+	../ancfToroidalTire/ReissnerToroidalTire.cpp
+    ../ancfToroidalTire/ReissnerToroidalTire.h
 )
 
 # ------------------------------------------------------
