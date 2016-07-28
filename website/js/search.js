@@ -18,15 +18,15 @@ jQuery(function() {
     $.each(loaded_data, function(index, value){
       window.idx.add(
         $.extend({ "id": index }, value)
-      );
+        );
     });
   });
 
   // Event when the form is submitted
   $("#site_search").submit(function(event){
-      event.preventDefault();
-      console.log("Search box triggered");
-      
+    event.preventDefault();
+    console.log("Search box triggered");
+
       // If query was passed from search bar
       console.log("Reading from search box");
       var query = $("#search_box").val(); // Get the value for the text field
@@ -35,10 +35,10 @@ jQuery(function() {
       console.log("query is " + query);
 
       var results = window.idx.search(query); // Get lunr to perform a search
-            console.log("results is " + results);
+      console.log("results is " + results);
       $("#search_bar").val(query);
       display_search_results(results); // Hand the results off to be displayed
-  });
+    });
 
   function display_search_results(results) {
     var $search_results = $("#search_results");
@@ -69,30 +69,38 @@ jQuery(function() {
   // Searches through doxygen site using embedded doxysearch capabilities
   // See https://www.stack.nl/~dimitri/doxygen/manual/extsearch.html for more information
   function search_documentation(query) {
-    var doc_url = "http://projectchrono.org";
+    var doc_url = "https://projectchrono.org";
     var doc_search_url = "/doxygen";
     var page = "0";
-    var number = "25";
+    var number = "40";
     var callback = "docshow"
     var search_string = "?q=" + query +"&n=" + number + "&p=" + page + "&cb=" + callback;
     $.ajax({
-          url: doc_url + doc_search_url + search_string,
-          method: "GET",
-          data: "",
-          dataType:"jsonp",
-          jsonpCallback: "docshow",
-          success: function (response, status, xhr) {
-              docshow(response);
-              console.log(response);
-              },
-          error: function (xhr, status, error_code) {
-              console.log("Error:" + status + ": " + error_code);
-          }
+      url: doc_url + doc_search_url + search_string,
+      method: "GET",
+      data: "",
+      dataType:"jsonp",
+      jsonpCallback: "docshow",
+      success: function (response, status, xhr) {
+        docshow(response);
+        console.log(response);
+      },
+      error: function (xhr, status, error_code) {
+        console.log("Error:" + status + ": " + error_code);
+      }
     })
   }
   function docshow(result) {
     console.log("result is: " + JSON.stringify(result, null, 4));
     var hits = result["items"];
+    var num_hits = result["hits"];
+    console.log(num_hits + " hits.");
+    $hits_div = $("#num_hits_div") 
+    $hits_div.html(num_hits + " results found. ");
+    if (num_hits > 40) {
+      $hits_div.append("Showing the first 40...");
+    }
+    
 
     var ul = document.getElementById("doc_results");
     ul.innerHTML="";
