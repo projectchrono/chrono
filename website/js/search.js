@@ -109,7 +109,7 @@ jQuery(function() {
       // console.log(hit);
       var name = hit["name"];
       var url = hit["url"];
-      var url_base = "http://api.projectchrono.org/";
+      var url_base = "https://api.projectchrono.org/";
       url = url_base + url;
       var li = document.createElement("li");
       ul.appendChild(li);

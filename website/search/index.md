@@ -4,7 +4,7 @@ Title: Search
 permalink: /search
 ---
 
-Search powered by lunr.js
+Search results are case-sensitive. 
 <form action="/search" id="site_search">
     <input type="text" id="search_box" name="query">
     <input type="submit" value="Search">
