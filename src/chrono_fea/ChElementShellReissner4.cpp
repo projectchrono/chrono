@@ -737,61 +737,46 @@ void ChElementShellReissner4::ComputeMmatrixGlobal(ChMatrix<>& M) {
 void ChElementShellReissner4::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
-    double thickness = this->GetLayer(0).Get_thickness();
-    double rho =       this->GetLayer(0).GetMaterial()->Get_rho();
+    // loop over all layers, to compute total "mass per area" = sum(rho_i*thickness_i) = average_rho * sum(thickness_i)
+    double avg_density   = this->GetDensity();
+    double mass_per_area = avg_density * tot_thickness;
 
-    for (int igp = 0; igp < NUMIP; igp++) {
+    // Heuristic, simplified 'lumped' mass matrix. 
+    // Split the mass in 4 pieces, weighting as the jacobian at integration point, but
+    // lump at the node closest to integration point.
+    // This is simplier than the stiffness-consistent mass matrix that would require
+    // integration over gauss points.
 
-        double jacobian = alpha_i[igp]; // scale by jacobian (determinant of parametric-carthesian transformation)
+    for (int n = 0; n < NUMNODES; n++) {
+        int igp = (n+2)%4;     // id of closest gauss point to node 
+        double jacobian = alpha_i[igp]; // weight: jacobian at gauss point (another,brute force,option would be 0.25 for all nodes)
 
-        // Element shape functions
-        double u = xi_i[igp][0];
-        double v = xi_i[igp][1];
+        double nodemass = (jacobian * mass_per_area);
         
-        ChMatrixNM<double, 1, 4> N;
-        this->ShapeFunctions(N, u, v);
-        double N00 = N(0)*N(0) *(rho * jacobian * thickness);
-        double N11 = N(1)*N(1) *(rho * jacobian * thickness);
-        double N22 = N(2)*N(2) *(rho * jacobian * thickness);
-        double N33 = N(3)*N(3) *(rho * jacobian * thickness);
-
         // Approximate (!) inertia of a quarter of tile, note *(1/4) because only the quarter tile,
         // in local system of Gauss point
-        double Ixx = (pow(this->GetLengthY(),2)+pow(thickness,2)) * (1/12) * (1/4);
-        double Iyy = (pow(this->GetLengthX(),2)+pow(thickness,2)) * (1/12) * (1/4);
-        double Izz = (pow(this->GetLengthY(),2)+pow(this->GetLengthY(),2)) * (1/12) * (1/4);
-        ChMatrix33<> box_inertia_i(Ixx, 0. , 0.,
+        double Ixx = (pow(this->GetLengthY(),2)+pow(tot_thickness,2)) * (1./12.) * (1./4.) * nodemass;
+        double Iyy = (pow(this->GetLengthX(),2)+pow(tot_thickness,2)) * (1./12.) * (1./4.) * nodemass;
+        double Izz = (pow(this->GetLengthX(),2)+pow(this->GetLengthY(),2)) * (1./12.) * (1./4.) * nodemass;
+        ChMatrix33<> box_inertia  (Ixx, 0. , 0.,
                                    0.,  Iyy, 0.,
                                    0.,   0. , Izz);
-        // ..and inertia in absolute system of Gauss point. Note: not yet multiplied *m mass
-        ChMatrix33<> inertia_i(this->T_i[igp] * box_inertia_i);
-        ChMatrix33<> inertia_i_m;
+        // ..and rotate inertia in local system of node: (local because ystem-level rotational coords of nodes are ang.vel in loc sys)
+        // I' = A'* T * I * T' * A 
+        //    = Rot * I * Rot'
+        ChMatrix33<> Rot; 
+        Rot.MatrTMultiply(this->m_nodes[n]->GetA(), this->T_i[igp]);
+        ChMatrix33<> Rot_I (Rot * box_inertia);
+        ChMatrix33<> inertia_n;
+        inertia_n.MatrMultiplyT(Rot_I, Rot);
 
-        m_MassMatrix(0,0)   += N00;
-        m_MassMatrix(1,1)   += N00;
-        m_MassMatrix(2,2)   += N00;
-        inertia_i_m = inertia_i*N00;
-        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 3,3);
+        int node_off = n*6;
+        m_MassMatrix(node_off+0,node_off+0)   = nodemass;
+        m_MassMatrix(node_off+1,node_off+1)   = nodemass;
+        m_MassMatrix(node_off+2,node_off+2)   = nodemass;
+        m_MassMatrix.PasteMatrix(&inertia_n, node_off+3,node_off+3);
 
-        m_MassMatrix(6,6)   += N11;
-        m_MassMatrix(7,7)   += N11;
-        m_MassMatrix(8,8)   += N11;
-        inertia_i_m = inertia_i*N11;
-        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 9,9);
-
-        m_MassMatrix(12,12) += N22;
-        m_MassMatrix(13,13) += N22;
-        m_MassMatrix(14,14) += N22;
-        inertia_i_m = inertia_i*N22;
-        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 15,15);
-
-        m_MassMatrix(18,18) += N33;
-        m_MassMatrix(19,19) += N33;
-        m_MassMatrix(20,20) += N33;
-        inertia_i_m = inertia_i*N33;
-        m_MassMatrix.PasteSumMatrix(&inertia_i_m, 21,21);
-
-    }// end loop on gauss points
+    }// end loop on nodes
 }
 
 
