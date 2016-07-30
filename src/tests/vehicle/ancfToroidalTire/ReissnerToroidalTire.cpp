@@ -100,16 +100,14 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
 
             // Set other element properties
-            //element->SetAlphaDamp(m_alpha);
-            //***TODO*** add gravity load
-            //element->SetGravityOn(true);
+            element->SetAlphaDamp(m_alpha);
 
             // Add element to mesh
             m_mesh->AddElement(element);
         }
     }
 
-    // Switch off automatic gravity
+    // automatic gravity
     m_mesh->SetAutomaticGravity(true);
 }
 
