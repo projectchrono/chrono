@@ -960,10 +960,29 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 		epsilon.PasteVector(eps_tilde_2_i[i], 3,0); 
 		epsilon.PasteVector(k_tilde_1_i[i],   6,0); 
 		epsilon.PasteVector(k_tilde_2_i[i],   9,0);
-		// TODO: recupera epsilon_hat con l'ordine giusto per qua
-		epsilon_hat.MatrMultiply(P_i[i], beta);
 
-	//	epsilon += epsilon_hat; ***TODO***
+		//***TODO*** add the EAS effect using the epsilon_hat
+		// epsilon_hat.MatrMultiply(P_i[i], beta);
+	    // epsilon += epsilon_hat; 
+
+        // Add the damping effect, with a stiffenss-proportional term
+        // as in Raleigh damping. For performance, instead than adding an
+        // extra strain, here we exploit the Raleigh formula, and tweak the epsilon stress,
+        // later the strain will be computed as needed:
+        ChMatrixNM<double, 12,1> epsilon_damp;
+        ChMatrixNM<double,24,1>  velocities;
+        // fill with {pos_dt, wvel, pos_dt, wvel,...} of four nodes
+        velocities.PasteVector(m_nodes[0]->GetPos_dt(),   0, 0);
+        velocities.PasteVector(m_nodes[0]->GetWvel_loc(), 3, 0);
+        velocities.PasteVector(m_nodes[1]->GetPos_dt(),   6, 0);
+        velocities.PasteVector(m_nodes[1]->GetWvel_loc(), 9, 0);
+        velocities.PasteVector(m_nodes[2]->GetPos_dt(),  12, 0);
+        velocities.PasteVector(m_nodes[2]->GetWvel_loc(),15, 0);
+        velocities.PasteVector(m_nodes[3]->GetPos_dt(),  18, 0);
+        velocities.PasteVector(m_nodes[3]->GetWvel_loc(),21, 0);
+        epsilon_damp.MatrMultiply(B_overline_i[i],velocities);
+        epsilon_damp *= this->m_Alpha; 
+        //epsilon += epsilon_damp; // later use constitutive law of material to do strain=C*epsilon, so it is like strain_damp = C*B*w
 
         ChVector<> eps_tot_1, eps_tot_2, k_tot_1, k_tot_2;
         eps_tot_1 = epsilon.ClipVector(0,0);
@@ -1108,7 +1127,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
 
         double dCoef = 1.0; //***TODO*** autoset this
 
-        Km *= (alpha_i[i] * w_i[i] * dCoef);
+        Km *= (alpha_i[i] * w_i[i] * dCoef * (Kfactor + Rfactor * this->m_Alpha));
         this->m_JacobianMatrix.PasteSumMatrix(&Km, 0,0);
 
         #ifdef CHUSE_KGEOMETRIC
