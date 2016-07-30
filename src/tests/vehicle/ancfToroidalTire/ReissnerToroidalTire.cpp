@@ -34,7 +34,7 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
       m_div_circumference(60),
       m_div_width(12),
       m_default_pressure(320.0e3),
-      m_alpha(0.15) {}
+      m_alpha(0.015) {}
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
@@ -61,7 +61,15 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
 
             auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
-            node->SetMass(0);
+
+            //***TEST*** apply initial speed value disturbance to a point
+            /*
+            if (i==3 && j == 3) {
+                node->SetPos_dt(ChVector<>(100,0,0));
+                node->SetMass(10);
+            }
+            */
+
             m_mesh->AddNode(node);
         }
     }
