@@ -233,7 +233,7 @@ void RigidTerrain::Initialize(double height, double sizeX, double sizeY, bool ti
 // -----------------------------------------------------------------------------
 // Initialize the terrain from a specified mesh file.
 // -----------------------------------------------------------------------------
-void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& mesh_name) {
+void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& mesh_name, double sweep_sphere_radius) {
     m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
 
     // Create the visualization asset.
@@ -244,7 +244,7 @@ void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& m
 
     // Create contact geometry.
     m_ground->GetCollisionModel()->ClearModel();
-    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0));
+    m_ground->GetCollisionModel()->AddTriangleMesh(m_trimesh, true, false, ChVector<>(0, 0, 0), ChMatrix33<>(1), sweep_sphere_radius);
     m_ground->GetCollisionModel()->BuildModel();
 
     m_mesh_name = mesh_name;
