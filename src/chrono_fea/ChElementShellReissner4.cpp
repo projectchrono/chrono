@@ -960,26 +960,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
 		//***TODO*** add the EAS effect using the epsilon_hat
 		// epsilon_hat.MatrMultiply(P_i[i], beta);
-	    // epsilon += epsilon_hat; 
-
-        // Add the damping effect, with a stiffenss-proportional term
-        // as in Raleigh damping. For performance, instead than adding an
-        // extra strain, here we exploit the Raleigh formula, and tweak the epsilon stress,
-        // later the strain will be computed as needed:
-        ChMatrixNM<double, 12,1> epsilon_damp;
-        ChMatrixNM<double,24,1>  velocities;
-        // fill with {pos_dt, wvel, pos_dt, wvel,...} of four nodes
-        velocities.PasteVector(m_nodes[0]->GetPos_dt(),   0, 0);
-        velocities.PasteVector(m_nodes[0]->GetWvel_loc(), 3, 0);
-        velocities.PasteVector(m_nodes[1]->GetPos_dt(),   6, 0);
-        velocities.PasteVector(m_nodes[1]->GetWvel_loc(), 9, 0);
-        velocities.PasteVector(m_nodes[2]->GetPos_dt(),  12, 0);
-        velocities.PasteVector(m_nodes[2]->GetWvel_loc(),15, 0);
-        velocities.PasteVector(m_nodes[3]->GetPos_dt(),  18, 0);
-        velocities.PasteVector(m_nodes[3]->GetWvel_loc(),21, 0);
-        epsilon_damp.MatrMultiply(B_overline_i[i],velocities);
-        epsilon_damp *= this->m_Alpha; 
-        //epsilon += epsilon_damp; // later use constitutive law of material to do strain=C*epsilon, so it is like strain_damp = C*B*w
+	    // epsilon += epsilon_hat;    
 
         ChVector<> eps_tot_1, eps_tot_2, k_tot_1, k_tot_2;
         eps_tot_1 = epsilon.ClipVector(0,0);
@@ -1050,6 +1031,72 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             Fi.PasteSumMatrix(&rbeta, 24,0);
         #endif
 	}
+
+
+    // Add Rayleigh stiffness-proportional damping, as 
+    //   Fi_damping = Alpha*[Km]*v 
+    // where the Km matrix is the material stiffness matrix.
+    // This is just one of the many structural damping approaches, here it is
+    // used because, later, computing the jacobian of internal forces (the damping matrix -[R])
+    // becomes a very easy formula [R] = Alpha*[Km].
+    if (this->m_Alpha) {
+   
+        // fills velocities with speeds of nodes: 
+        // {dxdt_1, angular_vel_1,  dxdt_2, angular_vel_2, ...}
+        // Note that angular velocities are in node local frame because in C::E angular 
+        // increments are assumed in local frame csys.
+        ChVectorDynamic<> velocities(24);
+        this->LoadableGetStateBlock_w(0, velocities); 
+
+        // compute Fi_damping = -Alpha*[Km]*v   without explicitly building [Km],
+        // rather exploit the factorization B'CB, as:
+        //   Alpha*[Km]*v = Alpha * [sum_integraton_points ( [B_i]'*[C]*[B_i] * a_i * w_i )] *v
+        //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (Alpha * [C]*[B_i] *v) * a_i * w_i )
+        //   Alpha*[Km]*v = sum_integraton_points ( [B_i]' * (   stress_damp_i    ) * a_i * w_i )
+        // where for convenience we denoted stress_damp = Alpha*[C]*[B_i]*v
+
+        ChMatrixNM<double, 12, 1> strain_dt;
+        ChMatrixNM<double, 12, 1> stress_damp;
+
+        for (int i = 0; i < NUMIP; i++) {
+
+            strain_dt.MatrMultiply(B_overline_i[i], velocities);  // [B_i] *v
+
+            ChVector<> eps_dt_1, eps_dt_2, k_dt_1, k_dt_2;
+            eps_dt_1 = strain_dt.ClipVector(0,0);
+            eps_dt_2 = strain_dt.ClipVector(3,0);
+            k_dt_1   = strain_dt.ClipVector(6,0);
+            k_dt_2   = strain_dt.ClipVector(9,0);
+            ChVector<> n1, n2, m1, m2;
+            ChVector<> l_n1, l_n2, l_m1, l_m2;
+            // loop on layers
+            for (size_t il = 0; il < this->m_layers.size(); ++il) {
+                // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
+                m_layers[il].GetMaterial()->ComputeStress(
+                            l_n1, l_n2, l_m1, l_m2, 
+                            eps_dt_1, eps_dt_2, k_dt_1, k_dt_2,
+                            m_layers_z[il], m_layers_z[il+1],
+                            m_layers[il].Get_theta());
+                n1 += l_n1;
+                n2 += l_n2;
+                m1 += l_m1;
+                m2 += l_m2;
+            }
+            stress_damp.PasteVector(n1, 0,0);
+            stress_damp.PasteVector(n2, 3,0);
+            stress_damp.PasteVector(m1, 6,0);
+            stress_damp.PasteVector(m2, 9,0);
+            stress_damp.MatrScale(this->m_Alpha);
+            
+            ChMatrixNM<double, 24, 1> rd_damp;
+            rd_damp.MatrTMultiply( B_overline_i[i], stress_damp);
+            rd_damp *= ( -alpha_i[i] * w_i[i] );
+            Fi.PasteSumMatrix(&rd_damp, 0,0);
+        }
+
+    }// end Rayleigh damping
+
+
 }
 
 
