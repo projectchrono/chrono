@@ -939,17 +939,17 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 	#endif
 	
 	// EAS: B membranali
-// 	{
-// 		int tmpidx1[5] = {0, 1, 5, 4, 2};
-// 		for (int i = 0; i < NUMIP; i++) {
-// 			for (int n = 1; n <= 4; n++) {
-//#if 0
-// 				CopyMatrixRow(B_overline_m_i[i], n, B_overline_i[i], tmpidx1[n]);
-//#endif
-// 				B_overline_m_i[i].CopyMatrixRow(n, B_overline_i[i], tmpidx1[n]);
-// 			}
-// 		}
-// 	}
+    // 	{
+    // 		int tmpidx1[5] = {0, 1, 5, 4, 2};
+    // 		for (int i = 0; i < NUMIP; i++) {
+    // 			for (int n = 1; n <= 4; n++) {
+    //#if 0
+    // 				CopyMatrixRow(B_overline_m_i[i], n, B_overline_i[i], tmpidx1[n]);
+    //#endif
+    // 				B_overline_m_i[i].CopyMatrixRow(n, B_overline_i[i], tmpidx1[n]);
+    // 			}
+    // 		}
+    // 	}
 
 	/* Calcola le azioni interne */
 	for (int i = 0; i < NUMIP; i++) {
@@ -1020,12 +1020,12 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 	ChMatrixNM<double, IDOFS, 1> rbeta;
 	for (int i = 0; i < NUMIP; i++) {
 		rd.MatrTMultiply(B_overline_i[i], stress_i[i]); 
-		rbeta.MatrTMultiply(P_i[i], stress_i[i]); 
-		
+
         rd *= (-alpha_i[i] * w_i[i]);
         Fi.PasteSumMatrix(&rd, 0,0);
-
+        
         #ifdef CHUSE_EAS
+            rbeta.MatrTMultiply(P_i[i], stress_i[i]);
             double dCoef = 1.0; //***TODO*** autoset this 
             rbeta *= (-alpha_i[i] * w_i[i] / dCoef);
             Fi.PasteSumMatrix(&rbeta, 24,0);
