@@ -60,15 +60,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
             ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
 
-            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
-
-            //***TEST*** apply initial speed value disturbance to a point
-            /*
-            if (i==3 && j == 3) {
-                node->SetPos_dt(ChVector<>(100,0,0));
-                node->SetMass(10);
-            }
-            */
+            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
 
             m_mesh->AddNode(node);
         }
