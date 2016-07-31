@@ -57,6 +57,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "chrono_vehicle/terrain/FEADeformableTerrain.h" 
 #endif
 
 #include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -99,6 +100,10 @@ SolverType solver_type = MKL;
 // Type of tire model (FIALA, ANCF, FEA)
 TireModelType tire_model = ANCF;
 
+// Type of terrain model
+enum TerrainType { RIGID_TERRAIN, PLASTIC_FEA };
+TerrainType terrain_type = PLASTIC_FEA;
+
 // Use tire specified through a JSON file?
 bool use_JSON = true;
 
@@ -135,7 +140,7 @@ class TireTestContactReporter : public chrono::ChReportContactCallback {
             GetLog() << "Error creating directory VTK_Animations\n";
             getchar();
             exit(1);
-        }
+        } 
 
         // The filename buffer.
         snprintf(m_buffer, sizeof(char) * 32, "VTKANCF/Contact.0.%f.csv", system->GetChTime());
@@ -344,6 +349,7 @@ int main() {
     if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
         sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
         collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
+        sysDEM->UseMaterialProperties(false);
     }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
@@ -651,37 +657,78 @@ int main() {
     lock_rim_wheel->Initialize(wheel, rim, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     my_system->AddLink(lock_rim_wheel);
 
-    // Create the terrain
+    // Create the terrain. If FEA, then use triangular mesh for contact and create DEM contact properties
     // ------------------
+    std::shared_ptr<ChTerrain> terrain;
+    if (terrain_type == RIGID_TERRAIN) {
+        auto rigid_terrain = std::make_shared<RigidTerrain>(my_system);
+        rigid_terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
+        rigid_terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
+        rigid_terrain->Initialize(-tire_radius + 0.0015, 120, 0.5);
+        terrain = rigid_terrain;
+    } else if (terrain_type == PLASTIC_FEA) {
+#ifdef CHRONO_FEA
+        auto fea_terrain = std::make_shared<FEADeformableTerrain>(my_system);
+        fea_terrain->SetSoilParametersFEA(200, 1.379e7, 0.3, 2.5e7, 2.5e7, 2.5e4, 2.5e4, 10000.0, 5000, 0.00001,
+            0.00001);
 
-    auto terrain = std::make_shared<RigidTerrain>(my_system);
-    terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
-    terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius + 0.0005, 120, 0.5);
+        fea_terrain->Initialize(ChVector<>(-1.0, -0.3, -1.0), ChVector<>(10.0, 0.6, 1.0 - tire_radius - 0.05), ChVector<int>(60, 12, 4)); //ChVector<int>(10, 10, 4)
+        // Add contact surface mesh.
+        auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+        mysurfmaterial->SetYoungModulus(6e4);
+        mysurfmaterial->SetFriction(0.3f);
+        mysurfmaterial->SetRestitution(0.2f);
+        mysurfmaterial->SetAdhesion(0);
+        mysurfmaterial->SetKt(4e4);
+        mysurfmaterial->SetKn(1e5);
 
-    // Optionally use the custom collision detection class
-    // ---------------------------------------------------
+        std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);
+        fea_terrain->GetMesh()->AddContactSurface(my_contactsurface);
+        my_contactsurface->AddFacesFromBoundary(2.5e-2); // Sphere swept
+        my_contactsurface->SetMaterialSurface(mysurfmaterial);
+        terrain = fea_terrain;
+#endif
+    }
 
+// Optionally use the custom collision detection class for rigid terrain
+// Otherwise apply node cloud to ANCF tire
+// ---------------------------------------------------
 #ifdef CHRONO_FEA
     TireTestCollisionManager* my_collider = NULL;
 
     if (tire_model == ANCF && enable_tire_contact && use_custom_collision) {
         // Disable automatic contact on the ground body
-        terrain->GetGroundBody()->SetCollide(false);
-
+        if (terrain_type == RIGID_TERRAIN) {
+            std::dynamic_pointer_cast<RigidTerrain>(terrain)->GetGroundBody()->SetCollide(false);
+        }
         // Extract the contact surface from the tire mesh
         auto tire_ancf = std::static_pointer_cast<ChANCFTire>(tire);
         auto tire_mesh = tire_ancf->GetMesh();
         auto surface = std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
 
         // Add custom collision callback
-        if (surface) {
-            my_collider = new TireTestCollisionManager(surface, terrain, tire_ancf->GetContactNodeRadius());
+        if (surface && terrain_type == RIGID_TERRAIN) {
+            my_collider = new TireTestCollisionManager(surface, std::dynamic_pointer_cast<RigidTerrain>(terrain),
+                                                       tire_ancf->GetContactNodeRadius());
             my_system->SetCustomComputeCollisionCallback(my_collider);
+        } else if (surface && terrain_type == PLASTIC_FEA) {
+            auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+            mysurfmaterial->SetYoungModulus(6e4);
+            mysurfmaterial->SetFriction(0.3f);
+            mysurfmaterial->SetRestitution(0.2f);
+            mysurfmaterial->SetAdhesion(0);
+            mysurfmaterial->SetKt(4e3);
+            mysurfmaterial->SetKn(1e4);
+
+            auto surface_ancf =
+                std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
+            tire_mesh->AddContactSurface(surface_ancf);
+            surface_ancf->AddAllNodes(0.025);
+            surface_ancf->SetMaterialSurface(mysurfmaterial);  // use the DEM penalty contacts
         } else {
-            GetLog() << "********************************************\n";
-            GetLog() << "Custom collision requires NodeCloud contact!\n";
-            GetLog() << "********************************************\n";
+            // GetLog() << "********************************************\n";
+            // GetLog() << "Custom collision requires NodeCloud contact!\n";
+            // GetLog() << "********************************************\n";
         }
     }
 #endif
@@ -752,7 +799,7 @@ int main() {
     application->AssetBindAll();
     application->AssetUpdateAll();
 
-    application->SetTimestep(sim_step);
+    application->SetTimestep(sim_step); 
 #endif // !USE_IRRLICHT
 
 
@@ -839,7 +886,6 @@ int main() {
         wheelstate.lin_vel = wheel->GetPos_dt();    // linear velocity, expressed in the global frame
         wheelstate.ang_vel = wheel->GetWvel_par();  // angular velocity, expressed in the global frame
         wheelstate.omega = wheel->GetWvel_loc().y;  // wheel angular speed about its rotation axis
-
         // Get tire forces
         tireforce = tire->GetTireForce();
 		tireforceprint = tire->GetTireForce(true);
