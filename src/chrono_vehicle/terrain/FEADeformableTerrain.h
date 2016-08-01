@@ -70,7 +70,7 @@ class CH_VEHICLE_API FEADeformableTerrain : public ChTerrain {
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
 
   private:
-    std::shared_ptr<fea::ChMesh> m_mesh;  ///< tire mesh
+    std::shared_ptr<fea::ChMesh> m_mesh;  ///< soil mesh
 
     double m_rho;  ///< Soil density
     double m_E;    ///< Soil modulus of elasticity
