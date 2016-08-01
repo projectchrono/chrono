@@ -155,7 +155,11 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Get a handle to the specified layer.
     const Layer& GetLayer(size_t i) const { return m_layers[i]; }
 
-    /// Set the structural damping.
+    /// Set the structural damping: this is the Rayleigh "alpha" for the
+    /// stiffness-proportional damping. This assumes damping forces as F=alpha*[Km]*v
+    /// where [Km] is the stiffness matrix (material part, i.e.excluding geometric stiffness)
+    /// and v is a vector of node speeds. Usually, alpha in the range 0.0 - 0.1 
+    /// Note that the mass-proportional term of classical Rayleigh damping is not supported.
     void SetAlphaDamp(double a) { m_Alpha = a; }
 
     /// Get the element length in the X direction.
@@ -163,7 +167,7 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Get the element length in the Y direction.
     double GetLengthY() const { return m_lenY; }
     /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
-    double GetThickness() { return m_thickness; }
+    double GetThickness() { return tot_thickness; }
 
     ChQuaternion<> GetAvgRot() {return T_overline.Get_A_quaternion();}
 
@@ -208,7 +212,7 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     std::vector<Layer>  m_layers;                          ///< element layers
     std::vector<double> m_layers_z;                        ///< layer separation z values (not scaled, default centered tot thickness)
 
-    double m_thickness;                                    ///< total element thickness
+    double tot_thickness;                                  ///< total element thickness
     double m_lenX;                                         ///< element length in X direction
     double m_lenY;                                         ///< element length in Y direction
     double m_Alpha;                                        ///< structural damping

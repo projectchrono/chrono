@@ -34,7 +34,7 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
       m_div_circumference(60),
       m_div_width(12),
       m_default_pressure(320.0e3),
-      m_alpha(0.15) {}
+      m_alpha(0.015) {}
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
@@ -60,8 +60,8 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
             ChMatrix33<> mrot; mrot.Set_A_Xdir(dir,VECT_Y);
 
-            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
-            node->SetMass(0);
+            auto node = std::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
+
             m_mesh->AddNode(node);
         }
     }
@@ -100,16 +100,14 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
 
             // Set other element properties
-            //element->SetAlphaDamp(m_alpha);
-            //***TODO*** add gravity load
-            //element->SetGravityOn(true);
+            element->SetAlphaDamp(m_alpha);
 
             // Add element to mesh
             m_mesh->AddElement(element);
         }
     }
 
-    // Switch off automatic gravity
+    // automatic gravity
     m_mesh->SetAutomaticGravity(true);
 }
 

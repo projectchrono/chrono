@@ -563,7 +563,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     hstr += " 'F8' key: dump a .json file.\n";
     hstr += " 'F10' key: non-linear statics.\n";
     hstr += " 'F11' key: linear statics.\n";
-    hstr += " 'F3-F4-F5' key: auto rotate camera.\n";
+    hstr += " 'F2-F3-F4' key: auto rotate camera.\n";
     gad_textHelp->setText(hstr.c_str());
 
     ///
