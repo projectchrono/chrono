@@ -297,6 +297,8 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
     system->ChangeSolverType(APGD);
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
+#else
+    system->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
 #endif
 
     system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
@@ -418,12 +420,25 @@ int main(int argc, char* argv[]) {
     TrackShoeForces shoe_forces_right(vehicle.GetNumTrackShoes(RIGHT));
 
     while (time < time_end) {
+        // Collect output data from modules
+        double throttle_input = driver.GetThrottle();
+        double steering_input = driver.GetSteering();
+        double braking_input = driver.GetBraking();
+        double powertrain_torque = powertrain.GetOutputTorque();
+        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
+        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
+        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
+
+        // Output
         if (sim_frame == next_out_frame) {
             cout << endl;
             cout << "---- Frame:          " << out_frame + 1 << endl;
             cout << "     Sim frame:      " << sim_frame << endl;
             cout << "     Time:           " << time << endl;
             cout << "     Avg. contacts:  " << num_contacts / out_steps << endl;
+            cout << "     Throttle input: " << throttle_input << endl;
+            cout << "     Braking input:  " << braking_input << endl;
+            cout << "     Steering input: " << steering_input << endl;
             cout << "     Execution time: " << exec_time << endl;
 
             if (povray_output) {
@@ -442,15 +457,6 @@ int main(int argc, char* argv[]) {
             std::cout << std::endl << "Release vehicle t = " << time << std::endl;
             vehicle.GetChassis()->SetBodyFixed(false);
         }
-
-        // Collect output data from modules
-        double throttle_input = driver.GetThrottle();
-        double steering_input = driver.GetSteering();
-        double braking_input = driver.GetBraking();
-        double powertrain_torque = powertrain.GetOutputTorque();
-        double driveshaft_speed = vehicle.GetDriveshaftSpeed();
-        vehicle.GetTrackShoeStates(LEFT, shoe_states_left);
-        vehicle.GetTrackShoeStates(RIGHT, shoe_states_right);
 
         // Update modules (process inputs from other modules)
         driver.Synchronize(time);
