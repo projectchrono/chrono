@@ -77,6 +77,9 @@ void DeformableTerrain::SetPlane(ChCoordsys<> mplane) { m_ground->plane = mplane
 // Get the plane reference.
 const ChCoordsys<>& DeformableTerrain::GetPlane() const { return m_ground->plane; }
 
+// Get the trimesh that defines the ground shape.
+const std::shared_ptr<ChTriangleMeshShape> DeformableTerrain::GetMesh() const { return m_ground->m_trimesh_shape; }
+
 // Enable bulldozing effect.
 void DeformableTerrain::SetBulldozingFlow(bool mb) {
     m_ground->do_bulldozing = mb;
