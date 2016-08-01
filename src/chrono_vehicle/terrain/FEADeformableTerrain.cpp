@@ -36,20 +36,16 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Implementation of the FEADeformableTerrain wrapper class
 // -----------------------------------------------------------------------------
-    FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
+FEADeformableTerrain::FEADeformableTerrain(ChSystem* system)
     : m_E(1.379e7),
       m_nu(0.3),
       m_rho(200.0),
-      m_kn(2.5e7),
-      m_kt(2.5e7),
-      m_gn(2.5e4),
-      m_gt(2.5e4),
       m_yield_stress(10000.0),
       m_hardening_slope(5000),
       m_friction_angle(0.00001),
       m_dilatancy_angle(0.00001) {
-      m_mesh = std::make_shared<fea::ChMesh>();
-      system->Add(m_mesh);
+    m_mesh = std::make_shared<fea::ChMesh>();
+    system->Add(m_mesh);
 }
 
 // Return the terrain height at the specified location
@@ -65,14 +61,10 @@ ChVector<> FEADeformableTerrain::GetNormal(double x, double y) const {
 }
 
 // Set properties of the FEA soil model
-void FEADeformableTerrain::SetSoilParametersFEA(double rho,           ///< Soil density
-                                                double Emod,          ///< Soil modulus of elasticity
-                                                double nu,            ///< Soil Poisson ratio
-                                                double kn,            ///< Soil normal contact stiffness coefficient
-                                                double kt,            ///< Soil tangential contact stiffness coefficient
-                                                double gn,            ///< Soil normal contact damping coefficient
-                                                double gt,            ///< Soil tangential contact damping coefficient
-                                                double yield_stress,  ///< Soil yield stress, for plasticity
+void FEADeformableTerrain::SetSoilParametersFEA(double rho,              ///< Soil density
+                                                double Emod,             ///< Soil modulus of elasticity
+                                                double nu,               ///< Soil Poisson ratio
+                                                double yield_stress,     ///< Soil yield stress, for plasticity
                                                 double hardening_slope,  ///< Soil hardening slope, for plasticity
                                                 double friction_angle,   ///< Soil internal friction angle
                                                 double dilatancy_angle   ///< Soil dilatancy angle
@@ -80,17 +72,13 @@ void FEADeformableTerrain::SetSoilParametersFEA(double rho,           ///< Soil 
     m_rho = rho;
     m_E = Emod;
     m_nu = nu;
-    m_kn = kn;
-    m_kt = kt;
-    m_gn = gn;
-    m_gt = gt;
     m_yield_stress = yield_stress;
     m_hardening_slope = hardening_slope;
     m_friction_angle = friction_angle;
     m_dilatancy_angle = dilatancy_angle;
 }
 
-// Initialize the terrain as a flat grid
+// Initialize the terrain as a box of 9-node brick elements of given dimensions.
 void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
                                       const ChVector<>& terrain_dimension,
                                       const ChVector<int>& terrain_discretization) {
@@ -135,6 +123,28 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         }
     }
 
+    // Fix nodes at the boundaries of the FEA 'box'
+    for (int iz = 0; iz < numDiv_z; iz++) {
+        for (int ix = 0; ix < N_x; ix++) {
+            auto sidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(iz * N_x * N_y + ix));
+            sidenode->SetFixed(true);
+
+            auto farsidenode =
+                std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode((N_x * numDiv_y) + iz * N_x * N_y + ix));
+            farsidenode->SetFixed(true);
+        }
+    }
+    for (int iz = 0; iz < numDiv_z; iz++) {
+        for (int iy = 0; iy < N_y; iy++) {
+            auto sidenode = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode((iy + iz * N_y) * N_y));
+            sidenode->SetFixed(true);
+
+            auto farsidenode =
+                std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(numDiv_x + iz * N_x * N_y + iy * N_y));
+            farsidenode->SetFixed(true);
+        }
+    }
+    // Initialize coordinates for curvature (central) node
     for (int i = 0; i < TotalNumElements; i++) {
         auto node = std::make_shared<ChNodeFEAcurv>(ChVector<>(0.0, 0.0, 0.0), ChVector<>(0.0, 0.0, 0.0),
                                                     ChVector<>(0.0, 0.0, 0.0));
@@ -149,8 +159,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     material->Set_density(m_rho);
     material->Set_E(m_E);
     material->Set_v(m_nu);
-
-
 
     // Initial plastic deformation tensor: Initially identity (elastic).
     ChMatrixNM<double, 9, 8> CCPInitial;
@@ -223,7 +231,6 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
         kk++;
     }
 
-    // Here, include visualization
     // -------------------------------------
     // Options for visualization in irrlicht
     // -------------------------------------
@@ -235,9 +242,8 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     mvisualizemesh->SetSmoothFaces(false);
     m_mesh->AddAsset(mvisualizemesh);
 
-
+    // Deactivate mesh gravity (added through system)
     m_mesh->SetAutomaticGravity(false);
-
 }
 }  // end namespace vehicle
 }  // end namespace chrono
