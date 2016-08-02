@@ -196,6 +196,8 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     plot_type = DeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
+
+    last_t = 0;
 }
 
 // Initialize the terrain as a flat grid
@@ -614,7 +616,7 @@ void DeformableSoil::UpdateInternalForces() {
         }
         // TO DO adjust this incrementally
         
-        //connected_vertexes.clear();
+        connected_vertexes.clear();
         connected_vertexes.resize( vertices.size() );
         for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
             connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].y);
