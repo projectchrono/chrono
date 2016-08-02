@@ -1605,7 +1605,10 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                 int t_shared = 0; 
                 for (int ie = 0; ie<3; ++ie) {
                     std::pair<int, int> T1_ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N1, ie, true);
-                    double L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length(); 
+                    if (criterion)
+                        L_e = criterion->ComputeLength(T1_ie_verts.first, T1_ie_verts.second, this);
+                    else
+                        L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length(); 
                     if (L_e > T1_L_max) {
                         T1_L_max = L_e;
                         edge_N1 = ie;
