@@ -36,6 +36,7 @@
 
 #ifdef CHRONO_FEA
 #include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #endif
 
 namespace chrono {

@@ -198,6 +198,20 @@ void HMMWV::Initialize() {
 #endif
             break;
         }
+        case REISSNER: {
+#ifdef CHRONO_FEA
+            HMMWV_ReissnerTire* tire_FL = new HMMWV_ReissnerTire("FL");
+            HMMWV_ReissnerTire* tire_FR = new HMMWV_ReissnerTire("FR");
+            HMMWV_ReissnerTire* tire_RL = new HMMWV_ReissnerTire("RL");
+            HMMWV_ReissnerTire* tire_RR = new HMMWV_ReissnerTire("RR");
+
+            m_tires[0] = tire_FL;
+            m_tires[1] = tire_FR;
+            m_tires[2] = tire_RL;
+            m_tires[3] = tire_RR;
+#endif
+            break;
+        }
     }
 
     // Enable/disable tire visualization

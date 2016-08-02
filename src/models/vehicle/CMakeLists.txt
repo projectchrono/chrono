@@ -53,6 +53,8 @@ if(ENABLE_MODULE_FEA)
   set(CVM_HMMWV_FEA_FILES
       hmmwv/HMMWV_ANCFTire.cpp
       hmmwv/HMMWV_ANCFTire.h
+	  hmmwv/HMMWV_ReissnerTire.cpp
+      hmmwv/HMMWV_ReissnerTire.h
   )
 else()
   set(CVM_HMMWV_FEA_FILES "")
