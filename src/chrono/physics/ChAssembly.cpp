@@ -616,6 +616,13 @@ void ChAssembly::Setup() {
         ncoords_w - ndoc_w;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
 }
 
+// Update assemblies own properties first (ChTime and assets, if any).
+// Then update all contents of this assembly.
+void ChAssembly::Update(double mytime, bool update_assets) {
+	ChPhysicsItem::Update(mytime, update_assets);
+	Update(update_assets);
+}
+
 // - ALL PHYSICAL ITEMS (BODIES, LINKS,ETC.) ARE UPDATED,
 //   ALSO UPDATING THEIR AUXILIARY VARIABLES (ROT.MATRICES, ETC.).
 // - UPDATES ALL FORCES  (AUTOMATIC, AS CHILDREN OF BODIES)

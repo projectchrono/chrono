@@ -93,6 +93,10 @@ public:
     /// longitude-latitude.
     const ChCoordsys<>& GetPlane() const;
 
+    /// Get the mesh.
+    /// The soil mesh is defined by a trimesh.
+    const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+
     /// Set the properties of the SCM soild model.
     /// The meaning of these parameters is described in the paper:
     // "Parameter Identification of a Planetary Rover Wheel–Soil
