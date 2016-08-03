@@ -1,7 +1,7 @@
 Chrono::Solidworks {#introduction_chrono_solidworks}
 ==========================
 
-![](carousel_chronosolidworks.jpg)
+![](http://projectchrono.org/assets/manual/carousel_chronosolidworks.jpg)
 
 Chrono::SolidWorks is an add-in tool that allows to model complex
 mechanisms using the powerful [SolidWorks](http://www.solidworks.com) 3D
@@ -9,7 +9,7 @@ CAD software. The user can create mechanisms with mouse and 3D
 interface, then a description file can be output from SolidWorks and
 load in a C++ or Python program.
 
-![](SWaddin.jpg)
+![](http://projectchrono.org/assets/manual/SWaddin.jpg)
 
 The generated description file is actually a Python .py file that
 contains all the statements to create Chrono::Engine scenes, with

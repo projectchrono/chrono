@@ -10,7 +10,7 @@ you need to:
 
 as shown below: <br>
 
-![](Pic_build.png)
+![](http://www.projectchrono.org/assets/manual/Pic_build.png)
 
 <br>
 This process can be made almost automatic if you use CMake for building your program, see below.
@@ -105,7 +105,7 @@ If your program is split in multiple .cpp sources, simply list them in this line
 
 - Press the **Configure** button again
 
-![](Install_my_project_1.gif)
+![](http://www.projectchrono.org/assets/manual/Install_my_project_1.gif)
 
 
 6) Generate the project
@@ -145,7 +145,7 @@ your build directory, in our example `C:\my_project_build\Release\my_project.sln
 
 - double click on the .exe file and you should see the demo running in an interactive 3D view
 
-![](Install_my_project_2.jpg)
+![](http://projectchrono.org/assets/manual/Install_my_project_2.jpg)
 
 Additional information
 ----------------------

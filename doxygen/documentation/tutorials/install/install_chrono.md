@@ -4,7 +4,7 @@ Install Chrono {#tutorial_install_chrono}
 
 A summary of the process required to **build** Chrono is provided in the picture below. 
 
-![](Pic_build_ce.png)
+![](http://www.projectchrono.org/assets/manual/Pic_build_ce.png)
 
 <br>
 
@@ -41,12 +41,12 @@ Download the Chrono SDK by performing a **clone** of the Git repository in a dir
 Assuming you are using [SourceTree](http://www.sourcetreeapp.com/):
 
 -  press the **Clone / New** button in SourceTree 
-   ![](Install_ST1.gif)
+   ![](http://www.projectchrono.org/assets/manual/Install_ST1.gif)
    
 -  enter <tt>https://github.com/projectchrono/chrono.git</tt> in the field "Source Path / URL"
 
 -  enter a path to an empty directory, say <tt>C:/chrono_source</tt>, in the field "Destination path" 
-   ![](Install_ST2.gif)
+   ![](http://www.projectchrono.org/assets/manual/Install_ST2.gif)
    
 -  press **Clone**, and the source code will be downloaded to your directory.
 
@@ -74,13 +74,13 @@ Start the CMake tool to configure the build.
 -  In the field "Where to build the binaries" set the path to another directory on your system, 
    that must be empty. This is where the Visual C++ project will be created (or the makefiles, if on Linux). 
    For our example, let's use <tt>C:/chrono_build</tt>, 
-   ![](Install_5.gif)
+   ![](http://www.projectchrono.org/assets/manual/Install_5.gif)
 -  Press the **Configure** button.
 -  Set the compiler among the generators in the window that opens, and press **Ok**. 
    If possible, choose a **64bit** compiler.
 -  Change the settings in the user interface of CMake.
    Some of these settings are automatically detected, but some other must be changed. 
-   ![](Install_7.gif)
+   ![](http://www.projectchrono.org/assets/manual/Install_7.gif)
    - Activate the needed units with check-marks: at least click on ENABLE_MODULE_IRRLICHT, ENABLE_MODULE_POSTPROCESS. 
      Other modules might require additional settings and dependencies. 
    - Press **Configure**.

@@ -27,7 +27,7 @@ Otherwise, the module is disabled, which keeps the build process clean and simpl
 The picture below illustrates how modules can depend on external libraries, 
 whereas the core system of Chrono depends on the underlying operating system only.
 
-![](Units.png)
+![](http://www.projectchrono.org/assets/manual/Units.png)
 
 <br/>
 

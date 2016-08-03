@@ -69,11 +69,11 @@ and enhanced with textures from some graphics package.
 The analysis might require a co-simulation with MATLAB&copy;. 
 The results can be post-processed with Pov-Ray&copy; to obtained high quality movies.
 
-![](workflow.png)
+![](http://www.projectchrono.org/assets/manual/workflow.png)
 
 #### What is a high level overview on how Chrono is organized?
 One can think of Chrono as having five foundational components that provide support for equation formulation, equation solution, proximity computation, parallel computing, and post-processing. The software is organized so that it draws on parallel computing: GPU computing (as enabled by CUDA), multi-core parallel computing (as enabled by OpenMP), and distributed-memory parallel computing (as enabled by MPI). The rigid body dynamics, flexible body dynamics, and fluid-solid interaction solution is built on the aforementioned foundational components. An API is in place to define a model and instruct Chrono to perform certain operations in relation to it. User toolkits (such as Chrono::Vehicle, Chrono::Granular,  etc.) are in place to ease the pre/post-processing burden associated with Chrono simulation. Some modules are less developed than others. For instance, the MPI support is not available at this time owing to poor scaling performance we obtained during previous experiments. 
 
-![](chronoStructure2016.png)
+![](http://www.projectchrono.org/assets/manual/chronoStructure2016.png)
 
 

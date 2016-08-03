@@ -5,7 +5,7 @@ Markers        {#markers}
 Markers, which are implemented in Chrono in the ChMarker class, are auxiliary frames that can be 
 attached to [rigid bodies](@ref rigid_bodies).
 
-![](pic_ChMarker.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChMarker.png)
 
 - Markers are [coordinate systems](@ref coordinate_transformations) that 
   inherit from ChFrameMoving because in the most general 

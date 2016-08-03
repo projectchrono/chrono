@@ -8,7 +8,7 @@ For instance, consider the case of a connecting rod and a piston, which are conn
  
 Connecting the relative motion of bodies is achieved in Chrono using ChLink classes.
 
-![](pic_ChLink.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChLink.png)
 
 - Links are used to connect two ChBody
 

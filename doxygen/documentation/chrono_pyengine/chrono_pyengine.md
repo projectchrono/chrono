@@ -1,7 +1,7 @@
 Chrono::PyEngine {#introduction_chrono_pyengine}
 ==========================
 
-![](carousel_chronopyengine.jpg)
+![](http://projectchrono.org/assets/manual/carousel_chronopyengine.jpg)
 
 * @subpage chrono_pyengine_installation
 * @subpage chrono_pyengine_reference
