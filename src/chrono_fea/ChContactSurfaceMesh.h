@@ -518,9 +518,11 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ> >& GetTriangleList() { return vfaces; }
+    /// Get the list of triangles, for nodes with rotational dofs too.
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT> >& GetTriangleListRot() { return vfaces_rot; }
 
     /// Get the number of triangles.
-    unsigned int GetNumTriangles() const { return (unsigned int)vfaces.size(); }
+    unsigned int GetNumTriangles() const { return (unsigned int) (vfaces.size() + vfaces_rot.size()); }
 
     /// Get the number of vertices.
     unsigned int GetNumVertices() const;
@@ -531,7 +533,8 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys);
 
   private:
-    std::vector<std::shared_ptr<ChContactTriangleXYZ> > vfaces;  //  faces that collide
+    std::vector<std::shared_ptr<ChContactTriangleXYZ> > vfaces;         //  faces that collide
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT> > vfaces_rot;  //  faces that collide (for nodes with rotation too)
 };
 
 }  // END_OF_NAMESPACE____
