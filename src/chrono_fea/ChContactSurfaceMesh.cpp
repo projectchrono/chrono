@@ -15,6 +15,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementBeamANCF.h"
@@ -65,6 +66,36 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 
 
 //////////////////////////////////////////////////////////////////////////////
+////  ChContactTriangleXYZROT
+
+ChContactTriangleXYZROT::ChContactTriangleXYZROT() {
+        this->collision_model = new collision::ChModelBullet;
+        this->collision_model->SetContactable(this);
+}
+
+ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> n2,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> n3,
+                                                 ChContactSurface* acontainer) {
+    mnode1 = n1;
+    mnode1 = n2;
+    mnode1 = n3;
+    container = acontainer;
+
+    this->collision_model = new collision::ChModelBullet;
+    this->collision_model->SetContactable(this);
+}
+
+std::shared_ptr<ChMaterialSurfaceBase>& ChContactTriangleXYZROT::GetMaterialSurfaceBase() {
+    return container->GetMaterialSurfaceBase();
+}
+
+ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
+    return (ChPhysicsItem*)container->GetMesh();
+}
+
+
+
 ////  ChContactSurfaceMesh
 
 void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
