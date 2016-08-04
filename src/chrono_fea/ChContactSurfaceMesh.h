@@ -500,15 +500,23 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     // FUNCTIONS
     //
 
-    /// Given a solid mesh (ex a mesh of tetrahetrons) it finds the faces on the outer boundary.
+    /// Given a FEA mesh (ex a mesh of tetrahetrons) it finds the faces on the outer boundary.
     /// That is, it scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
-    /// The argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)
-    /// or clockwise order. This is currently used only for ANCF shell elements.
-    /// Supported solids that generate boundary skin:
-    /// - tetrahedrons
-    /// - ANCF shells (only one side)
-    /// - more will follow in future
+    /// For shells, the argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)
+    /// or clockwise order, this has a reason: shells collisions are oriented and might work only from the "outer" side.
+    /// Supported elements that generate boundary skin:
+    /// - solids: 
+    ///     - ChElementTetra_4: tetrahedrons
+    ///     - ChFaceBrick_9: solid hexahedrons
+    /// - shells:
+    ///     - ChElementShellANCF ANCF: shells (only one side)
+    ///     - ChElementShellReissner: Reissner 4-nodes shells (only one side)
+    /// - beams:
+    ///     - ChElementBeamANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
+    ///     - ChElementBeamEuler: Euler-Bernoulli beams (as sphere-swept lines, i.e. sequence of capsules)
+    /// More will follow in future.
+
     void AddFacesFromBoundary(double sphere_swept = 0.0,  ///< radius of swept sphere
                               bool ccw = true             ///< indicate clockwise or counterclockwise vertex ordering
                               );
