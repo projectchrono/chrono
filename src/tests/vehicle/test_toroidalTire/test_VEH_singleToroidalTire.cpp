@@ -50,6 +50,7 @@
 #endif
 
 #include "../ancfToroidalTire/ANCFToroidalTire.h"
+#include "../ancfToroidalTire/ReissnerToroidalTire.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -147,12 +148,14 @@ int main(int argc, char* argv[]) {
     // Create the tire
     // ---------------
 
-    auto tire = std::make_shared<ANCFToroidalTire>("ANCF_Tire");
+    //auto tire = std::make_shared<ANCFToroidalTire>("ANCF_Tire");
+    auto tire = std::make_shared<ReissnerToroidalTire>("Reissner_Tire");
 
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
     tire->EnableVisualization(true);
+    //tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
 
     tire->Initialize(wheel, LEFT);
     double tire_radius = tire->GetRadius();
