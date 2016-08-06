@@ -20,6 +20,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
+#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 
 namespace chrono {
@@ -51,6 +52,9 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Add contact geometry.
     m_shoe->SetCollide(true);
+
+    m_shoe->GetCollisionModel()->SetFamily(TrackCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackCollisionFamily::SHOES);
 
     switch (m_shoe->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
