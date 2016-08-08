@@ -32,6 +32,9 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
 
+using std::cout;
+using std::endl;
+
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
@@ -40,14 +43,6 @@ double post_limit = 0.2;
 // Simulation step size
 double step_size = 1e-2;
 double render_step_size = 1.0 / 50;  // Time interval between two render frames
-
-// =============================================================================
-// JSON file for track test rig
-std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
-
-// JSON file for vehicle and vehicle side
-std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
-int side = 0;
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -80,7 +75,7 @@ int main(int argc, char* argv[]) {
     switch (side) {
         case LEFT:
             sprocket_loc = ChVector<>(0, 1, 0);
-            idler_loc = ChVector<>(-3.92, 1, -0.12);  //// Original x value: -3.97
+            idler_loc = ChVector<>(-3.83, 1, -0.12);
             susp_locs[0] = ChVector<>(-0.655, 1, -0.215);
             susp_locs[1] = ChVector<>(-1.322, 1, -0.215);
             susp_locs[2] = ChVector<>(-1.989, 1, -0.215);
@@ -89,7 +84,7 @@ int main(int argc, char* argv[]) {
             break;
         case RIGHT:
             sprocket_loc = ChVector<>(0, -1, 0);
-            idler_loc = ChVector<>(-3.92, -1, -0.12);  //// Original x value: -3.97
+            idler_loc = ChVector<>(-3.83, -1, -0.12);
             susp_locs[0] = ChVector<>(-0.740, -1, -0.215);
             susp_locs[1] = ChVector<>(-1.407, -1, -0.215);
             susp_locs[2] = ChVector<>(-2.074, -1, -0.215);
@@ -154,6 +149,16 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
+        // Debugging output
+        const ChFrameMoving<>& c_ref = rig.GetChassis()->GetFrame_REF_to_abs();
+        const ChVector<>& i_pos_abs = rig.GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+        const ChVector<>& s_pos_abs = rig.GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+        ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+        ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+        cout << "Time: " << rig.GetSystem()->GetChTime() << endl;
+        cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
+        cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+
         // Render scene
         if (step_number % render_steps == 0) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
