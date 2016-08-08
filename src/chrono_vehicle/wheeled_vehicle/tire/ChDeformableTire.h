@@ -22,6 +22,7 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChLinkMate.h"
 
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
@@ -198,6 +199,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
     std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
     std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
+    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;         ///< tire-wheel fix connection (point+rotation)
 
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure

@@ -37,7 +37,6 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
     ChVector<> tire_center(0, 0.02+tire_rad, 0);
-    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y)); // create rotated 180° on y
 
     double tire_w0 = tire_vel_z0/tire_rad;
 
@@ -76,12 +75,12 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
     mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
-    mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
+    //mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();
     mrigidbody->GetCollisionModel()->AddTriangleMesh(mrigidmesh->GetMesh(), false, false, VNULL,
-                                                     ChMatrix33<>(CH_C_PI, VECT_Y), 0.01);
+                                                     ChMatrix33<>(1), 0.01);
     mrigidbody->GetCollisionModel()->BuildModel();
     mrigidbody->SetCollide(true);
 

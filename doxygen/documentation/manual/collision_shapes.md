@@ -11,7 +11,7 @@ Collision shapes can be added optionally to ChBody objects. Having collision sha
 Each body contains a ChCollisionModel.
 This can be used to define the collision shapes.
 
-![](pic_ChCollisionModel.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChCollisionModel.png)
 
 - Collision shapes are defined with respect to the REF frame of the [body](@ref rigid_bodies)
 
@@ -107,7 +107,7 @@ shapes were added as sharp boxes, but the effect from the point of view of
 collision is like having boxes with rounded corners whose rounding radius 
 is the collision margin.
 
-![](pic_margins.png)
+![](http://www.projectchrono.org/assets/manual/pic_margins.png)
 
 
 Drawbacks to poor envelope and/or margin choices:

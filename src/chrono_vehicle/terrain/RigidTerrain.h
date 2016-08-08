@@ -93,8 +93,9 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Initialize the terrain system (mesh).
     /// this version uses the specified mesh, for both visualization and contact.
-    void Initialize(const std::string& mesh_file,  ///< [in] filename of the input mesh (OBJ)
-                    const std::string& mesh_name   ///< [in] name of the mesh asset
+    void Initialize(const std::string& mesh_file,   ///< [in] filename of the input mesh (OBJ)
+                    const std::string& mesh_name,   ///< [in] name of the mesh asset
+                    double sweep_sphere_radius = 0  ///< [in] radius of sweep sphere
                     );
 
     /// Initialize the terrain system (height map).

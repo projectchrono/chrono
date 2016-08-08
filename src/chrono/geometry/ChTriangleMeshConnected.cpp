@@ -1194,6 +1194,21 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
         m_face_v_indices[i].y = new_indexes[m_face_v_indices[i].y];
         m_face_v_indices[i].z = new_indexes[m_face_v_indices[i].z];
     }
+    for (int i = 0; i < this->m_face_n_indices.size(); ++i) {
+        m_face_n_indices[i].x = new_indexes[m_face_n_indices[i].x];
+        m_face_n_indices[i].y = new_indexes[m_face_n_indices[i].y];
+        m_face_n_indices[i].z = new_indexes[m_face_n_indices[i].z];
+    }
+    for (int i = 0; i < this->m_face_uv_indices.size(); ++i) {
+        m_face_uv_indices[i].x = new_indexes[m_face_uv_indices[i].x];
+        m_face_uv_indices[i].y = new_indexes[m_face_uv_indices[i].y];
+        m_face_uv_indices[i].z = new_indexes[m_face_uv_indices[i].z];
+    }
+    for (int i = 0; i < this->m_face_col_indices.size(); ++i) {
+        m_face_col_indices[i].x = new_indexes[m_face_col_indices[i].x];
+        m_face_col_indices[i].y = new_indexes[m_face_col_indices[i].y];
+        m_face_col_indices[i].z = new_indexes[m_face_col_indices[i].z];
+    }
 
     return nmerged;
 }
@@ -1590,7 +1605,10 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                 int t_shared = 0; 
                 for (int ie = 0; ie<3; ++ie) {
                     std::pair<int, int> T1_ie_verts = this->GetTriangleEdgeIndexes(m_face_v_indices, t_N1, ie, true);
-                    double L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length(); 
+                    if (criterion)
+                        L_e = criterion->ComputeLength(T1_ie_verts.first, T1_ie_verts.second, this);
+                    else
+                        L_e = (this->m_vertices[T1_ie_verts.first] - this->m_vertices[T1_ie_verts.second]).Length(); 
                     if (L_e > T1_L_max) {
                         T1_L_max = L_e;
                         edge_N1 = ie;

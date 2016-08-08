@@ -23,6 +23,9 @@ namespace chrono {
 // Unique link type identifiers (for detecting type faster than with RTTI)
 // The corresponding identifier can be obtained with GetLinkType().
 // Also, the ChLinkLock family of constraints supports ChangeLinkType().
+//  TODO: remove these defines, maybe obsoleted, use RTTI instead when needed; 
+//  maybe keep only for ChangeLinkType()
+
 #define LNK_LOCK 0
 #define LNK_SPHERICAL 1
 #define LNK_POINTPLANE 2
@@ -67,8 +70,8 @@ namespace chrono {
 #define LNK_MATEXDISTANCE 48
 #define LNK_MATEPARALLEL 46
 #define LNK_MATEORTHOGONAL 47
-
 #define LNK_REVOLUTEPRISMATIC 48
+#define LNK_MATEFIX 49
 
 /// Base class for all types of constraints that act like
 /// mechanical joints ('links') in 3D space.

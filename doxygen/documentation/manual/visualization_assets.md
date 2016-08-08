@@ -69,7 +69,7 @@ See @ref chrono::ChVisualization for API details.
 Each shape has a translation and a rotation defined with respect to the REF reference 
 of the owner [body](@ref rigid_bodies). Note that this is not the COG frame, as shown in the figure below.
 
-![](pic_ChAsset.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChAsset.png)
 
 Examples of visualization assets:
 

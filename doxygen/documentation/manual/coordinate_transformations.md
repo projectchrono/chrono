@@ -80,7 +80,7 @@ the corresponding quaternion is
 \right\}
 \f]
 
-![](coord_quaternions.png)
+![](http://www.projectchrono.org/assets/manual/coord_quaternions.png)
 
 Only quaternions with unit norm represent valid rotations. 
 Quaternions can be built in different ways.
@@ -177,7 +177,7 @@ The ChCoordys is a lightweight version of a ChFrame, which is discussed next.
 A @ref chrono::ChFrame represents a coordinate system in 3D space like 
 ChCoordsys but includes more advanced features.
 
-![](coord_frame.png)
+![](http://www.projectchrono.org/assets/manual/coord_frame.png)
 
 As shown in the picture above, a ChFrame object 
 indicates how "rotated" and 
@@ -225,7 +225,7 @@ ability to transform points and other ChFrame objects.
 Example: Transforming a point from a local coordinate system **b** 
 to the absolute coordinate system **a**:
 
-![](coord_trasf1_point.png)
+![](http://www.projectchrono.org/assets/manual/coord_trasf1_point.png)
 
 Usually an affine transformation involving rotation 
 by a matrix A and a translation is used:
@@ -257,7 +257,7 @@ d_Paa = X_ba * d_Pbb;
 The same concept can be used to chain coordinate transformations. For instance, if the transformation from a frame **c** to **b** and from **b** to **a** is known,
 then the total frame rotation and displacement can be found.
 
-![](coord_trasf2_frame.png)
+![](http://www.projectchrono.org/assets/manual/coord_trasf2_frame.png)
 
 
 ~~~{.cpp}
@@ -269,7 +269,7 @@ X_ca = X_ba * X_cb;
 This translates into working with a less complex representation. Symbols are recycled to emphasize that the latter formalism has 
 the same meaning insofar using the displacements and quaternions:
 
-![](coord_trasf3_frame.png)
+![](http://www.projectchrono.org/assets/manual/coord_trasf3_frame.png)
 
 The transformation above can be expressed with an alternative
 operator >>, whose operands are swapped with respect to the * operator:
@@ -367,7 +367,7 @@ and of angular acceleration
 
 This can be shown intuitively with the following picture:
 
-![](coord_framemoving.png)
+![](http://www.projectchrono.org/assets/manual/coord_framemoving.png)
 
 Note that 'angular' velocities and accelerations can be set/get both in the 
 basis of the moving frame or in the absolute frame.
@@ -397,7 +397,7 @@ A ChFrameMoving can be used to transform ChVector (points in space), a ChFrame, 
 Example: The absolute velocity and angular velocity of **c** with respect to **a** can be computed if the transformation from **b** to **a** and from **c** to **b** is known:
 
 
-![](coord_trasf5_framemoving.png)
+![](http://www.projectchrono.org/assets/manual/coord_trasf5_framemoving.png)
 
 The case above translates in the following equivalent expressions, 
 using the two alternative formalisms (Left-to-right based on >> operator, 
@@ -417,7 +417,7 @@ relative accelerations, Coriolis acceleration, etc.
 
 The following is another example with a longer concatenation of transformations:
 
-![](coord_trasf6_framemoving.png)
+![](http://www.projectchrono.org/assets/manual/coord_trasf6_framemoving.png)
 
 Note that one can also use the inverse of frame transformations, 
 using GetInverse(), as seen for ChFrame.
@@ -426,7 +426,7 @@ Example: Computing the position, velocity and acceleration of the moving target 
 with respect to the gripper 6, expressed in the basis of the frame 6.
 
 
-![](coord_robotexample.png)
+![](http://www.projectchrono.org/assets/manual/coord_robotexample.png)
 
 How would one compute X_86 knowing all others? 
 Start from two equivalent expressions of X_80: 

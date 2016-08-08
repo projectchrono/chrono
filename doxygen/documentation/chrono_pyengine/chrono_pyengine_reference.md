@@ -5,7 +5,7 @@ Chrono::PyEngine is a Python wrapper for Chrono::Engine. It is a set of
 Python modules that correspond to the main units of Chrono::Engine, as
 shown in this scheme:
 
-![](Units_python.png)
+![](http://www.projectchrono.org/assets/manual/Units_python.png)
 
 
 First steps with Python

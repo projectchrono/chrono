@@ -16,7 +16,7 @@ Example:
 The following picture shows how mechanisms turn into a database of bodies 
 and links in a ChSystem:
 
-![](pic_database.png)
+![](http://www.projectchrono.org/assets/manual/pic_database.png)
 
 - A @ref chrono::ChSystem contains all items that participate in a simulation: bodies, constraints, numerical integrator type, integration tolerances, etc.
 

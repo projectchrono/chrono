@@ -136,7 +136,16 @@ set(CV_TERRAIN_FILES
     terrain/DeformableTerrain.h
     terrain/DeformableTerrain.cpp
 )
-source_group("terrain" FILES ${CV_TERRAIN_FILES})
+
+if(ENABLE_MODULE_FEA)
+    set(CV_FEATERRAIN_FILES
+    terrain/FEADeformableTerrain.h
+    terrain/FEADeformableTerrain.cpp
+    )
+else()
+    set(CV_FEATERRAIN_FILES "")
+endif()
+source_group("terrain" FILES ${CV_TERRAIN_FILES} ${CV_FEATERRAIN_FILES})
 
 set(CV_UTILS_FILES
     utils/ChSteeringController.h
@@ -278,9 +287,12 @@ if(ENABLE_MODULE_FEA)
         wheeled_vehicle/tire/ChDeformableTire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
+		wheeled_vehicle/tire/ChReissnerTire.h
+        wheeled_vehicle/tire/ChReissnerTire.cpp
         wheeled_vehicle/tire/ChFEATire.h
         wheeled_vehicle/tire/ChFEATire.cpp
-
+		wheeled_vehicle/tire/ReissnerTire.h
+        wheeled_vehicle/tire/ReissnerTire.cpp
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
         wheeled_vehicle/tire/FEATire.h
@@ -485,6 +497,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
     ${CV_TERRAIN_FILES}
+	${CV_FEATERRAIN_FILES}
     ${CV_UTILS_FILES}
     ${CVIRR_UTILS_FILES}
 #

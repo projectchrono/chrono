@@ -61,7 +61,7 @@ Images must be in the documentation/images/ folder to be picked up by doxygen, i
 Images can be added as follows
 
 ~~~
-![](SWaddin.jpg)
+![](http://projectchrono.org/assets/manual/SWaddin.jpg)
 ~~~
 
 

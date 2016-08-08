@@ -57,6 +57,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 #endif
 
 #include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
@@ -80,10 +81,11 @@ using namespace fea;
 
 #ifdef CHRONO_FEA
 // Forward declarations
-void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement);
-void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
-	std::vector<std::vector<int>> & NodeNeighborElement);
-#endif 
+void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>>& NodeNeighborElement);
+void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh,
+                   double simtime,
+                   std::vector<std::vector<int>>& NodeNeighborElement);
+#endif
 
 // =============================================================================
 // USER SETTINGS
@@ -98,6 +100,10 @@ SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, FEA)
 TireModelType tire_model = ANCF;
+
+// Type of terrain model
+enum TerrainType { RIGID_TERRAIN, PLASTIC_FEA };
+TerrainType terrain_type = RIGID_TERRAIN;
 
 // Use tire specified through a JSON file?
 bool use_JSON = true;
@@ -204,7 +210,7 @@ class TireTestCollisionManager : public ChSystem::ChCustomComputeCollisionCallba
             double height = Vdot(normal, P - Q);
 
             // No collision if the sphere center is above plane by more than radius
-            if (height >= m_radius) 
+            if (height >= m_radius)
                 continue;
 
             // Create a collision info structure:
@@ -302,10 +308,9 @@ int main() {
         return 1;
     }
 
-    /*
 #ifdef CHRONO_OPENMP_ENABLED
     omp_set_num_threads(8);
-#endif*/
+#endif
 
     // Set the simulation and output time settings
     double sim_step = 1e-4;
@@ -344,6 +349,7 @@ int main() {
     if (auto sysDEM = dynamic_cast<chrono::ChSystemDEM*>(my_system)) {
         sysDEM->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
         collision::ChCollisionModel::SetDefaultSuggestedMargin(0.5);  // Maximum interpenetration allowed
+        sysDEM->UseMaterialProperties(false);
     }
 
     my_system->Set_G_acc(ChVector<>(0.0, 0.0, -g));
@@ -358,7 +364,7 @@ int main() {
     rim->SetInertiaXX(rim_inertiaXX);
 
     rim->SetPos_dt(ChVector<>(desired_speed, 0, 0));
-    
+
     my_system->AddBody(rim);
     auto cyl_rim = std::make_shared<ChCylinderShape>();
     cyl_rim->GetCylinderGeometry().p1 = ChVector<>(0, -.25, 0);
@@ -525,7 +531,6 @@ int main() {
     box_gnd->Rot = QUNIT;
     ground->AddAsset(box_gnd);*/
 
-
     rim->SetWvel_par(ChVector<>(0, desired_speed / tire_radius, 0));
 
     // Create the wheel body
@@ -614,7 +619,8 @@ int main() {
     // Downwards normal force = Desired normal force (downwards) - weight of the remaining bodies
 
     auto prismatic_set_toe_wheel_carrier = std::make_shared<ChLinkLockPrismatic>();
-    prismatic_set_toe_wheel_carrier->Initialize(wheel_carrier, set_toe, ChCoordsys<>(ChVector<>(0, 0, tire_radius), QUNIT));
+    prismatic_set_toe_wheel_carrier->Initialize(wheel_carrier, set_toe,
+                                                ChCoordsys<>(ChVector<>(0, 0, tire_radius), QUNIT));
     my_system->AddLink(prismatic_set_toe_wheel_carrier);
 
     // --------------------------------------------
@@ -639,8 +645,7 @@ int main() {
     // of the specified rotation matrix.
 
     auto revolute_set_camber_rim = std::make_shared<ChLinkLockRevolute>();
-    revolute_set_camber_rim->Initialize(rim, set_camber,
-        ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
+    revolute_set_camber_rim->Initialize(rim, set_camber, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)));
     my_system->AddLink(revolute_set_camber_rim);
 
     // --------------------------------------------
@@ -651,37 +656,77 @@ int main() {
     lock_rim_wheel->Initialize(wheel, rim, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
     my_system->AddLink(lock_rim_wheel);
 
-    // Create the terrain
+    // Create the terrain. If FEA, then use triangular mesh for contact and create DEM contact properties
     // ------------------
+    std::shared_ptr<ChTerrain> terrain;
+    if (terrain_type == RIGID_TERRAIN) {
+        auto rigid_terrain = std::make_shared<RigidTerrain>(my_system);
+        rigid_terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
+        rigid_terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
+        rigid_terrain->Initialize(-tire_radius + 0.0015, 120, 0.5);
+        terrain = rigid_terrain;
+    } else if (terrain_type == PLASTIC_FEA) {
+#ifdef CHRONO_FEA
+        auto fea_terrain = std::make_shared<FEADeformableTerrain>(my_system);
+        fea_terrain->SetSoilParametersFEA(200, 1.379e5, 0.25, 0.0, 50000, 20.0, 2.0);
+        fea_terrain->Initialize(ChVector<>(-1.0, -0.3, -1.0), ChVector<>(4.0, 0.5, 1.0 - tire_radius - 0.05),
+                                ChVector<int>(100, 20, 4));  // ChVector<int>(10, 10, 4)
+        // Add contact surface mesh.
+        auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+        mysurfmaterial->SetYoungModulus(6e4);
+        mysurfmaterial->SetFriction(0.3f);
+        mysurfmaterial->SetRestitution(0.2f);
+        mysurfmaterial->SetAdhesion(0);
+        mysurfmaterial->SetKt(4e4);
+        mysurfmaterial->SetKn(1e5);
 
-    auto terrain = std::make_shared<RigidTerrain>(my_system);
-    terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
-    terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
-    terrain->Initialize(-tire_radius + 0.0005, 120, 0.5);
+        std::shared_ptr<ChContactSurfaceMesh> my_contactsurface(new ChContactSurfaceMesh);
+        fea_terrain->GetMesh()->AddContactSurface(my_contactsurface);
+        my_contactsurface->AddFacesFromBoundary(1.0e-2);  // Sphere swept
+        my_contactsurface->SetMaterialSurface(mysurfmaterial);
+        terrain = fea_terrain;
+#endif
+    }
 
-    // Optionally use the custom collision detection class
-    // ---------------------------------------------------
-
+// Optionally use the custom collision detection class for rigid terrain
+// Otherwise apply node cloud to ANCF tire
+// ---------------------------------------------------
 #ifdef CHRONO_FEA
     TireTestCollisionManager* my_collider = NULL;
 
     if (tire_model == ANCF && enable_tire_contact && use_custom_collision) {
         // Disable automatic contact on the ground body
-        terrain->GetGroundBody()->SetCollide(false);
-
+        if (terrain_type == RIGID_TERRAIN) {
+            std::dynamic_pointer_cast<RigidTerrain>(terrain)->GetGroundBody()->SetCollide(false);
+        }
         // Extract the contact surface from the tire mesh
         auto tire_ancf = std::static_pointer_cast<ChANCFTire>(tire);
         auto tire_mesh = tire_ancf->GetMesh();
         auto surface = std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
 
         // Add custom collision callback
-        if (surface) {
-            my_collider = new TireTestCollisionManager(surface, terrain, tire_ancf->GetContactNodeRadius());
+        if (surface && terrain_type == RIGID_TERRAIN) {
+            my_collider = new TireTestCollisionManager(surface, std::dynamic_pointer_cast<RigidTerrain>(terrain),
+                                                       tire_ancf->GetContactNodeRadius());
             my_system->SetCustomComputeCollisionCallback(my_collider);
+        } else if (surface && terrain_type == PLASTIC_FEA) {
+            auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+            mysurfmaterial->SetYoungModulus(6e4);
+            mysurfmaterial->SetFriction(0.3f);
+            mysurfmaterial->SetRestitution(0.2f);
+            mysurfmaterial->SetAdhesion(0);
+            mysurfmaterial->SetKt(4e3);
+            mysurfmaterial->SetKn(1e4);
+
+            auto surface_ancf =
+                std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
+            tire_mesh->AddContactSurface(surface_ancf);
+            surface_ancf->AddAllNodes(0.01);
+            surface_ancf->SetMaterialSurface(mysurfmaterial);  // use the DEM penalty contacts
         } else {
-            GetLog() << "********************************************\n";
-            GetLog() << "Custom collision requires NodeCloud contact!\n";
-            GetLog() << "********************************************\n";
+            // GetLog() << "********************************************\n";
+            // GetLog() << "Custom collision requires NodeCloud contact!\n";
+            // GetLog() << "********************************************\n";
         }
     }
 #endif
@@ -738,11 +783,10 @@ int main() {
         }
     }
 
-    // Create the Irrlicht application for visualization
-    // -------------------------------------------------
+// Create the Irrlicht application for visualization
+// -------------------------------------------------
 #ifdef USE_IRRLICHT
-    ChIrrApp* application =
-        new ChIrrApp(my_system, L"Tire Test Rig", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp* application = new ChIrrApp(my_system, L"Tire Test Rig", core::dimension2d<u32>(1920, 1080), false, true);
     application->AddTypicalLogo();
     application->AddTypicalSky();
     application->AddTypicalLights();
@@ -753,9 +797,7 @@ int main() {
     application->AssetUpdateAll();
 
     application->SetTimestep(sim_step);
-#endif // !USE_IRRLICHT
-
-
+#endif  // !USE_IRRLICHT
 
     // Perform the simulation
     // -----------------------
@@ -763,7 +805,7 @@ int main() {
     // Create the CSV_Writer output objects (TAB delimited)
     utils::CSV_writer out_force_moment = OutStream();
     utils::CSV_writer out_wheelstate = OutStream();
-	utils::CSV_writer out_tireforce = OutStream();
+    utils::CSV_writer out_tireforce = OutStream();
     // Write headers
     out_force_moment << "Time"
                      << "X_Frc"
@@ -788,21 +830,11 @@ int main() {
                    << "w_z"
                    << "omega" << std::endl;
 
-
-    /*double meshmass;
-    ChVector<> com;
-    ChMatrix33<> inertia;
-
-    double mass_ = std::dynamic_pointer_cast<ANCFTire>(tire)->GetMass();
-    GetLog() << "Total mass of the mesh: " << mass_ << "  \n";
-    getchar();*/
-
-
     // Simulation loop
     double simTime = 0;
     double outTime = 0;
     TireForce tireforce;
-	TireForce tireforceprint;
+    TireForce tireforceprint;
     WheelState wheelstate;
 
     TireTestContactReporter my_reporter;
@@ -825,8 +857,8 @@ int main() {
 #else
     while (simTime < sim_endtime) {
 #endif
-        // GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
-        // my_system->DoStepDynamics(sim_step);
+// GetLog() << "Time: " << my_system->GetChTime() << " s. \n";
+// my_system->DoStepDynamics(sim_step);
 #ifdef USE_IRRLICHT
         // Render scene
         application->BeginScene();
@@ -839,10 +871,9 @@ int main() {
         wheelstate.lin_vel = wheel->GetPos_dt();    // linear velocity, expressed in the global frame
         wheelstate.ang_vel = wheel->GetWvel_par();  // angular velocity, expressed in the global frame
         wheelstate.omega = wheel->GetWvel_loc().y;  // wheel angular speed about its rotation axis
-
         // Get tire forces
         tireforce = tire->GetTireForce();
-		tireforceprint = tire->GetTireForce(true);
+        tireforceprint = tire->GetTireForce(true);
         // Synchronize tire subsystem
         tire->Synchronize(simTime, wheelstate, *terrain.get());
 
@@ -856,7 +887,7 @@ int main() {
         wheel->Accumulate_force(tireforce.force, tireforce.point, false);
         wheel->Accumulate_torque(tireforce.moment, false);
 
-        // Advance simulation
+// Advance simulation
 #ifdef USE_IRRLICHT
         application->DoStep();
 #else
@@ -934,15 +965,15 @@ int main() {
             out_force_moment << simTime << tireforce.force << tireforce.moment << std::endl;
             out_wheelstate << simTime << wheelstate.pos << wheelstate.rot << wheelstate.lin_vel << wheelstate.ang_vel
                            << wheelstate.omega << std::endl;
-			out_tireforce << tireforceprint.point.x << tireforceprint.point.y << tireforceprint.point.z <<
-				tireforceprint.force.x << tireforceprint.force.y << tireforceprint.force.z <<
-				tireforceprint.moment.x << tireforceprint.moment.y << tireforceprint.moment.z << std::endl;
+            out_tireforce << tireforceprint.point.x << tireforceprint.point.y << tireforceprint.point.z
+                          << tireforceprint.force.x << tireforceprint.force.y << tireforceprint.force.z
+                          << tireforceprint.moment.x << tireforceprint.moment.y << tireforceprint.moment.z << std::endl;
             // Increment output time
             outTime += out_step;
             // Write output files
             out_force_moment.write_to_file(out_dir + "ForcesMoments.out", "Tire Forces and Moments\n\n");
             out_wheelstate.write_to_file(out_dir + "WheelStates.out", "Wheel States\n\n");
-			out_tireforce.write_to_file(out_dir + "CoSimForce.out", "CoSimForce\n\n");
+            out_tireforce.write_to_file(out_dir + "CoSimForce.out", "CoSimForce\n\n");
             // my_reporter.WriteContacts(out_dir + "ContactPatch.out");
         }
         // Increment simulation time
@@ -970,88 +1001,85 @@ int main() {
 
 #ifdef CHRONO_FEA
 
-void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>> & NodeNeighborElement) {
-	// Create connectivity for plotting the tire
-	utils::CSV_writer MESH(" ");
-	MESH.stream().setf(std::ios::scientific | std::ios::showpos);
-	MESH.stream().precision(6);
-	std::vector<std::shared_ptr<ChNodeFEAbase> > myvector;
-	myvector.resize(m_mesh->GetNnodes());
-	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
-		myvector[i] = std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(i));
-	}
-	MESH << "\nCELLS " << m_mesh->GetNelements() << 5 * m_mesh->GetNelements() << "\n";
+void CreateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, std::vector<std::vector<int>>& NodeNeighborElement) {
+    // Create connectivity for plotting the tire
+    utils::CSV_writer MESH(" ");
+    MESH.stream().setf(std::ios::scientific | std::ios::showpos);
+    MESH.stream().precision(6);
+    std::vector<std::shared_ptr<ChNodeFEAbase>> myvector;
+    myvector.resize(m_mesh->GetNnodes());
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+        myvector[i] = std::dynamic_pointer_cast<ChNodeFEAbase>(m_mesh->GetNode(i));
+    }
+    MESH << "\nCELLS " << m_mesh->GetNelements() << 5 * m_mesh->GetNelements() << "\n";
 
-	for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
-		auto element = (m_mesh->GetElement(iele));
-		MESH << "4 ";
-		int nodeOrder[] = { 0, 1, 2, 3 };
-		for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
-			auto nodeA = (element->GetNodeN(nodeOrder[myNodeN]));
-			std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
-			it = find(myvector.begin(), myvector.end(), nodeA);
-			if (it == myvector.end()) {
-				// name not in vector
-			}
-			else {
-				auto index = std::distance(myvector.begin(), it);
-				MESH << (unsigned int)index << " ";
-				NodeNeighborElement[index].push_back(iele);
-			}
-		}
-		MESH << "\n";
-	}
-	MESH << "\nCELL_TYPES " << m_mesh->GetNelements() << "\n";
+    for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+        auto element = (m_mesh->GetElement(iele));
+        MESH << "4 ";
+        int nodeOrder[] = {0, 1, 2, 3};
+        for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
+            auto nodeA = (element->GetNodeN(nodeOrder[myNodeN]));
+            std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
+            it = find(myvector.begin(), myvector.end(), nodeA);
+            if (it == myvector.end()) {
+                // name not in vector
+            } else {
+                auto index = std::distance(myvector.begin(), it);
+                MESH << (unsigned int)index << " ";
+                NodeNeighborElement[index].push_back(iele);
+            }
+        }
+        MESH << "\n";
+    }
+    MESH << "\nCELL_TYPES " << m_mesh->GetNelements() << "\n";
 
-	for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
-		MESH << "9\n";
-	}
-	if (ChFileutils::MakeDirectory("VTK_ANCFTireAn") < 0) {
-		GetLog() << "Error creating directory VTK_Animations\n";
-		getchar();
-		exit(1);
-	}
-	MESH.write_to_file("VTK_ANCFTireAn/Mesh.vtk");
+    for (unsigned int iele = 0; iele < m_mesh->GetNelements(); iele++) {
+        MESH << "9\n";
+    }
+    if (ChFileutils::MakeDirectory("VTK_ANCFTireAn") < 0) {
+        GetLog() << "Error creating directory VTK_Animations\n";
+        getchar();
+        exit(1);
+    }
+    MESH.write_to_file("VTK_ANCFTireAn/Mesh.vtk");
 }
-void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
-	std::vector<std::vector<int>> & NodeNeighborElement) {
+void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh,
+                   double simtime,
+                   std::vector<std::vector<int>>& NodeNeighborElement) {
+    char buffer[32];  // The filename buffer.
+    std::ofstream output;
+    snprintf(buffer, sizeof(char) * 32, "VTK_ANCFTireAn/out.%f.vtk", simtime);
+    output.open(buffer, std::ios::app);
+    output << "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
+    output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << m_mesh->GetNnodes() << " float\n";
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+        auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(i));
+        output << node->GetPos().x << " " << node->GetPos().y << " " << node->GetPos().z << "\n ";
+    }
+    std::ifstream CopyFrom("VTK_ANCFTireAn/Mesh.vtk");
+    output << CopyFrom.rdbuf();
+    output << "\nPOINT_DATA " << m_mesh->GetNnodes() << "\n ";
+    output << "SCALARS VonMissesStrain float\n";
+    output << "LOOKUP_TABLE default\n";
+    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+        double areaAve = 0;
+        double scalar = 0;
+        double myarea = 0;
+        double dx, dy;
+        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
+            int myelemInx = NodeNeighborElement[i][j];
+            /*std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
+            ->EvaluateVonMisesStrain(scalar);*/
+            scalar = 0.0;
+            dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthX();
+            dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthY();
+            myarea += dx * dy / 4;
+            areaAve += scalar * dx * dy / 4;
+        }
 
-	char buffer[32];  // The filename buffer.
-	std::ofstream output;
-	snprintf(buffer, sizeof(char) * 32, "VTK_ANCFTireAn/out.%f.vtk", simtime);
-	output.open(buffer, std::ios::app);
-	output << "# vtk DataFile Version 2.0\nUnstructured Grid Example\nASCII\n\n" << std::endl;
-	output << "DATASET UNSTRUCTURED_GRID\nPOINTS " << m_mesh->GetNnodes() << " float\n";
-	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
-		auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_mesh->GetNode(i));
-		output << node->GetPos().x << " " << node->GetPos().y << " " << node->GetPos().z << "\n ";
-	}
-	std::ifstream CopyFrom("VTK_ANCFTireAn/Mesh.vtk");
-	output << CopyFrom.rdbuf();
-	output << "\nPOINT_DATA " << m_mesh->GetNnodes() << "\n ";
-	output << "SCALARS VonMissesStrain float\n";
-	output << "LOOKUP_TABLE default\n";
-	for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
-		double areaAve = 0;
-		double scalar = 0;
-		double myarea = 0;
-		double dx, dy;
-		for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-			int myelemInx = NodeNeighborElement[i][j];
-			/*std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-			->EvaluateVonMisesStrain(scalar);*/
-			scalar = 0.0;
-			dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-				->GetLengthX();
-			dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-				->GetLengthY();
-			myarea += dx * dy / 4;
-			areaAve += scalar * dx * dy / 4;
-		}
-
-		output << areaAve / myarea << "\n";
-	}
-	output << "\nVECTORS StrainXX_Def float\n";
+        output << areaAve / myarea << "\n";
+    }
+    output << "\nVECTORS StrainXX_Def float\n";
     for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
         double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
         double myarea = 0;
@@ -1059,19 +1087,18 @@ void UpdateVTKFile(std::shared_ptr<fea::ChMesh> m_mesh, double simtime,
         for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
             int myelemInx = NodeNeighborElement[i][j];
             ChVector<> StrainVector(0);
-			StrainVector = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))
-                ->EvaluateSectionStrains();
+            StrainVector =
+                std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->EvaluateSectionStrains();
             dx = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthX();
             dy = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(myelemInx))->GetLengthY();
             myarea += dx * dy / 4;
             areaAve1 += StrainVector.x * dx * dy / 4;
             areaAve2 += StrainVector.y * dx * dy / 4;
-			areaAve3 += StrainVector.z * dx * dy / 4;
-		}
-		output << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
-	}
-	output.close();
+            areaAve3 += StrainVector.z * dx * dy / 4;
+        }
+        output << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
+    }
+    output.close();
 }
 
 #endif  /// CHRONO_FEA
-

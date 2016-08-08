@@ -15,6 +15,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementBeamANCF.h"
@@ -65,11 +66,46 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 
 
 //////////////////////////////////////////////////////////////////////////////
+////  ChContactTriangleXYZROT
+
+ChContactTriangleXYZROT::ChContactTriangleXYZROT() {
+        this->collision_model = new collision::ChModelBullet;
+        this->collision_model->SetContactable(this);
+}
+
+ChContactTriangleXYZROT::ChContactTriangleXYZROT(std::shared_ptr<ChNodeFEAxyzrot> n1,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> n2,
+                                                 std::shared_ptr<ChNodeFEAxyzrot> n3,
+                                                 ChContactSurface* acontainer) {
+    mnode1 = n1;
+    mnode1 = n2;
+    mnode1 = n3;
+    container = acontainer;
+
+    this->collision_model = new collision::ChModelBullet;
+    this->collision_model->SetContactable(this);
+}
+
+std::shared_ptr<ChMaterialSurfaceBase>& ChContactTriangleXYZROT::GetMaterialSurfaceBase() {
+    return container->GetMaterialSurfaceBase();
+}
+
+ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
+    return (ChPhysicsItem*)container->GetMesh();
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////
 ////  ChContactSurfaceMesh
 
 void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     std::vector<std::array<ChNodeFEAxyz*, 3>> triangles;
     std::vector<std::array<std::shared_ptr<ChNodeFEAxyz>, 3>> triangles_ptrs;
+
+    std::vector<std::array<ChNodeFEAxyzrot*, 3>> triangles_rot;
+    std::vector<std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>> triangles_rot_ptrs;
 
     ///
     /// Case1. Outer skin boundary of meshes of TETRAHEDRONS:
@@ -126,20 +162,55 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     ///
+    /// Case2. skin of ANCF SHELLS:
+    ///
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(mmesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
+            std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
+            std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
+            if (ccw) {
+                triangles.push_back({{nA.get(), nD.get(), nB.get()}});
+                triangles.push_back({{nB.get(), nD.get(), nC.get()}});
+                triangles_ptrs.push_back({{nA, nD, nB}});
+                triangles_ptrs.push_back({{nB, nD, nC}});
+            } else {
+                triangles.push_back({{nA.get(), nB.get(), nD.get()}});
+                triangles.push_back({{nB.get(), nC.get(), nD.get()}});
+                triangles_ptrs.push_back({{nA, nB, nD}});
+                triangles_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+    ///
     /// Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     ///
-    /*
-    for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
         if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mmesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
-            std::array<ChNodeFEAxyz*,3> tri1 = {nA.get(),nB.get(),nB.get()};
-            std::array<std::shared_ptr<ChNodeFEAxyz>,3> tri1_ptrs = {nA,nB,nB};
-            triangles.push_back( tri1 );
-            triangles_ptrs.push_back( tri1_ptrs );
+
+            auto contact_triangle = std::make_shared<ChContactTriangleXYZROT>();
+            contact_triangle->SetNode1(nA);
+            contact_triangle->SetNode2(nB);
+            contact_triangle->SetNode3(nB);
+            this->vfaces_rot.push_back(contact_triangle);
+            contact_triangle->SetContactSurface(this);
+
+            contact_triangle->GetCollisionModel()->ClearModel();
+            ((collision::ChModelBullet*)contact_triangle->GetCollisionModel())->AddTriangleProxy(
+                                    &nA->coord.pos, 
+                                    &nB->coord.pos,
+                                    &nB->coord.pos, 
+                                    0, 0, 0, // no wing vertexes
+                                    false, false, false, // are vertexes owned by this triangle?
+                                    true, false, true, // are edges owned by this triangle? 
+                                    mbeam->GetSection()->GetDrawCircularRadius());
+            contact_triangle->GetCollisionModel()->BuildModel();
         }
     }
-    */
 
     ///
     /// Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
@@ -203,7 +274,35 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
+
+    ///
+    /// Case6. skin of REISSNER SHELLS:
+    ///
+
+    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(mmesh->GetElement(ie))) {
+            std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
+            std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
+            std::shared_ptr<ChNodeFEAxyzrot> nC = mshell->GetNodeC();
+            std::shared_ptr<ChNodeFEAxyzrot> nD = mshell->GetNodeD();
+            if (ccw) {
+                triangles_rot.push_back({{nA.get(), nD.get(), nB.get()}});
+                triangles_rot.push_back({{nB.get(), nD.get(), nC.get()}});
+                triangles_rot_ptrs.push_back({{nA, nD, nB}});
+                triangles_rot_ptrs.push_back({{nB, nD, nC}});
+            } else {
+                triangles_rot.push_back({{nA.get(), nB.get(), nD.get()}});
+                triangles_rot.push_back({{nB.get(), nC.get(), nD.get()}});
+                triangles_rot_ptrs.push_back({{nA, nB, nD}});
+                triangles_rot_ptrs.push_back({{nB, nC, nD}});
+            }
+        }
+    }
+
+
+    //
     // Compute triangles connectivity 
+    //
 
     std::multimap< std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*>, int> edge_map;
         
@@ -297,6 +396,101 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
+    // ....repeat: compute connectivity also for triangles with rotational dofs:
+
+    std::multimap< std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>, int> edge_map_rot;
+        
+    for (int it = 0; it<  triangles_rot.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA( triangles_rot[it][0],  triangles_rot[it][1]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB( triangles_rot[it][1],  triangles_rot[it][2]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC( triangles_rot[it][2],  triangles_rot[it][0]);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeC.second, medgeC.first);
+        edge_map_rot.insert( { medgeA , it} );
+        edge_map_rot.insert( { medgeB , it} );
+        edge_map_rot.insert( { medgeC , it} );
+    }
+
+    // Create a map of neighbouring triangles, vector of:
+    // [Ti TieA TieB TieC]
+    std::vector<std::array<int, 4>> tri_map_rot;
+    tri_map_rot.resize(triangles_rot.size());
+
+    for (int it = 0; it< triangles_rot.size(); ++it) {
+        tri_map_rot[it][0]=it;
+        tri_map_rot[it][1]=-1; // default no neighbour
+        tri_map_rot[it][2]=-1; // default no neighbour
+        tri_map_rot[it][3]=-1; // default no neighbour
+        // edges = pairs of vertexes indexes
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA( triangles_rot[it][0],  triangles_rot[it][1]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB( triangles_rot[it][1],  triangles_rot[it][2]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC( triangles_rot[it][2],  triangles_rot[it][0]);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeC.second, medgeC.first);
+        auto retA = edge_map_rot.equal_range(medgeA);
+        for (auto fedge=retA.first; fedge!=retA.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map_rot[it][1]=fedge->second;
+                break;
+            }
+        }
+        auto retB = edge_map_rot.equal_range(medgeB);
+        for (auto fedge=retB.first; fedge!=retB.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map_rot[it][2]=fedge->second;
+                break;
+            }
+        }
+        auto retC = edge_map_rot.equal_range(medgeC);
+        for (auto fedge=retC.first; fedge!=retC.second; ++fedge) {
+            if (fedge->second != it) {
+                tri_map_rot[it][3]=fedge->second;
+                break;
+            }
+        }  
+    }
+
+    std::map<std::pair<ChNodeFEAxyzrot*,ChNodeFEAxyzrot*>, std::pair<int,int>> winged_edges_rot;
+    bool allow_single_wing_rot = true;
+
+    for ( auto aedge = edge_map_rot.begin(); aedge != edge_map_rot.end(); ++aedge ) {
+        auto ret = edge_map_rot.equal_range(aedge->first);
+        int nt=0;
+        std::pair<ChNodeFEAxyzrot*,ChNodeFEAxyzrot*> wingedge;
+        std::pair<int,int> wingtri;
+        wingtri.first = -1;
+        wingtri.second = -1;
+        for (auto fedge=ret.first; fedge!=ret.second; ++fedge) {
+            if (fedge->second == -1)
+                break;
+            wingedge.first = fedge->first.first;
+            wingedge.second= fedge->first.second;
+            if (nt==0) 
+                wingtri.first  = fedge->second;
+            if (nt==1) 
+                wingtri.second = fedge->second;
+            ++nt;
+            if (nt==2) 
+                break;
+        }
+        if ((nt==2) || ((nt==1) && allow_single_wing_rot) ) {
+            winged_edges_rot.insert(std::pair<std::pair<ChNodeFEAxyzrot*,ChNodeFEAxyzrot*>, std::pair<int,int>>(wingedge,wingtri)); // ok found winged edge!
+            aedge->second = -1; // deactivate this way otherwise found again by sister
+        }
+    }
+
+
     //
     // Now create triangles with collision models:
     //
@@ -384,6 +578,92 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         wingedgeC->second.first = -1;
     }
 
+
+    // ....repeat: create triangles with collision models for nodes with rotationaldofs too:
+
+    std::set<ChNodeFEAxyzrot*> added_vertexes_rot;
+        
+    // iterate on triangles
+    for (int it = 0; it < triangles_rot.size(); ++it) {
+        // edges = pairs of vertexes indexes
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA( triangles_rot[it][0],  triangles_rot[it][1]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB( triangles_rot[it][1],  triangles_rot[it][2]);
+        std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeC( triangles_rot[it][2],  triangles_rot[it][0]);
+        // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
+        if (medgeA.first>medgeA.second) 
+            medgeA = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeA.second, medgeA.first);
+        if (medgeB.first>medgeB.second) 
+            medgeB = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeB.second, medgeB.first);
+        if (medgeC.first>medgeC.second) 
+            medgeC = std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*>(medgeC.second, medgeC.first); 
+        auto wingedgeA = winged_edges_rot.find(medgeA);
+        auto wingedgeB = winged_edges_rot.find(medgeB);
+        auto wingedgeC = winged_edges_rot.find(medgeC);
+
+        ChNodeFEAxyzrot* i_wingvertex_A = 0;
+        ChNodeFEAxyzrot* i_wingvertex_B = 0;
+        ChNodeFEAxyzrot* i_wingvertex_C = 0;
+
+        if (tri_map_rot[it][1] != -1) {
+            i_wingvertex_A = triangles_rot[tri_map_rot[it][1]][0];
+            if (triangles_rot[tri_map_rot[it][1]][1] != wingedgeA->first.first && triangles_rot[tri_map_rot[it][1]][1] != wingedgeA->first.second)
+                i_wingvertex_A = triangles_rot[tri_map_rot[it][1]][1];
+            if (triangles_rot[tri_map_rot[it][1]][2] != wingedgeA->first.first && triangles_rot[tri_map_rot[it][1]][2] != wingedgeA->first.second)
+                i_wingvertex_A = triangles_rot[tri_map_rot[it][1]][2];
+        }
+
+        if (tri_map_rot[it][2] != -1) {
+            i_wingvertex_B =triangles_rot[tri_map_rot[it][2]][0];
+            if (triangles_rot[tri_map_rot[it][2]][1] != wingedgeB->first.first && triangles_rot[tri_map_rot[it][2]][1] != wingedgeB->first.second)
+                i_wingvertex_B = triangles_rot[tri_map_rot[it][2]][1];
+            if (triangles_rot[tri_map_rot[it][2]][2] != wingedgeB->first.first && triangles_rot[tri_map_rot[it][2]][2] != wingedgeB->first.second)
+                i_wingvertex_B = triangles_rot[tri_map_rot[it][2]][2];
+        }
+
+        if (tri_map_rot[it][3] != -1) {
+            i_wingvertex_C = triangles_rot[tri_map_rot[it][3]][0];
+            if (triangles_rot[tri_map_rot[it][3]][1] != wingedgeC->first.first && triangles_rot[tri_map_rot[it][3]][1] != wingedgeC->first.second)
+                i_wingvertex_C = triangles_rot[tri_map_rot[it][3]][1];
+            if (triangles_rot[tri_map_rot[it][3]][2] != wingedgeC->first.first && triangles_rot[tri_map_rot[it][3]][2] != wingedgeC->first.second)
+                i_wingvertex_C = triangles_rot[tri_map_rot[it][3]][2];
+        }
+
+        auto contact_triangle_rot = std::make_shared<ChContactTriangleXYZROT>();
+        contact_triangle_rot->SetNode1(triangles_rot_ptrs[it][0]);
+        contact_triangle_rot->SetNode2(triangles_rot_ptrs[it][1]);
+        contact_triangle_rot->SetNode3(triangles_rot_ptrs[it][2]);
+        this->vfaces_rot.push_back(contact_triangle_rot);
+        contact_triangle_rot->SetContactSurface(this);
+
+        contact_triangle_rot->GetCollisionModel()->ClearModel();
+        ((collision::ChModelBullet*)contact_triangle_rot->GetCollisionModel())->AddTriangleProxy(
+                                &triangles_rot[it][0]->coord.pos, 
+                                &triangles_rot[it][1]->coord.pos,
+                                &triangles_rot[it][2]->coord.pos,
+                                // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
+                                wingedgeA->second.second != -1 ? &i_wingvertex_A->coord.pos : &triangles_rot[it][2]->coord.pos, 
+                                wingedgeB->second.second != -1 ? &i_wingvertex_B->coord.pos : &triangles_rot[it][0]->coord.pos,
+                                wingedgeC->second.second != -1 ? &i_wingvertex_C->coord.pos : &triangles_rot[it][1]->coord.pos,
+                                (added_vertexes_rot.find(triangles_rot[it][0]) == added_vertexes_rot.end()),
+                                (added_vertexes_rot.find(triangles_rot[it][1]) == added_vertexes_rot.end()),
+                                (added_vertexes_rot.find(triangles_rot[it][2]) == added_vertexes_rot.end()),
+                                // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
+                                wingedgeA->second.first != -1,
+                                wingedgeB->second.first != -1,
+                                wingedgeC->second.first != -1,
+                                sphere_swept);
+        contact_triangle_rot->GetCollisionModel()->BuildModel();
+
+        // Mark added vertexes
+        added_vertexes_rot.insert( triangles_rot[it][0] );
+        added_vertexes_rot.insert( triangles_rot[it][1] );
+        added_vertexes_rot.insert( triangles_rot[it][2] );
+        // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
+        wingedgeA->second.first = -1;
+        wingedgeB->second.first = -1;
+        wingedgeC->second.first = -1;
+    }
+
 }
 
 unsigned int ChContactSurfaceMesh::GetNumVertices() const {
@@ -404,12 +684,32 @@ unsigned int ChContactSurfaceMesh::GetNumVertices() const {
         }
     }
 
-    return (unsigned int)count;
+    std::map<ChNodeFEAxyzrot*, size_t> ptr_ind_map_rot;
+    size_t count_rot = 0;
+    for (size_t i = 0; i < vfaces_rot.size(); ++i) {
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode1().get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode1().get(), count_rot});
+            count_rot++;
+        }
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode2().get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode2().get(), count_rot});
+            count_rot++;
+        }
+        if (!ptr_ind_map_rot.count(vfaces_rot[i]->GetNode3().get())) {
+            ptr_ind_map_rot.insert({vfaces_rot[i]->GetNode3().get(), count_rot});
+            count_rot++;
+        }
+    }
+
+    return (unsigned int)(count + count_rot);
 }
 
 void ChContactSurfaceMesh::SurfaceSyncCollisionModels() {
     for (unsigned int j = 0; j < vfaces.size(); j++) {
         this->vfaces[j]->GetCollisionModel()->SyncPosition();
+    }
+    for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
+        this->vfaces_rot[j]->GetCollisionModel()->SyncPosition();
     }
 }
 
@@ -419,12 +719,18 @@ void ChContactSurfaceMesh::SurfaceAddCollisionModelsToSystem(ChSystem* msys) {
     for (unsigned int j = 0; j < vfaces.size(); j++) {
         msys->GetCollisionSystem()->Add(this->vfaces[j]->GetCollisionModel());
     }
+    for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
+        msys->GetCollisionSystem()->Add(this->vfaces_rot[j]->GetCollisionModel());
+    }
 }
 
 void ChContactSurfaceMesh::SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) {
     assert(msys);
     for (unsigned int j = 0; j < vfaces.size(); j++) {
         msys->GetCollisionSystem()->Remove(this->vfaces[j]->GetCollisionModel());
+    }
+    for (unsigned int j = 0; j < vfaces_rot.size(); j++) {
+        msys->GetCollisionSystem()->Remove(this->vfaces_rot[j]->GetCollisionModel());
     }
 }
 

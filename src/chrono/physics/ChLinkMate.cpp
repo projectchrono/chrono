@@ -1010,4 +1010,27 @@ void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(reldir2);
 }
 
+
+
+// -----------------------------------------------------------------------------
+
+// Register into the object factory, to enable run-time dynamic creation and persistence
+ChClassRegister<ChLinkMateFix> a_registration_ChLinkMateFix;
+
+ChLinkMateFix::ChLinkMateFix(const ChLinkMateFix& other) : ChLinkMateGeneric(other) {}
+
+void ChLinkMateFix::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
+                                     std::shared_ptr<ChBodyFrame> mbody2)
+{
+    ChLinkMateGeneric::Initialize(
+        mbody1, mbody2, 
+        false,               // constraint reference frame in abs coords
+        ChFrame<>(*mbody1),  // defaults to have constraint reference frame as mbody1 coordsystem
+        ChFrame<>(*mbody1)   // defaults to have constraint reference frame as mbody1 coordsystem
+        ); 
+}
+
+
+
+
 }  // end namespace chrono

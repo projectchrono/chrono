@@ -93,6 +93,10 @@ public:
     /// longitude-latitude.
     const ChCoordsys<>& GetPlane() const;
 
+    /// Get the mesh.
+    /// The soil mesh is defined by a trimesh.
+    const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
+
     /// Set the properties of the SCM soild model.
     /// The meaning of these parameters is described in the paper:
     // "Parameter Identification of a Planetary Rover Wheel–Soil
@@ -200,10 +204,16 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
   private:
     // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
-        // Computes the internal forces
-        this->UpdateInternalForces();
-        // Overloading base class
-        ChLoadContainer::Update(mytime, update_assets);
+        // optimization to avoid double updates per each integration time step
+        if (last_t != mytime) {
+            // Computes the internal forces
+            this->UpdateInternalForces();
+            // Overloading base class
+            ChLoadContainer::Update(mytime, update_assets);
+            last_t = mytime;
+            //GetLog() << "update soil t= "<< mytime << "\n";
+        } 
+        //else GetLog() << "unneeded update t= "<< mytime << "\n";
     }
 
     // Reset the list of forces, and fills it with forces from a soil contact model.
@@ -274,6 +284,8 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     double refinement_resolution;
 
     friend class DeformableTerrain;
+    
+    double last_t; // for optimization
 };
 
 /// @} vehicle_terrain

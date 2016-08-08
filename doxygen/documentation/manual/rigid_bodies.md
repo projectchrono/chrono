@@ -17,7 +17,7 @@ one should use the [FEA module](@ref FEA_module), which introduces flexible bodi
 The most used type of rigid bodies is the ChBody.
 See @ref chrono::ChBody for API details.
 
-![](pic_ChBody.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChBody.png)
 
 - Rigid bodies inherit (in the C++ sense) from the ChFrameMoving classes and as such they have a position, rotation, velocity, and acceleration
 
@@ -66,7 +66,7 @@ frame that is not necessarily coincident with the COG frame.
 
 See @ref chrono::ChBodyAuxRef for API details.
  
-![](pic_ChBodyAuxRef.png)
+![](http://www.projectchrono.org/assets/manual/pic_ChBodyAuxRef.png)
 
 Remarks:
 - Inherits (in the C++ sense) from ChBody
