@@ -9,11 +9,13 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Conlain Kelly
 // =============================================================================
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
-// functionality required by its base ChDriver class using keyboard inputs.
+// functionality required by its base ChDriver class using keyboard or joystick
+// inputs. If a joystick is present it will use use that as an input; it will
+// otherwise default to a keyboard input.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override
 // the default no-op Advance() virtual method.
@@ -51,7 +53,8 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     enum InputMode {
         LOCK,      ///< driver inputs locked at current values
         KEYBOARD,  ///< driver inputs from keyboard
-        DATAFILE   ///< driver inputs from data file
+        DATAFILE,  ///< driver inputs from data file
+        JOYSTICK   ///< driver inputs from joystick
     };
 
     /// Construct an Irrlicht GUI driver.
@@ -92,12 +95,13 @@ class CH_VEHICLE_API ChIrrGuiDriver : public ChDriver, public irr::IEventReceive
     /// Return the current functioning mode as a string.
     std::string GetInputModeAsString() const;
 
-  private:
+  protected:
     ChVehicleIrrApp& m_app;
 
     double m_throttleDelta;
     double m_steeringDelta;
     double m_brakingDelta;
+    int m_dT;
 
     InputMode m_mode;
     double m_time_shift;
