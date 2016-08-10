@@ -31,6 +31,9 @@ using namespace chrono;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::m113;
 
+using std::cout;
+using std::endl;
+
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
@@ -63,9 +66,10 @@ const std::string out_dir = "../M113";
 const std::string pov_dir = out_dir + "/POVRAY";
 const std::string img_dir = out_dir + "/IMG";
 
-// POV-Ray output
+// Output
 bool povray_output = false;
 bool img_output = false;
+bool dbg_output = false;
 
 // =============================================================================
 
@@ -207,6 +211,30 @@ int main(int argc, char* argv[]) {
     ChRealtimeStepTimer realtime_timer;
 
     while (app.GetDevice()->run()) {
+        // Debugging output
+        if (dbg_output) {
+            cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
+            const ChFrameMoving<>& c_ref = vehicle.GetChassis()->GetFrame_REF_to_abs();
+            const ChVector<>& c_pos = vehicle.GetChassisPos();
+            cout << "      chassis:    " << c_pos.x << "  " << c_pos.y << "  " << c_pos.z << endl;
+            {
+                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                cout << "      L idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
+                cout << "      L sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+            }
+            {
+                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                cout << "      R idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
+                cout << "      R sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+            }
+        }
+
         // Render scene
         if (step_number % render_steps == 0) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));

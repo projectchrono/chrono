@@ -91,6 +91,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
 
+    /// Get the track assembly subsystem.
+    std::shared_ptr<ChTrackAssembly> GetTrackAssembly() const { return m_track; }
+
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
 
