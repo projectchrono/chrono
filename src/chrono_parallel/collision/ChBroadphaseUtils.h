@@ -320,8 +320,6 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
             real3 Bmin = aabb_min_data[shapeB];
             real3 Bmax = aabb_max_data[shapeB];
 
-            if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size_vec, bins_per_axis, bin_number[index]) == false)
-                continue;
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)
@@ -332,6 +330,8 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
                 continue;
             if (!overlap(Amin, Amax, Bmin, Bmax))
                 continue;
+			if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size_vec, bins_per_axis, bin_number[index]) == false)
+				continue;
             count++;
         }
     }
@@ -375,8 +375,6 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
             real3 Bmin = aabb_min_data[shapeB];
             real3 Bmax = aabb_max_data[shapeB];
 
-            if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size_vec, bins_per_axis, bin_number[index]) == false)
-                continue;
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)
@@ -387,6 +385,8 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
                 continue;
             if (!overlap(Amin, Amax, Bmin, Bmax))
                 continue;
+			if (current_bin(Amin, Amax, Bmin, Bmax, inv_bin_size_vec, bins_per_axis, bin_number[index]) == false)
+				continue;
 
             if (shapeB < shapeA) {
                 uint t = shapeA;
