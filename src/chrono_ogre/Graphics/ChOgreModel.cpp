@@ -1,5 +1,6 @@
 #include "ChOgreModel.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreModel::ChOgreModel() {
@@ -80,5 +81,6 @@ void ChOgreModel::setMesh(const Ogre::MeshPtr& pMesh) {
     mesh.setMesh(pMesh);
 
     m_pNode->attachObject(mesh.getEntity());
+}
 }
 }

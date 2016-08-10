@@ -6,6 +6,7 @@
 #include <assets/ChColor.h>
 #include <memory>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreLight {
@@ -52,4 +53,5 @@ class CHOGRE_DLL_TAG ChOgreLight {
 
 typedef ChOgreLight* ChOgreLightPtr;
 typedef std::shared_ptr<ChOgreLight> ChOgreLightSharedPtr;
+}
 }

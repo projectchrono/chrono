@@ -1,5 +1,7 @@
 #include "VEVehicle.h"
 
+using namespace chrono;
+
 namespace VehicleEnvironment {
 
 	VEVehicle::VEVehicle() {

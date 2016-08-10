@@ -14,7 +14,6 @@ time refresh() is called.
 
 #include <physics/ChSystem.h>
 #include <physics/ChBody.h>
-#include <core/ChSmartpointers.h>
 #include <assets/ChVisualization.h>
 #include <assets/ChBoxShape.h>
 #include <assets/ChCapsuleShape.h>
@@ -31,6 +30,7 @@ time refresh() is called.
 #include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreModel.h"
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreBody {
@@ -42,9 +42,9 @@ class CHOGRE_DLL_TAG ChOgreBody {
     virtual void refresh();
     virtual void setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
-    virtual chrono::ChSharedPtr<ChBody> getChBody();
+    virtual std::shared_ptr<ChBody> getChBody();
 
-    virtual chrono::ChSharedPtr<ChBody> operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
+    virtual std::shared_ptr<ChBody> operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
                                                        // members as an ChOgreBody object, and as a ChBody pointer
 
     std::string name;
@@ -52,7 +52,7 @@ class CHOGRE_DLL_TAG ChOgreBody {
     bool isStaticMesh;
 
   protected:
-    chrono::ChSharedPtr<ChBody> m_pBody;
+    std::shared_ptr<ChBody> m_pBody;
 
     std::vector<ChOgreModel> m_Models;
 
@@ -66,4 +66,5 @@ class CHOGRE_DLL_TAG ChOgreBody {
 
 typedef ChOgreBody* ChOgreBodyPtr;
 typedef std::shared_ptr<ChOgreBody> ChOgreBodySharedPtr;
+}
 }

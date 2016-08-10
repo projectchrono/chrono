@@ -8,6 +8,7 @@ Author: Charles Ricchio
 #include <core/ChVector.h>
 #include <OGRE/Overlay/OgreOverlayContainer.h>
 
+namespace chrono{
 namespace ChOgre {
 
 class ECGUIPanel : public ECGUIElement {
@@ -32,4 +33,5 @@ class ECGUIPanel : public ECGUIElement {
 
   private:
 };
+}
 }

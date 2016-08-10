@@ -1,6 +1,6 @@
 #include <chrono_ogre/Core/ChOgreApplication.h>
 
-using namespace ChOgre;
+using namespace chrono::ChOgre;
 
 int main(int argc, char** args) {
 	ChOgreApplication app;
@@ -60,8 +60,12 @@ int main(int argc, char** args) {
 	yeh2->setDirection(0.0f, 0.0f, 0.0f);
 	yeh2->setIntensity(800.0f);
 
+	std::cout<<"Adding skybox"<<std::endl;
+
 	app.getScene()->setSkyBox("sky");
 	
+	std::cout<<"Done adding skybox"<<std::endl;
+
 	ChOgreKeyboardCallback EpsilonCallback;
 	EpsilonCallback.call = [&Epsilon](scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
 		if (KeyCode == SDLK_SPACE) {

@@ -7,6 +7,7 @@
 #include <memory>
 #include <core/ChVector.h>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreGUIManager {
@@ -41,4 +42,5 @@ class CHOGRE_DLL_TAG ChOgreGUIManager {
 
   private:
 };
+}
 }

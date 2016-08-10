@@ -1,5 +1,6 @@
 #include "ChOgreLightHandle.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreLightHandle::ChOgreLightHandle() {}
@@ -48,5 +49,6 @@ ChOgreLightSharedPtr ChOgreLightHandle::light() {
 
 void ChOgreLightHandle::setLightPtr(ChOgreLightSharedPtr& LightPtr) {
     m_pLight = LightPtr;
+}
 }
 }

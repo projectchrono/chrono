@@ -3,6 +3,7 @@
 #include "chrono_ogre/ChOgreApi.h"
 #include <Ogre.h>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreMeshBase {
@@ -29,4 +30,5 @@ class CHOGRE_DLL_TAG ChOgreMeshBase {
     Ogre::SceneManager* m_pSceneManager;
     Ogre::Entity* m_pEntity;
 };
+}
 }

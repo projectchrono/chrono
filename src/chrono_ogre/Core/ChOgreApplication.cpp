@@ -9,37 +9,43 @@ written more elegantly.
 #include "ChOgreApplication.h"
 #include "physics/ChGlobal.h"
 
+using namespace Ogre;
+
+namespace chrono{
 namespace ChOgre {
 
 
 	ChOgreApplication::ChOgreApplication() {
-		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
+		m_pRoot = new Ogre::Root("plugins.cfg", "", "ChOgre.log");
 
 		//NOTE: Probably terrible practice. Do better
 		{
-			std::vector<std::string> l_Plugins;
+//			std::vector<std::string> l_Plugins;
+//
+//			l_Plugins.push_back("RenderSystem_GL");
+//			l_Plugins.push_back("Plugin_ParticleFX");
+//			l_Plugins.push_back("Plugin_CgProgramManager");
+//			l_Plugins.push_back("Plugin_OctreeSceneManager");
+//			//l_tPlugins.push_back("Plugin_PCZSceneManager");
+//			//l_tPlugins.push_back("Plugin_OctreeZone");
+//			//l_tPlugins.push_back("Plugin_BSPSceneManager");
+//
+//			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
+//			{
+//				for (auto p : l_Plugins) {
+//					std::string& l_PluginName = p;
+//
+//					bool l_IsInDebugMode = OGRE_DEBUG_MODE;
+//
+//					if (l_IsInDebugMode) {
+//						l_PluginName += "_d";
+//					}
+//					m_pRoot->loadPlugin(l_PluginName);
+//				}
+//			}
+			//const std::string pluginfile = "plugins.cfg";
 
-			l_Plugins.push_back("RenderSystem_GL");
-			l_Plugins.push_back("Plugin_ParticleFX");
-			l_Plugins.push_back("Plugin_CgProgramManager");
-			l_Plugins.push_back("Plugin_OctreeSceneManager");
-			//l_tPlugins.push_back("Plugin_PCZSceneManager");
-			//l_tPlugins.push_back("Plugin_OctreeZone");
-			//l_tPlugins.push_back("Plugin_BSPSceneManager");
-
-			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
-			{
-				for (auto p : l_Plugins) {
-					std::string& l_PluginName = p;
-
-					bool l_IsInDebugMode = OGRE_DEBUG_MODE;
-
-					if (l_IsInDebugMode) {
-						l_PluginName += "_d";
-					}
-					m_pRoot->loadPlugin(l_PluginName);
-				}
-			}
+			//m_pRoot->loadPlugin("RenderSystem_GL");
 		}
 
 		//NOTE: Just rewrite this entire function
@@ -65,15 +71,15 @@ namespace ChOgre {
 
 		{
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/programs", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/materials/textures", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/materials/textures", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/fonts/minecraftia", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/nvidia", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/models", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/skyboxes/sky", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/models", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/skyboxes/sky", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/heightmaps", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/particle", "FileSystem");
@@ -82,6 +88,7 @@ namespace ChOgre {
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/RTShaderLib/materials", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts/SSAO", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/SSAO", "FileSystem");
+
 
 			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
@@ -109,9 +116,31 @@ namespace ChOgre {
 
 		double l_systemTimeIncriment = 0.0;
 
+		std::cout<<"startloop....line 116"<<std::endl;
+
 		int l_frame = 0;
-		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual("RttTex", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(), m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+		std::cout<<"about to add rtt_texture"<<std::endl;
+
+
+		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
+		        "_tex",
+				"General",
+		        TEX_TYPE_2D,
+		        256,
+		        256,
+		        0,
+				1,
+				PF_R8G8B8
+		        );
+
+
+//		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
+//				"TEX", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(),
+//				m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+		std::cout<<"created rtt_texture"<<std::endl;
 		Ogre::RenderTexture* renderTexture = rtt_texture->getBuffer()->getRenderTarget();
+
+		std::cout<<"created renderTexture"<<std::endl;
 
 		renderTexture->addViewport(m_pViewport->getCamera());
 		renderTexture->getViewport(0)->setClearEveryFrame(true);
@@ -311,4 +340,5 @@ namespace ChOgre {
 		Ogre::LogManager::getSingleton().logMessage(Message, lml, maskDebug);
 	}
 
+}
 }

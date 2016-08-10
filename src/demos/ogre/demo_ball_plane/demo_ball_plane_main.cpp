@@ -1,6 +1,6 @@
 #include <chrono_ogre/Core/ChOgreApplication.h>
 
-using namespace ChOgre;
+using namespace chrono::ChOgre;
 
 int main(int argc, char** args) {
 	ChOgreApplication app;
@@ -22,24 +22,28 @@ int main(int argc, char** args) {
 	//terrain->SetPos(chrono::ChVector<>(0, 0, 0));
 	//terrain->GetMaterialSurface()->SetFriction(0.9);
 
-	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Spheere", 1, chrono::ChVector<>(0, 20, 0), 3, false);
+	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Sphere", 1, chrono::ChVector<>(0, 20, 0), 3, false);
 	Epsilon->SetInertiaXX(chrono::ChVector<>(
 		((2.0 / 5.0)*Epsilon->GetMass() * 4.0 * 4.0),
 		((2.0 / 5.0)*Epsilon->GetMass() * 4.0 * 4.0),
 		((2.0 / 5.0)*Epsilon->GetMass() * 4.0 * 4.0)));
 
-	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Boox", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(10, 0.5, 10), chrono::ChQuaternion<>(), true);
+	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Box", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(10, 0.5, 10), chrono::ChQuaternion<>(), true);
 
-	ChOgreLightHandle yeh = app.getScene()->createLight("Swag");
-	yeh->setType(ChOgreLight::POINT);
-	yeh->setPosition(0.0f, 100.0f, 0.0f);
-	yeh->setDiffuse(1.0f, 1.0f, 1.0f);
-	yeh->setSpecular(1.0f, 1.0f, 1.0f);
-	yeh->setDirection(0.0f, 0.0f, 0.0f);
-	yeh->setIntensity(400.0f);
+	ChOgreLightHandle lightHandle = app.getScene()->createLight("Light");
+	lightHandle->setType(ChOgreLight::POINT);
+	lightHandle->setPosition(0.0f, 100.0f, 0.0f);
+	lightHandle->setDiffuse(1.0f, 1.0f, 1.0f);
+	lightHandle->setSpecular(1.0f, 1.0f, 1.0f);
+	lightHandle->setDirection(0.0f, 0.0f, 0.0f);
+	lightHandle->setIntensity(400.0f);
 
-	app.getScene()->setSkyBox("sky");
+	std::cout<<"about to add skybox"<<std::endl;
+
+	app.getScene()->setSkyBox("sky"); //does not exist in chrono data folder
 	
+	std::cout<<"finished adding skybox)"<<std::endl;
+
 	ChOgreKeyboardCallback EpsilonCallback;
 	EpsilonCallback.call = [&Epsilon](scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
 		if (KeyCode == SDLK_SPACE) {
@@ -64,9 +68,12 @@ int main(int argc, char** args) {
 		}
 	};
 
+	std::cout<<"About to do app.getInputManager()"<<std::endl;
+
 	app.getInputManager()->addCallback(EpsilonCallback);
 	app.getInputManager()->addCallback(EpsilonCallback2);
 
+	std::cout<<"About to do loop"<<std::endl;
 
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 

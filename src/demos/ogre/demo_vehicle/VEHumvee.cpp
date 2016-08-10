@@ -1,5 +1,8 @@
 #include "VEHumvee.h"
 
+
+using namespace chrono;
+
 double const in2m = 0.0254;
 
 namespace VehicleEnvironment {
@@ -287,7 +290,7 @@ namespace VehicleEnvironment {
 		wheelLB->getChBody()->SetRot_dt(chrono::QUNIT);
 	}
 
-    chrono::ChSharedPtr<ChBody> VEHumvee::getChassis() {
+    std::shared_ptr<ChBody> VEHumvee::getChassis() {
 		return truss->getChBody();
 	}
 

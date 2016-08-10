@@ -9,6 +9,8 @@ This is the basic vehicle class, which all vehicles should inherit from
 #include <chrono_ogre/Core/ChOgreApplication.h>
 #include <chrono_ogre/Graphics/ChOgreBody.h>
 
+using namespace chrono;
+
 namespace VehicleEnvironment {
 
 	class VEVehicle {

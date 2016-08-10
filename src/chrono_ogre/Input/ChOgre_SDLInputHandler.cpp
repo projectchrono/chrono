@@ -15,6 +15,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include <algorithm>
 #include "../Input/ChOgre_SDLInputHandler.h"
 
+namespace chrono{
 namespace ChOgre {
 
 std::string const ChOgre_SDLInputHandler::WheelGUID = "6d049bc2000000000000504944564944";
@@ -805,5 +806,6 @@ void ChOgre_SDLInputHandler::m_CallWindowCallbacks() {
     std::for_each(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(),
 
                   [this](ChOgreWindowCallback* ptr) { ptr->call(); });
+}
 }
 }

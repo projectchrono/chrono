@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 
+namespace chrono{
 namespace ChOgre {
 
 typedef chrono::ChVector<float> ChFloat3;
@@ -36,4 +37,5 @@ class CHOGRE_DLL_TAG ChOgreGUIElement {
 };
 
 typedef std::unique_ptr<ChOgreGUIElement> ChOgreGUIElementPtr;
+}
 }

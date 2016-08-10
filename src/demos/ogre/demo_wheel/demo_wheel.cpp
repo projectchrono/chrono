@@ -1,6 +1,7 @@
 #include <chrono_ogre/Core/ChOgreApplication.h>
 #include <cmath>
 
+using namespace chrono;
 using namespace ChOgre;
 
 int main(int argc, char** args) {
@@ -45,7 +46,7 @@ int main(int argc, char** args) {
 	angle direction = 0;
 
 	chrono::ChVector<> mod;
-	const double deg_to_rad = std::_Pi / 180.0;
+	const double deg_to_rad = CH_C_PI / 180.0;
 
 	ChOgreKeyboardCallback k;
 	k.call = [&DebugCamera](scancode_t s, keycode_t k, const ChOgreKeyState& ks) -> void {

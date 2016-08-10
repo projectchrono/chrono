@@ -4,6 +4,7 @@
 #include "ChOgreGUICallback.h"
 #include "ChOgreGUIElement.h"
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreGUIButton : public ChOgreGUIElement {
@@ -43,4 +44,5 @@ class CHOGRE_DLL_TAG ChOgreGUIButton : public ChOgreGUIElement {
 };
 
 typedef std::unique_ptr<ChOgreGUIButton> ChOgreGUIButtonPtr;
+}
 }

@@ -1,5 +1,6 @@
 #include "ChOgreMeshBase.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreMeshBase::ChOgreMeshBase() {
@@ -64,5 +65,6 @@ void ChOgreMeshBase::loadMesh(const std::string& MeshPath) {
 
 void ChOgreMeshBase::setMesh(const Ogre::MeshPtr& pMesh) {
     m_pEntity = m_pSceneManager->createEntity(pMesh);
+}
 }
 }

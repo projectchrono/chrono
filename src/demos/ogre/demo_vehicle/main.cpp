@@ -8,6 +8,8 @@
 #include <chrono_ogre/GUI/ChOgreGUIButton.h>
 #include "VESuspensionDemo.h"
 
+using namespace chrono;
+
 int main(int argc, char *argv[]) {
 		ChOgre::ChOgreApplication app;
 		app.createWindow("Test", 1280, 720, 0, false, false);

@@ -1,5 +1,6 @@
 #include "ChOgreLight.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreLight::ChOgreLight(Ogre::SceneManager* SceneManager) {
@@ -89,5 +90,6 @@ float ChOgreLight::getIntensity() {
 
 std::string ChOgreLight::getName() {
     return m_pLight->getName();
+}
 }
 }

@@ -14,6 +14,7 @@ bodies for actual simulation
 #include "chrono_ogre/Util/ChOgreBodyHandle.h"
 #include "chrono_ogre/Util/ChOgreLightHandle.h"
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreScene {
@@ -128,4 +129,5 @@ class CHOGRE_DLL_TAG ChOgreScene {
 
   private:
 };
+}
 }

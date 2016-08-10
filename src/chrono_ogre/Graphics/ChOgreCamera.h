@@ -5,6 +5,7 @@
 #include <Ogre.h>
 #include <cmath>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreCamera {
@@ -37,4 +38,5 @@ class CHOGRE_DLL_TAG ChOgreCamera {
 
   private:
 };
+}
 }

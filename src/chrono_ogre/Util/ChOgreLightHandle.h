@@ -3,6 +3,7 @@
 #include "chrono_ogre/ChOgreApi.h"
 #include "chrono_ogre/Graphics/ChOgreLight.h"
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreLightHandle {
@@ -24,4 +25,5 @@ class CHOGRE_DLL_TAG ChOgreLightHandle {
   private:
     ChOgreLightSharedPtr m_pLight;
 };
+}
 }

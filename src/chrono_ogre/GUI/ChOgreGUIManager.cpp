@@ -1,5 +1,6 @@
 #include "ChOgreGUIManager.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreGUIManager::ChOgreGUIManager(Ogre::RenderWindow* RenderWindow,
@@ -73,5 +74,6 @@ ChOgreGUIManager::~ChOgreGUIManager() {
 
 void ChOgreGUIManager::setVisible(bool Visible) {
     m_isVisible = Visible;
+}
 }
 }

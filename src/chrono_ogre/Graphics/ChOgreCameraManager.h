@@ -16,6 +16,7 @@ ChOgreApplication.
 #include <core/ChVector.h>
 #include <vector>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreCameraManager {
@@ -44,4 +45,5 @@ class CHOGRE_DLL_TAG ChOgreCameraManager {
 
   private:
 };
+}
 }

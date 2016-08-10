@@ -9,6 +9,7 @@ Base class for keyboard event callbacks
 #include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreInputCallback.h"
 
+namespace chrono{
 namespace ChOgre {
 
 typedef std::function<void(scancode_t, keycode_t, const ChOgreKeyState&)> ChOgreKeyboardCall;
@@ -23,4 +24,5 @@ class CHOGRE_DLL_TAG ChOgreKeyboardCallback : public ChOgreInputCallback {
   protected:
   private:
 };
+}
 }

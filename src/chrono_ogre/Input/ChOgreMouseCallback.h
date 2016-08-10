@@ -9,6 +9,7 @@ Base class for mouse event callbacks
 #include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreInputCallback.h"
 
+namespace chrono{
 namespace ChOgre {
 
 typedef std::function<void(const ChOgreMouseState&)> ChOgreMouseCall;
@@ -23,4 +24,5 @@ class CHOGRE_DLL_TAG ChOgreMouseCallback : public ChOgreInputCallback {
   protected:
   private:
 };
+}
 }

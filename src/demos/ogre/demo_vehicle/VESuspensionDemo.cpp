@@ -1,50 +1,53 @@
 #include "VESuspensionDemo.h"
 
+
+using namespace chrono;
+
 namespace VehicleEnvironment {
 
 	VESuspensionDemo::VESuspensionDemo() {
 
 		//Right front wheel
 
-		link_revoluteRF = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_distRFU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springRF = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distRSTEER = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteRF = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_distRFU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springRF = std::make_shared<chrono::ChLinkSpring>();
+		link_distRSTEER = std::make_shared<chrono::ChLinkDistance>();
 
 		//Left front wheel
 
-		link_revoluteLF = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_distLFU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springLF = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distLSTEER = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteLF = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_distLFU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springLF = std::make_shared<chrono::ChLinkSpring>();
+		link_distLSTEER = std::make_shared<chrono::ChLinkDistance>();
 		
 		//Right back wheel
 
-		link_revoluteRB = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_engineR = chrono::ChSharedPtr<chrono::ChLinkEngine>(new chrono::ChLinkEngine);
-		link_distRBU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springRB = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distRBlat = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteRB = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_engineR = std::make_shared<chrono::ChLinkEngine>();
+		link_distRBU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springRB = std::make_shared<chrono::ChLinkSpring>();
+		link_distRBlat = std::make_shared<chrono::ChLinkDistance>();
 		
 		//Left back wheel
 
-		link_revoluteLB = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_engineL = chrono::ChSharedPtr<chrono::ChLinkEngine>(new chrono::ChLinkEngine);
-		link_distLBU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springLB = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distLBlat = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteLB = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_engineL = std::make_shared<chrono::ChLinkEngine>();
+		link_distLBU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springLB = std::make_shared<chrono::ChLinkSpring>();
+		link_distLBlat = std::make_shared<chrono::ChLinkDistance>();
 
 		conic_tau = 3.42; // the transmission ratio of the conic gears at the rear axle
 		gear_tau = 2.97; // the actual tau of the gear
@@ -58,45 +61,45 @@ namespace VehicleEnvironment {
 
 		//Right front wheel
 
-		link_revoluteRF = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_distRFU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRFL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springRF = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distRSTEER = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteRF = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_distRFU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRFL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springRF = std::make_shared<chrono::ChLinkSpring>();
+		link_distRSTEER = std::make_shared<chrono::ChLinkDistance>();
 
 		//Left front wheel
 
-		link_revoluteLF = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_distLFU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLFL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springLF = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distLSTEER = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteLF = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_distLFU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLFL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springLF = std::make_shared<chrono::ChLinkSpring>();
+		link_distLSTEER = std::make_shared<chrono::ChLinkDistance>();
 
 		//Right back wheel
 
-		link_revoluteRB = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_engineR = chrono::ChSharedPtr<chrono::ChLinkEngine>(new chrono::ChLinkEngine);
-		link_distRBU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distRBL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springRB = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distRBlat = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteRB = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_engineR = std::make_shared<chrono::ChLinkEngine>();
+		link_distRBU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distRBL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springRB = std::make_shared<chrono::ChLinkSpring>();
+		link_distRBlat = std::make_shared<chrono::ChLinkDistance>();
 
 		//Left back wheel
 
-		link_revoluteLB = chrono::ChSharedPtr<chrono::ChLinkLockRevolute>(new chrono::ChLinkLockRevolute);
-		link_engineL = chrono::ChSharedPtr<chrono::ChLinkEngine>(new chrono::ChLinkEngine);
-		link_distLBU1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBU2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBL1 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_distLBL2 = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
-		link_springLB = chrono::ChSharedPtr<chrono::ChLinkSpring>(new chrono::ChLinkSpring);
-		link_distLBlat = chrono::ChSharedPtr<chrono::ChLinkDistance>(new chrono::ChLinkDistance);
+		link_revoluteLB = std::make_shared<chrono::ChLinkLockRevolute>();
+		link_engineL = std::make_shared<chrono::ChLinkEngine>();
+		link_distLBU1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBU2 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBL1 = std::make_shared<chrono::ChLinkDistance>();
+		link_distLBL2 = std::make_shared<chrono::ChLinkDistance>();
+		link_springLB = std::make_shared<chrono::ChLinkSpring>();
+		link_distLBlat = std::make_shared<chrono::ChLinkDistance>();
 
 		build(chrono::ChVector<>(0, 10, 0));
 
@@ -176,118 +179,118 @@ namespace VehicleEnvironment {
 		double spring_k_rear = 23800;//12750;
 		//Right front wheel
 
-		link_revoluteRF->Initialize(wheelRF.ChBody(), spindleRF.ChBody(),
+		link_revoluteRF->Initialize(wheelRF.getChBody(), spindleRF.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(1.5, 1, 1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		m_pApp->getChSystem()->AddLink(link_revoluteRF);
 
-		link_distRFU1->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 1.2, 1.2) + Pos, chrono::ChVector<>(1.25, 1.2, 1) + Pos);
+		link_distRFU1->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 1.2, 1.2) + Pos, chrono::ChVector<>(1.25, 1.2, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRFU1);
 
-		link_distRFU2->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 1.2, 0.8) + Pos, chrono::ChVector<>(1.25, 1.2, 1) + Pos);
+		link_distRFU2->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 1.2, 0.8) + Pos, chrono::ChVector<>(1.25, 1.2, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRFU2);
 
-		link_distRFL1->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 0.8, 1.2) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
+		link_distRFL1->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 0.8, 1.2) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRFL1);
 
-		link_distRFL2->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 0.8, 0.8) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
+		link_distRFL2->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 0.8, 0.8) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRFL2);
 
-		link_springRF->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 1.2, 1.0) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
+		link_springRF->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 1.2, 1.0) + Pos, chrono::ChVector<>(1.25, 0.8, 1) + Pos);
 		link_springRF->Set_SpringK(spring_k_front);
 		link_springRF->Set_SpringR(80);
 		m_pApp->getChSystem()->AddLink(link_springRF);
 
-		link_distRSTEER->Initialize(truss.ChBody(), spindleRF.ChBody(), false, chrono::ChVector<>(0.5, 1.21, 1.4) + Pos, chrono::ChVector<>(1.25, 1.21, 1.3) + Pos);
+		link_distRSTEER->Initialize(truss.getChBody(), spindleRF.getChBody(), false, chrono::ChVector<>(0.5, 1.21, 1.4) + Pos, chrono::ChVector<>(1.25, 1.21, 1.3) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRSTEER);
 
 		//Left front wheel
 
-		link_revoluteLF->Initialize(wheelLF.ChBody(), spindleLF.ChBody(),
+		link_revoluteLF->Initialize(wheelLF.getChBody(), spindleLF.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(-1.5, 1, 1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		m_pApp->getChSystem()->AddLink(link_revoluteLF);
 
-		link_distLFU1->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, 1.2) + Pos, chrono::ChVector<>(-1.25, 1.2, 1) + Pos);
+		link_distLFU1->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, 1.2) + Pos, chrono::ChVector<>(-1.25, 1.2, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLFU1);
 
-		link_distLFU2->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, 0.8) + Pos, chrono::ChVector<>(-1.25, 1.2, 1) + Pos);
+		link_distLFU2->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, 0.8) + Pos, chrono::ChVector<>(-1.25, 1.2, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLFU2);
 
-		link_distLFL1->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 0.8, 1.2) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
+		link_distLFL1->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 0.8, 1.2) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLFL1);
 
-		link_distLFL2->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 0.8, 0.8) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
+		link_distLFL2->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 0.8, 0.8) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLFL2);
 
-		link_springLF->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, 1.0) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
+		link_springLF->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, 1.0) + Pos, chrono::ChVector<>(-1.25, 0.8, 1) + Pos);
 		link_springLF->Set_SpringK(spring_k_front);
 		link_springLF->Set_SpringR(80);
 		m_pApp->getChSystem()->AddLink(link_springLF);
 
-		link_distLSTEER->Initialize(truss.ChBody(), spindleLF.ChBody(), false, chrono::ChVector<>(-0.5, 1.21, 1.4) + Pos, chrono::ChVector<>(-1.25, 1.21, 1.3) + Pos);
+		link_distLSTEER->Initialize(truss.getChBody(), spindleLF.getChBody(), false, chrono::ChVector<>(-0.5, 1.21, 1.4) + Pos, chrono::ChVector<>(-1.25, 1.21, 1.3) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLSTEER);
 
 		//Right back wheel
 
-		link_revoluteRB->Initialize(wheelRB.ChBody(), spindleRB.ChBody(),
+		link_revoluteRB->Initialize(wheelRB.getChBody(), spindleRB.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(1.5, 1, -1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		m_pApp->getChSystem()->AddLink(link_revoluteRB);
 
-		link_engineR->Initialize(wheelRB.ChBody(), truss.ChBody(),
+		link_engineR->Initialize(wheelRB.getChBody(), truss.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(1.5, 1, -1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		link_engineR->Set_shaft_mode(chrono::ChLinkEngine::ENG_SHAFT_CARDANO);
 		link_engineR->Set_eng_mode(chrono::ChLinkEngine::ENG_MODE_TORQUE);
 		m_pApp->getChSystem()->AddLink(link_engineR);
 
-		link_distRBU1->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 1.2, -1.2) + Pos, chrono::ChVector<>(1.25, 1.2, -1) + Pos);
+		link_distRBU1->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 1.2, -1.2) + Pos, chrono::ChVector<>(1.25, 1.2, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRBU1);
 
-		link_distRBU2->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 1.2, -0.8) + Pos, chrono::ChVector<>(1.25, 1.2, -1) + Pos);
+		link_distRBU2->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 1.2, -0.8) + Pos, chrono::ChVector<>(1.25, 1.2, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRBU2);
 
-		link_distRBL1->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 0.8, -1.2) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
+		link_distRBL1->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 0.8, -1.2) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRBL1);
 
-		link_distRBL2->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 0.8, -0.8) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
+		link_distRBL2->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 0.8, -0.8) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRBL2);
 
-		link_springRB->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 1.2, -1.0) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
+		link_springRB->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 1.2, -1.0) + Pos, chrono::ChVector<>(1.25, 0.8, -1) + Pos);
 		link_springRB->Set_SpringK(spring_k_rear);
 		link_springRB->Set_SpringR(80);
 		m_pApp->getChSystem()->AddLink(link_springRB);
 
-		link_distRBlat->Initialize(truss.ChBody(), spindleRB.ChBody(), false, chrono::ChVector<>(0.5, 1.21, -1.4) + Pos, chrono::ChVector<>(1.25, 1.21, -1.3) + Pos);
+		link_distRBlat->Initialize(truss.getChBody(), spindleRB.getChBody(), false, chrono::ChVector<>(0.5, 1.21, -1.4) + Pos, chrono::ChVector<>(1.25, 1.21, -1.3) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distRBlat);
 
 		//Left back wheel
 
-		link_revoluteLB->Initialize(wheelLB.ChBody(), spindleLB.ChBody(),
+		link_revoluteLB->Initialize(wheelLB.getChBody(), spindleLB.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(-1.5, 1, -1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		m_pApp->getChSystem()->AddLink(link_revoluteLB);
 
-		link_engineL->Initialize(wheelLB.ChBody(), truss.ChBody(),
+		link_engineL->Initialize(wheelLB.getChBody(), truss.getChBody(),
 			chrono::ChCoordsys<>(chrono::ChVector<>(-1.5, 1, -1) + Pos, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Y)));
 		link_engineL->Set_shaft_mode(chrono::ChLinkEngine::ENG_SHAFT_CARDANO);
 		link_engineL->Set_eng_mode(chrono::ChLinkEngine::ENG_MODE_TORQUE);
 		m_pApp->getChSystem()->AddLink(link_engineL);
 
-		link_distLBU1->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, -1.2) + Pos, chrono::ChVector<>(-1.25, 1.2, -1) + Pos);
+		link_distLBU1->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, -1.2) + Pos, chrono::ChVector<>(-1.25, 1.2, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLBU1);
 
-		link_distLBU2->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, -0.8) + Pos, chrono::ChVector<>(-1.25, 1.2, -1) + Pos);
+		link_distLBU2->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, -0.8) + Pos, chrono::ChVector<>(-1.25, 1.2, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLBU2);
 
-		link_distLBL1->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 0.8, -1.2) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
+		link_distLBL1->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 0.8, -1.2) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLBL1);
 
-		link_distLBL2->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 0.8, -0.8) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
+		link_distLBL2->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 0.8, -0.8) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLBL2);
 
-		link_springLB->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 1.2, -1.0) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
+		link_springLB->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 1.2, -1.0) + Pos, chrono::ChVector<>(-1.25, 0.8, -1) + Pos);
 		link_springLB->Set_SpringK(spring_k_rear);
 		link_springLB->Set_SpringR(80);
 		m_pApp->getChSystem()->AddLink(link_springLB);
 
-		link_distLBlat->Initialize(truss.ChBody(), spindleLB.ChBody(), false, chrono::ChVector<>(-0.5, 1.21, -1.4) + Pos, chrono::ChVector<>(-1.25, 1.21, -1.3) + Pos);
+		link_distLBlat->Initialize(truss.getChBody(), spindleLB.getChBody(), false, chrono::ChVector<>(-0.5, 1.21, -1.4) + Pos, chrono::ChVector<>(-1.25, 1.21, -1.3) + Pos);
 		m_pApp->getChSystem()->AddLink(link_distLBlat);
 	}
 
@@ -311,11 +314,11 @@ namespace VehicleEnvironment {
 		// it is half of the shaft torque  (multiplied the conic gear transmission ratio)
 		double singlewheeltorque = 0.5 * shafttorque * (1.0 / conic_tau);
 		// Set the wheel torque in both 'engine' links, connecting the wheels to the truss;
-		if (chrono::ChSharedPtr<chrono::ChFunction_Const> mfun = link_engineL->Get_tor_funct().DynamicCastTo<chrono::ChFunction_Const>())
+		if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engineL->Get_tor_funct()))
 			mfun->Set_yconst(singlewheeltorque);
 		//dynamic_cast<chrono::ChFunction_Const*>(link_engineL->Get_tor_funct().get_ptr())->Set_yconst(singlewheeltorque);
 		//dynamic_cast<chrono::ChFunction_Const*>(link_engineR->Get_tor_funct().get_ptr())->Set_yconst(singlewheeltorque);
-		if (chrono::ChSharedPtr<chrono::ChFunction_Const> mfun = link_engineR->Get_tor_funct().DynamicCastTo<chrono::ChFunction_Const>())
+		if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(link_engineR->Get_tor_funct()))
 			mfun->Set_yconst(singlewheeltorque);
 		//debug:print infos on screen:
 		//GetLog() << "motor torque="<< motortorque<< "  speed=" << motorspeed << "  wheel torqe=" << singlewheeltorque <<"\n";
@@ -390,8 +393,8 @@ namespace VehicleEnvironment {
 		wheelLB->SetRot_dt(chrono::QUNIT);
 	}
 
-    chrono::ChSharedPtr<ChBody> VESuspensionDemo::getChassis() {
-		return truss.ChBody();
+    std::shared_ptr<ChBody> VESuspensionDemo::getChassis() {
+		return truss.getChBody();
 	}
 
 	chrono::ChVector<> VESuspensionDemo::getPos() {

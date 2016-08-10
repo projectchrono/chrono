@@ -1,5 +1,6 @@
 #include "ChOgreGUIElement.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreGUIElement::ChOgreGUIElement() {
@@ -22,5 +23,6 @@ void ChOgreGUIElement::setGUI(MyGUI::Gui* GUI) {
 
 std::string ChOgreGUIElement::getName() {
     return m_Name;
+}
 }
 }

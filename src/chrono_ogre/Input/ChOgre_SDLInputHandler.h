@@ -22,6 +22,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 
 #define INPUT_DEADZONE 0.07
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
@@ -87,4 +88,5 @@ class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
 
   private:
 };
+}
 }

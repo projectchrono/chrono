@@ -3,7 +3,8 @@
 #include <chrono_ogre/GUI/ChOgreGUIButton.h>
 #include <chrono_ogre/GUI/ChOgreGUIText.h>
 
-using namespace ChOgre;
+using namespace chrono;
+using namespace chrono::ChOgre;
 
 int main(int argc, char** args) {
 	ChOgreApplication app;
@@ -63,7 +64,7 @@ int main(int argc, char** args) {
 	angle direction = 0;
 
 	chrono::ChVector<> mod;
-	const double deg_to_rad = std::_Pi / 180.0;
+	const double deg_to_rad = CH_C_PI / 180.0;
 
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 

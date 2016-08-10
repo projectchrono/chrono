@@ -6,6 +6,7 @@ All the defines for the ChOgreCameraManager
 
 #include "ChOgreCameraManager.h"
 
+namespace chrono{
 namespace ChOgre {
 
 unsigned int ChOgreCameraManager::g_CameraCount = 0;
@@ -59,5 +60,6 @@ ChOgreCamera* ChOgreCameraManager::operator[](const std::string& Name) {
 
 void ChOgreCameraManager::makeActive(ChOgreCamera* Camera) {
     m_pViewport->setCamera(Camera->getCamera());
+}
 }
 }

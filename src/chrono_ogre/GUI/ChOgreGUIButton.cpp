@@ -1,5 +1,6 @@
 #include "ChOgreGUIButton.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreGUIButton::ChOgreGUIButton() {
@@ -15,7 +16,7 @@ ChOgreGUIButton::ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size,
 
     m_pButton = m_pGUI->createWidgetReal<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y,
                                                         MyGUI::Align::Center, "Main");
-    m_pButton->setDepth(int(Position.z));
+    //m_pButton->setDepth(int(Position.z)); //setDepth is not a function of a mygui button
 
     m_db = true;
     m_pressed = false;
@@ -43,7 +44,7 @@ void ChOgreGUIButton::setFont(const std::string& Name) {
 
 void ChOgreGUIButton::setPosition(const ChFloat3& Position) {
     m_pButton->setRealPosition(Position.x, Position.y);
-    m_pButton->setDepth(int(Position.z));
+    //m_pButton->setDepth(int(Position.z)); //setdepth is not a function of a mygui button
 }
 
 void ChOgreGUIButton::setSize(const ChFloat3& Size) {
@@ -74,5 +75,6 @@ void ChOgreGUIButton::setReleaseCallback(ChOgreGUIReleaseCallback& Callback) {
 
 void ChOgreGUIButton::emptyReleaseCallback() {
     m_pButton->eventMouseButtonReleased.clear();
+}
 }
 }

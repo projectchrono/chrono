@@ -7,6 +7,7 @@ Contains the definitions for ChOgreBody
 #include "ChOgreBody.h"
 #include "thirdparty/tinyobjloader/tiny_obj_loader.h"
 
+namespace chrono{
 namespace ChOgre {
 
 unsigned int ChOgreBody::m_MeshCount = 0;
@@ -15,7 +16,7 @@ ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* Syste
     m_pSceneManager = SceneManager;
     m_pChSystem = System;
 
-    m_pBody = chrono::ChSharedPtr<ChBody>(new chrono::ChBody);
+    m_pBody = std::make_shared<ChBody>();
     System->AddBody(m_pBody);
 
     name = "";
@@ -32,10 +33,10 @@ ChOgreBody::~ChOgreBody() {
 
 void ChOgreBody::update() {
     if (!isStaticMesh) {
-        std::vector<chrono::ChSharedPtr<chrono::ChAsset> > l_pAssetList = m_pBody->GetAssets();
+        std::vector<std::shared_ptr<ChAsset> > l_pAssetList = m_pBody->GetAssets();
         for (int i = 0; i < l_pAssetList.size(); i++) {
-            if (l_pAssetList[i].IsType<chrono::ChVisualization>()) {
-                chrono::ChVector<> _pos = ((chrono::ChVisualization*)l_pAssetList[i].get_ptr())->Pos;
+            if (typeid(l_pAssetList[i]) == typeid(ChVisualization)) {
+                ChVector<> _pos = ((chrono::ChVisualization*)l_pAssetList[i].get())->Pos;
                 // m_SceneNodes[i]->setPosition((_pos.x + m_pBody->GetPos().x), (_pos.y + m_pBody->GetPos().y), (_pos.z)
                 // + m_pBody->GetPos().z);
                 m_Models[i].getSceneNode()->setPosition((_pos.x + m_pBody->GetPos().x), (_pos.y + m_pBody->GetPos().y),
@@ -43,7 +44,7 @@ void ChOgreBody::update() {
 
                 chrono::ChQuaternion<> l_q;
 
-                chrono::ChBoxShape* shape = (chrono::ChBoxShape*)l_pAssetList[i].get_ptr();
+                chrono::ChBoxShape* shape = (chrono::ChBoxShape*)l_pAssetList[i].get();
                 l_q = m_pBody->GetRot() % shape->Rot.Get_A_quaternion();
                 l_q.Normalize();
 
@@ -80,49 +81,48 @@ void ChOgreBody::refresh() {
     //}
     m_Models.clear();
     for (int i = 0; i < m_pBody->GetAssets().size(); i++) {
-        chrono::ChSharedPtr<chrono::ChAsset> temp_asset = m_pBody->GetAssets().at(i);
+        std::shared_ptr<chrono::ChAsset> temp_asset = m_pBody->GetAssets().at(i);
 
         // Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
         // Ogre::Entity* l_pEntity = nullptr;
         ChOgreModel l_Model(m_pSceneManager);
 
-        if (temp_asset.IsType<chrono::ChBoxShape>()) {
+        if (typeid(temp_asset)==typeid(ChBoxShape)) {
             l_Model.loadMesh("box.mesh");
-            chrono::ChBoxShape* shape = (chrono::ChBoxShape*)temp_asset.get_ptr();
+            chrono::ChBoxShape* shape = (chrono::ChBoxShape*)temp_asset.get();
             double _w = shape->GetBoxGeometry().Size.x;
             double _h = shape->GetBoxGeometry().Size.y;
             double _d = shape->GetBoxGeometry().Size.z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_w, (Ogre::Real)_h, (Ogre::Real)_d);
 
-        } else if (temp_asset.IsType<chrono::ChCapsuleShape>()) {
-        } else if (temp_asset.IsType<chrono::ChConeShape>()) {
+        } else if (typeid(temp_asset)==typeid(ChCapsuleShape)) {
+        } else if (typeid(temp_asset)==typeid(ChConeShape)) {
             l_Model.loadMesh("cone.mesh");
-            chrono::ChConeShape* shape = (chrono::ChConeShape*)temp_asset.get_ptr();
+            chrono::ChConeShape* shape = (chrono::ChConeShape*)temp_asset.get();
             double _r1 = shape->GetConeGeometry().rad.x;
             double _r2 = shape->GetConeGeometry().rad.z;
             double _h = shape->GetConeGeometry().rad.y;
             l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r2);
-        } else if (temp_asset.IsType<chrono::ChCylinderShape>()) {
+        } else if (typeid(temp_asset)==typeid(ChCylinderShape)) {
             l_Model.loadMesh("cylinder.mesh");
-            chrono::ChCylinderShape* shape = (chrono::ChCylinderShape*)temp_asset.get_ptr();
-
+            chrono::ChCylinderShape* shape = (chrono::ChCylinderShape*)temp_asset.get();
             double _r1 = shape->GetCylinderGeometry().rad;
             double _h = (shape->GetCylinderGeometry().p1 - shape->GetCylinderGeometry().p2).Length();
             l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r1);
-        } else if (temp_asset.IsType<chrono::ChEllipsoidShape>()) {
+        } else if (typeid(temp_asset)==typeid(ChEllipsoidShape)) {
             l_Model.loadMesh("sphere.mesh");
-            chrono::ChEllipsoidShape* shape = (chrono::ChEllipsoidShape*)temp_asset.get_ptr();
+            chrono::ChEllipsoidShape* shape = (chrono::ChEllipsoidShape*)temp_asset.get();
 
             double _rx = shape->GetEllipsoidGeometry().rad.x;
             double _ry = shape->GetEllipsoidGeometry().rad.y;
             double _rz = shape->GetEllipsoidGeometry().rad.z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_rx, (Ogre::Real)_ry, (Ogre::Real)_rz);
-        } else if (temp_asset.IsType<chrono::ChSphereShape>()) {
+        } else if (typeid(temp_asset)==typeid(ChSphereShape)) {
             l_Model.loadMesh("sphere.mesh");
-            double _r = chrono::static_cast_chshared<chrono::ChSphereShape>(temp_asset)->GetSphereGeometry().rad;
+            double _r = std::static_pointer_cast<chrono::ChSphereShape>(temp_asset)->GetSphereGeometry().rad;
             l_Model.getSceneNode()->setScale((Ogre::Real)_r, (Ogre::Real)_r, (Ogre::Real)_r);
-        } else if (temp_asset.IsType<chrono::ChTriangleMeshShape>()) {
-            std::string filepath = chrono::static_cast_chshared<chrono::ChTriangleMeshShape>(temp_asset)->GetName();
+        } else if (typeid(temp_asset)==typeid(ChTriangleMeshShape)) {
+            std::string filepath = std::static_pointer_cast<chrono::ChTriangleMeshShape>(temp_asset)->GetName();
 
             std::string _base;
             std::string _ext;
@@ -175,7 +175,7 @@ void ChOgreBody::refresh() {
                 // m_SceneNodes.push_back(l_pNode);
                 m_Models.push_back(std::move(l_Model));
 
-                chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get_ptr();
+                chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
 
                 double _sx = shape->GetScale().x;
                 double _sy = shape->GetScale().y;
@@ -188,13 +188,13 @@ void ChOgreBody::refresh() {
                 return;
             }
 
-            chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get_ptr();
+            chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
 
             double _sx = shape->GetScale().x;
             double _sy = shape->GetScale().y;
             double _sz = shape->GetScale().z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
-		} else if (temp_asset.IsType<chrono::ChTexture>()) {
+		} else if (typeid(temp_asset)==typeid(ChTexture)) {
 
 		}
 
@@ -228,11 +228,12 @@ void ChOgreBody::setMesh(Ogre::ManualObject* Mesh, const chrono::ChVector<>& Sca
     isStaticMesh = true;
 }
 
-chrono::ChSharedPtr<ChBody> ChOgreBody::getChBody() {
+std::shared_ptr<ChBody> ChOgreBody::getChBody() {
     return m_pBody;
 }
 
-chrono::ChSharedPtr<ChBody> ChOgreBody::operator->() {
+std::shared_ptr<ChBody> ChOgreBody::operator->() {
     return getChBody();
+}
 }
 }

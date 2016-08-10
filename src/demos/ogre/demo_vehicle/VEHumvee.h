@@ -3,6 +3,8 @@
 #include "VEVehicle.h"
 #include "VESuspensionDemo.h"
 
+using namespace chrono;
+
 namespace VehicleEnvironment {
 
 	class VEHumvee : public VESuspensionDemo {
@@ -20,7 +22,7 @@ namespace VehicleEnvironment {
 		virtual void shift(uint8_t gear);
 		virtual void brake();
 
-        virtual chrono::ChSharedPtr<ChBody> getChassis();
+        virtual std::shared_ptr<ChBody> getChassis();
 
 	protected:
 

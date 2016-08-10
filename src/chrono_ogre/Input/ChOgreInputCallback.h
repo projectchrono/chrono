@@ -10,6 +10,7 @@ A callback for user input
 #include "chrono_ogre/Core/ChOgreCallback.h"
 #include "ChOgreInputDataStructures.h"
 
+namespace chrono{
 namespace ChOgre {
 
 typedef std::function<void()> ChOgreInputCall;
@@ -24,4 +25,5 @@ class CHOGRE_DLL_TAG ChOgreInputCallback : public ChOgreCallback {
   protected:
   private:
 };
+}
 }

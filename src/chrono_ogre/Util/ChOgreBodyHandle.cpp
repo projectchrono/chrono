@@ -1,5 +1,6 @@
 #include "ChOgreBodyHandle.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreBodyHandle::ChOgreBodyHandle() {}
@@ -38,11 +39,11 @@ ChOgreBodyHandle& ChOgreBodyHandle::operator=(ChOgreBodyHandle&& other) {
     return *this;
 }
 
-chrono::ChSharedPtr<ChBody> ChOgreBodyHandle::operator->() {
+std::shared_ptr<ChBody> ChOgreBodyHandle::operator->() {
     return m_pBody->getChBody();
 }
 
-chrono::ChSharedPtr<ChBody> ChOgreBodyHandle::ChBody() {
+std::shared_ptr<ChBody> ChOgreBodyHandle::getChBody() {
     return m_pBody->getChBody();
 }
 
@@ -52,5 +53,6 @@ ChOgreBody& ChOgreBodyHandle::body() {
 
 void ChOgreBodyHandle::setBodyPtr(ChOgreBodySharedPtr& BodyPtr) {
     m_pBody = BodyPtr;
+}
 }
 }

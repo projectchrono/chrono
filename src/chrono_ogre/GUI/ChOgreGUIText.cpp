@@ -4,6 +4,7 @@ Author: Charles Ricchio
 
 #include "ChOgreGUIText.h"
 
+namespace chrono{
 namespace ChOgre {
 
 unsigned int ChOgreGUIText::g_count = 0;
@@ -21,7 +22,7 @@ ChOgreGUIText::ChOgreGUIText(const ChFloat3& Position, const ChFloat3& Size, MyG
 
     m_pTextBox = m_pGUI->createWidgetReal<MyGUI::TextBox>("TextBox", Position.x, Position.y, Size.x, Size.y,
                                                           MyGUI::Align::Center, "Main");
-    m_pTextBox->setDepth(int(Position.z));
+    //m_pTextBox->setDepth(int(Position.z)); //setDepth is not a function in mygui::button
 }
 
 ChOgreGUIText::~ChOgreGUIText() {
@@ -46,10 +47,11 @@ void ChOgreGUIText::setFont(const std::string& Name) {
 
 void ChOgreGUIText::setPosition(const ChFloat3& Position) {
     m_pTextBox->setRealPosition(Position.x, Position.y);
-    m_pTextBox->setDepth(int(Position.z));
+    //m_pTextBox->setDepth(int(Position.z)); //setDepth is not a function in mygui::button
 }
 
 void ChOgreGUIText::setSize(const ChFloat3& Size) {
     m_pTextBox->setRealSize(Size.x, Size.y);
+}
 }
 }

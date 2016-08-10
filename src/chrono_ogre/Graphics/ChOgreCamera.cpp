@@ -1,5 +1,6 @@
 #include "ChOgreCamera.h"
 
+namespace chrono{
 namespace ChOgre {
 
 ChOgreCamera::ChOgreCamera(Ogre::Camera* Camera) : m_pCamera(Camera) {}
@@ -58,5 +59,6 @@ void ChOgreCamera::setPosition(float x, float y, float z) {
 
 void ChOgreCamera::setPosition(const chrono::ChVector<>& pos) {
     m_pCamera->setPosition(pos.x, pos.y, pos.z);
+}
 }
 }

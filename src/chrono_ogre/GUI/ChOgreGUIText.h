@@ -7,6 +7,7 @@ Author: Charles Ricchio
 #include "ChOgreGUIElement.h"
 #include <core/ChVector.h>
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreGUIText : public ChOgreGUIElement {
@@ -35,4 +36,5 @@ class CHOGRE_DLL_TAG ChOgreGUIText : public ChOgreGUIElement {
 };
 
 typedef std::unique_ptr<ChOgreGUIText> ChOgreGUITextPtr;
+}
 }

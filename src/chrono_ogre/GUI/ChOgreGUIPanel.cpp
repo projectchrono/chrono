@@ -6,6 +6,7 @@ Author: Charles Ricchio
 #include <OGRE\Ogre.h>
 #include <OGRE\OgreScriptCompiler.h>
 
+namespace chrono{
 namespace ChOgre {
 
 unsigned int ECGUIPanel::g_count = 0;
@@ -67,5 +68,6 @@ chrono::ChVector<> ECGUIPanel::getPosition() {
 chrono::ChVector<> ECGUIPanel::getSize() {
     chrono::ChVector<> _ret((double)m_pPanel->getWidth(), (double)m_pPanel->getHeight(), 0);
     return _ret;
+}
 }
 }

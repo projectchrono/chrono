@@ -7,6 +7,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 #pragma once
 
 #include <Ogre.h>
+#include "OgreHardwarePixelBuffer.h"
 
 #include <physics/ChSystem.h>
 
@@ -26,6 +27,7 @@ Contains the prototype for a basic application. Manages things such as window cr
 
 #define ChOgreFunc(N) [&](N)
 
+namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreApplication {
@@ -93,4 +95,5 @@ class CHOGRE_DLL_TAG ChOgreApplication {
 
   private:
 };
+}
 }

@@ -8,6 +8,7 @@ Contains the definitions for ChOgreScene
 #include "thirdparty/tinyobjloader/tiny_obj_loader.h"
 #include <thread>
 
+namespace chrono{
 namespace ChOgre {
 
 unsigned int ChOgreScene::m_TerrainMeshCount = 0;
@@ -211,7 +212,7 @@ ChOgreBodyHandle ChOgreScene::spawnBox(std::string Name,
                                        bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChBoxShape> _box(new chrono::ChBoxShape);
+    auto _box = std::make_shared<chrono::ChBoxShape>();
     _box->GetBoxGeometry().Size = size;
 
     _ret->SetRot(rotation);
@@ -244,7 +245,7 @@ ChOgreBodyHandle ChOgreScene::spawnCone(std::string Name,
                                         bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChConeShape> _cone(new chrono::ChConeShape);
+    auto _cone = std::make_shared<chrono::ChConeShape>();
     _cone->GetConeGeometry().rad = size;
 
     _ret->SetRot(rotation);
@@ -271,7 +272,7 @@ ChOgreBodyHandle ChOgreScene::spawnCylinder(std::string Name,
                                             bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChCylinderShape> _cylinder(new chrono::ChCylinderShape);
+    auto _cylinder = std::make_shared<chrono::ChCylinderShape>();
     _cylinder->GetCylinderGeometry().rad = size.x;
     _cylinder->GetCylinderGeometry().p1 = chrono::ChVector<>(0, size.y, 0);
     _cylinder->GetCylinderGeometry().p2 = chrono::ChVector<>(0, 0, 0);
@@ -300,7 +301,7 @@ ChOgreBodyHandle ChOgreScene::spawnEllipsoid(std::string Name,
                                              bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChEllipsoidShape> _ellipsoid(new chrono::ChEllipsoidShape);
+    auto _ellipsoid = std::make_shared<chrono::ChEllipsoidShape>();
     _ellipsoid->GetEllipsoidGeometry().rad = size;
 
     _ret->SetRot(rotation);
@@ -326,7 +327,7 @@ ChOgreBodyHandle ChOgreScene::spawnSphere(std::string Name,
                                           bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChSphereShape> _sphere(new chrono::ChSphereShape);
+    auto _sphere = std::make_shared<chrono::ChSphereShape>();
     _sphere->GetSphereGeometry().rad = radius;
 
     _ret->SetPos(position);
@@ -354,7 +355,7 @@ ChOgreBodyHandle ChOgreScene::spawnMesh(std::string Name,
                                         bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
-    chrono::ChSharedPtr<chrono::ChTriangleMeshShape> _mesh(new chrono::ChTriangleMeshShape);
+    auto _mesh = std::make_shared<chrono::ChTriangleMeshShape>();
     _mesh->SetName(FileName);
     _mesh->SetScale(size);
 
@@ -776,5 +777,6 @@ ChOgreBodyHandle ChOgreScene::loadHeightMap(std::string FilePath, const chrono::
     _ret->SetBodyFixed(true);
 
     return _ret;
+}
 }
 }

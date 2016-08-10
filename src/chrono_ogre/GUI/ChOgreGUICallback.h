@@ -3,6 +3,7 @@
 #include "chrono_ogre/Core/ChOgreCallback.h"
 #include <MYGUI/MyGUI.h>
 
+namespace chrono{
 namespace ChOgre {
 
 typedef std::function<void(MyGUI::WidgetPtr)> ChOgreGUICall;
@@ -59,4 +60,5 @@ class CHOGRE_DLL_TAG ChOgreGUIReleaseCallback : public ChOgreGUICallback {
 
     void _c(MyGUI::WidgetPtr w, int x, int y, MyGUI::MouseButton b) { call(w, x, y, b); }
 };
+}
 }

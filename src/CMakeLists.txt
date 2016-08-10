@@ -236,7 +236,7 @@ add_subdirectory(chrono_fea)
 add_subdirectory(chrono_python)
 add_subdirectory(chrono_parallel)
 add_subdirectory(chrono_opengl)
-#add_subdirectory(chrono_ogre)
+add_subdirectory(chrono_ogre)
 add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 

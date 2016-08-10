@@ -9,6 +9,7 @@ Data structures for passing around user input information
 #include "chrono_ogre/ChOgreApi.h"
 #include <cinttypes>
 
+namespace chrono{
 namespace ChOgre {
 
 typedef int32_t keycode_t;
@@ -103,4 +104,5 @@ struct CHOGRE_DLL_TAG ChOgreWheelState {
 ///////////////////////////////////////////////////
 
 typedef SDL_HapticEffect CHOGRE_DLL_TAG ChOgreHapticEffect;
+}
 }

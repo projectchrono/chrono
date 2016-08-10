@@ -1,5 +1,6 @@
 #include <chrono_ogre/Core/ChOgreApplication.h>
 
+using namespace chrono;
 using namespace ChOgre;
 
 int main(int argc, char** args) {
