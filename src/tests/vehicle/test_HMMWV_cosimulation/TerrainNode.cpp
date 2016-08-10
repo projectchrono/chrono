@@ -235,7 +235,7 @@ void TerrainNode::Construct() {
     int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
     int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
     int binsZ = 1;
-    m_system->GetSettings()->collision.bins_per_axis = I3(binsX, binsY, binsZ);
+    m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
     cout << m_prefix << " broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
 
     // ---------------------
@@ -780,9 +780,9 @@ void TerrainNode::UpdateNodeProxies(int which) {
 //    - contact shape: redefined to match vertex locations
 void TerrainNode::UpdateFaceProxies(int which) {
     // Readability replacements
-    auto& dataA = m_system->data_manager->host_data.ObA_rigid;  // all first vertices
-    auto& dataB = m_system->data_manager->host_data.ObB_rigid;  // all second vertices
-    auto& dataC = m_system->data_manager->host_data.ObC_rigid;  // all third vertices
+    // Readability replacement: shape_data contains all triangle vertex locations, in groups
+    // of three real3, one group for each triangle.
+    auto& shape_data = m_system->data_manager->shape_data.triangle_rigid;
 
     for (unsigned int it = 0; it < m_tire_data[which].m_num_tri; it++) {
         Triangle tri = m_tire_data[which].m_triangles[it];
@@ -812,13 +812,13 @@ void TerrainNode::UpdateFaceProxies(int which) {
         //// TODO: angular velocity
         m_tire_data[which].m_proxies[it].m_body->SetWvel_loc(ChVector<>(0, 0, 0));
 
-        // Update contact shape (expressed in local frame).
-        // Write directly into the Chrono::Parallel data structures, properly offsetting
-        // to the entries corresponding to the proxy bodies.
-        unsigned int offset = m_proxy_start_index + m_tire_data[which].m_start_tri + it;
-        dataA[offset] = R3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
-        dataB[offset] = R3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
-        dataC[offset] = R3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
+        // Update triangle contact shape (expressed in local frame) by writting directly
+        // into the Chrono::Parallel data structures.
+        // ATTENTION: It is assumed that no other triangle contact shapes have been added
+        // to the system BEFORE those corresponding to the tire mesh faces!
+        shape_data[3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
+        shape_data[3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
+        shape_data[3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
     }
 }
 
