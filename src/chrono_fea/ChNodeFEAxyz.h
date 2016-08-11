@@ -27,7 +27,7 @@ class ChMesh;
 
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetahedrons, etc.
-class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
+class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChNodeFEAxyz, ChNodeXYZ);
 
@@ -70,6 +70,11 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ {
 
     /// Get the number of degrees of freedom
     virtual int Get_ndof_x() const override { return 3; }
+
+    //
+    // INTERFACE to ChVariableTupleCarrier_1vars
+    //
+    virtual ChVariables* GetVariables1()  {return &Variables();}
 
     //
     // Functions for interfacing to the state bookkeeping
