@@ -418,7 +418,7 @@ void ChBezierCurveTracker::reset(const ChVector<>& loc) {
     ChVector<> loc2cur = m_path->m_points[m_curInterval] - loc;
     ChVector<> loc2prev = m_path->m_points[m_curInterval - 1] - loc;
 
-    if (loc2cur * loc2prev < 0)
+    if (Vdot(loc2cur, loc2prev) < 0)
         m_curInterval--;
 }
 
