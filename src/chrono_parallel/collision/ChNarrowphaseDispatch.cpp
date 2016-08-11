@@ -176,22 +176,21 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
-#pragma omp parallel for
+	ConvexShape shapeA;
+	ConvexShape shapeB;
+
+#pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape* shapeA = new ConvexShape();
-        ConvexShape* shapeB = new ConvexShape();
 
-        Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
+        Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                          contactDepth[icoll])) {
             effective_radius[icoll] = edge_radius;
             // The number of contacts reported by MPR is always 1.
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
-        delete shapeA;
-        delete shapeB;
     }
 }
 
@@ -202,21 +201,21 @@ void ChCNarrowphaseDispatch::DispatchR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-#pragma omp parallel for
+	ConvexShape shapeA;
+	ConvexShape shapeB;
+
+#pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape* shapeA = new ConvexShape();
-        ConvexShape* shapeB = new ConvexShape();
+
         int nC;
 
-        Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
+        Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
+        if (RCollision(&shapeA, &shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
                        &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
         }
-        delete shapeA;
-        delete shapeB;
     }
 }
 
@@ -227,25 +226,28 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-#pragma omp parallel for
+
+	ConvexShape shapeA;
+	ConvexShape shapeB;
+
+#pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
-        ConvexShape* shapeA = new ConvexShape();
-        ConvexShape* shapeB = new ConvexShape();
+
         int nC;
 
-        Dispatch_Init(index, icoll, ID_A, ID_B, shapeA, shapeB);
+        Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
 
-        if (RCollision(shapeA, shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
+        if (RCollision(&shapeA, &shapeB, 2 * collision_envelope, &norm[icoll], &ptA[icoll], &ptB[icoll],
                        &contactDepth[icoll], &effective_radius[icoll], nC)) {
             Dispatch_Finalize(icoll, ID_A, ID_B, nC);
-        } else if (MPRCollision(shapeA, shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
+        } else if (MPRCollision(&shapeA, &shapeB, collision_envelope, norm[icoll], ptA[icoll], ptB[icoll],
                                 contactDepth[icoll])) {
             effective_radius[icoll] = edge_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
-        delete shapeA;
-        delete shapeB;
+        //delete shapeA;
+        //delete shapeB;
     }
 }
 
