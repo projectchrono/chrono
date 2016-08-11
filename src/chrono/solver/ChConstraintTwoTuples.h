@@ -53,6 +53,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other) {
         tuple_a = other.tuple_a;
         tuple_b = other.tuple_b;
+        return *this;
     }
 
     /// Access tuple a

@@ -54,6 +54,7 @@ class ChConstraintTuple_1vars {
         variables = other.variables;
         Cq = other.Cq;
         Eq = other.Eq;
+        return *this;
     }
 
     ChMatrix<double>* Get_Cq() { return &Cq; }
@@ -169,6 +170,7 @@ class ChConstraintTuple_2vars {
         Cq_2 = other.Cq_2;
         Eq_1 = other.Eq_1;
         Eq_2 = other.Eq_2;
+        return *this;
     }
 
     ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
@@ -330,6 +332,7 @@ class ChConstraintTuple_3vars {
         Eq_1 = other.Eq_1;
         Eq_2 = other.Eq_2;
         Eq_3 = other.Eq_3;
+        return *this;
     }
 
     ChMatrix<double>* Get_Cq_1() { return &Cq_1; }
