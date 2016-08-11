@@ -37,7 +37,7 @@ int ChLinkPointTriface::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
                                  std::shared_ptr<ChNodeFEAxyz> anodeB2,
                                  std::shared_ptr<ChNodeFEAxyz> anodeB3
                                  ) {
-    assert(anodeA && anodeB);
+    assert(anodeA && anodeB1 && anodeB2 && anodeB3);
 
     mnodeA = anodeA;
     mtriangle.mnodeB1 = anodeB1;
