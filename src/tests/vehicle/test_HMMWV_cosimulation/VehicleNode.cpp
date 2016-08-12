@@ -85,7 +85,6 @@ VehicleNode::VehicleNode() : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertra
     // Default model parameters
     // ------------------------
 
-    m_init_pos = ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0));
     m_delay = 0.5;
 
     // ----------------------------------
@@ -118,16 +117,33 @@ VehicleNode::~VehicleNode() {
 
 // -----------------------------------------------------------------------------
 // Initialization of the vehicle node:
+// - receive terrain height and container half-length
 // - construct and initialize subsystems
 // - send initial wheel states to tire nodes
 // -----------------------------------------------------------------------------
 void VehicleNode::Initialize() {
+    // ----------------------------------
+    // Receive terrain height information
+    // ----------------------------------
+
+    // Receive terrain height and half-length of the container
+    double init_dim[2];
+    MPI_Status status;
+    MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    cout << m_prefix << " Received initial terrain height = " << init_dim[0] << endl;
+    cout << m_prefix << " Received container half-length = " << init_dim[1] << endl;
+
+    // Set initial vehicle position and orientation
+    ChVector<> init_loc(2.75 - init_dim[1], 0, 0.6 + init_dim[0]);
+    ChQuaternion<> init_rot(1, 0, 0, 0);
+
     // --------------------------------------------
     // Create and initialize subsystems
     // --------------------------------------------
 
     m_vehicle = new HMMWV_Vehicle(m_system);
-    m_vehicle->Initialize(m_init_pos);
+    m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
 
     m_powertrain = new HMMWV_Powertrain;
     m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());

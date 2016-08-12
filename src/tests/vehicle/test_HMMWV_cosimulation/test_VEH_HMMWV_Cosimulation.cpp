@@ -176,10 +176,6 @@ int main(int argc, char** argv) {
             cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
 
-            ChVector<> init_loc(0, 0, 1);
-            ChQuaternion<> init_rot(1, 0, 0, 0);
-            my_vehicle->SetInitPosition(ChCoordsys<>(init_loc, init_rot));
-
             break;
         }
         case TERRAIN_NODE_RANK: {
@@ -192,7 +188,7 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
-            my_terrain->SetContainerDimensions(4, 0.6, 1, 0.2);
+            my_terrain->SetContainerDimensions(10, 2, 1, 0.2);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
@@ -259,6 +255,7 @@ int main(int argc, char** argv) {
 
     // Initialize systems.
     // Data exchange:
+    //   terrain => vehicle (initial terrain height)
     //   vehicle => tire (initial wheel position)
     //   tire => terrain (tire mesh topology information)
     //   tire => terrain (tire contact material properties)

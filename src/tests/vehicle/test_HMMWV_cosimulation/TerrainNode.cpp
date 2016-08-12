@@ -162,7 +162,7 @@ TerrainNode::TerrainNode(Type type,
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-        gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
 #endif
@@ -520,6 +520,7 @@ void TerrainNode::Settle() {
 // -----------------------------------------------------------------------------
 // Initialization of the terrain node:
 // - if not already done, complete system construction
+// - send information on terrain height
 // - receive information on tire mesh topology (number vertices and triangles)
 // - receive tire contact material properties and create the "tire" material
 // - create the appropriate proxy bodies (state not set yet)
@@ -529,6 +530,23 @@ void TerrainNode::Initialize() {
 
     // Reset system time
     m_system->SetChTime(0);
+    
+    // Send information for initial vehicle position
+    double init_dim[2] = { m_init_height, m_hdimX };
+    MPI_Send(init_dim, 2, MPI_DOUBLE, VEHICLE_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    cout << m_prefix << " Sent initial terrain height = " << init_dim[0] << endl;
+    cout << m_prefix << " Sent container half-length = " << init_dim[1] << endl;
+
+#ifdef CHRONO_OPENGL
+    // Move OpenGL camera
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.SetCamera(ChVector<>(2.75 - m_hdimX, -4, 0), ChVector<>(2.75 - m_hdimX, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    }
+
+#endif
+
 
     // Loop over all tires, receive information, create proxies.
     unsigned int start_vert_index = 0;
