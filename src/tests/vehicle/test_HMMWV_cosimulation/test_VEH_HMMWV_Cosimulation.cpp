@@ -127,6 +127,14 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+    // Ensure we are running exactly 6 nodes
+    if (num_procs != 6) {
+        if (rank == 0)
+            cout << "Must use exactly 6 nodes" << endl;
+        MPI_Finalize();
+        return 1;
+    }
+
     // Parse command line arguments
     int nthreads_tire = 2;
     int nthreads_terrain = 2;
@@ -362,18 +370,9 @@ void ShowUsage() {
     cout << " -t=SIM_TIME" << endl;
     cout << " --simulation-time=SIM_TIME" << endl;
     cout << "        Specify simulation length in seconds [default: 10]" << endl;
-    cout << " -v=INIT_VEL" << endl;
-    cout << " --initial-velocity=INIT_VEL" << endl;
-    cout << "        Specify the initial tire linear velocity [default: 0]" << endl;
-    cout << " -s=LONG_SLIP" << endl;
-    cout << " --longitudinal-slip=LONG_SLIP" << endl;
-    cout << "        Specify the value of the longitudinal slip [default: 0]" << endl;
     cout << " -ch=COHESION" << endl;
     cout << " --cohesion-terrain=COHESION" << endl;
     cout << "        Specify the value of the terrain cohesion in Pa [default: 80e3]" << endl;
-    cout << " -m=SYSTEM_MASS" << endl;
-    cout << " --system-mass=SYSTEM_MASS" << endl;
-    cout << "        Specify the value of the wheel carrier mass (kg) [default: 450]" << endl;
     cout << " --no-output" << endl;
     cout << "        Disable generation of output files" << endl;
     cout << " --no-rendering" << endl;
