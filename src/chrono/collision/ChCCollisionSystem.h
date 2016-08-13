@@ -56,7 +56,7 @@ class ChApi ChNarrowPhaseCallback {
     /// Callback, used to report contact points found by default
     /// narrow phase collision step.
     /// This must be implemented by a child class of ChNarrowPhaseCallback
-    virtual void NarrowCallback(const ChCollisionInfo& mcontactinfo) = 0;
+    virtual void NarrowCallback(ChCollisionInfo& mcontactinfo) = 0;
 };
 
 ///
