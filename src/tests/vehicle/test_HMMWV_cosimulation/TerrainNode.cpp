@@ -745,11 +745,15 @@ void TerrainNode::Synchronize(int step_number, double time) {
     // ------------------------------------------------------------
 
     m_system->CalculateContactForces();
-    cout << m_prefix << " step number: " << step_number << "  num contacts: " << m_system->GetNcontacts() << endl;
+
+    std::string msg =
+        " step number: " + std::to_string(step_number) + "  num contacts: " + std::to_string(m_system->GetNcontacts());
 
     // -----------------------------------------------------------------
     // Loop over all tires, calculate vertex contact forces, send forces
     // -----------------------------------------------------------------
+
+    msg += "  [  ";
 
     for (int which = 0; which < m_num_tires; which++) {
 
@@ -774,8 +778,11 @@ void TerrainNode::Synchronize(int step_number, double time) {
         MPI_Send(vert_indices.data(), num_vert, MPI_INT, TIRE_NODE_RANK(which), step_number, MPI_COMM_WORLD);
         MPI_Send(vert_forces.data(), 3 * num_vert, MPI_DOUBLE, TIRE_NODE_RANK(which), step_number, MPI_COMM_WORLD);
 
-        cout << m_prefix << " step number: " << "  vertices in contact: " << num_vert << endl;
+        msg += std::to_string(num_vert) + "  ";
     }
+
+    msg += "]";
+    cout << m_prefix << msg << endl;
 
 }
 

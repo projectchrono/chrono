@@ -179,7 +179,7 @@ int main(int argc, char** argv) {
             break;
         }
         case TERRAIN_NODE_RANK: {
-            auto type = TerrainNode::GRANULAR;
+            auto type = TerrainNode::RIGID;
             auto method = ChMaterialSurfaceBase::DEM;
 
             my_terrain = new TerrainNode(type, method, 4, use_checkpoint, render, nthreads_terrain);
@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
-            my_terrain->SetContainerDimensions(10, 2, 1, 0.2);
+            my_terrain->SetContainerDimensions(10, 3, 1, 0.2);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
