@@ -46,9 +46,6 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
-    // Sanity check.
-    assert(points[ARM_WHEEL].x == susp_to_abs.GetPos().x && points[ARM_WHEEL].z == susp_to_abs.GetPos().z);
-
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
