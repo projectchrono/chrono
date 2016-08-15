@@ -354,6 +354,9 @@ void TireNode::Synchronize(int step_number, double time) {
     wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
     wheel_state.omega = bufWS[13];
 
+    cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
+    cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << endl;
+
     m_rim->SetPos(wheel_state.pos);
     m_rim->SetRot(wheel_state.rot);
     m_rim->SetPos_dt(wheel_state.lin_vel);
