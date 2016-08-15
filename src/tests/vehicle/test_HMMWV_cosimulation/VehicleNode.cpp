@@ -86,6 +86,7 @@ VehicleNode::VehicleNode() : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertra
     // ------------------------
 
     m_delay = 0.5;
+    m_chassis_fixed = false;
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -142,7 +143,7 @@ void VehicleNode::Initialize() {
     // Create and initialize subsystems
     // --------------------------------------------
 
-    m_vehicle = new HMMWV_Vehicle(m_system);
+    m_vehicle = new HMMWV_Vehicle(m_system, m_chassis_fixed);
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
 
     m_powertrain = new HMMWV_Powertrain;
@@ -210,6 +211,11 @@ void VehicleNode::Synchronize(int step_number, double time) {
         m_tire_forces[iw].force = ChVector<>(bufTF[0], bufTF[1], bufTF[2]);
         m_tire_forces[iw].moment = ChVector<>(bufTF[3], bufTF[4], bufTF[5]);
         m_tire_forces[iw].point = ChVector<>(bufTF[6], bufTF[7], bufTF[8]);
+
+        cout << m_prefix << " recv tire forces (" << iw << "): ";
+        cout << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
+        cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
+        cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
     }
 
     // Send complete wheel states to each of the tire nodes

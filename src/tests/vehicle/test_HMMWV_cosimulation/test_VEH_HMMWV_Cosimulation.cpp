@@ -173,6 +173,7 @@ int main(int argc, char** argv) {
             my_vehicle = new VehicleNode();
             my_vehicle->SetStepSize(step_size);
             my_vehicle->SetOutDir(out_dir, suffix);
+            my_vehicle->SetChassisFixed(false);
             cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
 
@@ -247,6 +248,7 @@ int main(int argc, char** argv) {
             cout << my_tire->GetPrefix() << " output directory: " << my_tire->GetOutDirName() << endl;
 
             my_tire->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+            my_tire->SetProxyProperties(45, ChVector<>(0.113, 0.113, 0.113), false);
             my_tire->EnableTirePressure(true);
 
             break;

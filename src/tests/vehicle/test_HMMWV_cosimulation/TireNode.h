@@ -46,6 +46,12 @@ class TireNode : public BaseNode {
     /// Specify the tire JSON specification file name.
     void SetTireJSONFile(const std::string& filename);
 
+    /// Set properties of the rim proxy body.
+    void SetProxyProperties(double mass,                        ///< mass of the rim proxy body
+                            const chrono::ChVector<>& inertia,  ///< moments of inertia of the rim proxy body
+                            bool fixed                          ///< proxy body fixed to ground? (default: false)
+                            );
+
     /// Enable/disable tire pressure (default: true).
     void EnableTirePressure(bool val);
 
@@ -77,6 +83,7 @@ class TireNode : public BaseNode {
     std::shared_ptr<chrono::ChBody> m_rim;  ///< wheel rim body
     double m_rim_mass;                      ///< mass of wheel body
     chrono::ChVector<> m_rim_inertia;       ///< inertia of wheel body
+    bool m_rim_fixed;                       ///< flag indicating whether or not the rim proxy is fixed to ground
 
     std::string m_tire_json;                                                ///< name of tire JSON specification file
     bool m_tire_pressure;                                                   ///< tire pressure enabled?

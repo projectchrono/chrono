@@ -45,6 +45,9 @@ class VehicleNode : public BaseNode {
     /// Set delay in generating driver inputs.
     void SetDriverDelay(double delay) { m_delay = delay; }
 
+    /// Specify whether or not chassis is fixed to ground (default: false).
+    void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -67,6 +70,8 @@ class VehicleNode : public BaseNode {
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
     double m_delay;                 ///< delay in generating driver inputs
+
+    bool m_chassis_fixed;  ///< flag indicating whther or not chassis is fixed to ground
 
     chrono::vehicle::hmmwv::HMMWV_Vehicle* m_vehicle;        ///< vehicle system
     chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;  ///< powertrain system

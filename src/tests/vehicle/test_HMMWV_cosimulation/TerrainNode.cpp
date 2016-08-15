@@ -638,7 +638,7 @@ void TerrainNode::CreateNodeProxies(int which) {
         body->SetIdentifier(m_tire_data[which].m_start_vert + iv);
         body->SetMass(m_mass_pN);
         body->SetInertiaXX(inertia_pN);
-        body->SetBodyFixed(false);
+        body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
         body->SetMaterialSurface(m_tire_data[which].m_material_tire);
 
@@ -667,7 +667,7 @@ void TerrainNode::CreateFaceProxies(int which) {
         body->SetMass(m_mass_pF);
 
         body->SetInertiaXX(inertia_pF);
-        body->SetBodyFixed(false);
+        body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
         body->SetMaterialSurface(m_tire_data[which].m_material_tire);
 
