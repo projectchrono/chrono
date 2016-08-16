@@ -263,11 +263,28 @@ void VehicleNode::OutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        m_outf << m_system->GetChTime() << del;
+        // Position, orientation, velocity of the chassis reference frame
+        // (relative to absolute frame)
+        const ChVector<>& pos = m_vehicle->GetChassisPos();
+        const ChQuaternion<>& rot = m_vehicle->GetChassisRot();
+        const ChVector<>& lin_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetPos_dt();
+        const ChVector<>& ang_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetWvel_par();
 
+        // Current driver inputs
+        double steering = m_driver->GetSteering();
+        double throttle = m_driver->GetThrottle();
+        double braking = m_driver->GetBraking();
+
+        m_outf << m_system->GetChTime() << del;
+        m_outf << steering << del << throttle << del << braking << del;
+        m_outf << pos.x << del << pos.y << del << pos.z << del;
+        m_outf << rot.e0 << del << rot.e1 << del << rot.e2 << del << rot.e3 << del;
+        m_outf << lin_vel.x << del << lin_vel.y << del << lin_vel.z << del;
+        m_outf << ang_vel.x << del << ang_vel.y << del << ang_vel.z << del;
         m_outf << endl;
     }
 
+    /*
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
@@ -278,6 +295,7 @@ void VehicleNode::OutputData(int frame) {
     csv.write_to_file(filename);
 
     cout << m_prefix << " write output file ==> " << filename << endl;
+    */
 }
 
 // -----------------------------------------------------------------------------
