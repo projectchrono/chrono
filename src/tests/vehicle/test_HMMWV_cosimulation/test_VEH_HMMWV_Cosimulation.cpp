@@ -194,10 +194,6 @@ int main(int argc, char** argv) {
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
 
-            my_terrain->SetGranularMaterial(radius, 2500, 6);
-            my_terrain->SetSettlingTime(0.2);
-            ////my_terrain->EnableSettlingOutput(true);
-
             switch (method) {
                 case ChMaterialSurfaceBase::DEM: {
                     auto material = std::make_shared<ChMaterialSurfaceDEM>();
@@ -231,10 +227,13 @@ int main(int argc, char** argv) {
                     break;
                 case TerrainNode::GRANULAR:
                     my_terrain->SetProxyProperties(1, false);
+                    my_terrain->SetGranularMaterial(radius, 2500, 6);
+                    my_terrain->SetSettlingTime(0.2);
+                    ////my_terrain->EnableSettlingOutput(true);
+                    my_terrain->Settle();
                     break;
             }
 
-            my_terrain->Settle();
             break;
         }
         case TIRE_NODE_RANK(0):

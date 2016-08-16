@@ -401,18 +401,13 @@ void TerrainNode::Construct() {
 // -----------------------------------------------------------------------------
 // Settling phase for the terrain node
 // - if not already done, complete system construction
-// - if using granular material, allow it to settle or read from checkpoint
+// - simulate granular material to settle or read from checkpoint
 // - record height of terrain
 // -----------------------------------------------------------------------------
 void TerrainNode::Settle() {
-    m_init_height = 0;
+    assert(m_type == GRANULAR);
 
     Construct();
-
-    // If rigid terrain, return now
-    if (m_type == RIGID) {
-        return;
-    }
 
     if (m_use_checkpoint) {
         // ------------------------------------------------
@@ -510,6 +505,7 @@ void TerrainNode::Settle() {
     }
 
     // Find "height" of granular material
+    m_init_height = 0;
     for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z > m_init_height)
             m_init_height = body->GetPos().z;
