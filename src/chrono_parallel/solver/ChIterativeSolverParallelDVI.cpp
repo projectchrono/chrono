@@ -416,5 +416,8 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
         case SPGQP:
             solver = new ChSolverParallelSPGQP();
             break;
+		case JACOBI:
+			solver = new ChSolverParallelJacobi();
+			break;
     }
 }

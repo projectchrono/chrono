@@ -259,4 +259,21 @@ class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
 
     DynamicVector<real> r, q, s;
 };
+
+class CH_PARALLEL_API ChSolverParallelJacobi : public ChSolverParallel {
+public:
+	ChSolverParallelJacobi() {}
+	~ChSolverParallelJacobi() {}
+
+	// Solve using a more streamlined but harder to read version of the BB method
+	uint Solve(ChShurProduct& ShurProduct,
+		ChProjectConstraints& Project,
+		const uint max_iter,           // Maximum number of iterations
+		const uint size,               // Number of unknowns
+		const DynamicVector<real>& b,  // Rhs vector
+		DynamicVector<real>& x         // The vector of unknowns
+	);
+	DynamicVector<real> ml_old, ml;
+};
+
 }
