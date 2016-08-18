@@ -37,6 +37,7 @@ SET(DEMOS
   demo_collision_2d
   demo_collision_trimesh
   demo_plane_plane
+  demo_link_bushing
 )
 
 #--------------------------------------------------------------
