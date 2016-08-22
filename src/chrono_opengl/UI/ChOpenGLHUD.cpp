@@ -19,6 +19,14 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolver.h"
 
+#include "chrono/ChConfig.h"
+
+#ifdef CHRONO_PARALLEL
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#endif
+
 // Includes that are generated at compile time
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
@@ -167,7 +175,8 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
   double timer_lcp = physics_system->GetTimerSolver();
   double timer_update = physics_system->GetTimerUpdate();
-  /*if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+#ifdef CHRONO_PARALLEL
+  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
     num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
     num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
     num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
@@ -178,7 +187,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
     num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
     num_contacts = physics_system->GetNcontacts();
-  }*/
+  }
 
   double left_b = LEFT + RIGHT;
   double right_b = -LEFT;
@@ -187,54 +196,54 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   double narrow_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow) / timer_step);
   double lcp_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow + timer_lcp) / timer_step);
 
-  /*bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
+  bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
   bars.AddBar(broad_v, narrow_v, BOTTOM + thick, BOTTOM, ColorConverter(0x48CFAD));
   bars.AddBar(narrow_v, lcp_v, BOTTOM + thick, BOTTOM, ColorConverter(0xA0D468));
-  bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));*/
+  bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
 
-  //if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-  //  real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_M");
-  //  real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_D");
-  //  real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_E");
-  //  real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_R");
-  //  real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_N");
-  //  real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
-  //  real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
+  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_M");
+    real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_D");
+    real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_E");
+    real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_R");
+    real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_N");
+    real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
+    real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
 
-  //  real number = build_m;
-  //  real build_m_v = glm::mix(left_b, right_b, number / timer_lcp);
+    real number = build_m;
+    real build_m_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += build_d;
-  //  real build_d_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += build_d;
+    real build_d_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += build_e;
-  //  real build_e_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += build_e;
+    real build_e_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += build_r;
-  //  real build_r_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += build_r;
+    real build_r_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += build_n;
-  //  real build_n_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += build_n;
+    real build_n_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += stab;
-  //  real stab_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += stab;
+    real stab_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  number += shur;
-  //  real shur_v = glm::mix(left_b, right_b, number / timer_lcp);
+    number += shur;
+    real shur_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-  //  bars.AddBar(left_b, build_m_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x5D9CEC));
-  //  bars.AddBar(build_m_v, build_d_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x48CFAD));
-  //  bars.AddBar(build_d_v, build_e_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xA0D468));
-  //  bars.AddBar(build_e_v, build_r_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFFCE54));
-  //  bars.AddBar(build_r_v, build_n_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFC6E51));
-  //  bars.AddBar(build_n_v, stab_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xED5565));
-  //  bars.AddBar(stab_v, shur_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xAC92EC));
-  //  bars.AddBar(shur_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xEC87C0));
-  //  // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
-  //}
+    bars.AddBar(left_b, build_m_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x5D9CEC));
+    bars.AddBar(build_m_v, build_d_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x48CFAD));
+    bars.AddBar(build_d_v, build_e_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xA0D468));
+    bars.AddBar(build_e_v, build_r_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFFCE54));
+    bars.AddBar(build_r_v, build_n_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFC6E51));
+    bars.AddBar(build_n_v, stab_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xED5565));
+    bars.AddBar(stab_v, shur_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xAC92EC));
+    bars.AddBar(shur_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xEC87C0));
+    // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
+  }
 
-  // int average_contacts_per_body = num_rigid_bodies > 0 ? num_contacts / num_rigid_bodies : 0;
-
+   int average_contacts_per_body = num_rigid_bodies > 0 ? num_contacts / num_rigid_bodies : 0;
+#endif
   sprintf(buffer, "MODEL INFO");
   text.Render(buffer, LEFT, TOP - SPACING * 5, sx, sy);
   sprintf(buffer, "BODIES R,F %04d, %04d", num_rigid_bodies, num_fluid_bodies);
@@ -287,29 +296,31 @@ void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
-  //if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-  //  vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
-  //  real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
-  //  real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-  //  real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-  //  real3 center = (min_pt + max_pt) * .5;
-  //  sprintf(buffer, "COLLISION INFO");
-  //  text.Render(buffer, LEFT, TOP - SPACING * 16, sx, sy);
-  //  sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
-  //  text.Render(buffer, LEFT, TOP - SPACING * 17, sx, sy);
-  //  sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
-  //  text.Render(buffer, LEFT, TOP - SPACING * 18, sx, sy);
+#ifdef CHRONO_PARALLEL
+  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+    real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
+    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
+    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
+    real3 center = (min_pt + max_pt) * .5;
+    sprintf(buffer, "COLLISION INFO");
+    text.Render(buffer, LEFT, TOP - SPACING * 16, sx, sy);
+    sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
+    text.Render(buffer, LEFT, TOP - SPACING * 17, sx, sy);
+    sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
+    text.Render(buffer, LEFT, TOP - SPACING * 18, sx, sy);
 
-  //  sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->num_rigid_contacts,
-  //          parallel_sys->data_manager->num_rigid_fluid_contacts, parallel_sys->data_manager->num_fluid_contacts);
-  //  text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
-  //  sprintf(buffer, "--------------------------------");
-  //  text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
-  //} else {
-  //  // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
-  //  // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
-  //  // collision_system->GetBulletCollisionWorld()->getBroadphase();
-  //}
+    sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->num_rigid_contacts,
+            parallel_sys->data_manager->num_rigid_fluid_contacts, parallel_sys->data_manager->num_fluid_contacts);
+    text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
+    sprintf(buffer, "--------------------------------");
+    text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
+  } else {
+    // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
+    // collision_system->GetBulletCollisionWorld()->getBroadphase();
+  }
+#endif
 }
 
 void ChOpenGLHUD::GenerateRenderer() {
@@ -436,8 +447,8 @@ void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
   //}
 }
 void ChOpenGLHUD::Draw() {
-  //bars.Update();
-  //text.Draw();
+ // bars.Update();
+  text.Draw();
   //bars.Draw();
 }
 }

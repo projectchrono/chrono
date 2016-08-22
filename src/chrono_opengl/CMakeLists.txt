@@ -53,6 +53,13 @@ SET(CH_OPENGL_INCLUDES
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
 
+IF(ENABLE_MODULE_PARALLEL)
+INCLUDE_DIRECTORIES(
+	${BLAZE_DIR}     
+	${BOOST_DIR}
+    ${THRUST_INCLUDE_DIR})
+ENDIF()
+
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
