@@ -135,6 +135,15 @@ public:
     void SetAutomaticRefinementResolution(double mr);
     double GetAutomaticRefinementResolution() const;
 
+    /// This value says up to which vertical level the collision is tested - respect to current ground level 
+    /// at the sample point.
+    /// Since the contact is unilateral, this could be zero. However when computing bulldozing 
+    /// flow, if enabled, one might also need to know if in the surrounding there is some potential future contact: so it
+    /// might be better to use a positive value (but not higher than the max. expected height of the bulldozed rubble, to 
+    /// avoid slowdown of collision tests).
+    void SetTestHighOffset(double moff);
+    double GetTestHighOffset() const;
+
 
     /// Set the color plot type for the soil mesh.
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
@@ -282,6 +291,9 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
 
     bool do_refinement;
     double refinement_resolution;
+
+    double test_high_offset;
+    double test_low_offset;
 
     friend class DeformableTerrain;
     

@@ -131,6 +131,14 @@ double DeformableTerrain::GetAutomaticRefinementResolution() const {
     return m_ground->refinement_resolution;
 }
 
+void DeformableTerrain::SetTestHighOffset(double mr) {
+    m_ground->test_high_offset = mr;
+}
+
+double DeformableTerrain::GetTestHighOffset() const {
+    return m_ground->test_high_offset;
+}
+
 // Set the color plot type.
 void DeformableTerrain::SetPlotType(DataPlotType mplot, double mmin, double mmax) {
     m_ground->plot_type = mplot;
@@ -196,6 +204,9 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     plot_type = DeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
+
+    test_high_offset = 0.1;
+    test_low_offset = 0.5;
 
     last_t = 0;
 }
