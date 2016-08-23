@@ -119,7 +119,9 @@ public:
     /// If true, enable the creation of soil inflation at the side of the ruts, 
     /// like bulldozing the material apart. Remember to enable SetBulldozingFlow(true).
     void SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor = 1.0  ///< growth of lateral volume respect to pressed volume
+                                 double mbulldozing_flow_factor = 1.0,  ///< growth of lateral volume respect to pressed volume
+                                 int mbulldozing_erosion_n_iterations = 3, ///< number of erosion refinements per timestep 
+                                 int mbulldozing_erosion_n_propagations = 10 ///< number of concentric vertex selections subject to erosion 
                                  );
 
 
@@ -288,6 +290,8 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     bool do_bulldozing;
     double bulldozing_flow_factor;
     double bulldozing_erosion_angle;
+    int    bulldozing_erosion_n_iterations;
+    int    bulldozing_erosion_n_propagations;
 
     bool do_refinement;
     double refinement_resolution;

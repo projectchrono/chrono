@@ -109,10 +109,14 @@ void DeformableTerrain::SetSoilParametersSCM(
 }
 
 void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor   ///< growth of lateral volume respect to pressed volume
+                                 double mbulldozing_flow_factor,  ///< growth of lateral volume respect to pressed volume
+                                 int mbulldozing_erosion_n_iterations, ///< number of erosion refinements per timestep 
+                                 int mbulldozing_erosion_n_propagations ///< number of concentric vertex selections subject to erosion 
                                  ) {
     m_ground->bulldozing_erosion_angle = mbulldozing_erosion_angle;
     m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
+    m_ground->bulldozing_erosion_n_iterations = mbulldozing_erosion_n_iterations;
+    m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
 void DeformableTerrain::SetAutomaticRefinement(bool mr) { 
@@ -187,6 +191,8 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     do_bulldozing = false;
     bulldozing_flow_factor = 1.2;
     bulldozing_erosion_angle = 40;
+    bulldozing_erosion_n_iterations = 3;
+    bulldozing_erosion_n_propagations = 10;
 
     do_refinement = false;
     refinement_resolution = 0.01;
