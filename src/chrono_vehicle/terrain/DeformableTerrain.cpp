@@ -743,9 +743,12 @@ void DeformableSoil::UpdateInternalForces() {
             double tot_width_boundary = tot_area_boundary/tot_length_boundary;
             
             for (auto ibv : boundary) {
-                double raise_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
-                vertices[ibv]           += N * raise_y;
-                p_vertices_initial[ibv] += N * raise_y;
+                double d_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
+                double clamped_d_y = ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
+                p_level[ibv]            += clamped_d_y;
+                p_level_initial[ibv]    += clamped_d_y;
+                vertices[ibv]           += N * clamped_d_y;
+                p_vertices_initial[ibv] += N * clamped_d_y;
             }
 
             domain_boundaries.insert(boundary.begin(), boundary.end());
@@ -775,7 +778,6 @@ void DeformableSoil::UpdateInternalForces() {
         // Erosion smoothing algorithm on domain
         for (int ismo = 0; ismo <3; ++ismo) {
             for (auto is : domain_erosion) {
-                double my = vertices[is].y;
                 for (auto ivc : connected_vertexes[is]) {
                     ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
                     if (p_sigma[ivc] == 0) {
@@ -783,12 +785,35 @@ void DeformableSoil::UpdateInternalForces() {
                         ChVector<> vdist = vic-vis;
                         vdist.y=0;
                         double ddist = vdist.Length();
-                        double dy = my - vertices[ivc].y;
+                        double dy = p_level[is] - p_level[ivc];
                         double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
-                        if (dy>dy_lim) {
-                            ChVector<> DV = ((dy-dy_lim)*0.5/(double)connected_vertexes[is].size()) * this->plane.TransformDirectionLocalToParent(VECT_Y);
-                            vertices[is]  -= DV;
-                            vertices[ivc] += DV;
+                        if (fabs(dy)>dy_lim) {
+                            double clamped_d_y_i;
+                            double clamped_d_y_c;
+                            if (dy > 0) { 
+                                // if i higher than c: clamp c upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_c = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
+                                clamped_d_y_i = -clamped_d_y_c * p_area[ivc]/p_area[is];
+                            } else {
+                                // if c higher than i: clamp i upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_i = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[ivc]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_i = ChMin(d_y_i, p_hit_level[is]-p_level[is] );
+                                clamped_d_y_c = -clamped_d_y_i * p_area[is]/p_area[ivc];
+                            }
+
+                            // correct vertexes
+                            p_level[ivc]            += clamped_d_y_c;
+                            p_level_initial[ivc]    += clamped_d_y_c;
+                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+
+                            p_level[is]             += clamped_d_y_i;
+                            p_level_initial[is]     += clamped_d_y_i;
+                            vertices[is]            += N * clamped_d_y_i;
+                            p_vertices_initial[is]  += N * clamped_d_y_i;      
                         }
                     }
                 }
