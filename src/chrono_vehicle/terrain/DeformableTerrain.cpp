@@ -832,6 +832,12 @@ void DeformableSoil::UpdateInternalForces() {
         for (size_t iv = 0; iv< vertices.size(); ++iv) {
             ChColor mcolor;
             switch (plot_type) {
+                case DeformableTerrain::PLOT_LEVEL:
+                    mcolor = ChColor::ComputeFalseColor(p_level[iv], plot_v_min, plot_v_max);
+                    break;
+                case DeformableTerrain::PLOT_LEVEL_INITIAL:
+                    mcolor = ChColor::ComputeFalseColor(p_level_initial[iv], plot_v_min, plot_v_max);
+                    break;
                 case DeformableTerrain::PLOT_SINKAGE:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
                     break;

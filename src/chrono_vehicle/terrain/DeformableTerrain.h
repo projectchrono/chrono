@@ -48,6 +48,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChTerrain {
 public:
     enum DataPlotType {
         PLOT_NONE,
+        PLOT_LEVEL,
+        PLOT_LEVEL_INITIAL,
         PLOT_SINKAGE,
         PLOT_SINKAGE_ELASTIC,
         PLOT_SINKAGE_PLASTIC,
