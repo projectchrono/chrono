@@ -257,6 +257,9 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
 
     std::vector<ChVector<>> p_vertices_initial;
     std::vector<ChVector<>> p_speeds;
+    std::vector<double> p_level;
+    std::vector<double> p_level_initial;
+    std::vector<double> p_hit_level;
     std::vector<double> p_sinkage;
     std::vector<double> p_sinkage_plastic;
     std::vector<double> p_sinkage_elastic;

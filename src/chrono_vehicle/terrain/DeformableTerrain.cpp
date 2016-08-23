@@ -418,6 +418,9 @@ void DeformableSoil::SetupAuxData() {
     p_vertices_initial= vertices;
     p_speeds.resize( vertices.size());
     p_step_plastic_flow.resize( vertices.size());
+    p_level.resize( vertices.size());
+    p_level_initial.resize( vertices.size());
+    p_hit_level.resize( vertices.size());
     p_sinkage.resize( vertices.size());
     p_sinkage_plastic.resize( vertices.size());
     p_sinkage_elastic.resize( vertices.size());
@@ -428,6 +431,11 @@ void DeformableSoil::SetupAuxData() {
     p_tau.resize( vertices.size());  
     p_id_island.resize (vertices.size());
     p_erosion.resize(vertices.size());
+
+    for (int i=0; i< vertices.size(); ++i) {
+        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+        p_level_initial[i] = p_level[i];
+    }
 
     connected_vertexes.resize( vertices.size() );
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
@@ -494,12 +502,18 @@ void DeformableSoil::UpdateInternalForces() {
         p_step_plastic_flow[i]=0;
         p_erosion[i] = false;
 
-        ChVector<> to   = vertices[i] +N*0.01; 
-        ChVector<> from = to - N*0.5;
+        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+
+        ChVector<> to   = vertices[i] +N*test_high_offset; 
+        ChVector<> from = to - N*test_low_offset;
+        
+        p_hit_level[i] = 1e9;
+        double p_hit_offset = 1e9;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
         if (mrayhit_result.hit == true) {
-            double test_sinkage = - Vdot(( mrayhit_result.abs_hitPoint - p_vertices_initial[i] ), N);
+            p_hit_level[i] = plane.TransformLocalToParent(mrayhit_result.abs_hitPoint).y;
+            p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
             if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetPhysicsItem())) {
                 p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
@@ -516,13 +530,14 @@ void DeformableSoil::UpdateInternalForces() {
             ChVector<> Ft;
 
             // Elastic try:
-            p_sigma[i] = elastic_K * (test_sinkage - p_sinkage_plastic[i]);
+            p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
 
             // Handle unilaterality:
             if (p_sigma[i] <0) {
                 p_sigma[i] =0;
             } else {
-                p_sinkage[i] = test_sinkage;
+                p_sinkage[i] = p_hit_offset;
+                p_level[i]   = p_hit_level[i];
 
                 // Accumulate shear for Janosi-Hanamoto
                 p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
@@ -558,7 +573,7 @@ void DeformableSoil::UpdateInternalForces() {
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
                 }
-
+                
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 
@@ -576,6 +591,9 @@ void DeformableSoil::UpdateInternalForces() {
     if (do_refinement) {  
         
         std::vector<std::vector<double>*> aux_data_double; 
+        aux_data_double.push_back(&p_level);
+        aux_data_double.push_back(&p_level_initial);
+        aux_data_double.push_back(&p_hit_level);
         aux_data_double.push_back(&p_sinkage);
         aux_data_double.push_back(&p_sinkage_plastic);
         aux_data_double.push_back(&p_sinkage_elastic);
