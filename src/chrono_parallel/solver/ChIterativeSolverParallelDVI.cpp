@@ -419,5 +419,8 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
 		case JACOBI:
 			solver = new ChSolverParallelJacobi();
 			break;
+		case GAUSS_SEIDEL:
+			solver = new ChSolverParallelGS();
+			break;
     }
 }

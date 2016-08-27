@@ -208,6 +208,7 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSolverParallelBB.cpp
 	solver/ChSolverParallelJacobi.cpp
     solver/ChSolverParallelCG.cpp
+	solver/ChSolverParallelGS.cpp
     solver/ChSolverParallelSPGQP.cpp
     solver/ChShurProduct.cpp
     )
