@@ -13,9 +13,6 @@
 
 using namespace chrono;
 
-using blaze::DenseSubvector;
-using blaze::subvector;
-
 void ChConstraintBilateral::Build_b() {
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
 

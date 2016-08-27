@@ -1,6 +1,4 @@
 #include "chrono_parallel/solver/ChSolverParallelPGS.h"
-#include <blaze/math/SparseRow.h>
-#include <blaze/math/CompressedVector.h>
 using namespace chrono;
 
 uint ChSolverParallelPGS::SolvePGS(const uint max_iter,
