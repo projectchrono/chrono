@@ -109,10 +109,14 @@ void DeformableTerrain::SetSoilParametersSCM(
 }
 
 void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor   ///< growth of lateral volume respect to pressed volume
+                                 double mbulldozing_flow_factor,  ///< growth of lateral volume respect to pressed volume
+                                 int mbulldozing_erosion_n_iterations, ///< number of erosion refinements per timestep 
+                                 int mbulldozing_erosion_n_propagations ///< number of concentric vertex selections subject to erosion 
                                  ) {
     m_ground->bulldozing_erosion_angle = mbulldozing_erosion_angle;
     m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
+    m_ground->bulldozing_erosion_n_iterations = mbulldozing_erosion_n_iterations;
+    m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
 void DeformableTerrain::SetAutomaticRefinement(bool mr) { 
@@ -129,6 +133,14 @@ void DeformableTerrain::SetAutomaticRefinementResolution(double mr) {
 
 double DeformableTerrain::GetAutomaticRefinementResolution() const {
     return m_ground->refinement_resolution;
+}
+
+void DeformableTerrain::SetTestHighOffset(double mr) {
+    m_ground->test_high_offset = mr;
+}
+
+double DeformableTerrain::GetTestHighOffset() const {
+    return m_ground->test_high_offset;
 }
 
 // Set the color plot type.
@@ -179,6 +191,8 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     do_bulldozing = false;
     bulldozing_flow_factor = 1.2;
     bulldozing_erosion_angle = 40;
+    bulldozing_erosion_n_iterations = 3;
+    bulldozing_erosion_n_propagations = 10;
 
     do_refinement = false;
     refinement_resolution = 0.01;
@@ -196,6 +210,9 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     plot_type = DeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
+
+    test_high_offset = 0.1;
+    test_low_offset = 0.5;
 
     last_t = 0;
 }
@@ -401,6 +418,9 @@ void DeformableSoil::SetupAuxData() {
     p_vertices_initial= vertices;
     p_speeds.resize( vertices.size());
     p_step_plastic_flow.resize( vertices.size());
+    p_level.resize( vertices.size());
+    p_level_initial.resize( vertices.size());
+    p_hit_level.resize( vertices.size());
     p_sinkage.resize( vertices.size());
     p_sinkage_plastic.resize( vertices.size());
     p_sinkage_elastic.resize( vertices.size());
@@ -411,6 +431,11 @@ void DeformableSoil::SetupAuxData() {
     p_tau.resize( vertices.size());  
     p_id_island.resize (vertices.size());
     p_erosion.resize(vertices.size());
+
+    for (int i=0; i< vertices.size(); ++i) {
+        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+        p_level_initial[i] = p_level[i];
+    }
 
     connected_vertexes.resize( vertices.size() );
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
@@ -477,12 +502,18 @@ void DeformableSoil::UpdateInternalForces() {
         p_step_plastic_flow[i]=0;
         p_erosion[i] = false;
 
-        ChVector<> to   = vertices[i] +N*0.01; 
-        ChVector<> from = to - N*0.5;
+        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+
+        ChVector<> to   = vertices[i] +N*test_high_offset; 
+        ChVector<> from = to - N*test_low_offset;
+        
+        p_hit_level[i] = 1e9;
+        double p_hit_offset = 1e9;
 
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
         if (mrayhit_result.hit == true) {
-            double test_sinkage = - Vdot(( mrayhit_result.abs_hitPoint - p_vertices_initial[i] ), N);
+            p_hit_level[i] = plane.TransformLocalToParent(mrayhit_result.abs_hitPoint).y;
+            p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
             if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetPhysicsItem())) {
                 p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
@@ -499,13 +530,14 @@ void DeformableSoil::UpdateInternalForces() {
             ChVector<> Ft;
 
             // Elastic try:
-            p_sigma[i] = elastic_K * (test_sinkage - p_sinkage_plastic[i]);
+            p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
 
             // Handle unilaterality:
             if (p_sigma[i] <0) {
                 p_sigma[i] =0;
             } else {
-                p_sinkage[i] = test_sinkage;
+                p_sinkage[i] = p_hit_offset;
+                p_level[i]   = p_hit_level[i];
 
                 // Accumulate shear for Janosi-Hanamoto
                 p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
@@ -541,7 +573,7 @@ void DeformableSoil::UpdateInternalForces() {
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
                 }
-
+                
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 
@@ -559,6 +591,9 @@ void DeformableSoil::UpdateInternalForces() {
     if (do_refinement) {  
         
         std::vector<std::vector<double>*> aux_data_double; 
+        aux_data_double.push_back(&p_level);
+        aux_data_double.push_back(&p_level_initial);
+        aux_data_double.push_back(&p_hit_level);
         aux_data_double.push_back(&p_sinkage);
         aux_data_double.push_back(&p_sinkage_plastic);
         aux_data_double.push_back(&p_sinkage_elastic);
@@ -708,9 +743,12 @@ void DeformableSoil::UpdateInternalForces() {
             double tot_width_boundary = tot_area_boundary/tot_length_boundary;
             
             for (auto ibv : boundary) {
-                double raise_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
-                vertices[ibv]           += N * raise_y;
-                p_vertices_initial[ibv] += N * raise_y;
+                double d_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
+                double clamped_d_y = ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
+                p_level[ibv]            += clamped_d_y;
+                p_level_initial[ibv]    += clamped_d_y;
+                vertices[ibv]           += N * clamped_d_y;
+                p_vertices_initial[ibv] += N * clamped_d_y;
             }
 
             domain_boundaries.insert(boundary.begin(), boundary.end());
@@ -740,7 +778,6 @@ void DeformableSoil::UpdateInternalForces() {
         // Erosion smoothing algorithm on domain
         for (int ismo = 0; ismo <3; ++ismo) {
             for (auto is : domain_erosion) {
-                double my = vertices[is].y;
                 for (auto ivc : connected_vertexes[is]) {
                     ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
                     if (p_sigma[ivc] == 0) {
@@ -748,12 +785,35 @@ void DeformableSoil::UpdateInternalForces() {
                         ChVector<> vdist = vic-vis;
                         vdist.y=0;
                         double ddist = vdist.Length();
-                        double dy = my - vertices[ivc].y;
+                        double dy = p_level[is] - p_level[ivc];
                         double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
-                        if (dy>dy_lim) {
-                            ChVector<> DV = ((dy-dy_lim)*0.5/(double)connected_vertexes[is].size()) * this->plane.TransformDirectionLocalToParent(VECT_Y);
-                            vertices[is]  -= DV;
-                            vertices[ivc] += DV;
+                        if (fabs(dy)>dy_lim) {
+                            double clamped_d_y_i;
+                            double clamped_d_y_c;
+                            if (dy > 0) { 
+                                // if i higher than c: clamp c upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_c = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
+                                clamped_d_y_i = -clamped_d_y_c * p_area[ivc]/p_area[is];
+                            } else {
+                                // if c higher than i: clamp i upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_i = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[ivc]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_i = ChMin(d_y_i, p_hit_level[is]-p_level[is] );
+                                clamped_d_y_c = -clamped_d_y_i * p_area[is]/p_area[ivc];
+                            }
+
+                            // correct vertexes
+                            p_level[ivc]            += clamped_d_y_c;
+                            p_level_initial[ivc]    += clamped_d_y_c;
+                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+
+                            p_level[is]             += clamped_d_y_i;
+                            p_level_initial[is]     += clamped_d_y_i;
+                            vertices[is]            += N * clamped_d_y_i;
+                            p_vertices_initial[is]  += N * clamped_d_y_i;      
                         }
                     }
                 }
@@ -772,6 +832,12 @@ void DeformableSoil::UpdateInternalForces() {
         for (size_t iv = 0; iv< vertices.size(); ++iv) {
             ChColor mcolor;
             switch (plot_type) {
+                case DeformableTerrain::PLOT_LEVEL:
+                    mcolor = ChColor::ComputeFalseColor(p_level[iv], plot_v_min, plot_v_max);
+                    break;
+                case DeformableTerrain::PLOT_LEVEL_INITIAL:
+                    mcolor = ChColor::ComputeFalseColor(p_level_initial[iv], plot_v_min, plot_v_max);
+                    break;
                 case DeformableTerrain::PLOT_SINKAGE:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
                     break;

@@ -42,11 +42,11 @@ class VehicleNode : public BaseNode {
     VehicleNode();
     ~VehicleNode();
 
-    /// Set initial vehicle position.
-    void SetInitPosition(const chrono::ChCoordsys<>& init_pos) { m_init_pos = init_pos; }
-
     /// Set delay in generating driver inputs.
     void SetDriverDelay(double delay) { m_delay = delay; }
+
+    /// Specify whether or not chassis is fixed to ground (default: false).
+    void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -69,13 +69,13 @@ class VehicleNode : public BaseNode {
 
   private:
     chrono::ChSystemDEM* m_system;  ///< containing system
+    double m_delay;                 ///< delay in generating driver inputs
 
-    chrono::ChCoordsys<> m_init_pos;  ///< initial vehicle position
-    double m_delay;                   ///< delay in generating driver inputs
+    bool m_chassis_fixed;  ///< flag indicating whther or not chassis is fixed to ground
 
-    chrono::vehicle::hmmwv::HMMWV_Vehicle* m_vehicle;
-    chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;
-    chrono::vehicle::ChDriver* m_driver;
+    chrono::vehicle::hmmwv::HMMWV_Vehicle* m_vehicle;        ///< vehicle system
+    chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;  ///< powertrain system
+    chrono::vehicle::ChDriver* m_driver;                     ///< driver system
 
     int m_num_wheels;                           ///< number of vehicle wheels
     chrono::vehicle::TireForces m_tire_forces;  ///< forces received from tire nodes

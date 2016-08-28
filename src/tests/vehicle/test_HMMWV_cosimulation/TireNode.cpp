@@ -69,6 +69,7 @@ TireNode::TireNode(WheelID wheel_id, int num_threads) : BaseNode(""), m_wheel_id
     //// TODO: should these be user-specified? received from vehicle node?
     m_rim_mass = 15;
     m_rim_inertia = ChVector<>(1, 1, 1);
+    m_rim_fixed = false;
 
     m_tire_pressure = true;
 
@@ -129,6 +130,12 @@ void TireNode::EnableTirePressure(bool val) {
     m_tire_pressure = val;
 }
 
+void TireNode::SetProxyProperties(double mass, const ChVector<>& inertia, bool fixed) {
+    m_rim_mass = mass;
+    m_rim_inertia = inertia;
+    m_rim_fixed = fixed;
+}
+
 // -----------------------------------------------------------------------------
 // Initialization of the tire node:
 // - receive (from vehicle node) the initial wheel state
@@ -162,6 +169,7 @@ void TireNode::Initialize() {
     m_rim = std::make_shared<ChBody>();
     m_rim->SetMass(m_rim_mass);
     m_rim->SetInertiaXX(m_rim_inertia);
+    m_rim->SetBodyFixed(m_rim_fixed);
     m_system->AddBody(m_rim);
 
     // Initialize rim body (always zero linear and angular velocities)
@@ -331,6 +339,10 @@ void TireNode::Synchronize(int step_number, double time) {
     bufTF[8] = tire_force.point.z;
     MPI_Send(bufTF, 9, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD);
 
+    cout << m_prefix << " sent tire forces: " << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
+    cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
+    cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
+
     // Receive wheel state from the vehicle node
     double bufWS[14];
     MPI_Status statusWS;
@@ -341,6 +353,9 @@ void TireNode::Synchronize(int step_number, double time) {
     wheel_state.lin_vel = ChVector<>(bufWS[7], bufWS[8], bufWS[9]);
     wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
     wheel_state.omega = bufWS[13];
+
+    cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
+    cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << endl;
 
     m_rim->SetPos(wheel_state.pos);
     m_rim->SetRot(wheel_state.rot);

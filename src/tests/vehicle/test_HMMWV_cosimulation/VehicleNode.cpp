@@ -85,8 +85,8 @@ VehicleNode::VehicleNode() : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertra
     // Default model parameters
     // ------------------------
 
-    m_init_pos = ChCoordsys<>(ChVector<>(0, 0, 1), ChQuaternion<>(1, 0, 0, 0));
     m_delay = 0.5;
+    m_chassis_fixed = false;
 
     // ----------------------------------
     // Create the (sequential) DEM system
@@ -118,16 +118,33 @@ VehicleNode::~VehicleNode() {
 
 // -----------------------------------------------------------------------------
 // Initialization of the vehicle node:
+// - receive terrain height and container half-length
 // - construct and initialize subsystems
 // - send initial wheel states to tire nodes
 // -----------------------------------------------------------------------------
 void VehicleNode::Initialize() {
+    // ----------------------------------
+    // Receive terrain height information
+    // ----------------------------------
+
+    // Receive terrain height and half-length of the container
+    double init_dim[2];
+    MPI_Status status;
+    MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
+
+    cout << m_prefix << " Received initial terrain height = " << init_dim[0] << endl;
+    cout << m_prefix << " Received container half-length = " << init_dim[1] << endl;
+
+    // Set initial vehicle position and orientation
+    ChVector<> init_loc(2.75 - init_dim[1], 0, 0.6 + init_dim[0]);
+    ChQuaternion<> init_rot(1, 0, 0, 0);
+
     // --------------------------------------------
     // Create and initialize subsystems
     // --------------------------------------------
 
-    m_vehicle = new HMMWV_Vehicle(m_system);
-    m_vehicle->Initialize(m_init_pos);
+    m_vehicle = new HMMWV_Vehicle(m_system, m_chassis_fixed);
+    m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
 
     m_powertrain = new HMMWV_Powertrain;
     m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
@@ -246,11 +263,28 @@ void VehicleNode::OutputData(int frame) {
     if (m_outf.is_open()) {
         std::string del("  ");
 
-        m_outf << m_system->GetChTime() << del;
+        // Position, orientation, velocity of the chassis reference frame
+        // (relative to absolute frame)
+        const ChVector<>& pos = m_vehicle->GetChassisPos();
+        const ChQuaternion<>& rot = m_vehicle->GetChassisRot();
+        const ChVector<>& lin_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetPos_dt();
+        const ChVector<>& ang_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetWvel_par();
 
+        // Current driver inputs
+        double steering = m_driver->GetSteering();
+        double throttle = m_driver->GetThrottle();
+        double braking = m_driver->GetBraking();
+
+        m_outf << m_system->GetChTime() << del;
+        m_outf << steering << del << throttle << del << braking << del;
+        m_outf << pos.x << del << pos.y << del << pos.z << del;
+        m_outf << rot.e0 << del << rot.e1 << del << rot.e2 << del << rot.e3 << del;
+        m_outf << lin_vel.x << del << lin_vel.y << del << lin_vel.z << del;
+        m_outf << ang_vel.x << del << ang_vel.y << del << ang_vel.z << del;
         m_outf << endl;
     }
 
+    /*
     // Create and write frame output file.
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
@@ -261,6 +295,7 @@ void VehicleNode::OutputData(int frame) {
     csv.write_to_file(filename);
 
     cout << m_prefix << " write output file ==> " << filename << endl;
+    */
 }
 
 // -----------------------------------------------------------------------------

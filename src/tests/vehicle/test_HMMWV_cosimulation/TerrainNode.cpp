@@ -162,7 +162,7 @@ TerrainNode::TerrainNode(Type type,
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Terrain Node", m_system);
-        gl_window.SetCamera(ChVector<>(0, -1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
         gl_window.SetRenderMode(opengl::WIREFRAME);
     }
 #endif
@@ -401,18 +401,13 @@ void TerrainNode::Construct() {
 // -----------------------------------------------------------------------------
 // Settling phase for the terrain node
 // - if not already done, complete system construction
-// - if using granular material, allow it to settle or read from checkpoint
+// - simulate granular material to settle or read from checkpoint
 // - record height of terrain
 // -----------------------------------------------------------------------------
 void TerrainNode::Settle() {
-    m_init_height = 0;
+    assert(m_type == GRANULAR);
 
     Construct();
-
-    // If rigid terrain, return now
-    if (m_type == RIGID) {
-        return;
-    }
 
     if (m_use_checkpoint) {
         // ------------------------------------------------
@@ -510,6 +505,7 @@ void TerrainNode::Settle() {
     }
 
     // Find "height" of granular material
+    m_init_height = 0;
     for (auto body : *m_system->Get_bodylist()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z > m_init_height)
             m_init_height = body->GetPos().z;
@@ -520,6 +516,7 @@ void TerrainNode::Settle() {
 // -----------------------------------------------------------------------------
 // Initialization of the terrain node:
 // - if not already done, complete system construction
+// - send information on terrain height
 // - receive information on tire mesh topology (number vertices and triangles)
 // - receive tire contact material properties and create the "tire" material
 // - create the appropriate proxy bodies (state not set yet)
@@ -529,6 +526,23 @@ void TerrainNode::Initialize() {
 
     // Reset system time
     m_system->SetChTime(0);
+    
+    // Send information for initial vehicle position
+    double init_dim[2] = { m_init_height, m_hdimX };
+    MPI_Send(init_dim, 2, MPI_DOUBLE, VEHICLE_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    cout << m_prefix << " Sent initial terrain height = " << init_dim[0] << endl;
+    cout << m_prefix << " Sent container half-length = " << init_dim[1] << endl;
+
+#ifdef CHRONO_OPENGL
+    // Move OpenGL camera
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.SetCamera(ChVector<>(2.75 - m_hdimX, -4, 0), ChVector<>(2.75 - m_hdimX, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    }
+
+#endif
+
 
     // Loop over all tires, receive information, create proxies.
     unsigned int start_vert_index = 0;
@@ -620,7 +634,7 @@ void TerrainNode::CreateNodeProxies(int which) {
         body->SetIdentifier(m_tire_data[which].m_start_vert + iv);
         body->SetMass(m_mass_pN);
         body->SetInertiaXX(inertia_pN);
-        body->SetBodyFixed(false);
+        body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
         body->SetMaterialSurface(m_tire_data[which].m_material_tire);
 
@@ -649,7 +663,7 @@ void TerrainNode::CreateFaceProxies(int which) {
         body->SetMass(m_mass_pF);
 
         body->SetInertiaXX(inertia_pF);
-        body->SetBodyFixed(false);
+        body->SetBodyFixed(m_fixed_proxies);
         body->SetCollide(true);
         body->SetMaterialSurface(m_tire_data[which].m_material_tire);
 
@@ -727,11 +741,15 @@ void TerrainNode::Synchronize(int step_number, double time) {
     // ------------------------------------------------------------
 
     m_system->CalculateContactForces();
-    cout << m_prefix << " step number: " << step_number << "  num contacts: " << m_system->GetNcontacts() << endl;
+
+    std::string msg =
+        " step number: " + std::to_string(step_number) + "  num contacts: " + std::to_string(m_system->GetNcontacts());
 
     // -----------------------------------------------------------------
     // Loop over all tires, calculate vertex contact forces, send forces
     // -----------------------------------------------------------------
+
+    msg += "  [  ";
 
     for (int which = 0; which < m_num_tires; which++) {
 
@@ -756,8 +774,11 @@ void TerrainNode::Synchronize(int step_number, double time) {
         MPI_Send(vert_indices.data(), num_vert, MPI_INT, TIRE_NODE_RANK(which), step_number, MPI_COMM_WORLD);
         MPI_Send(vert_forces.data(), 3 * num_vert, MPI_DOUBLE, TIRE_NODE_RANK(which), step_number, MPI_COMM_WORLD);
 
-        cout << m_prefix << " step number: " << "  vertices in contact: " << num_vert << endl;
+        msg += std::to_string(num_vert) + "  ";
     }
+
+    msg += "]";
+    cout << m_prefix << msg << endl;
 
 }
 

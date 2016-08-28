@@ -28,13 +28,6 @@ else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
 endif()
 
-# Optional command line argument (output path for performance metrics)
-if (TEST_METRICS)
-  set(ARGS ${TEST_METRICS_PATH})
-else()
-  set(ARGS "")
-endif()
-
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 list(APPEND LIBS "")
@@ -66,7 +59,7 @@ FOREACH(PROGRAM ${TESTS})
     #         COMMAND ${PROJECT_BINARY_DIR}/bin/${PROGRAM}
     #         WORKING_DIRECTORY ${MY_WORKING_DIR})
 
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM} ${ARGS})
+    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
     SET_TESTS_PROPERTIES (${PROGRAM} PROPERTIES 
                           WORKING_DIRECTORY ${MY_WORKING_DIR})

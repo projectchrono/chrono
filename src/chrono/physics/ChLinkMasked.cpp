@@ -549,6 +549,9 @@ void ChLinkMasked::Update(double time, bool update_assets) {
 
     // 4 -
     UpdateForces(time);
+    
+    // Inherit time changes of parent class (ChLinkMarkers)
+    ChLinkMarkers::Update(time, update_assets);
 }
 
 // Define some  link-specific flags for backward compatibility

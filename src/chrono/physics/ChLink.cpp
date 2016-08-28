@@ -36,6 +36,9 @@ void ChLink::UpdateTime(double time) {
 void ChLink::Update(double time, bool update_assets) {
     // 1 -
     UpdateTime(time);
+
+    // This will update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 void ChLink::Update(bool update_assets) {

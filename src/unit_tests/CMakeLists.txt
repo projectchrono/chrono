@@ -24,17 +24,6 @@ IF("${isSystemDir}" STREQUAL "-1")
 ENDIF("${isSystemDir}" STREQUAL "-1")
 
 #--------------------------------------------------------------
-# Option to enable metrics tracking
-OPTION(TEST_METRICS "Enable tracking of performance metrics from instrumented tests" OFF)
-
-if (TEST_METRICS)
-  set(TEST_METRICS_PATH "" CACHE PATH "Output directory for JSON performance metrics files")
-  mark_as_advanced(CLEAR TEST_METRICS_PATH)
-else()
-  mark_as_advanced(FORCE TEST_METRICS_PATH)
-endif()
-
-#--------------------------------------------------------------
 # Propagate to subdirectories
 
 option(BUILD_TESTS_BASE "Build unit tests for base Chrono module" TRUE)

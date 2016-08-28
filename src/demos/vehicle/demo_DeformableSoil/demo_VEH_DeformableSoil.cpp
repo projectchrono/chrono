@@ -120,25 +120,28 @@ int main(int argc, char* argv[]) {
                                     0.01,// Janosi shear coefficient (m)
                                     5e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
                                     );
-    mterrain.SetBulldozingFlow(false);    // inflate soil at the border of the rut
-    mterrain.SetBulldozingParameters(40, // angle of frictionfor erosion of displaced material at the border of the rut
-                                    1.6);// displaced material vs downward pressed material.
+    mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
+    mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
+                                    0.8, // displaced material vs downward pressed material.
+                                    2,   // number of erosion refinements per timestep
+                                    10); // number of concentric vertex selections subject to erosion
     // Turn on the automatic level of detail refinement, so a coarse terrain mesh
     // is automatically improved by adding more points under the wheel contact patch:
     mterrain.SetAutomaticRefinement(true);
-    mterrain.SetAutomaticRefinementResolution(0.02);
+    mterrain.SetAutomaticRefinementResolution(0.04);
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
-    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
-    
+    mterrain.GetMesh()->SetWireframe(false);
+
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
 

@@ -341,6 +341,9 @@ void ChLinkMarkers::Update(double time, bool update_assets) {
 
     // 3 -
     UpdateForces(time);
+
+    // Inherit time changes of parent class (ChLink)
+    ChLink::Update(time, update_assets);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS

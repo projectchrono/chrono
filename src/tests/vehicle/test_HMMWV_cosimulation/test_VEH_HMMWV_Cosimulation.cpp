@@ -127,6 +127,14 @@ int main(int argc, char** argv) {
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
 
+    // Ensure we are running exactly 6 nodes
+    if (num_procs != 6) {
+        if (rank == 0)
+            cout << "Must use exactly 6 nodes" << endl;
+        MPI_Finalize();
+        return 1;
+    }
+
     // Parse command line arguments
     int nthreads_tire = 2;
     int nthreads_terrain = 2;
@@ -165,17 +173,14 @@ int main(int argc, char** argv) {
             my_vehicle = new VehicleNode();
             my_vehicle->SetStepSize(step_size);
             my_vehicle->SetOutDir(out_dir, suffix);
+            my_vehicle->SetChassisFixed(false);
             cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
-
-            ChVector<> init_loc(0, 0, 1);
-            ChQuaternion<> init_rot(1, 0, 0, 0);
-            my_vehicle->SetInitPosition(ChCoordsys<>(init_loc, init_rot));
 
             break;
         }
         case TERRAIN_NODE_RANK: {
-            auto type = TerrainNode::GRANULAR;
+            auto type = TerrainNode::RIGID;
             auto method = ChMaterialSurfaceBase::DEM;
 
             my_terrain = new TerrainNode(type, method, 4, use_checkpoint, render, nthreads_terrain);
@@ -184,14 +189,10 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
-            my_terrain->SetContainerDimensions(4, 0.6, 1, 0.2);
+            my_terrain->SetContainerDimensions(10, 3, 1, 0.2);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
-
-            my_terrain->SetGranularMaterial(radius, 2500, 6);
-            my_terrain->SetSettlingTime(0.2);
-            ////my_terrain->EnableSettlingOutput(true);
 
             switch (method) {
                 case ChMaterialSurfaceBase::DEM: {
@@ -226,10 +227,13 @@ int main(int argc, char** argv) {
                     break;
                 case TerrainNode::GRANULAR:
                     my_terrain->SetProxyProperties(1, false);
+                    my_terrain->SetGranularMaterial(radius, 2500, 6);
+                    my_terrain->SetSettlingTime(0.2);
+                    ////my_terrain->EnableSettlingOutput(true);
+                    my_terrain->Settle();
                     break;
             }
 
-            my_terrain->Settle();
             break;
         }
         case TIRE_NODE_RANK(0):
@@ -243,6 +247,7 @@ int main(int argc, char** argv) {
             cout << my_tire->GetPrefix() << " output directory: " << my_tire->GetOutDirName() << endl;
 
             my_tire->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
+            my_tire->SetProxyProperties(45, ChVector<>(0.113, 0.113, 0.113), false);
             my_tire->EnableTirePressure(true);
 
             break;
@@ -251,6 +256,7 @@ int main(int argc, char** argv) {
 
     // Initialize systems.
     // Data exchange:
+    //   terrain => vehicle (initial terrain height)
     //   vehicle => tire (initial wheel position)
     //   tire => terrain (tire mesh topology information)
     //   tire => terrain (tire contact material properties)
@@ -362,18 +368,9 @@ void ShowUsage() {
     cout << " -t=SIM_TIME" << endl;
     cout << " --simulation-time=SIM_TIME" << endl;
     cout << "        Specify simulation length in seconds [default: 10]" << endl;
-    cout << " -v=INIT_VEL" << endl;
-    cout << " --initial-velocity=INIT_VEL" << endl;
-    cout << "        Specify the initial tire linear velocity [default: 0]" << endl;
-    cout << " -s=LONG_SLIP" << endl;
-    cout << " --longitudinal-slip=LONG_SLIP" << endl;
-    cout << "        Specify the value of the longitudinal slip [default: 0]" << endl;
     cout << " -ch=COHESION" << endl;
     cout << " --cohesion-terrain=COHESION" << endl;
     cout << "        Specify the value of the terrain cohesion in Pa [default: 80e3]" << endl;
-    cout << " -m=SYSTEM_MASS" << endl;
-    cout << " --system-mass=SYSTEM_MASS" << endl;
-    cout << "        Specify the value of the wheel carrier mass (kg) [default: 450]" << endl;
     cout << " --no-output" << endl;
     cout << "        Disable generation of output files" << endl;
     cout << " --no-rendering" << endl;
