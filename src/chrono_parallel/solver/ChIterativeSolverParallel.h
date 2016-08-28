@@ -49,6 +49,8 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     ///< Solves just the bilaterals so that they can be warm started
     void PerformStabilization();
 
+	real GetResidual();
+
     ChParallelDataManager* data_manager;
     ChSolverParallel* solver;
     ChSolverParallel* bilateral_solver;

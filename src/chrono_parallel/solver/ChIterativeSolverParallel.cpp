@@ -221,3 +221,7 @@ void ChIterativeSolverParallel::PerformStabilization() {
     }
     data_manager->system_timer.stop("ChIterativeSolverParallel_Stab");
 }
+
+real  ChIterativeSolverParallel::GetResidual() {
+	return data_manager->measures.solver.maxd_hist.back();
+}
