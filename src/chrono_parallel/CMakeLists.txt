@@ -164,6 +164,8 @@ SET(ChronoEngine_Parallel_CUDA
     #math/real4.cu
     #math/vec3.cu
     physics/ChMPM.cu
+	physics/ChMPM.cuh
+	physics/MPMUtils.h
     )
     
     
