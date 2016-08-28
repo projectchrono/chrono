@@ -223,5 +223,5 @@ void ChIterativeSolverParallel::PerformStabilization() {
 }
 
 real  ChIterativeSolverParallel::GetResidual() {
-	return data_manager->measures.solver.maxd_hist.back();
+	return data_manager->measures.solver.maxd_hist.size() > 0 ? data_manager->measures.solver.maxd_hist.back() : 0.0;
 }
