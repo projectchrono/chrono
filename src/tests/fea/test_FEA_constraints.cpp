@@ -32,7 +32,7 @@
 #include "chrono_fea/ChLoadsBeam.h"
 #include "chrono_fea/ChMesh.h"
 
-////#undef CHRONO_MKL
+#undef CHRONO_MKL
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
@@ -76,7 +76,6 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     auto msection_cable = std::make_shared<ChBeamSectionCable>();
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e7);
-    msection_cable->SetBeamRaleyghDamping(0);
     msection_cable->SetI(CH_C_PI / 4.0 * pow(diam / 2, 4));
     msection_cable->SetDensity(rho);
 
@@ -89,6 +88,7 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     auto beam_elem = std::make_shared<ChElementBeamANCF>();
     beam_elem->SetNodes(node1, node2);
     beam_elem->SetSection(msection_cable);
+    beam_elem->SetAlphaDamp(0.005);  // Use of internal damping based on strain rates.
     mesh->AddElement(beam_elem);
 
     // Create a hinge constraint
@@ -130,23 +130,24 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     mystepper->SetStepControl(true);
     mystepper->SetModifiedNewton(true);
     mystepper->SetScaling(true);
-    mystepper->SetVerbose(false);
+    mystepper->SetVerbose(true);
 #else
     // MINRES solver + Euler
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(100000);
-    my_system.SetTolForce(1e-4);
+    my_system.SetTolForce(1e-08);
     ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    // my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
 #endif
 
     // Simulation loop
-    double step = 1e-5;
-    unsigned int num_steps = 80000;
+    double step = 1e-4;
+    unsigned int num_steps = 8000;
 
     utils::CSV_writer csv("  ");
     ChVector<> rforce(0);
@@ -231,10 +232,9 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     ChVector<> pos2 = node2->GetPos();
     std::cout << "  Base node direction: " << dir1.x << " " << dir1.y << " " << dir1.z << std::endl;
     std::cout << "  Tip node position:   " << pos2.x << " " << pos2.y << " " << pos2.z << std::endl;
-
 }
 
-int main(int argc, char* argv[]) {    
+int main(int argc, char* argv[]) {
     test_beam("hinge", ChVector<>(0, 0, -1), false);
 
     ////test_beam("cantilever1", ChVector<>(1, 0, 0), true);

@@ -86,7 +86,6 @@ int main(int argc, char* argv[]) {
     diam = sqrt(1e-6 / CH_C_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
-    msection_cable->SetBeamRaleyghDamping(0.000);
     msection_cable->SetI(CH_C_PI / 4.0 * pow(diam / 2, 4));
     rho = 8000 / pow(f_const, 2);
     msection_cable->SetDensity(rho);
@@ -108,24 +107,28 @@ int main(int argc, char* argv[]) {
     auto belementancf1 = std::make_shared<ChElementBeamANCF>();
     belementancf1->SetNodes(hnodeancf1, hnodeancf2);
     belementancf1->SetSection(msection_cable);
+    belementancf1->SetAlphaDamp(0.0);
     my_mesh->AddElement(belementancf1);
 
     // Create the element 2
     auto belementancf2 = std::make_shared<ChElementBeamANCF>();
     belementancf2->SetNodes(hnodeancf2, hnodeancf3);
     belementancf2->SetSection(msection_cable);
+    belementancf2->SetAlphaDamp(0.0);
     my_mesh->AddElement(belementancf2);
 
     // Create the element 3
     auto belementancf3 = std::make_shared<ChElementBeamANCF>();
     belementancf3->SetNodes(hnodeancf3, hnodeancf4);
     belementancf3->SetSection(msection_cable);
+    belementancf3->SetAlphaDamp(0.0);
     my_mesh->AddElement(belementancf3);
 
     // Create the element 4
     auto belementancf4 = std::make_shared<ChElementBeamANCF>();
     belementancf4->SetNodes(hnodeancf4, hnodeancf5);
     belementancf4->SetSection(msection_cable);
+    belementancf4->SetAlphaDamp(0.0);
     my_mesh->AddElement(belementancf4);
 
     auto mtruss = std::make_shared<ChBody>();
@@ -167,7 +170,7 @@ int main(int argc, char* argv[]) {
     auto mgravity3 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf3);
     mgravity3->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity3);
- 
+
     auto mgravity4 = std::make_shared<ChLoad<ChLoaderGravity>>(belementancf4);
     mgravity4->loader.SetNumIntPoints(2);
     mloadcontainer->Add(mgravity4);
