@@ -35,12 +35,13 @@ void ChANCFTire::CreatePressureLoad() {
     // Create a pressure load for each element in the mesh.  Note that we set a
     // negative pressure (i.e. internal pressure, acting opposite to the surface normal)
     for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ie++) {
-        auto load = std::make_shared<ChLoad<ChLoaderPressure>>(
-            std::static_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie)));
-        load->loader.SetPressure(-m_pressure);
-        load->loader.SetStiff(false);          //// TODO:  user control?
-        load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
-        m_load_container->Add(load);
+        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(m_mesh->GetElement(ie))) {
+            auto load = std::make_shared<ChLoad<ChLoaderPressure>>(mshell);
+            load->loader.SetPressure(-m_pressure);
+            load->loader.SetStiff(false);          //// TODO:  user control?
+            load->loader.SetIntegrationPoints(2);  //// TODO:  user control?
+            m_load_container->Add(load);
+        }
     }
 }
 
