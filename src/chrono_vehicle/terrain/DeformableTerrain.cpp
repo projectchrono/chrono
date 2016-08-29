@@ -494,9 +494,10 @@ void DeformableSoil::UpdateInternalForces() {
     // Perform ray-hit test to detect the contact point sinkage
     // 
     
-    collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-
+    
+//#pragma omp parallel for
     for (int i=0; i< vertices.size(); ++i) {
+        collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i]=0;
