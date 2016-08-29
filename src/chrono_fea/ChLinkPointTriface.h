@@ -122,7 +122,7 @@ class ChApiFea ChLinkPointTriface : public ChLinkInterface {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return CSYSNORM; }
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return ChCoordsys<>(mnodeA->GetPos()); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
@@ -282,7 +282,7 @@ class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return CSYSNORM; }
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return ChCoordsys<>(mnodeA->GetPos()); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
