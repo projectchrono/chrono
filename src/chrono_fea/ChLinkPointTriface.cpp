@@ -322,24 +322,24 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
         // simplified jacobian when offset d = 0;
         Jxb1.FillDiag(-s1);
         Jxb2.FillDiag(-s2);
-        Jxb1.FillDiag(-s3);
+        Jxb3.FillDiag(-s3);
     }
 
     constraint1.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 2, 0, 1, 3, 0, 0);
 }
 
 //***OBSOLETE*** will be removed in favour of Int... functions
@@ -673,24 +673,24 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
         // simplified jacobian when offset d = 0;
         Jxb1.FillDiag(-s1);
         Jxb2.FillDiag(-s2);
-        Jxb1.FillDiag(-s3);
+        Jxb3.FillDiag(-s3);
     }
 
     constraint1.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_a().Get_Cq()->PasteClippedMatrix(&Jxa, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_1()->PasteClippedMatrix(&Jxb1, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_2()->PasteClippedMatrix(&Jxb2, 2, 0, 1, 3, 0, 0);
 
     constraint1.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
-    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(&Jxb3, 2, 0, 1, 3, 0, 0);
 }
 
 //***OBSOLETE*** will be removed in favour of Int... functions
