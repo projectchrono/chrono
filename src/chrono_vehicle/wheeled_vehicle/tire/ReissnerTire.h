@@ -93,6 +93,15 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
     std::vector<double> m_profile_t;
     std::vector<double> m_profile_x;
     std::vector<double> m_profile_y;
+
+    unsigned int m_num_lugs_copies;
+    unsigned int m_num_lugs;
+    std::vector<std::vector<double>> m_lugs_ua;
+    std::vector<std::vector<double>> m_lugs_ub;
+    std::vector<std::vector<double>> m_lugs_va;
+    std::vector<std::vector<double>> m_lugs_vb;
+    std::vector<std::vector<double>> m_lugs_ha;
+    std::vector<std::vector<double>> m_lugs_hb;
 };
 
 /// @} vehicle_wheeled_tire

@@ -18,6 +18,8 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
+#include "chrono_fea/ChElementHexa_8.h"
+#include "chrono_fea/ChLinkPointTriface.h"
 
 #include "thirdparty/rapidjson/filereadstream.h"
 
@@ -191,6 +193,65 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
         m_profile_x[i] = d["Profile"][i][1u].GetDouble();
         m_profile_y[i] = d["Profile"][i][2u].GetDouble();
     }
+
+// Create the 'best fit' stitching constraint between a node and shells in a mesh
+void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEAxyz> m_node)
+{
+    //std::shared_ptr<ChElementShellReissner4> best_fit_shell;
+    std::shared_ptr<ChNodeFEAxyzrot> best_fit_n1;
+    std::shared_ptr<ChNodeFEAxyzrot> best_fit_n2;
+    std::shared_ptr<ChNodeFEAxyzrot> best_fit_n3;
+    double best_fit_val = 1e23;
+    for (int ie=0; ie< m_mesh->GetNelements(); ++ie) {
+         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie)) ) {
+             double val, u,v,w;
+             int is_into;
+             ChVector<> p_projected;
+
+             val = collision::ChCollisionUtils::PointTriangleDistance(
+                m_node->pos, 
+                mshell->GetNodeA()->GetCoord().pos,
+                mshell->GetNodeB()->GetCoord().pos,
+                mshell->GetNodeC()->GetCoord().pos,
+                u, v, 
+                is_into, 
+                p_projected);
+             val = fabs(val);
+             w = 1-u-v;
+             if (!is_into) 
+                 //val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
+                 val += ChMax(0.0,-u) + ChMax(0.0,-v) + ChMax(0.0,-w);
+             if (val < best_fit_val) {
+                 best_fit_val = val;
+                 best_fit_n1 = mshell->GetNodeA();
+                 best_fit_n2 = mshell->GetNodeB();
+                 best_fit_n3 = mshell->GetNodeC();
+             }
+
+             val = collision::ChCollisionUtils::PointTriangleDistance(
+                m_node->pos, 
+                mshell->GetNodeC()->GetCoord().pos,
+                mshell->GetNodeD()->GetCoord().pos,
+                mshell->GetNodeA()->GetCoord().pos,
+                u, v, 
+                is_into, 
+                p_projected);
+             val = fabs(val);
+             w = 1-u-v;
+             if (!is_into) 
+                 //val += ChMax(ChMax(0.0,u-1.0),-ChMin(0.0,u)) + ChMax(ChMax(0.0,v-1.0),-ChMin(0.0,v));
+                 val += ChMax(0.0,-u) + ChMax(0.0,-v) + ChMax(0.0,-w);
+             if (val < best_fit_val) {
+                 best_fit_val = val;
+                 best_fit_n1 = mshell->GetNodeC();
+                 best_fit_n2 = mshell->GetNodeD();
+                 best_fit_n3 = mshell->GetNodeA();
+             }
+         }
+    }
+    auto mlink = std::make_shared<ChLinkPointTrifaceRot>();
+    mlink->Initialize(m_node, best_fit_n1, best_fit_n2, best_fit_n3);
+    m_mesh->GetSystem()->Add(mlink);
 }
 
 // -----------------------------------------------------------------------------
@@ -297,6 +358,117 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             m_mesh->AddElement(element);
         }
     }
+
+    //
+    // Create lugs
+    //
+
+    // Create a material for lugs
+    auto m_lugs_material = std::make_shared<ChContinuumElastic>();
+    m_lugs_material->Set_E(lugs_young);  
+    m_lugs_material->Set_v(lugs_poisson);
+    m_lugs_material->Set_RayleighDampingK(lugs_damping);
+    m_lugs_material->Set_density(lugs_density);
+
+    // repeat slices:
+    for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {
+        double phi = (CH_C_2PI * p) / m_num_lugs_copies;
+        // maybe each slice has more than one lug geometry;
+        //double pre_ua, pre_ub, pre_
+        for (unsigned int il = 0; il < m_num_lugs; ++il) {
+            // scan through all lug a,b points (lug as a ribbon)
+            std::shared_ptr<ChNodeFEAxyz> n1;
+            std::shared_ptr<ChNodeFEAxyz> n2;
+            std::shared_ptr<ChNodeFEAxyz> n3;
+            std::shared_ptr<ChNodeFEAxyz> n4;
+            for (unsigned int is = 0; is < m_lugs_ua[il].size(); ++is) {
+                double t_prf, alpha;
+                double x_prf, xp_prf, xpp_prf;
+                double y_prf, yp_prf, ypp_prf;
+                double x,y,z;
+
+                // Create the 4 nodes of a slice of the lug as  'ribbon' of quadrilateral section
+
+                t_prf =        m_lugs_ua[il][is];
+                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                alpha = phi +  m_lugs_va[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                // Node position with respect to rim center
+                x = (m_rim_radius + x_prf) * std::cos(alpha);
+                y = y_prf;
+                z = (m_rim_radius + x_prf) * std::sin(alpha);
+                // Node position in global frame (actual coordinate values)
+                ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                auto node1 = std::make_shared<ChNodeFEAxyz>(loc);
+                node1->SetPos_dt(vel);
+                m_mesh->AddNode(node1);
+                // attach to underlying shells
+                AttachNodeToShell(m_mesh, node1);
+
+                t_prf =        m_lugs_ub[il][is];
+                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                alpha = phi +  m_lugs_vb[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                // Node position with respect to rim center
+                x = (m_rim_radius + x_prf) * std::cos(alpha);
+                y = y_prf;
+                z = (m_rim_radius + x_prf) * std::sin(alpha);
+                // Node position in global frame (actual coordinate values)
+                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                auto node2 = std::make_shared<ChNodeFEAxyz>(loc);
+                node2->SetPos_dt(vel);
+                m_mesh->AddNode(node2);
+                // attach to underlying shells
+                AttachNodeToShell(m_mesh, node2);
+
+                t_prf =        m_lugs_ub[il][is];
+                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                alpha = phi +  m_lugs_vb[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                // Node position with respect to rim center
+                x = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::cos(alpha);
+                y = y_prf;
+                z = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::sin(alpha);
+                // Node position in global frame (actual coordinate values)
+                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                auto node3 = std::make_shared<ChNodeFEAxyz>(loc);
+                node3->SetPos_dt(vel);
+                m_mesh->AddNode(node3);
+
+                t_prf =        m_lugs_ua[il][is];
+                splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
+                splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
+                alpha = phi +  m_lugs_va[il][is] * (CH_C_2PI/m_num_lugs_copies);
+                // Node position with respect to rim center
+                x = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::cos(alpha);
+                y = y_prf;
+                z = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::sin(alpha);
+                // Node position in global frame (actual coordinate values)
+                loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+                vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
+                auto node4 = std::make_shared<ChNodeFEAxyz>(loc);
+                node4->SetPos_dt(vel);
+                m_mesh->AddNode(node4);
+
+                // create the hexahedron element
+                if (is>0) {
+                    auto helement1 = std::make_shared<ChElementHexa_8>();
+                    helement1->SetNodes(n1, n2, n3, n4, node1, node2, node3, node4);
+                    helement1->SetMaterial(m_lugs_material);
+                    m_mesh->AddElement(helement1);
+                }
+                // store nodes of last slice for connecting next hexahedron
+                n1 = node1;
+                n2 = node2;
+                n3 = node3;
+                n4 = node4;
+            }
+        }
+    }
+
 
     // Switch off automatic gravity
     m_mesh->SetAutomaticGravity(false);
