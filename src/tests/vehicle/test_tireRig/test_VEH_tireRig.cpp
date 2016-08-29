@@ -55,8 +55,10 @@
 
 #ifdef CHRONO_FEA
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
 #include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 #endif
 
@@ -98,8 +100,8 @@ ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI
 enum SolverType { ITSOR, MKL };
 SolverType solver_type = MKL;
 
-// Type of tire model (FIALA, ANCF, FEA)
-TireModelType tire_model = ANCF;
+// Type of tire model (FIALA, ANCF, REISSNER, FEA)
+TireModelType tire_model = REISSNER;
 
 // Type of terrain model
 enum TerrainType { RIGID_TERRAIN, PLASTIC_FEA };
@@ -117,6 +119,7 @@ bool use_custom_collision = true;
 // JSON file names for tire models
 std::string fiala_testfile("generic/tire/FialaTire.json");
 std::string ancftire_file("hmmwv/tire/HMMWV_ANCFTire.json");
+std::string reissnertire_file("hmmwv/tire/HMMWV_ReissnerTire.json");
 std::string featire_file("hmmwv/tire/HMMWV_FEATire.json");
 
 // Output directories
@@ -294,6 +297,9 @@ int main() {
         case ANCF:
             out_dir = out_dir1 + "ANCF/";
             break;
+        case REISSNER:
+            out_dir = out_dir1 + "Reissner/";
+            break;
         case FEA:
             out_dir = out_dir1 + "FEA/";
             break;
@@ -339,8 +345,8 @@ int main() {
     // Create the mechanical system
     // ----------------------------
 
-    // Set contact model to DEM if ANCF tire is used
-    if (tire_model == ANCF || tire_model == FEA) {
+    // Set contact model to DEM if FEA tire is used
+    if (tire_model == ANCF || tire_model == REISSNER || tire_model == FEA ) {
         contact_method = ChMaterialSurfaceBase::DEM;
     }
 
@@ -418,6 +424,28 @@ int main() {
             wheel_radius = tire_ancf->GetRimRadius();
             tire_width = tire_ancf->GetWidth();
             tire = tire_ancf;
+#endif
+            break;
+        }
+        case REISSNER: {
+#ifdef CHRONO_FEA
+            std::shared_ptr<ChReissnerTire> tire_reissner;
+            if (use_JSON) {
+                tire_reissner = std::make_shared<ReissnerTire>(vehicle::GetDataFile(reissnertire_file));
+            } else {
+                tire_reissner = std::make_shared<hmmwv::HMMWV_ReissnerTire>("Reissner tire");
+            }
+
+            tire_reissner->EnablePressure(enable_tire_pressure);
+            tire_reissner->EnableContact(enable_tire_contact);
+            tire_reissner->EnableRimConnection(enable_rim_conection);
+            tire_reissner->EnableVisualization(true);
+            rim->SetWvel_loc(ChVector<>(0, desired_speed / 0.463, 0));
+            tire_reissner->Initialize(rim, LEFT);
+            tire_radius = tire_reissner->GetRadius();
+            wheel_radius = tire_reissner->GetRimRadius();
+            tire_width = tire_reissner->GetWidth();
+            tire = tire_reissner;
 #endif
             break;
         }
@@ -542,7 +570,7 @@ int main() {
     wheel->SetWvel_par(ChVector<>(0, desired_speed / tire_radius, 0));
     wheel->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system->AddBody(wheel);
-    if (tire_model != ANCF && tire_model != FEA && tire_model != LUGRE) {
+    if (tire_model != ANCF && tire_model != FEA && tire_model != REISSNER && tire_model != LUGRE) {
         auto cyl_wheel = std::make_shared<ChCylinderShape>();
         cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -tire_width / 2, 0);
         cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, tire_width / 2, 0);
@@ -689,7 +717,7 @@ int main() {
     }
 
 // Optionally use the custom collision detection class for rigid terrain
-// Otherwise apply node cloud to ANCF tire
+// Otherwise apply node cloud to deformable tire
 // ---------------------------------------------------
 #ifdef CHRONO_FEA
     TireTestCollisionManager* my_collider = NULL;
@@ -700,14 +728,14 @@ int main() {
             std::dynamic_pointer_cast<RigidTerrain>(terrain)->GetGroundBody()->SetCollide(false);
         }
         // Extract the contact surface from the tire mesh
-        auto tire_ancf = std::static_pointer_cast<ChANCFTire>(tire);
-        auto tire_mesh = tire_ancf->GetMesh();
+        auto tire_deform = std::static_pointer_cast<ChDeformableTire>(tire);
+        auto tire_mesh = tire_deform->GetMesh();
         auto surface = std::dynamic_pointer_cast<fea::ChContactSurfaceNodeCloud>(tire_mesh->GetContactSurface(0));
 
         // Add custom collision callback
         if (surface && terrain_type == RIGID_TERRAIN) {
             my_collider = new TireTestCollisionManager(surface, std::dynamic_pointer_cast<RigidTerrain>(terrain),
-                                                       tire_ancf->GetContactNodeRadius());
+                                                       tire_deform->GetContactNodeRadius());
             my_system->SetCustomComputeCollisionCallback(my_collider);
         } else if (surface && terrain_type == PLASTIC_FEA) {
             auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
