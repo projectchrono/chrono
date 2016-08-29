@@ -22,57 +22,48 @@ namespace fea {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkDirFrame> a_registration_ChLinkDirFrame;
 
-ChLinkDirFrame::ChLinkDirFrame() : react(VNULL), direction(VECT_X) {}
+ChLinkDirFrame::ChLinkDirFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
 
 ChLinkDirFrame::ChLinkDirFrame(const ChLinkDirFrame& other) : ChLinkBase(other) {
-    react = other.react;
-    direction = other.direction;
+    m_react = other.m_react;
+    m_csys = other.m_csys;
 }
 
 ChCoordsys<> ChLinkDirFrame::GetLinkAbsoluteCoords() {
-    if (body) {
-        ChCoordsys<> linkcsys(mnode->GetPos(), csys_direction.rot >> (*body).GetRot());
+    if (m_body) {
+        ChCoordsys<> linkcsys(m_node->GetPos(), m_csys.rot >> m_body->GetRot());
         return linkcsys;
     }
     return CSYSNORM;
 }
 
-void ChLinkDirFrame::SetDirectionInBodyCoords(ChVector<> mattach) {
-    direction = mattach;
+void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector<>& dir_loc) {
+    assert(m_body);
     ChMatrix33<> rot;
-    rot.Set_A_Xdir(direction);
-    csys_direction.rot = rot.Get_A_quaternion();
-    csys_direction.pos = VNULL;
+    rot.Set_A_Xdir(dir_loc);
+    m_csys.rot = rot.Get_A_quaternion();
+    m_csys.pos = VNULL;
 }
 
-void ChLinkDirFrame::SetDirectionInAbsoluteCoords(ChVector<> mattach) {
-    direction = body->TransformDirectionParentToLocal(mattach);
-    SetDirectionInBodyCoords(direction);
+void ChLinkDirFrame::SetDirectionInAbsoluteCoords(const ChVector<>& dir_abs) {
+    assert(m_body);
+    ChVector<> dir_loc = m_body->TransformDirectionParentToLocal(dir_abs);
+    SetDirectionInBodyCoords(dir_loc);
 }
 
-int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> anode,
-                               std::shared_ptr<ChBodyFrame> mbody,
-                               ChVector<>* mdir) {
-    assert(anode && mbody);
+int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
+                               std::shared_ptr<ChBodyFrame> body,
+                               ChVector<>* dir) {
+    assert(node && body);
 
-    body = mbody;
-    mnode = anode;
+    m_body = body;
+    m_node = node;
 
-    constraint1.SetVariables(&(mnode->Variables_D()), &(body->Variables()));
-    constraint2.SetVariables(&(mnode->Variables_D()), &(body->Variables()));
+    constraint1.SetVariables(&(node->Variables_D()), &(body->Variables()));
+    constraint2.SetVariables(&(node->Variables_D()), &(body->Variables()));
 
-    // SetSystem(body->GetSystem());
-
-    if (mdir) {
-        direction = body->TransformDirectionParentToLocal(*mdir);
-    } else {
-        // downcasting
-        if (!mnode)
-            return false;
-
-        ChVector<> temp = mnode->GetD();
-        direction = body->TransformDirectionParentToLocal(temp);
-    }
+    ChVector<> dir_abs = dir ? *dir : node->GetD();
+    SetDirectionInAbsoluteCoords(dir_abs);
 
     return true;
 }
@@ -85,8 +76,8 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
 }
 
 ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() const {
-    ChMatrix33<> Arw = csys_direction.rot >> body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(mnode->GetD());
+    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
     ChMatrixNM<double, 2, 1> C;
     C(0, 0) = res.y;
     C(1, 0) = res.z;
@@ -96,13 +87,13 @@ ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() const {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkDirFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = 2 * react.y;
-    L(off_L + 1) = 2 * react.z;
+    L(off_L + 0) = 2 * m_react.y;
+    L(off_L + 1) = 2 * m_react.z;
 }
 
 void ChLinkDirFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    react.y = 0.5 * L(off_L + 0);
-    react.z = 0.5 * L(off_L + 1);
+    m_react.y = 0.5 * L(off_L + 0);
+    m_react.z = 0.5 * L(off_L + 1);
 }
 
 void ChLinkDirFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -126,15 +117,15 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     if (!IsActive())
         return;
 
-    ChMatrix33<> Arw = csys_direction.rot >> body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(mnode->GetD());
-
+    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
     ChVector<> cres = res * c;
 
     if (do_clamp) {
         cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
         cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
     }
+
     Qc(off_L + 0) += cres.y;
     Qc(off_L + 1) += cres.z;
 }
@@ -185,10 +176,8 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     // if (!IsActive())
     //	return;
 
-    if (!mnode)
-        return;
-    ChMatrix33<> Arw = csys_direction.rot >> body->coord.rot;
-    ChVector<> res = Arw.MatrT_x_Vect(mnode->GetD());
+    ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y);
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z);
@@ -203,11 +192,11 @@ void ChLinkDirFrame::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkDirFrame::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChMatrix33<> Aow(body->coord.rot);
-    ChMatrix33<> Aro(csys_direction.rot);
-    ChMatrix33<> Arw(csys_direction.rot >> body->coord.rot);
+    ChMatrix33<> Aow(m_body->coord.rot);
+    ChMatrix33<> Aro(m_csys.rot);
+    ChMatrix33<> Arw(m_csys.rot >> m_body->coord.rot);
 
-    ChVector<> Zo = Aow.MatrT_x_Vect(mnode->GetD());
+    ChVector<> Zo = Aow.MatrT_x_Vect(m_node->GetD());
 
     ChMatrix33<> ztilde;
     ztilde.Set_X_matrix(Zo);
@@ -227,8 +216,8 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
 
 void ChLinkDirFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.y = constraint1.Get_l_i() * factor;
-    react.z = constraint2.Get_l_i() * factor;
+    m_react.y = constraint1.Get_l_i() * factor;
+    m_react.z = constraint2.Get_l_i() * factor;
 }
 
 // FILE I/O
