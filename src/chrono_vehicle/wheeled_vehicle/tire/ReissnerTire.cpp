@@ -194,6 +194,43 @@ void ReissnerTire::ProcessJSON(const rapidjson::Document& d) {
         m_profile_y[i] = d["Profile"][i][2u].GetDouble();
     }
 
+    // Number of lugs in the circumferential direction ('v' direction) for radial pattern
+    m_num_lugs_copies = d["Number Lugs Copies"].GetInt();
+
+    // Read lugs specification
+    m_num_lugs = d["Lugs"].Size();
+    m_lugs_ua.resize(m_num_lugs);
+    m_lugs_ub.resize(m_num_lugs);
+    m_lugs_vb.resize(m_num_lugs);
+    m_lugs_va.resize(m_num_lugs);
+    m_lugs_hb.resize(m_num_lugs);
+    m_lugs_ha.resize(m_num_lugs);
+    for (unsigned int i = 0; i < m_num_lugs; i++) {
+        unsigned int m_num_couplepoints_lugs;
+        m_num_couplepoints_lugs = d["Lugs"][i].Size();
+        m_lugs_ua[i].resize(m_num_couplepoints_lugs);
+        m_lugs_ub[i].resize(m_num_couplepoints_lugs);
+        m_lugs_vb[i].resize(m_num_couplepoints_lugs);
+        m_lugs_va[i].resize(m_num_couplepoints_lugs);
+        m_lugs_hb[i].resize(m_num_couplepoints_lugs);
+        m_lugs_ha[i].resize(m_num_couplepoints_lugs);
+        for (unsigned int j = 0; j < m_num_couplepoints_lugs; j++) {
+            m_lugs_ua[i][j] = d["Lugs"][i][j][0u].GetDouble();
+            m_lugs_ub[i][j] = d["Lugs"][i][j][1u].GetDouble();
+            m_lugs_va[i][j] = d["Lugs"][i][j][2u].GetDouble();
+            m_lugs_vb[i][j] = d["Lugs"][i][j][3u].GetDouble();
+            m_lugs_ha[i][j] = d["Lugs"][i][j][4u].GetDouble();
+            m_lugs_hb[i][j] = d["Lugs"][i][j][5u].GetDouble();
+        }
+    }
+    // read lugs material 
+    lugs_young   = d["Lugs Material"]["Young Modulus"].GetDouble();
+    lugs_poisson = d["Lugs Material"]["Poisson Ratio"].GetDouble();
+    lugs_density = d["Lugs Material"]["Density"].GetDouble();
+    lugs_damping = d["Lugs Material"]["Structural Damping Coefficient"].GetDouble();
+}
+
+
 // Create the 'best fit' stitching constraint between a node and shells in a mesh
 void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEAxyz> m_node)
 {

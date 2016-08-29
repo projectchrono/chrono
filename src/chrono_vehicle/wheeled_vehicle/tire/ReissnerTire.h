@@ -71,6 +71,11 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
 
     std::vector<std::shared_ptr<fea::ChMaterialShellReissner>> m_materials;
 
+    double lugs_young;
+    double lugs_poisson;
+    double lugs_density;
+    double lugs_damping;
+
     unsigned int m_num_elements_bead;
     unsigned int m_num_layers_bead;
     std::vector<double> m_layer_thickness_bead;
