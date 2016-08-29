@@ -34,7 +34,8 @@ const int ChElementShellANCF::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF::ChElementShellANCF() : m_gravity_on(false), m_numLayers(0), m_thickness(0) {
+ChElementShellANCF::ChElementShellANCF()
+    : m_gravity_on(false), m_numLayers(0), m_thickness(0), m_lenX(0), m_lenY(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 
