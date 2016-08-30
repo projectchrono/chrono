@@ -123,8 +123,7 @@ void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset 
 
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res =
-        Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
 
     if (do_clamp) {

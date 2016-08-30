@@ -63,10 +63,10 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 3 + 7; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints.
     virtual int GetDOC_c() override { return 3; }
 
-    /// To get reaction force, expressed in link coordinate system:
+    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
@@ -164,11 +164,11 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
         m_csys = m_body->coord.TransformParentToLocal(csys_abs);
     }
 
-    /// Get the reaction force considered as applied to the node.
-    ChVector<> GetReactionOnNode() const { return -m_react; }
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector<> GetReactionOnNode() const { return m_react; }
 
-    /// Get the reaction force considered as applied to the body.
-    ChVector<> GetReactionOnBody() const { return m_react; }
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector<> GetReactionOnBody() const { return -m_react; }
 
     //
     // UPDATE FUNCTIONS
