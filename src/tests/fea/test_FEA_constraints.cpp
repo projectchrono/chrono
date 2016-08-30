@@ -32,12 +32,12 @@
 #include "chrono_fea/ChLoadsBeam.h"
 #include "chrono_fea/ChMesh.h"
 
-#undef CHRONO_MKL
+////#undef CHRONO_MKL
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
 
-////#undef CHRONO_POSTPROCESS
+#undef CHRONO_POSTPROCESS
 #ifdef CHRONO_POSTPROCESS
 #include "chrono_postprocess/ChGnuPlot.h"
 #endif
@@ -50,10 +50,15 @@ using namespace chrono::fea;
 // constraint and, optionally, a ChLinkDirFrame constraint (as specified through the
 // boolean argument 'constrain_dir').
 // The argument 'dir' defines the initial beam configuration.
-void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_dir) {
-    std::cout << "Test " << name << std::endl;
-    std::cout << "  Beam direction: " << dir.x << " " << dir.y << " " << dir.z << std::endl;
-    std::cout << "  Constrain direction? " << constrain_dir << std::endl;
+void test_beam(const std::string& name,  /// test name
+               const ChVector<>& dir,    /// initial beam orientation
+               double alpha,             /// damping coefficient
+               bool constrain_dir,       /// if true, include ChLinkFirFrame constraints
+               double duration           /// simulation length
+               ) {
+    std::cout << "=== Test " << name << " ===" << std::endl;
+    std::cout << "Beam direction: " << dir.x << " " << dir.y << " " << dir.z << std::endl;
+    std::cout << "Constrain direction? " << constrain_dir << std::endl;
 
     // Create the system
     ChSystem my_system;
@@ -88,7 +93,7 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     auto beam_elem = std::make_shared<ChElementBeamANCF>();
     beam_elem->SetNodes(node1, node2);
     beam_elem->SetSection(msection_cable);
-    beam_elem->SetAlphaDamp(0.005);  // Use of internal damping based on strain rates.
+    beam_elem->SetAlphaDamp(alpha);
     mesh->AddElement(beam_elem);
 
     // Create a hinge constraint
@@ -102,10 +107,6 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
         dir_cnstr = std::make_shared<ChLinkDirFrame>();
         dir_cnstr->Initialize(node1, ground);
         my_system.Add(dir_cnstr);
-
-        ChVector<> dir_loc = dir_cnstr->GetDirection();
-        std::cout << "  Constraint direction (in body frame): " << dir_loc.x << " " << dir_loc.y << " " << dir_loc.z
-                  << std::endl;
     }
 
     // Mark completion of system construction
@@ -113,6 +114,8 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
 
 #ifdef CHRONO_MKL
     // MKL solver + HHT
+    std::cout << "Using HHT + MKL" << std::endl;
+
     ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
     ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
     my_system.ChangeSolverStab(mkl_solver_stab);
@@ -130,9 +133,11 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     mystepper->SetStepControl(true);
     mystepper->SetModifiedNewton(true);
     mystepper->SetScaling(true);
-    mystepper->SetVerbose(true);
+    mystepper->SetVerbose(false);
 #else
     // MINRES solver + Euler
+    std::cout << "Using Euler + MINRES" << std::endl;
+
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(100000);
@@ -147,13 +152,12 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
 
     // Simulation loop
     double step = 1e-4;
-    unsigned int num_steps = 8000;
 
     utils::CSV_writer csv("  ");
     ChVector<> rforce(0);
     ChVector<> rtorque(0);
 
-    for (unsigned int it = 0; it < num_steps; it++) {
+    while (my_system.GetChTime() < duration) {
         my_system.DoStepDynamics(step);
 
         ChVector<> pos = node2->GetPos();
@@ -172,16 +176,51 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
 
         csv << my_system.GetChTime() << pos << rforce << rtorque << std::endl;
     }
+
+    ChVector<> dir1 = node1->GetD();
+    ChVector<> pos2 = node2->GetPos();
+    std::cout << "\nFinal configuration" << std::endl;
+    std::cout << "  base direction: " << dir1.x << " " << dir1.y << " " << dir1.z << std::endl;
+    std::cout << "  tip position:   " << pos2.x << " " << pos2.y << " " << pos2.z << std::endl;
+
+    std::cout << "\nReaction force and torque on ground (final)" << std::endl;
+    std::cout << "  force:  " << rforce.x << " " << rforce.y << " " << rforce.z << std::endl;
+    std::cout << "  torque: " << rtorque.x << " " << rtorque.y << " " << rtorque.z << std::endl;
+
+    // Final beam configuration
+    int num_points = 51;
+    ChMatrixDynamic<> displ(beam_elem->GetNdofs(), 1);
+    beam_elem->GetStateBlock(displ);
+    std::vector<ChVector<>> P(num_points);
+    for (int i = 0; i < num_points; i++) {
+        double eta = -1.0 + ((2.0 * i) / (num_points - 1));
+        ChQuaternion<> R;
+        beam_elem->EvaluateSectionFrame(eta, displ, P[i], R);
+    }
+
+    // Estimate reaction force & torque for an equivalent rigid beam.
+    double mass = CH_C_PI_4 * diam * diam * length * rho;
+    rforce = ChVector<>(0, 0, -mass * g);
+    rtorque = ChVector<>(0);
+    if (constrain_dir) {
+        double seg_mass = mass / num_points;
+        ChVector<> seg_weight(0, 0, -seg_mass * g);
+        for (int i = 0; i < num_points; i++) {
+            rtorque += Vcross(P[i], seg_weight);
+        }
+    }
+
+    std::cout << "\nRigid body approximation" << std::endl;
+    std::cout << "  force:  " << rforce.x << " " << rforce.y << " " << rforce.z << std::endl;
+    std::cout << "  torque: " << rtorque.x << " " << rtorque.y << " " << rtorque.z << std::endl;
+    std::cout << std::endl << std::endl;
+
+#ifdef CHRONO_POSTPROCESS
     std::string out_file = name + ".out";
     csv.write_to_file(out_file);
 
-    std::cout << std::endl;
-    std::cout << "  Reaction force on ground:  " << rforce.x << " " << rforce.y << " " << rforce.z << std::endl;
-    std::cout << "  Reaction torque on ground: " << rtorque.x << " " << rtorque.y << " " << rtorque.z << std::endl;
-
-#ifdef CHRONO_POSTPROCESS
     {
-        std::string gpl_file = name + "forces.gpl";
+        std::string gpl_file = name + "_forces.gpl";
         std::string title = name + ": reaction forces on ground";
         postprocess::ChGnuPlot mplot(gpl_file.c_str());
         mplot.SetGrid();
@@ -193,7 +232,7 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
     }
 
     {
-        std::string gpl_file = name + "torques.gpl";
+        std::string gpl_file = name + "_torques.gpl";
         std::string title = name + ": reaction torques on ground";
         postprocess::ChGnuPlot mplot(gpl_file.c_str());
         mplot.SetGrid();
@@ -203,45 +242,35 @@ void test_beam(const std::string& name, const ChVector<>& dir, bool constrain_di
         mplot.Plot(out_file.c_str(), 1, 9, "T_y", " with lines");
         mplot.Plot(out_file.c_str(), 1, 10, "T_z", " with lines");
     }
+
+    {
+        utils::CSV_writer csv(" ");
+        for (int i = 0; i < num_points; i++)
+            csv << P[i] << std::endl;
+        std::string out_file = name + "_beam.out";
+        csv.write_to_file(out_file);
+
+        std::string gpl_file = name + "_beam.gpl";
+        std::string title = name + ": final beam configuration";
+        postprocess::ChGnuPlot mplot(gpl_file.c_str());
+        mplot.SetGrid();
+        mplot.SetCommand("set size ratio -1");
+        mplot.SetTitle(title.c_str());
+        mplot.SetLabelX("x");
+        mplot.SetLabelY("z");
+        mplot.Plot(out_file.c_str(), 1, 3, "", " with lines");
+    }
 #endif
-
-    // Estimate reaction force & torque for an equivalent rigid beam.
-    double mass = CH_C_PI_4 * diam * diam * length * rho;
-    std::cout << std::endl;
-    std::cout << "  Beam weight: " << mass * g << std::endl;
-    if (constrain_dir) {
-        ChVector<> tmp = Vcross((0.5 * length) * dir, ChVector<>(0, 0, -mass * g));
-        std::cout << "  Rigid body reaction torque: " << tmp.x << " " << tmp.y << " " << tmp.z << std::endl;
-    }
-
-    // Final beam configuration
-    std::cout << std::endl;
-    std::cout << "  Final beam configuration" << std::endl;
-    int num_points = 21;
-    ChMatrixDynamic<> displ(beam_elem->GetNdofs(), 1);
-    beam_elem->GetStateBlock(displ);
-    for (int i = 0; i < num_points; i++) {
-        double eta = -1.0 + ((2.0 * i) / (num_points - 1));
-        ChVector<> P;
-        ChQuaternion<> R;
-        beam_elem->EvaluateSectionFrame(eta, displ, P, R);
-        std::cout << "    " << P.x << " " << P.y << " " << P.z << std::endl;
-    }
-
-    ChVector<> dir1 = node1->GetD();
-    ChVector<> pos2 = node2->GetPos();
-    std::cout << "  Base node direction: " << dir1.x << " " << dir1.y << " " << dir1.z << std::endl;
-    std::cout << "  Tip node position:   " << pos2.x << " " << pos2.y << " " << pos2.z << std::endl;
 }
 
 int main(int argc, char* argv[]) {
-    test_beam("hinge", ChVector<>(0, 0, -1), false);
+    test_beam("hinge", ChVector<>(0, 0, -1), 0.005, false, 0.75);
 
-    ////test_beam("cantilever1", ChVector<>(1, 0, 0), true);
+    test_beam("cantilever1", ChVector<>(1, 0, 0), 0.1, true, 2.5);
 
-    ////ChVector<> dir(1, 0, -1);
-    ////dir.Normalize();
-    ////test_beam("cantilever2", dir, true);
+    ChVector<> dir(1, 0, -1);
+    dir.Normalize();
+    test_beam("cantilever2", dir, 0.15, true, 2.5);
 
     return 0;
 }
