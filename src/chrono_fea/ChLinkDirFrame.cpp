@@ -84,16 +84,38 @@ ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() const {
     return C;
 }
 
+ChVector<> ChLinkDirFrame::GetReactionOnBody() const {
+    // Rotation matrices
+    ChMatrix33<> A(m_body->coord.rot);
+    ChMatrix33<> C(m_csys.rot);
+
+    // (A^T*d)  and  ~(A^T*d)
+    ChVector<> z = A.MatrT_x_Vect(m_node->GetD());
+    ChMatrix33<> ztilde;
+    ztilde.Set_X_matrix(z);
+
+    // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
+    ChMatrix33<> PhiQ;
+    PhiQ.MatrTMultiply(C, ztilde);
+
+    // Reaction torque  T = C^T * PhiQ^T * lambda
+    // Note that lambda = [0, l1, l2]
+    ChVector<> trq = PhiQ.MatrT_x_Vect(m_react);
+    trq = C.MatrT_x_Vect(trq);
+
+    return trq;
+}
+
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkDirFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = 2 * m_react.y;
-    L(off_L + 1) = 2 * m_react.z;
+    L(off_L + 0) = m_react.y;
+    L(off_L + 1) = m_react.z;
 }
 
 void ChLinkDirFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    m_react.y = 0.5 * L(off_L + 0);
-    m_react.z = 0.5 * L(off_L + 1);
+    m_react.y = L(off_L + 0);
+    m_react.z = L(off_L + 1);
 }
 
 void ChLinkDirFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers

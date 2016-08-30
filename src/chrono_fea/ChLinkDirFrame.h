@@ -142,29 +142,7 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     ChVector<> GetReactionOnNode() const { return -GetReactionOnBody(); }
 
     /// Get the reaction torque on the body, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const {
-        // Lagrange multipliers lambda = [0, l1, l2]
-        ChVector<> lambda = 2.0 * m_react;
-
-        // Rotation matrices
-        ChMatrix33<> A(m_body->coord.rot);
-        ChMatrix33<> C(m_csys.rot);
-
-        // (A^T*d)  and  ~(A^T*d)
-        ChVector<> z = A.MatrT_x_Vect(m_node->GetD());
-        ChMatrix33<> ztilde;
-        ztilde.Set_X_matrix(z);
-
-        // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
-        ChMatrix33<> PhiQ;
-        PhiQ.MatrTMultiply(C, ztilde);
-
-        // Reaction torque  T = C^T * PhiQ^T * lambda
-        ChVector<> trq = PhiQ.MatrT_x_Vect(lambda);
-        trq = C.MatrT_x_Vect(trq);
-
-        return trq;
-    }
+    ChVector<> GetReactionOnBody() const;
 
     //
     // UPDATE FUNCTIONS
