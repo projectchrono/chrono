@@ -65,7 +65,7 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     /// Number of scalar constraints.
     virtual int GetDOC_c() override { return 2; }
 
-    /// Get the reaction force acting on the body, expressed in the link coordinate system.
+    /// Get the reaction torque on the body, expressed in the link coordinate system.
     virtual ChVector<> Get_react_torque() override { return GetReactionOnBody(); }
 
     // Get constraint violations
@@ -128,7 +128,7 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
 
     /// Get the constrained direction, expressed in the reference coordinates of the body.
-    ChVector<> GetDirection() { return m_csys.rot.GetXaxis(); }
+    ChVector<> GetDirection() const { return m_csys.rot.GetXaxis(); }
 
     /// Set the constrained direction, expressed in the reference coordinates of the body.
     /// This function may be called only after initialization.
@@ -138,11 +138,33 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     /// This function may be called only after initialization.
     void SetDirectionInAbsoluteCoords(const ChVector<>& dir_abs);
 
-    /// Get the reaction torque, as applied to the node, expressed in the link coordinate system.
-    const ChVector<>& GetReactionOnNode() const { return -m_react; }
+    /// Get the reaction torque on the node, expressed in the link coordinate system.
+    ChVector<> GetReactionOnNode() const { return -GetReactionOnBody(); }
 
-    /// Get the reaction torque, as applied to body, expressed in the link coordinate system.
-    const ChVector<>& GetReactionOnBody() const { return m_react; }
+    /// Get the reaction torque on the body, expressed in the link coordinate system.
+    ChVector<> GetReactionOnBody() const {
+        // Lagrange multipliers lambda = [0, l1, l2]
+        ChVector<> lambda = 2.0 * m_react;
+
+        // Rotation matrices
+        ChMatrix33<> A(m_body->coord.rot);
+        ChMatrix33<> C(m_csys.rot);
+
+        // (A^T*d)  and  ~(A^T*d)
+        ChVector<> z = A.MatrT_x_Vect(m_node->GetD());
+        ChMatrix33<> ztilde;
+        ztilde.Set_X_matrix(z);
+
+        // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
+        ChMatrix33<> PhiQ;
+        PhiQ.MatrTMultiply(C, ztilde);
+
+        // Reaction torque  T = C^T * PhiQ^T * lambda
+        ChVector<> trq = PhiQ.MatrT_x_Vect(lambda);
+        trq = C.MatrT_x_Vect(trq);
+
+        return trq;
+    }
 
     //
     // UPDATE FUNCTIONS
