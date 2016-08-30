@@ -374,6 +374,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
+    assets/ChPointPointDrawing.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -401,6 +402,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChPathShape.h
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
+    assets/ChPointPointDrawing.h
     )
 
 source_group(assets FILES
