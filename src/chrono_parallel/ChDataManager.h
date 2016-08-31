@@ -38,15 +38,19 @@
 #include <thrust/host_vector.h>
 
 // Blaze Includes
+#include <blaze/system/Version.h>
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
+#if BLAZE_MAJOR_VERSION == 2
+#include <blaze/math/DenseSubvector.h>
+#elif BLAZE_MAJOR_VERSION == 3
 #include <blaze/math/Subvector.h>
+#endif
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
+using blaze::SparseSubmatrix;
 using blaze::Submatrix;
-using blaze::submatrix;
-using blaze::subvector;
 using thrust::host_vector;
 
 namespace chrono {
@@ -54,11 +58,17 @@ namespace chrono {
 /// @addtogroup parallel_module
 /// @{
 
+#if BLAZE_MAJOR_VERSION == 2
+typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
+typedef blaze::DenseSubvector<DynamicVector<real> > SubVectorType;
+typedef blaze::SparseSubmatrix<const CompressedMatrix<real> > ConstSubMatrixType;
+typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
+#elif BLAZE_MAJOR_VERSION == 3
 typedef blaze::Submatrix<CompressedMatrix<real> > SubMatrixType;
 typedef blaze::Subvector<DynamicVector<real> > SubVectorType;
-
 typedef blaze::Submatrix<const CompressedMatrix<real> > ConstSubMatrixType;
 typedef blaze::Subvector<const DynamicVector<real> > ConstSubVectorType;
+#endif
 
 // The maximum number of shear history contacts per smaller body (DEM)
 #define max_shear 20
