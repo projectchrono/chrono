@@ -49,7 +49,6 @@
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
-using blaze::SparseSubmatrix;
 using blaze::Submatrix;
 using thrust::host_vector;
 
