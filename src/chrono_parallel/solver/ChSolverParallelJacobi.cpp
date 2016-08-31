@@ -1,6 +1,5 @@
 #include "chrono_parallel/solver/ChSolverParallelJacobi.h"
-#include <blaze/math/SparseRow.h>
-#include <blaze/math/CompressedVector.h>
+#include <blaze/math/CompressedMatrix.h>
 using namespace chrono;
 
 uint ChSolverParallelJacobi::SolveJacobi(const uint max_iter,
