@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     ChMatrixNM<double, 6, 6> R_matrix;
 
     for (unsigned int ii = 0; ii < 6; ii++) {
-        K_matrix(ii, ii) = 150000.0;
-        R_matrix(ii, ii) = 1500.0;
+        K_matrix(ii, ii) = 950000.0;
+        R_matrix(ii, ii) = 15000.0;
     }
 
     // Create bushing element acting on selected degrees of freedoms
@@ -99,16 +99,18 @@ int main(int argc, char* argv[]) {
     application.AssetUpdateAll();
 
     // Simulation loop
-    application.SetTimestep(0.0005);
-
+    application.SetTimestep(0.001);
+	system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
     system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
-    system.SetMaxItersSolverSpeed(200);
+    system.SetMaxItersSolverSpeed(20000);
+	system.SetTolForce(1e-5);
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
         ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 2);
         application.EndScene();
         application.DoStep();
+		std::cout << "Time t = " << system.GetChTime() << " s\n";
     }
 
     return 0;
