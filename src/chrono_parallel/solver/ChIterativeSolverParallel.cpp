@@ -34,7 +34,8 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
   DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
   CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-  clear(M_inv);
+  if (M_inv.capacity() > 0)
+      clear(M_inv);
 
   // Each rigid object has 3 mass entries and 9 inertia entries
   // Each shaft has one inertia entry
