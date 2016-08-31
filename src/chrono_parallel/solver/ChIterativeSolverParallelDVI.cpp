@@ -16,7 +16,7 @@
 using namespace chrono;
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
-  clear(M);                                      \
+  if (M.capacity() > 0) clear(M);                \
   M.reserve(nnz);                                \
   M.resize(rows, cols, false);
 

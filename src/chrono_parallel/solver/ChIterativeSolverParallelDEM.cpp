@@ -575,7 +575,8 @@ void ChIterativeSolverParallelDEM::ComputeD() {
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
     CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-    clear(D_b_T);
+    if (D_b_T.capacity() > 0)
+        clear(D_b_T);
 
     D_b_T.reserve(nnz_bilaterals);
 
