@@ -33,10 +33,15 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Integration and Solver settings
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);
     m_system->SetMaxItersSolverSpeed(150);
     m_system->SetMaxItersSolverStab(150);
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
+
+    switch (contact_method) {
+        case ChMaterialSurfaceBase::DVI:
+            m_system->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+            break;
+    }
 }
 
 // -----------------------------------------------------------------------------
