@@ -7,6 +7,7 @@ ENDIF()
 
 SET(TESTS
   test_CH_contactDEM
+  test_CH_contact_mesh
 )
 
 INCLUDE_DIRECTORIES( ${CH_IRRLICHTINC} )
