@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "models/vehicle/hmmwv/HMMWV_RigidTire.h"
 
 namespace chrono {
@@ -26,15 +27,16 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-
-const double HMMWV_RigidTire::m_radius = 18.5 * in2m;
-const double HMMWV_RigidTire::m_width = 10 * in2m;
+const double HMMWV_RigidTire::m_radius = 0.4673;
+const double HMMWV_RigidTire::m_width = 0.254;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name) : ChRigidTire(name) {
+HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
     SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
+    if (use_mesh) {
+        SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire.obj"), 0.005);
+    }
 }
 
 }  // end namespace hmmwv

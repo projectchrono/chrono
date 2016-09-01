@@ -101,11 +101,13 @@ void HMMWV::Initialize() {
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-        case RIGID: {
-            HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL");
-            HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR");
-            HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL");
-            HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR");
+        case RIGID:
+        case RIGID_MESH: {
+            bool use_mesh = (m_tireType == RIGID_MESH);
+            HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL", use_mesh);
+            HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR", use_mesh);
+            HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL", use_mesh);
+            HMMWV_RigidTire* tire_RR = new HMMWV_RigidTire("RR", use_mesh);
 
             m_tires[0] = tire_FL;
             m_tires[1] = tire_FR;

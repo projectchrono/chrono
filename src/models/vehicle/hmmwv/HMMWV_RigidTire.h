@@ -29,7 +29,7 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
   public:
-    HMMWV_RigidTire(const std::string& name);
+    HMMWV_RigidTire(const std::string& name, bool use_mesh = false);
     ~HMMWV_RigidTire() {}
 
     virtual double GetRadius() const override { return m_radius; }
