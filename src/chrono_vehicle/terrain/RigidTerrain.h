@@ -68,6 +68,11 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                             float gt = 20.0f                      ///< [in] tangential contact damping
                             );
 
+    /// Enable/disable terrain visualization (default: true).
+    /// Note that this is ignored when constructing a terrain object from a JSON specification file.
+    void EnableVisualization(bool val) { m_vis_enabled = val; }
+    bool IsVisualizationEnabled() const { return m_vis_enabled; }
+
     /// Set visualization color.
     void SetColor(ChColor color  ///< [in] color of the visualization material
                   );
@@ -121,6 +126,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
   private:
     Type m_type;
+    bool m_vis_enabled;
     std::shared_ptr<ChBody> m_ground;
     std::shared_ptr<ChColorAsset> m_color;
     geometry::ChTriangleMeshConnected m_trimesh;

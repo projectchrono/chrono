@@ -41,7 +41,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Default constructor.
 // -----------------------------------------------------------------------------
-RigidTerrain::RigidTerrain(ChSystem* system) {
+RigidTerrain::RigidTerrain(ChSystem* system) : m_type(FLAT), m_height(0), m_vis_enabled(true) {
     // Create the ground body and add it to the system.
     m_ground = std::shared_ptr<ChBody>(system->NewBody());
     m_ground->SetIdentifier(-1);
@@ -221,10 +221,12 @@ void RigidTerrain::Initialize(double height, double sizeX, double sizeY, bool ti
     }
     m_ground->GetCollisionModel()->BuildModel();
 
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().Size = ChVector<>(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth);
-    box->GetBoxGeometry().Pos = ChVector<>(0, 0, height - 0.5 * depth);
-    m_ground->AddAsset(box);
+    if (m_vis_enabled) {
+        auto box = std::make_shared<ChBoxShape>();
+        box->GetBoxGeometry().Size = ChVector<>(0.5 * sizeX, 0.5 * sizeY, 0.5 * depth);
+        box->GetBoxGeometry().Pos = ChVector<>(0, 0, height - 0.5 * depth);
+        m_ground->AddAsset(box);
+    }
 
     m_type = FLAT;
     m_height = height;
@@ -237,10 +239,12 @@ void RigidTerrain::Initialize(const std::string& mesh_file, const std::string& m
     m_trimesh.LoadWavefrontMesh(mesh_file, true, true);
 
     // Create the visualization asset.
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(m_trimesh);
-    trimesh_shape->SetName(mesh_name);
-    m_ground->AddAsset(trimesh_shape);
+    if (m_vis_enabled) {
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(m_trimesh);
+        trimesh_shape->SetName(mesh_name);
+        m_ground->AddAsset(trimesh_shape);
+    }
 
     // Create contact geometry.
     m_ground->GetCollisionModel()->ClearModel();
@@ -260,7 +264,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
                               double sizeY,
                               double hMin,
                               double hMax) {
-    // Read the BMP file nd extract number of pixels.
+    // Read the BMP file and extract number of pixels.
     BMP hmap;
     if (!hmap.ReadFromFile(heightmap_file.c_str())) {
         throw ChException("Cannot open height map BMP file");
@@ -368,10 +372,12 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     }
 
     // Create the visualization asset.
-    auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-    trimesh_shape->SetMesh(m_trimesh);
-    trimesh_shape->SetName(mesh_name);
-    m_ground->AddAsset(trimesh_shape);
+    if (m_vis_enabled) {
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(m_trimesh);
+        trimesh_shape->SetName(mesh_name);
+        m_ground->AddAsset(trimesh_shape);
+    }
 
     // Create contact geometry.
     m_ground->GetCollisionModel()->ClearModel();
