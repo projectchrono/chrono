@@ -194,13 +194,14 @@ enum VisualizationType {
 
 /// Enum for available tire models.
 enum TireModelType {
-    RIGID,    ///< rigid tire
-    PACEJKA,  ///< Pacejka (magic formula) tire
-    LUGRE,    ///< Lugre frition model tire
-    FIALA,    ///< Fiala tire
-    ANCF,     ///< ANCF shell element-based tire
-    REISSNER, ///< Reissner 6-field shell element-based tire
-    FEA       ///< FEA co-rotational tire
+    RIGID,       ///< rigid tire (cylindrical)
+    RIGID_MESH,  ///< rigid tire (mesh)
+    PACEJKA,     ///< Pacejka (magic formula) tire
+    LUGRE,       ///< Lugre frition model tire
+    FIALA,       ///< Fiala tire
+    ANCF,        ///< ANCF shell element-based tire
+    REISSNER,    ///< Reissner 6-field shell element-based tire
+    FEA          ///< FEA co-rotational tire
 };
 
 /// Enum for available powertrain model templates.
