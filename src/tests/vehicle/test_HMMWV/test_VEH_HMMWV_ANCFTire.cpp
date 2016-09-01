@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Simulation of a HMMWV full model using ANCF tires on rigid terrain.
+// HMMWV full model using ANCF, RIGID, or RIGID_MESH tires on rigid terrain.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -51,7 +51,7 @@ using namespace chrono::vehicle::hmmwv;
 int num_threads = 4;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 2.5);
+ChVector<> initLoc(0, 0, 1.2);
 ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 ////ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -60,6 +60,9 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for chassis (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = PRIMITIVES;
+
+// Type of tire type (ANCF, RIGID, RIGID_MESH)
+TireModelType tire_model = ANCF;
 
 // Enable/disable tire visualization
 bool tire_vis = true;
@@ -89,7 +92,7 @@ double step_size = 1e-4;
 // Simulation end time
 double t_end = 5;
 // Verbose solver output
-bool verbose = true;
+bool verbose = false;
 
 // Time interval between two render frames (1/FPS)
 double render_step_size = 1.0 / 50;
@@ -173,6 +176,7 @@ int main(int argc, char* argv[]) {
     integrator->SetMaxiters(50);
     integrator->SetAbsTolerances(5e-05, 1.8);
     integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetStepControl(true);
     integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
     integrator->SetVerbose(verbose);
@@ -191,18 +195,33 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(ANCF);
+    my_hmmwv.SetTireType(tire_model);
     my_hmmwv.Initialize();
 
-    // Access the vehicle ANCF tires
-    HMMWV_ANCFTire* tire_FL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_LEFT));
-    HMMWV_ANCFTire* tire_FR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
-    HMMWV_ANCFTire* tire_RL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_LEFT));
-    HMMWV_ANCFTire* tire_RR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_RIGHT));
-    ////tire_FL->EnablePressure(false);
-    ////tire_FR->EnablePressure(false);
-    ////tire_RL->EnablePressure(false);
-    ////tire_RR->EnablePressure(false);
+    // Downcast tires (if needed)
+    switch (tire_model) {
+        case ANCF: {
+            HMMWV_ANCFTire* tire_FL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_LEFT));
+            HMMWV_ANCFTire* tire_FR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
+            HMMWV_ANCFTire* tire_RL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_LEFT));
+            HMMWV_ANCFTire* tire_RR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_RIGHT));
+            ////tire_FL->EnablePressure(false);
+            ////tire_FR->EnablePressure(false);
+            ////tire_RL->EnablePressure(false);
+            ////tire_RR->EnablePressure(false);
+
+            break;
+        }
+        case RIGID:
+        case RIGID_MESH: {
+            HMMWV_RigidTire* tire_FL = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(FRONT_LEFT));
+            HMMWV_RigidTire* tire_FR = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
+            HMMWV_RigidTire* tire_RL = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(REAR_LEFT));
+            HMMWV_RigidTire* tire_RR = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(REAR_RIGHT));
+
+            break;
+        }
+    }
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
