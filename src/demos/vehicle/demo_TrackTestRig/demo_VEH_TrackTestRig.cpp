@@ -104,9 +104,12 @@ int main(int argc, char* argv[]) {
     rig.GetSystem()->SetSolverOverrelaxationParam(0.8);
     rig.GetSystem()->SetSolverSharpnessParam(1.0);
 
+    rig.SetMaxTorque(6000);
+
     rig.Initialize(ChCoordsys<>());
 
     ////rig.SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
+    ////rig.GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.
     ChVector<> target_point = rig.GetPostPosition();
@@ -170,14 +173,14 @@ int main(int argc, char* argv[]) {
         }
 
         // Collect output data from modules
-        double steering_input = driver.GetSteering();
+        double throttle_input = driver.GetThrottle();
         double post_input = driver.GetDisplacement();
 
         // Update modules (process inputs from other modules)
         double time = rig.GetChTime();
         driver.Synchronize(time);
-        rig.Synchronize(time, post_input, shoe_forces);
-        app.Synchronize("", steering_input, 0, 0);
+        rig.Synchronize(time, post_input, throttle_input, shoe_forces);
+        app.Synchronize("", 0, throttle_input, 0);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
