@@ -1328,6 +1328,7 @@ void ChElementShellReissner4::ComputeNF(
     ChMatrixNM<double, 1, 4> N;
     ShapeFunctions(N, U, V);
 
+    //***TODO*** exact det of jacobian at u,v
     detJ =  GetLengthX() *  GetLengthY() / 4.0; // approximate
 
     ChVector<> tmp;
