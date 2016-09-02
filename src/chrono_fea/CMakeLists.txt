@@ -90,6 +90,7 @@ SET(ChronoEngine_FEA_HEADERS
 	ChElementShellReissner4.h
 	  ChFaceTetra_4.h
     ChFaceBrick_9.h
+	ChFaceHexa_8.h
 	  ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h
