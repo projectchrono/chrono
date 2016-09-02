@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include "models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

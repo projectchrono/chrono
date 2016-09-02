@@ -241,7 +241,7 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 
 # Add directories for model libraries
-add_subdirectory(models)
+add_subdirectory(chrono_models)
 
 # Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
@@ -255,10 +255,10 @@ if(BUILD_ADDITIONAL_TESTS)
 endif()
 
 #------------------------------------------------------------
-# Install headers form thirdparty folder
+# Install headers form chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
 

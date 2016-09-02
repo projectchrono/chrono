@@ -21,7 +21,7 @@
 #include "chrono_fea/ChElementHexa_8.h"
 #include "chrono_fea/ChLinkPointTriface.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace chrono::fea;
 using namespace rapidjson;

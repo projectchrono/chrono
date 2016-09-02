@@ -18,7 +18,7 @@
 #define CHOPENGLOBJLOADER_H
 
 #include "chrono_opengl/core/ChOpenGLObject.h"
-#include "thirdparty/tinyobjloader/tiny_obj_loader.h"
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 namespace chrono {
 namespace opengl {
 

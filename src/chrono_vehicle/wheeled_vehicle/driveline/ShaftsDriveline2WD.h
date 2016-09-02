@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {

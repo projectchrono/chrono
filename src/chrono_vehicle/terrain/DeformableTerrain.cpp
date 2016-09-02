@@ -29,9 +29,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
 
-#include "thirdparty/Easy_BMP/EasyBMP.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

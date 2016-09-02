@@ -57,12 +57,12 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/FEATire.h"
-#include "models/vehicle/hmmwv/HMMWV_ANCFTire.h"
-#include "models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_ANCFTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_ReissnerTire.h"
 #include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 #endif
 
-#include "models/vehicle/hmmwv/HMMWV_FialaTire.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"
 
 #define USE_IRRLICHT
 

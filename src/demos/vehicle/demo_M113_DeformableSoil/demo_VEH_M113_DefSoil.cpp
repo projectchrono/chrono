@@ -24,8 +24,8 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-#include "models/vehicle/m113/M113_SimplePowertrain.h"
-#include "models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;

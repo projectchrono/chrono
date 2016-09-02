@@ -35,8 +35,8 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -64,7 +64,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                VehicleSide side,
                                ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
+    : ChVehicle(contact_method), m_max_torque(0) {
     // ---------------------------------------------------------------
     // Open and parse the input file (vehicle JSON specification file)
     // ---------------------------------------------------------------
@@ -102,7 +102,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 }
 
 ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
+    : ChVehicle(contact_method), m_max_torque(0) {
     // -----------------------------------------------------------
     // Open and parse the input file (rig JSON specification file)
     // -----------------------------------------------------------
@@ -149,7 +149,8 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_track(assembly),
       m_sprocketLoc(sprocketLoc),
       m_idlerLoc(idlerLoc),
-      m_suspLocs(suspLocs) {
+      m_suspLocs(suspLocs),
+      m_max_torque(0) {
     // Create the chassis (ground) body, fixed, no visualizastion
     m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
     m_chassis->SetIdentifier(0);
@@ -253,10 +254,14 @@ double ChTrackTestRig::GetActuatorMarkerDist() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::Synchronize(double time, double disp, const TrackShoeForces& shoe_forces) {
+void ChTrackTestRig::Synchronize(double time, double disp, double throttle, const TrackShoeForces& shoe_forces) {
     // Apply the displacements to the left/right post actuators
     if (auto func = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact->Get_dist_funct()))
         func->Set_yconst(disp);
+
+    // Apply a torque to the sprocket's shaft
+    m_track->GetSprocket()->GetAxle()->SetAppliedTorque(-m_max_torque * throttle);
+
 
     // Apply contact forces to track shoe bodies.
 
