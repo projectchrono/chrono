@@ -241,7 +241,7 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 
 # Add directories for model libraries
-add_subdirectory(models)
+add_subdirectory(chrono_models)
 
 # Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)

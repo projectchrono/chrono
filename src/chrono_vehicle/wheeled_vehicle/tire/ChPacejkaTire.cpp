@@ -1284,7 +1284,7 @@ double ChPacejkaTire::calc_My(double Fx_combined) {
 // -----------------------------------------------------------------------------
 // Load a PacTire specification file.
 //
-// For an example, see the file models/data/hmmwv/pactest.tir
+// For an example, see the file data/vehicle/hmmwv/tire/HMMWV_pacejka.tir
 // -----------------------------------------------------------------------------
 void ChPacejkaTire::loadPacTireParamFile() {
     // try to load the file
