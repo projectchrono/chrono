@@ -255,10 +255,10 @@ if(BUILD_ADDITIONAL_TESTS)
 endif()
 
 #------------------------------------------------------------
-# Install headers form thirdparty folder
+# Install headers form chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
 

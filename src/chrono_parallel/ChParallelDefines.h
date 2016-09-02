@@ -88,7 +88,7 @@ static std::ostream null_stream(&null_buffer);
 #else
 // Enable thread safe logging
 #define ELPP_THREAD_SAFE
-#include "thirdparty/easylogging/easylogging.h"
+#include "chrono_thirdparty/easylogging/easylogging.h"
 #define LOGGINGENABLED
 
 #endif

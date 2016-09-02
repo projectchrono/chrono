@@ -14,13 +14,14 @@
 #define CHARCHIVEJSON_H
 
 
-#include "serialization/ChArchive.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/prettywriter.h"
-#include "thirdparty/rapidjson/filereadstream.h"
-#include "thirdparty/rapidjson/filewritestream.h"
-#include "core/ChLog.h"
-#include "core/ChMathematics.h"
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filewritestream.h"
+
 #include <stack>
 #include <fstream>
 #include <iostream>

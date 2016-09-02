@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFEATire.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
