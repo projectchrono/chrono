@@ -26,7 +26,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChCConvexDecomposition.h"
 
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
 #include <irrlicht.h>
@@ -562,8 +562,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600),
-                                  false, true, video::EDT_OPENGL);
+    ChIrrApp application(&my_system, L"Convex decomposition of a mesh", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     // ChIrrWizard::add_typical_Logo(application.GetDevice());

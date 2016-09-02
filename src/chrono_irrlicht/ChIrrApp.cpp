@@ -21,8 +21,9 @@ ChIrrApp::ChIrrApp(ChSystem* psystem,
                    core::dimension2d<u32> dimens,
                    bool do_fullscreen,
                    bool do_shadows,
+                   bool do_antialias,
                    video::E_DRIVER_TYPE mydriver)
-    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, mydriver) {
+    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, do_antialias, mydriver) {
     mconverter = new ChIrrAssetConverter(*this);
 }
 

@@ -36,7 +36,7 @@
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
-#include "chrono_irrlicht/ChIrrAppInterface.h"
+#include "chrono_irrlicht/ChIrrApp.h"
 
 #include <irrlicht.h>
 
@@ -60,8 +60,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrAppInterface application(&mphysicalSystem, L"Meshless deformable material", core::dimension2d<u32>(800, 600),
-                                  false);
+    ChIrrApp application(&mphysicalSystem, L"Meshless deformable material", core::dimension2d<u32>(800, 600), false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());

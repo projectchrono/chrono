@@ -63,8 +63,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600), false,
-                                  true, video::EDT_OPENGL);
+    ChIrrApp application(&my_system, L"Load a STEP model from file", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add logo, camera, lights and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
