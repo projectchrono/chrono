@@ -32,45 +32,49 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     CH_RTTI(ChContactContainerDEM, ChContactContainerBase);
 
   public:
-    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
-    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
     typedef ChContactDEM<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;
-    typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactDEM_333_6;
+    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
+    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
     typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactDEM_333_3;
+    typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactDEM_333_6;
     typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactDEM_333_333;
-    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactDEM_666_6;
     typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactDEM_666_3;
+    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactDEM_666_6;
+    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactDEM_666_333;
     typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactDEM_666_666;
 
   protected:
-    std::list<ChContactDEM_6_6*> contactlist_6_6;
-    std::list<ChContactDEM_6_3*> contactlist_6_3;
     std::list<ChContactDEM_3_3*> contactlist_3_3;
-    std::list<ChContactDEM_333_6*> contactlist_333_6;
+    std::list<ChContactDEM_6_3*> contactlist_6_3;
+    std::list<ChContactDEM_6_6*> contactlist_6_6;
     std::list<ChContactDEM_333_3*> contactlist_333_3;
+    std::list<ChContactDEM_333_6*> contactlist_333_6;
     std::list<ChContactDEM_333_333*> contactlist_333_333;
-    std::list<ChContactDEM_666_6*> contactlist_666_6;
     std::list<ChContactDEM_666_3*> contactlist_666_3;
+    std::list<ChContactDEM_666_6*> contactlist_666_6;
+    std::list<ChContactDEM_666_333*> contactlist_666_333;
     std::list<ChContactDEM_666_666*> contactlist_666_666;
 
-    int n_added_6_6;
-    int n_added_6_3;
     int n_added_3_3;
-    int n_added_333_6;
+    int n_added_6_3;
+    int n_added_6_6;
     int n_added_333_3;
+    int n_added_333_6;
     int n_added_333_333;
-    int n_added_666_6;
     int n_added_666_3;
+    int n_added_666_6;
+    int n_added_666_333;
     int n_added_666_666;
 
-    std::list<ChContactDEM_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactDEM_6_3*>::iterator lastcontact_6_3;
     std::list<ChContactDEM_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactDEM_333_6*>::iterator lastcontact_333_6;
+    std::list<ChContactDEM_6_3*>::iterator lastcontact_6_3;
+    std::list<ChContactDEM_6_6*>::iterator lastcontact_6_6;
     std::list<ChContactDEM_333_3*>::iterator lastcontact_333_3;
+    std::list<ChContactDEM_333_6*>::iterator lastcontact_333_6;
     std::list<ChContactDEM_333_333*>::iterator lastcontact_333_333;
-    std::list<ChContactDEM_666_6*>::iterator lastcontact_666_6;
     std::list<ChContactDEM_666_3*>::iterator lastcontact_666_3;
+    std::list<ChContactDEM_666_6*>::iterator lastcontact_666_6;
+    std::list<ChContactDEM_666_333*>::iterator lastcontact_666_333;
     std::list<ChContactDEM_666_666*>::iterator lastcontact_666_666;
 
   public:
@@ -83,9 +87,8 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
 
     /// Tell the number of added contacts
     virtual int GetNcontacts() const override {
-        return n_added_6_6 + n_added_6_3 + n_added_3_3 
-            + n_added_333_6 + n_added_333_3 + n_added_333_333 
-            + n_added_666_6 + n_added_666_3 + n_added_666_666;
+        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
     }
 
     /// Remove (delete) all contained contact data.
