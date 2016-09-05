@@ -445,6 +445,9 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
+
+    tracked_vehicle/track_shoe/TrackShoeSinglePin.h
+    tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
