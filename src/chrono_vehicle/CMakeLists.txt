@@ -402,6 +402,11 @@ set(CV_TV_IDLER_FILES
     tracked_vehicle/idler/ChSingleIdler.cpp
     tracked_vehicle/idler/ChDoubleIdler.h
     tracked_vehicle/idler/ChDoubleIdler.cpp
+
+    tracked_vehicle/idler/SingleIdler.h
+    tracked_vehicle/idler/SingleIdler.cpp
+    tracked_vehicle/idler/DoubleIdler.h
+    tracked_vehicle/idler/DoubleIdler.cpp
 )
 source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
 
