@@ -380,6 +380,9 @@ source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 set(CV_TV_BRAKE_FILES
     tracked_vehicle/brake/ChTrackBrakeSimple.h
     tracked_vehicle/brake/ChTrackBrakeSimple.cpp
+
+    tracked_vehicle/brake/TrackBrakeSimple.h
+    tracked_vehicle/brake/TrackBrakeSimple.cpp
 )
 source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
 
@@ -388,6 +391,9 @@ set(CV_TV_DRIVELINE_FILES
     tracked_vehicle/driveline/ChTrackDrivelineBDS.cpp
     tracked_vehicle/driveline/ChSimpleTrackDriveline.h
     tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
+
+    tracked_vehicle/driveline/SimpleTrackDriveline.h
+    tracked_vehicle/driveline/SimpleTrackDriveline.cpp
 )
 source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
 
