@@ -74,13 +74,23 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// Return the radius of the contact cylinders.
     virtual double GetCylinderRadius() const = 0;
 
-    /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization() = 0;
+    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
+    /// Note that this is for contact with wheels, idler, and ground only.
+    /// This contact geometry does not affect contact with the sprocket.
+    virtual const ChVector<>& GetPadBoxDimensions() const = 0;
+    virtual const ChVector<>& GetPadBoxLocation() const = 0;
+    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
+    virtual const ChVector<>& GetGuideBoxLocation() const = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddShoeContact() = 0;
+    /// The default implementation uses contact boxes for the pad and central guiding pin.
+    virtual void AddShoeContact();
+
+    /// Add visualization of the track shoe.
+    /// The default implementation uses primitives corresponding to the contact shapes.
+    virtual void AddShoeVisualization();
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 
