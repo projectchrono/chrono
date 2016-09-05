@@ -415,6 +415,11 @@ set(CV_TV_ROADWHEEL_FILES
     tracked_vehicle/road_wheel/ChSingleRoadWheel.cpp
     tracked_vehicle/road_wheel/ChDoubleRoadWheel.h
     tracked_vehicle/road_wheel/ChDoubleRoadWheel.cpp
+
+    tracked_vehicle/road_wheel/SingleRoadWheel.h
+    tracked_vehicle/road_wheel/SingleRoadWheel.cpp
+    tracked_vehicle/road_wheel/DoubleRoadWheel.h
+    tracked_vehicle/road_wheel/DoubleRoadWheel.cpp
 )
 source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
 
