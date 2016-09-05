@@ -151,11 +151,25 @@ class LinearSpringDamperForce : public ChSpringForceCallback {
     double m_c;
 };
 
+/// Utility class for specifying a linear spring-damper force with pre-tension.
+class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
+  public:
+    LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
+    virtual double operator()(double time, double rest_length, double length, double vel) {
+        return m_f - m_k * (length - rest_length) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_f;
+};
+
 /// Utility class for specifying a map spring force.
 class MapSpringForce : public ChSpringForceCallback {
   public:
     MapSpringForce() {}
-    MapSpringForce(const std::vector<std::pair<double, double> >& data) {
+    MapSpringForce(const std::vector<std::pair<double, double>>& data) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
@@ -173,7 +187,7 @@ class MapSpringForce : public ChSpringForceCallback {
 class MapDamperForce : public ChSpringForceCallback {
   public:
     MapDamperForce() {}
-    MapDamperForce(const std::vector<std::pair<double, double> >& data) {
+    MapDamperForce(const std::vector<std::pair<double, double>>& data) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
@@ -183,6 +197,33 @@ class MapDamperForce : public ChSpringForceCallback {
 
   private:
     ChFunction_Recorder m_map;
+};
+
+/// Utility class for specifying a map spring-damper force with pre-tension.
+class MapSpringDamperActuatorForce : public ChSpringForceCallback {
+  public:
+    MapSpringDamperActuatorForce() {}
+    MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,
+                                 const std::vector<std::pair<double, double>>& dataC,
+                                 double f) {
+        for (unsigned int i = 0; i < dataK.size(); ++i) {
+            m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+        }
+        for (unsigned int i = 0; i < dataC.size(); ++i) {
+            m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+        }
+    }
+    void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
+    void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
+    void set_f(double f) { m_f = f; }
+    virtual double operator()(double time, double rest_length, double length, double vel) {
+        return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
+    }
+
+  private:
+    ChFunction_Recorder m_mapK;
+    ChFunction_Recorder m_mapC;
+    double m_f;
 };
 
 /// Enum for visualization types.
