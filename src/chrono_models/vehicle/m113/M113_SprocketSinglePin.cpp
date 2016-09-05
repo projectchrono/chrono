@@ -52,7 +52,10 @@ const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/Sprocket_R.obj
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSprocketSinglePin(name), m_vis_type(PRIMITIVES) {
-    SetContactMaterial(0.4f, 0.1f, 1e7f, 0.3f);
+    SetContactFrictionCoefficient(0.4f);
+    SetContactRestitutionCoefficient(0.1f);
+    SetContactMaterialProperties(1e7f, 0.3f);
+    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
 }
 
 // -----------------------------------------------------------------------------

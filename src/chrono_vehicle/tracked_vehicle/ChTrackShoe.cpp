@@ -27,19 +27,29 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoe::ChTrackShoe(const std::string& name)
-    : m_name(name), m_index(0), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
-}
+    : m_name(name),
+      m_index(0),
+      m_friction(0.8f),
+      m_restitution(0.1f),
+      m_young_modulus(1e7f),
+      m_poisson_ratio(0.3f),
+      m_kn(2e5),
+      m_kt(2e5),
+      m_gn(40),
+      m_gt(20) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoe::SetContactMaterial(float friction_coefficient,
-                                     float restitution_coefficient,
-                                     float young_modulus,
-                                     float poisson_ratio) {
-    m_friction = friction_coefficient;
-    m_restitution = restitution_coefficient;
+void ChTrackShoe::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChTrackShoe::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
 }
 
 }  // end namespace vehicle

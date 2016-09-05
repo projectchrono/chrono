@@ -55,19 +55,6 @@ void ChDoubleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
     m_wheel->GetCollisionModel()->BuildModel();
 
-    switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_wheel->GetMaterialSurface()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurface()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurfaceBase::DEM:
-            m_wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            break;
-    }
-
     // Add visualization of the wheel.
     AddWheelVisualization();
 }

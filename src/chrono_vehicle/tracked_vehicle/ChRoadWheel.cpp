@@ -27,19 +27,29 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRoadWheel::ChRoadWheel(const std::string& name)
-    : m_name(name), m_friction(0.6f), m_restitution(0.1f), m_young_modulus(2e5f), m_poisson_ratio(0.3f) {
-}
+    : m_name(name),
+      m_friction(0.7f),
+      m_restitution(0.1f),
+      m_young_modulus(1e8f),
+      m_poisson_ratio(0.3f),
+      m_kn(2e5),
+      m_kt(2e5),
+      m_gn(40),
+      m_gt(20) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRoadWheel::SetContactMaterial(float friction_coefficient,
-                                     float restitution_coefficient,
-                                     float young_modulus,
-                                     float poisson_ratio) {
-    m_friction = friction_coefficient;
-    m_restitution = restitution_coefficient;
+// -----------------------------------------------------------------------------
+void ChRoadWheel::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChRoadWheel::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------
@@ -59,6 +69,24 @@ void ChRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->SetMass(GetWheelMass());
     m_wheel->SetInertiaXX(GetWheelInertia());
     chassis->GetSystem()->AddBody(m_wheel);
+
+    // Set wheel contact material properties.
+    switch (m_wheel->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            m_wheel->GetMaterialSurface()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            m_wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+            m_wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+            m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            m_wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            m_wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            m_wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            m_wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            break;
+    }
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the road wheel reference frame.
