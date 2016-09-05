@@ -27,7 +27,7 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_tracked_brake
+/// @addtogroup vehicle_tracked_idler
 /// @{
 
 /// Double idler model constructed with data from file (JSON format).
@@ -78,7 +78,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
     std::string m_meshFile;
 };
 
-/// @} vehicle_tracked_brake
+/// @} vehicle_tracked_idler
 
 }  // end namespace vehicle
 }  // end namespace chrono
