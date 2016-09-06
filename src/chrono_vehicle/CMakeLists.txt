@@ -428,6 +428,9 @@ set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
     tracked_vehicle/sprocket/ChSprocketDoublePin.h
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
+
+    tracked_vehicle/sprocket/SprocketSinglePin.h
+    tracked_vehicle/sprocket/SprocketSinglePin.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
