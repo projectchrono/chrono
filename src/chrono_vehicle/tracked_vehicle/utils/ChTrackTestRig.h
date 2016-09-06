@@ -63,10 +63,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
     ChTrackTestRig(
-        std::shared_ptr<ChTrackAssembly> assembly,     ///< [in] handle to the track assembly
-        const ChVector<>& sprocketLoc,                 ///< [in] sprocket location
-        const ChVector<>& idlerLoc,                    ///< [in] idler location
-        const std::vector<ChVector<> >& suspLocs,      ///< [in] suspension locations
+        std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
+        const ChVector<>& location,                 ///< [in] track assembly location
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
         );
 
@@ -147,9 +145,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     double m_max_torque;  ///< maximum torque applied to sprocket
 
-    ChVector<> m_sprocketLoc;
-    ChVector<> m_idlerLoc;
-    std::vector<ChVector<> > m_suspLocs;
+    ChVector<> m_location; ///< track assembly subsystem location
 };
 
 /// @} vehicle_tracked_utils

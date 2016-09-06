@@ -232,22 +232,24 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
 
     // Create the sprocket
     {
-        assert(d.HasMember("Sprocket Input File"));
-        std::string file_name = d["Sprocket Input File"].GetString();
+        assert(d.HasMember("Sprocket"));
+        std::string file_name = d["Sprocket"]["Input File"].GetString();
+        m_sprocket_loc = loadVector(d["Sprocket"]["Location"]);
         LoadSprocket(vehicle::GetDataFile(file_name));
     }
 
     // Create the brake
     {
-        assert(d.HasMember("Brake Input File"));
-        std::string file_name = d["Brake Input File"].GetString();
+        assert(d.HasMember("Brake"));
+        std::string file_name = d["Brake"]["Input File"].GetString();
         LoadBrake(vehicle::GetDataFile(file_name));
     }
 
     // Create the idler
     {
-        assert(d.HasMember("Idler Input File"));
-        std::string file_name = d["Idler Input File"].GetString();
+        assert(d.HasMember("Idler"));
+        std::string file_name = d["Idler"]["Input File"].GetString();
+        m_idler_loc = loadVector(d["Idler"]["Location"]);
         LoadIdler(vehicle::GetDataFile(file_name));
     }
 
@@ -255,9 +257,11 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Suspension Subsystems"));
     assert(d["Suspension Subsystems"].IsArray());
     m_num_susp = d["Suspension Subsystems"].Size();
+    m_susp_locs.resize(m_num_susp);
     for (int i = 0; i < m_num_susp; i++) {
         std::string file_name = d["Suspension Subsystems"][i]["Input File"].GetString();
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
+        m_susp_locs[i] = loadVector(d["Suspension Subsystems"]["Location"]);
         LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock);
     }
 

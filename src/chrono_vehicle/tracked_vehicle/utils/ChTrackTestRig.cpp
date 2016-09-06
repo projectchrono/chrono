@@ -141,15 +141,11 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBas
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
-                               const ChVector<>& sprocketLoc,
-                               const ChVector<>& idlerLoc,
-                               const std::vector<ChVector<> >& suspLocs,
+                               const ChVector<>& location,
                                ChMaterialSurfaceBase::ContactMethod contact_method)
     : ChVehicle(contact_method),
       m_track(assembly),
-      m_sprocketLoc(sprocketLoc),
-      m_idlerLoc(idlerLoc),
-      m_suspLocs(suspLocs),
+      m_location(location),
       m_max_torque(0) {
     // Create the chassis (ground) body, fixed, no visualizastion
     m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
@@ -174,7 +170,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Initialize the vehicle subsystems
     // ---------------------------------
 
-    m_track->Initialize(m_chassis, m_sprocketLoc, m_idlerLoc, m_suspLocs);
+    m_track->Initialize(m_chassis, m_location);
 
     // ------------------------------------------
     // Create and initialize the shaker post body

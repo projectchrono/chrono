@@ -28,8 +28,30 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
+// -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+const ChVector<> M113_TrackAssemblySinglePin::m_sprocket_loc(0, 0, 0);
+const ChVector<> M113_TrackAssemblySinglePin::m_idler_loc(-3.83, 0, -0.12);
+const ChVector<> M113_TrackAssemblySinglePin::m_susp_locs_L[5] = {
+    ChVector<>(-0.655, 0, -0.215), 
+    ChVector<>(-1.322, 0, -0.215), 
+    ChVector<>(-1.989, 0, -0.215),
+    ChVector<>(-2.656, 0, -0.215), 
+    ChVector<>(-3.322, 0, -0.215)
+};
+const ChVector<> M113_TrackAssemblySinglePin::m_susp_locs_R[5] = {
+    ChVector<>(-0.740, 0, -0.215),
+    ChVector<>(-1.407, 0, -0.215),
+    ChVector<>(-2.074, 0, -0.215),
+    ChVector<>(-2.740, 0, -0.215),
+    ChVector<>(-3.407, 0, -0.215)
+};
+
+// -----------------------------------------------------------------------------
 // Constructor for the M113 track assembly using single-pin track shoes.
 // Create the suspensions, idler, brake, sprocket, and track shoes.
+// -----------------------------------------------------------------------------
 M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChTrackAssemblySinglePin("", side) {
     m_suspensions.resize(5);
     m_suspensions[0] = std::make_shared<M113_Suspension>(side, true);
@@ -68,6 +90,22 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChT
     }
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+const ChVector<>& M113_TrackAssemblySinglePin::GetSprocketLocation() const {
+    return m_sprocket_loc;
+}
+
+const ChVector<>& M113_TrackAssemblySinglePin::GetIdlerLocation() const {
+    return m_idler_loc;
+}
+
+const ChVector<>& M113_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
+    return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void M113_TrackAssemblySinglePin::SetIdlerVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_Idler>(GetIdler())->SetVisType(vis);
 }

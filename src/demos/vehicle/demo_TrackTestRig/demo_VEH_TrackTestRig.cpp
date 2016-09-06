@@ -67,32 +67,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create and initialize the testing mechanism.
-    ChVector<> sprocket_loc;
-    ChVector<> idler_loc;
-    std::vector<ChVector<> > susp_locs(5);
-
-    switch (side) {
-        case LEFT:
-            sprocket_loc = ChVector<>(0, 1, 0);
-            idler_loc = ChVector<>(-3.83, 1, -0.12);
-            susp_locs[0] = ChVector<>(-0.655, 1, -0.215);
-            susp_locs[1] = ChVector<>(-1.322, 1, -0.215);
-            susp_locs[2] = ChVector<>(-1.989, 1, -0.215);
-            susp_locs[3] = ChVector<>(-2.656, 1, -0.215);
-            susp_locs[4] = ChVector<>(-3.322, 1, -0.215);
-            break;
-        case RIGHT:
-            sprocket_loc = ChVector<>(0, -1, 0);
-            idler_loc = ChVector<>(-3.83, -1, -0.12);
-            susp_locs[0] = ChVector<>(-0.740, -1, -0.215);
-            susp_locs[1] = ChVector<>(-1.407, -1, -0.215);
-            susp_locs[2] = ChVector<>(-2.074, -1, -0.215);
-            susp_locs[3] = ChVector<>(-2.740, -1, -0.215);
-            susp_locs[4] = ChVector<>(-3.407, -1, -0.215);
-            break;
-    }
-
-    ChTrackTestRig rig(track_assembly, sprocket_loc, idler_loc, susp_locs, ChMaterialSurfaceBase::DVI);
+    ChVector<> location = (side == LEFT) ? ChVector<>(0, 1, 0) : ChVector<>(0, -1, 0);
+    ChTrackTestRig rig(track_assembly, location, ChMaterialSurfaceBase::DVI);
     //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
     rig.GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
     rig.GetSystem()->SetMaxItersSolverSpeed(50);
@@ -157,9 +133,9 @@ int main(int argc, char* argv[]) {
         const ChVector<>& s_pos_abs = rig.GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
         ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
         ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        cout << "Time: " << rig.GetSystem()->GetChTime() << endl;
-        cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-        cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+        ////cout << "Time: " << rig.GetSystem()->GetChTime() << endl;
+        ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
+        ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
         // Render scene
         if (step_number % render_steps == 0) {

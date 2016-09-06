@@ -119,17 +119,26 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
     double GetMass() const;
 
+    /// Get the relative location of the sprocket subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<>& GetSprocketLocation() const = 0;
+
+    /// Get the relative location of the idler subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<>& GetIdlerLocation() const = 0;
+
+    /// Get the relative location of the specified suspension subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<>& GetRoadWhelAssemblyLocation(int which) const = 0;
+
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching its constituent subsystems to the
-    /// specified chassis body at the specified corresponding locations (with respect
-    /// to and expressed in the reference frame of the chassis).  All subsystem reference
-    /// frames are assumed to be aligned with the chassis reference frame.
-    void Initialize(
-        std::shared_ptr<ChBodyAuxRef> chassis,           ///< [in] handle to the chassis body
-        const ChVector<>& sprocket_loc,                  ///< [in] sprocket location relative to the chassis frame
-        const ChVector<>& idler_loc,                     ///< [in] idler location relative to the chassis frame
-        const std::vector<ChVector<> >& suspension_locs  ///< [in] suspension locations relative to the chassis frame
-        );
+    /// The subsystem is initialized by attaching it to the specified chassis body
+    /// at the specified location (with respect to and expressed in the reference
+    /// frame of the chassis). It is assumed that the track assembly reference frame
+    /// is always aligned with the chassis reference frame.
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                    const ChVector<>& location              ///< [in] location relative to the chassis frame
+                    );
 
     /// Update the state of this track assembly at the current time.
     void Synchronize(double time,                        ///< [in] current time

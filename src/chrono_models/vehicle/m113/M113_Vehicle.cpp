@@ -175,37 +175,13 @@ void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
         }
     }
 
+    // Initialize the left and right track assemblies.
     double track_offset = 1.0795;
-    ChVector<> sprocket_loc;
-    ChVector<> idler_loc;
-    std::vector<ChVector<> > susp_locs(5);
-
-    // Initialize the left track assembly.
-    sprocket_loc = ChVector<>(0, track_offset, 0);
-    idler_loc = ChVector<>(-3.92, track_offset, -0.12);  //// Original x value: -3.97   
-    susp_locs[0] = ChVector<>(-0.655, track_offset, -0.215);
-    susp_locs[1] = ChVector<>(-1.322, track_offset, -0.215);
-    susp_locs[2] = ChVector<>(-1.989, track_offset, -0.215);
-    susp_locs[3] = ChVector<>(-2.656, track_offset, -0.215);
-    susp_locs[4] = ChVector<>(-3.322, track_offset, -0.215);
-
-    m_tracks[0]->Initialize(m_chassis, sprocket_loc, idler_loc, susp_locs);
-
-    // Initialize the right track assembly.
-    sprocket_loc = ChVector<>(0, -track_offset, 0);
-    idler_loc = ChVector<>(-3.92, -track_offset, -0.12);  //// Original x value: -3.97  
-    susp_locs[0] = ChVector<>(-0.740, -track_offset, -0.215);
-    susp_locs[1] = ChVector<>(-1.407, -track_offset, -0.215);
-    susp_locs[2] = ChVector<>(-2.074, -track_offset, -0.215);
-    susp_locs[3] = ChVector<>(-2.740, -track_offset, -0.215);
-    susp_locs[4] = ChVector<>(-3.407, -track_offset, -0.215);
-
-    m_tracks[1]->Initialize(m_chassis, sprocket_loc, idler_loc, susp_locs);
+    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, track_offset, 0));
+    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, -track_offset, 0));
 
     // Initialize the driveline subsystem
     m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);
-
-    //// TODO
 }
 
 // -----------------------------------------------------------------------------
