@@ -1,0 +1,43 @@
+{
+  "Name":                     "M113 SinglePin TrackAssembly Left",
+  "Type":                     "TrackAssembly",
+  "Template":                 "TrackAssemblySinglePin",
+
+  "Sprocket Input File":      "M113/sprocket/M113_SprocketSinglePin_Left.json",
+  "Brake Input File":         "M113/brake/M113_TrackBrakeSimple.json",
+  "Idler Input File":         "M113/idler/M113_DoubleIdler_Left.json",
+
+  "Suspension Subsystems":
+  [
+    {
+        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Has Shock":          true
+    },
+
+    {
+        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Has Shock":          true
+    },
+
+    {
+        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Has Shock":          false
+    },
+
+    {
+        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Has Shock":          false
+    },
+
+    {
+        "Input File":         "M113/suspension/M113_LinearDamperSuspension_Left.json",
+        "Has Shock":          true
+    }
+  ],
+
+  "Track Shoes":
+  {
+      "Input File":           "M113/track_shoe/M113_TrackShoeSinglePin.json",
+      "Number Shoes":         63
+  }
+ }
