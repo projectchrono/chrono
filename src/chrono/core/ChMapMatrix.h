@@ -55,10 +55,10 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     virtual double GetElement(int row, int col) override;
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_RowIndexArray() const override;
+    virtual int* GetCSR_LeadingIndexArray() const override;
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_ColIndexArray() const override;
+    virtual int* GetCSR_TrailingIndexArray() const override;
 
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override;

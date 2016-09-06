@@ -71,8 +71,8 @@ void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
     m_n = Z.GetNumRows();
 
     m_a = Z.GetCSR_ValueArray();
-    m_ia = Z.GetCSR_RowIndexArray();
-    m_ja = Z.GetCSR_ColIndexArray();
+    m_ia = Z.GetCSR_LeadingIndexArray();
+    m_ja = Z.GetCSR_TrailingIndexArray();
 
     int type = ConvertMatrixType(Z.GetType());
     if (m_type != type) {

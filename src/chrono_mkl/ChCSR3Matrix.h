@@ -73,16 +73,17 @@ arrays
 
 class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
   private:
+    const bool row_major_format = true;
     const int array_alignment = 64;
     bool isCompressed = false;
     int max_shifts = std::numeric_limits<int>::max();
 
     // CSR matrix arrays.
-    // Note that m_capacity may be larger than NNZ before a call to Trim()
-
     std::vector<double, aligned_allocator<double, 64>> values_vect;
-    std::vector<int, aligned_allocator<int, 64>> colIndex_vect;
-    std::vector<int, aligned_allocator<int, 64>> rowIndex_vect;
+    std::vector<int, aligned_allocator<int, 64>> trailIndex_vect;
+    std::vector<int, aligned_allocator<int, 64>> leadIndex_vect;
+    int& leading_dimension = row_major_format ? m_num_rows : m_num_cols;
+    int& trailing_dimension = row_major_format ? m_num_cols : m_num_rows;
 
     bool m_lock_broken = false;  ///< true if a modification was made that overrules m_lock
 
@@ -92,15 +93,15 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void initialize(int* nonzeros_vector);
     void initialize_ValuesColIndex();
     void copy(double* values_temp,
-              int* colIndex_temp,
+              int* trailingIndex_temp,
               bool to_internal_arrays,
-              int insrow = 0,
-              int col_sel = 0,
+              int insleaddim = 0,
+              int traildim_sel = 0,
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1);
-    ChCSR3Matrix(int nrows, int ncols, int* nonzeros);
+    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1, bool row_major_format_on = true);
+    ChCSR3Matrix(int nrows, int ncols, int* nonzeros, bool row_major_format_on = true);
     virtual ~ChCSR3Matrix(){};
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override;
@@ -119,13 +120,13 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     };
 
     /// Get the number of non-zero elements in this matrix.
-    virtual int GetNNZ() const override { return colIndex_vect.size(); }
+    virtual int GetNNZ() const override { return trailIndex_vect.size(); }
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_RowIndexArray() const override { return const_cast<int*>(rowIndex_vect.data()); }
+    virtual int* GetCSR_LeadingIndexArray() const override { return const_cast<int*>(leadIndex_vect.data()); }
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_ColIndexArray() const override { return const_cast<int*>(colIndex_vect.data()); }
+    virtual int* GetCSR_TrailingIndexArray() const override { return const_cast<int*>(trailIndex_vect.data()); }
 
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override { return const_cast<double*>(values_vect.data()); }
@@ -139,9 +140,9 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void Prune(double pruning_threshold = 0);
 
     // Auxiliary functions
-    //int GetColIndexLength() const { return rowIndex_vect.back(); }
-    int GetColIndexLength() const { return rowIndex_vect[m_num_rows]; }
-    int GetColIndexCapacity() const { return colIndex_vect.capacity(); }
+    //int GetLeadingIndexLength() const { return leadIndex_vect.back(); }
+    int GetLeadingIndexLength() const { return leadIndex_vect[m_num_rows]; }
+    int GetTrailingIndexCapacity() const { return trailIndex_vect.capacity(); }
     void GetNonZerosDistribution(int* nonzeros_vector) const;
     bool CheckArraysAlignment(int alignment) const;
 

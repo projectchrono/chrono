@@ -29,8 +29,8 @@ void PrintMatrix(const ChMatrixDynamic<>& mat) {
 void PrintMatrixCSR(const ChCSR3Matrix& mat) {
     int ncols = mat.GetNumColumns();
     int nrows = mat.GetNumRows();
-    int* rowindex = mat.GetCSR_RowIndexArray();
-    int* colindex = mat.GetCSR_ColIndexArray();
+    int* rowindex = mat.GetCSR_LeadingIndexArray();
+    int* colindex = mat.GetCSR_TrailingIndexArray();
     double* values = mat.GetCSR_ValueArray();
     int nnz = rowindex[nrows];
 
@@ -63,24 +63,24 @@ bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
     }
 
     for (int cont = 0; cont <= rows; cont++) {
-        if (mat1.GetCSR_RowIndexArray()[cont] != mat2.GetCSR_RowIndexArray()[cont]) {
+        if (mat1.GetCSR_LeadingIndexArray()[cont] != mat2.GetCSR_LeadingIndexArray()[cont]) {
             std::cout << "Row indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetCSR_RowIndexArray()[cont];
-            std::cout << "   mat2 -> " << mat2.GetCSR_RowIndexArray()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCSR_LeadingIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCSR_LeadingIndexArray()[cont] << std::endl;
             return false;
         }
     }
 
-    for (int cont = 0; cont < mat1.GetCSR_RowIndexArray()[rows]; cont++) {
+    for (int cont = 0; cont < mat1.GetCSR_LeadingIndexArray()[rows]; cont++) {
 
-        if (mat1.GetCSR_ColIndexArray()[cont] != mat2.GetCSR_ColIndexArray()[cont]) {
+        if (mat1.GetCSR_TrailingIndexArray()[cont] != mat2.GetCSR_TrailingIndexArray()[cont]) {
             std::cout << "Column indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetCSR_ColIndexArray()[cont];
-            std::cout << "   mat2 -> " << mat2.GetCSR_ColIndexArray()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCSR_TrailingIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCSR_TrailingIndexArray()[cont] << std::endl;
             return false;
         }
 
-        if (mat1.GetCSR_ColIndexArray()[cont] != -1 && mat2.GetCSR_ColIndexArray()[cont] != -1)
+        if (mat1.GetCSR_TrailingIndexArray()[cont] != -1 && mat2.GetCSR_TrailingIndexArray()[cont] != -1)
         {
             if (mat1.GetCSR_ValueArray()[cont] != mat2.GetCSR_ValueArray()[cont]) {
                 std::cout << "Values do not match at entry " << cont << ":";

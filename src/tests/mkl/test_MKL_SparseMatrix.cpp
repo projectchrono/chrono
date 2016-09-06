@@ -81,7 +81,7 @@ void timeSetElement() {
         }
         B.Compress();
         timer.stop();
-        cout << "      NNZ:  " << B.GetColIndexLength() << endl;
+        cout << "      NNZ:  " << B.GetLeadingIndexLength() << endl;
         cout << "      Time: " << timer() << endl;
 
         //cout << "   Second insertion: " << nnz << " values" << endl;
@@ -94,7 +94,7 @@ void timeSetElement() {
         //}
         //B.Compress();
         //timer.stop();
-        //cout << "      NNZ:  " << B.GetColIndexLength() << endl;
+        //cout << "      NNZ:  " << B.GetLeadingIndexLength() << endl;
         //cout << "      Time: " << timer() << endl;
     }
 
@@ -113,11 +113,10 @@ void timeSetElement() {
         }
         B.Compress();
         timer.stop();
-        cout << "      NNZ:  " << B.GetColIndexLength() << endl;
+        cout << "      NNZ:  " << B.GetLeadingIndexLength() << endl;
         cout << "      Time: " << timer() << endl;
 
-        B.SetColIndexLock(true);
-        B.SetRowIndexLock(true);
+        B.SetSparsityPatternLock(true);
 
 
         cout << "   Second insertion: " << nnz/2 << " values" << endl;
@@ -130,7 +129,7 @@ void timeSetElement() {
         }
         B.Compress();
         timer.stop();
-        cout << "      NNZ:  " << B.GetColIndexLength() << endl;
+        cout << "      NNZ:  " << B.GetLeadingIndexLength() << endl;
         cout << "      Time: " << timer() << endl;
     }
 

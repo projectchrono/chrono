@@ -118,10 +118,10 @@ class ChApi ChSparseMatrix {
     }
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_RowIndexArray() const { return nullptr; }
+    virtual int* GetCSR_LeadingIndexArray() const { return nullptr; }
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_ColIndexArray() const { return nullptr; }
+    virtual int* GetCSR_TrailingIndexArray() const { return nullptr; }
 
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const { return nullptr; }
