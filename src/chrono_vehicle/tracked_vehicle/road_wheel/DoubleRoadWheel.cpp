@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleRoadWheel::DoubleRoadWheel(const std::string& filename) : ChDoubleRoadWheel(""), m_vis_type(NONE) {
+DoubleRoadWheel::DoubleRoadWheel(const std::string& filename) : ChDoubleRoadWheel(""), m_vis_type(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -55,7 +55,7 @@ DoubleRoadWheel::DoubleRoadWheel(const std::string& filename) : ChDoubleRoadWhee
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-DoubleRoadWheel::DoubleRoadWheel(const rapidjson::Document& d) : ChDoubleRoadWheel(""), m_vis_type(NONE) {
+DoubleRoadWheel::DoubleRoadWheel(const rapidjson::Document& d) : ChDoubleRoadWheel(""), m_vis_type(VisualizationType::NONE) {
     Create(d);
 }
 
@@ -102,9 +102,9 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis_type = MESH;
+            m_vis_type = VisualizationType::MESH;
         } else {
-            m_vis_type = PRIMITIVES;
+            m_vis_type = VisualizationType::PRIMITIVES;
         }
     }
 }
@@ -113,10 +113,10 @@ void DoubleRoadWheel::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void DoubleRoadWheel::AddWheelVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChDoubleRoadWheel::AddWheelVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();

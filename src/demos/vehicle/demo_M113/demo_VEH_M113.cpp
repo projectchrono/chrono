@@ -21,7 +21,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -86,16 +85,16 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-    M113_Vehicle vehicle(false, SINGLE_PIN, ChMaterialSurfaceBase::DEM);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetChassisVisType(MESH);
-    ////vehicle.SetSprocketVisType(MESH);
-    ////vehicle.SetIdlerVisType(MESH);
-    ////vehicle.SetRoadWheelVisType(MESH);
-    ////vehicle.SetTrackShoeVisType(MESH);
+    ////vehicle.SetChassisVisType(VisualizationType::MESH);
+    ////vehicle.SetSprocketVisType(VisualizationType::MESH);
+    ////vehicle.SetIdlerVisType(VisualizationType::MESH);
+    ////vehicle.SetRoadWheelVisType(VisualizationType::MESH);
+    ////vehicle.SetTrackShoeVisType(VisualizationType::MESH);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);

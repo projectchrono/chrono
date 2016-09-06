@@ -53,19 +53,19 @@ enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
 // Visualization type for chassis (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 
 // Visualization type for wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType wheel_vis_type = NONE;
+VisualizationType wheel_vis_type = VisualizationType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = SHAFTS;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = AWD;
+DrivelineType drive_type = DrivelineType::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA)
-TireModelType tire_model = RIGID;
+TireModelType tire_model = TireModelType::RIGID;
 bool tire_vis = true;
 
 // Rigid terrain

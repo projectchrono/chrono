@@ -49,7 +49,8 @@ const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoe.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_TrackShoeDoublePin::M113_TrackShoeDoublePin() : ChTrackShoeDoublePin("M113_TrackShoe"), m_vis_type(PRIMITIVES) {
+M113_TrackShoeDoublePin::M113_TrackShoeDoublePin()
+    : ChTrackShoeDoublePin("M113_TrackShoe"), m_vis_type(VisualizationType::PRIMITIVES) {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -69,7 +70,7 @@ void M113_TrackShoeDoublePin::AddShoeContact() {
 // -----------------------------------------------------------------------------
 void M113_TrackShoeDoublePin::AddShoeVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES: {
+        case VisualizationType::PRIMITIVES: {
             auto rev_rear = std::make_shared<ChCylinderShape>();
             rev_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetShoeLength(), -0.163, 0);
             rev_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetShoeLength(), +0.163, 0);
@@ -103,7 +104,7 @@ void M113_TrackShoeDoublePin::AddShoeVisualization() {
 
             break;
         }
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 
@@ -119,7 +120,7 @@ void M113_TrackShoeDoublePin::AddShoeVisualization() {
 
 void M113_TrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
     switch (m_vis_type) {
-        case PRIMITIVES: {
+        case VisualizationType::PRIMITIVES: {
             auto cyl_rear = std::make_shared<ChCylinderShape>();
             cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetConnectorLength(), -0.01, 0);
             cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetConnectorLength(), +0.01, 0);
@@ -148,7 +149,7 @@ void M113_TrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> 
 
             break;
         }
-        case MESH: {
+        case VisualizationType::MESH: {
             //// TODO
 
             break;

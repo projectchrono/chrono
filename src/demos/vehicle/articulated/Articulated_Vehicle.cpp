@@ -76,14 +76,14 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
     // -------------------------------------------
     m_suspensions.resize(2);
 
-    assert(m_suspType == SOLID_AXLE || m_suspType == MULTI_LINK);
+    assert(m_suspType == SuspensionType::SOLID_AXLE || m_suspType == SuspensionType::MULTI_LINK);
 
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
             m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
             m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
             break;
@@ -128,10 +128,10 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
     // relative to the chassis reference frame).
     ChVector<> offset;
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             offset = ChVector<>(1.60, 0, -0.07);
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             offset = ChVector<>(1.65, 0, -0.12);
             break;
     }
@@ -163,9 +163,9 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 // -----------------------------------------------------------------------------
 double Articulated_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
         default:
             return -1;
@@ -174,9 +174,9 @@ double Articulated_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
         default:
             return -1;
@@ -185,9 +185,9 @@ double Articulated_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
         default:
             return -1;
@@ -198,9 +198,9 @@ double Articulated_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const 
 // -----------------------------------------------------------------------------
 double Articulated_Vehicle::GetShockForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
         default:
             return -1;
@@ -209,9 +209,9 @@ double Articulated_Vehicle::GetShockForce(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetShockLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
         default:
             return -1;
@@ -220,9 +220,9 @@ double Articulated_Vehicle::GetShockLength(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
         default:
             return -1;
@@ -237,13 +237,13 @@ void Articulated_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChSolidAxle>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChSolidAxle>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";

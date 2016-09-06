@@ -21,7 +21,6 @@
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
 
@@ -48,18 +47,18 @@ double render_step_size = 1.0 / 50;  // Time interval between two render frames
 int main(int argc, char* argv[]) {
     // Create an M113 track assembly.
     VehicleSide side = LEFT;
-    TrackShoeType type = SINGLE_PIN;
-    VisualizationType shoe_vis = PRIMITIVES;
+    TrackShoeType type = TrackShoeType::SINGLE_PIN;
+    VisualizationType shoe_vis = VisualizationType::PRIMITIVES;
 
     std::shared_ptr<ChTrackAssembly> track_assembly;
     switch (type) {
-        case SINGLE_PIN: {
+        case TrackShoeType::SINGLE_PIN: {
             auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
             assembly->SetTrackShoeVisType(shoe_vis);
             track_assembly = assembly;
             break;
         }
-        case DOUBLE_PIN: {
+        case TrackShoeType::DOUBLE_PIN: {
             auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
             assembly->SetTrackShoeVisType(shoe_vis);
             track_assembly = assembly;

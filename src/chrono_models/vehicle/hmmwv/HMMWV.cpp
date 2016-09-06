@@ -35,13 +35,13 @@ HMMWV::HMMWV()
       m_tires({NULL, NULL, NULL, NULL}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
-      m_driveType(AWD),
-      m_powertrainType(SHAFTS),
-      m_tireType(RIGID),
+      m_driveType(DrivelineType::AWD),
+      m_powertrainType(PowertrainModelType::SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_chassisVis(PRIMITIVES),
-      m_wheelVis(PRIMITIVES),
+      m_chassisVis(VisualizationType::PRIMITIVES),
+      m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
@@ -52,13 +52,13 @@ HMMWV::HMMWV(ChSystem* system)
       m_tires({NULL, NULL, NULL, NULL}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
-      m_driveType(AWD),
-      m_powertrainType(SHAFTS),
-      m_tireType(RIGID),
+      m_driveType(DrivelineType::AWD),
+      m_powertrainType(PowertrainModelType::SHAFTS),
+      m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_chassisVis(PRIMITIVES),
-      m_wheelVis(PRIMITIVES),
+      m_chassisVis(VisualizationType::PRIMITIVES),
+      m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
@@ -79,12 +79,12 @@ void HMMWV::Initialize() {
 
     // Create and initialize the powertrain system
     switch (m_powertrainType) {
-        case SHAFTS: {
+        case PowertrainModelType::SHAFTS: {
             HMMWV_Powertrain* ptrain = new HMMWV_Powertrain;
             m_powertrain = ptrain;
             break;
         }
-        case SIMPLE: {
+        case PowertrainModelType::SIMPLE: {
             HMMWV_SimplePowertrain* ptrain = new HMMWV_SimplePowertrain;
             m_powertrain = ptrain;
             break;
@@ -95,15 +95,15 @@ void HMMWV::Initialize() {
 
 #ifndef CHRONO_FEA
     // If ANCF tire selected but not available, fall back on rigid tire.
-    if (m_tireType == ANCF)
-        m_tireType = RIGID;
+    if (m_tireType == TireModelType::ANCF)
+        m_tireType = TireModelType::RIGID;
 #endif
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-        case RIGID:
-        case RIGID_MESH: {
-            bool use_mesh = (m_tireType == RIGID_MESH);
+        case TireModelType::RIGID:
+        case TireModelType::RIGID_MESH: {
+            bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
             HMMWV_RigidTire* tire_FL = new HMMWV_RigidTire("FL", use_mesh);
             HMMWV_RigidTire* tire_FR = new HMMWV_RigidTire("FR", use_mesh);
             HMMWV_RigidTire* tire_RL = new HMMWV_RigidTire("RL", use_mesh);
@@ -116,7 +116,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-        case LUGRE: {
+        case TireModelType::LUGRE: {
             HMMWV_LugreTire* tire_FL = new HMMWV_LugreTire("FL");
             HMMWV_LugreTire* tire_FR = new HMMWV_LugreTire("FR");
             HMMWV_LugreTire* tire_RL = new HMMWV_LugreTire("RL");
@@ -136,7 +136,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-        case FIALA: {
+        case TireModelType::FIALA: {
             HMMWV_FialaTire* tire_FL = new HMMWV_FialaTire("FL");
             HMMWV_FialaTire* tire_FR = new HMMWV_FialaTire("FR");
             HMMWV_FialaTire* tire_RL = new HMMWV_FialaTire("RL");
@@ -156,7 +156,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-        case PACEJKA: {
+        case TireModelType::PACEJKA: {
             if (m_pacejkaParamFile.empty())
                 throw ChException("Pacejka parameter file not specified.");
 
@@ -186,7 +186,7 @@ void HMMWV::Initialize() {
 
             break;
         }
-        case ANCF: {
+        case TireModelType::ANCF: {
 #ifdef CHRONO_FEA
             HMMWV_ANCFTire* tire_FL = new HMMWV_ANCFTire("FL");
             HMMWV_ANCFTire* tire_FR = new HMMWV_ANCFTire("FR");
@@ -200,7 +200,7 @@ void HMMWV::Initialize() {
 #endif
             break;
         }
-        case REISSNER: {
+        case TireModelType::REISSNER: {
 #ifdef CHRONO_FEA
             HMMWV_ReissnerTire* tire_FL = new HMMWV_ReissnerTire("FL");
             HMMWV_ReissnerTire* tire_FR = new HMMWV_ReissnerTire("FR");

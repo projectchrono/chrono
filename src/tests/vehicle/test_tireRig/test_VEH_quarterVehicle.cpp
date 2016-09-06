@@ -78,7 +78,7 @@ using namespace chrono::irrlicht;
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
 
 // Type of tire model (RIGID, PACEJKA, LUGRE, FIALA, ANCF, FEA)
-TireModelType tire_model = ANCF;
+TireModelType tire_model = TireModelType::ANCF;
 
 // JSON file names for tire models
 std::string rigidtire_file("generic/tire/RigidTire.json");
@@ -117,7 +117,7 @@ double step_size = 1e-3;  // integration step size
 // Main driver program
 
 int main(int argc, char* argv[]) {
-    if (tire_model == ANCF || tire_model == FEA)
+    if (tire_model == TireModelType::ANCF || tire_model == TireModelType::FEA)
         contact_method = ChMaterialSurfaceBase::DEM;
 
     // Create the mechanical system
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     double tire_width;
 
     switch (tire_model) {
-        case RIGID: {
+        case TireModelType::RIGID: {
             auto tire_rigid = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
             tire_rigid->Initialize(wheel, LEFT);
             tire_radius = tire_rigid->GetRadius();
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
             tire = tire_rigid;
             break;
         }
-        case LUGRE: {
+        case TireModelType::LUGRE: {
             auto tire_lugre = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
             tire_lugre->Initialize(wheel, LEFT);
             tire_radius = tire_lugre->GetRadius();
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
             tire = tire_lugre;
             break;
         }
-        case FIALA: {
+        case TireModelType::FIALA: {
             auto tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
             tire_fiala->Initialize(wheel, LEFT);
             tire_radius = tire_fiala->GetRadius();
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
             tire = tire_fiala;
             break;
         }
-        case ANCF: {
+        case TireModelType::ANCF: {
 #ifdef CHRONO_FEA
             auto tire_ancf = std::make_shared<ANCFTire>(vehicle::GetDataFile(ancftire_file));
 
@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
 #endif
             break;
         }
-        case FEA: {
+        case TireModelType::FEA: {
 #ifdef CHRONO_FEA
             auto tire_fea = std::make_shared<FEATire>(vehicle::GetDataFile(featire_file));
 
@@ -288,13 +288,13 @@ int main(int argc, char* argv[]) {
     // Solver and integrator settings
     // ------------------------------
 
-    if (tire_model == ANCF) {
+    if (tire_model == TireModelType::ANCF) {
         solver_type = MKL;
         integrator_type = HHT;
         step_size = ChMin(step_size, 5e-5);
     }
 
-    if (tire_model == FEA) {
+    if (tire_model == TireModelType::FEA) {
         solver_type = MKL;
         integrator_type = EULER;
         step_size = ChMin(step_size, 1e-3);
@@ -364,10 +364,10 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_FEA
     switch (tire_model) {
-        case ANCF:
+        case TireModelType::ANCF:
             std::cout << "ANCF tire mass = " << std::static_pointer_cast<ChANCFTire>(tire)->GetMass() << std::endl;
             break;
-        case FEA:
+        case TireModelType::FEA:
             std::cout << "FEA tire mass = " << std::static_pointer_cast<ChFEATire>(tire)->GetMass() << std::endl;
             break;
     }

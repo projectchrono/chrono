@@ -41,7 +41,7 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the type of track shoe (guiding pin).
     /// A derived class must specify the type of track shoe (which must be
     /// consistent with the idler and road wheels in the containing track assembly).
-    virtual GuidePinType GetType() const override { return CENTRAL_PIN; }
+    virtual GuidePinType GetType() const override { return GuidePinType::CENTRAL_PIN; }
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }

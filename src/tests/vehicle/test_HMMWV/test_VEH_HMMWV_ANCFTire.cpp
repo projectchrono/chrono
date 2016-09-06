@@ -59,19 +59,19 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 ////ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Visualization type for chassis (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = PRIMITIVES;
+VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 
 // Type of tire type (ANCF, RIGID, RIGID_MESH)
-TireModelType tire_model = ANCF;
+TireModelType tire_model = TireModelType::ANCF;
 
 // Enable/disable tire visualization
 bool tire_vis = true;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = SHAFTS;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = AWD;
+DrivelineType drive_type = DrivelineType::AWD;
 
 // Rigid terrain (RigidTerrain::FLAT, RigidTerrain::HEIGHT_MAP, RigidTerrain::MESH)
 RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv(system);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetChassisVis(chassis_vis_type);
-    my_hmmwv.SetWheelVis(NONE);
+    my_hmmwv.SetWheelVis(VisualizationType::NONE);
     my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 
     // Downcast tires (if needed)
     switch (tire_model) {
-        case ANCF: {
+        case TireModelType::ANCF: {
             HMMWV_ANCFTire* tire_FL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_LEFT));
             HMMWV_ANCFTire* tire_FR = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
             HMMWV_ANCFTire* tire_RL = static_cast<HMMWV_ANCFTire*>(my_hmmwv.GetTire(REAR_LEFT));
@@ -212,8 +212,8 @@ int main(int argc, char* argv[]) {
 
             break;
         }
-        case RIGID:
-        case RIGID_MESH: {
+        case TireModelType::RIGID:
+        case TireModelType::RIGID_MESH: {
             HMMWV_RigidTire* tire_FL = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(FRONT_LEFT));
             HMMWV_RigidTire* tire_FR = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(FRONT_RIGHT));
             HMMWV_RigidTire* tire_RL = static_cast<HMMWV_RigidTire*>(my_hmmwv.GetTire(REAR_LEFT));

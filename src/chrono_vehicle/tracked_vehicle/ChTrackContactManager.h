@@ -24,7 +24,7 @@
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"

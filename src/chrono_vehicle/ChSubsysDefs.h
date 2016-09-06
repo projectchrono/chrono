@@ -227,14 +227,14 @@ class MapSpringDamperActuatorForce : public ChSpringForceCallback {
 };
 
 /// Enum for visualization types.
-enum VisualizationType {
+enum class VisualizationType {
     NONE,        ///< no visualization
     PRIMITIVES,  ///< use primitve shapes
     MESH         ///< use meshes
 };
 
 /// Enum for available tire models.
-enum TireModelType {
+enum class TireModelType {
     RIGID,       ///< rigid tire (cylindrical)
     RIGID_MESH,  ///< rigid tire (mesh)
     PACEJKA,     ///< Pacejka (magic formula) tire
@@ -246,13 +246,13 @@ enum TireModelType {
 };
 
 /// Enum for available powertrain model templates.
-enum PowertrainModelType {
+enum class PowertrainModelType {
     SHAFTS,  ///< powertrain based on ChShaft elements
     SIMPLE   ///< simple powertrain model (similar to a DC motor)
 };
 
-/// Enum for available suspension model templates.
-enum SuspensionType {
+/// Enum for available wheeled-vehicle suspension model templates.
+enum class SuspensionType {
     DOUBLE_WISHBONE,          ///< double wishbone
     DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
     SOLID_AXLE,               ///< solid axle
@@ -262,23 +262,51 @@ enum SuspensionType {
 };
 
 /// Enum for drive types.
-enum DrivelineType {
+enum class DrivelineType {
     FWD,  ///< front-wheel drive
     RWD,  ///< rear-wheel drive
     AWD   ///< all-wheel drive
 };
 
 /// Enum for track shoe types.
-enum TrackShoeType {
+enum class TrackShoeType {
     SINGLE_PIN,  ///< single-pin track shoe and sprocket
     DOUBLE_PIN   ///< double-pin track shoe and sprocket
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).
-enum GuidePinType {
+enum class GuidePinType {
     CENTRAL_PIN,  ///< track shoes with central guiding pin and double wheels
     LATERAL_PIN   ///< track shoes with lateral guiding pins and single wheels
 };
+
+/// Enumerations for track collision flags.
+namespace TrackCollide {
+// Note: we cannot use strongly typed enums since these are used as integers
+enum Enum {
+    NONE = 0,
+    SPROCKET_LEFT = 1 << 0,
+    SPROCKET_RIGHT = 1 << 1,
+    IDLER_LEFT = 1 << 2,
+    IDLER_RIGHT = 1 << 3,
+    WHEELS_LEFT = 1 << 4,
+    WHEELS_RIGHT = 1 << 5,
+    SHOES_LEFT = 1 << 6,
+    SHOES_RIGHT = 1 << 7,
+    ALL = 0xFFFF
+};
+}
+
+/// Enumerations for track collision families.
+namespace TrackCollisionFamily {
+// Note: we cannot use strongly typed enums, since these are passed as integers
+enum Enum {
+    CHASSIS = 0,  ///< chassis collision family
+    IDLERS = 1,   ///< collision family for idler subsystems
+    WHEELS = 2,   ///< collision family for road-wheel assemblies
+    SHOES = 3     ///< collision family for track shoe subsystems
+};
+}
 
 /// Flags for output (log/debug).
 /// These flags can be bit-wise ORed and used as a mask.

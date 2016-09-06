@@ -85,26 +85,26 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
   m_suspensions.resize(2);
 
   switch (m_suspType) {
-  case SOLID_AXLE:
-      m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
-      m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
-    break;
-  case MULTI_LINK:
-      m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
-      m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
-    break;
-  case DOUBLE_WISHBONE:
-      m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
-      m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
-    break;
-  case HENDRICKSON_PRIMAXX:
-      m_suspensions[0] = std::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
-      m_suspensions[1] = std::make_shared<Generic_HendricksonPRIMAXX>("Rear suspension");
-    break;
-  case MACPHERSON_STRUT:
-      m_suspensions[0] = std::make_shared<Generic_MacPhersonStrut>("Front suspension");
-      m_suspensions[1] = std::make_shared<Generic_MacPhersonStrut>("Rear suspension");
-	break;
+      case SuspensionType::SOLID_AXLE:
+          m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
+          m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
+          break;
+      case SuspensionType::MULTI_LINK:
+          m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
+          m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
+          break;
+      case SuspensionType::DOUBLE_WISHBONE:
+          m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
+          m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
+          break;
+      case SuspensionType::HENDRICKSON_PRIMAXX:
+          m_suspensions[0] = std::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
+          m_suspensions[1] = std::make_shared<Generic_HendricksonPRIMAXX>("Rear suspension");
+          break;
+      case SuspensionType::MACPHERSON_STRUT:
+          m_suspensions[0] = std::make_shared<Generic_MacPhersonStrut>("Front suspension");
+          m_suspensions[1] = std::make_shared<Generic_MacPhersonStrut>("Rear suspension");
+          break;
   }
 
   // --------------------------------
@@ -156,11 +156,21 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
   // relative to the chassis reference frame).
   ChVector<> offset;
   switch (m_suspType) {
-  case SOLID_AXLE:          offset = ChVector<>(2.1, 0, -0.02); break;
-  case MULTI_LINK:          offset = ChVector<>(1.25, 0, -0.21); break;
-  case DOUBLE_WISHBONE:     offset = ChVector<>(1.25, 0, -0.21); break;
-  case HENDRICKSON_PRIMAXX: offset = ChVector<>(1.25, 0, -0.21); break;
-  case MACPHERSON_STRUT:    offset = ChVector<>(1.25, 0, -0.21); break;
+      case SuspensionType::SOLID_AXLE:
+          offset = ChVector<>(2.1, 0, -0.02);
+          break;
+      case SuspensionType::MULTI_LINK:
+          offset = ChVector<>(1.25, 0, -0.21);
+          break;
+      case SuspensionType::DOUBLE_WISHBONE:
+          offset = ChVector<>(1.25, 0, -0.21);
+          break;
+      case SuspensionType::HENDRICKSON_PRIMAXX:
+          offset = ChVector<>(1.25, 0, -0.21);
+          break;
+      case SuspensionType::MACPHERSON_STRUT:
+          offset = ChVector<>(1.25, 0, -0.21);
+          break;
   }
   m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
 
@@ -200,48 +210,48 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
 double Generic_Vehicle::GetSpringForce(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-  default:
-    return -1;
+      case SuspensionType::SOLID_AXLE:
+          return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+      case SuspensionType::MULTI_LINK:
+          return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+      case SuspensionType::DOUBLE_WISHBONE:
+          return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+      case SuspensionType::MACPHERSON_STRUT:
+          return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+      default:
+          return -1;
   }
 }
 
 double Generic_Vehicle::GetSpringLength(const WheelID& wheel_id) const
 {
-  switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-  default:
-    return -1;
-  }
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+        case SuspensionType::DOUBLE_WISHBONE:
+            return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+        case SuspensionType::MACPHERSON_STRUT:
+            return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+        default:
+            return -1;
+    }
 }
 
 double Generic_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const
 {
   switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-  default:
-    return -1;
+      case SuspensionType::SOLID_AXLE:
+          return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+      case SuspensionType::MULTI_LINK:
+          return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+      case SuspensionType::DOUBLE_WISHBONE:
+          return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+      case SuspensionType::MACPHERSON_STRUT:
+          return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+      default:
+          return -1;
   }
 }
 
@@ -250,52 +260,51 @@ double Generic_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const
 // -----------------------------------------------------------------------------
 double Generic_Vehicle::GetShockForce(const WheelID& wheel_id) const
 {
-  switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-  default:
-    return -1;
-  }
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+        case SuspensionType::DOUBLE_WISHBONE:
+            return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+        case SuspensionType::MACPHERSON_STRUT:
+            return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+        default:
+            return -1;
+    }
 }
 
 double Generic_Vehicle::GetShockLength(const WheelID& wheel_id) const
 {
-  switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-  default:
-    return -1;
-  }
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+        case SuspensionType::DOUBLE_WISHBONE:
+            return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+        case SuspensionType::MACPHERSON_STRUT:
+            return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+        default:
+            return -1;
+    }
 }
 
 double Generic_Vehicle::GetShockVelocity(const WheelID& wheel_id) const
 {
-  switch (m_suspType) {
-  case SOLID_AXLE:
-      return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-  case MULTI_LINK:
-      return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-  case DOUBLE_WISHBONE:
-      return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-  case MACPHERSON_STRUT:
-      return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-  default:
-    return -1;
-  }
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+        case SuspensionType::MULTI_LINK:
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+        case SuspensionType::DOUBLE_WISHBONE:
+            return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+        case SuspensionType::MACPHERSON_STRUT:
+            return std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+        default:
+            return -1;
+    }
 }
-
 
 // -----------------------------------------------------------------------------
 // Log the hardpoint locations for the front-right and rear-right suspension
@@ -306,30 +315,30 @@ void Generic_Vehicle::LogHardpointLocations()
   GetLog().SetNumFormat("%7.3f");
 
   switch (m_suspType) {
-  case SOLID_AXLE:
-    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChSolidAxle>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    break;
-  case MULTI_LINK:
-    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChMultiLink>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    break;
-  case DOUBLE_WISHBONE:
-    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    break;
-  case MACPHERSON_STRUT:
-    GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
-    std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
-    break;
+      case SuspensionType::SOLID_AXLE:
+          GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChSolidAxle>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChSolidAxle>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          break;
+      case SuspensionType::MULTI_LINK:
+          GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChMultiLink>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          break;
+      case SuspensionType::DOUBLE_WISHBONE:
+          GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          break;
+      case SuspensionType::MACPHERSON_STRUT:
+          GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
+          std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+          break;
   }
 
   GetLog() << "\n\n";

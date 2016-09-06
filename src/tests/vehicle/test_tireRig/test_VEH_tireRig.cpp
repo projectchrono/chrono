@@ -101,7 +101,7 @@ enum SolverType { ITSOR, MKL };
 SolverType solver_type = MKL;
 
 // Type of tire model (FIALA, ANCF, REISSNER, FEA)
-TireModelType tire_model = REISSNER;
+TireModelType tire_model = TireModelType::REISSNER;
 
 // Type of terrain model
 enum TerrainType { RIGID_TERRAIN, PLASTIC_FEA };
@@ -291,16 +291,16 @@ int main() {
     // Create output directories
     out_dir1 = "../Tire_Test_Rig/";
     switch (tire_model) {
-        case FIALA:
+        case TireModelType::FIALA:
             out_dir = out_dir1 + "Fiala/";
             break;
-        case ANCF:
+        case TireModelType::ANCF:
             out_dir = out_dir1 + "ANCF/";
             break;
-        case REISSNER:
+        case TireModelType::REISSNER:
             out_dir = out_dir1 + "Reissner/";
             break;
-        case FEA:
+        case TireModelType::FEA:
             out_dir = out_dir1 + "FEA/";
             break;
     }
@@ -346,7 +346,7 @@ int main() {
     // ----------------------------
 
     // Set contact model to DEM if FEA tire is used
-    if (tire_model == ANCF || tire_model == REISSNER || tire_model == FEA ) {
+    if (tire_model == TireModelType::ANCF || tire_model == TireModelType::REISSNER || tire_model == TireModelType::FEA) {
         contact_method = ChMaterialSurfaceBase::DEM;
     }
 
@@ -390,7 +390,7 @@ int main() {
     double tire_width;
 
     switch (tire_model) {
-        case FIALA: {
+        case TireModelType::FIALA: {
             std::shared_ptr<ChFialaTire> tire_fiala;
             if (use_JSON) {
                 tire_fiala = std::make_shared<FialaTire>(vehicle::GetDataFile(fiala_testfile));
@@ -405,7 +405,7 @@ int main() {
             tire = tire_fiala;
             break;
         }
-        case ANCF: {
+        case TireModelType::ANCF: {
 #ifdef CHRONO_FEA
             std::shared_ptr<ChANCFTire> tire_ancf;
             if (use_JSON) {
@@ -427,7 +427,7 @@ int main() {
 #endif
             break;
         }
-        case REISSNER: {
+        case TireModelType::REISSNER: {
 #ifdef CHRONO_FEA
             std::shared_ptr<ChReissnerTire> tire_reissner;
             if (use_JSON) {
@@ -449,7 +449,7 @@ int main() {
 #endif
             break;
         }
-        case FEA: {
+        case TireModelType::FEA: {
 #ifdef CHRONO_FEA
             auto tire_fea = std::make_shared<FEATire>(vehicle::GetDataFile(featire_file));
 
@@ -570,7 +570,8 @@ int main() {
     wheel->SetWvel_par(ChVector<>(0, desired_speed / tire_radius, 0));
     wheel->SetPos_dt(ChVector<>(desired_speed, 0, 0));
     my_system->AddBody(wheel);
-    if (tire_model != ANCF && tire_model != FEA && tire_model != REISSNER && tire_model != LUGRE) {
+    if (tire_model != TireModelType::ANCF && tire_model != TireModelType::FEA &&
+        tire_model != TireModelType::REISSNER && tire_model != TireModelType::LUGRE) {
         auto cyl_wheel = std::make_shared<ChCylinderShape>();
         cyl_wheel->GetCylinderGeometry().p1 = ChVector<>(0, -tire_width / 2, 0);
         cyl_wheel->GetCylinderGeometry().p2 = ChVector<>(0, tire_width / 2, 0);
@@ -722,7 +723,7 @@ int main() {
 #ifdef CHRONO_FEA
     TireTestCollisionManager* my_collider = NULL;
 
-    if (tire_model == ANCF && enable_tire_contact && use_custom_collision) {
+    if (tire_model == TireModelType::ANCF && enable_tire_contact && use_custom_collision) {
         // Disable automatic contact on the ground body
         if (terrain_type == RIGID_TERRAIN) {
             std::dynamic_pointer_cast<RigidTerrain>(terrain)->GetGroundBody()->SetCollide(false);
@@ -872,7 +873,7 @@ int main() {
     std::vector<std::vector<int>> NodeNeighborElement;
 
     switch (tire_model) {
-        case ANCF:
+        case TireModelType::ANCF:
             // Create connectivity section of VTK file
             NodeNeighborElement.resize(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh()->GetNnodes());
             CreateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), NodeNeighborElement);
@@ -927,7 +928,7 @@ int main() {
         if (simTime >= outTime - sim_step / 2) {
 #ifdef CHRONO_FEA
             switch (tire_model) {
-                case ANCF:
+                case TireModelType::ANCF:
                     UpdateVTKFile(std::dynamic_pointer_cast<ChANCFTire>(tire)->GetMesh(), simTime, NodeNeighborElement);
             }
 #endif

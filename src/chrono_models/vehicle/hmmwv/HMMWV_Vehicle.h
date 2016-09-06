@@ -40,16 +40,16 @@ namespace hmmwv {
 class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
     HMMWV_Vehicle(const bool fixed = false,
-                  DrivelineType driveType = AWD,
-                  VisualizationType chassisVis = NONE,
-                  VisualizationType wheelVis = PRIMITIVES,
+        DrivelineType driveType = DrivelineType::AWD,
+                  VisualizationType chassisVis = VisualizationType::NONE,
+                  VisualizationType wheelVis = VisualizationType::PRIMITIVES,
                   ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
     HMMWV_Vehicle(ChSystem* system,
                   const bool fixed = false,
-                  DrivelineType driveType = AWD,
-                  VisualizationType chassisVis = NONE,
-                  VisualizationType wheelVis = PRIMITIVES);
+                  DrivelineType driveType = DrivelineType::AWD,
+                  VisualizationType chassisVis = VisualizationType::NONE,
+                  VisualizationType wheelVis = VisualizationType::PRIMITIVES);
 
     ~HMMWV_Vehicle();
 

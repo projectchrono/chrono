@@ -101,13 +101,13 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Vehicle vehicle(false, MULTI_LINK, PRIMITIVES);
+    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
 
     vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
 
     // Create the trailer: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Trailer trailer(vehicle.GetSystem(), false, MULTI_LINK, PRIMITIVES);
+    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
 
     trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassis());
 

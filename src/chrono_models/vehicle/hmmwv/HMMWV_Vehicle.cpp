@@ -77,7 +77,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     m_chassis->SetBodyFixed(fixed);
 
     switch (chassisVis) {
-        case PRIMITIVES: {
+        case VisualizationType::PRIMITIVES: {
             auto sphere = std::make_shared<ChSphereShape>();
             sphere->GetSphereGeometry().rad = 0.1;
             sphere->Pos = m_chassisCOM;
@@ -85,7 +85,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
 
             break;
         }
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetDataFile(m_chassisMeshFile), false, false);
 
@@ -126,11 +126,11 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     // Create the driveline
     // --------------------
     switch (m_driveType) {
-        case FWD:
-        case RWD:
+        case DrivelineType::FWD:
+        case DrivelineType::RWD:
             m_driveline = std::make_shared<HMMWV_Driveline2WD>();
             break;
-        case AWD:
+        case DrivelineType::AWD:
             m_driveline = std::make_shared<HMMWV_Driveline4WD>();
             break;
     }
@@ -173,13 +173,13 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
     std::vector<int> driven_susp_indexes(m_driveline->GetNumDrivenAxles());
 
     switch (m_driveType) {
-        case FWD:
+        case DrivelineType::FWD:
             driven_susp_indexes[0] = 0;
             break;
-        case RWD:
+        case DrivelineType::RWD:
             driven_susp_indexes[0] = 1;
             break;
-        case AWD:
+        case DrivelineType::AWD:
             driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
             break;

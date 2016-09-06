@@ -44,7 +44,6 @@
 // Chrono vehicle header files
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 
 // M113 model header files
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -367,14 +366,14 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, SINGLE_PIN, system);
+    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, system);
     ////vehicle.SetStepsize(0.0001);
 
-    vehicle.SetChassisVisType(NONE);
-    vehicle.SetRoadWheelVisType(MESH);
-    vehicle.SetIdlerVisType(MESH);
-    vehicle.SetSprocketVisType(MESH);
-    vehicle.SetTrackShoeVisType(MESH);
+    vehicle.SetChassisVisType(VisualizationType::NONE);
+    vehicle.SetRoadWheelVisType(VisualizationType::MESH);
+    vehicle.SetIdlerVisType(VisualizationType::MESH);
+    vehicle.SetSprocketVisType(VisualizationType::MESH);
+    vehicle.SetTrackShoeVisType(VisualizationType::MESH);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 

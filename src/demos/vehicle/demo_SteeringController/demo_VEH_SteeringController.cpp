@@ -43,19 +43,19 @@ using namespace chrono::vehicle::hmmwv;
 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
 
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
-TireModelType tire_model = RIGID;
+TireModelType tire_model = TireModelType::RIGID;
 
 // Input file name for PACEJKA tires if they are selected
 std::string pacejka_tire_file("hmmwv/tire/HMMWV_pacejka.tir");
 
 // Type of powertrain model (SHAFTS or SIMPLE)
-PowertrainModelType powertrain_model = SHAFTS;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = RWD;
+DrivelineType drive_type = DrivelineType::RWD;
 
 // Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = PRIMITIVES;
+VisualizationType vis_type = VisualizationType::PRIMITIVES;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");

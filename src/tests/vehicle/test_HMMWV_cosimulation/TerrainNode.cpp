@@ -207,7 +207,7 @@ void TerrainNode::SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase
 }
 
 void TerrainNode::SetProxyProperties(double mass, double radius, bool fixed) {
-    assert(m_type == RIGID);
+    assert(m_type == TireModelType::RIGID);
     m_mass_pN = mass;
     m_radius_pN = radius;
     m_fixed_proxies = fixed;

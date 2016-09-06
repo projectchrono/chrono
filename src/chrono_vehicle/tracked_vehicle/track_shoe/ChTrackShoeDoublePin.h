@@ -107,6 +107,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     std::shared_ptr<ChLinkLockRevolute> m_rev_next_R;  ///< revolute joint between right connector and next shoe
 
     friend class ChSprocketDoublePin;
+    friend class SprocketDoublePinContactCB;
     friend class ChTrackAssemblyDoublePin;
 };
 

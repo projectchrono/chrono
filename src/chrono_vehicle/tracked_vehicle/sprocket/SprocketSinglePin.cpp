@@ -40,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSinglePin(""), m_vis_type(NONE) {
+SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSinglePin(""), m_vis_type(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -56,7 +56,7 @@ SprocketSinglePin::SprocketSinglePin(const std::string& filename) : ChSprocketSi
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SprocketSinglePin::SprocketSinglePin(const rapidjson::Document& d) : ChSprocketSinglePin(""), m_vis_type(NONE) {
+SprocketSinglePin::SprocketSinglePin(const rapidjson::Document& d) : ChSprocketSinglePin(""), m_vis_type(VisualizationType::NONE) {
     Create(d);
 }
 
@@ -107,9 +107,9 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis_type = MESH;
+            m_vis_type = VisualizationType::MESH;
         } else {
-            m_vis_type = PRIMITIVES;
+            m_vis_type = VisualizationType::PRIMITIVES;
         }
     }
 }
@@ -118,10 +118,10 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void SprocketSinglePin::AddGearVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChSprocket::AddGearVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();

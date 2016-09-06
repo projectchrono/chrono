@@ -44,7 +44,8 @@ const std::string M113_RoadWheelRight::m_meshFile = "M113/Roller_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name), m_vis_type(PRIMITIVES) {
+M113_RoadWheel::M113_RoadWheel(const std::string& name)
+    : ChDoubleRoadWheel(name), m_vis_type(VisualizationType::PRIMITIVES) {
     SetContactFrictionCoefficient(0.7f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -55,10 +56,10 @@ M113_RoadWheel::M113_RoadWheel(const std::string& name) : ChDoubleRoadWheel(name
 // -----------------------------------------------------------------------------
 void M113_RoadWheel::AddWheelVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChDoubleRoadWheel::AddWheelVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();

@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_vis_type(NONE) {
+DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_vis_type(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -55,7 +55,7 @@ DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_vis
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-DoubleIdler::DoubleIdler(const rapidjson::Document& d) : ChDoubleIdler(""), m_vis_type(NONE) {
+DoubleIdler::DoubleIdler(const rapidjson::Document& d) : ChDoubleIdler(""), m_vis_type(VisualizationType::NONE) {
     Create(d);
 }
 
@@ -136,9 +136,9 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis_type = MESH;
+            m_vis_type = VisualizationType::MESH;
         } else {
-            m_vis_type = PRIMITIVES;
+            m_vis_type = VisualizationType::PRIMITIVES;
         }
     }
 }
@@ -147,10 +147,10 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void DoubleIdler::AddWheelVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChDoubleIdler::AddWheelVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();

@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SingleIdler::SingleIdler(const std::string& filename) :ChSingleIdler("") {
+SingleIdler::SingleIdler(const std::string& filename) :ChSingleIdler(""), m_vis_type(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -55,7 +55,7 @@ SingleIdler::SingleIdler(const std::string& filename) :ChSingleIdler("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SingleIdler::SingleIdler(const rapidjson::Document& d) : ChSingleIdler("") {
+SingleIdler::SingleIdler(const rapidjson::Document& d) : ChSingleIdler(""), m_vis_type(VisualizationType::NONE) {
     Create(d);
 }
 
@@ -135,9 +135,9 @@ void SingleIdler::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis_type = MESH;
+            m_vis_type = VisualizationType::MESH;
         } else {
-            m_vis_type = PRIMITIVES;
+            m_vis_type = VisualizationType::PRIMITIVES;
         }
     }
 }
@@ -146,10 +146,10 @@ void SingleIdler::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void SingleIdler::AddWheelVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChSingleIdler::AddWheelVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();

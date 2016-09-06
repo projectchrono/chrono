@@ -65,7 +65,7 @@ void HMMWV_Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
 
     // Attach visualization
     switch (m_visType) {
-        case PRIMITIVES: {
+        case VisualizationType::PRIMITIVES: {
             auto cyl = std::make_shared<ChCylinderShape>();
             cyl->GetCylinderGeometry().rad = m_radius;
             cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
@@ -78,7 +78,7 @@ void HMMWV_Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
 
             break;
         }
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
 

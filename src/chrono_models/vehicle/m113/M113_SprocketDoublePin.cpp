@@ -53,7 +53,8 @@ const std::string M113_SprocketDoublePinRight::m_meshFile = "M113/Sprocket2_R.ob
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSprocketDoublePin(name), m_vis_type(PRIMITIVES) {
+M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name)
+    : ChSprocketDoublePin(name), m_vis_type(VisualizationType::PRIMITIVES) {
     SetContactFrictionCoefficient(0.4f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -64,10 +65,10 @@ M113_SprocketDoublePin::M113_SprocketDoublePin(const std::string& name) : ChSpro
 // -----------------------------------------------------------------------------
 void M113_SprocketDoublePin::AddGearVisualization() {
     switch (m_vis_type) {
-        case PRIMITIVES:
+        case VisualizationType::PRIMITIVES:
             ChSprocket::AddGearVisualization();
             break;
-        case MESH: {
+        case VisualizationType::MESH: {
             ////geometry::ChTriangleMeshConnected trimesh;
             ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
             ////auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
