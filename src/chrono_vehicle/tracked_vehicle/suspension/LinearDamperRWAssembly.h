@@ -35,8 +35,8 @@ namespace vehicle {
 /// file (JSON format)
 class CH_VEHICLE_API LinearDamperRWAssembly : public ChLinearDamperRWAssembly {
   public:
-    LinearDamperRWAssembly(const std::string& filename);
-    LinearDamperRWAssembly(const rapidjson::Document& d);
+    LinearDamperRWAssembly(const std::string& filename, bool has_shock);
+    LinearDamperRWAssembly(const rapidjson::Document& d, bool has_shock);
     ~LinearDamperRWAssembly() {}
 
     /// Return the mass of the arm body.

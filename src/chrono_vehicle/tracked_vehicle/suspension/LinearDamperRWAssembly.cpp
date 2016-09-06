@@ -75,7 +75,8 @@ void LinearDamperRWAssembly::LoadRoadWheel(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename) : ChLinearDamperRWAssembly("", false) {
+LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename, bool has_shock)
+    : ChLinearDamperRWAssembly("", has_shock) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -91,7 +92,8 @@ LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename) : Ch
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-LinearDamperRWAssembly::LinearDamperRWAssembly(const rapidjson::Document& d) : ChLinearDamperRWAssembly("", false) {
+LinearDamperRWAssembly::LinearDamperRWAssembly(const rapidjson::Document& d, bool has_shock)
+    : ChLinearDamperRWAssembly("", has_shock) {
     Create(d);
 }
 
@@ -129,17 +131,12 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     m_torsion_force->Set_iforce(torsion_t);
 
     // Read linear shock data
-    m_has_shock = d.HasMember("Damper");
-    if (m_has_shock) {
-        m_points[SHOCK_C] = loadVector(d["Damper"]["Location Chassis"]);
-        m_points[SHOCK_A] = loadVector(d["Damper"]["Location Arm"]);
-        double shock_c = d["Damper"]["Damping Coefficient"].GetDouble();
-        m_shock_forceCB = new LinearDamperForce(shock_c);
-    } else {
-        m_points[SHOCK_C] = ChVector<>(0);
-        m_points[SHOCK_A] = ChVector<>(0);
-        m_shock_forceCB = nullptr;
-    }
+    assert(d.HasMember("Damper"));
+
+    m_points[SHOCK_C] = loadVector(d["Damper"]["Location Chassis"]);
+    m_points[SHOCK_A] = loadVector(d["Damper"]["Location Arm"]);
+    double shock_c = d["Damper"]["Damping Coefficient"].GetDouble();
+    m_shock_forceCB = new LinearDamperForce(shock_c);
 
     // Create the associated road-wheel
     assert(d.HasMember("Road Wheel Input File"));
