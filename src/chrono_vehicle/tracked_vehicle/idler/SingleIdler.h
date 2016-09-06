@@ -54,7 +54,11 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
     virtual void AddWheelVisualization() override;
 
   private:
+    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
+
     void Create(const rapidjson::Document& d);
+
+    ChVector<> m_points[NUM_POINTS];
 
     double m_wheel_radius;
     double m_wheel_width;

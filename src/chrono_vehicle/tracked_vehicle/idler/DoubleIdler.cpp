@@ -74,16 +74,21 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
     m_wheel_gap = d["Wheel"]["Gap"].GetDouble();
     m_wheel_mass = d["Wheel"]["Mass"].GetDouble();
     m_wheel_inertia = loadVector(d["Wheel"]["Inertia"]);
+    m_points[WHEEL] = loadVector(d["Wheel"]["COM"]);
 
     // Read carrier geometry and mass properties
     assert(d.HasMember("Carrier"));
     m_carrier_mass = d["Carrier"]["Mass"].GetDouble();
     m_carrier_inertia = loadVector(d["Carrier"]["Inertia"]);
+    m_points[CARRIER] = loadVector(d["Carrier"]["COM"]);
+    m_points[CARRIER_CHASSIS] = loadVector(d["Carrier"]["Location Chassis"]);
     m_carrier_vis_radius = d["Carrier"]["Visualization Radius"].GetDouble();
     m_pitch_angle = d["Carrier"]["Pitch Angle"].GetDouble();
 
     // Read tensioner data
     assert(d.HasMember("Tensioner"));
+    m_points[TSDA_CARRIER] = loadVector(d["Tensioner"]["Location Carrier"]);
+    m_points[TSDA_CHASSIS] = loadVector(d["Tensioner"]["Location Chassis"]);
     double tensioner_f = d["Tensioner"]["Preload"].GetDouble();
     double tensioner_l0 = d["Tensioner"]["Free Length"].GetDouble();
     m_tensioner->Set_SpringRestLength(tensioner_l0);
