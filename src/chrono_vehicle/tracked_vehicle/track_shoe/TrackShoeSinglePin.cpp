@@ -79,8 +79,8 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     assert(d["Contact Geometry"].HasMember("Shoe"));
     assert(d["Contact Geometry"].HasMember("Cylinder"));
 
-    m_pad_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Pad dimensions"]);
-    m_pad_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Pad location"]);
+    m_pad_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
+    m_pad_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Pad Location"]);
     m_guide_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
     m_guide_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Guide location"]);
 
