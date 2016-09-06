@@ -18,11 +18,12 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/FlatTerrain.h"
-#include "chrono_vehicle/powertrain/SimplePowertrain.h"
 #include "chrono_vehicle/utils/ChVehicleIrrApp.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChIrrGuiDriverTTR.h"
+
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 
 #include "chrono_models/vehicle/m113/M113_TrackAssemblySinglePin.h"
 #include "chrono_models/vehicle/m113/M113_TrackAssemblyDoublePin.h"
@@ -37,6 +38,10 @@ using std::endl;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
+
+bool use_JSON = false;
+std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json");
+
 double post_limit = 0.2;
 
 // Simulation step size
@@ -45,53 +50,59 @@ double render_step_size = 1.0 / 50;  // Time interval between two render frames
 
 // =============================================================================
 int main(int argc, char* argv[]) {
-    // Create an M113 track assembly.
-    VehicleSide side = LEFT;
-    TrackShoeType type = TrackShoeType::SINGLE_PIN;
-    VisualizationType shoe_vis = VisualizationType::PRIMITIVES;
+    ChTrackTestRig* rig = nullptr;
+    ChVector<> location(0, 1, 0);
 
-    std::shared_ptr<ChTrackAssembly> track_assembly;
-    switch (type) {
-        case TrackShoeType::SINGLE_PIN: {
-            auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
-            assembly->SetTrackShoeVisType(shoe_vis);
-            track_assembly = assembly;
-            break;
+    if (use_JSON) {
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), location);
+    } else {
+        // Create an M113 track assembly.
+        VehicleSide side = LEFT;
+        TrackShoeType type = TrackShoeType::SINGLE_PIN;
+        VisualizationType shoe_vis = VisualizationType::PRIMITIVES;
+
+        std::shared_ptr<ChTrackAssembly> track_assembly;
+        switch (type) {
+            case TrackShoeType::SINGLE_PIN: {
+                auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
+                assembly->SetTrackShoeVisType(shoe_vis);
+                track_assembly = assembly;
+                break;
+            }
+            case TrackShoeType::DOUBLE_PIN: {
+                auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
+                assembly->SetTrackShoeVisType(shoe_vis);
+                track_assembly = assembly;
+                break;
+            }
         }
-        case TrackShoeType::DOUBLE_PIN: {
-            auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
-            assembly->SetTrackShoeVisType(shoe_vis);
-            track_assembly = assembly;
-            break;
-        }
+
+        rig = new ChTrackTestRig(track_assembly, location, ChMaterialSurfaceBase::DVI);
     }
 
-    // Create and initialize the testing mechanism.
-    ChVector<> location = (side == LEFT) ? ChVector<>(0, 1, 0) : ChVector<>(0, -1, 0);
-    ChTrackTestRig rig(track_assembly, location, ChMaterialSurfaceBase::DVI);
-    //rig.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig.GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
-    rig.GetSystem()->SetMaxItersSolverSpeed(50);
-    rig.GetSystem()->SetMaxItersSolverStab(50);
-    rig.GetSystem()->SetTol(0);
-    rig.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-    rig.GetSystem()->SetMinBounceSpeed(2.0);
-    rig.GetSystem()->SetSolverOverrelaxationParam(0.8);
-    rig.GetSystem()->SetSolverSharpnessParam(1.0);
+    //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    rig->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+    rig->GetSystem()->SetMaxItersSolverSpeed(50);
+    rig->GetSystem()->SetMaxItersSolverStab(50);
+    rig->GetSystem()->SetTol(0);
+    rig->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
+    rig->GetSystem()->SetMinBounceSpeed(2.0);
+    rig->GetSystem()->SetSolverOverrelaxationParam(0.8);
+    rig->GetSystem()->SetSolverSharpnessParam(1.0);
 
-    rig.SetMaxTorque(6000);
+    rig->SetMaxTorque(6000);
 
-    rig.Initialize(ChCoordsys<>());
+    rig->Initialize(ChCoordsys<>());
 
-    ////rig.SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
-    ////rig.GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
+    ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
+    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.
-    ChVector<> target_point = rig.GetPostPosition();
+    ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = idler_loc;
     ////ChVector<> target_point = sprocket_loc;
 
-    ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");
+    ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(target_point, 3.0, 1.0);
@@ -128,12 +139,12 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         // Debugging output
-        const ChFrameMoving<>& c_ref = rig.GetChassis()->GetFrame_REF_to_abs();
-        const ChVector<>& i_pos_abs = rig.GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-        const ChVector<>& s_pos_abs = rig.GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+        const ChFrameMoving<>& c_ref = rig->GetChassis()->GetFrame_REF_to_abs();
+        const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+        const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
         ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
         ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-        ////cout << "Time: " << rig.GetSystem()->GetChTime() << endl;
+        ////cout << "Time: " << rig->GetSystem()->GetChTime() << endl;
         ////cout << "      idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
         ////cout << "      sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
 
@@ -152,20 +163,22 @@ int main(int argc, char* argv[]) {
         double post_input = driver.GetDisplacement();
 
         // Update modules (process inputs from other modules)
-        double time = rig.GetChTime();
+        double time = rig->GetChTime();
         driver.Synchronize(time);
-        rig.Synchronize(time, post_input, throttle_input, shoe_forces);
+        rig->Synchronize(time, post_input, throttle_input, shoe_forces);
         app.Synchronize("", 0, throttle_input, 0);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver.Advance(step);
-        rig.Advance(step);
+        rig->Advance(step);
         app.Advance(step);
 
         // Increment frame number
         step_number++;
     }
+
+    delete rig;
 
     return 0;
 }

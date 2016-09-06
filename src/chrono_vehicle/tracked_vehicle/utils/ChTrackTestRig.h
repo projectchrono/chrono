@@ -25,9 +25,6 @@
 #define CH_TRACK_TEST_RIG_H
 
 #include <string>
-#include <vector>
-
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -48,16 +45,13 @@ namespace vehicle {
 /// Definition of a suspension test rig.
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
-    /// Construct a test rig for a specified track assembly of a given vehicle.
-    ChTrackTestRig(
-        const std::string& filename,  ///< [in] JSON file with vehicle specification
-        VehicleSide side,             ///< [in] select left or right track assembly
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
-        );
+    /// Default constructor.
+    ChTrackTestRig() {}
 
-    /// Construct a test rig from specified file.
+    /// Construct a test rig from specified track assembly JSON file.
     ChTrackTestRig(
         const std::string& filename,  ///< [in] JSON file with test rig specification
+        const ChVector<>& location,   ///< [in] track assembly location
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
         );
 
