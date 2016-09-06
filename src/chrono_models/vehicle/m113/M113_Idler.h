@@ -66,6 +66,9 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     /// Return the callback function for spring force.
     virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
+    /// Return the free length for the tensioner spring.
+    virtual double GetTensionerFreeLength() const { return m_tensioner_l0; }
+
     /// Add visualization of the idler wheel.
     virtual void AddWheelVisualization() override;
 

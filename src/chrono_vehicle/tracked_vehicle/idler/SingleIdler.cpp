@@ -88,10 +88,9 @@ void SingleIdler::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Tensioner"));
     m_points[TSDA_CARRIER] = loadVector(d["Tensioner"]["Location Carrier"]);
     m_points[TSDA_CHASSIS] = loadVector(d["Tensioner"]["Location Chassis"]);
+    m_tensioner_l0 = d["Tensioner"]["Free Length"].GetDouble();
     double tensioner_f = d["Tensioner"]["Preload"].GetDouble();
-    double tensioner_l0 = d["Tensioner"]["Free Length"].GetDouble();
-    m_tensioner->Set_SpringRestLength(tensioner_l0);
-    if (d["Tensioner"].HasMember("SpringCoefficient")) {
+    if (d["Tensioner"].HasMember("Spring Coefficient")) {
         // Linear spring-damper
         double tensioner_k = d["Tensioner"]["Spring Coefficient"].GetDouble();
         double tensioner_c = d["Tensioner"]["Damping Coefficient"].GetDouble();

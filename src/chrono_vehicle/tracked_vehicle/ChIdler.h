@@ -177,6 +177,9 @@ class CH_VEHICLE_API ChIdler {
     /// Return the callback function for spring force.
     virtual ChSpringForceCallback* GetTensionerForceCallback() const = 0;
 
+    /// Return the free length for the tensioner spring.
+    virtual double GetTensionerFreeLength() const = 0;
+
     std::string m_name;                            ///< name of the subsystem
     std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
     std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
