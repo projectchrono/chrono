@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/road_wheel/DoubleRoadWheel.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -117,7 +118,7 @@ void DoubleRoadWheel::AddWheelVisualization() {
             break;
         case MESH: {
             geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(m_meshFile, false, false);
+            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
             auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
             trimesh_shape->SetMesh(trimesh);
             trimesh_shape->SetName(m_meshName);

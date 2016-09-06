@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/tracked_vehicle/idler/SingleIdler.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -145,18 +146,18 @@ void SingleIdler::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void SingleIdler::AddWheelVisualization() {
     switch (m_vis_type) {
-    case PRIMITIVES:
-        ChSingleIdler::AddWheelVisualization();
-        break;
-    case MESH: {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(m_meshFile, false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
-        m_wheel->AddAsset(trimesh_shape);
-        break;
-    }
+        case PRIMITIVES:
+            ChSingleIdler::AddWheelVisualization();
+            break;
+        case MESH: {
+            geometry::ChTriangleMeshConnected trimesh;
+            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            trimesh_shape->SetMesh(trimesh);
+            trimesh_shape->SetName(m_meshName);
+            m_wheel->AddAsset(trimesh_shape);
+            break;
+        }
     }
 }
 
