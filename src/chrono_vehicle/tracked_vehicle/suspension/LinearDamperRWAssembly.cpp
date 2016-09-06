@@ -110,7 +110,7 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d["Suspension Arm"].IsObject());
 
     m_arm_mass = d["Suspension Arm"]["Mass"].GetDouble();
-    m_points[ARM] = loadVector(d["SuspensionArm"]["COM"]);
+    m_points[ARM] = loadVector(d["Suspension Arm"]["COM"]);
     m_arm_inertia = loadVector(d["Suspension Arm"]["Inertia"]);
     m_points[ARM_CHASSIS] = loadVector(d["Suspension Arm"]["Location Chassis"]);
     m_points[ARM_WHEEL] = loadVector(d["Suspension Arm"]["Location Wheel"]);

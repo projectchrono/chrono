@@ -82,7 +82,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_pad_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Pad Dimensions"]);
     m_pad_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Pad Location"]);
     m_guide_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
-    m_guide_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Guide location"]);
+    m_guide_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Guide Location"]);
 
     m_cyl_radius = d["Contact Geometry"]["Cylinder"]["Radius"].GetDouble();
     m_front_cyl_loc = d["Contact Geometry"]["Cylinder"]["Front Offset"].GetDouble();

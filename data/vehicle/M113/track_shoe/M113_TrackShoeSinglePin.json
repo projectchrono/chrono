@@ -1,6 +1,6 @@
 {
   "Name":                           "M113 SinglePin TrackShoe Left",
-  "Type":                           "RoadWheel",
+  "Type":                           "TrackShoe",
   "Template":                       "TrackShoeSinglePin",
 
   "Shoe":
@@ -27,7 +27,7 @@
           "Front Offset":           0.0535,
           "Rear Offset":            -0.061
       }
-  }
+  },
 
   "Contact Material":
   {

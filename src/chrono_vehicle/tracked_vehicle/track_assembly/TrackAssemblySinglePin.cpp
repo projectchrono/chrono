@@ -257,11 +257,12 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Suspension Subsystems"));
     assert(d["Suspension Subsystems"].IsArray());
     m_num_susp = d["Suspension Subsystems"].Size();
+    m_suspensions.resize(m_num_susp);
     m_susp_locs.resize(m_num_susp);
     for (int i = 0; i < m_num_susp; i++) {
         std::string file_name = d["Suspension Subsystems"][i]["Input File"].GetString();
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
-        m_susp_locs[i] = loadVector(d["Suspension Subsystems"]["Location"]);
+        m_susp_locs[i] = loadVector(d["Suspension Subsystems"][i]["Location"]);
         LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock);
     }
 
