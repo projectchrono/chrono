@@ -63,11 +63,8 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     /// Return offset of arc center.
     virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddGearVisualization() override;
-
-    /// Set the sprocket visualization type.
-    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -91,8 +88,6 @@ class CH_MODELS_API M113_SprocketDoublePin : public ChSprocketDoublePin {
     static const double m_gear_C;
     static const double m_gear_W;
     static const double m_gear_RA;
-
-    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_SprocketDoublePinLeft : public M113_SprocketDoublePin {

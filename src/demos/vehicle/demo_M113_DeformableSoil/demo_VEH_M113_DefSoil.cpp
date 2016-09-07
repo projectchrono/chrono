@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);

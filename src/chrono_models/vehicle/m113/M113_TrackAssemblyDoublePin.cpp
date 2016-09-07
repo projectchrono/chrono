@@ -104,12 +104,6 @@ const ChVector<>& M113_TrackAssemblyDoublePin::GetRoadWhelAssemblyLocation(int w
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_TrackAssemblyDoublePin::SetSprocketVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_SprocketDoublePin>(GetSprocket())->SetVisType(vis);
-}
-
 }  // end namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono

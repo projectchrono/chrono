@@ -155,6 +155,12 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     void ApplyAxleTorque(double torque  ///< [in] value of applied torque
                          );
 
+    /// Add visualization assets for the sprocket subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the sprocket subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
     /// Log current constraint violations.
     void LogConstraintViolations();
 
@@ -184,10 +190,6 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual ChSystem::ChCustomComputeCollisionCallback* GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
-
-    /// Add visualization of the gear wheel.
-    /// The default implementation renders the gear tooth profiles as a line path.
-    virtual void AddGearVisualization();
 
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts

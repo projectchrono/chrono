@@ -61,8 +61,8 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const { return m_gear_RC; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddGearVisualization() override;
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     void Create(const rapidjson::Document& d);
@@ -79,7 +79,7 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     double m_gear_R;
     double m_gear_RA;
 
-    VisualizationType m_vis_type;
+    bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
 };

@@ -56,7 +56,6 @@ int main(int argc, char* argv[]) {
     if (use_JSON) {
         rig = new ChTrackTestRig(vehicle::GetDataFile(filename), location);
     } else {
-        // Create an M113 track assembly.
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
 
@@ -91,6 +90,7 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize(ChCoordsys<>());
 
+    rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);

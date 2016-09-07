@@ -98,17 +98,9 @@ void M113_Vehicle::SetChassisVisType(VisualizationType vis) {
     m_chassisVisType = vis;
 }
 
-void M113_Vehicle::SetSprocketVisType(VisualizationType vis) {
-    switch (m_type) {
-        case TrackShoeType::SINGLE_PIN:
-            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetSprocketVisType(vis);
-            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetSprocketVisType(vis);
-            break;
-        case TrackShoeType::DOUBLE_PIN:
-            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetSprocketVisType(vis);
-            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetSprocketVisType(vis);
-            break;
-    }
+void M113_Vehicle::SetSprocketVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetSprocketVisualizationType(vis);
+    m_tracks[1]->SetSprocketVisualizationType(vis);
 }
 
 void M113_Vehicle::SetIdlerVisualizationType(VisualizationType vis) {

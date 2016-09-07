@@ -91,7 +91,6 @@ int main(int argc, char* argv[]) {
 
     // Set visualization type for vehicle components (default: PRIMITIVES).
     ////vehicle.SetChassisVisType(VisualizationType::MESH);
-    ////vehicle.SetSprocketVisType(VisualizationType::MESH);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -110,6 +109,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);

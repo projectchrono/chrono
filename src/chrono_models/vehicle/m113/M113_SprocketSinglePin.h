@@ -61,11 +61,8 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     /// Return the radius of the tooth arc centers.
     virtual double GetArcCentersRadius() const { return m_gear_RC; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddGearVisualization() override;
-
-    /// Set the sprocket visualization type.
-    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
+    /// Add visualization of the sprocket.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -88,8 +85,6 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     static const double m_gear_RC;
     static const double m_gear_R;
     static const double m_gear_RA;
-
-    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_SprocketSinglePinLeft : public M113_SprocketSinglePin {

@@ -101,9 +101,6 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
-    // Add visualization of the gear.
-    AddGearVisualization();
-
     // Enable contact for the gear body and set contact material properties.
     m_gear->SetCollide(true);
 
@@ -136,7 +133,10 @@ double ChSprocket::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSprocket::AddGearVisualization() {
+void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     ChQuaternion<> y2z = Q_from_AngX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
@@ -156,6 +156,10 @@ void ChSprocket::AddGearVisualization() {
     asset_2->Rot = rot_y2z;
     asset_2->SetColor(ChColor(1, 0, 0));
     m_gear->AddAsset(asset_2);
+}
+
+void ChSprocket::RemoveVisualizationAssets() {
+    m_gear->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

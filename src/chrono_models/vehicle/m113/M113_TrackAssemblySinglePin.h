@@ -37,8 +37,6 @@ class CH_MODELS_API M113_TrackAssemblySinglePin : public ChTrackAssemblySinglePi
     virtual const ChVector<>& GetIdlerLocation() const override;
     virtual const ChVector<>& GetRoadWhelAssemblyLocation(int which) const override;
 
-    void SetSprocketVisType(VisualizationType vis);
-
   private:
     static const ChVector<> m_sprocket_loc;
     static const ChVector<> m_idler_loc;

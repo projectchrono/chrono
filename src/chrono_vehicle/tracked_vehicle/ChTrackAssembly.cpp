@@ -91,7 +91,7 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
-    ////GetSprocket()->SetVisualizationType(vis); 
+    GetSprocket()->SetVisualizationType(vis); 
 }
 
 void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {

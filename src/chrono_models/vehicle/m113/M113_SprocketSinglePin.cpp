@@ -51,8 +51,7 @@ const std::string M113_SprocketSinglePinRight::m_meshFile = "M113/Sprocket_R.obj
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name)
-    : ChSprocketSinglePin(name), m_vis_type(VisualizationType::PRIMITIVES) {
+M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name) : ChSprocketSinglePin(name) {
     SetContactFrictionCoefficient(0.4f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -61,20 +60,16 @@ M113_SprocketSinglePin::M113_SprocketSinglePin(const std::string& name)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_SprocketSinglePin::AddGearVisualization() {
-    switch (m_vis_type) {
-        case VisualizationType::PRIMITIVES:
-            ChSprocket::AddGearVisualization();
-            break;
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(GetMeshName());
-            m_gear->AddAsset(trimesh_shape);
-            break;
-        }
+void M113_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(GetMeshName());
+        m_gear->AddAsset(trimesh_shape);
+    } else {
+        ChSprocket::AddVisualizationAssets(vis);
     }
 }
 
