@@ -27,7 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRoadWheel::ChRoadWheel(const std::string& name)
-    : m_name(name),
+    : ChPart(name),
       m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(1e8f),

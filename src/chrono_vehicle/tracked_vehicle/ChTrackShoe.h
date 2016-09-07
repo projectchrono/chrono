@@ -27,7 +27,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_tracked
@@ -43,7 +43,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a track shoe.
-class CH_VEHICLE_API ChTrackShoe {
+class CH_VEHICLE_API ChTrackShoe : public ChPart {
   public:
     ChTrackShoe(const std::string& name  ///< [in] name of the subsystem
                 );
@@ -54,12 +54,6 @@ class CH_VEHICLE_API ChTrackShoe {
     /// A derived class must specify the type of track shoe (which must be
     /// consistent with the idler and road wheels in the containing track assembly.
     virtual GuidePinType GetType() const = 0;
-
-    /// Get the name identifier for this track shoe subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this track shoe subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the shoe body.
     std::shared_ptr<ChBody> GetShoeBody() const { return m_shoe; }
@@ -142,7 +136,6 @@ class CH_VEHICLE_API ChTrackShoe {
     /// Set the index of this track shoe within its containing track assembly.
     void SetIndex(size_t index) { m_index = index; }
 
-    std::string m_name;              ///< name of the subsystem
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body
 

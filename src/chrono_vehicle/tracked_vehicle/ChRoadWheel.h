@@ -28,7 +28,7 @@
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 namespace chrono {
 namespace vehicle {
@@ -37,18 +37,12 @@ namespace vehicle {
 /// @{
 
 /// Base class for a road wheel subsystem.
-class CH_VEHICLE_API ChRoadWheel {
+class CH_VEHICLE_API ChRoadWheel : public ChPart {
   public:
     ChRoadWheel(const std::string& name  ///< [in] name of the subsystem
                 );
 
     virtual ~ChRoadWheel() {}
-
-    /// Get the name identifier for this road wheel subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this road wheel subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Return the type of track shoe consistent with this road wheel.
     virtual GuidePinType GetType() const = 0;
@@ -130,7 +124,6 @@ class CH_VEHICLE_API ChRoadWheel {
     void LogConstraintViolations();
 
   protected:
-    std::string m_name;                              ///< name of the subsystem
     std::shared_ptr<ChBody> m_wheel;                 ///< handle to the road wheel body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to wheel revolute joint
 

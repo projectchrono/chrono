@@ -43,7 +43,7 @@
 #include "chrono/geometry/ChLineArc.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_tracked
@@ -63,18 +63,12 @@ class ChTrackAssembly;
 
 /// Base class for a tracked vehicle sprocket.
 /// A sprocket is responsible for contact processing with the track shoes of the containing track assembly.
-class CH_VEHICLE_API ChSprocket {
+class CH_VEHICLE_API ChSprocket : public ChPart {
   public:
     ChSprocket(const std::string& name  ///< [in] name of the subsystem
                );
 
     virtual ~ChSprocket();
-
-    /// Get the name identifier for this sprocket subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this sprocket subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const = 0;
@@ -195,7 +189,6 @@ class CH_VEHICLE_API ChSprocket {
     /// The default implementation renders the gear tooth profiles as a line path.
     virtual void AddGearVisualization();
 
-    std::string m_name;                               ///< name of the subsystem
     std::shared_ptr<ChBody> m_gear;                   ///< handle to the sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< handle to gear shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector

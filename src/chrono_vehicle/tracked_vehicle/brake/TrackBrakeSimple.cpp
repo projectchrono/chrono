@@ -27,7 +27,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) {
+TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) : ChTrackBrakeSimple("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -43,7 +43,7 @@ TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-TrackBrakeSimple::TrackBrakeSimple(const rapidjson::Document& d) {
+TrackBrakeSimple::TrackBrakeSimple(const rapidjson::Document& d) : ChTrackBrakeSimple("") {
     Create(d);
 }
 
@@ -52,6 +52,8 @@ void TrackBrakeSimple::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     // Read maximum braking torque
     m_maxtorque = d["Maximum Torque"].GetDouble();

@@ -30,7 +30,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
@@ -47,15 +47,9 @@ namespace vehicle {
 /// Definition of a track assembly.
 /// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
 /// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
-class CH_VEHICLE_API ChTrackAssembly {
+class CH_VEHICLE_API ChTrackAssembly : public ChPart {
   public:
     virtual ~ChTrackAssembly() {}
-
-    /// Get the name identifier for this track assembly subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this track assembly subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Return the vehicle side for this track assembly.
     VehicleSide GetVehicleSide() const { return m_side; }
@@ -165,14 +159,13 @@ class CH_VEHICLE_API ChTrackAssembly {
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
                     )
-        : m_name(name), m_side(side) {}
+        : ChPart(name), m_side(side) {}
 
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
 
-    std::string m_name;                     ///< name of the subsystem
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake

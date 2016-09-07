@@ -39,6 +39,12 @@ class CH_VEHICLE_API ChPart {
 
     virtual ~ChPart() {}
 
+    /// Get the name identifier for this track shoe subsystem.
+    const std::string& GetName() const { return m_name; }
+
+    /// Set the name identifier for this track shoe subsystem.
+    void SetName(const std::string& name) { m_name = name; }
+
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
 

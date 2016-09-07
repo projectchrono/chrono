@@ -32,7 +32,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChSprocket::ChSprocket(const std::string& name)
-    : m_name(name),
+    : ChPart(name),
       m_callback(NULL),
       m_friction(0.4f),
       m_restitution(0.1f),

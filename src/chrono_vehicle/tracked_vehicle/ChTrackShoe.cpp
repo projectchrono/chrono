@@ -27,7 +27,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChTrackShoe::ChTrackShoe(const std::string& name)
-    : m_name(name),
+    : ChPart(name),
       m_index(0),
       m_friction(0.8f),
       m_restitution(0.1f),

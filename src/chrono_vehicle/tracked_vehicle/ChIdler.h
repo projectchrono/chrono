@@ -63,12 +63,6 @@ class CH_VEHICLE_API ChIdler : public ChPart {
 
     virtual ~ChIdler() {}
 
-    /// Get the name identifier for this idler subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this idler subsystem.
-    void SetName(const std::string& name) { m_name = name; }
-
     /// Return the type of track shoe consistent with this idler.
     virtual GuidePinType GetType() const = 0;
 
