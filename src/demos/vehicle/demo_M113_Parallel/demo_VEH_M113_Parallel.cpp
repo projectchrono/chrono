@@ -369,12 +369,12 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetStepsize(0.0001);
 
     vehicle.SetChassisVisType(VisualizationType::NONE);
-    vehicle.SetRoadWheelVisType(VisualizationType::MESH);
     vehicle.SetSprocketVisType(VisualizationType::MESH);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     ////vehicle.SetCollide(TrackCollide::NONE);

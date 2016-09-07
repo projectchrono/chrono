@@ -85,9 +85,6 @@ int main(int argc, char* argv[]) {
     // --------------------------
     M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
-    // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetRoadWheelVisType(VisualizationType::NONE);
-
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
@@ -106,6 +103,7 @@ int main(int argc, char* argv[]) {
 
     // Set visualization type for vehicle components.
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.

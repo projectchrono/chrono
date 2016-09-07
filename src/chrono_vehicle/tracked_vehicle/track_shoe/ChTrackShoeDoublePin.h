@@ -69,10 +69,10 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
-    /// Add visualization assets for the idler subsystem.
+    /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Remove visualization assets for the idler subsystem.
+    /// Remove visualization assets for the track shoe subsystem.
     virtual void RemoveVisualizationAssets() override final;
 
   protected:

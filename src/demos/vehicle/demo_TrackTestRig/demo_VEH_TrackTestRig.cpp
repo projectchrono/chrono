@@ -92,6 +92,7 @@ int main(int argc, char* argv[]) {
     rig->Initialize(ChCoordsys<>());
 
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);

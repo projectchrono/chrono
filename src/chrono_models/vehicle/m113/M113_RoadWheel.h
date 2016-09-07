@@ -50,10 +50,7 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
     virtual double GetWheelGap() const override { return m_wheel_gap; }
 
     /// Add visualization of the road wheel.
-    virtual void AddWheelVisualization() override;
-
-    /// Set the road wheel visualization type.
-    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
     void ExportMeshPovray(const std::string& out_dir);
@@ -71,8 +68,6 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
     static const double m_wheel_radius;
     static const double m_wheel_width;
     static const double m_wheel_gap;
-
-    VisualizationType m_vis_type;
 };
 
 class CH_MODELS_API M113_RoadWheelLeft : public M113_RoadWheel {

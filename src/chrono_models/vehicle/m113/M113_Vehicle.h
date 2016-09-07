@@ -43,7 +43,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
     void SetChassisVisType(VisualizationType vis);
     void SetSprocketVisType(VisualizationType vis);
     void SetIdlerVisualizationType(VisualizationType vis);
-    void SetRoadWheelVisType(VisualizationType vis);
+    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
     void SetTrackShoeVisualizationType(VisualizationType vis);
 
     void ExportMeshPovray(const std::string& out_dir);

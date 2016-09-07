@@ -99,9 +99,9 @@ void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
 }
 
 void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
-    ////for (size_t i = 0; i < m_suspensions.size(); ++i) {
-    ////    m_suspensions[i]->SetVisualizationType(vis);
-    ////}
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->SetVisualizationType(vis);
+    }
 }
 
 void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {

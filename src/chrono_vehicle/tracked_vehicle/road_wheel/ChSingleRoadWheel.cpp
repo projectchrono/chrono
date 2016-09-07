@@ -52,14 +52,14 @@ void ChSingleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
     m_wheel->GetCollisionModel()->BuildModel();
-
-    // Add visualization of the wheel.
-    AddWheelVisualization();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleRoadWheel::AddWheelVisualization() {
+void ChSingleRoadWheel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 
@@ -72,6 +72,10 @@ void ChSingleRoadWheel::AddWheelVisualization() {
     auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("greenwhite.png"));
     m_wheel->AddAsset(tex);
+}
+
+void ChSingleRoadWheel::RemoveVisualizationAssets() {
+    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

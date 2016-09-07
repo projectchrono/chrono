@@ -44,7 +44,7 @@ class CH_VEHICLE_API DoubleRoadWheel : public ChDoubleRoadWheel {
     virtual double GetWheelMass() const override { return m_wheel_mass; }
     virtual const ChVector<>& GetWheelInertia() override { return m_wheel_inertia; }
 
-    virtual void AddWheelVisualization() override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     void Create(const rapidjson::Document& d);
@@ -56,7 +56,7 @@ class CH_VEHICLE_API DoubleRoadWheel : public ChDoubleRoadWheel {
     double m_wheel_mass;
     ChVector<> m_wheel_inertia;
 
-    VisualizationType m_vis_type;
+    bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
 };

@@ -106,12 +106,6 @@ const ChVector<>& M113_TrackAssemblyDoublePin::GetRoadWhelAssemblyLocation(int w
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackAssemblyDoublePin::SetRoadWheelVisType(VisualizationType vis) {
-    for (int iw = 0; iw < GetNumRoadWheelAssemblies(); iw++) {
-        std::static_pointer_cast<M113_RoadWheel>(GetRoadWheel(iw))->SetVisType(vis);
-    }
-}
-
 void M113_TrackAssemblyDoublePin::SetSprocketVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_SprocketDoublePin>(GetSprocket())->SetVisType(vis);
 }

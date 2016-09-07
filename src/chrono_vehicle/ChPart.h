@@ -48,13 +48,13 @@ class CH_VEHICLE_API ChPart {
     /// Set the visualization mode for this subsystem.
     void SetVisualizationType(VisualizationType vis);
 
-  protected:
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) {}
 
     /// Remove all visualization assets from this subsystem.
     virtual void RemoveVisualizationAssets() {}
 
+  protected:
     std::string m_name;
 };
 
