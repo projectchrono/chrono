@@ -85,6 +85,8 @@ set(CV_BASE_FILES
     ChApiVehicle.h
     ChDriver.h
     ChDriver.cpp
+    ChPart.h
+    ChPart.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
