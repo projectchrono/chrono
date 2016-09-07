@@ -371,11 +371,12 @@ int main(int argc, char* argv[]) {
 
     vehicle.SetChassisVisType(VisualizationType::NONE);
     vehicle.SetRoadWheelVisType(VisualizationType::MESH);
-    vehicle.SetIdlerVisType(VisualizationType::MESH);
     vehicle.SetSprocketVisType(VisualizationType::MESH);
     vehicle.SetTrackShoeVisType(VisualizationType::MESH);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
 
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);

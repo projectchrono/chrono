@@ -92,7 +92,6 @@ int main(int argc, char* argv[]) {
     // Set visualization type for vehicle components (default: PRIMITIVES).
     ////vehicle.SetChassisVisType(VisualizationType::MESH);
     ////vehicle.SetSprocketVisType(VisualizationType::MESH);
-    ////vehicle.SetIdlerVisType(VisualizationType::MESH);
     ////vehicle.SetRoadWheelVisType(VisualizationType::MESH);
     ////vehicle.SetTrackShoeVisType(VisualizationType::MESH);
 
@@ -111,6 +110,9 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    // Set visualization type for vehicle components.
+    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT));

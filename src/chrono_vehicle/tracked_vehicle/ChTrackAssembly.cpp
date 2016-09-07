@@ -89,6 +89,28 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
+    ////GetSprocket()->SetVisualizationType(vis); 
+}
+
+void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
+    GetIdler()->SetVisualizationType(vis);
+}
+
+void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+    ////for (size_t i = 0; i < m_suspensions.size(); ++i) {
+    ////    m_suspensions[i]->SetVisualizationType(vis);
+    ////}
+}
+
+void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
+    ////for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
+    ////    GetTrackShoe(i)->SetVisualizationType(vis);
+    ////}
+}
+
+// -----------------------------------------------------------------------------
 // Calculate and return the total mass of the track assembly
 // -----------------------------------------------------------------------------
 double ChTrackAssembly::GetMass() const {

@@ -53,7 +53,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
     virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
     virtual double GetTensionerFreeLength() const { return m_tensioner_l0; }
 
-    virtual void AddWheelVisualization() override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
@@ -79,7 +79,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
     ChSpringForceCallback* m_tensionerForceCB;
     double m_tensioner_l0;
 
-    VisualizationType m_vis_type;
+    bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
 };

@@ -105,6 +105,9 @@ int main(int argc, char* argv[]) {
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
+    // Set visualization type for vehicle components.
+    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+
     // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);

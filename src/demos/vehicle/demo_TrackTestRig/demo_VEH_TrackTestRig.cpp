@@ -94,6 +94,8 @@ int main(int argc, char* argv[]) {
 
     rig->Initialize(ChCoordsys<>());
 
+    rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+
     ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 

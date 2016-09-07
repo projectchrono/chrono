@@ -106,10 +106,6 @@ const ChVector<>& M113_TrackAssemblyDoublePin::GetRoadWhelAssemblyLocation(int w
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackAssemblyDoublePin::SetIdlerVisType(VisualizationType vis) {
-    std::static_pointer_cast<M113_Idler>(GetIdler())->SetVisType(vis);
-}
-
 void M113_TrackAssemblyDoublePin::SetRoadWheelVisType(VisualizationType vis) {
     for (int iw = 0; iw < GetNumRoadWheelAssemblies(); iw++) {
         std::static_pointer_cast<M113_RoadWheel>(GetRoadWheel(iw))->SetVisType(vis);

@@ -140,6 +140,18 @@ class CH_VEHICLE_API ChTrackAssembly {
                     const ChVector<>& location              ///< [in] location relative to the chassis frame
                     );
 
+    /// Set visualization type for the sprocket subsystem.
+    void SetSprocketVisualizationType(VisualizationType vis);
+
+    // Set visualization type for the idler subsystem.
+    void SetIdlerVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the suspension subsystems.
+    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the track shoe subsystems.
+    void SetTrackShoeVisualizationType(VisualizationType vis);
+
     /// Update the state of this track assembly at the current time.
     void Synchronize(double time,                        ///< [in] current time
                      double braking,                     ///< [in] braking driver input

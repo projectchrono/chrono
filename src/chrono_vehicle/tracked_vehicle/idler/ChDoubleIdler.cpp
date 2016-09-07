@@ -52,14 +52,16 @@ void ChDoubleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
     m_wheel->GetCollisionModel()->BuildModel();
-
-    // Add visualization of the wheel.
-    AddWheelVisualization();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDoubleIdler::AddWheelVisualization() {
+void ChDoubleIdler::AddVisualizationAssets(VisualizationType vis) {
+    ChIdler::AddVisualizationAssets(vis);
+
+    if (vis != VisualizationType::PRIMITIVES)
+        return;
+
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
     double gap = GetWheelGap();
@@ -79,6 +81,12 @@ void ChDoubleIdler::AddWheelVisualization() {
     auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
+}
+
+void ChDoubleIdler::RemoveVisualizationAssets() {
+    ChIdler::RemoveVisualizationAssets();
+
+    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

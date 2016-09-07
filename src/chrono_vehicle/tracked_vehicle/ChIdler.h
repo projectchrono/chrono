@@ -37,7 +37,7 @@
 #include "chrono/physics/ChLinkSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_tracked
@@ -56,7 +56,7 @@ namespace vehicle {
 /// An idler consists of the idler wheel and a connecting body.  The idler wheel is connected
 /// through a revolute joint to the connecting body which in turn is connected to the chassis
 /// through a translational joint. A linear actuator acts as a tensioner.
-class CH_VEHICLE_API ChIdler {
+class CH_VEHICLE_API ChIdler : public ChPart {
   public:
     ChIdler(const std::string& name  ///< [in] name of the subsystem
             );
@@ -141,6 +141,14 @@ class CH_VEHICLE_API ChIdler {
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             );
 
+    /// Add visualization assets for the idler subsystem.
+    /// This default implementation adds assets to the carrier body.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the idler subsystem.
+    /// This default implementation removes the assets from the carrier body.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Log current constraint violations.
     void LogConstraintViolations();
 
@@ -180,7 +188,6 @@ class CH_VEHICLE_API ChIdler {
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const = 0;
 
-    std::string m_name;                            ///< name of the subsystem
     std::shared_ptr<ChBody> m_wheel;                   ///< handle to the idler wheel body
     std::shared_ptr<ChBody> m_carrier;                 ///< handle to the carrier body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;    ///< handle to wheel-carrier revolute joint
@@ -197,10 +204,10 @@ class CH_VEHICLE_API ChIdler {
     float m_gt;             ///< tangential contact damping
 
   private:
-    void AddVisualizationCarrier(std::shared_ptr<ChBody> carrier,
-                                 const ChVector<>& pt_W,
-                                 const ChVector<>& pt_C,
-                                 const ChVector<>& pt_T);
+    // Points for carrier visualization
+    ChVector<> m_pW;
+    ChVector<> m_pC;
+    ChVector<> m_pT;
 };
 
 /// @} vehicle_tracked_idler

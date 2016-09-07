@@ -35,7 +35,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChIdler::ChIdler(const std::string& name)
-    : m_name(name),
+    : ChPart(name),
       m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(1e8f),
@@ -108,8 +108,12 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetWheelMass());
     m_carrier->SetInertiaXX(GetWheelInertia());
-    AddVisualizationCarrier(m_carrier, points[WHEEL], points[CARRIER], points[CARRIER_CHASSIS]);
     chassis->GetSystem()->AddBody(m_carrier);
+
+    // Cache points for carrier visualization (expressed in the carrier frame)
+    m_pW = m_carrier->TransformPointParentToLocal(points[WHEEL]);
+    m_pC = m_carrier->TransformPointParentToLocal(points[CARRIER]);
+    m_pT = m_carrier->TransformPointParentToLocal(points[CARRIER_CHASSIS]);
 
     // Create and initialize the revolute joint between wheel and carrier.
     // The axis of rotation is the y axis of the idler reference frame.
@@ -146,43 +150,42 @@ double ChIdler::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIdler::AddVisualizationCarrier(std::shared_ptr<ChBody> carrier,
-                                      const ChVector<>& pt_W,
-                                      const ChVector<>& pt_C,
-                                      const ChVector<>& pt_T) {
+void ChIdler::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     static const double threshold2 = 1e-6;
     double radius = GetCarrierVisRadius();
 
-    // Express hardpoint locations in body frame.
-    ChVector<> p_W = carrier->TransformPointParentToLocal(pt_W);
-    ChVector<> p_C = carrier->TransformPointParentToLocal(pt_C);
-    ChVector<> p_T = carrier->TransformPointParentToLocal(pt_T);
-
-    if ((p_W - p_C).Length2() > threshold2) {
+    if ((m_pW - m_pC).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_W;
-        cyl->GetCylinderGeometry().p2 = p_C;
+        cyl->GetCylinderGeometry().p1 = m_pW;
+        cyl->GetCylinderGeometry().p2 = m_pC;
         cyl->GetCylinderGeometry().rad = radius;
-        carrier->AddAsset(cyl);
+        m_carrier->AddAsset(cyl);
     }
 
-    if ((p_C - p_T).Length2() > threshold2) {
+    if ((m_pC - m_pT).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_C;
-        cyl->GetCylinderGeometry().p2 = p_T;
+        cyl->GetCylinderGeometry().p1 = m_pC;
+        cyl->GetCylinderGeometry().p2 = m_pT;
         cyl->GetCylinderGeometry().rad = radius;
-        carrier->AddAsset(cyl);
+        m_carrier->AddAsset(cyl);
     }
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = ChVector<>(3 * radius, radius, radius);
-    box->GetBoxGeometry().Pos = p_T;
+    box->GetBoxGeometry().Pos = m_pT;
     box->GetBoxGeometry().Rot = ChMatrix33<>(GetPrismaticPitchAngle(), ChVector<>(0, 1, 0));
-    carrier->AddAsset(box);
+    m_carrier->AddAsset(box);
 
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
-    carrier->AddAsset(col);
+    m_carrier->AddAsset(col);
+}
+
+void ChIdler::RemoveVisualizationAssets() {
+    m_carrier->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

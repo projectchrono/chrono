@@ -111,17 +111,9 @@ void M113_Vehicle::SetSprocketVisType(VisualizationType vis) {
     }
 }
 
-void M113_Vehicle::SetIdlerVisType(VisualizationType vis) {
-    switch (m_type) {
-        case TrackShoeType::SINGLE_PIN:
-            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[0])->SetIdlerVisType(vis);
-            std::static_pointer_cast<M113_TrackAssemblySinglePin>(m_tracks[1])->SetIdlerVisType(vis);
-            break;
-        case TrackShoeType::DOUBLE_PIN:
-            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[0])->SetIdlerVisType(vis);
-            std::static_pointer_cast<M113_TrackAssemblyDoublePin>(m_tracks[1])->SetIdlerVisType(vis);
-            break;
-    }
+void M113_Vehicle::SetIdlerVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetIdlerVisualizationType(vis);
+    m_tracks[1]->SetIdlerVisualizationType(vis);
 }
 
 void M113_Vehicle::SetRoadWheelVisType(VisualizationType vis) {

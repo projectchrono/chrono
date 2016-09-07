@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_vis_type(VisualizationType::NONE) {
+DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -55,7 +55,7 @@ DoubleIdler::DoubleIdler(const std::string& filename) : ChDoubleIdler(""), m_vis
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-DoubleIdler::DoubleIdler(const rapidjson::Document& d) : ChDoubleIdler(""), m_vis_type(VisualizationType::NONE) {
+DoubleIdler::DoubleIdler(const rapidjson::Document& d) : ChDoubleIdler(""), m_has_mesh(false) {
     Create(d);
 }
 
@@ -137,32 +137,26 @@ void DoubleIdler::Create(const rapidjson::Document& d) {
 
     // Read wheel visualization
     if (d.HasMember("Visualization")) {
-        if (d["Visualization"].HasMember("Mesh Filename")) {
-            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis_type = VisualizationType::MESH;
-        } else {
-            m_vis_type = VisualizationType::PRIMITIVES;
-        }
+        assert(d["Visualization"].HasMember("Mesh Filename"));
+        assert(d["Visualization"].HasMember("Mesh Name"));
+        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
+        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        m_has_mesh = true;
     }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void DoubleIdler::AddWheelVisualization() {
-    switch (m_vis_type) {
-        case VisualizationType::PRIMITIVES:
-            ChDoubleIdler::AddWheelVisualization();
-            break;
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
-            m_wheel->AddAsset(trimesh_shape);
-            break;
-        }
+void DoubleIdler::AddVisualizationAssets(VisualizationType vis) {
+    ChDoubleIdler::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(trimesh_shape);
     }
 }
 

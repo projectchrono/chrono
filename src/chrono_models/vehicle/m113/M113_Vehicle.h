@@ -42,7 +42,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
     void SetChassisVisType(VisualizationType vis);
     void SetSprocketVisType(VisualizationType vis);
-    void SetIdlerVisType(VisualizationType vis);
+    void SetIdlerVisualizationType(VisualizationType vis);
     void SetRoadWheelVisType(VisualizationType vis);
     void SetTrackShoeVisType(VisualizationType vis);
 
