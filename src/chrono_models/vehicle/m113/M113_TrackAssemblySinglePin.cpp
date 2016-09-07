@@ -116,12 +116,6 @@ void M113_TrackAssemblySinglePin::SetSprocketVisType(VisualizationType vis) {
     std::static_pointer_cast<M113_SprocketSinglePin>(GetSprocket())->SetVisType(vis);
 }
 
-void M113_TrackAssemblySinglePin::SetTrackShoeVisType(VisualizationType vis) {
-    for (size_t is = 0; is < GetNumTrackShoes(); is++) {
-        std::static_pointer_cast<M113_TrackShoeSinglePin>(GetTrackShoe(is))->SetVisType(vis);
-    }
-}
-
 }  // end namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono

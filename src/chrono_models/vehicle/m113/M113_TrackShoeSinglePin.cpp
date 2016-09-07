@@ -50,7 +50,7 @@ const std::string M113_TrackShoeSinglePin::m_meshFile = "M113/TrackShoe.obj";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeSinglePin::M113_TrackShoeSinglePin()
-    : ChTrackShoeSinglePin("M113_TrackShoe"), m_vis_type(VisualizationType::PRIMITIVES) {
+    : ChTrackShoeSinglePin("M113_TrackShoe") {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -59,21 +59,16 @@ M113_TrackShoeSinglePin::M113_TrackShoeSinglePin()
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoeSinglePin::AddShoeVisualization() {
-    switch (m_vis_type) {
-        case VisualizationType::PRIMITIVES: {
-            ChTrackShoeSinglePin::AddShoeVisualization();
-            break;
-        }
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
-            m_shoe->AddAsset(trimesh_shape);
-            break;
-        }
+void M113_TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        trimesh_shape->SetMesh(trimesh);
+        trimesh_shape->SetName(m_meshName);
+        m_shoe->AddAsset(trimesh_shape);
+    } else {
+        ChTrackShoeSinglePin::AddVisualizationAssets(vis);
     }
 }
 

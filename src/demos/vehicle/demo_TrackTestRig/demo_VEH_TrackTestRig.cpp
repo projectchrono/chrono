@@ -59,19 +59,16 @@ int main(int argc, char* argv[]) {
         // Create an M113 track assembly.
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
-        VisualizationType shoe_vis = VisualizationType::PRIMITIVES;
 
         std::shared_ptr<ChTrackAssembly> track_assembly;
         switch (type) {
             case TrackShoeType::SINGLE_PIN: {
                 auto assembly = std::make_shared<M113_TrackAssemblySinglePin>(side);
-                assembly->SetTrackShoeVisType(shoe_vis);
                 track_assembly = assembly;
                 break;
             }
             case TrackShoeType::DOUBLE_PIN: {
                 auto assembly = std::make_shared<M113_TrackAssemblyDoublePin>(side);
-                assembly->SetTrackShoeVisType(shoe_vis);
                 track_assembly = assembly;
                 break;
             }
@@ -95,14 +92,15 @@ int main(int argc, char* argv[]) {
     rig->Initialize(ChCoordsys<>());
 
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.
     ChVector<> target_point = rig->GetPostPosition();
-    ////ChVector<> target_point = idler_loc;
-    ////ChVector<> target_point = sprocket_loc;
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
+    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
     ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();

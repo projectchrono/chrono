@@ -59,6 +59,7 @@ void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis != VisualizationType::PRIMITIVES)
         return;
+
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 

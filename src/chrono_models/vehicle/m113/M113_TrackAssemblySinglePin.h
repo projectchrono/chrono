@@ -39,7 +39,6 @@ class CH_MODELS_API M113_TrackAssemblySinglePin : public ChTrackAssemblySinglePi
 
     void SetRoadWheelVisType(VisualizationType vis);
     void SetSprocketVisType(VisualizationType vis);
-    void SetTrackShoeVisType(VisualizationType vis);
 
   private:
     static const ChVector<> m_sprocket_loc;

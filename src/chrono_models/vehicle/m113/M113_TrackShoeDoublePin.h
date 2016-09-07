@@ -66,11 +66,8 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
-    /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization() override;
-
-    /// Add visualization of a connector body.
-    virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector) override;
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -79,9 +76,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
     virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
-
-    /// Set the track shoe visualization type.
-    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
 
   private:
     static const double m_shoe_mass;
@@ -103,8 +97,6 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
-
-    VisualizationType m_vis_type;
 };
 
 }  // end namespace m113

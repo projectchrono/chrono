@@ -66,8 +66,8 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
     virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
 
-    /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization() override;
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     void Create(const rapidjson::Document& d);
@@ -86,7 +86,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     ChVector<> m_guide_box_dims;
     ChVector<> m_guide_box_loc;
 
-    VisualizationType m_vis_type;
+    bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
 };

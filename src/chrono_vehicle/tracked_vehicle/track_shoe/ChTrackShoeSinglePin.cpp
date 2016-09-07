@@ -69,9 +69,6 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     AddShoeContact();
-
-    // Add visualization of the track shoe.
-    AddShoeVisualization();
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +106,10 @@ void ChTrackShoeSinglePin::AddShoeContact() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackShoeSinglePin::AddShoeVisualization() {
+void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     double pitch = GetPitch();
 
     double front_cyl_loc = GetFrontCylinderLoc();
@@ -187,6 +187,10 @@ void ChTrackShoeSinglePin::AddShoeVisualization() {
     else
         col->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     m_shoe->AddAsset(col);
+}
+
+void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
+    m_shoe->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

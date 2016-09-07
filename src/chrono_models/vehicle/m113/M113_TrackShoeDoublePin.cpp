@@ -56,7 +56,7 @@ const std::string M113_TrackShoeDoublePin::m_meshFile = "M113/TrackShoeDoublePin
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_TrackShoeDoublePin::M113_TrackShoeDoublePin()
-    : ChTrackShoeDoublePin("M113_TrackShoe"), m_vis_type(VisualizationType::PRIMITIVES) {
+    : ChTrackShoeDoublePin("M113_TrackShoe") {
     SetContactFrictionCoefficient(0.8f);
     SetContactRestitutionCoefficient(0.1f);
     SetContactMaterialProperties(1e7f, 0.3f);
@@ -65,41 +65,14 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin()
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_TrackShoeDoublePin::AddShoeVisualization() {
-    switch (m_vis_type) {
-        case VisualizationType::PRIMITIVES: {
-            ChTrackShoeDoublePin::AddShoeVisualization();
-            break;
-        }
-        case VisualizationType::MESH: {
-            //// TODO
-            //// For now, default to PRIMITIVE visualization
-            ChTrackShoeDoublePin::AddShoeVisualization();
-            /*
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
-            m_shoe->AddAsset(trimesh_shape);
-            */
-            break;
-        }
-    }
-}
-
-void M113_TrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
-    switch (m_vis_type) {
-        case VisualizationType::PRIMITIVES: {
-            ChTrackShoeDoublePin::AddConnectorVisualization(connector);
-            break;
-        }
-        case VisualizationType::MESH: {
-            //// TODO
-            //// For now, default to PRIMITIVE visualization
-            ChTrackShoeDoublePin::AddConnectorVisualization(connector);
-            break;
-        }
+void M113_TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        //// TODO:
+        //// Set up meshes for shoe and connectors
+        //// For now, default to PRIMITIVE visualization
+        ChTrackShoeDoublePin::AddVisualizationAssets(vis);
+    } else {
+        ChTrackShoeDoublePin::AddVisualizationAssets(vis);
     }
 }
 

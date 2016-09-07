@@ -360,7 +360,6 @@ int main(int argc, char* argv[]) {
         vertical_offset = CreateParticles(system);
     }
 
-
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
@@ -372,11 +371,11 @@ int main(int argc, char* argv[]) {
     vehicle.SetChassisVisType(VisualizationType::NONE);
     vehicle.SetRoadWheelVisType(VisualizationType::MESH);
     vehicle.SetSprocketVisType(VisualizationType::MESH);
-    vehicle.SetTrackShoeVisType(VisualizationType::MESH);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);

@@ -68,11 +68,8 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
     virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
 
-    /// Set the track shoe visualization type.
-    void SetVisType(VisualizationType vis) { m_vis_type = vis; }
-
-    /// Add visualization of the track shoe.
-    virtual void AddShoeVisualization() override;
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     static const double m_shoe_height;
@@ -91,8 +88,6 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
-
-    VisualizationType m_vis_type;
 };
 
 }  // end namespace m113

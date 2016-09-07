@@ -69,6 +69,12 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the idler subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
@@ -89,14 +95,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     virtual double GetConnectorWidth() const = 0;
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
-
-    /// Add visualization of the shoe body.
-    /// The default implementation uses primitives corresponding to the contact shapes.
-    virtual void AddShoeVisualization();
-
-    /// Add visualization of a connector body.
-    /// The default implementation uses primitives corresponding to the contact shapes.
-    virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
 
     /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.
@@ -121,6 +119,13 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;
     friend class ChTrackAssemblyDoublePin;
+
+  private:
+    /// Add visualization of the shoe body, based on primitives corresponding to the contact shapes.
+    void AddShoeVisualization();
+
+    /// Add visualization of a connector body based on primitives corresponding to the contact shapes.
+    void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
 };
 
 /// Vector of handles to double-pin track shoe subsystems.

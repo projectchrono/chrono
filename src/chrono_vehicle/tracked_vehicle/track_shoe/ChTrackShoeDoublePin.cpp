@@ -77,9 +77,6 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     AddShoeContact();
 
-    // Add visualization to the shoe body.
-    AddShoeVisualization();
-    
     // Create the connector bodies.
     m_connector_L = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_connector_L->SetNameString(m_name + "_connector_L");
@@ -131,10 +128,6 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_connector_R->GetMaterialSurfaceDEM()->SetGt(m_gt);
             break;
     }
-
-    // Add visualization to the connector bodies.
-    AddConnectorVisualization(m_connector_L);
-    AddConnectorVisualization(m_connector_R);
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -187,6 +180,21 @@ void ChTrackShoeDoublePin::AddShoeContact() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddShoeVisualization();
+    AddConnectorVisualization(m_connector_L);
+    AddConnectorVisualization(m_connector_R);
+}
+
+void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
+    m_shoe->GetAssets().clear();
+    m_connector_L->GetAssets().clear();
+    m_connector_R->GetAssets().clear();
+}
+
 void ChTrackShoeDoublePin::AddShoeVisualization() {
     const ChVector<>& pad_box_dims = GetPadBoxDimensions();
     const ChVector<>& guide_box_dims = GetGuideBoxDimensions();

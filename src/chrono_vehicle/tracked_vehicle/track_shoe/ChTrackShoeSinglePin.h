@@ -56,6 +56,12 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     virtual void Connect(std::shared_ptr<ChTrackShoe> next  ///< [in] handle to the neighbor track shoe
                          ) override;
 
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the idler subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
   protected:
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
@@ -87,10 +93,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// This contact geometry does not affect contact with the sprocket.
     /// The default implementation uses contact boxes for the pad and central guiding pin.
     virtual void AddShoeContact();
-
-    /// Add visualization of the track shoe.
-    /// The default implementation uses primitives corresponding to the contact shapes.
-    virtual void AddShoeVisualization();
 
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
 

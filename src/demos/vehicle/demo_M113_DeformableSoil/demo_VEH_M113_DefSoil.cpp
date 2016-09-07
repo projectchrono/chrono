@@ -87,7 +87,6 @@ int main(int argc, char* argv[]) {
 
     // Set visualization type for vehicle components (default: PRIMITIVES).
     ////vehicle.SetRoadWheelVisType(VisualizationType::NONE);
-    ////vehicle.SetTrackShoeVisType(VisualizationType::NONE);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -107,6 +106,7 @@ int main(int argc, char* argv[]) {
 
     // Set visualization type for vehicle components.
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::NONE);
