@@ -255,7 +255,7 @@ if(BUILD_ADDITIONAL_TESTS)
 endif()
 
 #------------------------------------------------------------
-# Install headers form chrono_thirdparty folder
+# Install headers from chrono_thirdparty folder
 #------------------------------------------------------------
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty

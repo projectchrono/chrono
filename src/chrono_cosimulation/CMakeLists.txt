@@ -83,8 +83,8 @@ ADD_DEPENDENCIES (ChronoEngine_cosimulation ChronoEngine)
 	
 INSTALL(TARGETS ChronoEngine_cosimulation
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)		
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)		
 
 INSTALL(FILES ${ChronoEngine_COSIMULATION_HEADERS}
         DESTINATION include/chrono_cosimulation)
