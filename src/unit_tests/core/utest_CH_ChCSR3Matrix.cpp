@@ -12,7 +12,7 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-#include "chrono_mkl/ChCSR3Matrix.h"
+#include "chrono/core/ChCSR3Matrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
@@ -112,6 +112,39 @@ void FillMatrix(matrixOUT& mat_out, const matrixIN& mat_in) {
     }
 }
 
+
+int testColumnMajor()
+{
+	int n = 3;
+	ChCSR3Matrix matCM(n, n, false);
+	matCM.SetElement(0, 0, 3);
+	matCM.SetElement(0, 1, 5);
+	matCM.SetElement(1, 0, 7);
+	matCM.SetElement(1, 2, 9);
+	matCM.SetElement(2, 2, 11);
+
+	ChCSR3Matrix matRM(n, n, true);
+	matRM.SetElement(0, 0, 3);
+	matRM.SetElement(0, 1, 5);
+	matRM.SetElement(1, 0, 7);
+	matRM.SetElement(1, 2, 9);
+	matRM.SetElement(2, 2, 11);
+
+	bool test_passed = true;
+	for (int i = 0; i < n; i++)
+		for (int j = 0; j < n; j++)
+		{
+			if (matRM.GetElement(i, j) != matCM.GetElement(i, j))
+			{
+				test_passed = false;
+				return test_passed;
+			}	
+		}
+
+	return test_passed;
+
+}
+
 int main() {
     int* nonzeros_vector = nullptr;
     int m = 5;
@@ -195,6 +228,8 @@ int main() {
 
     // ----------------------------------------------------------------------------
 
-    bool passed = test1 && test2 && test3;
+	bool test_column_major = testColumnMajor();
+
+    bool passed = test1 && test2 && test3 && test_column_major;
     return !passed;
 }

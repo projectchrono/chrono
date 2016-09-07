@@ -6,6 +6,7 @@ SET(TESTS
     utest_CH_coords
     utest_CH_math
     utest_CH_sparse_matrix
+	utest_CH_ChCSR3Matrix
     #utest_CH_stream
 )
 

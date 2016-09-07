@@ -22,7 +22,7 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_mkl/ChMklEngine.h"
-#include "chrono_mkl/ChCSR3Matrix.h"
+#include "chrono/core/ChCSR3Matrix.h"
 
 namespace chrono {
 

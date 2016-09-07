@@ -19,12 +19,11 @@
 #include <string>
 
 #include "chrono/core/ChSparseMatrix.h"
-#include "chrono_mkl/ChApiMkl.h"
-#include "ChAlignedAllocator.h"
+#include "chrono/core/ChAlignedAllocator.h"
 
 namespace chrono {
 
-/// @addtogroup mkl_module
+/// @addtogroup chrono
 /// @{
 
 /* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
@@ -71,7 +70,7 @@ arrays
 * but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
 */
 
-class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
+class ChApi ChCSR3Matrix : public ChSparseMatrix {
   private:
     const bool row_major_format = true;
     const int array_alignment = 64;
@@ -93,14 +92,14 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void initialize(int* nonzeros_vector);
     void initialize_ValuesColIndex();
     void copy(double* values_temp,
-              int* trailingIndex_temp,
+              int* leadIndex_temp,
               bool to_internal_arrays,
               int insleaddim = 0,
-              int traildim_sel = 0,
+              int trailInd_sel = 0,
               int shifts = 0);
 
   public:
-    ChCSR3Matrix(int nrows = 1, int ncols = 1, int nonzeros = 1, bool row_major_format_on = true);
+    ChCSR3Matrix(int nrows = 1, int ncols = 1, bool row_major_format_on = true, int nonzeros = 1);
     ChCSR3Matrix(int nrows, int ncols, int* nonzeros, bool row_major_format_on = true);
     virtual ~ChCSR3Matrix(){};
 
@@ -158,7 +157,7 @@ class ChApiMkl ChCSR3Matrix : public ChSparseMatrix {
     void ExportToDatFile(std::string filepath, int precision = 12) const;
 };
 
-/// @} mkl_module
+/// @} chrono
 
 };  // end namespace chrono
 
