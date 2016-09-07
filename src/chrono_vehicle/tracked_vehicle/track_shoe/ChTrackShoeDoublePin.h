@@ -85,19 +85,31 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     virtual const ChVector<>& GetConnectorInertia() const = 0;
     /// Return the length of a connector body (distance between pins).
     virtual double GetConnectorLength() const = 0;
+    /// Return the width of a connector body (for visualization only).
+    virtual double GetConnectorWidth() const = 0;
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const = 0;
 
     /// Add visualization of the shoe body.
-    virtual void AddShoeVisualization() = 0;
+    /// The default implementation uses primitives corresponding to the contact shapes.
+    virtual void AddShoeVisualization();
 
     /// Add visualization of a connector body.
-    virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector) = 0;
+    /// The default implementation uses primitives corresponding to the contact shapes.
+    virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector);
+
+    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
+    /// Note that this is for contact with wheels, idler, and ground only.
+    /// This contact geometry does not affect contact with the sprocket.
+    virtual const ChVector<>& GetPadBoxDimensions() const = 0;
+    virtual const ChVector<>& GetPadBoxLocation() const = 0;
+    virtual const ChVector<>& GetGuideBoxDimensions() const = 0;
+    virtual const ChVector<>& GetGuideBoxLocation() const = 0;
 
     /// Add contact geometry for the track shoe.
     /// Note that this is for contact with wheels, idler, and ground only.
     /// This contact geometry does not affect contact with the sprocket.
-    virtual void AddShoeContact() = 0;
+    virtual void AddShoeContact();
 
     std::shared_ptr<ChBody> m_connector_L;             ///< handle to left connector body
     std::shared_ptr<ChBody> m_connector_R;             ///< handle to right connector body

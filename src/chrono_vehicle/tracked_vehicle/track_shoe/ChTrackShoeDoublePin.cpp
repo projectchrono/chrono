@@ -18,6 +18,8 @@
 
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -161,6 +163,103 @@ double ChTrackShoeDoublePin::GetMass() const {
 
 double ChTrackShoeDoublePin::GetPitch() const {
     return GetShoeLength() + GetConnectorLength();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::AddShoeContact() {
+    double pitch = GetPitch();
+
+    const ChVector<>& pad_dims = GetPadBoxDimensions();
+    const ChVector<>& guide_dims = GetGuideBoxDimensions();
+
+    double p0y = 2.1 * (pad_dims.y / 2);
+    double p1y = 1.5 * (pad_dims.y / 2);
+
+    m_shoe->GetCollisionModel()->ClearModel();
+
+    m_shoe->GetCollisionModel()->AddBox(pad_dims.x / 2, pad_dims.y / 2, pad_dims.z / 2, GetPadBoxLocation());
+
+    m_shoe->GetCollisionModel()->AddBox(guide_dims.x / 2, guide_dims.y / 2, guide_dims.z / 2, GetGuideBoxLocation());
+
+    m_shoe->GetCollisionModel()->BuildModel();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::AddShoeVisualization() {
+    const ChVector<>& pad_box_dims = GetPadBoxDimensions();
+    const ChVector<>& guide_box_dims = GetGuideBoxDimensions();
+    double s_width = GetShoeWidth();
+    double c_width = GetConnectorWidth();
+
+    double pin_radius = pad_box_dims.z / 6;
+    double pin_len = s_width + c_width + 2 * c_width;
+
+    auto rev_rear = std::make_shared<ChCylinderShape>();
+    rev_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetShoeLength(), -0.5 * pin_len, 0);
+    rev_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetShoeLength(), +0.5 * pin_len, 0);
+    rev_rear->GetCylinderGeometry().rad = pin_radius;
+    m_shoe->AddAsset(rev_rear);
+
+    auto rev_front = std::make_shared<ChCylinderShape>();
+    rev_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * GetShoeLength(), -0.5 * pin_len, 0);
+    rev_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * GetShoeLength(), +0.5 * pin_len, 0);
+    rev_front->GetCylinderGeometry().rad = pin_radius;
+    m_shoe->AddAsset(rev_front);
+
+    // Render the pad contact box
+    auto box_shoe = std::make_shared<ChBoxShape>();
+    box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
+    box_shoe->GetBoxGeometry().Pos = GetPadBoxLocation();
+    m_shoe->AddAsset(box_shoe);
+
+    // Render the guiding pin contact box
+    auto box_pin = std::make_shared<ChBoxShape>();
+    box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
+    box_pin->GetBoxGeometry().Pos = GetGuideBoxLocation();
+    m_shoe->AddAsset(box_pin);
+
+    auto col = std::make_shared<ChColorAsset>();
+    if (m_index == 0)
+        col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
+    else if (m_index % 2 == 0)
+        col->SetColor(ChColor(0.3f, 0.6f, 0.3f));
+    else
+        col->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+    m_shoe->AddAsset(col);
+}
+
+void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
+    double c_length = GetConnectorLength();
+    double c_width = GetConnectorWidth();
+    double c_radius = GetConnectorRadius();
+
+    auto cyl_rear = std::make_shared<ChCylinderShape>();
+    cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -0.5 * c_width, 0);
+    cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
+    cyl_rear->GetCylinderGeometry().rad = c_radius;
+    connector->AddAsset(cyl_rear);
+
+    auto cyl_front = std::make_shared<ChCylinderShape>();
+    cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
+    cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
+    cyl_front->GetCylinderGeometry().rad = c_radius;
+    connector->AddAsset(cyl_front);
+
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+    box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
+    connector->AddAsset(box);
+
+    auto col = std::make_shared<ChColorAsset>();
+    if (m_index == 0)
+        col->SetColor(ChColor(0.7f, 0.4f, 0.4f));
+    else if (m_index % 2 == 0)
+        col->SetColor(ChColor(0.4f, 0.7f, 0.4f));
+    else
+        col->SetColor(ChColor(0.4f, 0.4f, 0.7f));
+    connector->AddAsset(col);
 }
 
 // -----------------------------------------------------------------------------

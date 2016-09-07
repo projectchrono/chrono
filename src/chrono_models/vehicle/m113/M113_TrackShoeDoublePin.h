@@ -63,6 +63,8 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetConnectorLength() const override { return m_connector_length; }
     /// Return the radius of a connector body.
     virtual double GetConnectorRadius() const override { return m_connector_radius; }
+    /// Return the width of a connector body (visualization only).
+    virtual double GetConnectorWidth() const override { return m_connector_width; }
 
     /// Add visualization of the track shoe.
     virtual void AddShoeVisualization() override;
@@ -70,8 +72,13 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Add visualization of a connector body.
     virtual void AddConnectorVisualization(std::shared_ptr<ChBody> connector) override;
 
-    /// Add contact geometry for the track shoe.
-    virtual void AddShoeContact() override;
+    /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
+    /// Note that this is for contact with wheels, idler, and ground only.
+    /// This contact geometry does not affect contact with the sprocket.
+    virtual const ChVector<>& GetPadBoxDimensions() const override { return m_pad_box_dims; }
+    virtual const ChVector<>& GetPadBoxLocation() const override { return m_pad_box_loc; }
+    virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
+    virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
 
     /// Set the track shoe visualization type.
     void SetVisType(VisualizationType vis) { m_vis_type = vis; }
@@ -87,6 +94,12 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const ChVector<> m_connector_inertia;
     static const double m_connector_radius;
     static const double m_connector_length;
+    static const double m_connector_width;
+
+    static const ChVector<> m_pad_box_dims;
+    static const ChVector<> m_pad_box_loc;
+    static const ChVector<> m_guide_box_dims;
+    static const ChVector<> m_guide_box_loc;
 
     static const std::string m_meshName;
     static const std::string m_meshFile;
