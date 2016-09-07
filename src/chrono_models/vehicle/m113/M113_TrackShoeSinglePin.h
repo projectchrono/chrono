@@ -68,7 +68,7 @@ class CH_MODELS_API M113_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual const ChVector<>& GetGuideBoxDimensions() const override { return m_guide_box_dims; }
     virtual const ChVector<>& GetGuideBoxLocation() const override { return m_guide_box_loc; }
 
-    /// Add visualization assets for the idler subsystem.
+    /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:

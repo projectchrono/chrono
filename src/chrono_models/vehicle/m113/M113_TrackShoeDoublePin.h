@@ -66,7 +66,7 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     /// Return the width of a connector body (visualization only).
     virtual double GetConnectorWidth() const override { return m_connector_width; }
 
-    /// Add visualization assets for the idler subsystem.
+    /// Add visualization assets for the track shoe subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
