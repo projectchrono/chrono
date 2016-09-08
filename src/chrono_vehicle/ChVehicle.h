@@ -30,9 +30,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
 
-
 namespace chrono {
-
 namespace vehicle {
 
 /// @addtogroup vehicle

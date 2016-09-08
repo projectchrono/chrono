@@ -1,0 +1,15 @@
+{
+  "Name":     "MAN 5t chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Mass":     5400.0,
+  "COM":      [2.0, 0, 1.0],
+  "Inertia":  [1078.52, 2955.66, 3570.20],
+ 
+  "Visualization":
+  {
+    "Mesh Filename":  "MAN_5t/MAN_5t_chassis.obj",
+    "Mesh Name":      "MAN_5t_chassis_POV_geom"
+  }
+}

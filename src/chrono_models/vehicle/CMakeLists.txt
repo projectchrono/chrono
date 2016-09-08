@@ -20,6 +20,8 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV.h
     hmmwv/HMMWV_BrakeSimple.cpp
     hmmwv/HMMWV_BrakeSimple.h
+    hmmwv/HMMWV_Chassis.h
+    hmmwv/HMMWV_Chassis.cpp
     hmmwv/HMMWV_DoubleWishbone.cpp
     hmmwv/HMMWV_DoubleWishbone.h
     hmmwv/HMMWV_DoubleWishboneReduced.cpp
@@ -63,6 +65,8 @@ source_group("hmmwv" FILES ${CVM_HMMWV_FILES} ${CVM_HMMWV_FEA_FILES})
 
 set(CVM_M113_FILES
     m113/M113_BrakeSimple.h
+    m113/M113_Chassis.h
+    m113/M113_Chassis.cpp
     m113/M113_DrivelineBDS.cpp
     m113/M113_DrivelineBDS.h
     m113/M113_Idler.cpp

@@ -1,0 +1,15 @@
+{
+  "Name":     "M113 chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Mass":     5489.24,
+  "COM":      [-2.006, 0, 0.406],
+  "Inertia":  [1786.92, 10449.67, 10721.22],
+ 
+  "Visualization":
+  {
+    "Mesh Filename":  "M113/Chassis.obj",
+    "Mesh Name":      "Chassis_POV_geom"
+  }
+}

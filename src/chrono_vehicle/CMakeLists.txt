@@ -83,6 +83,8 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
 
 set(CV_BASE_FILES
     ChApiVehicle.h
+    ChChassis.h
+    ChChassis.cpp
     ChDriver.h
     ChDriver.cpp
     ChPart.h
@@ -98,6 +100,12 @@ set(CV_BASE_FILES
     ChVehicleModelData.cpp
 )
 source_group("base" FILES ${CV_BASE_FILES})
+
+set(CV_CHASSIS_FILES
+	chassis/RigidChassis.h
+	chassis/RigidChassis.cpp
+)
+source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
@@ -141,8 +149,8 @@ set(CV_TERRAIN_FILES
 
 if(ENABLE_MODULE_FEA)
     set(CV_FEATERRAIN_FILES
-    terrain/FEADeformableTerrain.h
-    terrain/FEADeformableTerrain.cpp
+        terrain/FEADeformableTerrain.h
+        terrain/FEADeformableTerrain.cpp
     )
 else()
     set(CV_FEATERRAIN_FILES "")
@@ -522,6 +530,7 @@ endif()
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
+    ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
     ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
