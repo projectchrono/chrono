@@ -53,6 +53,8 @@ void SimpleTrackDriveline::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
+    SetName(d["Name"].GetString());
+
     m_diff_bias = d["Differential Max Bias"].GetDouble();
 }
 

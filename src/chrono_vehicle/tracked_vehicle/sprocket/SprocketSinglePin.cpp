@@ -66,6 +66,8 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
+    SetName(d["Name"].GetString());
+
     // Read inertia properties
     m_num_teeth = d["Number Teeth"].GetInt();
     m_gear_mass = d["Gear Mass"].GetDouble();
