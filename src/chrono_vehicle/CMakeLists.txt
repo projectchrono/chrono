@@ -343,22 +343,22 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
-    set(CV_WV_COSIM_FILES
-        wheeled_vehicle/cosim/ChCosimManager.h
-        wheeled_vehicle/cosim/ChCosimManager.cpp
-        wheeled_vehicle/cosim/ChCosimNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-        wheeled_vehicle/cosim/ChCosimTireNode.h
-        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-    )
-    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-else()
+#if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
+#    set(CV_WV_COSIM_FILES
+#        wheeled_vehicle/cosim/ChCosimManager.h
+#        wheeled_vehicle/cosim/ChCosimManager.cpp
+#        wheeled_vehicle/cosim/ChCosimNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTireNode.h
+#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
+#    )
+#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
+#else()
     set(CV_WV_COSIM_FILES "")
-endif()
+#endif()
 
 # --------------- TRACKED VEHICLE FILES
 
