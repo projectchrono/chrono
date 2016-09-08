@@ -10,6 +10,8 @@
 SET(MODEL_FILES
     ../articulated/Articulated_Vehicle.h
     ../articulated/Articulated_Vehicle.cpp
+    ../articulated/Articulated_Chassis.h
+    ../articulated/Articulated_Chassis.cpp
     ../articulated/Articulated_Trailer.h
     ../articulated/Articulated_Trailer.cpp
     ../generic/Generic_Wheel.h
