@@ -32,7 +32,7 @@ namespace m113 {
 /// M113 chassis subsystem.
 class CH_MODELS_API M113_Chassis : public ChChassis {
   public:
-    M113_Chassis(const std::string& name);
+    M113_Chassis(const std::string& name, bool fixed = false);
     ~M113_Chassis() {}
 
     /// Return the mass of the chassis body.

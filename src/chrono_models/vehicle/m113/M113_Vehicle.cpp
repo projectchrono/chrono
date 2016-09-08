@@ -48,7 +48,7 @@ M113_Vehicle::M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system
 
 void M113_Vehicle::Create(bool fixed) {
     // Create the chassis subsystem
-    m_chassis = std::make_shared<M113_Chassis>("Chassis");
+    m_chassis = std::make_shared<M113_Chassis>("Chassis", fixed);
 
     // Create the track assembly subsystems
     switch (m_type) {

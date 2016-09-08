@@ -35,8 +35,9 @@ namespace vehicle {
 class CH_VEHICLE_API ChChassis : public ChPart {
   public:
     /// Construct a vehicle subsystem with the specified name.
-    ChChassis(const std::string& name  ///< [in] name of the subsystem
-           );
+    ChChassis(const std::string& name,  ///< [in] name of the subsystem
+              bool fixed = false        ///< [in] is the chassis body fixed to ground?
+              );
 
     virtual ~ChChassis() {}
 
@@ -93,6 +94,12 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                             const ChCoordsys<>& chassisPos  ///< [in] absolute chassis position
                             );
 
+    /// Set the "fixed to ground" status of the chassis body.
+    void SetFixed(bool val) { m_body->SetBodyFixed(val); }
+
+    /// Return true if the chassis body is fixed to ground.
+    bool IsFixed() const { return m_body->GetBodyFixed(); }
+
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -100,7 +107,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
-      std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
+    std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
+    bool m_fixed;                          ///< is the chassis body fixed to ground?
 };
 
 /// @} vehicle

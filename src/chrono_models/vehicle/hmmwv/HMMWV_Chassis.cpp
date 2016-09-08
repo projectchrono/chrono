@@ -40,7 +40,7 @@ const std::string HMMWV_Chassis::m_meshFile = "hmmwv/hmmwv_chassis.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Chassis::HMMWV_Chassis(const std::string& name) : ChChassis(name) {}
+HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

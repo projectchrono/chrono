@@ -25,7 +25,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChChassis::ChChassis(const std::string& name) : ChPart(name) {}
+ChChassis::ChChassis(const std::string& name, bool fixed) : ChPart(name), m_fixed(fixed) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -50,6 +50,7 @@ void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos) {
     m_body->SetMass(GetMass());
     m_body->SetFrame_COG_to_REF(ChFrame<>(GetLocalPosCOM(), ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(GetInertia());
+    m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
 

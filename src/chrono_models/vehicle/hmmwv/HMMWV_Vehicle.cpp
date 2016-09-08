@@ -50,7 +50,7 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis");
+    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed);
 
     // -------------------------------------------
     // Create the suspension subsystems
