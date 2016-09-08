@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     // Create the 'bushing' body
     // Give an initial angular velocity
-    auto body = std::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 10000, false, true);
+    auto body = std::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, false, true);
     system.AddBody(body);
     body->SetBodyFixed(false);
     body->SetPos(ChVector<>(1.0, 0.0, 0.0));
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
 
     // Create the 'ideal joint' body
     // Give an initial angular velocity
-    auto body_ij = std::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 10000, false, true);
+    auto body_ij = std::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, false, true);
     system.AddBody(body_ij);
     body_ij->SetBodyFixed(false);
     body_ij->SetPos(ChVector<>(1.0, 0.0, 0.0));
@@ -65,13 +65,12 @@ int main(int argc, char* argv[]) {
     body_col_ij->SetColor(ChColor(0.7f, 0.15f, 0.25f));
     body_ij->AddAsset(body_col_ij);
 
-
     ChMatrixNM<double, 6, 6> K_matrix;
     ChMatrixNM<double, 6, 6> R_matrix;
 
     for (unsigned int ii = 0; ii < 6; ii++) {
-        K_matrix(ii, ii) = 950000.0;
-        R_matrix(ii, ii) = 15000.0;
+        K_matrix(ii, ii) = 95000.0;
+        R_matrix(ii, ii) = 100.0;
     }
 
     // Create bushing element acting on selected degrees of freedoms
@@ -79,12 +78,12 @@ int main(int argc, char* argv[]) {
     // ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
     // ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
 
-    auto my_linkbushing = std::make_shared<ChLinkBushing>(ChLinkBushing::Revolute);
+    auto my_linkbushing = std::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
     my_linkbushing->Initialize(body, ground, ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),
                                K_matrix, R_matrix);
     system.AddLink(my_linkbushing);
 
-    auto my_linkrevolute = std::make_shared<ChLinkLockRevolute>();
+    auto my_linkrevolute = std::make_shared<ChLinkLockLock>();
     my_linkrevolute->Initialize(body_ij, ground, ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)));
     system.AddLink(my_linkrevolute);
 
@@ -100,17 +99,17 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.001);
-	system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
     system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
     system.SetMaxItersSolverSpeed(20000);
-	system.SetTolForce(1e-5);
+    system.SetTolForce(1e-7);
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
         ChIrrTools::drawAllCOGs(system, application.GetVideoDriver(), 2);
         application.EndScene();
         application.DoStep();
-		std::cout << "Time t = " << system.GetChTime() << " s\n";
+        std::cout << "Time t = " << system.GetChTime() << " s\n";
     }
 
     return 0;
