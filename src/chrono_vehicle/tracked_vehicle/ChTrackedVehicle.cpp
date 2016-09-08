@@ -72,6 +72,29 @@ void ChTrackedVehicle::Advance(double step) {
 }
 
 // -----------------------------------------------------------------------------
+// Set visualization type for the various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetSprocketVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetSprocketVisualizationType(vis);
+    m_tracks[1]->SetSprocketVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetIdlerVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetIdlerVisualizationType(vis);
+    m_tracks[1]->SetIdlerVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetRoadWheelAssemblyVisualizationType(vis);
+    m_tracks[1]->SetRoadWheelAssemblyVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetTrackShoeVisualizationType(vis);
+    m_tracks[1]->SetTrackShoeVisualizationType(vis);
+}
+
+// -----------------------------------------------------------------------------
 // Override collision flags for various subsystems
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetCollide(int flags) {

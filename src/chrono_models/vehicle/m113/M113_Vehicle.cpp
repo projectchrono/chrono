@@ -71,28 +71,6 @@ void M113_Vehicle::Create(bool fixed) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void M113_Vehicle::SetSprocketVisualizationType(VisualizationType vis) {
-    m_tracks[0]->SetSprocketVisualizationType(vis);
-    m_tracks[1]->SetSprocketVisualizationType(vis);
-}
-
-void M113_Vehicle::SetIdlerVisualizationType(VisualizationType vis) {
-    m_tracks[0]->SetIdlerVisualizationType(vis);
-    m_tracks[1]->SetIdlerVisualizationType(vis);
-}
-
-void M113_Vehicle::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
-    m_tracks[0]->SetRoadWheelAssemblyVisualizationType(vis);
-    m_tracks[1]->SetRoadWheelAssemblyVisualizationType(vis);
-}
-
-void M113_Vehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
-    m_tracks[0]->SetTrackShoeVisualizationType(vis);
-    m_tracks[1]->SetTrackShoeVisualizationType(vis);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
     m_chassis->Initialize(m_system, chassisPos);
 

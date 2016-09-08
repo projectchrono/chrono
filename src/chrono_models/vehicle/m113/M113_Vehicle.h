@@ -38,10 +38,6 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
     virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
-    void SetSprocketVisualizationType(VisualizationType vis);
-    void SetIdlerVisualizationType(VisualizationType vis);
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
-    void SetTrackShoeVisualizationType(VisualizationType vis);
 
   private:
     void Create(bool fixed);

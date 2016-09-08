@@ -108,6 +108,18 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
         m_tracks[side]->GetTrackShoeStates(states);
     }
 
+    /// Set visualization type for the sprocket subsystem.
+    void SetSprocketVisualizationType(VisualizationType vis);
+
+    // Set visualization type for the idler subsystem.
+    void SetIdlerVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the suspension subsystems.
+    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the track shoe subsystems.
+    void SetTrackShoeVisualizationType(VisualizationType vis);
+
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and
     /// track shoes. To override these default settings, this function must be
