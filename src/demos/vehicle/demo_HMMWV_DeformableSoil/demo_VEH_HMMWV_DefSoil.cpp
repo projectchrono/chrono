@@ -198,13 +198,14 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis);
     my_hmmwv.SetWheelVis(wheel_type == CYLINDRICAL ? VisualizationType::MESH : VisualizationType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(TireModelType::RIGID);
     my_hmmwv.Initialize();
+
+    my_hmmwv.SetChassisVisualizationType(chassis_vis);
 
     ChSystem* system = my_hmmwv.GetSystem();
 

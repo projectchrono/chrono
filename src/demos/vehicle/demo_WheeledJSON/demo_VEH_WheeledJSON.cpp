@@ -125,14 +125,15 @@ int main(int argc, char* argv[]) {
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-    ////vehicle.GetChassis()->SetBodyFixed(true);
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    ////vehicle.GetChassisBody()->SetBodyFixed(true);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();

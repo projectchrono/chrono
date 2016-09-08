@@ -51,9 +51,6 @@ class CH_MODELS_API HMMWV_Chassis : public ChChassis {
     /// Add visualization of the road wheel.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
-    void ExportMeshPovray(const std::string& out_dir);
-
   protected:
     static const double m_mass;
     static const ChVector<> m_inertia;

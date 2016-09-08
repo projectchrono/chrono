@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
     while (app.GetDevice()->run()) {
         // Debugging output
-        const ChFrameMoving<>& c_ref = rig->GetChassis()->GetFrame_REF_to_abs();
+        const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
         const ChVector<>& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
         const ChVector<>& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
         ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);

@@ -114,7 +114,6 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis_type);
     my_hmmwv.SetWheelVis(wheel_vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -123,6 +122,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.Initialize();
+
+    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

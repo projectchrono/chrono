@@ -368,10 +368,9 @@ int main(int argc, char* argv[]) {
     M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, system);
     ////vehicle.SetStepsize(0.0001);
 
-    vehicle.SetChassisVisType(VisualizationType::NONE);
-
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
+    vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetSprocketVisualizationType(VisualizationType::MESH);
     vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
@@ -383,7 +382,7 @@ int main(int argc, char* argv[]) {
 
     // Create the powertrain system
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the driver system
     ChDataDriver driver(vehicle, vehicle::GetDataFile("M113/driver/Acceleration.txt"));
@@ -452,9 +451,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Release the vehicle chassis at the end of the hold time.
-        if (vehicle.GetChassis()->GetBodyFixed() && time > time_hold) {
+        if (vehicle.GetChassisBody()->GetBodyFixed() && time > time_hold) {
             std::cout << std::endl << "Release vehicle t = " << time << std::endl;
-            vehicle.GetChassis()->SetBodyFixed(false);
+            vehicle.GetChassisBody()->SetBodyFixed(false);
         }
 
         // Update modules (process inputs from other modules)

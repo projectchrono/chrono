@@ -102,6 +102,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
@@ -139,7 +140,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application

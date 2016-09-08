@@ -49,12 +49,12 @@ ChWheeledVehicleAssembly::ChWheeledVehicleAssembly(ChSystem* system,
 void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQuaternion<>& init_rot) {
     // Initialize the vehicle and powertrain systems.
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
-    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+    m_powertrain->Initialize(m_vehicle->GetChassisBody(), m_vehicle->GetDriveshaft());
 
     // If provided, invoke the user-specified callback to attach chassis contact
     // geometry.
     if (m_chassis_cb) {
-        std::shared_ptr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassis();
+        std::shared_ptr<ChBodyAuxRef> chassisBody = m_vehicle->GetChassisBody();
 
         m_chassis_cb->onCallback(chassisBody);
         chassisBody->SetCollide(true);

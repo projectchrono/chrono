@@ -76,7 +76,7 @@ ChSteeringController::~ChSteeringController() {
 
 void ChSteeringController::Reset(const ChVehicle& vehicle) {
     // Base class only calculates an updated sentinel location.
-    m_sentinel = vehicle.GetChassis()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -85,7 +85,7 @@ void ChSteeringController::Reset(const ChVehicle& vehicle) {
 double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead
     // distance in front of the vehicle.
-    m_sentinel = vehicle.GetChassis()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
+    m_sentinel = vehicle.GetChassisBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(ChVector<>(m_dist, 0, 0));
 
     // Calculate current "target" location.
     CalcTargetLocation();
@@ -102,9 +102,9 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - vehicle.GetChassisPos();
+    ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
     sentinel_vec.z = 0;
-    ChVector<> target_vec = m_target - vehicle.GetChassisPos();
+    ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
     target_vec.z = 0;
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));

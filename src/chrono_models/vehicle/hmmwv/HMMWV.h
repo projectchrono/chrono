@@ -55,7 +55,7 @@ class CH_MODELS_API HMMWV {
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
-    void SetChassisVis(VisualizationType val) { m_chassisVis = val; }
+    void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
     void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
     void EnableTireVis(bool val) { m_tireVis = val; }
 
@@ -66,7 +66,8 @@ class CH_MODELS_API HMMWV {
 
     ChSystem* GetSystem() const { return m_vehicle->GetSystem(); }
     ChWheeledVehicle& GetVehicle() const { return *m_vehicle; }
-    std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_vehicle->GetChassis(); }
+    std::shared_ptr<ChChassis> GetChassis() const { return m_vehicle->GetChassis(); }
+    std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_vehicle->GetChassisBody(); }
     ChPowertrain& GetPowertrain() const { return *m_powertrain; }
     ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
 
@@ -89,7 +90,6 @@ class CH_MODELS_API HMMWV {
 
     ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
-    VisualizationType m_chassisVis;
     VisualizationType m_wheelVis;
     bool m_tireVis;
 
@@ -113,14 +113,13 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
     HMMWV_Full() {}
     HMMWV_Full(ChSystem* system) : HMMWV(system) {}
 
-    void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_Vehicle*)m_vehicle)->ExportMeshPovray(out_dir); }
     void LogHardpointLocations() { ((HMMWV_Vehicle*)m_vehicle)->LogHardpointLocations(); }
     void DebugLog(int what) { ((HMMWV_Vehicle*)m_vehicle)->DebugLog(what); }
 
   private:
     virtual ChWheeledVehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType, m_chassisVis, m_wheelVis)
-                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType, m_wheelVis)
+                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_wheelVis, m_contactMethod);
     }
 };
 
@@ -129,12 +128,10 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
     HMMWV_Reduced() {}
     HMMWV_Reduced(ChSystem* system) : HMMWV(system) {}
 
-    void ExportMeshPovray(const std::string& out_dir) { ((HMMWV_VehicleReduced*)m_vehicle)->ExportMeshPovray(out_dir); }
-
   private:
     virtual ChWheeledVehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisVis, m_wheelVis)
-                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_chassisVis, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_wheelVis)
+                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_wheelVis, m_contactMethod);
     }
 };
 

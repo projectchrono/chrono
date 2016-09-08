@@ -101,8 +101,8 @@ int main(int argc, char* argv[]) {
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
     Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
-
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     Generic_SimplePowertrain powertrain;
 
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
     Generic_RigidTire tire_front_left("FL");

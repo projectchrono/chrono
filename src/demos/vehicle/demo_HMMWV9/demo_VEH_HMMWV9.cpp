@@ -84,7 +84,6 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Reduced my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVis(VisualizationType::PRIMITIVES);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -92,6 +91,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
+
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
@@ -135,9 +136,6 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-
-        // Export vehicle mesh to POV-Ray format
-        my_hmmwv.ExportMeshPovray(out_dir);
     }
 
     // ---------------

@@ -189,7 +189,6 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(vis_type);
     my_hmmwv.SetWheelVis(vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -198,6 +197,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
     my_hmmwv.Initialize();
+
+    my_hmmwv.SetChassisVisualizationType(vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
@@ -301,7 +302,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = my_hmmwv.GetVehicle().GetLocalDriverCoordsys().pos;
+    ChVector<> driver_pos = my_hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -317,7 +318,7 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
+        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
         ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x);
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y);

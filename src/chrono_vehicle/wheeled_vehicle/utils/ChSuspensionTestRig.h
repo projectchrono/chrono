@@ -96,10 +96,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// steering mechanism.
     virtual double GetVehicleMass() const override;
 
-    /// Get the local driver position and orientation.
-    /// This is a coordinate system relative to the chassis reference frame.
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
-
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const override { return m_dummy_shaft; }
 

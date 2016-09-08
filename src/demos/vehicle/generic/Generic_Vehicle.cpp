@@ -34,6 +34,7 @@
 
 #include "generic/Generic_AntirollBarRSD.h"
 
+#include "generic/Generic_Chassis.h"
 #include "generic/Generic_Wheel.h"
 #include "generic/Generic_RackPinion.h"
 #include "generic/Generic_Driveline2WD.h"
@@ -43,165 +44,138 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 // -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-
-const double     Generic_Vehicle::m_chassisMass = 995.0;                        // chassis sprung mass
-const ChVector<> Generic_Vehicle::m_chassisCOM (0, 0, 0);                          // COM location
-const ChVector<> Generic_Vehicle::m_chassisInertia(200.0, 500.0, 600.0);  // chassis inertia (roll,pitch,yaw)
-
-const ChCoordsys<> Generic_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
-
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Generic_Vehicle::Generic_Vehicle(const bool fixed,
                                  SuspensionType suspType,
                                  VisualizationType wheelVis,
                                  ChMaterialSurfaceBase::ContactMethod contactMethod)
-  : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
-  // -------------------------------------------
-  // Create the chassis body
-  // -------------------------------------------
-  m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
+    : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
+    // -------------------------------------------
+    // Create the chassis subsystem
+    // -------------------------------------------
+    m_chassis = std::make_shared<Generic_Chassis>("Chassis");
 
-  m_chassis->SetIdentifier(0);
-  m_chassis->SetName("chassis");
-  m_chassis->SetMass(m_chassisMass);
-  m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-  m_chassis->SetInertiaXX(m_chassisInertia);
-  m_chassis->SetBodyFixed(fixed);
+    // -------------------------------------------
+    // Create the suspension subsystems
+    // -------------------------------------------
+    m_suspensions.resize(2);
 
-  auto sphere = std::make_shared<ChSphereShape>();
-  sphere->GetSphereGeometry().rad = 0.1;
-  sphere->Pos = m_chassisCOM;
-  m_chassis->AddAsset(sphere);
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
+            m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
+            break;
+        case SuspensionType::MULTI_LINK:
+            m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
+            m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
+            break;
+        case SuspensionType::DOUBLE_WISHBONE:
+            m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
+            m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
+            break;
+        case SuspensionType::HENDRICKSON_PRIMAXX:
+            m_suspensions[0] = std::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
+            m_suspensions[1] = std::make_shared<Generic_HendricksonPRIMAXX>("Rear suspension");
+            break;
+        case SuspensionType::MACPHERSON_STRUT:
+            m_suspensions[0] = std::make_shared<Generic_MacPhersonStrut>("Front suspension");
+            m_suspensions[1] = std::make_shared<Generic_MacPhersonStrut>("Rear suspension");
+            break;
+    }
 
-  m_system->Add(m_chassis);
+    // --------------------------------
+    // Create the antirollbar subsystem
+    // --------------------------------
+    ////if (m_suspensions[0]->IsIndependent()) {
+    ////  m_antirollbars.resize(1);
+    ////  m_antirollbars[0] = std::make_shared<Generic_AntirollBarRSD>("Antiroll Bar");
+    ////}
 
-  // -------------------------------------------
-  // Create the suspension subsystems
-  // -------------------------------------------
-  m_suspensions.resize(2);
+    // -----------------------------
+    // Create the steering subsystem
+    // -----------------------------
+    m_steerings.resize(1);
+    m_steerings[0] = std::make_shared<Generic_RackPinion>("Steering");
 
-  switch (m_suspType) {
-      case SuspensionType::SOLID_AXLE:
-          m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
-          m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
-          break;
-      case SuspensionType::MULTI_LINK:
-          m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
-          m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
-          break;
-      case SuspensionType::DOUBLE_WISHBONE:
-          m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
-          m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
-          break;
-      case SuspensionType::HENDRICKSON_PRIMAXX:
-          m_suspensions[0] = std::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
-          m_suspensions[1] = std::make_shared<Generic_HendricksonPRIMAXX>("Rear suspension");
-          break;
-      case SuspensionType::MACPHERSON_STRUT:
-          m_suspensions[0] = std::make_shared<Generic_MacPhersonStrut>("Front suspension");
-          m_suspensions[1] = std::make_shared<Generic_MacPhersonStrut>("Rear suspension");
-          break;
-  }
+    // -----------------
+    // Create the wheels
+    // -----------------
+    m_wheels.resize(4);
+    m_wheels[0] = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels[1] = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels[2] = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels[3] = std::make_shared<Generic_Wheel>(wheelVis);
 
-  // --------------------------------
-  // Create the antirollbar subsystem
-  // --------------------------------
-  ////if (m_suspensions[0]->IsIndependent()) {
-  ////  m_antirollbars.resize(1);
-  ////  m_antirollbars[0] = std::make_shared<Generic_AntirollBarRSD>("Antiroll Bar");
-  ////}
+    // --------------------
+    // Create the driveline
+    // --------------------
+    m_driveline = std::make_shared<Generic_Driveline2WD>();
 
-  // -----------------------------
-  // Create the steering subsystem
-  // -----------------------------
-  m_steerings.resize(1);
-  m_steerings[0] = std::make_shared<Generic_RackPinion>("Steering");
-
-  // -----------------
-  // Create the wheels
-  // -----------------
-  m_wheels.resize(4);
-  m_wheels[0] = std::make_shared<Generic_Wheel>(wheelVis);
-  m_wheels[1] = std::make_shared<Generic_Wheel>(wheelVis);
-  m_wheels[2] = std::make_shared<Generic_Wheel>(wheelVis);
-  m_wheels[3] = std::make_shared<Generic_Wheel>(wheelVis);
-
-  // --------------------
-  // Create the driveline
-  // --------------------
-  m_driveline = std::make_shared<Generic_Driveline2WD>();
-
-  // -----------------
-  // Create the brakes
-  // -----------------
-  m_brakes.resize(4);
-  m_brakes[0] = std::make_shared<Generic_BrakeSimple>();
-  m_brakes[1] = std::make_shared<Generic_BrakeSimple>();
-  m_brakes[2] = std::make_shared<Generic_BrakeSimple>();
-  m_brakes[3] = std::make_shared<Generic_BrakeSimple>();
+    // -----------------
+    // Create the brakes
+    // -----------------
+    m_brakes.resize(4);
+    m_brakes[0] = std::make_shared<Generic_BrakeSimple>();
+    m_brakes[1] = std::make_shared<Generic_BrakeSimple>();
+    m_brakes[2] = std::make_shared<Generic_BrakeSimple>();
+    m_brakes[3] = std::make_shared<Generic_BrakeSimple>();
 }
 
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos)
-{
-  m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
+    m_chassis->Initialize(m_system, chassisPos);
 
-  // Initialize the steering subsystem (specify the steering subsystem's frame
-  // relative to the chassis reference frame).
-  ChVector<> offset;
-  switch (m_suspType) {
-      case SuspensionType::SOLID_AXLE:
-          offset = ChVector<>(2.1, 0, -0.02);
-          break;
-      case SuspensionType::MULTI_LINK:
-          offset = ChVector<>(1.25, 0, -0.21);
-          break;
-      case SuspensionType::DOUBLE_WISHBONE:
-          offset = ChVector<>(1.25, 0, -0.21);
-          break;
-      case SuspensionType::HENDRICKSON_PRIMAXX:
-          offset = ChVector<>(1.25, 0, -0.21);
-          break;
-      case SuspensionType::MACPHERSON_STRUT:
-          offset = ChVector<>(1.25, 0, -0.21);
-          break;
-  }
-  m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+    // Initialize the steering subsystem (specify the steering subsystem's frame
+    // relative to the chassis reference frame).
+    ChVector<> offset;
+    switch (m_suspType) {
+        case SuspensionType::SOLID_AXLE:
+            offset = ChVector<>(2.1, 0, -0.02);
+            break;
+        case SuspensionType::MULTI_LINK:
+            offset = ChVector<>(1.25, 0, -0.21);
+            break;
+        case SuspensionType::DOUBLE_WISHBONE:
+            offset = ChVector<>(1.25, 0, -0.21);
+            break;
+        case SuspensionType::HENDRICKSON_PRIMAXX:
+            offset = ChVector<>(1.25, 0, -0.21);
+            break;
+        case SuspensionType::MACPHERSON_STRUT:
+            offset = ChVector<>(1.25, 0, -0.21);
+            break;
+    }
+    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
 
-  // Initialize the suspension subsystems (specify the suspension subsystems'
-  // frames relative to the chassis reference frame).
-  m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
-  m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
+    // Initialize the suspension subsystems (specify the suspension subsystems'
+    // frames relative to the chassis reference frame).
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.6865, 0, 0), m_chassis->GetBody());
 
-  // Initialize the antiroll bar subsystem.
-  ////if (m_antirollbars.size() == 1) {
-  ////  m_antirollbars[0]->Initialize(m_chassis,
-  ////                               ChVector<>(1.3, 0, 0.0),
-  ////                               m_suspensions[0]->GetLeftBody(),
-  ////                               m_suspensions[0]->GetRightBody());
-  ////}
+    // Initialize the antiroll bar subsystem.
+    ////if (m_antirollbars.size() == 1) {
+    ////  m_antirollbars[0]->Initialize(m_chassis,
+    ////                               ChVector<>(1.3, 0, 0.0),
+    ////                               m_suspensions[0]->GetLeftBody(),
+    ////                               m_suspensions[0]->GetRightBody());
+    ////}
 
-  // Initialize wheels
-  m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-  m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-  m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-  m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    // Initialize wheels
+    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
+    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
-  // Initialize the driveline subsystem (RWD)
-  std::vector<int> driven_susp(1, 1);
-  m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
+    // Initialize the driveline subsystem (RWD)
+    std::vector<int> driven_susp(1, 1);
+    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp);
 
-  // Initialize the four brakes
-  m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-  m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-  m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-  m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+    // Initialize the four brakes
+    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
+    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+    m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
+    m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
 }
 
 

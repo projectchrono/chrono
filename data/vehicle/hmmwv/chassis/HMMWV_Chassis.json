@@ -7,6 +7,12 @@
   "COM":      [0.056, 0, 0.523],
   "Inertia":  [1078.52, 2955.66, 3570.20],
  
+   "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  },
+
   "Visualization":
   {
     "Mesh Filename":  "hmmwv/hmmwv_chassis.obj",

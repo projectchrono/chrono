@@ -50,6 +50,18 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// Defintion of a chassis for a suspension test rig
+// -----------------------------------------------------------------------------
+class ChSuspensionTestRigChassis : public ChChassis {
+  public:
+    ChSuspensionTestRigChassis() : ChChassis("Ground") {}
+    virtual double GetMass() const override { return 1; }
+    virtual const ChVector<>& GetInertia() const override { return ChVector<>(1, 1, 1); }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
+};
+
+// -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
 // from the specified JSON array.
 // -----------------------------------------------------------------------------
@@ -184,19 +196,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
-    // Create the chassis (ground) body, fixed, no visualization
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
-
     // Extract the specified axle from the vehicle's list of suspension subsystems.
     // Note that we ignore antiroll bar and brake subsystems.
     // Create the suspension and wheel subsystems.
@@ -252,19 +251,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
 
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
-
     // Create the suspension and wheel subsystems.
     assert(d.HasMember("Suspension"));
     m_wheels.resize(2);
@@ -290,16 +276,23 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 }
 
 void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
+    // ----------------------------
+    // Create the chassis subsystem
+    // ----------------------------
+    m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
+    m_chassis->Initialize(m_system, chassisPos);
+    m_chassis->GetBody()->SetBodyFixed(true);
+
     // ---------------------------------
     // Initialize the vehicle subsystems
     // ---------------------------------
 
     // Initialize the suspension and steering subsystems.
     if (HasSteering()) {
-        m_steering->Initialize(m_chassis, m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis, m_suspLoc, m_steering->GetSteeringLink());
+        m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink());
     } else {
-        m_suspension->Initialize(m_chassis, m_suspLoc, m_chassis);
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody());
     }
 
     // Initialize the two wheels
@@ -321,7 +314,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_L->SetPos(post_L_pos);
     m_system->Add(m_post_L);
-    AddVisualize_post(m_post_L, m_chassis, post_height, post_rad, ChColor(0.1f, 0.8f, 0.15f));
+    AddVisualize_post(m_post_L, m_chassis->GetBody(), post_height, post_rad, ChColor(0.1f, 0.8f, 0.15f));
 
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
@@ -331,7 +324,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_R->SetPos(post_R_pos);
     m_system->Add(m_post_R);
-    AddVisualize_post(m_post_R, m_chassis, post_height, post_rad, ChColor(0.8f, 0.1f, 0.1f));
+    AddVisualize_post(m_post_R, m_chassis->GetBody(), post_height, post_rad, ChColor(0.8f, 0.1f, 0.1f));
 
     // ------------------------------------------
     // Create and initialize joints and actuators
@@ -340,12 +333,12 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Prismatic joints to force vertical translation
     m_post_L_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_post_L_prismatic->SetNameString("L_post_prismatic");
-    m_post_L_prismatic->Initialize(m_chassis, m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
+    m_post_L_prismatic->Initialize(m_chassis->GetBody(), m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
     m_system->AddLink(m_post_L_prismatic);
 
     m_post_R_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_post_R_prismatic->SetNameString("R_post_prismatic");
-    m_post_R_prismatic->Initialize(m_chassis, m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT));
+    m_post_R_prismatic->Initialize(m_chassis->GetBody(), m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT));
     m_system->AddLink(m_post_R_prismatic);
 
     // Post actuators
@@ -353,7 +346,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m1_L.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_L_linact = std::make_shared<ChLinkLinActuator>();
     m_post_L_linact->SetNameString("L_post_linActuator");
-    m_post_L_linact->Initialize(m_chassis, m_post_L, false, ChCoordsys<>(m1_L, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
+    m_post_L_linact->Initialize(m_chassis->GetBody(), m_post_L, false, ChCoordsys<>(m1_L, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
     m_post_L_linact->Set_lin_offset(1.0);
 
     auto func_L = std::make_shared<ChFunction_Const>(0);
@@ -364,7 +357,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m1_R.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_R_linact = std::make_shared<ChLinkLinActuator>();
     m_post_R_linact->SetNameString("R_post_linActuator");
-    m_post_R_linact->Initialize(m_chassis, m_post_R, false, ChCoordsys<>(m1_R, QUNIT), ChCoordsys<>(post_R_pos, QUNIT));
+    m_post_R_linact->Initialize(m_chassis->GetBody(), m_post_R, false, ChCoordsys<>(m1_R, QUNIT), ChCoordsys<>(post_R_pos, QUNIT));
     m_post_R_linact->Set_lin_offset(1.0);
 
     auto func_R = std::make_shared<ChFunction_Const>(0);

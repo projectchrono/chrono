@@ -40,7 +40,6 @@ HMMWV::HMMWV()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_chassisVis(VisualizationType::PRIMITIVES),
       m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
@@ -57,7 +56,6 @@ HMMWV::HMMWV(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_chassisVis(VisualizationType::PRIMITIVES),
       m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
@@ -91,7 +89,7 @@ void HMMWV::Initialize() {
         }
     }
 
-    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+    m_powertrain->Initialize(GetChassisBody(), m_vehicle->GetDriveshaft());
 
 #ifndef CHRONO_FEA
     // If ANCF tire selected but not available, fall back on rigid tire.
