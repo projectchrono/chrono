@@ -1,7 +1,7 @@
 {
   "Name":     "Dual Front Steering - Independent",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {

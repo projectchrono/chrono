@@ -1,7 +1,7 @@
 {
   "Name":     "Test vehicle - MacPherson Strut",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {

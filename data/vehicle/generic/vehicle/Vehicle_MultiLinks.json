@@ -1,7 +1,7 @@
 {
   "Name":     "Test vehicle - Multi-Link",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {

@@ -1,7 +1,7 @@
 {
   "Name":     "Test vehicle - 3 axles",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {

@@ -1,7 +1,7 @@
 {
   "Name":     "MAN 5t",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {
