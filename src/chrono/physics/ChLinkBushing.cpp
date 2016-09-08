@@ -43,61 +43,44 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> mbody1,
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
 
     // Bushing joint always applied compliance in all translation directions
+    // Use force objects (force_X, force_Y, force_Z; force_Rx, force_Ry, force_Rz) from parent
+    // class ChLinkMasked
 
-    m_force_Tx = new ChLinkForce();
-    m_force_Tx->Set_active(1);
-    m_force_Tx->Set_K(m_constants_K(0, 0));
-    m_force_Tx->Set_R(m_constants_R(0, 0));
-    SetForce_X(m_force_Tx);
+    force_X = new ChLinkForce();
+    force_X->Set_active(true);
+    force_X->Set_K(m_constants_K(0, 0));
+    force_X->Set_R(m_constants_R(0, 0));
 
-    m_force_Ty = new ChLinkForce();
-    m_force_Ty->Set_active(1);
-    m_force_Ty->Set_K(m_constants_K(1, 1));
-    m_force_Ty->Set_R(m_constants_R(1, 1));
-    SetForce_Y(m_force_Ty);
+    force_Y = new ChLinkForce();
+    force_Y->Set_active(true);
+    force_Y->Set_K(m_constants_K(1, 1));
+    force_Y->Set_R(m_constants_R(1, 1));
 
-    m_force_Tz = new ChLinkForce();
-    m_force_Tz->Set_active(1);
-    m_force_Tz->Set_K(m_constants_K(2, 2));
-    m_force_Tz->Set_R(m_constants_R(2, 2));
-    SetForce_Z(m_force_Tz);
+    force_Z = new ChLinkForce();
+    force_Z->Set_active(true);
+    force_Z->Set_K(m_constants_K(2, 2));
+    force_Z->Set_R(m_constants_R(2, 2));
 
     // Apply compliance in rotational dofs depending on bushing type selected
     switch (m_bushing_joint) {
         case ChLinkBushing::Mount:
-            m_force_Rx = new ChLinkForce();
-            m_force_Rx->Set_active(1);
-            m_force_Rx->Set_K(m_constants_K(3, 3));
-            m_force_Rx->Set_R(m_constants_R(3, 3));
-            SetForce_Rx(m_force_Rx);
+            force_Rx = new ChLinkForce();
+            force_Rx->Set_active(true);
+            force_Rx->Set_K(m_constants_K(3, 3));
+            force_Rx->Set_R(m_constants_R(3, 3));
 
-            m_force_Ry = new ChLinkForce();
-            m_force_Ry->Set_active(1);
-            m_force_Ry->Set_K(m_constants_K(4, 4));
-            m_force_Ry->Set_R(m_constants_R(4, 4));
-            SetForce_Ry(m_force_Ry);
+            force_Ry = new ChLinkForce();
+            force_Ry->Set_active(true);
+            force_Ry->Set_K(m_constants_K(4, 4));
+            force_Ry->Set_R(m_constants_R(4, 4));
 
-            m_force_Rz = new ChLinkForce();
-            m_force_Rz->Set_active(1);
-            m_force_Rz->Set_K(m_constants_K(5, 5));
-            m_force_Rz->Set_R(m_constants_R(5, 5));
-            SetForce_Rz(m_force_Rz);
+            force_Rz = new ChLinkForce();
+            force_Rz->Set_active(true);
+            force_Rz->Set_K(m_constants_K(5, 5));
+            force_Rz->Set_R(m_constants_R(5, 5));
 
             break;
         case ChLinkBushing::Spherical:
-            break;
-        case ChLinkBushing::Revolute:
-            m_force_Rx = new ChLinkForce();
-            m_force_Rx->Set_active(1);
-            m_force_Rx->Set_K(m_constants_K(3, 3));
-            m_force_Rx->Set_R(m_constants_R(3, 3));
-            SetForce_Rx(m_force_Rx);
-
-            m_force_Ry = new ChLinkForce();
-            m_force_Ry->Set_active(1);
-            m_force_Ry->Set_K(m_constants_K(4, 4));
-            m_force_Ry->Set_R(m_constants_R(4, 4));
-            SetForce_Ry(m_force_Ry);
             break;
     }
     return;
@@ -110,12 +93,12 @@ void ChLinkBushing::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkLock::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(m_force_Rx);
-    marchive << CHNVP(m_force_Ry);
-    marchive << CHNVP(m_force_Rz);
-    marchive << CHNVP(m_force_Tx);
-    marchive << CHNVP(m_force_Ty);
-    marchive << CHNVP(m_force_Tz);
+    marchive << CHNVP(force_X);
+    marchive << CHNVP(force_Y);
+    marchive << CHNVP(force_Z);
+    marchive << CHNVP(force_Rx);
+    marchive << CHNVP(force_Ry);
+    marchive << CHNVP(force_Rz);
     marchive << CHNVP(m_constants_K);
     marchive << CHNVP(m_constants_R);
 }
@@ -126,12 +109,12 @@ void ChLinkBushing::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkLock::ArchiveIN(marchive);
 
     // serialize all member data:
-    marchive >> CHNVP(m_force_Rx);
-    marchive >> CHNVP(m_force_Ry);
-    marchive >> CHNVP(m_force_Rz);
-    marchive >> CHNVP(m_force_Tx);
-    marchive >> CHNVP(m_force_Ty);
-    marchive >> CHNVP(m_force_Tz);
+    marchive >> CHNVP(force_X);
+    marchive >> CHNVP(force_Y);
+    marchive >> CHNVP(force_Z);
+    marchive >> CHNVP(force_Rx);
+    marchive >> CHNVP(force_Ry);
+    marchive >> CHNVP(force_Rz);
     marchive >> CHNVP(m_constants_K);
     marchive >> CHNVP(m_constants_R);
 }
