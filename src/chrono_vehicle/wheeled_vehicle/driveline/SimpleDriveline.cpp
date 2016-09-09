@@ -27,7 +27,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline() {
+SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDriveline("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -43,7 +43,7 @@ SimpleDriveline::SimpleDriveline(const std::string& filename) : ChSimpleDrivelin
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline() {
+SimpleDriveline::SimpleDriveline(const rapidjson::Document& d) : ChSimpleDriveline("") {
     Create(d);
 }
 
@@ -52,6 +52,8 @@ void SimpleDriveline::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     m_front_torque_frac = d["Front Torque Fraction"].GetDouble();
     m_front_diff_bias = d["Front Differential Max Bias"].GetDouble();

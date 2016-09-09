@@ -69,10 +69,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
-    m_wheels[1] = std::make_shared<HMMWV_WheelRight>(wheelVis);
-    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
-    m_wheels[3] = std::make_shared<HMMWV_WheelRight>(wheelVis);
+    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>("Wheel_FL", wheelVis);
+    m_wheels[1] = std::make_shared<HMMWV_WheelRight>("Wheel_FR", wheelVis);
+    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>("Wheel_RL", wheelVis);
+    m_wheels[3] = std::make_shared<HMMWV_WheelRight>("Wheel_RR", wheelVis);
 
     // --------------------
     // Create the driveline
@@ -80,10 +80,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
     switch (m_driveType) {
         case DrivelineType::FWD:
         case DrivelineType::RWD:
-            m_driveline = std::make_shared<HMMWV_Driveline2WD>();
+            m_driveline = std::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
         case DrivelineType::AWD:
-            m_driveline = std::make_shared<HMMWV_Driveline4WD>();
+            m_driveline = std::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
     }
 
@@ -91,10 +91,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
+    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>("Brake_FL");
+    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>("Brake_FR");
+    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>("Brake_RL");
+    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>("Brake_RR");
 }
 
 HMMWV_Vehicle::~HMMWV_Vehicle() {}

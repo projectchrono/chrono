@@ -128,18 +128,18 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -----------------
     // Create the wheels
     // -----------------
-    m_front_right_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_front_left_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_rear_right_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_rear_left_wheel = std::make_shared<Generic_Wheel>(wheelVis);
+    m_front_right_wheel = std::make_shared<Generic_Wheel>("Wheel_FR", wheelVis);
+    m_front_left_wheel = std::make_shared<Generic_Wheel>("Wheel_FL", wheelVis);
+    m_rear_right_wheel = std::make_shared<Generic_Wheel>("Wheel_RR", wheelVis);
+    m_rear_left_wheel = std::make_shared<Generic_Wheel>("Wheel_RL", wheelVis);
 
     // -----------------
     // Create the brakes
     // -----------------
-    m_front_right_brake = std::make_shared<Generic_BrakeSimple>();
-    m_front_left_brake = std::make_shared<Generic_BrakeSimple>();
-    m_rear_right_brake = std::make_shared<Generic_BrakeSimple>();
-    m_rear_left_brake = std::make_shared<Generic_BrakeSimple>();
+    m_front_right_brake = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_front_left_brake = std::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_rear_right_brake = std::make_shared<Generic_BrakeSimple>("Brake_RR");
+    m_rear_left_brake = std::make_shared<Generic_BrakeSimple>("Brake_RL");
 }
 
 // -----------------------------------------------------------------------------

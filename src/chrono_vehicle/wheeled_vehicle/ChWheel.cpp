@@ -26,6 +26,8 @@
 namespace chrono {
 namespace vehicle {
 
+ChWheel::ChWheel(const std::string& name) : ChPart(name) {}
+
 // The base class initialization function attaches this wheel to the specified
 // suspension spindle body (by incrementing the spindle's mass and inertia with
 // that of the wheel.  A derived class should always invoke this base method.

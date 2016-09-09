@@ -38,7 +38,7 @@ namespace vehicle {
 /// 4WD driveline model template based on ChShaft objects.
 class CH_VEHICLE_API ChShaftsDriveline4WD : public ChDriveline {
   public:
-    ChShaftsDriveline4WD();
+    ChShaftsDriveline4WD(const std::string& name);
 
     virtual ~ChShaftsDriveline4WD() {}
 

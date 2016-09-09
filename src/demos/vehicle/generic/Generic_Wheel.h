@@ -29,7 +29,8 @@
 
 class Generic_Wheel : public chrono::vehicle::ChWheel {
   public:
-    Generic_Wheel(chrono::vehicle::VisualizationType visType) : m_visType(visType) {}
+    Generic_Wheel(const std::string& name, chrono::vehicle::VisualizationType visType)
+        : ChWheel(name), m_visType(visType) {}
     ~Generic_Wheel() {}
 
     virtual double GetMass() const override { return 45.4; }

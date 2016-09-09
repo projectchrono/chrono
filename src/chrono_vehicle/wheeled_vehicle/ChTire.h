@@ -27,7 +27,7 @@
 #include "chrono/core/ChCoordsys.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
 
 /**
@@ -47,17 +47,11 @@ namespace vehicle {
 /// A tire subsystem is a force element. It is passed position and velocity
 /// information of the wheel body and it produces ground reaction forces and
 /// moments to be applied to the wheel body.
-class CH_VEHICLE_API ChTire {
+class CH_VEHICLE_API ChTire : public ChPart {
   public:
     ChTire(const std::string& name  ///< [in] name of this tire system
            );
     virtual ~ChTire() {}
-
-    /// Get the name of this tire.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name for this tire.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Enable/disable tire visualization (default: false).
     void EnableVisualization(bool val) { m_vis_enabled = val; }
@@ -131,7 +125,6 @@ class CH_VEHICLE_API ChTire {
         double& depth                   ///< [out] penetration depth (positive if contact occurred)
         );
 
-    std::string m_name;               ///< name of this tire subsystem
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
 

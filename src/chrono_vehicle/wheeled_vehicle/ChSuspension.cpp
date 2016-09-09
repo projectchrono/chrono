@@ -21,8 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChSuspension::ChSuspension(const std::string& name) : m_name(name) {
-}
+ChSuspension::ChSuspension(const std::string& name) : ChPart(name) {}
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
     m_axle[side]->SetAppliedTorque(torque);

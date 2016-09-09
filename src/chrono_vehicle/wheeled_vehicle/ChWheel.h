@@ -29,6 +29,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -49,9 +50,11 @@ namespace vehicle {
 /// spindle body owned by the suspension.
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
-class CH_VEHICLE_API ChWheel {
+class CH_VEHICLE_API ChWheel : public ChPart {
   public:
-    ChWheel() {}
+    ChWheel(const std::string& name  ///< [in] name of the subsystem
+            );
+
     virtual ~ChWheel() {}
 
     /// Get the wheel mass.

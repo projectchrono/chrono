@@ -28,7 +28,7 @@
 #include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -44,7 +44,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a suspension subsystem.
-class CH_VEHICLE_API ChSuspension {
+class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
     ChSuspension(const std::string& name  ///< [in] name of the subsystem
                  );
@@ -56,12 +56,6 @@ class CH_VEHICLE_API ChSuspension {
 
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const = 0;
-
-    /// Get the name identifier for this suspension subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this suspension subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -138,8 +132,6 @@ class CH_VEHICLE_API ChSuspension {
     virtual void LogConstraintViolations(VehicleSide side) {}
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

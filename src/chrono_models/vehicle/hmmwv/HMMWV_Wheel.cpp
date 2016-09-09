@@ -51,11 +51,11 @@ const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/wheel_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Wheel::HMMWV_Wheel(VisualizationType visType) : m_visType(visType) {}
+HMMWV_Wheel::HMMWV_Wheel(const std::string& name, VisualizationType visType) : ChWheel(name), m_visType(visType) {}
 
-HMMWV_WheelLeft::HMMWV_WheelLeft(VisualizationType visType) : HMMWV_Wheel(visType) {}
+HMMWV_WheelLeft::HMMWV_WheelLeft(const std::string& name, VisualizationType visType) : HMMWV_Wheel(name, visType) {}
 
-HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType visType) : HMMWV_Wheel(visType) {}
+HMMWV_WheelRight::HMMWV_WheelRight(const std::string& name, VisualizationType visType) : HMMWV_Wheel(name, visType) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ const double HMMWV_BrakeSimple::m_maxtorque = 4000;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_BrakeSimple::HMMWV_BrakeSimple() {}
+HMMWV_BrakeSimple::HMMWV_BrakeSimple(const std::string& name) : ChBrakeSimple(name) {}
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

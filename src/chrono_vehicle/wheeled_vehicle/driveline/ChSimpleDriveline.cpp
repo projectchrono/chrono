@@ -29,8 +29,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Construct a default 4WD simple driveline.
 // -----------------------------------------------------------------------------
-ChSimpleDriveline::ChSimpleDriveline() : ChDriveline() {
-}
+ChSimpleDriveline::ChSimpleDriveline(const std::string& name) : ChDriveline(name) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.

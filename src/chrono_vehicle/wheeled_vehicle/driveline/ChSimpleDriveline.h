@@ -35,7 +35,7 @@ namespace vehicle {
 /// simple model for Torsen limited-slip differentials.
 class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
   public:
-    ChSimpleDriveline();
+    ChSimpleDriveline(const std::string& name);
     virtual ~ChSimpleDriveline() {}
 
     /// Return the number of driven axles.

@@ -31,7 +31,7 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_Wheel : public ChWheel {
   public:
-    HMMWV_Wheel(VisualizationType visType);
+    HMMWV_Wheel(const std::string& name, VisualizationType visType);
     ~HMMWV_Wheel() {}
 
     virtual double GetMass() const override { return m_mass; }
@@ -53,7 +53,7 @@ class CH_MODELS_API HMMWV_Wheel : public ChWheel {
 
 class CH_MODELS_API HMMWV_WheelLeft : public HMMWV_Wheel {
   public:
-    HMMWV_WheelLeft(VisualizationType visType);
+    HMMWV_WheelLeft(const std::string& name, VisualizationType visType);
     ~HMMWV_WheelLeft() {}
 
     virtual std::string getMeshName() const override { return m_meshName; }
@@ -66,7 +66,7 @@ class CH_MODELS_API HMMWV_WheelLeft : public HMMWV_Wheel {
 
 class CH_MODELS_API HMMWV_WheelRight : public HMMWV_Wheel {
   public:
-    HMMWV_WheelRight(VisualizationType visType);
+    HMMWV_WheelRight(const std::string& name, VisualizationType visType);
     ~HMMWV_WheelRight() {}
 
     virtual std::string getMeshName() const override { return m_meshName; }

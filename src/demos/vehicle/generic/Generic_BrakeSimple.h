@@ -23,7 +23,7 @@
 
 class Generic_BrakeSimple : public chrono::vehicle::ChBrakeSimple {
   public:
-    Generic_BrakeSimple() {}
+    Generic_BrakeSimple(const std::string& name) : chrono::vehicle::ChBrakeSimple(name) {}
     ~Generic_BrakeSimple() {}
 
     virtual double GetMaxBrakingTorque() override { return 4000.0; }

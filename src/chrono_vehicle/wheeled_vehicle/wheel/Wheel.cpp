@@ -44,7 +44,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Wheel::Wheel(const std::string& filename) : m_vis(VisualizationType::NONE) {
+Wheel::Wheel(const std::string& filename) : ChWheel(""), m_vis(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -60,7 +60,7 @@ Wheel::Wheel(const std::string& filename) : m_vis(VisualizationType::NONE) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Wheel::Wheel(const rapidjson::Document& d) : m_vis(VisualizationType::NONE), m_radius(0), m_width(0) {
+Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_vis(VisualizationType::NONE), m_radius(0), m_width(0) {
     Create(d);
 }
 
@@ -69,6 +69,8 @@ void Wheel::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     // Read mass and inertia
     m_mass = d["Mass"].GetDouble();

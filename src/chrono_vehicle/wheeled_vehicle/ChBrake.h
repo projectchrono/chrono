@@ -24,6 +24,7 @@
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -39,9 +40,11 @@ namespace vehicle {
 /// @{
 
 /// Base class for a brake subsystem
-class CH_VEHICLE_API ChBrake {
+class CH_VEHICLE_API ChBrake : public ChPart {
   public:
-    ChBrake();
+    ChBrake(const std::string& name  ///< [in] name of the subsystem
+            );
+
     virtual ~ChBrake() {}
 
     /// Initialize the brake by providing the wheel's revolute link.

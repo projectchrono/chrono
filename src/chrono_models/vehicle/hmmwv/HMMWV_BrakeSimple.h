@@ -29,7 +29,7 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_BrakeSimple : public ChBrakeSimple {
   public:
-    HMMWV_BrakeSimple();
+    HMMWV_BrakeSimple(const std::string& name);
     virtual ~HMMWV_BrakeSimple() {}
 
     virtual double GetMaxBrakingTorque() override { return m_maxtorque; }

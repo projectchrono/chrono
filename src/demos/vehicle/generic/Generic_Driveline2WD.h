@@ -23,7 +23,7 @@
 
 class Generic_Driveline2WD : public chrono::vehicle::ChShaftsDriveline2WD {
   public:
-    Generic_Driveline2WD() : chrono::vehicle::ChShaftsDriveline2WD() {
+    Generic_Driveline2WD(const std::string& name) : chrono::vehicle::ChShaftsDriveline2WD(name) {
         SetMotorBlockDirection(chrono::ChVector<>(1, 0, 0));
         SetAxleDirection(chrono::ChVector<>(0, 1, 0));
     }

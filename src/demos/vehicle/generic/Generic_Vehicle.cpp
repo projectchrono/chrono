@@ -101,24 +101,24 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[1] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[2] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[3] = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL", wheelVis);
+    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR", wheelVis);
+    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL", wheelVis);
+    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR", wheelVis);
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>();
+    m_driveline = std::make_shared<Generic_Driveline2WD>("Driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[2] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[3] = std::make_shared<Generic_BrakeSimple>();
+    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[2] = std::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_brakes[3] = std::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
