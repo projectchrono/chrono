@@ -25,9 +25,6 @@
 #define CH_TRACK_TEST_RIG_H
 
 #include <string>
-#include <vector>
-
-#include "chrono/assets/ChColor.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
@@ -48,25 +45,20 @@ namespace vehicle {
 /// Definition of a suspension test rig.
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
-    /// Construct a test rig for a specified track assembly of a given vehicle.
-    ChTrackTestRig(
-        const std::string& filename,  ///< [in] JSON file with vehicle specification
-        VehicleSide side,             ///< [in] select left or right track assembly
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
-        );
+    /// Default constructor.
+    ChTrackTestRig() {}
 
-    /// Construct a test rig from specified file.
+    /// Construct a test rig from specified track assembly JSON file.
     ChTrackTestRig(
         const std::string& filename,  ///< [in] JSON file with test rig specification
+        const ChVector<>& location,   ///< [in] track assembly location
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
         );
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
     ChTrackTestRig(
-        std::shared_ptr<ChTrackAssembly> assembly,     ///< [in] handle to the track assembly
-        const ChVector<>& sprocketLoc,                 ///< [in] sprocket location
-        const ChVector<>& idlerLoc,                    ///< [in] idler location
-        const std::vector<ChVector<> >& suspLocs,      ///< [in] suspension locations
+        std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
+        const ChVector<>& location,                 ///< [in] track assembly location
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
         );
 
@@ -79,6 +71,9 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     double GetActuatorDisp();
     double GetActuatorForce();
     double GetActuatorMarkerDist();
+
+    /// Set maximum sprocket torque
+    void SetMaxTorque(double val) { m_max_torque = val; }
 
     /// Get the rig total mass.
     /// This is simply the mass of the track subsystem.
@@ -114,6 +109,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// steering between -1 and +1, and no force need be applied if using external actuation
     void Synchronize(double time,                        ///< [in] current time
                      double disp,                        ///< [in] post displacement
+                     double throttle,                    ///< [in] throttle input
                      const TrackShoeForces& shoe_forces  ///< [in] vector of track shoe forces
                      );
 
@@ -139,12 +135,11 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     std::shared_ptr<ChLinkLockPointPlane> m_post_ptPlane;   ///< actuate track to a specified height
 
     std::shared_ptr<ChFunction> m_actuator;  ///< actuator function applied to post
+    double m_displ;                          ///< cached left post displacement
 
-    double m_displ;  ///< cached left post displacement
+    double m_max_torque;  ///< maximum torque applied to sprocket
 
-    ChVector<> m_sprocketLoc;
-    ChVector<> m_idlerLoc;
-    std::vector<ChVector<> > m_suspLocs;
+    ChVector<> m_location; ///< track assembly subsystem location
 };
 
 /// @} vehicle_tracked_utils

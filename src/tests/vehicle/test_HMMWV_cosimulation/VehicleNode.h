@@ -30,8 +30,8 @@
 
 #include "chrono_vehicle/ChDriver.h"
 
-#include "models/vehicle/hmmwv/HMMWV_Vehicle.h"
-#include "models/vehicle/hmmwv/HMMWV_Powertrain.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 
 #include "BaseNode.h"
 

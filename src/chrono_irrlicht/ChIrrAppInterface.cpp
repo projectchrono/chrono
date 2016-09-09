@@ -358,6 +358,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
                                      irr::core::dimension2d<irr::u32> dimens,
                                      bool do_fullscreen,
                                      bool do_shadows,
+                                     bool do_antialias,
                                      irr::video::E_DRIVER_TYPE mydriver)
     : step_manage(true),
       try_realtime(false),
@@ -372,17 +373,34 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       selectedtruss(0),
       selectedspring(0),
       selectedmover(0) {
-    device = irr::createDevice(mydriver, dimens, 32, do_fullscreen, do_shadows);
+
+    irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
+    params.AntiAlias = do_antialias;
+    params.Bits = 32;
+    params.Fullscreen = do_fullscreen;
+    params.DriverType = mydriver;
+    params.WindowSize = dimens;
+    params.Stencilbuffer = do_shadows;
+
+    device = irr::createDeviceEx(params);
 
     if (device == 0) {
         GetLog() << "Cannot use default video driver - fall back to OpenGL \n";
-        device = irr::createDevice(irr::video::EDT_OPENGL, dimens, 32, do_fullscreen, do_shadows);
+        params.DriverType = irr::video::EDT_OPENGL;
+
+        device = irr::createDeviceEx(params);
+
         if (!device)
             return;
     }
 
     // Xeffects for shadow maps!
-    effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
+    if (do_antialias)
+        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize()*2, true, false, true);
+    else
+        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
+      // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects 
+      // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2  
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
     use_effects = false;  // will be true as sson as a lightwith shadow is added.
 

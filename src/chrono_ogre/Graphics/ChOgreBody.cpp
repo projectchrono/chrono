@@ -5,7 +5,7 @@ Contains the definitions for ChOgreBody
 */
 
 #include "ChOgreBody.h"
-#include "thirdparty/tinyobjloader/tiny_obj_loader.h"
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
 
 namespace ChOgre {
 

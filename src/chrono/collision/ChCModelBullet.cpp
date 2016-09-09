@@ -495,7 +495,6 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     if (!trimesh.getNumTriangles())
         return false;
 
-    //*******EXPERIMENTAL******
     if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
 
         std::vector<std::array<int,4>> trimap;

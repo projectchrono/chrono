@@ -44,11 +44,10 @@
 // Chrono vehicle header files
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChDataDriver.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 
 // M113 model header files
-#include "models/vehicle/m113/M113_SimplePowertrain.h"
-#include "models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -129,7 +128,7 @@ double time_hold = 0.2;
 // Solver parameters
 double time_step = 1e-3;  // 2e-4;
 
-double tolerance = 0.1;
+double tolerance = 0.01;
 
 int max_iteration_bilateral = 1000;  // 1000;
 int max_iteration_normal = 0;
@@ -361,22 +360,22 @@ int main(int argc, char* argv[]) {
         vertical_offset = CreateParticles(system);
     }
 
-
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
 
     // Create and initialize vehicle system
-    M113_Vehicle vehicle(true, SINGLE_PIN, system);
+    M113_Vehicle vehicle(true, TrackShoeType::SINGLE_PIN, system);
     ////vehicle.SetStepsize(0.0001);
 
-    vehicle.SetChassisVisType(NONE);
-    vehicle.SetRoadWheelVisType(MESH);
-    vehicle.SetIdlerVisType(MESH);
-    vehicle.SetSprocketVisType(MESH);
-    vehicle.SetTrackShoeVisType(MESH);
+    vehicle.SetChassisVisType(VisualizationType::NONE);
 
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    vehicle.SetSprocketVisualizationType(VisualizationType::MESH);
+    vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     ////vehicle.SetCollide(TrackCollide::NONE);
     ////vehicle.SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);

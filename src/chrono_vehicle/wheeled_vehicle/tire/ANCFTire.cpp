@@ -19,7 +19,7 @@
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace chrono::fea;
 using namespace rapidjson;

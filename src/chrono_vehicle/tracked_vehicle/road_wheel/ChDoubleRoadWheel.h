@@ -40,7 +40,7 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
     virtual ~ChDoubleRoadWheel() {}
 
     /// Return the type of track shoe consistent with this road wheel.
-    virtual GuidePinType GetType() const override { return CENTRAL_PIN; }
+    virtual GuidePinType GetType() const override { return GuidePinType::CENTRAL_PIN; }
 
     /// Initialize this road wheel subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
@@ -48,15 +48,17 @@ class CH_VEHICLE_API ChDoubleRoadWheel : public ChRoadWheel {
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
+    /// Add visualization assets for the road-wheel subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the road-wheel subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
   protected:
     /// Return the total width of the road wheel.
     virtual double GetWheelWidth() const = 0;
     /// Return the gap width.
     virtual double GetWheelGap() const = 0;
-
-    /// Add visualization of the road wheel.
-    /// The default implementation renders the wheel as two textured cylinders.
-    virtual void AddWheelVisualization();
 };
 
 /// @} vehicle_tracked_suspension

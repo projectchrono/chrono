@@ -20,9 +20,10 @@
 #define WHEEL_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -47,20 +48,18 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     void SetRadius(double rad) { m_radius = rad; }
     void SetWidth(double width) { m_width = width; }
 
-    bool UseVisualizationMesh() const { return m_vis == MESH; }
-    bool UseVisualizationPrimitives() const { return m_vis == PRIMITIVES; }
+    bool UseVisualizationMesh() const { return m_vis == VisualizationType::MESH; }
+    bool UseVisualizationPrimitives() const { return m_vis == VisualizationType::PRIMITIVES; }
     const std::string& GetMeshFilename() const { return m_meshFile; }
     const std::string& GetMeshName() const { return m_meshName; }
 
   private:
-    enum VisMode { NONE, PRIMITIVES, MESH };
-
     void Create(const rapidjson::Document& d);
 
     double m_mass;
     ChVector<> m_inertia;
 
-    VisMode m_vis;
+    VisualizationType m_vis;
     double m_radius;
     double m_width;
     std::string m_meshName;

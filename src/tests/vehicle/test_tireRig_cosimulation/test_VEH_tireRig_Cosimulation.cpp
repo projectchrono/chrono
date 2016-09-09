@@ -30,7 +30,8 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "thirdparty/SimpleOpt/SimpleOpt.h"
+
+#include "chrono_thirdparty/SimpleOpt/SimpleOpt.h"
 
 #include "RigNode.h"
 #include "TerrainNode.h"

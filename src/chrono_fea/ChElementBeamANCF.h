@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Radu Serban, Antonio Recuero
 // =============================================================================
 // ANCF gradient-deficient beam element (cable element).
 // =============================================================================
@@ -23,6 +23,7 @@
 #include "chrono_fea/ChElementBeam.h"
 #include "chrono_fea/ChBeamSection.h"
 #include "chrono_fea/ChNodeFEAxyzD.h"
+#include <cmath>
 
 namespace chrono {
 namespace fea {
@@ -47,17 +48,22 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
 
     std::shared_ptr<ChBeamSectionCable> section;
-    ChMatrixNM<double, 12, 1> GenForceVec0;
-    ChMatrixNM<double, 12, 12> StiffnessMatrix;  // stiffness matrix
-    ChMatrixNM<double, 12, 12> MassMatrix;       // mass matrix
+    ChMatrixNM<double, 12, 1> m_GenForceVec0;
+    ChMatrixNM<double, 12, 12> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
 
   public:
     ChElementBeamANCF() {
         nodes.resize(2);
+        m_use_damping = false;  ///< flag to add internal damping and its Jacobian
+        m_alpha = 0.0;          ///< scaling factor for internal damping
 
         // this->StiffnessMatrix.Resize(this->GetNdofs(), this->GetNdofs());
         // this->MassMatrix.Resize(this->GetNdofs(), this->GetNdofs());
     }
+
+    bool m_use_damping;  ///< Boolean indicating whether internal damping is added
+    double m_alpha;      ///< Scaling factor for internal damping
 
     virtual ~ChElementBeamANCF() {}
 
@@ -157,10 +163,9 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     /// K = integral( .... ),
     /// Note: in this 'basic' implementation, constant section and
     /// constant material are assumed
-    virtual void ComputeStiffnessMatrix() {
+    virtual void ComputeInternalJacobians(double Kfactor, double Rfactor) {
         assert(section);
-
-        bool use_numerical_differentiation = true;
+        bool use_numerical_differentiation = true;  // Only option tested for now
 
         // Option: compute the stiffness matrix by doing a numerical differentiation
         // of the internal forces. This fixes a problem with the code by D.Melanz, that
@@ -179,49 +184,106 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
             // be race conditions when adjacent elements attempt to perturb a common node).
             ChVector<> pos[2] = {this->nodes[0]->pos, this->nodes[1]->pos};
             ChVector<> D[2] = {this->nodes[0]->D, this->nodes[1]->D};
+            ChVector<> pos_dt[2] = {this->nodes[0]->pos_dt, this->nodes[1]->pos_dt};
+            ChVector<> D_dt[2] = {this->nodes[0]->D_dt, this->nodes[1]->D_dt};
 
+            // Add part of the Jacobian stemming from elastic forces
             for (int inode = 0; inode < 2; ++inode) {
                 pos[inode].x += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
                 pos[inode].x -= diff;
 
                 pos[inode].y += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
                 pos[inode].y -= diff;
 
                 pos[inode].z += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
                 pos[inode].z -= diff;
 
                 D[inode].x += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
                 D[inode].x -= diff;
 
                 D[inode].y += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
                 D[inode].y -= diff;
 
                 D[inode].z += diff;
-                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], F1);
-                Kcolumn = (F0 - F1) * (1.0 / diff);
-                this->StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+                this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                 F1);
+                Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
+                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
                 D[inode].z -= diff;
+            }
+
+            // Add part of the Jacobian stemming from internal damping forces, if selected by user.
+            if (m_use_damping) {
+                for (int inode = 0; inode < 2; ++inode) {
+                    pos_dt[inode].x += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+                    pos_dt[inode].x -= diff;
+
+                    pos_dt[inode].y += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+                    pos_dt[inode].y -= diff;
+
+                    pos_dt[inode].z += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+                    pos_dt[inode].z -= diff;
+
+                    D_dt[inode].x += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+                    D_dt[inode].x -= diff;
+
+                    D_dt[inode].y += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+                    D_dt[inode].y -= diff;
+
+                    D_dt[inode].z += diff;
+                    this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
+                                                     F1);
+                    Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
+                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+                    D_dt[inode].z -= diff;
+                }
             }
         }
 
         else {
             // Option B: use the code in D.Melanz thesis. These formulas, however,
             // produce a rank deficient matrix for straight beams.
+            //// TODO: Test it and include internal damping from strain rates.
             double Area = section->Area;
             double E = section->E;
             double I = section->I;
@@ -311,7 +373,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                                                                    );
             Kaxial *= E * Area * length;
 
-            this->StiffnessMatrix = Kaxial;
+            this->m_JacobianMatrix = Kaxial;
 
             /// 2)
             /// Integrate   (k_e'*k_e)
@@ -412,7 +474,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                                                                    );
             Kcurv *= E * I * length;  // note Iyy should be the same value (circular section assumption)
 
-            this->StiffnessMatrix += Kcurv;
+            this->m_JacobianMatrix += Kcurv;
         }
 
         //***DEBUG***
@@ -464,14 +526,15 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         MyMass myformula;
         myformula.element = this;
 
-        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12> >(this->MassMatrix,  // result of integration will go there
-                                                               myformula,         // formula to integrate
-                                                               0,                 // start of x
-                                                               1,                 // end of x
-                                                               4                  // order of integration
-                                                               );
+        ChQuadrature::Integrate1D<ChMatrixNM<double, 12, 12> >(
+            this->m_MassMatrix,  // result of integration will go there
+            myformula,           // formula to integrate
+            0,                   // start of x
+            1,                   // end of x
+            4                    // order of integration
+            );
 
-        this->MassMatrix *= (rho * Area * this->length);
+        this->m_MassMatrix *= (rho * Area * this->length);
     }
 
     /// Setup. Precompute mass and matrices that do not change during the
@@ -484,28 +547,20 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         this->length = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
         this->mass = this->length * this->section->Area * this->section->density;
 
-
         // Here we calculate the internal forces in the initial configuration
-        // Contribution of initial configuration in elastic forces is automatically subtracted 
+        // Contribution of initial configuration in elastic forces is automatically subtracted
         ChMatrixDynamic<> FVector0(12, 1);
         FVector0.FillElem(0.0);
-        this->GenForceVec0.FillElem(0.0);
+        this->m_GenForceVec0.FillElem(0.0);
         ComputeInternalForces(FVector0);
-        this->GenForceVec0 = FVector0;
+        this->m_GenForceVec0 = FVector0;
 
         // Compute mass matrix
         ComputeMassMatrix();
-
-        // Compute stiffness matrix
-        // (this is not constant in ANCF and will be called automatically many times by ComputeKRMmatricesGlobal()
-        // when the solver will run, yet maybe nice to privide an initial nonzero value)
-        ComputeStiffnessMatrix();
     }
 
     /// Sets M as the global mass matrix.
-    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override {
-        M = MassMatrix;
-    }
+    virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { M = m_MassMatrix; }
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
@@ -513,39 +568,21 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         assert((H.GetRows() == 12) && (H.GetColumns() == 12));
         assert(section);
 
-        // Compute global stiffness matrix:
-        ComputeStiffnessMatrix();
+        // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
+        ComputeInternalJacobians(Kfactor, Rfactor);
 
-        //
-        // 1) Store  +kf*[K] +rf*[R]
-        //
-
-        // For K stiffness matrix and R matrix: scale by factors
-        // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-        double kr_factor = Kfactor + Rfactor * this->section->rdamping;
-
-        ChMatrixDynamic<> temp(this->StiffnessMatrix);
-        temp.MatrScale(kr_factor);
-
-        // Paste scaled K stiffness matrix and R matrix in resulting H:
-        H.PasteMatrix(&temp, 0, 0);
-
-        //
-        // 2) Store  +mf*[M]
-        //
-
-        temp = this->MassMatrix;
-        temp.MatrScale(Mfactor);
-
-        // Paste scaled M mass matrix in resulting H:
-        H.PasteSumMatrix(&temp, 0, 0);
+        // Load Jac + Mfactor*[M] into H
+        for (int i = 0; i < 12; i++)
+            for (int j = 0; j < 12; j++)
+                H(i, j) = m_JacobianMatrix(i, j) + Mfactor * m_MassMatrix(i, j);
     }
 
     /// Computes the internal forces and set values in the Fi vector.
     /// (ex. the actual position of nodes is not in relaxed reference position).
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         ComputeInternalForces_Impl(this->nodes[0]->GetPos(), this->nodes[0]->GetD(), this->nodes[1]->GetPos(),
-                                   this->nodes[1]->GetD(), Fi);
+                                   this->nodes[1]->GetD(), this->nodes[0]->GetPos_dt(), this->nodes[0]->GetD_dt(),
+                                   this->nodes[1]->GetPos_dt(), this->nodes[1]->GetD_dt(), Fi);
     }
 
     /// Worker function for computing the internal forces.
@@ -555,6 +592,10 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                                     const ChVector<>& dA,
                                     const ChVector<>& pB,
                                     const ChVector<>& dB,
+                                    const ChVector<>& pA_dt,
+                                    const ChVector<>& dA_dt,
+                                    const ChVector<>& pB_dt,
+                                    const ChVector<>& dB_dt,
                                     ChMatrixDynamic<>& Fi) {
         assert((Fi.GetRows() == 12) && (Fi.GetColumns() == 1));
         assert(section);
@@ -580,13 +621,28 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         d(3, 1) = dB.y;
         d(3, 2) = dB.z;
 
+        // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
+        ChMatrixNM<double, 12, 1> vel_vector;
+        vel_vector(0, 0) = pA_dt.x;
+        vel_vector(1, 0) = pA_dt.y;
+        vel_vector(2, 0) = pA_dt.z;
+        vel_vector(3, 0) = dA_dt.x;
+        vel_vector(4, 0) = dA_dt.y;
+        vel_vector(5, 0) = dA_dt.z;
+        vel_vector(6, 0) = pB_dt.x;
+        vel_vector(7, 0) = pB_dt.y;
+        vel_vector(8, 0) = pB_dt.z;
+        vel_vector(9, 0) = dB_dt.x;
+        vel_vector(10, 0) = dB_dt.y;
+        vel_vector(11, 0) = dB_dt.z;
         /// 1)
         /// Integrate   (strainD'*strain)
 
         class MyForcesAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 1> > {
           public:
             ChElementBeamANCF* element;
-            ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
+            ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
+            ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
             ChMatrixNM<double, 3, 12> Sd;
             ChMatrixNM<double, 1, 4> N;
             ChMatrixNM<double, 1, 4> Nd;
@@ -620,14 +676,18 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                 strain(0, 0) += -1;
                 strain(0, 0) *= 0.5;
 
-                // result:  strainD'*strain
+                // Add damping forces if selected
+                if (element->m_use_damping)
+                    strain(0, 0) += (element->m_alpha) * (strainD * (*d_dt))(0, 0);
 
                 result.MatrTMultiply(strainD, strain);
+                // result:  strainD'*strain
             }
         };
 
         MyForcesAxial myformulaAx;
         myformulaAx.d = &d;
+        myformulaAx.d_dt = &vel_vector;
         myformulaAx.element = this;
 
         ChMatrixNM<double, 12, 1> Faxial;
@@ -647,7 +707,8 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         class MyForcesCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 1> > {
           public:
             ChElementBeamANCF* element;
-            ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
+            ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
+            ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
             ChMatrixNM<double, 3, 12> Sd;
             ChMatrixNM<double, 3, 12> Sdd;
             ChMatrixNM<double, 1, 4> Nd;
@@ -697,7 +758,6 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
                 double g1 = vr_x.Length();
                 double g = pow(g1, 3);
                 double k = f / g;
-
                 g_e = (Nd * (*d)) * Sd;
                 g_e *= (3 * g1);
 
@@ -722,12 +782,18 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
                 // result:  k_e'*k
                 result.CopyFromMatrixT(k_e);
+
+                // Add damping if selected by user: curvature rate
+                if (element->m_use_damping)
+                    k += (element->m_alpha) * (k_e * (*d_dt))(0, 0);
+
                 result *= k;
             }
         };
 
         MyForcesCurv myformulaCurv;
         myformulaCurv.d = &d;
+        myformulaCurv.d_dt = &vel_vector;
         myformulaCurv.element = this;
 
         ChMatrixNM<double, 12, 1> Fcurv;
@@ -742,8 +808,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         Fi += Fcurv;
 
         // Substract contribution of initial configuration
-        Fi -= this->GenForceVec0;
-
+        Fi -= this->m_GenForceVec0;
     }
 
     //
@@ -897,6 +962,13 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
         StrainV.y = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)
     }
 
+    /// Set structural damping.
+    void SetAlphaDamp(double a) {
+        m_alpha = a;
+        if (std::abs(m_alpha) > 1e-10)
+            m_use_damping = true;
+    }
+
     //
     // Functions for interfacing to the solver
     //            (***not needed, thank to bookkeeping in parent class ChElementGeneric)
@@ -941,7 +1013,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         mvars.push_back(&this->nodes[0]->Variables());
         mvars.push_back(&this->nodes[0]->Variables_D());
         mvars.push_back(&this->nodes[1]->Variables());

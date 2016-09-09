@@ -1,6 +1,8 @@
 #include "chrono_parallel/solver/ChSolverParallel.h"
+#if BLAZE_MAJOR_VERSION == 2
 #include <blaze/math/SparseRow.h>
-#include <blaze/math/CompressedVector.h>
+#endif
+#include <blaze/math/CompressedMatrix.h>
 using namespace chrono;
 
 uint ChSolverParallelGS::Solve(ChShurProduct& ShurProduct,

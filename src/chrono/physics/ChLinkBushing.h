@@ -35,7 +35,6 @@ class ChApi ChLinkBushing : public ChLinkLock {
     enum bushing_joint {
         Mount,      ///< Mount bushing: 6 compliant degrees of freedom
         Spherical,  ///< Spherical bushing: 3 compliant degrees of freedom
-        Revolute    ///< Revolute bushing: 5 compliant degrees of freedom
     };
     virtual ~ChLinkBushing();
     // Default bushing 'joint' is Mount: Six applied compliances
@@ -59,14 +58,6 @@ class ChApi ChLinkBushing : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
-    ChLinkForce* m_force_Rx;  ///< Force applied to linear rotation about joint x axis
-    ChLinkForce* m_force_Ry;  ///< Force applied to linear rotation about joint y axis
-    ChLinkForce* m_force_Rz;  ///< Force applied to linear rotation about joint z axis
-
-    ChLinkForce* m_force_Tx;  ///< Force applied to linear translation along joint x axis
-    ChLinkForce* m_force_Ty;  ///< Force applied to linear translation along joint y axis
-    ChLinkForce* m_force_Tz;  ///< Force applied to linear translation along joint z axis
-
     ChMatrixNM<double, 6, 6> m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
     ChMatrixNM<double, 6, 6> m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
 };

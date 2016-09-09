@@ -24,6 +24,8 @@
 
 #include <stdio.h>
 
+#include "chrono/assets/ChPointPointDrawing.h"
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 
@@ -109,6 +111,10 @@ int main(int argc, char* argv[]) {
     spring_1->Set_SpringR(damping_coef);
     system.AddLink(spring_1);
 
+	// Attach a visualization asset.
+	spring_1->AddAsset(col_1);
+	spring_1->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+
     // Create a body suspended through a ChLinkSpringCB
     // ------------------------------------------------
 
@@ -138,6 +144,10 @@ int main(int argc, char* argv[]) {
     spring_2->Set_SpringCallback(&force);
     system.AddLink(spring_2);
 
+	// Attach a visualization asset.
+	spring_2->AddAsset(col_2);
+	spring_2->AddAsset(std::make_shared<ChPointPointSpring>(0.05, 80, 15));
+
     // Create the Irrlicht application
     // -------------------------------
 
@@ -161,12 +171,6 @@ int main(int argc, char* argv[]) {
         application.BeginScene();
 
         application.DrawAll();
-
-        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.05, spring_1->GetEndPoint1Abs(),
-                               spring_1->GetEndPoint2Abs(), video::SColor(255, 150, 20, 20), 80, 15, true);
-
-        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.05, spring_2->GetEndPoint1Abs(),
-                               spring_2->GetEndPoint2Abs(), video::SColor(255, 20, 20, 150), 80, 15, true);
 
         application.DoStep();
 

@@ -7,7 +7,7 @@ using namespace chrono;
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)                                             \
     {                                                                                        \
         uint current = M.capacity();                                                         \
-        clear(M);                                                                            \
+        if(current > 0) {clear(M);}                                                          \
         if (current < nnz) {                                                                 \
             M.reserve(nnz * 1.1);                                                            \
             LOG(INFO) << "Increase Capacity of: " << str(M) << " " << current << " " << nnz; \

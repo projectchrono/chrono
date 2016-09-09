@@ -212,8 +212,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   )
 
 SET(CE_OpenGL_TINYOBJLOADER_FILES
-  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
-  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
   )
 
 SOURCE_GROUP("" FILES ${CE_OpenGL_BASE_FILES})
@@ -261,8 +261,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_opengl
 
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  LIBRARY DESTINATION lib64
+  ARCHIVE DESTINATION lib64)
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/chrono_opengl

@@ -40,20 +40,22 @@ class CH_VEHICLE_API ChSingleIdler : public ChIdler {
     virtual ~ChSingleIdler() {}
 
     /// Return the type of track shoe consistent with this idler.
-    virtual GuidePinType GetType() const override { return LATERAL_PIN; }
+    virtual GuidePinType GetType() const override { return GuidePinType::LATERAL_PIN; }
 
     /// Initialize this idler subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the idler subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
   protected:
     /// Return the width of the idler wheel.
     virtual double GetWheelWidth() const = 0;
-
-    /// Add visualization of the idler wheel.
-    /// The default implementation renders the wheel as a textured cylinder.
-    virtual void AddWheelVisualization();
 };
 
 /// @} vehicle_tracked_idler

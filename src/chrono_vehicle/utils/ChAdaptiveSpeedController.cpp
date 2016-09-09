@@ -32,8 +32,8 @@
 
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

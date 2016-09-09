@@ -33,6 +33,7 @@ class ChApiIrr ChIrrApp : public ChIrrAppInterface {
              irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
              bool do_fullscreen = false,
              bool do_shadows = false,
+             bool do_antialias = true,
              irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
 
     /// Safely delete every Irrlicht item (including the Irrlicht scene nodes)

@@ -22,60 +22,47 @@ namespace fea {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 ChClassRegister<ChLinkPointFrame> a_registration_ChLinkPointFrame;
 
-ChLinkPointFrame::ChLinkPointFrame() : react(VNULL), attach_reference(CSYSNORM) {}
+ChLinkPointFrame::ChLinkPointFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
 
 ChLinkPointFrame::ChLinkPointFrame(const ChLinkPointFrame& other) : ChLinkBase(other) {
-    attach_reference = other.attach_reference;
-    react = other.react;
+    m_csys = other.m_csys;
+    m_react = other.m_react;
 }
 
 ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
-    if (body) {
-        ChCoordsys<> linkcsys = attach_reference >> (*body);
+    if (m_body) {
+        ChCoordsys<> linkcsys = m_csys >> (*m_body);
         return linkcsys;
     }
     return CSYSNORM;
 }
 
-int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> mnodes,
-                                 unsigned int mnode_index, 
-                                 std::shared_ptr<ChBodyFrame> mbody, 
-                                 ChVector<>* mattach) {
-    assert(mnodes);
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChIndexedNodes> nodes,
+                                 unsigned int node_index,
+                                 std::shared_ptr<ChBodyFrame> body,
+                                 ChVector<>* pos) {
+    assert(nodes);
 
-    std::shared_ptr<ChNodeFEAxyz> anode(
-        std::dynamic_pointer_cast<ChNodeFEAxyz>(mnodes->GetNode(mnode_index)));  // downcasting
+    if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes->GetNode(node_index)))
+        return Initialize(node, body, pos);
 
-    if (!anode)
-        return false;  // downcasting wasn't successfull (in a ChIndexedNodes, different types of nodes could be present..)
-
-    return Initialize(anode, mbody, mattach);
+    return false;
 }
 
-int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> anode,
-                                 std::shared_ptr<ChBodyFrame> mbody,
-                                 ChVector<>* mattach) {
-    assert(anode && mbody);
+int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
+                                 std::shared_ptr<ChBodyFrame> body,
+                                 ChVector<>* pos) {
+    assert(node && body);
 
-    body = mbody;
-    mnode = anode;
+    m_body = body;
+    m_node = node;
 
-    constraint1.SetVariables(&(mnode->Variables()), &(body->Variables()));
-    constraint2.SetVariables(&(mnode->Variables()), &(body->Variables()));
-    constraint3.SetVariables(&(mnode->Variables()), &(body->Variables()));
+    constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
+    constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
+    constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
 
-    // SetSystem(body->GetSystem());
-
-    if (mattach) {
-        attach_reference.pos = body->TransformPointParentToLocal(*mattach);
-    } else {
-        // downcasting
-        if (!mnode)
-            return false;
-
-        ChVector<> temp = mnode->GetPos();
-        attach_reference.pos = body->TransformPointParentToLocal(temp);
-    }
+    ChVector<> pos_abs = pos ? *pos : node->GetPos();
+    SetAttachPositionInAbsoluteCoords(pos_abs);
 
     return true;
 }
@@ -89,8 +76,8 @@ void ChLinkPointFrame::Update(double mytime, bool update_assets) {
 }
 
 ChMatrixNM<double, 3, 1> ChLinkPointFrame::GetC() const {
-    ChMatrix33<> Arw(attach_reference.rot >> body->GetRot());
-    ChVector<> res = Arw.MatrT_x_Vect(mnode->GetPos() - body->TransformPointLocalToParent(attach_reference.pos));
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChMatrixNM<double, 3, 1> C;
     C(0, 0) = res.x;
     C(1, 0) = res.y;
@@ -101,15 +88,15 @@ ChMatrixNM<double, 3, 1> ChLinkPointFrame::GetC() const {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkPointFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = react.x;
-    L(off_L + 1) = react.y;
-    L(off_L + 2) = react.z;
+    L(off_L + 0) = m_react.x;
+    L(off_L + 1) = m_react.y;
+    L(off_L + 2) = m_react.z;
 }
 
 void ChLinkPointFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    react.x = L(off_L + 0);
-    react.y = L(off_L + 1);
-    react.z = L(off_L + 2);
+    m_react.x = L(off_L + 0);
+    m_react.y = L(off_L + 1);
+    m_react.z = L(off_L + 2);
 }
 
 void ChLinkPointFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -134,10 +121,9 @@ void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset 
     if (!IsActive())
         return;
 
-    ChMatrix33<> Arw(attach_reference.rot >> body->GetRot());
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res =
-        Arw.MatrT_x_Vect(mnode->GetPos() - body->TransformPointLocalToParent(attach_reference.pos));
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
     ChVector<> cres = res * c;
 
     if (do_clamp) {
@@ -201,13 +187,12 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
     // if (!IsActive())
     //	return;
 
-    if (!mnode)
+    if (!m_node)
         return;
 
-    ChMatrix33<> Arw(attach_reference.rot >> body->GetRot());
+    ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector<> res =
-        Arw.MatrT_x_Vect(mnode->GetPos() - body->TransformPointLocalToParent(attach_reference.pos));
+    ChVector<> res = Arw.MatrT_x_Vect(m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x);
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y);
@@ -223,8 +208,8 @@ void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkPointFrame::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChMatrix33<> Aro(attach_reference.rot);
-    ChMatrix33<> Aow(body->GetRot());
+    ChMatrix33<> Aro(m_csys.rot);
+    ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Arw = Aow * Aro;
 
     ChMatrix33<> Jxn;
@@ -235,7 +220,7 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
     Jxb.MatrNeg();
 
     ChMatrix33<> atilde;
-    atilde.Set_X_matrix(Aow.MatrT_x_Vect(mnode->GetPos() - body->GetPos()));
+    atilde.Set_X_matrix(Aow.MatrT_x_Vect(m_node->GetPos() - m_body->GetPos()));
     ChMatrix33<> Jrb;
     Jrb.MatrTMultiply(Aro, atilde);
 
@@ -253,9 +238,9 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
 
 void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x = constraint1.Get_l_i() * factor;
-    react.y = constraint2.Get_l_i() * factor;
-    react.z = constraint3.Get_l_i() * factor;
+    m_react.x = constraint1.Get_l_i() * factor;
+    m_react.y = constraint2.Get_l_i() * factor;
+    m_react.z = constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O

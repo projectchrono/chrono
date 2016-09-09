@@ -131,6 +131,11 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
          ChMatrixNM<double, 1, 11> N;
          ShapeFunctions(N, U, V);
 
+         //***TODO*** exact det of jacobian at u,v
+         detJ = ((this->GetNodeN(0)->GetPos()-this->GetNodeN(1)->GetPos()) - (this->GetNodeN(2)->GetPos()-this->GetNodeN(3)->GetPos())).Length() *
+                ((this->GetNodeN(1)->GetPos()-this->GetNodeN(2)->GetPos()) - (this->GetNodeN(3)->GetPos()-this->GetNodeN(0)->GetPos())).Length();
+         // (approximate detJ, ok only for rectangular face)
+
          ChVector<> Fv = F.ClipVector(0, 0);
          for (int i = 0; i < 4; i++) {
              Qi.PasteVector(N(i) * Fv, 3 * i, 0);

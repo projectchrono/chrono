@@ -22,7 +22,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChTrackBrakeSimple::ChTrackBrakeSimple() : m_braking(0) {
+ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {
     m_brake = std::make_shared<ChLinkBrake>();
 }
 

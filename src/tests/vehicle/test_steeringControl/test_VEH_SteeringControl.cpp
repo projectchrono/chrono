@@ -64,7 +64,7 @@ struct Data {
 };
 
 // Type of tire model
-TireModelType tire_model = RIGID;
+TireModelType tire_model = TireModelType::RIGID;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
@@ -126,13 +126,13 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<ChTire> > tires(num_wheels);
     for (int i = 0; i < num_wheels; i++) {
         switch (tire_model) {
-            case RIGID:
+            case TireModelType::RIGID:
                 tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
                 break;
-            case LUGRE:
+            case TireModelType::LUGRE:
                 tires[i] = std::make_shared<LugreTire>(vehicle::GetDataFile(lugretire_file));
                 break;
-            case FIALA:
+            case TireModelType::FIALA:
                 tires[i] = std::make_shared<FialaTire>(vehicle::GetDataFile(fialatire_file));
                 break;
         }

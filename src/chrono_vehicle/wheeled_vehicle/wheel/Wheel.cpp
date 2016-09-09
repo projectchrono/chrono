@@ -25,7 +25,7 @@
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -44,7 +44,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Wheel::Wheel(const std::string& filename) : m_vis(NONE) {
+Wheel::Wheel(const std::string& filename) : m_vis(VisualizationType::NONE) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -60,7 +60,7 @@ Wheel::Wheel(const std::string& filename) : m_vis(NONE) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Wheel::Wheel(const rapidjson::Document& d) : m_vis(NONE), m_radius(0), m_width(0) {
+Wheel::Wheel(const rapidjson::Document& d) : m_vis(VisualizationType::NONE), m_radius(0), m_width(0) {
     Create(d);
 }
 
@@ -79,9 +79,9 @@ void Wheel::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis = MESH;
+            m_vis = VisualizationType::MESH;
         } else {
-            m_vis = PRIMITIVES;
+            m_vis = VisualizationType::PRIMITIVES;
         }
 
         m_radius = d["Visualization"]["Radius"].GetDouble();
@@ -97,7 +97,7 @@ void Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
 
     // Attach visualization
     switch (m_vis) {
-        case PRIMITIVES: {
+        case VisualizationType::PRIMITIVES: {
             auto cyl = std::make_shared<ChCylinderShape>();
             cyl->GetCylinderGeometry().rad = m_radius;
             cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
@@ -110,7 +110,7 @@ void Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
 
             break;
         }
-        case MESH: {
+        case VisualizationType::MESH: {
             geometry::ChTriangleMeshConnected trimesh;
             trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
 

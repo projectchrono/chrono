@@ -40,7 +40,7 @@ class Generic_Wheel : public chrono::vehicle::ChWheel {
         chrono::vehicle::ChWheel::Initialize(spindle);
 
         // Attach visualization
-        if (m_visType == chrono::vehicle::PRIMITIVES) {
+        if (m_visType == chrono::vehicle::VisualizationType::PRIMITIVES) {
             double radius = 0.47;
             double width = 0.25;
             auto cyl = std::make_shared<chrono::ChCylinderShape>();

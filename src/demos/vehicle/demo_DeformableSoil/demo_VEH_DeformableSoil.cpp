@@ -12,10 +12,7 @@
 //
 //   Demo code (advanced), about
 //
-//     - loading an Abaqus tetahedrom mesh
-//     - apply a load to the mesh using an external tool, 
-//       say CFD or SPH (here simulated as a function in this .cpp file)
-//       that is perform a cosimulation.
+//     - using the SCM semi-empirical model for deformable soil
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -75,7 +72,6 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChTriangleMeshShape> mrigidmesh(new ChTriangleMeshShape);
     mrigidmesh->GetMesh().LoadWavefrontMesh(GetChronoDataFile("tractor_wheel.obj"));
-    //mrigidmesh->GetMesh().Transform(VNULL, Q_from_AngAxis(CH_C_PI, VECT_Y) );
     mrigidbody->AddAsset(mrigidmesh);
 
     mrigidbody->GetCollisionModel()->ClearModel();
@@ -95,6 +91,7 @@ int main(int argc, char* argv[]) {
         mfun->Set_yconst(CH_C_PI / 4.0);
     myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
     my_system.Add(myengine);
+ 
 
     //
     // THE DEFORMABLE TERRAIN
@@ -123,7 +120,7 @@ int main(int argc, char* argv[]) {
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
                                     0.8, // displaced material vs downward pressed material.
-                                    2,   // number of erosion refinements per timestep
+                                    5,   // number of erosion refinements per timestep
                                     10); // number of concentric vertex selections subject to erosion
     // Turn on the automatic level of detail refinement, so a coarse terrain mesh
     // is automatically improved by adding more points under the wheel contact patch:
@@ -140,7 +137,9 @@ int main(int argc, char* argv[]) {
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
-    mterrain.GetMesh()->SetWireframe(false);
+    mterrain.GetMesh()->SetWireframe(true);
+
+
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
     application.AssetBindAll();
@@ -158,16 +157,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
- /*   
-        // Change solver to embedded MINRES
-        // NOTE! it is strongly advised that you compile the optional MKL module 
-        // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
-    my_system.SetMaxItersSolverSpeed(40);
-    my_system.SetTolForce(1e-10);  
-  */  
-
+    
     application.SetTimestep(0.005);
 
     while (application.GetDevice()->run()) {

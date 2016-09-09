@@ -19,26 +19,26 @@ ChIterativeSolverParallel::~ChIterativeSolverParallel() {
 }
 
 void ChIterativeSolverParallel::ComputeInvMassMatrix() {
-    LOG(INFO) << "ChIterativeSolverParallel::ComputeInvMassMatrix()";
-    uint num_bodies = data_manager->num_rigid_bodies;
-    uint num_shafts = data_manager->num_shafts;
-    uint num_fluid_bodies = data_manager->num_fluid_bodies;
-    uint num_fea_nodes = data_manager->num_fea_nodes;
-    uint num_dof = data_manager->num_dof;
-    bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
-    const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
+	LOG(INFO) << "ChIterativeSolverParallel::ComputeInvMassMatrix()";
+	uint num_bodies = data_manager->num_rigid_bodies;
+	uint num_shafts = data_manager->num_shafts;
+	uint num_fluid_bodies = data_manager->num_fluid_bodies;
+	uint num_fea_nodes = data_manager->num_fea_nodes;
+	uint num_dof = data_manager->num_dof;
+	bool use_full_inertia_tensor = data_manager->settings.solver.use_full_inertia_tensor;
+	const custom_vector<real>& shaft_inr = data_manager->host_data.shaft_inr;
 
-    std::vector<std::shared_ptr<ChBody> >* body_list = data_manager->body_list;
-    std::vector<std::shared_ptr<ChLink> >* link_list = data_manager->link_list;
-    std::vector<std::shared_ptr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
+	std::vector<std::shared_ptr<ChBody> >* body_list = data_manager->body_list;
+	std::vector<std::shared_ptr<ChLink> >* link_list = data_manager->link_list;
+	std::vector<std::shared_ptr<ChPhysicsItem> >* other_physics_list = data_manager->other_physics_list;
 
-    const DynamicVector<real>& hf = data_manager->host_data.hf;
-    const DynamicVector<real>& v = data_manager->host_data.v;
+	const DynamicVector<real>& hf = data_manager->host_data.hf;
+	const DynamicVector<real>& v = data_manager->host_data.v;
 
-    DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
-    CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
+	DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
+	CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
-    clear(M_inv);
+	if (M_inv.capacity() > 0) { clear(M_inv); }
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry
@@ -117,7 +117,7 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
 
     CompressedMatrix<real>& M = data_manager->host_data.M;
 
-    clear(M);
+	if (M.capacity() > 0) { clear(M); }
 
     // Each rigid object has 3 mass entries and 9 inertia entries
     // Each shaft has one inertia entry

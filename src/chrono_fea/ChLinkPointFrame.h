@@ -29,27 +29,28 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between a xyz FEA node (point)
-/// and a ChBodyFrame (frame) object (that is, it fixes a 3-DOF point
-/// to a 6-DOF frame).
-/// Nodes are 3-DOF points that are used in point-based
-/// primitives, such as ChMatterSPH or finite elements.
+/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type
+/// and a ChBodyFrame (frame) object.
+/// The node position is enforced to coincide to a given position associated
+/// with the ChBodyFrame.
 class ChApiFea ChLinkPointFrame : public ChLinkBase {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI(ChLinkPointFrame, ChLinkBase);
 
   private:
-    ChVector<> react;
+    ChVector<> m_react;
 
     // used as an interface to the solver.
     ChConstraintTwoGeneric constraint1;
     ChConstraintTwoGeneric constraint2;
     ChConstraintTwoGeneric constraint3;
 
-    std::shared_ptr<fea::ChNodeFEAxyz> mnode;
-    std::shared_ptr<ChBodyFrame> body;
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
 
-    ChCoordsys<> attach_reference;
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
 
   public:
     ChLinkPointFrame();
@@ -62,10 +63,10 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 3 + 7; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints.
     virtual int GetDOC_c() override { return 3; }
 
-    /// To get reaction force, expressed in link coordinate system:
+    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
     virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
@@ -112,55 +113,62 @@ class ChApiFea ChLinkPointFrame : public ChLinkBase {
 
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
-    /// Use this function after object creation, to initialize it, given
-    /// the node and body to join.
+    /// Initialize this constraint, given the node and body frame to join.
     /// The attachment position is the actual position of the node (unless
-    /// otherwise defines, using the optional 'mattach' parameter).
-    /// Note, mnodes and mbody must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChIndexedNodes> mnodes,  ///< nodes container
-                           unsigned int mnode_index,                ///< index of the xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> mbody,      ///< body (frame) to join
-                           ChVector<>* mattach = 0  ///< optional: if not null, sets the attachment position in absolute coordinates
-                           );
-    /// Use this function after object creation, to initialize it, given
-    /// the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defines, using the optional 'mattach' parameter).
-    /// Note, mnodes and mbody must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anode,  ///< xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> mbody,   ///< body (frame) to join
-                           ChVector<>* mattach = 0  ///< optional: if not null, sets the attachment position in absolute coordinates
+    /// otherwise defined, using the optional 'pos' parameter).
+    /// Note: the nodes and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChIndexedNodes> nodes,  ///< nodes container
+                           unsigned int node_index,                ///< index of the xyz node (point) to join
+                           std::shared_ptr<ChBodyFrame> body,      ///< body (frame) to join
+                           ChVector<>* pos = 0                     ///< attachment position in absolute coordinates
                            );
 
-    /// Get the connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return mnode; }
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The attachment position is the actual position of the node (unless
+    /// otherwise defined, using the optional 'pos' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
+                           ChVector<>* pos = 0                  ///< attachment position in absolute coordinates
+                           );
 
-    /// Get the connected body (frame)
-    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return body; }
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
+
+    /// Get the connected body (frame).
+    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
 
     /// Get the attachment position, in the coordinates of the body.
-    const ChVector<>& GetAttachPosition() const { return attach_reference.pos; }
-    /// Set the attachment position, in the coordinates of the body
-    void SetAttachPositionInBodyCoords(ChVector<> mattach) { attach_reference.pos = mattach; }
-    /// Set the attachment position, in the absolute coordinates
-    void SetAttachPositionInAbsoluteCoords(ChVector<> mattach) {
-        attach_reference.pos = body->TransformPointParentToLocal(mattach);
-    }
+    const ChVector<>& GetAttachPosition() const { return m_csys.pos; }
 
     /// Get the attachment reference, in the coordinates of the body.
-    const ChCoordsys<>& GetAttachReference() const { return attach_reference; }
-    /// Set the attachment reference, in the coordinates of the body
-    void SetAttachReferenceInBodyCoords(ChCoordsys<> mattach) { attach_reference = mattach; }
-    /// Set the attachment position, in the absolute coordinates
-    void SetAttachReferenceInAbsoluteCoords(ChCoordsys<> mattach) {
-        attach_reference = body->coord.TransformParentToLocal(mattach);
+    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
+
+    /// Set the attachment position, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInBodyCoords(const ChVector<>& pos_loc) { m_csys.pos = pos_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInAbsoluteCoords(const ChVector<>& pos_abs) {
+        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
     }
 
-    /// Get the reaction force considered as applied to ChShaft.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    /// Set the attachment reference, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
 
-    /// Get the reaction force considered as applied to ChBody.
-    ChVector<> GetReactionOnBody() const { return react; }
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
+        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
+    }
+
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector<> GetReactionOnNode() const { return m_react; }
+
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector<> GetReactionOnBody() const { return -m_react; }
 
     //
     // UPDATE FUNCTIONS

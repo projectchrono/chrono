@@ -90,6 +90,7 @@ SET(ChronoEngine_FEA_HEADERS
 	ChElementShellReissner4.h
 	  ChFaceTetra_4.h
     ChFaceBrick_9.h
+	ChFaceHexa_8.h
 	  ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h
@@ -138,8 +139,8 @@ ADD_DEPENDENCIES(ChronoEngine_fea ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_fea
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 INSTALL(FILES ${ChronoEngine_FEA_HEADERS}
         DESTINATION include/chrono_fea)

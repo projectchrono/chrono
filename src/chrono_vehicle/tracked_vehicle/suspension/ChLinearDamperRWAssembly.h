@@ -60,6 +60,12 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
+    /// Add visualization assets for the idler subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the idler subsystem.
+    virtual void RemoveVisualizationAssets() override final;
+
     /// Log current constraint violations.
     void LogConstraintViolations() override;
 
@@ -103,6 +109,13 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                              const ChVector<>& pt_AC,  ///< connection to chassis (in global frame)
                              const ChVector<>& pt_AS   ///< connection to shock absorber (in global frame)
                              );
+
+    // Points for arm visualization
+    ChVector<> m_pO;
+    ChVector<> m_pA;
+    ChVector<> m_pAC;
+    ChVector<> m_pAW;
+    ChVector<> m_pAS;
 };
 
 /// @} vehicle_tracked_suspension

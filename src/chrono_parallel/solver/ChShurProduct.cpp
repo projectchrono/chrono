@@ -28,8 +28,8 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
     } else {
         const SubMatrixType& D_n_T = _DNT_;
         const SubMatrixType& D_b_T = _DBT_;
-        const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_n = _MINVDN_;
-        const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_b = _MINVDB_;
+        const SubMatrixType& M_invD_n = _MINVDN_;
+        const SubMatrixType& M_invD_b = _MINVDB_;
 
         SubVectorType o_b = subvector(output, num_unilaterals, num_bilaterals);
         ConstSubVectorType x_b = subvector(x, num_unilaterals, num_bilaterals);
@@ -52,7 +52,7 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
 
             case SLIDING: {
                 const SubMatrixType& D_t_T = _DTT_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_t = _MINVDT_;
+                const SubMatrixType& M_invD_t = _MINVDT_;
                 SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);
@@ -67,8 +67,8 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
             case SPINNING: {
                 const SubMatrixType& D_t_T = _DTT_;
                 const SubMatrixType& D_s_T = _DST_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_t = _MINVDT_;
-                const blaze::SparseSubmatrix<CompressedMatrix<real> >& M_invD_s = _MINVDS_;
+                const SubMatrixType& M_invD_t = _MINVDT_;
+                const SubMatrixType& M_invD_s = _MINVDS_;
                 SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType x_t = subvector(x, num_rigid_contacts, num_rigid_contacts * 2);
                 ConstSubVectorType E_t = subvector(E, num_rigid_contacts, num_rigid_contacts * 2);

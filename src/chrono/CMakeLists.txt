@@ -374,6 +374,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
+    assets/ChPointPointDrawing.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -401,6 +402,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChPathShape.h
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
+    assets/ChPointPointDrawing.h
     )
 
 source_group(assets FILES
@@ -995,8 +997,8 @@ endif()
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
+    LIBRARY DESTINATION lib64
+    ARCHIVE DESTINATION lib64)
 
 # Install all header files for the main ChronoEngine library 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

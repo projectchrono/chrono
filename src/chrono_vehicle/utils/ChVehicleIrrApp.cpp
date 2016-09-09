@@ -98,7 +98,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  ChPowertrain* powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL),
       m_vehicle(vehicle),
       m_powertrain(powertrain),
       m_camera(vehicle->GetChassis()),

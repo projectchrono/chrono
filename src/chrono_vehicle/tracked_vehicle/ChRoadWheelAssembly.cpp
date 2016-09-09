@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name) : m_name(name) {
+ChRoadWheelAssembly::ChRoadWheelAssembly(const std::string& name) : ChPart(name) {
 }
 
 // -----------------------------------------------------------------------------

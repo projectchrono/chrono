@@ -21,11 +21,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
-#include "models/vehicle/m113/M113_SimplePowertrain.h"
-#include "models/vehicle/m113/M113_Vehicle.h"
+#include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
+#include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -84,11 +83,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-    M113_Vehicle vehicle(false, SINGLE_PIN, ChMaterialSurfaceBase::DEM);
-
-    // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetRoadWheelVisType(NONE);
-    ////vehicle.SetTrackShoeVisType(NONE);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -105,6 +100,12 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+
+    // Set visualization type for vehicle components.
+    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::NONE);

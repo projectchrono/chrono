@@ -28,17 +28,21 @@
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/sse.h"
 
-// Blaze headers
 // ATTENTION: It is important for these to be included after sse.h!
+// Blaze Includes
+#include <blaze/system/Version.h>
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
+#if BLAZE_MAJOR_VERSION == 2
 #include <blaze/math/DenseSubvector.h>
+#elif BLAZE_MAJOR_VERSION == 3
+#include <blaze/math/Subvector.h>
+#endif
 
 using blaze::CompressedMatrix;
 using blaze::DynamicVector;
-using blaze::SparseSubmatrix;
-using blaze::submatrix;
-using blaze::subvector;
+using blaze::Submatrix;
+using blaze::Subvector;
 using custom_vector;
 
 namespace chrono {
@@ -66,11 +70,17 @@ class ChCAABBGenerator;        // forward declaration
 template <typename TT>
 class ChSharedPtr;
 
+#if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
 typedef blaze::DenseSubvector<DynamicVector<real> > SubVectorType;
-
 typedef blaze::SparseSubmatrix<const CompressedMatrix<real> > ConstSubMatrixType;
 typedef blaze::DenseSubvector<const DynamicVector<real> > ConstSubVectorType;
+#elif BLAZE_MAJOR_VERSION == 3
+typedef blaze::Submatrix<CompressedMatrix<real> > SubMatrixType;
+typedef blaze::Subvector<DynamicVector<real> > SubVectorType;
+typedef blaze::Submatrix<const CompressedMatrix<real> > ConstSubMatrixType;
+typedef blaze::Subvector<const DynamicVector<real> > ConstSubVectorType;
+#endif
 
 // These defines are used in the submatrix calls below to keep them concise
 // They aren't names to be easy to understand, but for length

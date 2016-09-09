@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {

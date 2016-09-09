@@ -1,0 +1,55 @@
+{
+  "Name":                           "M113 SinglePin TrackShoe Left",
+  "Type":                           "TrackShoe",
+  "Template":                       "TrackShoeSinglePin",
+
+  "Shoe":
+  {
+      "Height":                     0.06,
+      "Pitch":                      0.154,
+      "Mass":                       18.02,
+      "Inertia":                    [0.22, 0.04, 0.25]
+  },
+
+  "Contact Geometry":
+  {
+      "Shoe":
+      {
+          "Pad Dimensions":         [0.11, 0.19, 0.06],
+          "Pad Location":           [0, 0, 0],
+          "Guide Dimensions":       [0.0284, 0.0114, 0.075],
+          "Guide Location":         [0.045, 0, 0.0375]
+      },
+
+      "Cylinder":
+      {
+          "Radius":                 0.015,
+          "Front Offset":           0.0535,
+          "Rear Offset":            -0.061
+      }
+  },
+
+  "Contact Material":
+  {
+      "Coefficient of Friction":    0.8,
+      "Coefficient of Restitution": 0.1,
+
+      "Properties": {
+          "Young Modulus":          1e7,
+          "Poisson Ratio":          0.3
+      },
+
+      "Coefficients": {
+          "Normal Stiffness":       2e5,
+          "Normal Damping":         40.0,
+          "Tangential Stiffness":   2e5,
+          "Tangential Damping":     20.0
+      }
+  },
+
+  "Visualization":
+  {
+      "Mesh Filename":              "M113/TrackShoe.obj",
+      "Mesh Name":                  "TrackShoe_POV_geom"
+  }
+}

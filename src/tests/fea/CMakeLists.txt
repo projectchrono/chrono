@@ -4,6 +4,7 @@ set(FEA_TESTS
     test_FEA_4HumveeTires
     test_FEA_CorotationalTire
     test_FEA_ANCFHumveeTire
+    test_FEA_constraints
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
@@ -22,6 +23,10 @@ if(ENABLE_MODULE_IRRLICHT)
     set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_IRRLICHT_CXX_FLAGS}")
     list(APPEND LIBS "ChronoEngine_irrlicht")
     list(APPEND LIBS "${CH_IRRLICHTLIB}")
+endif()
+
+if(ENABLE_MODULE_POSTPROCESS)
+	set(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 
 message(STATUS "Additional test programs for FEA module...")

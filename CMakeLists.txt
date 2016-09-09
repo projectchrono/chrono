@@ -141,7 +141,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib64)
 
 #-----------------------------------------------------------------------------
 
@@ -196,7 +196,7 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION share/data)
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

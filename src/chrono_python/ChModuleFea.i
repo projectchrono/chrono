@@ -86,6 +86,8 @@ using namespace chrono::fea;
 // workaround for trouble
 %ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZ::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a

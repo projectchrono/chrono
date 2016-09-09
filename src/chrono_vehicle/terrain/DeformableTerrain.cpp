@@ -29,9 +29,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
 
-#include "thirdparty/Easy_BMP/EasyBMP.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -494,9 +494,10 @@ void DeformableSoil::UpdateInternalForces() {
     // Perform ray-hit test to detect the contact point sinkage
     // 
     
-    collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-
+    
+//#pragma omp parallel for
     for (int i=0; i< vertices.size(); ++i) {
+        collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i]=0;

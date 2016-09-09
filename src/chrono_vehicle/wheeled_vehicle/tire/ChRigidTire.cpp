@@ -16,6 +16,12 @@
 //
 // =============================================================================
 
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChTexture.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/physics/ChGlobal.h"
+
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 namespace chrono {
@@ -25,6 +31,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRigidTire::ChRigidTire(const std::string& name)
     : ChTire(name),
+      m_use_mesh(false),
       m_friction(0.6f),
       m_restitution(0.1f),
       m_young_modulus(2e5f),
@@ -33,6 +40,14 @@ ChRigidTire::ChRigidTire(const std::string& name)
       m_gn(40),
       m_kt(2e5f),
       m_gt(20) {}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sphere_radius) {
+    m_use_mesh = true;
+    m_mesh_file = mesh_file;
+    m_sweep_sphere_radius = sweep_sphere_radius;
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -61,9 +76,40 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     wheel->SetCollide(true);
 
-    wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
-    wheel->GetCollisionModel()->BuildModel();
+    if (m_use_mesh) {
+        // Mesh contact & visualization shape
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(m_mesh_file, true, false);
+
+        wheel->GetCollisionModel()->ClearModel();
+        wheel->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                                    m_sweep_sphere_radius);
+        wheel->GetCollisionModel()->BuildModel();
+
+        if (m_vis_enabled) {
+            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+            trimesh_shape->SetMesh(trimesh);
+            trimesh_shape->SetName(m_name);
+            wheel->AddAsset(trimesh_shape);
+        }
+    } else {
+        // Cylinder contact & visualization shape
+        wheel->GetCollisionModel()->ClearModel();
+        wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
+        wheel->GetCollisionModel()->BuildModel();
+
+        if (m_vis_enabled) {
+            auto cyl = std::make_shared<ChCylinderShape>();
+            cyl->GetCylinderGeometry().rad = GetRadius();
+            cyl->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
+            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);
+            wheel->AddAsset(cyl);
+
+            auto tex = std::make_shared<ChTexture>();
+            tex->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+            wheel->AddAsset(tex);
+        }
+    }
 
     switch (wheel->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:

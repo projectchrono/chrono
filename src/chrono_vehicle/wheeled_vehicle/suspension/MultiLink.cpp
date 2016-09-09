@@ -20,7 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 

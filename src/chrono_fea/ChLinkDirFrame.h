@@ -38,17 +38,18 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     CH_RTTI(ChLinkDirFrame, ChLinkBase);
 
   private:
-    ChVector<> react;
+    ChVector<> m_react;
 
     // used as an interface to the solver.
     ChConstraintTwoGeneric constraint1;
     ChConstraintTwoGeneric constraint2;
 
-    std::shared_ptr<fea::ChNodeFEAxyzD> mnode;
-    std::shared_ptr<ChBodyFrame> body;
+    std::shared_ptr<fea::ChNodeFEAxyzD> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
 
-    ChVector<> direction;
-    ChCoordsys<> csys_direction;
+    // Coordinate system, attached to the body, whose X direction is
+    // constrained to remain parallel to the node's D direction.
+    ChCoordsys<> m_csys;
 
   public:
     ChLinkDirFrame();
@@ -58,13 +59,13 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkDirFrame* Clone() const override { return new ChLinkDirFrame(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual int GetNumCoords() override { return 3 + 4; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints.
     virtual int GetDOC_c() override { return 2; }
 
-    /// To get reaction force, expressed in link coordinate system:
+    /// Get the reaction torque on the body, expressed in the link coordinate system.
     virtual ChVector<> Get_react_torque() override { return GetReactionOnBody(); }
 
     // Get constraint violations
@@ -108,36 +109,40 @@ class ChApiFea ChLinkDirFrame : public ChLinkBase {
 
     // Other functions
 
+    // Get the link coordinate system, expressed in the absolute frame.
     virtual ChCoordsys<> GetLinkAbsoluteCoords();
 
-    /// Use this function after object creation, to initialize it, given
-    /// the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defines, using the optional 'mattach' parameter).
-    /// Note, mnodes and mbody must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyzD> anode,  ///< xyzD node to join (with the direction)
-                           std::shared_ptr<ChBodyFrame> mbody,    ///< body (frame) to join
-                           ChVector<>* dir = 0  ///< optional: if not null, sets the direction in absolute coordinates
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The constrained direction is the actual direction of the node (unless
+    /// otherwise defined, using the optional 'dir' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyzD> node,  ///< xyzD node to join (with the direction)
+                           std::shared_ptr<ChBodyFrame> body,    ///< body (frame) to join
+                           ChVector<>* dir = nullptr             ///< direction in absolute coordinates
                            );
 
-    /// Get the connected xyz node (point)
-    virtual std::shared_ptr<ChNodeFEAxyzD> GetConstrainedNode() { return this->mnode; }
+    /// Get the connected xyzD node (point).
+    virtual std::shared_ptr<ChNodeFEAxyzD> GetConstrainedNode() { return m_node; }
 
-    /// Get the connected body (frame)
-    virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return this->body; }
+    /// Get the connected body (frame).
+    virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
 
-    /// Get the attachment position, in the reference coordinates of the body.
-    ChVector<> GetDirection() { return direction; }
-    /// Set the attachment position, in the reference coordinates of the body
-    void SetDirectionInBodyCoords(ChVector<> mattach);
-    /// Set the attachment position, in the absolute coordinates
-    void SetDirectionInAbsoluteCoords(ChVector<> mattach);
+    /// Get the constrained direction, expressed in the reference coordinates of the body.
+    ChVector<> GetDirection() const { return m_csys.rot.GetXaxis(); }
 
-    /// Get the reaction torque considered as applied to the FEA node.
-    ChVector<> GetReactionOnNode() { return -(react); }
+    /// Set the constrained direction, expressed in the reference coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetDirectionInBodyCoords(const ChVector<>& dir_loc);
 
-    /// Get the reaction torque considered as applied to ChBody.
-    ChVector<> GetReactionOnBody() { return react; }
+    /// Set the constrained direction, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetDirectionInAbsoluteCoords(const ChVector<>& dir_abs);
+
+    /// Get the reaction torque on the node, expressed in the link coordinate system.
+    ChVector<> GetReactionOnNode() const { return -GetReactionOnBody(); }
+
+    /// Get the reaction torque on the body, expressed in the link coordinate system.
+    ChVector<> GetReactionOnBody() const;
 
     //
     // UPDATE FUNCTIONS
