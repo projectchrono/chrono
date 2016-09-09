@@ -42,13 +42,11 @@ class CH_MODELS_API HMMWV_VehicleReduced : public ChWheeledVehicle {
   public:
     HMMWV_VehicleReduced(const bool fixed = false,
                          DrivelineType driveType = DrivelineType::AWD,
-                         VisualizationType wheelVis = VisualizationType::PRIMITIVES,
                          ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
     HMMWV_VehicleReduced(ChSystem* system,
                          const bool fixed = false,
-                         DrivelineType driveType = DrivelineType::AWD,
-                         VisualizationType wheelVis = VisualizationType::PRIMITIVES);
+                         DrivelineType driveType = DrivelineType::AWD);
 
     ~HMMWV_VehicleReduced();
 
@@ -57,7 +55,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public ChWheeledVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
   private:
-    void Create(bool fixed, VisualizationType wheelVis);
+    void Create(bool fixed);
 
     DrivelineType m_driveType;
 };

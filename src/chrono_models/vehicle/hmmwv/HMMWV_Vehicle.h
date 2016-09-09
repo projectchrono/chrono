@@ -42,13 +42,11 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
     HMMWV_Vehicle(const bool fixed = false,
                   DrivelineType driveType = DrivelineType::AWD,
-                  VisualizationType wheelVis = VisualizationType::PRIMITIVES,
                   ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
     HMMWV_Vehicle(ChSystem* system,
                   const bool fixed = false,
-                  DrivelineType driveType = DrivelineType::AWD,
-                  VisualizationType wheelVis = VisualizationType::PRIMITIVES);
+                  DrivelineType driveType = DrivelineType::AWD);
 
     ~HMMWV_Vehicle();
 
@@ -69,7 +67,7 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed, VisualizationType wheelVis);
+    void Create(bool fixed);
 
     DrivelineType m_driveType;
 };

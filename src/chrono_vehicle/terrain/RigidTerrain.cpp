@@ -129,6 +129,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename) {
     }
 
     // Read geometry and initialize terrain
+    m_vis_enabled = true;
     if (d["Geometry"].HasMember("Height")) {
         double sx = d["Geometry"]["Size"][0u].GetDouble();
         double sy = d["Geometry"]["Size"][1u].GetDouble();

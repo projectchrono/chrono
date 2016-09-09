@@ -189,7 +189,6 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv(system);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetWheelVis(VisualizationType::NONE);
     my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -198,6 +197,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Downcast tires (if needed)
     switch (tire_model) {

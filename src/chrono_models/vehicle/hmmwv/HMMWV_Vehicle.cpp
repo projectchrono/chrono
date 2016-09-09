@@ -32,21 +32,17 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 HMMWV_Vehicle::HMMWV_Vehicle(const bool fixed,
                              DrivelineType driveType,
-                             VisualizationType wheelVis,
                              ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_driveType(driveType) {
-    Create(fixed, wheelVis);
+    Create(fixed);
 }
 
-HMMWV_Vehicle::HMMWV_Vehicle(ChSystem* system,
-                             const bool fixed,
-                             DrivelineType driveType,
-                             VisualizationType wheelVis)
+HMMWV_Vehicle::HMMWV_Vehicle(ChSystem* system, const bool fixed, DrivelineType driveType)
     : ChWheeledVehicle(system), m_driveType(driveType) {
-    Create(fixed, wheelVis);
+    Create(fixed);
 }
 
-void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
+void HMMWV_Vehicle::Create(bool fixed) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
@@ -69,10 +65,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType wheelVis) {
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>("Wheel_FL", wheelVis);
-    m_wheels[1] = std::make_shared<HMMWV_WheelRight>("Wheel_FR", wheelVis);
-    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>("Wheel_RL", wheelVis);
-    m_wheels[3] = std::make_shared<HMMWV_WheelRight>("Wheel_RR", wheelVis);
+    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>("Wheel_FL");
+    m_wheels[1] = std::make_shared<HMMWV_WheelRight>("Wheel_FR");
+    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>("Wheel_RL");
+    m_wheels[3] = std::make_shared<HMMWV_WheelRight>("Wheel_RR");
 
     // --------------------
     // Create the driveline

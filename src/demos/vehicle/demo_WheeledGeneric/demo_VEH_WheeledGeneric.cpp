@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
+    Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
 
@@ -121,6 +121,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_front_right("FR");
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
+
+    tire_front_left.EnableVisualization(true);
+    tire_front_right.EnableVisualization(true);
+    tire_rear_left.EnableVisualization(true);
+    tire_rear_right.EnableVisualization(true);
 
     tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
     tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);

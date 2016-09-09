@@ -101,15 +101,19 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
+    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
     vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the trailer: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
-
+    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK);
     trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassisBody());
+    trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    trailer.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
@@ -129,6 +133,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
+    tire_front_left.EnableVisualization(true);
+    tire_front_right.EnableVisualization(true);
+    tire_rear_left.EnableVisualization(true);
+    tire_rear_right.EnableVisualization(true);
+
     tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
     tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
     tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
@@ -139,6 +148,11 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tr_tire_front_right("FR");
     Generic_RigidTire tr_tire_rear_left("RL");
     Generic_RigidTire tr_tire_rear_right("RR");
+
+    tr_tire_front_left.EnableVisualization(true);
+    tr_tire_front_right.EnableVisualization(true);
+    tr_tire_rear_left.EnableVisualization(true);
+    tr_tire_rear_right.EnableVisualization(true);
 
     tr_tire_front_left.Initialize(trailer.GetWheelBody(FRONT_LEFT), LEFT);
     tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT), RIGHT);

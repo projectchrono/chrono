@@ -84,15 +84,16 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Reduced my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetWheelVis(VisualizationType::PRIMITIVES);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.EnableTireVis(true);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

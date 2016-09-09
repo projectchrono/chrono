@@ -40,7 +40,6 @@ HMMWV::HMMWV()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
@@ -56,7 +55,6 @@ HMMWV::HMMWV(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_wheelVis(VisualizationType::PRIMITIVES),
       m_tireVis(false),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 

@@ -297,6 +297,7 @@ int main(int argc, char* argv[]) {
     // Initialize the vehicle at a height above the terrain.
     vehicle_assembly.Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
     vehicle_assembly.GetVehicle()->SetChassisVisualizationType(VisualizationType::MESH);
+    vehicle_assembly.GetVehicle()->SetWheelVisualizationType(VisualizationType::PRIMITIVES);
 
     // Initially, fix the chassis and wheel bodies (will be released after time_hold).
     vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(true);

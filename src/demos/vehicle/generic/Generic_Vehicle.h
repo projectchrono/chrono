@@ -31,7 +31,6 @@ class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
                     chrono::vehicle::SuspensionType suspType,
-                    chrono::vehicle::VisualizationType wheelVis,
                     chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
     ~Generic_Vehicle() {}

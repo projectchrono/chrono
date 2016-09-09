@@ -55,10 +55,6 @@ class CH_MODELS_API HMMWV {
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
     void SetTireType(TireModelType val) { m_tireType = val; }
 
-    void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
-    void SetWheelVis(VisualizationType val) { m_wheelVis = val; }
-    void EnableTireVis(bool val) { m_tireVis = val; }
-
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
@@ -72,6 +68,13 @@ class CH_MODELS_API HMMWV {
     ChTire* GetTire(WheelID which) const { return m_tires[which.id()]; }
 
     void Initialize();
+
+    void SetChassisVisualizationType(VisualizationType vis) { m_vehicle->SetChassisVisualizationType(vis); }
+    void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
+    void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
+    void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
+
+    void EnableTireVis(bool val) { m_tireVis = val; }
 
     void Synchronize(double time,
                      double steering_input,
@@ -90,7 +93,6 @@ class CH_MODELS_API HMMWV {
 
     ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
-    VisualizationType m_wheelVis;
     bool m_tireVis;
 
     DrivelineType m_driveType;
@@ -118,8 +120,8 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
 
   private:
     virtual ChWheeledVehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType, m_wheelVis)
-                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType)
+                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_contactMethod);
     }
 };
 
@@ -130,8 +132,8 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
 
   private:
     virtual ChWheeledVehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_wheelVis)
-                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_wheelVis, m_contactMethod);
+        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType)
+                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod);
     }
 };
 

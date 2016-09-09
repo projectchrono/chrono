@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -63,16 +64,27 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Get the wheel moments of inertia.
     virtual ChVector<> GetInertia() const = 0;
 
-    /// Get the wheel radius
+    /// Get the wheel radius (for visualization only).
     virtual double GetRadius() const { return 0; }
 
-    /// Get the wheel width
+    /// Get the wheel width (for visualization only).
     virtual double GetWidth() const { return 0; }
 
     /// Initialize this wheel subsystem.
     /// The wheel mass and inertia are used to increment those of the spindle.
     virtual void Initialize(std::shared_ptr<ChBody> spindle  ///< handle to the associated spindle body
                             );
+
+    /// Add visualization assets for the wheel subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the wheel subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
+  protected:
+    std::shared_ptr<ChBody> m_spindle;             ///< associated spindle body
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// Vector of handles to wheel subsystems.

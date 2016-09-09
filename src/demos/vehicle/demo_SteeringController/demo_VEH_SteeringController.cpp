@@ -189,16 +189,17 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetWheelVis(vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
+    my_hmmwv.EnableTireVis(true);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(vis_type);
+    my_hmmwv.SetWheelVisualizationType(vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

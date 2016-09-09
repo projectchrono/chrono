@@ -47,7 +47,6 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 Generic_Vehicle::Generic_Vehicle(const bool fixed,
                                  SuspensionType suspType,
-                                 VisualizationType wheelVis,
                                  ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
     // -------------------------------------------
@@ -101,10 +100,10 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL", wheelVis);
-    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR", wheelVis);
-    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL", wheelVis);
-    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR", wheelVis);
+    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL");
+    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR");
 
     // --------------------
     // Create the driveline

@@ -28,6 +28,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+
 /**
     @addtogroup vehicle
     @{
