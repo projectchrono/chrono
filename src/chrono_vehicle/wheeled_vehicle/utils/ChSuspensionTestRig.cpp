@@ -55,11 +55,22 @@ namespace vehicle {
 class ChSuspensionTestRigChassis : public ChChassis {
   public:
     ChSuspensionTestRigChassis() : ChChassis("Ground") {}
-    virtual double GetMass() const override { return 1; }
-    virtual const ChVector<>& GetInertia() const override { return ChVector<>(1, 1, 1); }
-    virtual const ChVector<>& GetLocalPosCOM() const override { return ChVector<>(0, 0, 0); }
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
+    virtual double GetMass() const override { return m_mass; }
+    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+
+  private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+    static const ChVector<> m_COM_loc;
+    static const ChCoordsys<> m_driverCsys;
 };
+
+const double ChSuspensionTestRigChassis::m_mass = 1;
+const ChVector<> ChSuspensionTestRigChassis::m_inertia(1, 1, 1);
+const ChVector<> ChSuspensionTestRigChassis::m_COM_loc(0, 0, 0);
+const ChCoordsys<> ChSuspensionTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,

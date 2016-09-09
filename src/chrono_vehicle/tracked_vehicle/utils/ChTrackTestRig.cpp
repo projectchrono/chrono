@@ -51,20 +51,33 @@ namespace vehicle {
 class ChTrackTestRigChassis : public ChChassis {
   public:
     ChTrackTestRigChassis() : ChChassis("Ground") {}
-    virtual double GetMass() const override { return 1; }
-    virtual const ChVector<>& GetInertia() const override { return ChVector<>(1, 1, 1); }
-    virtual const ChVector<>& GetLocalPosCOM() const override { return ChVector<>(0, 0, 0); }
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
-    virtual void AddVisualizationAssets(VisualizationType vis) override {
-        auto box = std::make_shared<ChBoxShape>();
-        box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
-        m_body->AddAsset(box);
+    virtual double GetMass() const override { return m_mass; }
+    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-        auto blue = std::make_shared<ChColorAsset>();
-        blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-        m_body->AddAsset(blue);
-    }
+private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+    static const ChVector<> m_COM_loc;
+    static const ChCoordsys<> m_driverCsys;
 };
+
+const double ChTrackTestRigChassis::m_mass = 1;
+const ChVector<> ChTrackTestRigChassis::m_inertia(1, 1, 1);
+const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
+const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+
+void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
+    m_body->AddAsset(box);
+
+    auto blue = std::make_shared<ChColorAsset>();
+    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
+    m_body->AddAsset(blue);
+}
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
