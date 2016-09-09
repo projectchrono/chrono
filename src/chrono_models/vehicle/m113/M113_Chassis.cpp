@@ -57,12 +57,6 @@ void M113_Chassis::AddVisualizationAssets(VisualizationType vis) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Chassis::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(vehicle::GetDataFile(m_meshFile), m_meshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
-}
-
 }  // end namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono

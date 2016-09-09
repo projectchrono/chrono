@@ -52,9 +52,6 @@ class CH_MODELS_API M113_RoadWheel : public ChDoubleRoadWheel {
     /// Add visualization of the road wheel.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
-    void ExportMeshPovray(const std::string& out_dir);
-
   protected:
     M113_RoadWheel(const std::string& name);
 

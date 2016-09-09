@@ -125,12 +125,6 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
     return point;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Idler::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(GetMeshFile(), GetMeshName(), out_dir, ChColor(0.15f, 0.15f, 0.15f));
-}
-
 }  // end namespace m113
 }  // end namespace vehicle
 }  // end namespace chrono

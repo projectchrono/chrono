@@ -38,7 +38,6 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
     virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
-
   private:
     void Create(bool fixed);
 

@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Release the vehicle chassis at the end of the hold time.
-        if (vehicle_assembly.GetVehicle()->GetChassisBody()->GetBodyFixed() && time > time_hold) {
+        if (vehicle_assembly.GetVehicle()->GetChassis()->IsFixed() && time > time_hold) {
             cout << endl << "Release vehicle t = " << time << endl;
             vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(false);
             for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles(); i++) {
