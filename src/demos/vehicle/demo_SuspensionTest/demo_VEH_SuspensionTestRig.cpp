@@ -64,6 +64,8 @@ int main(int argc, char* argv[]) {
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
     tire_L->Initialize(rig.GetWheelBody(LEFT), LEFT);
     tire_R->Initialize(rig.GetWheelBody(RIGHT), RIGHT);
+    ////tire_L->SetVisualizationType(VisualizationType::MESH);
+    ////tire_R->SetVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
     ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");

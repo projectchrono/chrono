@@ -98,7 +98,6 @@ void MakeANCFWheel(ChSystem& my_system,
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
-    tire->EnableVisualization(true);
 
     tire->SetDivCircumference(N_Diameter);
     tire->SetDivWidth(N_Thread);
@@ -108,6 +107,8 @@ void MakeANCFWheel(ChSystem& my_system,
     tire->SetRimRadius(TorusRadius);
     tire->SetThickness(thickness);
     tire->Initialize(Hub_1, LEFT);
+
+    tire->SetVisualizationType(VisualizationType::MESH);
 }
 
 // =============================================================================

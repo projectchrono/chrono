@@ -58,6 +58,9 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 // Visualization type for wheels (PRIMITIVES, MESH, or NONE)
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
+// Visualization for tires (PRIMITIVES, MESH, or NON)
+VisualizationType tire_vis_type = VisualizationType::MESH;
+
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -119,11 +122,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
     my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

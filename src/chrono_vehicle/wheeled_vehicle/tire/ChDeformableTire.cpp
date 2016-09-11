@@ -109,15 +109,21 @@ void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide sid
         // Let the derived class create the constraints and add them to the system.
         CreateRimConnections(wheel);
     }
+}
 
-    // Attach mesh visualization (with default settings)
-    if (m_vis_enabled) {
-        m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
-        m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
-        m_visualization->SetColorscaleMinMax(0.0, 1);
-        m_visualization->SetSmoothFaces(true);
-        m_mesh->AddAsset(m_visualization);
-    }
+void ChDeformableTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_visualization = std::make_shared<ChVisualizationFEAmesh>(*(m_mesh.get()));
+    m_visualization->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);
+    m_visualization->SetColorscaleMinMax(0.0, 1);
+    m_visualization->SetSmoothFaces(true);
+    m_mesh->AddAsset(m_visualization);
+}
+
+void ChDeformableTire::RemoveVisualizationAssets() {
+    m_mesh->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

@@ -20,6 +20,8 @@
 #define CH_RIGIDTIRE_H
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -75,10 +77,16 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                             VehicleSide side                ///< left/right vehicle side
                             ) override;
 
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
   private:
-    bool m_use_mesh;
-    std::string m_mesh_file;
-    double m_sweep_sphere_radius;
+    bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
+    std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
+    double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact
 
     float m_friction;
     float m_restitution;
@@ -88,6 +96,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     float m_gn;
     float m_kt;
     float m_gt;
+
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

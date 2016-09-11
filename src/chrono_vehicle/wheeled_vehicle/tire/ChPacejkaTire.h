@@ -25,6 +25,8 @@
 #include <fstream>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/ChTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
@@ -79,8 +81,17 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
 
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Get the tire radius.
     virtual double GetRadius() const override { return m_R_eff; }
+
+    /// Get visualization tire width.
+    virtual double GetVisualizationWidth() const { return 0.25; }
 
     /// return the reactions for the combined slip EQs, in global coords
     virtual TireForce GetTireForce(bool cosim = false) const override;
@@ -400,6 +411,9 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     // for transient contact point tire model
     relaxationL* m_relaxation;
     bessel* m_bessel;
+
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 // -----------------------------------------------------------------------------

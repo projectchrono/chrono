@@ -142,8 +142,8 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < num_wheels; i++) {
         tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-        tires[i]->EnableVisualization(true);
         tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+        tires[i]->SetVisualizationType(VisualizationType::PRIMITIVES);
     }
 
 #ifdef USE_IRRLICHT

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -68,6 +69,40 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
+
+    // Check how to visualize this tire.
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh Filename")) {
+            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
+            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+            m_has_mesh = true;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void RigidTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(m_trimesh_shape);
+    } else {
+        ChRigidTire::AddVisualizationAssets(vis);
+    }
+}
+
+void RigidTire::RemoveVisualizationAssets() {
+    ChRigidTire::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by RigidTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
+    if (it != m_wheel->GetAssets().end())
+        m_wheel->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

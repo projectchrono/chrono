@@ -73,8 +73,7 @@ class CH_MODELS_API HMMWV {
     void SetSuspensionVisualizationType(VisualizationType vis) { m_vehicle->SetSuspensionVisualizationType(vis); }
     void SetSteeringVisualizationType(VisualizationType vis) { m_vehicle->SetSteeringVisualizationType(vis); }
     void SetWheelVisualizationType(VisualizationType vis) { m_vehicle->SetWheelVisualizationType(vis); }
-
-    void EnableTireVis(bool val) { m_tireVis = val; }
+    void SetTireVisualizationType(VisualizationType vis);
 
     void Synchronize(double time,
                      double steering_input,
@@ -93,7 +92,6 @@ class CH_MODELS_API HMMWV {
 
     ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
-    bool m_tireVis;
 
     DrivelineType m_driveType;
     PowertrainModelType m_powertrainType;

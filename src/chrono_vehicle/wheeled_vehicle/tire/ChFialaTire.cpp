@@ -28,10 +28,6 @@
 
 #include "chrono/physics/ChGlobal.h"
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
 #define fialaUseSmallAngle 0
@@ -62,6 +58,39 @@ void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     // Initialize contact patach state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChFialaTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
+    m_wheel->AddAsset(m_cyl_shape);
+
+    m_texture = std::make_shared<ChTexture>();
+    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_wheel->AddAsset(m_texture);
+}
+
+void ChFialaTire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChFialaTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
 }
 
 // -----------------------------------------------------------------------------

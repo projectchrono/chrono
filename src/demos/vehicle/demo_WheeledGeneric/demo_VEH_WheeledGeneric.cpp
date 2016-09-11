@@ -122,15 +122,15 @@ int main(int argc, char* argv[]) {
     Generic_RigidTire tire_rear_left("RL");
     Generic_RigidTire tire_rear_right("RR");
 
-    tire_front_left.EnableVisualization(true);
-    tire_front_right.EnableVisualization(true);
-    tire_rear_left.EnableVisualization(true);
-    tire_rear_right.EnableVisualization(true);
-
     tire_front_left.Initialize(vehicle.GetWheelBody(FRONT_LEFT), LEFT);
     tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
     tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
     tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
+
+    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
 

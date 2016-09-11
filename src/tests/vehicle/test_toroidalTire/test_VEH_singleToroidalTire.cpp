@@ -154,10 +154,12 @@ int main(int argc, char* argv[]) {
     tire->EnablePressure(true);
     tire->EnableContact(true);
     tire->EnableRimConnection(true);
-    tire->EnableVisualization(true);
     //tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
 
     tire->Initialize(wheel, LEFT);
+
+    tire->SetVisualizationType(VisualizationType::MESH);
+
     double tire_radius = tire->GetRadius();
     double rim_radius = tire->GetRimRadius();
     double tire_width = tire->GetWidth();

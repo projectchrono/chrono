@@ -195,11 +195,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
-    my_hmmwv.EnableTireVis(true);
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(vis_type);
     my_hmmwv.SetWheelVisualizationType(vis_type);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

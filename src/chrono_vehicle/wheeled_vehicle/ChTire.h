@@ -53,10 +53,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
            );
     virtual ~ChTire() {}
 
-    /// Enable/disable tire visualization (default: false).
-    void EnableVisualization(bool val) { m_vis_enabled = val; }
-    bool IsVisualizationEnabled() const { return m_vis_enabled; }
-
     /// Initialize this tire subsystem.
     /// A derived class must call this base implementation (which simply caches the
     /// associated wheel body and vehicle side flag).
@@ -127,8 +123,6 @@ class CH_VEHICLE_API ChTire : public ChPart {
 
     VehicleSide m_side;               ///< tire mounted on left/right side
     std::shared_ptr<ChBody> m_wheel;  ///< associated wheel body
-
-    bool m_vis_enabled;  ///< tire-specific visualization enabled?
 
   private:
     /// Calculate kinematics quantities based on the current state of the associated

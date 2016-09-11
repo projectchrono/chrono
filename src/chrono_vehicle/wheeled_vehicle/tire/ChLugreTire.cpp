@@ -25,10 +25,6 @@
 
 #include "chrono/physics/ChGlobal.h"
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
 namespace chrono {
@@ -57,25 +53,47 @@ void ChLugreTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         m_state[id].z0 = 0;
         m_state[id].z1 = 0;
     }
+}
 
-    // Add visualization assets.
-    if (m_vis_enabled) {
-        double discWidth = 0.04;
-        double disc_radius = GetRadius();
-        const double* disc_locs = GetDiscLocations();
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChLugreTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
 
-        for (int id = 0; id < GetNumDiscs(); id++) {
-            auto cyl = std::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().rad = disc_radius;
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
-            wheel->AddAsset(cyl);
-        }
+    double discWidth = 0.04;
+    double disc_radius = GetRadius();
+    const double* disc_locs = GetDiscLocations();
 
-        auto tex = std::make_shared<ChTexture>();
-        tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-        wheel->AddAsset(tex);
+    m_cyl_shapes.resize(GetNumDiscs());
+    for (int id = 0; id < GetNumDiscs(); id++) {
+        m_cyl_shapes[id] = std::make_shared<ChCylinderShape>();
+        m_cyl_shapes[id]->GetCylinderGeometry().rad = disc_radius;
+        m_cyl_shapes[id]->GetCylinderGeometry().p1 = ChVector<>(0, disc_locs[id] + discWidth / 2, 0);
+        m_cyl_shapes[id]->GetCylinderGeometry().p2 = ChVector<>(0, disc_locs[id] - discWidth / 2, 0);
+        m_wheel->AddAsset(m_cyl_shapes[id]);
     }
+
+    m_texture = std::make_shared<ChTexture>();
+    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_wheel->AddAsset(m_texture);
+}
+
+void ChLugreTire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChLugreTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    for (int id = 0; id < m_cyl_shapes.size(); id++) {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shapes[id]);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
+    m_cyl_shapes.clear();
 }
 
 // -----------------------------------------------------------------------------

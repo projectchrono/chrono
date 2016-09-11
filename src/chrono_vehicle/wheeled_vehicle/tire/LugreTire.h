@@ -19,6 +19,8 @@
 #ifndef LUGRE_TIRE_H
 #define LUGRE_TIRE_H
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChLugreTire.h"
 
@@ -47,6 +49,9 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
 
     virtual void SetLugreParams() override {}
 
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
   private:
     void Create(const rapidjson::Document& d);
 
@@ -56,6 +61,11 @@ class CH_VEHICLE_API LugreTire : public ChLugreTire {
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    bool m_has_mesh;
+    std::string m_meshName;
+    std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
 /// @} vehicle_wheeled_tire
