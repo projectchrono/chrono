@@ -203,7 +203,7 @@ endforeach()
 foreach(lib ${CHRONO_LIB_NAMES})
   set(onelib "${lib}-NOTFOUND")
   find_library(onelib ${lib}
-    PATHS "@CH_BINARY_DIR@/lib"
+    PATHS "@CH_BINARY_DIR@/lib64"
     PATH_SUFFIXES "Release"
     NO_DEFAULT_PATH
   )
