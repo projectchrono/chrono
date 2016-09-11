@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include <cmath>
+#include <algorithm>
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_FialaTire.h"

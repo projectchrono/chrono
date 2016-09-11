@@ -16,6 +16,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_RigidTire.h"
 
