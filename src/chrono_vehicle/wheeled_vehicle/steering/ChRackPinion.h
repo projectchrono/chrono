@@ -59,6 +59,13 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
+    /// Add visualization assets for the steering subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the steering subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
@@ -97,9 +104,6 @@ class CH_VEHICLE_API ChRackPinion : public ChSteering {
 
     std::shared_ptr<ChLinkLockPrismatic> m_prismatic;  ///< handle to the prismatic joint chassis-link
     std::shared_ptr<ChLinkLinActuator> m_actuator;     ///< handle to the linear actuator on steering link
-
-  private:
-    void AddVisualizationSteeringLink();
 };
 
 /// @} vehicle_wheeled_steering

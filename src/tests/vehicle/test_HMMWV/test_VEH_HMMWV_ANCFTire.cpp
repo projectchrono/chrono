@@ -64,9 +64,6 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 // Type of tire type (ANCF, RIGID, RIGID_MESH)
 TireModelType tire_model = TireModelType::ANCF;
 
-// Enable/disable tire visualization
-bool tire_vis = true;
-
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -196,6 +193,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
     my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 

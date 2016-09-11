@@ -54,8 +54,12 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::RWD;
 
-// Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = VisualizationType::PRIMITIVES;
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
+VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
@@ -197,9 +201,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
     my_hmmwv.Initialize();
 
-    my_hmmwv.SetChassisVisualizationType(vis_type);
-    my_hmmwv.SetWheelVisualizationType(vis_type);
-    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(steering_vis_type);
+    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());

@@ -103,6 +103,9 @@ int main(int argc, char* argv[]) {
     Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());

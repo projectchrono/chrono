@@ -133,16 +133,16 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
             offset = ChVector<>(2.1, 0, -0.02);
             break;
         case SuspensionType::MULTI_LINK:
-            offset = ChVector<>(1.25, 0, -0.21);
+            offset = ChVector<>(1.25, 0, 0.01);
             break;
         case SuspensionType::DOUBLE_WISHBONE:
-            offset = ChVector<>(1.25, 0, -0.21);
+            offset = ChVector<>(1.25, 0, 0.07);
             break;
         case SuspensionType::HENDRICKSON_PRIMAXX:
             offset = ChVector<>(1.25, 0, -0.21);
             break;
         case SuspensionType::MACPHERSON_STRUT:
-            offset = ChVector<>(1.25, 0, -0.21);
+            offset = ChVector<>(1.25, 0, 0.03);
             break;
     }
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));

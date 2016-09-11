@@ -68,6 +68,7 @@ int main(int argc, char* argv[]) {
     tire_R->Initialize(rig.GetWheelBody(RIGHT), RIGHT);
 
     rig.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    rig.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     rig.SetWheelVisualizationType(VisualizationType::PRIMITIVES);
     tire_L->SetVisualizationType(VisualizationType::MESH);
     tire_R->SetVisualizationType(VisualizationType::MESH);

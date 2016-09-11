@@ -52,13 +52,11 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
-// Visualization type for chassis (PRIMITIVES, MESH, or NONE)
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
-
-// Visualization type for wheels (PRIMITIVES, MESH, or NONE)
+VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
-
-// Visualization for tires (PRIMITIVES, MESH, or NON)
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
@@ -69,7 +67,6 @@ DrivelineType drive_type = DrivelineType::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA)
 TireModelType tire_model = TireModelType::RIGID;
-bool tire_vis = true;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
@@ -125,6 +122,8 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(steering_vis_type);
+    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
     my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
     my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
