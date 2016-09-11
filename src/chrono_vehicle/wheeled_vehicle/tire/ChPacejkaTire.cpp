@@ -18,6 +18,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/core/ChTimer.h"
