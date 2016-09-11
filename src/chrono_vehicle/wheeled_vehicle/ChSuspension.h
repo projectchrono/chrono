@@ -26,6 +26,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
+#include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
@@ -117,6 +118,19 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
                             std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) = 0;
 
+    /// Return the radius of the spindle body (visualization only).
+    virtual double getSpindleRadius() const = 0;
+
+    /// Return the width of the spindle body (visualization only).
+    virtual double getSpindleWidth() const = 0;
+
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives for spindle visualization.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Specify the left body for a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
     virtual std::shared_ptr<ChBody> GetLeftBody() const { return std::shared_ptr<ChBody>(); }
@@ -136,6 +150,11 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
+
+  private:
+    std::shared_ptr<ChCylinderShape> m_spindle_shapes[2];
+
+    void AddVisualizationSpindle(VehicleSide side, double radius, double width);
 };
 
 /// Vector of handles to suspension subsystems.

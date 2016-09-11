@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.Initialize();
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    my_hmmwv.SetSuspensionVisualizationType(steering_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
     my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
     my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
     my_hmmwv.SetTireVisualizationType(tire_vis_type);

@@ -150,6 +150,7 @@ void ChPitmanArm::Synchronize(double time, double steering) {
 double ChPitmanArm::GetMass() const {
     return getSteeringLinkMass() + getPitmanArmMass();
 }
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {

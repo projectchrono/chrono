@@ -47,9 +47,9 @@ const double     Generic_SolidAxle::m_ULRadius = 0.02;
 const double     Generic_SolidAxle::m_LLRadius = 0.02;
 const double     Generic_SolidAxle::m_axleTubeRadius = 0.03;
 const double     Generic_SolidAxle::m_knuckleRadius = 0.01;
-const double     Generic_SolidAxle::m_tierodRadius = 0.003;
-const double     Generic_SolidAxle::m_draglinkRadius = 0.003;
-const double     Generic_SolidAxle::m_bellCrankRadius = 0.003;
+const double     Generic_SolidAxle::m_tierodRadius = 0.007;
+const double     Generic_SolidAxle::m_draglinkRadius = 0.007;
+const double     Generic_SolidAxle::m_bellCrankRadius = 0.007;
 
 const ChVector<> Generic_SolidAxle::m_axleTubeCOM(0, 0, 0);
 
