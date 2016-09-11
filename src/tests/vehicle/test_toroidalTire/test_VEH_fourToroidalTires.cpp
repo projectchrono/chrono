@@ -209,7 +209,9 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     auto terrain = std::make_shared<RigidTerrain>(&my_system);
-    terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain->SetContactFrictionCoefficient(0.9f);
+    terrain->SetContactRestitutionCoefficient(0.01f);
+    terrain->SetContactMaterialProperties(2e7f, 0.3f);
     terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
     terrain->Initialize(-TorusRadius -TorusHeight -Clearance, 60, 5);
 

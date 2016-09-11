@@ -263,7 +263,9 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            terrainR->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+            terrainR->SetContactFrictionCoefficient(0.9f);
+            terrainR->SetContactRestitutionCoefficient(0.01f);
+            terrainR->SetContactMaterialProperties(2e7f, 0.3f);
             terrainR->SetColor(ChColor(0.8f, 0.8f, 0.5f));
             terrainR->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrainR->Initialize(terrainHeight, terrainLength, terrainWidth);

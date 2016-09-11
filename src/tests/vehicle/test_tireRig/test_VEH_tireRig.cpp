@@ -691,7 +691,9 @@ int main() {
     std::shared_ptr<ChTerrain> terrain;
     if (terrain_type == RIGID_TERRAIN) {
         auto rigid_terrain = std::make_shared<RigidTerrain>(my_system);
-        rigid_terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
+        rigid_terrain->SetContactFrictionCoefficient(0.9f);
+        rigid_terrain->SetContactRestitutionCoefficient(0.01f);
+        rigid_terrain->SetContactMaterialProperties(2e6f, 0.3f);
         rigid_terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
         rigid_terrain->Initialize(-tire_radius + 0.0015, 120, 0.5);
         terrain = rigid_terrain;

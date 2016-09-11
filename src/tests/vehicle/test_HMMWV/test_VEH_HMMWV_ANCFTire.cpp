@@ -225,7 +225,10 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f, 2e5f, 40.0f, 2e5f, 20.0f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
+    terrain.SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     switch (terrain_model) {
         case RigidTerrain::FLAT:
