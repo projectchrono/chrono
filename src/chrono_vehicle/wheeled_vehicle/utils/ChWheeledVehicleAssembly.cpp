@@ -65,10 +65,8 @@ void ChWheeledVehicleAssembly::Initialize(const ChVector<>& init_loc, const ChQu
     if (m_tire_cb) {
         for (int i = 0; i < 2 * m_vehicle->GetNumberAxles(); i++) {
             std::shared_ptr<ChBody> wheelBody = m_vehicle->GetWheelBody(i);
-            double radius = m_vehicle->GetWheel(i)->GetRadius();
-            double width = m_vehicle->GetWheel(i)->GetWidth();
 
-            m_tire_cb->onCallback(wheelBody, radius, width);
+            m_tire_cb->onCallback(wheelBody);
             wheelBody->SetCollide(true);
         }
     }
