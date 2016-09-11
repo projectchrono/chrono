@@ -56,19 +56,30 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
-    float mu = d["Coefficient of Friction"].GetDouble();
-    float cr = d["Coefficient of Restitution"].GetDouble();
-    float ym = d["Young Modulus"].GetDouble();
-    float pr = d["Poisson Ratio"].GetDouble();
-    float kn = d["Normal Stiffness"].GetDouble();
-    float gn = d["Normal Damping"].GetDouble();
-    float kt = d["Tangential Stiffness"].GetDouble();
-    float gt = d["Tangential Damping"].GetDouble();
-
-    SetContactMaterial(mu, cr, ym, pr, kn, gn, kt, gt);
-
     m_radius = d["Radius"].GetDouble();
     m_width = d["Width"].GetDouble();
+
+    // Read contact material data
+    assert(d.HasMember("Contact Material"));
+
+    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
+    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
+
+    SetContactFrictionCoefficient(mu);
+    SetContactRestitutionCoefficient(cr);
+
+    if (d["Contact Material"].HasMember("Properties")) {
+        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
+        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
+        SetContactMaterialProperties(ym, pr);
+    }
+    if (d["Contact Material"].HasMember("Coefficients")) {
+        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
+        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
+        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
+        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
+        SetContactMaterialCoefficients(kn, gn, kt, gt);
+    }
 
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {

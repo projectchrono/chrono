@@ -36,7 +36,11 @@ const std::string HMMWV_RigidTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_RigidTire::HMMWV_RigidTire(const std::string& name, bool use_mesh) : ChRigidTire(name) {
-    SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
+    SetContactFrictionCoefficient(0.9f);
+    SetContactRestitutionCoefficient(0.1f);
+    SetContactMaterialProperties(2e7f, 0.3f);
+    SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
+
     if (use_mesh) {
         SetMeshFilename(GetDataFile("hmmwv/hmmwv_tire.obj"), 0.005);
     }

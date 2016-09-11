@@ -24,7 +24,10 @@
 class Generic_RigidTire : public chrono::vehicle::ChRigidTire {
   public:
     Generic_RigidTire(const std::string& name) : chrono::vehicle::ChRigidTire(name) {
-        SetContactMaterial(0.9f, 0.1f, 2e7f, 0.3f);
+        SetContactFrictionCoefficient(0.9f);
+        SetContactRestitutionCoefficient(0.1f);
+        SetContactMaterialProperties(2e7f, 0.3f);
+        SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
     }
 
     ~Generic_RigidTire() {}

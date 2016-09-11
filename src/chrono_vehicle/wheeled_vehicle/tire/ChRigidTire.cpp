@@ -31,7 +31,7 @@ namespace vehicle {
 ChRigidTire::ChRigidTire(const std::string& name)
     : ChTire(name),
       m_use_contact_mesh(false),
-      m_friction(0.6f),
+      m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
@@ -50,18 +50,12 @@ void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sph
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::SetContactMaterial(float friction_coefficient,
-                                     float restitution_coefficient,
-                                     float young_modulus,
-                                     float poisson_ratio,
-                                     float kn,
-                                     float gn,
-                                     float kt,
-                                     float gt) {
-    m_friction = friction_coefficient;
-    m_restitution = restitution_coefficient;
+void ChRigidTire::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChRigidTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
     m_kn = kn;
     m_gn = gn;
     m_kt = kt;
