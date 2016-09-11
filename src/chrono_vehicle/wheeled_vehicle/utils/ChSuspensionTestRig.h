@@ -34,6 +34,7 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
+#include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -46,14 +47,18 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
     ChSuspensionTestRig(
-        const std::string& filename,  ///< JSON file with vehicle specification
-        int axle_index,               ///< index of the suspension to be tested
+        const std::string& filename,         ///< JSON file with vehicle specification
+        int axle_index,                      ///< index of the suspension to be tested
+        std::shared_ptr<ChTire> tire_left,   ///< left tire
+        std::shared_ptr<ChTire> tire_right,  ///< right tire
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
         );
 
     /// Construct a test rig from specified file.
     ChSuspensionTestRig(
-        const std::string& filename,  ///< JSON file with test rig specification
+        const std::string& filename,         ///< JSON file with test rig specification
+        std::shared_ptr<ChTire> tire_left,   ///< left tire
+        std::shared_ptr<ChTire> tire_right,  ///< right tire
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
         );
 
@@ -106,6 +111,15 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     virtual void Initialize(const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
                             ) override;
 
+    /// Set visualization type for the suspension subsystem.
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the steering subsystems.
+    void SetSteeringVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the wheel subsystems.
+    void SetWheelVisualizationType(VisualizationType vis);
+
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
     void Synchronize(double time,                   ///< [in] current time
@@ -130,9 +144,9 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
     std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
+    std::shared_ptr<ChShaft> m_dummy_shaft;      ///< dummy driveshaft
     ChWheelList m_wheels;                        ///< list of handles to wheel subsystems
-
-    std::shared_ptr<ChShaft> m_dummy_shaft;  ///< dummy driveshaft
+    ChTireList m_tires;                          ///< list of handles to tire subsystems
 
     std::shared_ptr<ChBody> m_post_L;                         ///< left shaker post
     std::shared_ptr<ChBody> m_post_R;                         ///< right shaker post

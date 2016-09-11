@@ -137,6 +137,9 @@ class CH_VEHICLE_API ChTire : public ChPart {
     double m_camber_angle;
 };
 
+/// Vector of handles to tire subsystems.
+typedef std::vector<std::shared_ptr<ChTire>> ChTireList;
+
 /// @} vehicle_wheeled_tire
 
 }  // end namespace vehicle

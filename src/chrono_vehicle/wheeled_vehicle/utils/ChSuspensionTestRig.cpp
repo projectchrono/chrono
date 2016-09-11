@@ -187,6 +187,8 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 // -----------------------------------------------------------------------------
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          int axle_index,
+                                         std::shared_ptr<ChTire> tire_left,
+                                         std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurfaceBase::ContactMethod contact_method)
     : ChVehicle(contact_method) {
     // ---------------------------------------------------------------
@@ -238,9 +240,15 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+
+    m_tires.resize(2);
+    m_tires[LEFT] = tire_left;
+    m_tires[RIGHT] = tire_right;
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
+                                         std::shared_ptr<ChTire> tire_left,
+                                         std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurfaceBase::ContactMethod contact_method)
     : ChVehicle(contact_method) {
     // -----------------------------------------------------------
@@ -284,6 +292,10 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     }
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+
+    m_tires.resize(2);
+    m_tires[LEFT] = tire_left;
+    m_tires[RIGHT] = tire_right;
 }
 
 void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
@@ -320,7 +332,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
     ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z -= (m_wheels[LEFT]->GetRadius() + post_height / 2.0);
+    post_L_pos.z -= (m_tires[LEFT]->GetRadius() + post_height / 2.0);
 
     m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_L->SetPos(post_L_pos);
@@ -330,7 +342,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
     ChVector<> post_R_pos = spindle_R_pos;
-    post_R_pos.z -= (m_wheels[RIGHT]->GetRadius() + post_height / 2.0);
+    post_R_pos.z -= (m_tires[RIGHT]->GetRadius() + post_height / 2.0);
 
     m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_R->SetPos(post_R_pos);
@@ -385,6 +397,22 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m_post_R_ptPlane->SetNameString("R_post_pointPlane");
     m_post_R_ptPlane->Initialize(m_suspension->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
     m_system->AddLink(m_post_R_ptPlane);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void ChSuspensionTestRig::SetSuspensionVisualizationType(VisualizationType vis) {
+    m_suspension->SetVisualizationType(vis);
+}
+
+void ChSuspensionTestRig::SetSteeringVisualizationType(VisualizationType vis) {
+    m_steering->SetVisualizationType(vis);
+}
+
+void ChSuspensionTestRig::SetWheelVisualizationType(VisualizationType vis) {
+    m_wheels[0]->SetVisualizationType(vis);
+    m_wheels[1]->SetVisualizationType(vis);
 }
 
 // -----------------------------------------------------------------------------
