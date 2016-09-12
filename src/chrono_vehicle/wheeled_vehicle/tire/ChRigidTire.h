@@ -20,6 +20,7 @@
 #define CH_RIGIDTIRE_H
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -40,7 +41,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     ChRigidTire(const std::string& name  ///< [in] name of this tire system
                 );
 
-    virtual ~ChRigidTire() {}
+    virtual ~ChRigidTire();
 
     /// Set coefficient of friction.
     /// The default value is 0.7
@@ -111,6 +112,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     float m_gn;
     float m_kt;
     float m_gt;
+
+    geometry::ChTriangleMeshConnected* m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset

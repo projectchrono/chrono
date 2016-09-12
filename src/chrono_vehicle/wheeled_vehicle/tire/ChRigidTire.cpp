@@ -18,7 +18,6 @@
 
 #include <algorithm>
 
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
@@ -31,6 +30,7 @@ namespace vehicle {
 ChRigidTire::ChRigidTire(const std::string& name)
     : ChTire(name),
       m_use_contact_mesh(false),
+      m_trimesh(nullptr),
       m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(2e5f),
@@ -39,6 +39,10 @@ ChRigidTire::ChRigidTire(const std::string& name)
       m_gn(40),
       m_kt(2e5f),
       m_gt(20) {}
+
+ChRigidTire::~ChRigidTire() {
+    delete m_trimesh;
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -71,11 +75,11 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(m_contact_meshFile, true, false);
+        m_trimesh = new geometry::ChTriangleMeshConnected;
+        m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
         wheel->GetCollisionModel()->ClearModel();
-        wheel->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+        wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                     m_sweep_sphere_radius);
         wheel->GetCollisionModel()->BuildModel();
     } else {
