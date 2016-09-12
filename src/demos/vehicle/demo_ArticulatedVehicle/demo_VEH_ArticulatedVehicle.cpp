@@ -34,11 +34,12 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
+#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
+
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
-#include "generic/Generic_SimplePowertrain.h"
-#include "generic/Generic_RigidTire.h"
-#include "generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -55,6 +56,7 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // =============================================================================
 

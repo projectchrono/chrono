@@ -34,10 +34,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "generic/Generic_Vehicle.h"
-#include "generic/Generic_SimplePowertrain.h"
-#include "generic/Generic_RigidTire.h"
-#include "generic/Generic_FuncDriver.h"
+#include "chrono_models/vehicle/generic/Generic_Vehicle.h"
+#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -53,7 +53,9 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // =============================================================================
 
@@ -100,7 +102,7 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
+    Generic_Vehicle vehicle(false, SuspensionType::DOUBLE_WISHBONE);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
