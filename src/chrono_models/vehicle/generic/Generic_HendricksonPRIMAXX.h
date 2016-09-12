@@ -27,13 +27,19 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
-class Generic_HendricksonPRIMAXX : public chrono::vehicle::ChHendricksonPRIMAXX {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
   public:
     Generic_HendricksonPRIMAXX(const std::string& name);
     ~Generic_HendricksonPRIMAXX();
 
-    virtual const chrono::ChVector<> getAxlehousingCOM() const override { return m_axlehousingCOM; }
-    virtual const chrono::ChVector<> getTransversebeamCOM() const override { return m_transversebeamCOM; }
+    virtual const ChVector<> getAxlehousingCOM() const override { return m_axlehousingCOM; }
+    virtual const ChVector<> getTransversebeamCOM() const override { return m_transversebeamCOM; }
 
     virtual double getAxlehousingMass() const override { return m_axlehousingMass; }
     virtual double getKnuckleMass() const override { return m_knuckleMass; }
@@ -50,27 +56,27 @@ class Generic_HendricksonPRIMAXX : public chrono::vehicle::ChHendricksonPRIMAXX 
     virtual double getLowerbeamRadius() const override { return m_lowerbeamRadius; }
     virtual double getTransversebeamRadius() const override { return m_transversebeamRadius; }
 
-    virtual const chrono::ChVector<>& getAxlehousingInertia() const override { return m_axlehousingInertia; }
-    virtual const chrono::ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getTorquerodInertia() const override { return m_torquerodInertia; }
-    virtual const chrono::ChVector<>& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
-    virtual const chrono::ChVector<>& getTransversebeamInertia() const override { return m_transversebeamInertia; }
+    virtual const ChVector<>& getAxlehousingInertia() const override { return m_axlehousingInertia; }
+    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getTorquerodInertia() const override { return m_torquerodInertia; }
+    virtual const ChVector<>& getLowerbeamInertia() const override { return m_lowerbeamInertia; }
+    virtual const ChVector<>& getTransversebeamInertia() const override { return m_transversebeamInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getShockAHRestLength() const override { return m_shockAH_restLength; }
-    virtual chrono::ChSpringForceCallback* getShockAHForceCallback() const override { return m_shockAHForceCB; }
+    virtual ChSpringForceCallback* getShockAHForceCallback() const override { return m_shockAHForceCB; }
 
     virtual double getShockLBRestLength() const override { return m_shockLB_restLength; }
-    virtual chrono::ChSpringForceCallback* getShockLBForceCallback() const override { return m_shockLBForceCB; }
+    virtual ChSpringForceCallback* getShockLBForceCallback() const override { return m_shockLBForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
-    virtual const chrono::ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getDirection(DirectionId which) override;
 
-    chrono::ChSpringForceCallback* m_shockAHForceCB;
-    chrono::ChSpringForceCallback* m_shockLBForceCB;
+    ChSpringForceCallback* m_shockAHForceCB;
+    ChSpringForceCallback* m_shockLBForceCB;
 
     static const double m_axlehousingMass;
     static const double m_knuckleMass;
@@ -87,15 +93,15 @@ class Generic_HendricksonPRIMAXX : public chrono::vehicle::ChHendricksonPRIMAXX 
     static const double m_lowerbeamRadius;
     static const double m_transversebeamRadius;
 
-    static const chrono::ChVector<> m_axlehousingCOM;
-    static const chrono::ChVector<> m_transversebeamCOM;
+    static const ChVector<> m_axlehousingCOM;
+    static const ChVector<> m_transversebeamCOM;
 
-    static const chrono::ChVector<> m_axlehousingInertia;
-    static const chrono::ChVector<> m_knuckleInertia;
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_torquerodInertia;
-    static const chrono::ChVector<> m_lowerbeamInertia;
-    static const chrono::ChVector<> m_transversebeamInertia;
+    static const ChVector<> m_axlehousingInertia;
+    static const ChVector<> m_knuckleInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_torquerodInertia;
+    static const ChVector<> m_lowerbeamInertia;
+    static const ChVector<> m_transversebeamInertia;
 
     static const double m_axleInertia;
 
@@ -107,5 +113,9 @@ class Generic_HendricksonPRIMAXX : public chrono::vehicle::ChHendricksonPRIMAXX 
     static const double m_shockLB_dampingCoefficient;
     static const double m_shockLB_restLength;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

@@ -12,28 +12,34 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Generic rigid tire subsystem
+// Generic simple brake model
 //
 // =============================================================================
 
-#ifndef GENERIC_RIGID_TIRE_H
-#define GENERIC_RIGID_TIRE_H
+#ifndef GENERIC_BRAKESIMPLE_H
+#define GENERIC_BRAKESIMPLE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
+#include "chrono_vehicle/wheeled_vehicle/brake/ChBrakeSimple.h"
 
-class Generic_RigidTire : public chrono::vehicle::ChRigidTire {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_BrakeSimple : public ChBrakeSimple {
   public:
-    Generic_RigidTire(const std::string& name) : chrono::vehicle::ChRigidTire(name) {
-        SetContactFrictionCoefficient(0.9f);
-        SetContactRestitutionCoefficient(0.1f);
-        SetContactMaterialProperties(2e7f, 0.3f);
-        SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
-    }
+    Generic_BrakeSimple(const std::string& name);
+    ~Generic_BrakeSimple() {}
 
-    ~Generic_RigidTire() {}
+    virtual double GetMaxBrakingTorque() override { return m_maxtorque; }
 
-    virtual double GetRadius() const override { return 0.47; }
-    virtual double GetWidth() const override { return 0.25; }
+  private:
+    static const double m_maxtorque;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

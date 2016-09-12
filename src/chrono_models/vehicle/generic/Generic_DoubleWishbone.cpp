@@ -22,10 +22,11 @@
 //
 // =============================================================================
 
-#include "generic/Generic_DoubleWishbone.h"
+#include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
+namespace chrono {
+namespace vehicle {
+namespace generic {
 
 // -----------------------------------------------------------------------------
 // Static variables -- all in SI units
@@ -116,3 +117,7 @@ const ChVector<> Generic_DoubleWishbone::getLocation(PointId which) {
             return ChVector<>(0, 0, 0);
     }
 }
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono

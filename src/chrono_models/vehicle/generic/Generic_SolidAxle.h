@@ -28,7 +28,13 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChSolidAxle.h"
 
-class Generic_SolidAxle : public chrono::vehicle::ChSolidAxle {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
   public:
     Generic_SolidAxle(const std::string& name);
     ~Generic_SolidAxle();
@@ -52,28 +58,28 @@ class Generic_SolidAxle : public chrono::vehicle::ChSolidAxle {
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
     virtual double getBellCrankRadius() const override { return m_bellCrankRadius; }
 
-    virtual const chrono::ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getULInertia() const override { return m_ULInertia; }
-    virtual const chrono::ChVector<>& getLLInertia() const override { return m_LLInertia; }
-    virtual const chrono::ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const chrono::ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const chrono::ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
-    virtual const chrono::ChVector<>& getBellCrankInertia() const override { return m_bellCrankInertia; }
+    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getULInertia() const override { return m_ULInertia; }
+    virtual const ChVector<>& getLLInertia() const override { return m_LLInertia; }
+    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector<>& getBellCrankInertia() const override { return m_bellCrankInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
-    virtual const chrono::ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
 
-    chrono::ChSpringForceCallback* m_springForceCB;
-    chrono::ChSpringForceCallback* m_shockForceCB;
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
     static const double m_axleTubeMass;
     static const double m_spindleMass;
@@ -94,16 +100,16 @@ class Generic_SolidAxle : public chrono::vehicle::ChSolidAxle {
     static const double m_draglinkRadius;
     static const double m_bellCrankRadius;
 
-    static const chrono::ChVector<> m_axleTubeCOM;
+    static const ChVector<> m_axleTubeCOM;
 
-    static const chrono::ChVector<> m_axleTubeInertia;
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_ULInertia;
-    static const chrono::ChVector<> m_LLInertia;
-    static const chrono::ChVector<> m_knuckleInertia;
-    static const chrono::ChVector<> m_tierodInertia;
-    static const chrono::ChVector<> m_draglinkInertia;
-    static const chrono::ChVector<> m_bellCrankInertia;
+    static const ChVector<> m_axleTubeInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_ULInertia;
+    static const ChVector<> m_LLInertia;
+    static const ChVector<> m_knuckleInertia;
+    static const ChVector<> m_tierodInertia;
+    static const ChVector<> m_draglinkInertia;
+    static const ChVector<> m_bellCrankInertia;
 
     static const double m_axleInertia;
 
@@ -111,5 +117,9 @@ class Generic_SolidAxle : public chrono::vehicle::ChSolidAxle {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

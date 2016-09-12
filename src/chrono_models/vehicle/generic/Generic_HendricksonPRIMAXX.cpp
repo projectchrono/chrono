@@ -22,10 +22,11 @@
 //
 // =============================================================================
 
-#include "generic/Generic_HendricksonPRIMAXX.h"
+#include "chrono_models/vehicle/generic/Generic_HendricksonPRIMAXX.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
+namespace chrono {
+namespace vehicle {
+namespace generic {
 
 // -----------------------------------------------------------------------------
 // Static variables -- all in SI units
@@ -152,3 +153,7 @@ const ChVector<> Generic_HendricksonPRIMAXX::getDirection(DirectionId which) {
             return ChVector<>(0, 0, 1);
     }
 }
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono

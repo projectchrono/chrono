@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Daniel Melanz
+// Authors: Radu Serban
 // =============================================================================
 //
-// Generic concrete MacPherson strut subsystem.
+// Generic concrete double wishbone suspension subsystem.
 //
 // This concrete suspension subsystem is defined with respect to a right-handed
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
@@ -22,64 +22,70 @@
 //
 // =============================================================================
 
-#ifndef GENERIC_MACPHERSONSTRUT_H
-#define GENERIC_MACPHERSONSTRUT_H
+#ifndef GENERIC_DOUBLEWISHBONE_H
+#define GENERIC_DOUBLEWISHBONE_H
 
-#include "chrono_vehicle/wheeled_vehicle/suspension/ChMacPhersonStrut.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishbone.h"
 
-class Generic_MacPhersonStrut : public chrono::vehicle::ChMacPhersonStrut {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
   public:
     // Constructor takes as argument the name of the subsystem instance.
-    Generic_MacPhersonStrut(const std::string& name);
+    Generic_DoubleWishbone(const std::string& name);
 
     // Destructor
-    ~Generic_MacPhersonStrut();
+    ~Generic_DoubleWishbone();
 
-    // Implementation of virtual methods imposed by the base class ChMacPhersonStrut
+    // Implementation of virtual methods imposed by the base class ChDoubleWishbone
 
-    virtual const chrono::ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getLocation(PointId which) override;
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
-    virtual double getStrutMass() const override { return m_strutMass; }
+    virtual double getUCAMass() const override { return m_UCAMass; }
     virtual double getLCAMass() const override { return m_LCAMass; }
     virtual double getUprightMass() const override { return m_uprightMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
-    virtual double getStrutRadius() const override { return m_strutRadius; }
+    virtual double getUCARadius() const override { return m_UCARadius; }
     virtual double getLCARadius() const override { return m_LCARadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getStrutInertia() const override { return m_strutInertia; }
-    virtual const chrono::ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
+    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    chrono::ChSpringForceCallback* m_springForceCB;
-    chrono::ChSpringForceCallback* m_shockForceCB;
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
-    static const double m_strutMass;
+    static const double m_UCAMass;
     static const double m_LCAMass;
 
     static const double m_spindleRadius;
     static const double m_spindleWidth;
     static const double m_uprightRadius;
-    static const double m_strutRadius;
+    static const double m_UCARadius;
     static const double m_LCARadius;
 
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_strutInertia;
-    static const chrono::ChVector<> m_LCAInertia;
-    static const chrono::ChVector<> m_uprightInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_UCAInertia;
+    static const ChVector<> m_LCAInertia;
+    static const ChVector<> m_uprightInertia;
 
     static const double m_axleInertia;
 
@@ -87,5 +93,9 @@ class Generic_MacPhersonStrut : public chrono::vehicle::ChMacPhersonStrut {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

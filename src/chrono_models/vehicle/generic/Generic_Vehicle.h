@@ -27,32 +27,42 @@
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-class Generic_Vehicle : public chrono::vehicle::ChWheeledVehicle {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
-                    chrono::vehicle::SuspensionType suspType,
-                    chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+                    SuspensionType suspType,
+                    ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
     ~Generic_Vehicle() {}
 
     virtual int GetNumberAxles() const override { return 2; }
 
-    double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetSpringDeformation(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetSpringForce(const WheelID& wheel_id) const;
+    double GetSpringLength(const WheelID& wheel_id) const;
+    double GetSpringDeformation(const WheelID& wheel_id) const;
 
-    double GetShockForce(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
-    double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
+    double GetShockForce(const WheelID& wheel_id) const;
+    double GetShockLength(const WheelID& wheel_id) const;
+    double GetShockVelocity(const WheelID& wheel_id) const;
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    chrono::vehicle::SuspensionType m_suspType;
+    SuspensionType m_suspType;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

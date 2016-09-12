@@ -21,20 +21,32 @@
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ChShaftsDriveline2WD.h"
 
-class Generic_Driveline2WD : public chrono::vehicle::ChShaftsDriveline2WD {
-  public:
-    Generic_Driveline2WD(const std::string& name) : chrono::vehicle::ChShaftsDriveline2WD(name) {
-        SetMotorBlockDirection(chrono::ChVector<>(1, 0, 0));
-        SetAxleDirection(chrono::ChVector<>(0, 1, 0));
-    }
+#include "chrono_models/ChApiModels.h"
 
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_Driveline2WD : public ChShaftsDriveline2WD {
+  public:
+    Generic_Driveline2WD(const std::string& name);
     ~Generic_Driveline2WD() {}
 
-    virtual double GetDriveshaftInertia() const override { return 0.5; }
-    virtual double GetDifferentialBoxInertia() const override { return 0.6; }
+    virtual double GetDriveshaftInertia() const override { return m_driveshaft_inertia; }
+    virtual double GetDifferentialBoxInertia() const override { return m_differentialbox_inertia; }
 
-    virtual double GetConicalGearRatio() const override { return -0.2; }
-    virtual double GetDifferentialRatio() const override { return -1; }
+    virtual double GetConicalGearRatio() const override { return m_conicalgear_ratio; }
+    virtual double GetDifferentialRatio() const override { return m_differential_ratio; }
+
+  private:
+    static const double m_driveshaft_inertia;
+    static const double m_differentialbox_inertia;
+    static const double m_conicalgear_ratio;
+    static const double m_differential_ratio;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

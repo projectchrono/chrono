@@ -23,10 +23,11 @@
 //
 // =============================================================================
 
-#include "generic/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
 
-using namespace chrono;
-using namespace chrono::vehicle;
+namespace chrono {
+namespace vehicle {
+namespace generic {
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -138,3 +139,7 @@ const ChVector<> Generic_MultiLink::getDirection(DirectionId which) {
             return ChVector<>(0, 0, 1);
     }
 }
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono

@@ -12,34 +12,35 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chassis subsystem for the generic vehicle.
+// Generic 2WD driveline model based on ChShaft objects.
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono_models/vehicle/generic/Generic_Driveline2WD.h"
 
-#include "chrono_vehicle/ChVehicleModelData.h"
-
-#include "generic/Generic_Chassis.h"
-
-using namespace chrono;
-using namespace chrono::vehicle;
+namespace chrono {
+namespace vehicle {
+namespace generic {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Generic_Chassis::m_mass = 995.0;
-const ChVector<> Generic_Chassis::m_inertia(200.0, 500.0, 600.0);
-const ChVector<> Generic_Chassis::m_COM_loc(0, 0, 0);
-const ChCoordsys<> Generic_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const double Generic_Driveline2WD::m_driveshaft_inertia = 0.5;
+const double Generic_Driveline2WD::m_differentialbox_inertia = 0.6;
+
+const double Generic_Driveline2WD::m_conicalgear_ratio = -0.2;
+const double Generic_Driveline2WD::m_differential_ratio = -1;
 
 // -----------------------------------------------------------------------------
+// Constructor of the Generic_Driveline2WD.
+// the direction of the motor block is along the X axis, while the directions of
+// the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-Generic_Chassis::Generic_Chassis(const std::string& name) : ChChassis(name) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Generic_Chassis::AddVisualizationAssets(VisualizationType vis) {
-    ChChassis::AddVisualizationAssets(vis);
+Generic_Driveline2WD::Generic_Driveline2WD(const std::string& name) : ChShaftsDriveline2WD(name) {
+    SetMotorBlockDirection(ChVector<>(1, 0, 0));
+    SetAxleDirection(ChVector<>(0, 1, 0));
 }
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono

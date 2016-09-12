@@ -20,9 +20,15 @@
 
 #include "chrono_vehicle/ChDriver.h"
 
-class Generic_FuncDriver : public chrono::vehicle::ChDriver {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_FuncDriver : public ChDriver {
   public:
-    Generic_FuncDriver(chrono::vehicle::ChVehicle& vehicle) : chrono::vehicle::ChDriver(vehicle) {}
+    Generic_FuncDriver(ChVehicle& vehicle) : ChDriver(vehicle) {}
     ~Generic_FuncDriver() {}
 
     virtual void Synchronize(double time) override {
@@ -43,5 +49,9 @@ class Generic_FuncDriver : public chrono::vehicle::ChDriver {
             m_steering = -0.5;
     }
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

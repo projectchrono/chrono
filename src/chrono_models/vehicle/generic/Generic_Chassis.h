@@ -19,11 +19,15 @@
 #ifndef GENERIC_CHASSIS_H
 #define GENERIC_CHASSIS_H
 
-#include <string>
-
 #include "chrono_vehicle/ChChassis.h"
 
-class Generic_Chassis : public chrono::vehicle::ChChassis {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_Chassis : public ChChassis {
   public:
     Generic_Chassis(const std::string& name);
     ~Generic_Chassis() {}
@@ -32,23 +36,27 @@ class Generic_Chassis : public chrono::vehicle::ChChassis {
     virtual double GetMass() const override { return m_mass; }
 
     /// Return the moments of inertia of the chassis body.
-    virtual const chrono::ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
 
     /// Get the location of the center of mass in the chassis frame.
-    virtual const chrono::ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
 
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
-    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
     /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(chrono::vehicle::VisualizationType vis) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:
     static const double m_mass;
-    static const chrono::ChVector<> m_inertia;
-    static const chrono::ChVector<> m_COM_loc;
-    static const chrono::ChCoordsys<> m_driverCsys;
+    static const ChVector<> m_inertia;
+    static const ChVector<> m_COM_loc;
+    static const ChCoordsys<> m_driverCsys;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

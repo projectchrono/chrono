@@ -28,7 +28,13 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChMultiLink.h"
 
-class Generic_MultiLink : public chrono::vehicle::ChMultiLink {
+#include "chrono_models/ChApiModels.h"
+
+namespace chrono {
+namespace vehicle {
+namespace generic {
+
+class CH_MODELS_API Generic_MultiLink : public ChMultiLink {
   public:
     Generic_MultiLink(const std::string& name);
     ~Generic_MultiLink();
@@ -46,24 +52,24 @@ class Generic_MultiLink : public chrono::vehicle::ChMultiLink {
     virtual double getTrailingLinkRadius() const override { return m_trailingLinkRadius; }
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
-    virtual const chrono::ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const chrono::ChVector<>& getUpperArmInertia() const override { return m_upperArmInertia; }
-    virtual const chrono::ChVector<>& getLateralInertia() const override { return m_lateralInertia; }
-    virtual const chrono::ChVector<>& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
-    virtual const chrono::ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector<>& getUpperArmInertia() const override { return m_upperArmInertia; }
+    virtual const ChVector<>& getLateralInertia() const override { return m_lateralInertia; }
+    virtual const ChVector<>& getTrailingLinkInertia() const override { return m_trailingLinkInertia; }
+    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual chrono::ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual chrono::ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
+    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    virtual const chrono::ChVector<> getLocation(PointId which);
-    virtual const chrono::ChVector<> getDirection(DirectionId which);
+    virtual const ChVector<> getLocation(PointId which);
+    virtual const ChVector<> getDirection(DirectionId which);
 
-    chrono::ChSpringForceCallback* m_springForceCB;
-    chrono::ChSpringForceCallback* m_shockForceCB;
+    ChSpringForceCallback* m_springForceCB;
+    ChSpringForceCallback* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_upperArmMass;
@@ -78,11 +84,11 @@ class Generic_MultiLink : public chrono::vehicle::ChMultiLink {
     static const double m_trailingLinkRadius;
     static const double m_uprightRadius;
 
-    static const chrono::ChVector<> m_spindleInertia;
-    static const chrono::ChVector<> m_upperArmInertia;
-    static const chrono::ChVector<> m_lateralInertia;
-    static const chrono::ChVector<> m_trailingLinkInertia;
-    static const chrono::ChVector<> m_uprightInertia;
+    static const ChVector<> m_spindleInertia;
+    static const ChVector<> m_upperArmInertia;
+    static const ChVector<> m_lateralInertia;
+    static const ChVector<> m_trailingLinkInertia;
+    static const ChVector<> m_uprightInertia;
 
     static const double m_axleInertia;
 
@@ -90,5 +96,9 @@ class Generic_MultiLink : public chrono::vehicle::ChMultiLink {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+}  // end namespace generic
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif
