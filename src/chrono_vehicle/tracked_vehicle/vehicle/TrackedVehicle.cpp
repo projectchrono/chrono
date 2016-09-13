@@ -165,11 +165,6 @@ void TrackedVehicle::Create(const std::string& filename) {
     // -------------------------------------------
     FILE* fp = fopen(filename.c_str(), "r");
 
-    if (fp == NULL) {
-        perror(filename.c_str());
-        exit(EXIT_FAILURE);
-    }
-
     char readBuffer[65536];
     FileReadStream is(fp, readBuffer, sizeof(readBuffer));
 
