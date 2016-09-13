@@ -490,6 +490,12 @@ else()
 endif()
 source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
+set(CV_TV_VEHICLE_FILES
+    tracked_vehicle/vehicle/TrackedVehicle.h
+    tracked_vehicle/vehicle/TrackedVehicle.cpp
+)
+source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
+
 # --------------- THIRD-PARTY FILES
 
 set(CV_EASYBMP_FILES
@@ -564,6 +570,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
+    ${CV_TV_VEHICLE_FILES}
 #
     ${CV_EASYBMP_FILES}
 )
