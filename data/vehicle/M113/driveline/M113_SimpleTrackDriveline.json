@@ -3,5 +3,5 @@
   "Type":                       "TrackDriveline",
   "Template":                   "SimpleTrackDriveline",
 
-  "Differential Max Bias":      1.0,
+  "Differential Max Bias":      1.0
 }
