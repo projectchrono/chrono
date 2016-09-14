@@ -147,6 +147,7 @@ class ChSolverMKL : public ChSolver {
             m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
         }
 
+		GetLog() << "Started assembling\n";
         // Assemble the matrix.
         sysd.ConvertToMatrixForm(&m_mat, nullptr);
         m_dim = m_mat.GetNumRows();
@@ -154,6 +155,7 @@ class ChSolverMKL : public ChSolver {
 
         // Allow the matrix to be compressed.
         bool change = m_mat.Compress();
+
 
         // Set current matrix in the MKL engine.
         m_engine.SetMatrix(m_mat);
@@ -168,6 +170,7 @@ class ChSolverMKL : public ChSolver {
             m_engine.UsePartialSolution(2);
 
         m_timer_setup_assembly.stop();
+		GetLog() << "Finished assembling "<< m_timer_setup_assembly() <<"\n";
 
         if (verbose) {
             GetLog() << " MKL setup n = " << m_dim << "  nnz = " << m_mat.GetNNZ() << "\n";

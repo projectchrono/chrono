@@ -52,7 +52,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
 
     /// Get the element at the specified location.
-    virtual double GetElement(int row, int col) override;
+    virtual double GetElement(int row, int col) const override;
 
     /// Return the row index array in the CSR representation of this matrix.
     virtual int* GetCSR_LeadingIndexArray() const override;
@@ -81,7 +81,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
   private:
     struct MatrixRow {
         MatrixRow() : m_nnz(0) {}
-        int m_nnz;                               ///< number of non-zero elements in row
+		int m_nnz;                               ///< number of non-zero elements in row
         std::unordered_map<int, double> m_data;  ///< column - value pairs in row
     };
 

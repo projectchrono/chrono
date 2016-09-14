@@ -42,7 +42,7 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-int num_threads = 4;      // default number of threads
+int num_threads = 1;      // default number of threads
 double step_size = 1e-3;  // integration step size
 int num_steps = 20;       // number of integration steps
 int skip_steps = 0;       // initial number of steps excluded from timing
@@ -178,8 +178,8 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
         ////mkl_solver_speed = new ChSolverMKL<ChMapMatrix>;
         my_system.ChangeSolverStab(mkl_solver_stab);
         my_system.ChangeSolverSpeed(mkl_solver_speed);
-        mkl_solver_speed->SetSparsityPatternLock(false);
-        mkl_solver_stab->SetSparsityPatternLock(false);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
         mkl_solver_speed->SetVerbose(verbose);
     }
 #endif
@@ -381,10 +381,10 @@ int main(int argc, char* argv[]) {
 
     // Run simulations.
     RunModel(true, true, false, "MKL_adaptive_full");     // MKL, adaptive step, full Newton
-    RunModel(true, true, true, "MKL_adaptive_modified");  // MKL, adaptive step, modified Newton
+    //RunModel(true, true, true, "MKL_adaptive_modified");  // MKL, adaptive step, modified Newton
 
-    RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
-    RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
+    //RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
+    //RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
 
      return 0;
 }

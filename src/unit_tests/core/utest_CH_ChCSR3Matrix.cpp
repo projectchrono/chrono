@@ -26,6 +26,15 @@ void PrintMatrix(const ChMatrixDynamic<>& mat) {
     std::cout << std::endl;
 }
 
+void PrintMatrix(ChSparseMatrix& mat) {
+	for (int ii = 0; ii < mat.GetNumRows(); ii++) {
+		for (int jj = 0; jj < mat.GetNumColumns(); jj++)
+			std::cout << mat.GetElement(ii, jj) << "\t";
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+}
+
 void PrintMatrixCSR(const ChCSR3Matrix& mat) {
     int ncols = mat.GetNumColumns();
     int nrows = mat.GetNumRows();
@@ -145,91 +154,60 @@ int testColumnMajor()
 
 }
 
+void basic_test()
+{
+	ChCSR3Matrix mat(3, 3, true, 6);
+	mat.SetSparsityPatternLock(true);
+
+	mat.SetElement(0, 0, 10.0);
+	mat.SetElement(2,2, 2.2);
+	mat.SetElement(1,1, 1.1);
+	mat.SetElement(0, 1, 0.1);
+	PrintMatrix(mat);
+
+	mat.SetElement(2, 1, 2.1); // force insert forward of 1 element
+	PrintMatrix(mat);
+
+	mat.SetElement(1, 2, 1.2);
+	PrintMatrix(mat);
+
+	mat.Compress();
+	PrintMatrix(mat);
+
+	mat.Reset(3, 3);
+	PrintMatrix(mat);
+
+}
+
+void basic_test2()
+{
+	ChCSR3Matrix mat(3,3, true, 6);
+	//mat.SetSparsityPatternLock(true);
+
+	mat.SetElement(2, 1, 2.1);
+	mat.SetElement(2, 2, 2.2);
+	PrintMatrix(mat);
+
+	mat.SetElement(2, 0, 2.0);
+	PrintMatrix(mat);
+
+	mat.SetElement(1, 2, 1.2);
+	PrintMatrix(mat);
+
+	mat.SetElement(1, 1, 1.1);
+	mat.SetElement(0, 2, 0.2);
+	mat.SetElement(0, 1, 0.1);
+	mat.SetElement(0, 0, 10.0);
+	PrintMatrix(mat);
+
+	mat.Compress();
+	PrintMatrix(mat);
+
+}
+
 int main() {
-    int* nonzeros_vector = nullptr;
-    int m = 5;
-    int n = 3;
 
-    ChMatrixDynamic<double> ref_matrix(m, n);
-    ref_matrix(0, 1) = 0.1;
-    ref_matrix(1, 2) = 1.2;
-    ref_matrix(2, 0) = 2.0;
-    ref_matrix(2, 1) = 2.1;
-    ref_matrix(3, 1) = 3.1;
-    ref_matrix(4, 0) = 4.0;
-    ref_matrix(4, 1) = 4.1;
 
-    std::cout << "Reference matrix (dense)" << std::endl;
-    PrintMatrix(ref_matrix);
-
-    // ----------------------------------------------------------------------------
-
-    std::cout << "*********** Test 1: compare dense against CSR3 matrix ***********" << std::endl;
-    ChCSR3Matrix matCSR3(m, n);
-    FillMatrix(matCSR3, ref_matrix);
-
-    std::cout << "matCSR3" << std::endl;
-    PrintMatrixCSR(matCSR3);
-
-    std::cout << "Compare base matrix and matCSR3" << std::endl;
-    bool test1 = true;
-    for (int m_sel = 0; m_sel < m; m_sel++)
-		for (int n_sel = 0; n_sel < n; n_sel++)
-			if (ref_matrix(m_sel, n_sel) != matCSR3.GetElement(m_sel, n_sel))
-				test1 = false;
-    std::cout << "Test 1: " << (test1 ? "passed" : "NOT passed") << std::endl << std::endl << std::endl;
-
-    // ----------------------------------------------------------------------------
-
-    std::cout << "*********** Test 2: initialization from nonzeros distribution vector ***********" << std::endl;
-    nonzeros_vector = new int[matCSR3.GetNumRows()];
-    matCSR3.GetNonZerosDistribution(nonzeros_vector);
-    std::cout << "NNZ distribution in matCSR3:  " << std::endl;
-    for (int i = 0; i < matCSR3.GetNumRows(); i++)
-        std::cout << nonzeros_vector[i] << "  ";
-    std::cout << std::endl;
-
-    ChCSR3Matrix matCSR3_1(m, n, nonzeros_vector);
-    delete nonzeros_vector;
-    FillMatrix(matCSR3_1, ref_matrix);
-  
-    std::cout << "Check matrix builded from nonzeros distribution vector" << std::endl;
-    bool test2 = CompareArrays(matCSR3_1, matCSR3, true);
-    if (!test2)
-    {
-        std::cout << "Compare matCSR3 vs matCSR3_1" << std::endl;
-        PrintMatrixCSR(matCSR3);
-        PrintMatrixCSR(matCSR3_1);
-    }
-    std::cout << "Test 2: " << (test2 ? "passed" : "NOT passed") << std::endl << std::endl << std::endl;
-
-    // ----------------------------------------------------------------------------
-
-    std::cout << "*********** Test 3: matrix compression invariance **********" << std::endl;
-    matCSR3.Compress();
-    matCSR3_1.Compress();
-
-    bool test3a = true;
-    for (int m_sel = 0; m_sel < m; m_sel++)
-        for (int n_sel = 0; n_sel < n; n_sel++)
-            if (ref_matrix(m_sel, n_sel) != matCSR3.GetElement(m_sel, n_sel))
-                test3a = false;
-
-    std::cout << "Check matrices after compression" << std::endl;
-    bool test3b = CompareArrays(matCSR3_1, matCSR3, false);
-    if (!test3b)
-    {
-        std::cout << "Compare matCSR3 vs matCSR3_1" << std::endl;
-        PrintMatrixCSR(matCSR3);
-        PrintMatrixCSR(matCSR3_1);
-    }
-    bool test3 = test3a & test3b;
-    std::cout << "Test 3: " << (test3 ? "passed" : "NOT passed") << std::endl << std::endl << std::endl;
-
-    // ----------------------------------------------------------------------------
-
-	bool test_column_major = testColumnMajor();
-
-    bool passed = test1 && test2 && test3 && test_column_major;
-    return !passed;
+	basic_test2();
+	return 0;
 }
