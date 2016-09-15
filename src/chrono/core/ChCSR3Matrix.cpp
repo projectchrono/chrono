@@ -14,32 +14,34 @@
 
 #include <algorithm>
 #include "chrono/core/ChCSR3Matrix.h"
+#include "chrono/core/ChMapMatrix.h"
+#include "chrono/solver/ChSystemDescriptor.h"
 
 
 namespace chrono{
+
 	ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, bool row_major_format_on, int nonzeros):
-		ChSparseMatrix(nrows,ncols), row_major_format(row_major_format_on)
+		ChSparseMatrix(nrows,ncols), row_major_format(row_major_format_on), sparsity_learner(nrows, ncols, row_major_format_on)
 	{
-		timer4.start();
-		counter4++;
 		// link dimensions to rows and column depending on format
 		leading_dimension = row_major_format ? &m_num_rows : &m_num_cols;
 		trailing_dimension = row_major_format ? &m_num_cols : &m_num_rows;
 
 		reset_arrays(*leading_dimension, *trailing_dimension, nonzeros);
-
-		//max_shifts = *leading_dimension;
-		timer4.stop();
-
 	}
 
+
+	/// Put a new element in the matrix following CSR conventions.
 	void ChCSR3Matrix::SetElement(int row_sel, int col_sel, double insval, bool overwrite)
 	{
+		counter_setelement++;
+		timer_setelement.start();
 		auto lead_sel = row_major_format ? row_sel : col_sel;
 		auto trail_sel = row_major_format ? col_sel : row_sel;
 
-		if (insval == 0 && !m_lock) //TODO: do we really want to insert 0 while sparsity is locked? if so, then add || m_lock
+		if (insval == 0 && !m_lock)
 			return;
+
 		int trail_i;
 		for (trail_i = leadIndex[lead_sel]; trail_i<leadIndex[lead_sel+1]; ++trail_i)
 		{
@@ -52,7 +54,7 @@ namespace chrono{
 				initialized_element[trail_i] = true;
 				trailIndex[trail_i] = trail_sel;
 				values[trail_i] = insval;
-				//VerifyMatrix();
+				timer_setelement.stop();
 				return;
 			}
 
@@ -66,17 +68,16 @@ namespace chrono{
 				initialized_element[trail_i] = true;
 				trailIndex[trail_i] = trail_sel;
 				values[trail_i] = insval;
-				//VerifyMatrix();
+				timer_setelement.stop();
 				return;
 			}
 
 			
-
 			// the requested element already exists
 			if (trailIndex[trail_i] == trail_sel)
 			{
 				(overwrite) ? values[trail_i] = insval : values[trail_i] += insval;
-				//VerifyMatrix();
+				timer_setelement.stop();
 				return;
 			}
 		}
@@ -88,7 +89,7 @@ namespace chrono{
 		trailIndex[trail_i] = trail_sel;
 		values[trail_i] = insval;
 
-		//VerifyMatrix();
+		timer_setelement.stop();
 
 	}
 
@@ -148,30 +149,54 @@ namespace chrono{
 		insert(trail_i, lead_sel);
 		initialized_element[trail_i] = true;
 		trailIndex[trail_i] = trail_sel;
-		return values[trail_i];
+        return values[trail_i];
+    }
 
-	}
-
-	void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros)
+	/// The function assures that the matrix will have \a nrows rows and \a ncols columns.
+	/// The \a nonzeros_hint value is just a hint!
+	/// The Reset() function can automatically load the sparsity pattern from a ChSystemDescriptor.
+	/// In order to correctly do so, the following must apply:
+	/// - #m_sysd must be a non-null pointer to ChSystemDescriptor
+	/// - the #update_sparsity_pattern_flag must be set (it will be switched off after this call)
+	/// - the sparsity pattern lock #m_lock must be set
+	/// If this not hold then the matrix can be _fully_ reset, or _partially_ reset (mantaining the sparsity pattern).
+	/// For _partial_ reset the following must apply:
+	/// - \a nrows and \a ncols must not differ from the current ones
+	/// - \a nonzeros_hint must not be provided (or must equal 0)
+	/// - #m_lock must be set
+	/// otherwise a _full_ reset will occur.
+	void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros_hint)
 	{
+		counter_reset++;
+		timer_reset.start();
+
 		auto lead_dim_new = row_major_format ? nrows : ncols;
 		auto trail_dim_new = row_major_format ? ncols : nrows;
 
-		if (nonzeros !=0 || lead_dim_new!=*leading_dimension || trail_dim_new!=*trailing_dimension || !m_lock)
+		if (m_update_sparsity_pattern && m_sysd && m_lock)
 		{
-			if (nonzeros == 0)
-				nonzeros = GetTrailingIndexLength();
-			reset_arrays(lead_dim_new, trail_dim_new, nonzeros); // breaks also the sparsity lock
+			m_update_sparsity_pattern = false;
+			loadSparsityPattern();
 		}
 		else
 		{
-			std::fill(values.begin(), values.end(), 0);
+			if (nonzeros_hint == 0 && lead_dim_new == *leading_dimension && trail_dim_new == *trailing_dimension && m_lock)
+			{
+				std::fill(values.begin(), values.begin() + leadIndex[*leading_dimension] - 1, 0);
+			}
+			else
+			{
+				if (nonzeros_hint == 0)
+					nonzeros_hint = GetTrailingIndexLength();
+				reset_arrays(lead_dim_new, trail_dim_new, nonzeros_hint); // breaks also the sparsity lock
+			}
 		}
+		
 
 		m_num_rows = nrows;
 		m_num_cols = ncols;
 
-		//max_shifts = *leading_dimension;
+		timer_reset.stop();
 
 	}
 
@@ -216,16 +241,22 @@ namespace chrono{
 
 		initialized_element.assign(trail_i_dest, true);
 		isCompressed = true;
+		m_lock_broken = false;
 		return trail_i_dest!= trail_i;
 	}
 
 	void ChCSR3Matrix::Trim()
 	{
+		trailIndex.resize(leadIndex[*leading_dimension]);
+		values.resize(leadIndex[*leading_dimension]);
+		initialized_element.resize(leadIndex[*leading_dimension]);
+
+		leadIndex.shrink_to_fit();
 		trailIndex.shrink_to_fit();
 		values.shrink_to_fit();
-		leadIndex.shrink_to_fit();
 		initialized_element.shrink_to_fit();
 	}
+
 
 	void ChCSR3Matrix::Prune(double pruning_threshold)
 	{
@@ -244,17 +275,17 @@ namespace chrono{
 			leadIndex[lead_i + 1] = trail_i_dest;
 		}
 		initialized_element.assign(trail_i_dest, true);
+		m_lock_broken = false;
 		isCompressed = true;
 	}
 
-	// Verify Matrix; output:
-	//  3 - warning message: in the row there are no initialized elements
-	//  1 - warning message: the matrix is not compressed
-	//  0 - all good!
-	// -1 - error message: leadIndex is not strictly ascending
-	// -2 - error message: there's a row that has some an uninitialized element NOT at the end of its space in trailIndex
-	// -4 - error message: trailIndex has not ascending indexes within the rows
-
+	/// Verify if the matrix respects the CSR standard.
+	///  3 - warning message: in the row there are no initialized elements
+	///  1 - warning message: the matrix is not compressed
+	///  0 - all good!
+	/// -1 - error message: leadIndex is not strictly ascending
+	/// -2 - error message: there's a row that has some an uninitialized element NOT at the end of its space in trailIndex
+	/// -4 - error message: trailIndex has not ascending indexes within the rows
 	int ChCSR3Matrix::VerifyMatrix() const {
 		bool uninitialized_elements_found = false;
 		for (int lead_sel = 0; lead_sel < *leading_dimension; lead_sel++) {
@@ -367,6 +398,45 @@ namespace chrono{
 		ia_file.close();
 	}
 
+	//TODO: work in progress
+	//void ChCSR3Matrix::LoadFromMapMatrix(ChMapMatrix& map_mat)
+	//{
+	//	map_mat.ConvertToCSR(leadIndex, trailIndex, values);
+	//	*leading_dimension = leadIndex.size()-1;
+	//	*trailing_dimension = *leading_dimension;
+	//	auto nnz = leadIndex[*leading_dimension];
+	//	initialized_element.assign(nnz, true);
+	//	isCompressed = true;
+	//}
+
+	/// Acquire information about the sparsity pattern of the elements that _will_ be put into this matrix.
+	/// The information is provided by #m_sysd.
+	void ChCSR3Matrix::loadSparsityPattern()
+	{
+		// get the sparsity pattern with the 'sparsity_learner'
+		sparsity_learner.Reset(m_num_rows, m_num_cols);
+		m_sysd->ConvertToMatrixForm(&sparsity_learner, nullptr);
+
+		auto& row_lists = sparsity_learner.GetSparsityPattern();
+		*leading_dimension = sparsity_learner.isRowMajor() ? sparsity_learner.GetNumRows() : sparsity_learner.GetNumColumns();
+		*trailing_dimension = sparsity_learner.isRowMajor() ? sparsity_learner.GetNumColumns() : sparsity_learner.GetNumRows();
+        auto nnz = sparsity_learner.GetNNZ();
+        leadIndex.resize(*leading_dimension+1);
+		trailIndex.resize(nnz);
+
+		leadIndex[0] = 0;
+		for (auto lead_sel = 0; lead_sel<*leading_dimension; ++lead_sel )
+		{
+			leadIndex[lead_sel + 1] = leadIndex[lead_sel] + static_cast<int>(row_lists[lead_sel].size());
+			std::copy(row_lists[lead_sel].begin(), row_lists[lead_sel].end(), trailIndex.begin() + leadIndex[lead_sel]);
+		}
+
+		values.resize(nnz);
+		initialized_element.assign(nnz, true);
+		m_lock_broken = false;
+		isCompressed = true;
+	}
+
 	void ChCSR3Matrix::distribute_integer_range_on_vector(index_vector_t& vector, int initial_number, int final_number)
 	{
 		double delta = static_cast<double>(final_number - initial_number) / (vector.size()-1);
@@ -378,6 +448,7 @@ namespace chrono{
 
 	void ChCSR3Matrix::reset_arrays(int lead_dim, int trail_dim, int nonzeros)
 	{
+		
 		// break sparsity lock
 		m_lock_broken = true;
 
@@ -396,12 +467,16 @@ namespace chrono{
 		distribute_integer_range_on_vector(leadIndex, 0, nonzeros);
 
 		isCompressed = false;
+
 	}
 
 	void ChCSR3Matrix::insert(int& trail_sel, const int& lead_sel)
 	{
+		counter_insert++;
+		timer_insert.start();
 		isCompressed = false;
 		m_lock_broken = true;
+
 		bool OK_also_out_of_row = true; // look for viable positions also in other rows respect to the one selected
 		bool OK_also_onelement_rows = false;
 
@@ -409,10 +484,8 @@ namespace chrono{
 		int shift_fw = 0; // 0 means no viable position found forward
 		int shift_bw = 0; // 0 means no viable position found backward
 
-		counter0++;
-		timer0.start();
 		//TODO: optimize?
-		// look for not initialized elements FORWARD
+		// look for not-initialized elements FORWARD
 		auto lead_sel_fw = lead_sel;
 		for (auto trail_i = trail_sel + 1; trail_i < trailIndexlength && (trail_i - trail_sel) < max_shifts; ++trail_i)
 		{
@@ -435,9 +508,9 @@ namespace chrono{
 			}
 		}
 
-		// look for not initialized elements BACWARD
+		// look for not-initialized elements BACWARD
 		auto lead_sel_bw = lead_sel;
-		if (OK_also_out_of_row)
+		if (OK_also_out_of_row) // do it only if 'out of row' insertions are allowed
 		{
 			for (auto trail_i = trail_sel - 1; trail_i >= 0 && (trail_sel - trail_i) < std::min(max_shifts, std::max(shift_fw, 1)); --trail_i)
 			{
@@ -458,7 +531,6 @@ namespace chrono{
 		}
 		
 
-		timer0.stop();
 
 		if (shift_bw==0 && shift_fw==0)
 		{
@@ -467,14 +539,12 @@ namespace chrono{
 			// meanwhile we give some space also to all the other rows
 			// so trail_sel WILL CHANGE
 
-			size_t desired_trailIndex_length = GetTrailingIndexLength()*1.2;
+			auto desired_trailIndex_length = static_cast<int>(std::max(GetTrailingIndexLength()*1.2, GetTrailingIndexLength()+1.0));
 			auto capacity_expansion_factor = 1.5;
 
 			if (desired_trailIndex_length>=trailIndex.capacity())
 			{
-				counter1++;
-				timer1.start();
-				auto new_capacity = std::max(static_cast<size_t>(trailIndex.capacity() * capacity_expansion_factor), desired_trailIndex_length);
+				auto new_capacity = std::max(static_cast<int>(trailIndex.capacity() * capacity_expansion_factor), desired_trailIndex_length);
 				index_vector_t trailIndex_new;
 				values_vector_t values_new;
 				std::vector<bool> initialized_element_new;
@@ -492,24 +562,18 @@ namespace chrono{
 				values = std::move(values_new);
 				trailIndex = std::move(trailIndex_new);
 				initialized_element = std::move(initialized_element_new);
-				timer1.stop();
 			}
 			else
 			{
-				counter2++;
-				timer2.start();
 				// resize to desired values
 				copy_and_distribute(trailIndex, values, initialized_element,
 									trailIndex, values, initialized_element,
 									trail_sel, lead_sel, desired_trailIndex_length - GetTrailingIndexLength());
-				timer2.stop();
 			}
 
 		}
 		else
 		{
-			counter3++;
-			timer3.start();
 			// shift the elements in order to have a not initialized position where trail_sel points
 			// trail_sel WILL CHANGE if backward, WON'T CHANGE if forward
 			// WARNING! move_backward is actually forward (towards the end of the array)
@@ -517,6 +581,7 @@ namespace chrono{
 			{
 				if (shift_bw<-1)
 				{
+					// move is not actually 'moving'; it's just for cleaner code!
 					std::move(trailIndex.begin() + trail_sel + shift_bw+1,
 							  trailIndex.begin() + trail_sel,
 							  trailIndex.begin() + trail_sel + shift_bw);
@@ -539,6 +604,7 @@ namespace chrono{
 			}
 			else
 			{
+				// move is not actually 'moving'; it's just for cleaner code!
 				std::move_backward(trailIndex.begin() + trail_sel,
 								   trailIndex.begin() + trail_sel + shift_fw,
 								   trailIndex.begin() + trail_sel + shift_fw+1);
@@ -554,11 +620,11 @@ namespace chrono{
 					leadIndex[lead_sel_fw]++;
 				}
 			}
-			timer3.stop();
 
 		}
-
+		timer_insert.stop();
 		// let the returning function store the value, takes care of initialize element and so on...
+
 	} // end insert
 
 
@@ -640,13 +706,12 @@ namespace chrono{
 
 	}
 
+
 	void ChCSR3Matrix::resize_to_their_limits(index_vector_t& trailIndex_in,
 											values_vector_t& values_in,
 											std::vector<bool>& initialized_element_in,
 											int new_size)
 	{
-		counter5++;
-		timer5.start();
 		trailIndex_in.reserve(new_size);
 		values_in.reserve(new_size);
 		initialized_element_in.reserve(new_size);
@@ -658,11 +723,7 @@ namespace chrono{
 		//trailIndex_in.resize(new_size);
 		//values_in.resize(new_size);
 		//initialized_element_in.assign(new_size, false);
-
-		timer5.stop();
-	}
-
-
+    }
 
 }  // end namespace chrono
 

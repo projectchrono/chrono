@@ -22,55 +22,102 @@
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono/core/ChAlignedAllocator.h"
 #include "ChTimer.h"
+#include <future>
 
 namespace chrono {
 
-/// @addtogroup chrono
+	/** \class ChSparsityPatternLearner
+	\brief A dummy matrix that gets only sparsity pattern infos.
+
+	ChSparsityPatternLearner estimates the sparsity pattern without actually allocating any value.
+	It is meant to be used together with ChCSR3Matrix in order to improve the building of the latter.
+	*/
+	class ChApi ChSparsityPatternLearner : public ChSparseMatrix
+	{
+	protected:
+		std::vector<std::list<int>> row_lists;
+		bool row_major_format = true;
+		int* leading_dimension;
+		int* trailing_dimension;
+
+	public:
+		ChSparsityPatternLearner(int nrows, int ncols, bool row_major_format_in) :
+			ChSparseMatrix(nrows, ncols)
+		{
+			row_major_format = row_major_format_in;
+			leading_dimension = row_major_format ? &m_num_rows : &m_num_cols;
+			trailing_dimension = row_major_format ? &m_num_cols : &m_num_rows;
+			row_lists.resize(*leading_dimension);
+		}
+
+		virtual ~ChSparsityPatternLearner() {}
+
+		void SetElement(int insrow, int inscol, double insval, bool overwrite = true) override
+		{
+			row_lists[insrow].push_back(inscol);
+		}
+
+		double GetElement(int row, int col) const override { return 0.0; }
+
+		void Reset(int row, int col, int nonzeros = 0) override
+		{
+			*leading_dimension = row_major_format ? row : col;
+			*trailing_dimension = row_major_format ? col : row;
+			row_lists.clear();
+			row_lists.resize(*leading_dimension);
+		}
+
+		bool Resize(int nrows, int ncols, int nonzeros = 0) override
+		{
+			Reset(nrows, ncols, nonzeros);
+			return true;
+		}
+
+		std::vector<std::list<int>>& GetSparsityPattern()
+		{
+			for (auto& list : row_lists)
+			{
+				list.sort();
+				list.unique();
+			}
+			return row_lists;
+		}
+
+		bool isRowMajor() const { return row_major_format; }
+
+		int GetNNZ() const override {
+			int nnz_temp = 0;
+			for each (auto list in row_lists)
+				nnz_temp += static_cast<int>(list.size());
+
+			const_cast<ChSparsityPatternLearner*>(this)->m_nnz = nnz_temp;
+			return nnz_temp;
+		}
+	};
+
+	/// @addtogroup chrono
 /// @{
 
-/* ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
-* - The more useful constructor specifies rows, columns and nonzeros
-* - The argument "nonzeros": if 0<nonzeros<=1 specifies non-zeros/(rows*columns);
-*                            if nonzeros>1 specifies exactly the number non-zeros in the matrix.
-* - It's better to overestimate the number of non-zero elements to avoid reallocations in memory.
-* - Each of the 3 arrays is stored contiguously in memory (e.g. as needed by MKL Pardiso).
-* - The array of column indexes (colIndex) is initialized with "-1": that means that the corrisponing element in the
-"values" array
-*   doesn't hold any significant number, so it can be overwritten.
-* - It's preferrable to insert elements in the matrix in increasing column order to avoid rearranging.
-* - When a new element should be inserted the algorithm seeks the nearest not-initialized location (i.e. with "-1" in
-colIndex);
-    if it has to search too far ("max_shifts" exceeded) or if it finds no available spaces THEN it reallocates the
-arrays
-* It's better to use GetElement to read from matrix; Element() creates the space if the element does not exist.
+/** \class ChCSR3Matrix
+\brief ChCSR3Matrix is a class that implements CSR3 sparse matrix format;
+
+ Each of the 3 CSR arrays is stored contiguously in memory (as needed by Intel MKL Pardiso).
+
+ Building of the matrix is faster if the sparsity pattern of the matrix does not change (or change just a little).
+ In order to let the matrix know that, set ChSparseMatrix::SetSparsityPatternLock(true). From now on, the position of the elements is kept in memory.
+ Please mind that, when Reset() is called, only #values will be cleaned. Nothing will happen to other arrays.
+ This means that if the sparsity pattern will change, many zeros will pollute your matrix. Do Prune() in this case.
+
+ Moreover, if the ChCSR3Matrix will be built from a ChSystemDescriptor, you can provide it to the matrix through #BindToChSystemDescriptor().
+ In the next call to Reset(), the ChCSR3Matrix will adapt itself to the sparsity pattern of ChSystemDescriptor.
+ The sparsity pattern will be acquired from ChSystemDescriptor only once. To force the update call #ForceSparsityPatternUpdate()
+
+ Hints:
+ - It's far better to overestimate the number of non-zero elements to avoid reallocations in memory.
+ - It's preferrable to insert elements in the matrix in increasing column order (if row major) to minimize re-sorting of the elements.
+ - It's better to use GetElement to read from matrix; Element() creates the space if the element does not exist.
 */
 
-// The CSR3 format for a 3x3 matrix is like this:
-//  | 1.1  1.2  1.3 |    values =   { 1.1, 1.2, 1.3, 2.2, 2.3, 3.3 };
-//  |  0   2.2  2.3 |	 colIndex = {  0,   1,   2,   1,   2,   2  };
-//  |  0    0   3.3 |	 rowIndex = {  0,             3,        5  , 6};
-// but it's difficult to have an exact estimate of how many nonzero element there will be before actually storing them;
-// so how many location should be preallocated? an overestimation is usually preferred to avoid further reallocations.
-// Let's say that we would like to allocate all the 9 elements: (NI means Not Initialized)
-//  | 1.1  1.2  1.3 |    values =   { 1.1, 1.2, 1.3, 2.2, 2.3, NI, 3.3, NI, NI };
-//  |  0   2.2  2.3 |	 colIndex = {  0,   1,   2,   1,   2,  -1,  2,  -1, -1 };
-//  |  0    0   3.3 |	 rowIndex = {  0,             3,            6,          , 9 };
-// So, if a new element should be stored (e.g. the [2,0] element) only one insignificant arrangement should be done
-// instead of reallocating the arrays:
-// the algorithm, starting from colIndex[6] will find the nearest uninitialized space (i.e. a colIndex cell that has
-// "-1" in it) and moves the elements
-// in order to let the new element to be written in that place!
-// When all the writing operations are performed the matrix can be "compressed" (i.e. call Compress()): all the
-// uninitialized locations are purged.
-
-/*
-* Reset VS Resize
-* Reset() function initializes arrays to their default values. Always succesfull.
-* Resize() always preserve data in the arrays. The return value tells the user if the resizing has been done.
-*
-* Reset() and Resize() eventually expands the arrays dimension (increase occupancy)
-* but they DO NOT REDUCE the occupancy. Eventually it has to be done manually with Trim().
-*/
 class ChApi ChCSR3Matrix : public ChSparseMatrix {
   private:
     const bool row_major_format = true;
@@ -78,7 +125,10 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
     bool isCompressed = false;
     int max_shifts = std::numeric_limits<int>::max();
 
-    // CSR matrix arrays.
+	// Sparsity pattern learning variables
+	ChSparsityPatternLearner sparsity_learner;
+
+    // CSR matrix arrays typedefs
 #ifdef ALIGNED_ALLOCATORS
 	typedef std::vector<int, aligned_allocator<int, array_alignment>> index_vector_t;
 	typedef std::vector<double, aligned_allocator<double, array_alignment>> values_vector_t;
@@ -87,12 +137,12 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
 	typedef std::vector<double> values_vector_t;
 #endif
 
-	index_vector_t leadIndex;
-	index_vector_t trailIndex;
-	values_vector_t values;
-	std::vector<bool> initialized_element;
-    int* leading_dimension = nullptr;
-    int* trailing_dimension = nullptr;
+	index_vector_t leadIndex;    ///< CSR vector: leadIndex[i] tells that trailIndex[leadIndex[i]] is the first element of the i-th row (if row-major)
+	index_vector_t trailIndex;   ///< CSR vector: trailIndex[j] tells the column index of values[j]
+	values_vector_t values;      ///< CSR vector: non-zero valuess
+	std::vector<bool> initialized_element;    ///< flag if a space in #trailIndex is initialized or not
+	int* leading_dimension = nullptr;    ///< points to m_num_rows or m_num_cols depending on format
+    int* trailing_dimension = nullptr;    ///< points to m_num_cols or m_num_rows depending on format
 
     bool m_lock_broken = false;  ///< true if a modification was made that overrules m_lock
 
@@ -108,82 +158,84 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
 							 std::vector<bool>& initialized_element_dest,
 							 int& trail_ins, int lead_ins,
 							 int storage_augm);
-	//static
-	void resize_to_their_limits(index_vector_t& trailIndex_in,
-											  values_vector_t& values_in,
-											  std::vector<bool>& initialized_element_in,
-											  int new_size);
+
+    static void resize_to_their_limits(index_vector_t& trailIndex_in,
+                                       values_vector_t& values_in,
+                                       std::vector<bool>& initialized_element_in,
+                                       int new_size);
+
+	void loadSparsityPattern();
 
   public:
     ChCSR3Matrix(int nrows = 1, int ncols = 1, bool row_major_format_on = true, int nonzeros = 1);
-    virtual ~ChCSR3Matrix(){};
+    ~ChCSR3Matrix() override {}
 
-    virtual void SetElement(int row_sel, int col_sel, double insval, bool overwrite = true) override;
-    virtual double GetElement(int row_sel, int col_sel) const override;
+    void SetElement(int row_sel, int col_sel, double insval, bool overwrite = true) override;
+    double GetElement(int row_sel, int col_sel) const override;
 
     double& Element(int row_sel, int col_sel);
     double& operator()(int row_sel, int col_sel) { return Element(row_sel, col_sel); }
     double& operator()(int index) { return Element(index / m_num_cols, index % m_num_cols); }
 
-    // Size manipulation
-    virtual void Reset(int nrows, int ncols, int nonzeros = 0) override;
-    virtual bool Resize(int nrows, int ncols, int nonzeros = 0) override {
-        Reset(nrows, ncols, nonzeros);
+    void Reset(int nrows, int ncols, int nonzeros_hint = 0) override;
+    bool Resize(int nrows, int ncols, int nonzeros_hint = 0) override {
+        Reset(nrows, ncols, nonzeros_hint);
         return true;
     };
 
     /// Get the number of non-zero elements in this matrix.
-    virtual int GetNNZ() const override { return trailIndex.size(); }
+    int GetNNZ() const override { return GetTrailingIndexLength(); }
 
-    /// Return the row index array in the CSR representation of this matrix.
-	virtual int* GetCSR_LeadingIndexArray() const override;
+    /// Return the row index array in the CSR representation of this matrix if in row major format.
+	/// Return the column index array if in col major format.
+	int* GetCSR_LeadingIndexArray() const override;
 
-    /// Return the column index array in the CSR representation of this matrix.
-	virtual int* GetCSR_TrailingIndexArray() const override;
+    /// Return the column index array in the CSR representation of this matrix if in row major format.
+	/// Return the row index array if in col major format.
+	int* GetCSR_TrailingIndexArray() const override;
 
     /// Return the array of matrix values in the CSR representation of this matrix.
-	virtual double* GetCSR_ValueArray() const override;
+	double* GetCSR_ValueArray() const override;
 
     /// Compress the internal arrays and purge all uninitialized elements.
-    virtual bool Compress() override;
+    bool Compress() override;
 
     /// Trims the internal arrays to have exactly the dimension needed, nothing more.
-    /// Data arrays are not moved.
+	/// The underlying vectors are not resized (see Trim() for this), nor moved. 
     void Trim();
+
+    /// The same as Compress(), but also removes elements below \p pruning_threshold.
     void Prune(double pruning_threshold = 0);
 
-    // Auxiliary functions
+	/// Get the length of the trailing-index array (e.g. column index if row major, row index if column major)
 	int GetTrailingIndexLength() const { return leadIndex[*leading_dimension]; }
-    int GetTrailingIndexCapacity() const { return trailIndex.capacity(); }
 
+	/// Get the capacity of the trailing-index array (e.g. column index if row major, row index if column major)
+    int GetTrailingIndexCapacity() const { return static_cast<int>(trailIndex.capacity()); }
+
+    /// Advanced use. While setting new elements in the matrix, SetMaxShifts() tells how far the internal algorithm
+    /// should look for not-initialized elements.
     void SetMaxShifts(int max_shifts_new = std::numeric_limits<int>::max()) { max_shifts = max_shifts_new; }
+
+    /// Check if the matrix is compressed i.e. the matrix elements are stored contiguously in the arrays.
     bool IsCompressed() const { return isCompressed; }
 
-    // Testing functions
     int VerifyMatrix() const;
 
     // Import/Export functions
 	void ImportFromDatFile(std::string filepath = "", bool row_major_format_on = true);
     void ExportToDatFile(std::string filepath = "", int precision = 6) const;
 
+	// Profiling
+	ChTimer<> timer_insert;
+	ChTimer<> timer_reset;
+	ChTimer<> timer_setelement;
 
-	ChTimer<> timer0;
-	ChTimer<> timer1;
-	ChTimer<> timer2;
-	ChTimer<> timer3;
-	ChTimer<> timer4;
-	ChTimer<> timer5;
-
-	size_t counter0 = 0;
-	size_t counter1 = 0;
-	size_t counter2 = 0;
-	size_t counter3 = 0;
-	size_t counter4 = 0;
-	size_t counter5 = 0;
+	int counter_insert = 0;
+	int counter_reset = 0;
+	int counter_setelement = 0;
 
 };
-
-	
 
 	/// @} chrono
 

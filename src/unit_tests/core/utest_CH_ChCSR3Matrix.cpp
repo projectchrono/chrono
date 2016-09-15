@@ -60,15 +60,36 @@ void PrintMatrixCSR(const ChCSR3Matrix& mat) {
     std::cout << std::endl << std::endl;
 }
 
-bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tolerate_uncompressed) {
-    int rows = mat1.GetNumRows();
-    int rows_temp = mat2.GetNumRows();
+// true if error
+template<typename mat1_t, typename mat2_t >
+bool CompareMatrix(const mat1_t& mat1, const mat2_t& mat2)
+{
+	bool error_caught = false;
+	for (int i = 0; i < mat1.GetNumRows(); i++)
+		for (int j = 0; j < mat1.GetNumColumns(); j++)
+		{
+			if (mat1.GetElement(i, j) != mat2.GetElement(i, j))
+			{
+				error_caught = true;
+				return error_caught;
+			}
+		}
+
+	return error_caught;
+}
+
+// true if error
+bool CompareMatrix(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tolerate_uncompressed) {
+    auto rows = mat1.GetNumRows();
+    auto rows_temp = mat2.GetNumRows();
+
+	bool compare_with_GetElement = CompareMatrix(mat1, mat2);
 
     if (rows_temp != rows) {
         std::cout << "Number of rows do not match: ";
         std::cout << "   mat1 -> " << rows;
         std::cout << "   mat2 -> " << rows_temp << std::endl;
-        return false;
+        return true;
     }
 
     for (int cont = 0; cont <= rows; cont++) {
@@ -76,7 +97,7 @@ bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
             std::cout << "Row indexes do not match at entry " << cont << ":";
             std::cout << "   mat1 -> " << mat1.GetCSR_LeadingIndexArray()[cont];
             std::cout << "   mat2 -> " << mat2.GetCSR_LeadingIndexArray()[cont] << std::endl;
-            return false;
+            return true;
         }
     }
 
@@ -86,7 +107,7 @@ bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
             std::cout << "Column indexes do not match at entry " << cont << ":";
             std::cout << "   mat1 -> " << mat1.GetCSR_TrailingIndexArray()[cont];
             std::cout << "   mat2 -> " << mat2.GetCSR_TrailingIndexArray()[cont] << std::endl;
-            return false;
+            return true;
         }
 
         if (mat1.GetCSR_TrailingIndexArray()[cont] != -1 && mat2.GetCSR_TrailingIndexArray()[cont] != -1)
@@ -95,20 +116,23 @@ bool CompareArrays(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
                 std::cout << "Values do not match at entry " << cont << ":";
                 std::cout << "   mat1 -> " << mat1.GetCSR_ValueArray()[cont];
                 std::cout << "   mat2 -> " << mat2.GetCSR_ValueArray()[cont] << std::endl;
-                return false;
+                return true;
             }
         }
         else
             if (!tolerate_uncompressed)
-                return false;
+                return true;
 
     }
 
-    return true;
+    return false;
 }
 
+
+
+
 template <class matrixIN, class matrixOUT>
-void FillMatrix(matrixOUT& mat_out, const matrixIN& mat_in) {
+void CopyMatrix(matrixOUT& mat_out, const matrixIN& mat_in) {
     // assert(mat_out.GetRows() == mat_in.GetRows());
     // assert(mat_out.GetColumns() == mat_in.GetColumns());
     for (int m_sel = 0; m_sel < mat_in.GetRows(); m_sel++) {
@@ -122,7 +146,7 @@ void FillMatrix(matrixOUT& mat_out, const matrixIN& mat_in) {
 }
 
 
-int testColumnMajor()
+bool testColumnMajor()
 {
 	int n = 3;
 	ChCSR3Matrix matCM(n, n, false);
@@ -139,75 +163,103 @@ int testColumnMajor()
 	matRM.SetElement(1, 2, 9);
 	matRM.SetElement(2, 2, 11);
 
-	bool test_passed = true;
-	for (int i = 0; i < n; i++)
-		for (int j = 0; j < n; j++)
-		{
-			if (matRM.GetElement(i, j) != matCM.GetElement(i, j))
-			{
-				test_passed = false;
-				return test_passed;
-			}	
-		}
+	PrintMatrix(matCM);
+	PrintMatrix(matRM);
 
-	return test_passed;
+
+	bool error_before_compression = CompareMatrix(matCM, matRM);
+
+	matRM.Compress();
+	matCM.Compress();
+
+	bool error_after_compression = CompareMatrix(matCM, matRM);
+
+
+	return error_after_compression || error_before_compression;
 
 }
 
-void basic_test()
+bool test_Compress()
 {
 	ChCSR3Matrix mat(3, 3, true, 6);
 	mat.SetSparsityPatternLock(true);
 
 	mat.SetElement(0, 0, 10.0);
-	mat.SetElement(2,2, 2.2);
-	mat.SetElement(1,1, 1.1);
+	mat.SetElement(2, 2, 2.2);
+	mat.SetElement(1, 1, 1.1);
 	mat.SetElement(0, 1, 0.1);
-	PrintMatrix(mat);
-
-	mat.SetElement(2, 1, 2.1); // force insert forward of 1 element
-	PrintMatrix(mat);
-
+	mat.SetElement(2, 1, 2.1);
 	mat.SetElement(1, 2, 1.2);
-	PrintMatrix(mat);
 
+	ChMatrixDynamic<double> matDYN;
+	matDYN.SetElement(0, 0, 10.0);
+	matDYN.SetElement(2, 2, 2.2);
+	matDYN.SetElement(1, 1, 1.1);
+	matDYN.SetElement(0, 1, 0.1);
+	matDYN.SetElement(2, 1, 2.1);
+	matDYN.SetElement(1, 2, 1.2);
+
+
+	bool error_before_compression = CompareMatrix(mat, matDYN);
 	mat.Compress();
-	PrintMatrix(mat);
+	bool error_after_compression = CompareMatrix(mat, matDYN);
 
-	mat.Reset(3, 3);
-	PrintMatrix(mat);
-
+	return error_after_compression || error_before_compression;
 }
 
-void basic_test2()
-{
-	ChCSR3Matrix mat(3,3, true, 6);
-	//mat.SetSparsityPatternLock(true);
 
+bool test_sparsity_lock()
+{
+	const int n = 4;
+	ChCSR3Matrix mat(n, n, true, 15);
+	mat.SetSparsityPatternLock(true);
+
+	mat.SetElement(0, 0, 10.0);
+	mat.SetElement(0, 1, 0.1);
+	mat.SetElement(1, 1, 1.1);
+	mat.SetElement(1, 2, 1.2);
 	mat.SetElement(2, 1, 2.1);
 	mat.SetElement(2, 2, 2.2);
-	PrintMatrix(mat);
+	mat.SetElement(3, 0, 3.0);
 
-	mat.SetElement(2, 0, 2.0);
-	PrintMatrix(mat);
 
-	mat.SetElement(1, 2, 1.2);
-	PrintMatrix(mat);
-
-	mat.SetElement(1, 1, 1.1);
-	mat.SetElement(0, 2, 0.2);
-	mat.SetElement(0, 1, 0.1);
-	mat.SetElement(0, 0, 10.0);
-	PrintMatrix(mat);
+	std::vector<int> rowIndex_hardcoded = {0, 2, 4, 6, 7};
+	std::vector<int> colIndex_hardcoded = {0,1,1,2,1,2,0};
+	std::vector<double> values_hardcoded = {10,0.1,1.1,1.2,2.1,2.2,3};
 
 	mat.Compress();
-	PrintMatrix(mat);
 
+	double* a = mat.GetCSR_ValueArray();
+	int* ia = mat.GetCSR_LeadingIndexArray();
+	int* ja = mat.GetCSR_TrailingIndexArray();
+
+	for(auto row_sel = 0; row_sel<=n; ++row_sel)
+	{
+		if (rowIndex_hardcoded[row_sel] != ia[row_sel])
+			return true;
+	}
+
+	for (auto col_sel = 0; col_sel < rowIndex_hardcoded[n]; ++col_sel)
+	{
+		if (colIndex_hardcoded[col_sel] != ja[col_sel] || values_hardcoded[col_sel] != a[col_sel])
+			return true;
+	}
+
+
+	return false;
 }
+
+
 
 int main() {
 
+	bool test_sparsity_lock_errors = test_sparsity_lock();
+	bool test_Compress_errors = test_Compress();
+	bool testColumnMajor_errors = testColumnMajor();
 
-	basic_test2();
-	return 0;
+    bool general_error = test_sparsity_lock_errors || test_Compress_errors || testColumnMajor_errors;
+
+    std::cout << (general_error ? "error on CSR matrix" : "test passed" )<< std::endl;
+
+	return general_error;
 }

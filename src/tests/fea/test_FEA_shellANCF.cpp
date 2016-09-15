@@ -381,10 +381,10 @@ int main(int argc, char* argv[]) {
 
     // Run simulations.
     RunModel(true, true, false, "MKL_adaptive_full");     // MKL, adaptive step, full Newton
-    //RunModel(true, true, true, "MKL_adaptive_modified");  // MKL, adaptive step, modified Newton
+    RunModel(true, true, true, "MKL_adaptive_modified");  // MKL, adaptive step, modified Newton
 
-    //RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
-    //RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
+    RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
+    RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
 
      return 0;
 }

@@ -67,7 +67,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     void ConvertToDense(ChMatrixDynamic<double>& mat);
 
     /// Convert to CSR arrays.
-    void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
+	void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
