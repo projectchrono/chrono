@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
     switch (rank) {
         case RIG_NODE_RANK: {
             cout << "[Rig node    ] rank = " << rank << " running on: " << procname << endl;
-            my_rig = new RigNode(init_vel, slip, nthreads_rig);
+            my_rig = new RigNodeDeformableTire(init_vel, slip, nthreads_rig);
             my_rig->SetStepSize(step_size);
             my_rig->SetOutDir(out_dir, suffix);
             cout << "[Rig node    ] output directory: " << my_rig->GetOutDirName() << endl;

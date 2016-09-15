@@ -24,7 +24,6 @@
 
 //// TODO:
 ////    mesh connectivity doesn't need to be communicated every time (modify Chrono?)
-////    complete OutputData() function
 
 #include <omp.h>
 #include <algorithm>
@@ -42,7 +41,6 @@
 #include "chrono_fea/ChElementShellANCF.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
@@ -58,17 +56,27 @@ using namespace chrono::vehicle;
 
 // =============================================================================
 
-double ChFunction_SlipAngle::Get_y(double t) const {
-    // Ramp for 1 second and stay at that value (scale)
-    double delay = 0.2;
-    double scale = -m_max_angle / 180 * CH_C_PI;
-    if (t <= delay)
-        return 0;
-    double t1 = t - delay;
-    if (t1 >= 1)
-        return scale;
-    return t1 * scale;
-}
+class ChFunction_SlipAngle : public chrono::ChFunction {
+  public:
+    ChFunction_SlipAngle(double max_angle) : m_max_angle(max_angle) {}
+
+    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(m_max_angle); }
+
+    virtual double Get_y(double t) const override {
+        // Ramp for 1 second and stay at that value (scale)
+        double delay = 0.2;
+        double scale = -m_max_angle / 180 * CH_C_PI;
+        if (t <= delay)
+            return 0;
+        double t1 = t - delay;
+        if (t1 >= 1)
+            return scale;
+        return t1 * scale;
+    }
+
+  private:
+    double m_max_angle;
+};
 
 // =============================================================================
 
@@ -91,6 +99,12 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
 
     m_tire_pressure = true;
 
+    // -----------------------------------
+    // Default integrator and solver types
+    // -----------------------------------
+    m_int_type = ChSystem::INT_HHT;
+    m_slv_type = ChSystem::SOLVER_CUSTOM;
+
     // ----------------------------------
     // Create the (sequential) DEM system
     // ----------------------------------
@@ -101,40 +115,22 @@ RigNode::RigNode(double init_vel, double slip, int num_threads)
     // Set number threads
     m_system->SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
-
-#ifdef CHRONO_MKL
-    // Solver settings
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    m_system->ChangeSolverStab(mkl_solver_stab);
-    m_system->ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-#else
-    // Solver settings
-    m_system->SetMaxItersSolverSpeed(100);
-    m_system->SetMaxItersSolverStab(100);
-    m_system->SetSolverType(ChSystem::SOLVER_SOR);
-    m_system->SetTol(1e-10);
-    m_system->SetTolForce(1e-8);
-#endif
-
-    // Integrator settings
-    m_system->SetIntegrationType(ChSystem::INT_HHT);
-    m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
-    m_integrator->SetAlpha(-0.2);
-    m_integrator->SetMaxiters(50);
-    m_integrator->SetAbsTolerances(5e-05, 1.8e00);
-    m_integrator->SetMode(ChTimestepperHHT::POSITION);
-    m_integrator->SetScaling(true);
-    m_integrator->SetVerbose(true);
-    m_integrator->SetMaxItersSuccess(5);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RigNode::~RigNode() {
     delete m_system;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::SetIntegratorType(ChSystem::eCh_integrationType int_type, ChSystem::eCh_solverType slv_type) {
+    m_int_type = int_type;
+    m_slv_type = slv_type;
+#ifndef CHRONO_MKL
+    m_slv_type = Chsystem::SOLVER_SOR;
+#endif
 }
 
 // -----------------------------------------------------------------------------
@@ -163,6 +159,42 @@ void RigNode::EnableTirePressure(bool val) {
 void RigNode::Construct() {
     if (m_constructed)
         return;
+
+    // -------------------------------
+    // Change solver and integrator
+    // -------------------------------
+
+    if (m_slv_type == ChSystem::SOLVER_CUSTOM) {
+#ifdef CHRONO_MKL
+        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
+        m_system->ChangeSolverStab(mkl_solver_stab);
+        m_system->ChangeSolverSpeed(mkl_solver_speed);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
+#endif
+    } else {
+        m_system->SetSolverType(m_slv_type);
+        m_system->SetMaxItersSolverSpeed(100);
+        m_system->SetMaxItersSolverStab(100);
+        m_system->SetTol(1e-10);
+        m_system->SetTolForce(1e-8);
+    }
+
+    switch (m_int_type) {
+        case ChSystem::INT_HHT:
+            m_system->SetIntegrationType(ChSystem::INT_HHT);
+            m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
+            m_integrator->SetAlpha(-0.2);
+            m_integrator->SetMaxiters(50);
+            m_integrator->SetAbsTolerances(5e-05, 1.8e00);
+            m_integrator->SetMode(ChTimestepperHHT::POSITION);
+            m_integrator->SetScaling(true);
+            m_integrator->SetVerbose(true);
+            m_integrator->SetMaxItersSuccess(5);
+
+            break;
+    }
 
     // -------------------------------
     // Create the rig mechanism bodies
@@ -238,11 +270,7 @@ void RigNode::Construct() {
     // Create the tire
     // ---------------
 
-    m_tire = std::make_shared<ANCFTire>(m_tire_json);
-    m_tire->EnablePressure(m_tire_pressure);
-    m_tire->EnableContact(true);
-    m_tire->EnableRimConnection(true);
-    m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+    ConstructTire();
 
     // ---------------------------------
     // Write file with rig node settings
@@ -267,14 +295,33 @@ void RigNode::Construct() {
 }
 
 // -----------------------------------------------------------------------------
+// Construct an ANCF tire
+// -----------------------------------------------------------------------------
+void RigNodeDeformableTire::ConstructTire() {
+    m_tire = std::make_shared<ANCFTire>(m_tire_json);
+    m_tire->EnablePressure(m_tire_pressure);
+    m_tire->EnableContact(true);
+    m_tire->EnableRimConnection(true);
+    m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+}
+
+// -----------------------------------------------------------------------------
+// Construct a Rigid tire with mesh contact
+// -----------------------------------------------------------------------------
+void RigNodeRigidTire::ConstructTire() {
+    //// TODO
+}
+
+// -----------------------------------------------------------------------------
 // Initialization of the rig node:
 // - complete system construction
 // - receive terrain height and container half-length
 // - initialize the mechanism bodies
 // - initialize the mechanism joints
-// - initialize the tire and extract contact surface
-// - send information on tire mesh topology (number verices and triangles)
-// - send information on tire contact material
+// - call the virtual method InitializeTire which does the following:
+//   - initialize the tire and extract contact surface
+//   - send information on tire mesh topology (number verices and triangles)
+//   - send information on tire contact material
 // -----------------------------------------------------------------------------
 void RigNode::Initialize() {
     Construct();
@@ -295,7 +342,7 @@ void RigNode::Initialize() {
     double init_height = init_dim[0] + 1e-5;
     double half_length = init_dim[1];
 
-    double tire_radius = m_tire->GetRadius();
+    double tire_radius = GetTireRadius();
     ChVector<> origin(-half_length + 1.5 * tire_radius, 0, init_height + tire_radius);
     ChVector<> init_vel(m_init_vel * (1.0 - m_slip), 0, 0);
 
@@ -334,20 +381,28 @@ void RigNode::Initialize() {
     // Impose velocity actuation on the prismatic joint
     m_lin_actuator->Set_dist_funct(std::make_shared<ChFunction_Ramp>(0.0, m_init_vel * (1.0 - m_slip)));
     m_lin_actuator->Initialize(m_ground, m_chassis, false, ChCoordsys<>(m_chassis->GetPos(), QUNIT),
-                               ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
+        ChCoordsys<>(m_chassis->GetPos() + ChVector<>(1, 0, 0), QUNIT));
 
     // Prismatic constraint on the toe-upright: Connects chassis to axle
     m_prism_axl->Initialize(m_set_toe, m_upright, ChCoordsys<>(m_set_toe->GetPos(), QUNIT));
 
     // Connect rim to upright: Impose rotation on the rim
-    m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / m_tire->GetRadius()));
+    m_rev_motor->Set_rot_funct(std::make_shared<ChFunction_Ramp>(0, -m_init_vel / tire_radius));
     m_rev_motor->Initialize(m_rim, m_upright, ChCoordsys<>(m_rim->GetPos(), Q_from_AngAxis(CH_C_PI / 2.0, VECT_X)));
 
-    // ------------------------------------------
-    // Initialize tire and create contact surface
-    // ------------------------------------------
+    // -----------------------------------
+    // Initialize the tire
+    // -----------------------------------
 
-    // Initialize tire
+    // Let the derived class initialize the tire and send information to the terrain node
+    InitializeTire();
+
+    // Mark completion of system construction
+    m_system->SetupInitial();
+}
+
+void RigNodeDeformableTire::InitializeTire() {
+    // Initialize the ANCF tire
     m_tire->Initialize(m_rim, LEFT);
 
     // Create a mesh load for contact forces and add it to the tire's load container.
@@ -355,13 +410,7 @@ void RigNode::Initialize() {
     m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
     m_tire->GetLoadContainer()->Add(m_contact_load);
 
-    // Mark completion of system construction
-    m_system->SetupInitial();
-
-    // ---------------------------------------
     // Send tire contact surface specification
-    // ---------------------------------------
-
     unsigned int surf_props[2];
     surf_props[0] = contact_surface->GetNumVertices();
     surf_props[1] = contact_surface->GetNumTriangles();
@@ -369,10 +418,7 @@ void RigNode::Initialize() {
 
     cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
 
-    // -------------------------------------
     // Send tire contact material properties
-    // -------------------------------------
-
     auto contact_mat = m_tire->GetContactMaterial();
     float mat_props[8] = {m_tire->GetCoefficientFriction(),
                           m_tire->GetCoefficientRestitution(),
@@ -388,12 +434,16 @@ void RigNode::Initialize() {
     cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
+void RigNodeRigidTire::InitializeTire() {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // Synchronization of the rig node:
 // - extract and send tire mesh vertex states
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
-void RigNode::Synchronize(int step_number, double time) {
+void RigNodeDeformableTire::Synchronize(int step_number, double time) {
     // Extract tire mesh vertex locations and velocites.
     std::vector<ChVector<>> vert_pos;
     std::vector<ChVector<>> vert_vel;
@@ -461,16 +511,33 @@ void RigNode::Synchronize(int step_number, double time) {
     delete[] force_data;
 }
 
+void RigNodeRigidTire::Synchronize(int step_number, double time) {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // Advance simulation of the rig node by the specified duration
 // -----------------------------------------------------------------------------
-void RigNode::Advance(double step_size) {
+void RigNodeDeformableTire::Advance(double step_size) {
     m_timer.reset();
     m_timer.start();
     double t = 0;
     while (t < step_size) {
         m_tire->GetMesh()->ResetCounters();
         m_tire->GetMesh()->ResetTimers();
+        double h = std::min<>(m_step_size, step_size - t);
+        m_system->DoStepDynamics(h);
+        t += h;
+    }
+    m_timer.stop();
+    m_cum_sim_time += m_timer();
+}
+
+void RigNodeRigidTire::Advance(double step_size) {
+    m_timer.reset();
+    m_timer.start();
+    double t = 0;
+    while (t < step_size) {
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -498,8 +565,6 @@ void RigNode::OutputData(int frame) {
         const ChVector<>& rfrc_motor = m_rev_motor->Get_react_force();
         const ChVector<>& rtrq_motor = m_rev_motor->Get_react_torque();
 
-        auto mesh = m_tire->GetMesh();
-
         m_outf << m_system->GetChTime() << del;
         // Body states
         m_outf << rim_pos.x << del << rim_pos.y << del << rim_pos.z << del;
@@ -516,10 +581,12 @@ void RigNode::OutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
                << del << m_system->GetTimerUpdate();
-        m_outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad();
-        m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-               << m_integrator->GetNumSolveCalls();
-        m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();
+        if (m_int_type == ChSystem::INT_HHT) {
+            m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
+                   << m_integrator->GetNumSolveCalls();
+        }
+        // Tire statistics
+        OutputTireData(del);
         m_outf << endl;
     }
 
@@ -529,9 +596,8 @@ void RigNode::OutputData(int frame) {
 
     utils::CSV_writer csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
-    WriteStateInformation(csv);            // state of bodies and tire
-    WriteMeshInformation(csv);             // connectivity and strain state
-    WriteContactInformation(csv);          // vertex contact forces
+    WriteBodyInformation(csv);             // rig body states
+    WriteTireInformation(csv);             // tire-related data
     csv.write_to_file(filename);
 
     cout << "[Rig node    ] write output file ==> " << filename << endl;
@@ -539,7 +605,20 @@ void RigNode::OutputData(int frame) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
+void RigNodeDeformableTire::OutputTireData(const std::string& del) {
+    auto mesh = m_tire->GetMesh();
+
+    m_outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad();
+    m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad();
+}
+
+void RigNodeRigidTire::OutputTireData(const std::string& del) {
+    //// TODO
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNode::WriteBodyInformation(utils::CSV_writer& csv) {
     // Write number of bodies
     csv << "4" << endl;
 
@@ -552,7 +631,19 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         << endl;
     csv << m_upright->GetIdentifier() << m_upright->GetPos() << m_upright->GetRot() << m_upright->GetPos_dt()
         << m_upright->GetRot_dt() << endl;
+}
 
+void RigNodeDeformableTire::WriteTireInformation(utils::CSV_writer& csv) {
+    WriteTireStateInformation(csv);
+    WriteTireMeshInformation(csv);
+    WriteTireContactInformation(csv);
+}
+
+void RigNodeRigidTire::WriteTireInformation(utils::CSV_writer& csv) {
+    //// TODO
+}
+
+void RigNodeDeformableTire::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
@@ -577,9 +668,7 @@ void RigNode::WriteStateInformation(utils::CSV_writer& csv) {
         csv << v(iv) << endl;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
+void RigNodeDeformableTire::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Extract mesh
     auto my_mesh = m_tire->GetMesh();
 
@@ -631,9 +720,7 @@ void RigNode::WriteMeshInformation(utils::CSV_writer& csv) {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
+void RigNodeDeformableTire::WriteTireContactInformation(utils::CSV_writer& csv) {
     csv << m_vert_indices.size() << endl;
     // Output nodal position, contact force, and normal vectors; and
     // representative nodal area
@@ -689,28 +776,6 @@ void RigNode::WriteContactInformation(utils::CSV_writer& csv) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void RigNode::PrintLowestNode() {
-    // Unfortunately, we do not have access to the node container of a mesh,
-    // so we cannot use some nice algorithm here...
-    unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();
-    unsigned int index = 0;
-    double zmin = 1e10;
-    for (unsigned int i = 0; i < num_nodes; ++i) {
-        // Ugly casting here. (Note also that we need dynamic downcasting, due to the virtual base)
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(i));
-        if (node->GetPos().z < zmin) {
-            zmin = node->GetPos().z;
-            index = i;
-        }
-    }
-
-    ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
-    cout << "[Rig node    ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
-         << "  " << vel.y << "  " << vel.z << endl;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void RigNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel) {
     auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
                                    [](const ChVector<>& a, const ChVector<>& b) { return a.z < b.z; });
@@ -729,3 +794,26 @@ void RigNode::PrintContactData(const std::vector<ChVector<>>& forces, const std:
              << endl;
     }
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void RigNodeDeformableTire::PrintLowestNode() {
+    // Unfortunately, we do not have access to the node container of a mesh,
+    // so we cannot use some nice algorithm here...
+    unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();
+    unsigned int index = 0;
+    double zmin = 1e10;
+    for (unsigned int i = 0; i < num_nodes; ++i) {
+        // Ugly casting here. (Note also that we need dynamic downcasting, due to the virtual base)
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(i));
+        if (node->GetPos().z < zmin) {
+            zmin = node->GetPos().z;
+            index = i;
+        }
+    }
+
+    ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
+    cout << "[Rig node    ] lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
+        << "  " << vel.y << "  " << vel.z << endl;
+}
+

@@ -37,32 +37,21 @@
 #include "chrono_fea/ChLoadContactSurfaceMesh.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 
 #include "BaseNode.h"
 
 // =============================================================================
 
-class ChFunction_SlipAngle : public chrono::ChFunction {
-  public:
-    ChFunction_SlipAngle(double max_angle) : m_max_angle(max_angle) {}
-
-    virtual ChFunction_SlipAngle* Clone() const override { return new ChFunction_SlipAngle(m_max_angle); }
-
-    virtual double Get_y(double t) const override;
-
-  private:
-    double m_max_angle;
-};
-
-// =============================================================================
-
 class RigNode : public BaseNode {
   public:
-    RigNode(double init_vel,  ///< initial wheel linear velocity
-            double slip,      ///< longitudinal slip value
-            int num_threads   ///< number of OpenMP threads
-            );
-    ~RigNode();
+    virtual ~RigNode();
+
+    /// Set integrator and solver types.
+    /// For the MKL solver, use slv_type = ChSystem::SOLVER_CUSTOM.
+    void SetIntegratorType(chrono::ChSystem::eCh_integrationType int_type,  ///< integrator type (default: HHT)
+                           chrono::ChSystem::eCh_solverType slv_type        ///< solver type (default:: MKL)
+                           );
 
     /// Set body masses.
     void SetBodyMasses(double chassis_mass,  ///< mass of the (quarter-vehicle) chassis (default: 1)
@@ -82,24 +71,26 @@ class RigNode : public BaseNode {
     /// initial data exchange with any other node.
     virtual void Initialize() override;
 
-    /// Synchronize this node.
-    /// This function is called at every co-simulation synchronization time to
-    /// allow the node to exchange information with any other node.
-    virtual void Synchronize(int step_number, double time) override;
-
-    /// Advance simulation.
-    /// This function is called after a synchronization to allow the node to advance
-    /// its state by the specified time step.  A node is allowed to take as many internal
-    /// integration steps as required, but no inter-node communication should occur.
-    virtual void Advance(double step_size) override;
-
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override;
 
-  private:
+  protected:
+    /// Protected constructor. A RigNode cannot be directly created.
+    RigNode(double init_vel,  ///< initial wheel linear velocity
+            double slip,      ///< longitudinal slip value
+            int num_threads   ///< number of OpenMP threads
+            );
+
+    /// Utility functions
+    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos,
+        const std::vector<chrono::ChVector<>>& vert_vel);
+    void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
+
     chrono::ChSystemDEM* m_system;  ///< containing system
     bool m_constructed;             ///< system construction completed?
 
+    chrono::ChSystem::eCh_integrationType m_int_type;        ///< integrator type
+    chrono::ChSystem::eCh_solverType m_slv_type;             ///< solver type
     std::shared_ptr<chrono::ChTimestepperHHT> m_integrator;  ///< HHT integrator object
 
     std::shared_ptr<chrono::ChBody> m_ground;   ///< ground body
@@ -113,10 +104,8 @@ class RigNode : public BaseNode {
     double m_upright_mass;
     double m_rim_mass;
 
-    std::string m_tire_json;                                                ///< name of tire JSON specification file
-    bool m_tire_pressure;                                                   ///< tire pressure enabled?
-    std::shared_ptr<chrono::vehicle::ChDeformableTire> m_tire;              ///< deformable tire
-    std::shared_ptr<chrono::fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
+    std::string m_tire_json;  ///< name of tire JSON specification file
+    bool m_tire_pressure;     ///< tire pressure enabled?
 
     std::shared_ptr<chrono::ChLinkEngine> m_slip_motor;         ///< angular motor constraint
     std::shared_ptr<chrono::ChLinkLockPrismatic> m_prism_vel;   ///< prismatic joint for chassis linear velocity
@@ -132,21 +121,113 @@ class RigNode : public BaseNode {
     std::vector<chrono::ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
     std::vector<chrono::ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
 
-    // Private methods
-
+  private:
     void Construct();
+    virtual void ConstructTire() = 0;
+    virtual double GetTireRadius() const = 0;
+    virtual double GetTireWidth() const = 0;
 
-    // Write mesh node state information
-    void WriteStateInformation(chrono::utils::CSV_writer& csv);
-    // Write mesh connectivity and strain information
-    void WriteMeshInformation(chrono::utils::CSV_writer& csv);
-    // Write contact forces on tire mesh vertices
-    void WriteContactInformation(chrono::utils::CSV_writer& csv);
+    virtual void InitializeTire() = 0;
 
+    /// Output tire-related statistics.
+    virtual void OutputTireData(const std::string& del) = 0;
+
+    /// Write state information for rig bodies and for the tire.
+    void WriteBodyInformation(chrono::utils::CSV_writer& csv);
+    virtual void WriteTireInformation(chrono::utils::CSV_writer& csv) = 0;
+};
+
+// =============================================================================
+
+class RigNodeDeformableTire : public RigNode {
+  public:
+    RigNodeDeformableTire(double init_vel,  ///< initial wheel linear velocity
+                          double slip,      ///< longitudinal slip value
+                          int num_threads   ///< number of OpenMP threads
+                          )
+        : RigNode(init_vel, slip, num_threads) {}
+
+    ~RigNodeDeformableTire() {}
+
+    /// Synchronize this node.
+    /// This function is called at every co-simulation synchronization time to
+    /// allow the node to exchange information with any other node.
+    virtual void Synchronize(int step_number, double time) override;
+
+    /// Advance simulation.
+    /// This function is called after a synchronization to allow the node to advance
+    /// its state by the specified time step.  A node is allowed to take as many internal
+    /// integration steps as required, but no inter-node communication should occur.
+    virtual void Advance(double step_size) override;
+
+  private:
+    /// Initialize the deformable tire and send contact information to terrain node.
+    virtual void InitializeTire() override;
+
+    /// Construct the deformable tire.
+    virtual void ConstructTire() override;
+    virtual double GetTireRadius() const { return m_tire->GetRadius(); }
+    virtual double GetTireWidth() const { return m_tire->GetWidth(); }
+
+    /// Output tire-related statistics.
+    virtual void OutputTireData(const std::string& del) override;
+
+    /// Write tire-related information at current synchronization frame.
+    virtual void WriteTireInformation(chrono::utils::CSV_writer& csv) override;
+
+    /// Write mesh vertex positions and velocities.
+    void WriteTireStateInformation(chrono::utils::CSV_writer& csv);
+    /// Write mesh connectivity and strain information.
+    void WriteTireMeshInformation(chrono::utils::CSV_writer& csv);
+    /// Write contact forces on tire mesh vertices.
+    void WriteTireContactInformation(chrono::utils::CSV_writer& csv);
+
+    /// Print the current lowest node in the tire mesh.
     void PrintLowestNode();
-    void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos,
-                           const std::vector<chrono::ChVector<>>& vert_vel);
-    void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
+
+    std::shared_ptr<chrono::vehicle::ChDeformableTire> m_tire;              ///< deformable tire
+    std::shared_ptr<chrono::fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
+};
+
+// =============================================================================
+
+class RigNodeRigidTire : public RigNode {
+  public:
+    RigNodeRigidTire(double init_vel,  ///< initial wheel linear velocity
+                     double slip,      ///< longitudinal slip value
+                     int num_threads   ///< number of OpenMP threads
+                     )
+        : RigNode(init_vel, slip, num_threads) {}
+
+    ~RigNodeRigidTire() {}
+
+    /// Synchronize this node.
+    /// This function is called at every co-simulation synchronization time to
+    /// allow the node to exchange information with any other node.
+    virtual void Synchronize(int step_number, double time) override;
+
+    /// Advance simulation.
+    /// This function is called after a synchronization to allow the node to advance
+    /// its state by the specified time step.  A node is allowed to take as many internal
+    /// integration steps as required, but no inter-node communication should occur.
+    virtual void Advance(double step_size) override;
+
+  private:
+    /// Construct the rigid tire.
+    virtual void ConstructTire() override;
+    virtual double GetTireRadius() const { return m_tire->GetRadius(); }
+    virtual double GetTireWidth() const { return m_tire->GetWidth(); }
+
+    /// Initialize the rigid tire and send contact information to terrain node.
+    virtual void InitializeTire() override;
+
+    /// Output tire-related statistics.
+    virtual void OutputTireData(const std::string& del) override;
+
+    /// Write tire-related information at current synchronization frame.
+    virtual void WriteTireInformation(chrono::utils::CSV_writer& csv) override;
+
+    std::shared_ptr<chrono::vehicle::ChRigidTire> m_tire;  ///< deformable tire
 };
 
 #endif
