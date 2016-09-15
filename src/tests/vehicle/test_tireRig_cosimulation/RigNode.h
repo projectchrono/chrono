@@ -187,6 +187,8 @@ class RigNodeDeformableTire : public RigNode {
 
     std::shared_ptr<chrono::vehicle::ChDeformableTire> m_tire;              ///< deformable tire
     std::shared_ptr<chrono::fea::ChLoadContactSurfaceMesh> m_contact_load;  ///< tire contact surface
+    std::vector<std::vector<int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
+    std::vector<std::vector<int>> m_adjVertices;  ///< list of vertex indices for each mesh element
 };
 
 // =============================================================================
