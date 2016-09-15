@@ -30,7 +30,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
+RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -46,7 +46,7 @@ RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire("") {
+RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire(""), m_has_mesh(false) {
     Create(d);
 }
 
@@ -95,7 +95,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 void RigidTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();

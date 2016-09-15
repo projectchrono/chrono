@@ -40,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-FialaTire::FialaTire(const std::string& filename) : ChFialaTire("") {
+FialaTire::FialaTire(const std::string& filename) : ChFialaTire(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -56,7 +56,7 @@ FialaTire::FialaTire(const std::string& filename) : ChFialaTire("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire("") {
+FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire(""), m_has_mesh(false) {
     Create(d);
 }
 
@@ -102,7 +102,7 @@ void FialaTire::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 void FialaTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();

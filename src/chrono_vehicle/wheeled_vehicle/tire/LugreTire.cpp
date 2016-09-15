@@ -40,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL) {
+LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -56,7 +56,7 @@ LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL) {
+LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
     Create(d);
 }
 
@@ -117,7 +117,7 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 void LugreTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();

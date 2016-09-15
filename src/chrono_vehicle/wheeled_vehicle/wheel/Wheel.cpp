@@ -40,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0) {
+Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -56,7 +56,7 @@ Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0)
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0) {
+Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
     Create(d);
 }
 
