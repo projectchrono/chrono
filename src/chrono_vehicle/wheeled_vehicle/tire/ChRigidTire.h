@@ -19,6 +19,8 @@
 #ifndef CH_RIGIDTIRE_H
 #define CH_RIGIDTIRE_H
 
+#include <vector>
+
 #include "chrono/physics/ChBody.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
@@ -101,6 +103,20 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
+
+    /// Return the number of vertices in the contact mesh.
+    unsigned int GetNumVertices() const;
+
+    /// Return the number of faces in the contact mesh.
+    unsigned int GetNumTriangles() const;
+
+    /// Get the contact mesh connectivity.
+    const std::vector<ChVector<int>>& GetMeshConnectivity() const;
+
+    /// Get the current state of the collision mesh.
+    void GetMeshVertices(std::vector<ChVector<>>& pos,  ///< mesh vertex positions (expressed in absolute frame)
+                         std::vector<ChVector<>>& vel   ///< mesh vertex velocities (expressed in absolute frame)
+                         ) const;
 
   private:
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
