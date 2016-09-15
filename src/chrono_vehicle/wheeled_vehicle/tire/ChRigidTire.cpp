@@ -18,7 +18,6 @@
 
 #include <algorithm>
 
-#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
@@ -31,6 +30,7 @@ namespace vehicle {
 ChRigidTire::ChRigidTire(const std::string& name)
     : ChTire(name),
       m_use_contact_mesh(false),
+      m_trimesh(nullptr),
       m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(2e5f),
@@ -39,6 +39,10 @@ ChRigidTire::ChRigidTire(const std::string& name)
       m_gn(40),
       m_kt(2e5f),
       m_gt(20) {}
+
+ChRigidTire::~ChRigidTire() {
+    delete m_trimesh;
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -71,11 +75,11 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     if (m_use_contact_mesh) {
         // Mesh contact
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(m_contact_meshFile, true, false);
+        m_trimesh = new geometry::ChTriangleMeshConnected;
+        m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
         wheel->GetCollisionModel()->ClearModel();
-        wheel->GetCollisionModel()->AddTriangleMesh(trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+        wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                     m_sweep_sphere_radius);
         wheel->GetCollisionModel()->BuildModel();
     } else {
@@ -161,6 +165,34 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
     tire_force.moment = ChVector<>(0, 0, 0);
 
     return tire_force;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+unsigned int ChRigidTire::GetNumVertices() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getCoordsVertices().size();
+}
+
+unsigned int ChRigidTire::GetNumTriangles() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesVertexes().size();
+}
+
+const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesVertexes();
+}
+
+void ChRigidTire::GetMeshVertices(std::vector<ChVector<>>& pos,
+                                   std::vector<ChVector<>>& vel) const {
+    assert(m_use_contact_mesh);
+    auto vertices = m_trimesh->getCoordsVertices();
+    
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        pos.push_back(m_wheel->TransformPointLocalToParent(vertices[i]));
+        vel.push_back(m_wheel->PointSpeedLocalToParent(vertices[i]));
+    }
 }
 
 }  // end namespace vehicle

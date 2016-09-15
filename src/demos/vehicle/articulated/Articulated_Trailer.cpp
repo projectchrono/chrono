@@ -22,14 +22,15 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "generic/Generic_SolidAxle.h"
-#include "generic/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
+#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
 
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // Static variables

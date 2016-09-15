@@ -57,7 +57,6 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
-VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
@@ -79,7 +78,7 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
+ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
 bool contact_vis = false;
 
 // Simulation step sizes
@@ -119,7 +118,11 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
+    my_hmmwv.SetPacejkaParamfile("hmmwv/tire/HMMWV_pacejka.tir");
     my_hmmwv.Initialize();
+
+    VisualizationType tire_vis_type =
+        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
 
     my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
     my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);

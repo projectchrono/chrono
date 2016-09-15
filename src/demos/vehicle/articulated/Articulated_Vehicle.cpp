@@ -26,15 +26,16 @@
 #include "articulated/Articulated_Chassis.h"
 #include "articulated/Articulated_Vehicle.h"
 
-#include "generic/Generic_SolidAxle.h"
-#include "generic/Generic_MultiLink.h"
-#include "generic/Generic_Wheel.h"
-#include "generic/Generic_RackPinion.h"
-#include "generic/Generic_Driveline2WD.h"
-#include "generic/Generic_BrakeSimple.h"
+#include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
+#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#include "chrono_models/vehicle/generic/Generic_RackPinion.h"
+#include "chrono_models/vehicle/generic/Generic_Driveline2WD.h"
+#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -30,7 +30,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
+RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -46,7 +46,7 @@ RigidTire::RigidTire(const std::string& filename) : ChRigidTire("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire("") {
+RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire(""), m_has_mesh(false) {
     Create(d);
 }
 
@@ -83,6 +83,13 @@ void RigidTire::Create(const rapidjson::Document& d) {
         SetContactMaterialCoefficients(kn, gn, kt, gt);
     }
 
+    // Check if using contact mesh.
+    if (d.HasMember("Contact Mesh")) {
+        std::string mesh_file = d["Contact Mesh"]["Mesh Filename"].GetString();
+        double sweep_radius = d["Contact Mesh"]["Sweep Sphere Radius"].GetDouble();
+        SetMeshFilename(vehicle::GetDataFile(mesh_file), sweep_radius);
+    }
+
     // Check how to visualize this tire.
     if (d.HasMember("Visualization")) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
@@ -95,7 +102,7 @@ void RigidTire::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 void RigidTire::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
         m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();

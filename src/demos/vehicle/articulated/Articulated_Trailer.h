@@ -24,8 +24,8 @@
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
-#include "generic/Generic_Wheel.h"
-#include "generic/Generic_BrakeSimple.h"
+#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 
 class Articulated_Trailer {
   public:

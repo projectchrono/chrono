@@ -89,9 +89,6 @@ int main(int argc, char* argv[]) {
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetChassisVisType(VisualizationType::MESH);
-
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 

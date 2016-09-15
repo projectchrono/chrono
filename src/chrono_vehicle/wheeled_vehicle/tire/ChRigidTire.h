@@ -19,7 +19,10 @@
 #ifndef CH_RIGIDTIRE_H
 #define CH_RIGIDTIRE_H
 
+#include <vector>
+
 #include "chrono/physics/ChBody.h"
+#include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -40,7 +43,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     ChRigidTire(const std::string& name  ///< [in] name of this tire system
                 );
 
-    virtual ~ChRigidTire() {}
+    virtual ~ChRigidTire();
 
     /// Set coefficient of friction.
     /// The default value is 0.7
@@ -73,6 +76,9 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
                          double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
                          );
 
+    /// Check whether or not this tire uses a contact mesh.
+    bool UseContactMesh() const { return m_use_contact_mesh; }
+
     /// Get the tire width.
     virtual double GetWidth() const = 0;
 
@@ -98,6 +104,20 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
 
+    /// Return the number of vertices in the contact mesh.
+    unsigned int GetNumVertices() const;
+
+    /// Return the number of faces in the contact mesh.
+    unsigned int GetNumTriangles() const;
+
+    /// Get the contact mesh connectivity.
+    const std::vector<ChVector<int>>& GetMeshConnectivity() const;
+
+    /// Get the current state of the collision mesh.
+    void GetMeshVertices(std::vector<ChVector<>>& pos,  ///< mesh vertex positions (expressed in absolute frame)
+                         std::vector<ChVector<>>& vel   ///< mesh vertex velocities (expressed in absolute frame)
+                         ) const;
+
   private:
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
@@ -111,6 +131,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     float m_gn;
     float m_kt;
     float m_gt;
+
+    geometry::ChTriangleMeshConnected* m_trimesh;  ///< contact mesh
 
     std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
     std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
