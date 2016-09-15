@@ -206,30 +206,30 @@ void RigNode::Construct() {
     ChVector<> rim_inertia(1, 1, 1);
 
     // Create ground body.
-    m_ground = std::make_shared<ChBody>();
+    m_ground = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
     m_ground->SetBodyFixed(true);
     m_system->AddBody(m_ground);
 
     // Create the chassis body.
-    m_chassis = std::make_shared<ChBody>();
+    m_chassis = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
     m_chassis->SetMass(m_chassis_mass);
     m_chassis->SetInertiaXX(chassis_inertia);
     m_system->AddBody(m_chassis);
 
     // Create the set toe body.
-    m_set_toe = std::make_shared<ChBody>();
+    m_set_toe = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
     m_set_toe->SetMass(m_set_toe_mass);
     m_set_toe->SetInertiaXX(set_toe_inertia);
     m_system->AddBody(m_set_toe);
 
     // Create the rim body.
-    m_rim = std::make_shared<ChBody>();
+    m_rim = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
     m_rim->SetMass(m_rim_mass);
     m_rim->SetInertiaXX(rim_inertia);
     m_system->AddBody(m_rim);
 
     // Create the upright body.
-    m_upright = std::make_shared<ChBody>();
+    m_upright = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
     m_upright->SetMass(m_upright_mass);
     m_upright->SetInertiaXX(upright_inertia);
     m_system->AddBody(m_upright);
@@ -309,7 +309,8 @@ void RigNodeDeformableTire::ConstructTire() {
 // Construct a Rigid tire with mesh contact
 // -----------------------------------------------------------------------------
 void RigNodeRigidTire::ConstructTire() {
-    //// TODO
+    m_tire = std::make_shared<RigidTire>(m_tire_json);
+    assert(m_tire->UseContactMesh());
 }
 
 // -----------------------------------------------------------------------------
@@ -435,7 +436,26 @@ void RigNodeDeformableTire::InitializeTire() {
 }
 
 void RigNodeRigidTire::InitializeTire() {
-    //// TODO
+    // Initialize the rigid tire
+    m_tire->Initialize(m_rim, LEFT);
+
+    // Send tire contact surface specification
+    unsigned int surf_props[2];
+    surf_props[0] = m_tire->GetNumVertices();
+    surf_props[1] = m_tire->GetNumTriangles();
+    MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    cout << "[Rig node    ] vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
+
+    // Send tire contact material properties
+    auto contact_mat = m_rim->GetMaterialSurfaceDEM();
+    float mat_props[8] = {contact_mat->GetSfriction(),    contact_mat->GetRestitution(), contact_mat->GetYoungModulus(),
+                          contact_mat->GetPoissonRatio(), contact_mat->GetKn(),          contact_mat->GetGn(),
+                          contact_mat->GetKt(),           contact_mat->GetGt()};
+
+    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
+
+    cout << "[Rig node    ] friction = " << mat_props[0] << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -512,7 +532,76 @@ void RigNodeDeformableTire::Synchronize(int step_number, double time) {
 }
 
 void RigNodeRigidTire::Synchronize(int step_number, double time) {
-    //// TODO
+    // Get contact mesh connectivity.
+    std::vector<ChVector<int>> triangles = m_tire->GetMeshConnectivity();
+
+    // Get current contact mesh vertex positions and velocities.
+    std::vector<ChVector<>> vert_pos;
+    std::vector<ChVector<>> vert_vel;
+    m_tire->GetMeshVertices(vert_pos, vert_vel);
+
+    // Display information on lowest contact vertex.
+    PrintLowestVertex(vert_pos, vert_vel);
+
+    // Send tire mesh vertex locations and velocities to the terrain node
+    unsigned int num_vert = (unsigned int)vert_pos.size();
+    unsigned int num_tri = (unsigned int)triangles.size();
+    double* vert_data = new double[2 * 3 * num_vert];
+    int* tri_data = new int[3 * num_tri];
+    for (unsigned int iv = 0; iv < num_vert; iv++) {
+        vert_data[3 * iv + 0] = vert_pos[iv].x;
+        vert_data[3 * iv + 1] = vert_pos[iv].y;
+        vert_data[3 * iv + 2] = vert_pos[iv].z;
+    }
+    for (unsigned int iv = 0; iv < num_vert; iv++) {
+        vert_data[3 * num_vert + 3 * iv + 0] = vert_vel[iv].x;
+        vert_data[3 * num_vert + 3 * iv + 1] = vert_vel[iv].y;
+        vert_data[3 * num_vert + 3 * iv + 2] = vert_vel[iv].z;
+    }
+    for (unsigned int it = 0; it < num_tri; it++) {
+        tri_data[3 * it + 0] = triangles[it].x;
+        tri_data[3 * it + 1] = triangles[it].y;
+        tri_data[3 * it + 2] = triangles[it].z;
+    }
+    MPI_Send(vert_data, 2 * 3 * num_vert, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+    MPI_Send(tri_data, 3 * num_tri, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD);
+
+    // Receive terrain forces.
+    // Note that we use MPI_Probe to figure out the number of indices and forces received.
+    MPI_Status status;
+    int count;
+    MPI_Probe(TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Get_count(&status, MPI_INT, &count);
+    int* index_data = new int[count];
+    double* force_data = new double[3 * count];
+    MPI_Recv(index_data, count, MPI_INT, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+    MPI_Recv(force_data, 3 * count, MPI_DOUBLE, TERRAIN_NODE_RANK, step_number, MPI_COMM_WORLD, &status);
+
+    cout << "[Rig node    ] step number: " << step_number << "  vertices in contact: " << count << endl;
+
+    // Repack data and apply forces to the rim body
+    m_vert_indices.resize(count);
+    m_vert_pos.resize(count);
+    m_vert_forces.resize(count);
+    for (int iv = 0; iv < count; iv++) {
+        int index = index_data[iv];
+        m_vert_indices[iv] = index;
+        m_vert_pos[iv] = vert_pos[index];
+        m_vert_forces[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
+    }
+
+    m_rim->Empty_forces_accumulators();
+    for (size_t i = 0; i < count; ++i) {
+        m_rim->Accumulate_force(m_vert_forces[i], m_vert_pos[i], false);
+    }
+
+    PrintContactData(m_vert_forces, m_vert_indices);
+
+    delete[] vert_data;
+    delete[] tri_data;
+
+    delete[] index_data;
+    delete[] force_data;
 }
 
 // -----------------------------------------------------------------------------
@@ -767,7 +856,7 @@ void RigNodeDeformableTire::WriteTireContactInformation(utils::CSV_writer& csv) 
         }
         // Output index, position, force, and normal vectors, and representative area
         csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv]
-            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_tire->GetMesh()->GetNode(m_vert_indices[iv]))
+            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode(m_vert_indices[iv]))
                    ->GetD()
                    .GetNormalized()
             << myarea << endl;

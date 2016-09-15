@@ -227,7 +227,7 @@ class RigNodeRigidTire : public RigNode {
     /// Write tire-related information at current synchronization frame.
     virtual void WriteTireInformation(chrono::utils::CSV_writer& csv) override;
 
-    std::shared_ptr<chrono::vehicle::ChRigidTire> m_tire;  ///< deformable tire
+    std::shared_ptr<chrono::vehicle::ChRigidTire> m_tire;  ///< rigid tire
 };
 
 #endif
