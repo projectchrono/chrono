@@ -139,13 +139,15 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Initialize at origin.
     Initialize(chassis, VNULL, QUNIT);
 
-    // Overwrite body locations and orientations.
-    m_shoe->SetPos(loc_shoe);
-    m_shoe->SetRot(rot_shoe);
-    m_connector_L->SetPos(loc_connector_L);
-    m_connector_L->SetRot(rot_connector);
-    m_connector_R->SetPos(loc_connector_R);
-    m_connector_R->SetRot(rot_connector);
+    // Overwrite absolute body locations and orientations.
+    m_shoe->SetPos(chassis->TransformPointLocalToParent(loc_shoe));
+    m_shoe->SetRot(chassis->GetRot() * rot_shoe);
+
+    m_connector_L->SetPos(chassis->TransformPointLocalToParent(loc_connector_L));
+    m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+
+    m_connector_R->SetPos(chassis->TransformPointLocalToParent(loc_connector_R));
+    m_connector_R->SetRot(chassis->GetRot() * rot_connector);
 }
 
 // -----------------------------------------------------------------------------
