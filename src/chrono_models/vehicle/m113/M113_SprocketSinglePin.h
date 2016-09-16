@@ -64,9 +64,6 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Export the gear mesh Wavefront OBJ as a POV-Ray mesh macro.
-    void ExportMeshPovray(const std::string& out_dir);
-
   protected:
     M113_SprocketSinglePin(const std::string& name);
 

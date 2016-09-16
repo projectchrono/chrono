@@ -69,29 +69,30 @@ void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-    // Transform all points to absolute frame and initialize left side.
-    std::vector<ChVector<> > points_R(NUM_POINTS);
-    std::vector<ChVector<> > points_L(NUM_POINTS);
-    std::vector<ChVector<> > dirs_R(NUM_DIRS);
-    std::vector<ChVector<> > dirs_L(NUM_DIRS);
+    // Transform all points and directions to absolute frame
+    m_pointsL.resize(NUM_POINTS);
+    m_pointsR.resize(NUM_POINTS);
+
+    m_dirsL.resize(NUM_DIRS);
+    m_dirsR.resize(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y = -rel_pos.y;
-        points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
         ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
-        dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+        m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
         rel_dir.y = -rel_dir.y;
-        dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+        m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
-    InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR);
 }
 
 void ChMultiLink::InitializeSide(VehicleSide side,
@@ -112,7 +113,6 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
@@ -122,8 +122,6 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
     m_upright[side]->SetInertiaXX(getUprightInertia());
-    AddVisualizationUpright(m_upright[side], points[UA_U], points[LAT_U], points[TL_U], points[TIEROD_U],
-                            points[UPRIGHT], getUprightRadius());
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Unit vectors for orientation matrices.
@@ -148,7 +146,6 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_upperArm[side]->SetRot(rot);
     m_upperArm[side]->SetMass(getUpperArmMass());
     m_upperArm[side]->SetInertiaXX(getUpperArmInertia());
-    AddVisualizationUpperArm(m_upperArm[side], points[UA_F], points[UA_B], points[UA_U], getUpperArmRadius());
     chassis->GetSystem()->AddBody(m_upperArm[side]);
 
     // Create and initialize lateral body.
@@ -167,7 +164,6 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_lateral[side]->SetRot(rot);
     m_lateral[side]->SetMass(getLateralMass());
     m_lateral[side]->SetInertiaXX(getLateralInertia());
-    AddVisualizationLateral(m_lateral[side], points[LAT_U], points[LAT_C], getLateralRadius());
     chassis->GetSystem()->AddBody(m_lateral[side]);
 
     // Create and initialize trailing link body.
@@ -186,8 +182,6 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_trailingLink[side]->SetRot(rot);
     m_trailingLink[side]->SetMass(getTrailingLinkMass());
     m_trailingLink[side]->SetInertiaXX(getTrailingLinkInertia());
-    AddVisualizationTrailingLink(m_trailingLink[side], points[TL_C], points[SPRING_L], points[TL_U],
-                                 getTrailingLinkRadius());
     chassis->GetSystem()->AddBody(m_trailingLink[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
@@ -289,6 +283,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector<>(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }
+
 // -----------------------------------------------------------------------------
 // Get the total mass of the suspension subsystem.
 // -----------------------------------------------------------------------------
@@ -375,6 +370,47 @@ void ChMultiLink::LogConstraintViolations(VehicleSide side) {
     // Distance constraint
     GetLog() << "Tierod distance       ";
     GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
+    ChSuspension::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddVisualizationUpright(m_upright[LEFT], m_pointsL[UA_U], m_pointsL[LAT_U], m_pointsL[TL_U], m_pointsL[TIEROD_U],
+                            m_pointsL[UPRIGHT], getUprightRadius());
+    AddVisualizationUpright(m_upright[RIGHT], m_pointsR[UA_U], m_pointsR[LAT_U], m_pointsR[TL_U], m_pointsR[TIEROD_U],
+                            m_pointsR[UPRIGHT], getUprightRadius());
+
+    AddVisualizationUpperArm(m_upperArm[LEFT], m_pointsL[UA_F], m_pointsL[UA_B], m_pointsL[UA_U], getUpperArmRadius());
+    AddVisualizationUpperArm(m_upperArm[RIGHT], m_pointsR[UA_F], m_pointsR[UA_B], m_pointsR[UA_U], getUpperArmRadius());
+
+    AddVisualizationLateral(m_lateral[LEFT], m_pointsL[LAT_U], m_pointsL[LAT_C], getLateralRadius());
+    AddVisualizationLateral(m_lateral[RIGHT], m_pointsR[LAT_U], m_pointsR[LAT_C], getLateralRadius());
+
+    AddVisualizationTrailingLink(m_trailingLink[LEFT], m_pointsL[TL_C], m_pointsL[SPRING_L], m_pointsL[TL_U],
+                                 getTrailingLinkRadius());
+    AddVisualizationTrailingLink(m_trailingLink[RIGHT], m_pointsR[TL_C], m_pointsR[SPRING_L], m_pointsR[TL_U],
+                                 getTrailingLinkRadius());
+}
+
+void ChMultiLink::RemoveVisualizationAssets() {
+    ChSuspension::RemoveVisualizationAssets();
+
+    m_upright[LEFT]->GetAssets().clear();
+    m_upright[RIGHT]->GetAssets().clear();
+
+    m_upperArm[LEFT]->GetAssets().clear();
+    m_upperArm[RIGHT]->GetAssets().clear();
+
+    m_lateral[LEFT]->GetAssets().clear();
+    m_lateral[RIGHT]->GetAssets().clear();
+
+    m_trailingLink[LEFT]->GetAssets().clear();
+    m_trailingLink[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -511,14 +547,6 @@ void ChMultiLink::AddVisualizationTrailingLink(std::shared_ptr<ChBody> link,
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.6f, 0.6f));
     link->AddAsset(col);
-}
-
-void ChMultiLink::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
-    auto cyl = std::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    spindle->AddAsset(cyl);
 }
 
 }  // end namespace vehicle

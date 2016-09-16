@@ -79,6 +79,13 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                             std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
                             ) override;
 
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
@@ -193,10 +200,6 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
-    /// Return the radius of the spindle body (visualization only).
-    virtual double getSpindleRadius() const = 0;
-    /// Return the width of the spindle body (visualization only).
-    virtual double getSpindleWidth() const = 0;
     /// Return the radius of the knuckle body (visualization only).
     virtual double getKnuckleRadius() const = 0;
 
@@ -251,11 +254,22 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     std::shared_ptr<ChLinkSpringCB> m_shockAH[2];  ///< handles to the spring links (left/right)
 
   private:
+    // Hardpoint absolute locations and directions
+    std::vector<ChVector<>> m_pointsL;
+    std::vector<ChVector<>> m_pointsR;
+
+    std::vector<ChVector<>> m_dirsL;
+    std::vector<ChVector<>> m_dirsR;
+
+    // Points for link visualization
+    ChVector<> m_outerL;
+    ChVector<> m_outerR;
+
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points,
-                        const std::vector<ChVector<> >& dirs);
+                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector<>>& dirs);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
@@ -273,7 +287,6 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width);
 
     static const std::string m_pointNames[NUM_POINTS];
 };

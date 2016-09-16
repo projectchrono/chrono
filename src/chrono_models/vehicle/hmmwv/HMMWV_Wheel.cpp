@@ -16,11 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
+#include <algorithm>
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
@@ -34,14 +30,11 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 
-static const double in2m = 0.0254;
-static const double lb2kg = 0.453592;
-
-const double HMMWV_Wheel::m_radius = in2m * 18.15;
-const double HMMWV_Wheel::m_width = in2m * 10;
-
-const double HMMWV_Wheel::m_mass = lb2kg * 100.00;
+const double HMMWV_Wheel::m_mass = 45.4;
 const ChVector<> HMMWV_Wheel::m_inertia(0.113, 0.113, 0.113);
+
+const double HMMWV_Wheel::m_radius = 0.268;
+const double HMMWV_Wheel::m_width = 0.22;
 
 const std::string HMMWV_WheelLeft::m_meshName = "wheel_L_POV_geom";
 const std::string HMMWV_WheelLeft::m_meshFile = "hmmwv/wheel_L.obj";
@@ -51,58 +44,36 @@ const std::string HMMWV_WheelRight::m_meshFile = "hmmwv/wheel_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Wheel::HMMWV_Wheel(VisualizationType visType) : m_visType(visType) {}
+HMMWV_Wheel::HMMWV_Wheel(const std::string& name) : ChWheel(name) {}
 
-HMMWV_WheelLeft::HMMWV_WheelLeft(VisualizationType visType) : HMMWV_Wheel(visType) {}
+HMMWV_WheelLeft::HMMWV_WheelLeft(const std::string& name) : HMMWV_Wheel(name) {}
 
-HMMWV_WheelRight::HMMWV_WheelRight(VisualizationType visType) : HMMWV_Wheel(visType) {}
+HMMWV_WheelRight::HMMWV_WheelRight(const std::string& name) : HMMWV_Wheel(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
-    // First, invoke the base class method
-    ChWheel::Initialize(spindle);
-
-    // Attach visualization
-    switch (m_visType) {
-        case VisualizationType::PRIMITIVES: {
-            auto cyl = std::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().rad = m_radius;
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
-            spindle->AddAsset(cyl);
-
-            auto tex = std::make_shared<ChTexture>();
-            tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-            spindle->AddAsset(tex);
-
-            break;
-        }
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(getMeshFile(), false, false);
-
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(getMeshName());
-            spindle->AddAsset(trimesh_shape);
-
-            auto mcolor = std::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
-            spindle->AddAsset(mcolor);
-
-            break;
-        }
+void HMMWV_Wheel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(GetMeshName());
+        m_spindle->AddAsset(m_trimesh_shape);
+    } else {
+        ChWheel::AddVisualizationAssets(vis);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_WheelLeft::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
-}
+void HMMWV_Wheel::RemoveVisualizationAssets() {
+    ChWheel::RemoveVisualizationAssets();
 
-void HMMWV_WheelRight::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(m_meshFile, m_meshName, out_dir, ChColor(0.15f, 0.15f, 0.15f));
+    // Make sure we only remove the assets added by HMMWV_Wheel::AddVisualizationAssets.
+    // This is important for the ChWheel object because a tire may add its own assets
+    // to the same body (the spindle).
+    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
+    if (it != m_spindle->GetAssets().end())
+        m_spindle->GetAssets().erase(it);
 }
 
 }  // end namespace hmmwv

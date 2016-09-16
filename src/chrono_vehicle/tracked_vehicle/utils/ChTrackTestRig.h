@@ -82,10 +82,6 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     /// Return the location of the shaker post.
     const ChVector<>& GetPostPosition() const { return m_post_pos; }
 
-    /// Get the local driver position and orientation.
-    /// This is a coordinate system relative to the chassis reference frame.
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return ChCoordsys<>(); }
-
     /// Get the track assembly subsystem.
     std::shared_ptr<ChTrackAssembly> GetTrackAssembly() const { return m_track; }
 

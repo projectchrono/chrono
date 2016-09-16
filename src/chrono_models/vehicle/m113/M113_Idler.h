@@ -72,9 +72,6 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     /// Add visualization assets for the idler subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Export the wheel mesh Wavefront OBJ as a POV-Ray mesh macro.
-    void ExportMeshPovray(const std::string& out_dir);
-
   protected:
     M113_Idler(const std::string& name);
 

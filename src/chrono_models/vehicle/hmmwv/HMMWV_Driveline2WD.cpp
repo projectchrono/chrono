@@ -36,7 +36,7 @@ const double HMMWV_Driveline2WD::m_differential_ratio = -1;
 // the direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Driveline2WD::HMMWV_Driveline2WD() : ChShaftsDriveline2WD() {
+HMMWV_Driveline2WD::HMMWV_Driveline2WD(const std::string& name) : ChShaftsDriveline2WD(name) {
     SetMotorBlockDirection(ChVector<>(1, 0, 0));
     SetAxleDirection(ChVector<>(0, 1, 0));
 }

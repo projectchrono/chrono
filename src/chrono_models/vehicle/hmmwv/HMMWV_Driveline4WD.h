@@ -29,7 +29,7 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_Driveline4WD : public ChShaftsDriveline4WD {
   public:
-    HMMWV_Driveline4WD();
+    HMMWV_Driveline4WD(const std::string& name);
     ~HMMWV_Driveline4WD() {}
 
     virtual double GetCentralDifferentialBoxInertia() const override { return m_central_differentialbox_inertia; }

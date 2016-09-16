@@ -18,6 +18,7 @@
 #include "chrono_fea/ChNodeFEAxyzrot.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/physics/ChLoaderUV.h"
 
 namespace chrono {
 namespace fea {
@@ -253,7 +254,7 @@ private:
 /// probably this class would be unnecessary! (Now, it is a bit redundant with ChContactTriangleXYZ)
 /// This can be used to 'tesselate' a generic surface like the
 /// outer of tetrahedral meshes
-class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6,6,6> {
+class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6,6,6>, public ChLoadableUV {
     // Chrono simulation of RTTI, needed for serialization
     CH_RTTI_ROOT(ChContactTriangleXYZROT);
 
@@ -456,6 +457,67 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6,6,6> {
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
+    //
+    // INTERFACE TO ChLoadable 
+    // 
+
+    /// Gets the number of DOFs affected by this element (position part).
+    virtual int LoadableGet_ndof_x() override { return 3 * 7; }
+
+    /// Gets the number of DOFs affected by this element (velocity part).
+    virtual int LoadableGet_ndof_w() override { return 3 * 6; }
+
+    /// Gets all the DOFs packed in a single vector (position part).
+    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
+
+    /// Gets all the DOFs packed in a single vector (velocity part).
+    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
+
+    /// Number of coordinates in the interpolated field, ex=3 for a
+    /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
+    virtual int Get_field_ncoords() override { return 6; }
+
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() override { return 3; }
+
+    /// Get the offset of the i-th sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockOffset(int nblock) override { 
+        if (nblock==0)
+            return this->GetNode1()->NodeGetOffset_w();
+        if (nblock==1)
+            return this->GetNode2()->NodeGetOffset_w();
+        if (nblock==2)
+            return this->GetNode3()->NodeGetOffset_w();
+        return 0;
+    }
+
+    /// Get the size of the i-th sub-block of DOFs in global vector.
+    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
+
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U,V coordinates of the surface, each ranging in 0..+1 (as IsTriangleIntegrationNeeded() is true)
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
+                           const double V,              ///< parametric coordinate in surface
+                           ChVectorDynamic<>& Qi,       ///< Return result of Q = N'*F  here
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) override;
+
+    /// Gets the normal to the surface at the parametric coordinate U,V.
+    /// Each coordinate ranging in -1..+1.
+    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+
+    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
+    virtual bool IsTriangleIntegrationNeeded() override {return true;}
+
+
   private:
     /// Compute u,v of contact point respect to triangle.
     /// u is node1->node2 direction,
@@ -476,7 +538,6 @@ private:
 
     ChContactSurface* container;
 };
-
 
 
 

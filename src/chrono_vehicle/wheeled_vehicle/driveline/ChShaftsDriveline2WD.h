@@ -40,7 +40,7 @@ namespace vehicle {
 /// used to model either a FWD or a RWD driveline.
 class CH_VEHICLE_API ChShaftsDriveline2WD : public ChDriveline {
   public:
-    ChShaftsDriveline2WD();
+    ChShaftsDriveline2WD(const std::string& name);
 
     virtual ~ChShaftsDriveline2WD() {}
 

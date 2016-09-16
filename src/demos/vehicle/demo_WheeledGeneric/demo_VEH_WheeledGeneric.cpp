@@ -34,10 +34,10 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
-#include "generic/Generic_Vehicle.h"
-#include "generic/Generic_SimplePowertrain.h"
-#include "generic/Generic_RigidTire.h"
-#include "generic/Generic_FuncDriver.h"
+#include "chrono_models/vehicle/generic/Generic_Vehicle.h"
+#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -53,7 +53,9 @@
 //#define DEBUG_LOG
 
 using namespace chrono;
+using namespace chrono::irrlicht;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // =============================================================================
 
@@ -100,13 +102,18 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Generic_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
-
+    Generic_Vehicle vehicle(false, SuspensionType::DOUBLE_WISHBONE);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -114,7 +121,7 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     Generic_SimplePowertrain powertrain;
 
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
     Generic_RigidTire tire_front_left("FL");
@@ -126,6 +133,11 @@ int main(int argc, char* argv[]) {
     tire_front_right.Initialize(vehicle.GetWheelBody(FRONT_RIGHT), RIGHT);
     tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
     tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
+
+    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
 

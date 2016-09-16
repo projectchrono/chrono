@@ -1,13 +1,11 @@
 {
   "Name":     "MAN 5t",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {
-    "Mass":     5400.00,
-    "COM":      [2.0, 0, 1.0],
-    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
+    "Input File":               "MAN_5t/chassis/MAN_5t_Chassis"
   },
 
   "Axles":

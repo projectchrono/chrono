@@ -29,76 +29,24 @@ namespace vehicle {
 namespace hmmwv {
 
 // -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-
-const double HMMWV_Vehicle::m_chassisMass = 2086.524902;                          // chassis sprung mass
-const ChVector<> HMMWV_Vehicle::m_chassisCOM = ChVector<>(0.055765, 0, 0.52349);  // COM location
-const ChVector<> HMMWV_Vehicle::m_chassisInertia(1078.52344,
-                                                 2955.66050,
-                                                 3570.20377);  // chassis inertia (roll,pitch,yaw)
-
-const std::string HMMWV_Vehicle::m_chassisMeshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_Vehicle::m_chassisMeshFile = "hmmwv/hmmwv_chassis.obj";
-
-const ChCoordsys<> HMMWV_Vehicle::m_driverCsys(ChVector<>(0.8735, -0.27475, 1.052), ChQuaternion<>(1, 0, 0, 0));
-
-// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_Vehicle::HMMWV_Vehicle(const bool fixed,
                              DrivelineType driveType,
-                             VisualizationType chassisVis,
-                             VisualizationType wheelVis,
                              ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_driveType(driveType) {
-    Create(fixed, chassisVis, wheelVis);
+    Create(fixed);
 }
 
-HMMWV_Vehicle::HMMWV_Vehicle(ChSystem* system,
-                             const bool fixed,
-                             DrivelineType driveType,
-                             VisualizationType chassisVis,
-                             VisualizationType wheelVis)
+HMMWV_Vehicle::HMMWV_Vehicle(ChSystem* system, const bool fixed, DrivelineType driveType)
     : ChWheeledVehicle(system), m_driveType(driveType) {
-    Create(fixed, chassisVis, wheelVis);
+    Create(fixed);
 }
 
-void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, VisualizationType wheelVis) {
+void HMMWV_Vehicle::Create(bool fixed) {
     // -------------------------------------------
-    // Create the chassis body
+    // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("chassis");
-    m_chassis->SetMass(m_chassisMass);
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetInertiaXX(m_chassisInertia);
-    m_chassis->SetBodyFixed(fixed);
-
-    switch (chassisVis) {
-        case VisualizationType::PRIMITIVES: {
-            auto sphere = std::make_shared<ChSphereShape>();
-            sphere->GetSphereGeometry().rad = 0.1;
-            sphere->Pos = m_chassisCOM;
-            m_chassis->AddAsset(sphere);
-
-            break;
-        }
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(GetDataFile(m_chassisMeshFile), false, false);
-
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_chassisMeshName);
-            m_chassis->AddAsset(trimesh_shape);
-
-            break;
-        }
-    }
-
-    m_system->Add(m_chassis);
+    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed);
 
     // -------------------------------------------
     // Create the suspension subsystems
@@ -117,10 +65,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
-    m_wheels[1] = std::make_shared<HMMWV_WheelRight>(wheelVis);
-    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>(wheelVis);
-    m_wheels[3] = std::make_shared<HMMWV_WheelRight>(wheelVis);
+    m_wheels[0] = std::make_shared<HMMWV_WheelLeft>("Wheel_FL");
+    m_wheels[1] = std::make_shared<HMMWV_WheelRight>("Wheel_FR");
+    m_wheels[2] = std::make_shared<HMMWV_WheelLeft>("Wheel_RL");
+    m_wheels[3] = std::make_shared<HMMWV_WheelRight>("Wheel_RR");
 
     // --------------------
     // Create the driveline
@@ -128,10 +76,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     switch (m_driveType) {
         case DrivelineType::FWD:
         case DrivelineType::RWD:
-            m_driveline = std::make_shared<HMMWV_Driveline2WD>();
+            m_driveline = std::make_shared<HMMWV_Driveline2WD>("Driveline");
             break;
         case DrivelineType::AWD:
-            m_driveline = std::make_shared<HMMWV_Driveline4WD>();
+            m_driveline = std::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
     }
 
@@ -139,10 +87,10 @@ void HMMWV_Vehicle::Create(bool fixed, VisualizationType chassisVis, Visualizati
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>();
-    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>();
+    m_brakes[0] = std::make_shared<HMMWV_BrakeSimple>("Brake_FL");
+    m_brakes[1] = std::make_shared<HMMWV_BrakeSimple>("Brake_FR");
+    m_brakes[2] = std::make_shared<HMMWV_BrakeSimple>("Brake_RL");
+    m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>("Brake_RR");
 }
 
 HMMWV_Vehicle::~HMMWV_Vehicle() {}
@@ -150,18 +98,18 @@ HMMWV_Vehicle::~HMMWV_Vehicle() {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
-    m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+    m_chassis->Initialize(m_system, chassisPos);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).
     ChVector<> offset = ChVector<>(1.24498, 0, 0.101322);
     ChQuaternion<> rotation = Q_from_AngAxis(18.5 * CH_C_PI / 180, ChVector<>(0, 1, 0));
-    m_steerings[0]->Initialize(m_chassis, offset, rotation);
+    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, rotation);
 
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.688965, 0, 0), m_steerings[0]->GetSteeringLink());
-    m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.688965, 0, 0), m_chassis);
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.688965, 0, 0), m_steerings[0]->GetSteeringLink());
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.688965, 0, 0), m_chassis->GetBody());
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
@@ -185,7 +133,7 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
             break;
     }
 
-    m_driveline->Initialize(m_chassis, m_suspensions, driven_susp_indexes);
+    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp_indexes);
 
     // Initialize the four brakes
     m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
@@ -205,8 +153,7 @@ double HMMWV_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
-        ->GetSpringDeformation(wheel_id.side());
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
@@ -220,19 +167,7 @@ double HMMWV_Vehicle::GetShockLength(const WheelID& wheel_id) const {
 }
 
 double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
-    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])
-        ->GetShockVelocity(wheel_id.side());
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_Vehicle::ExportMeshPovray(const std::string& out_dir) {
-    utils::WriteMeshPovray(GetDataFile(m_chassisMeshFile), m_chassisMeshName, out_dir, ChColor(0.82f, 0.7f, 0.5f));
-
-    HMMWV_Wheel* wheelFL = static_cast<HMMWV_Wheel*>(m_wheels[0].get());
-    HMMWV_Wheel* wheelFR = static_cast<HMMWV_Wheel*>(m_wheels[1].get());
-    wheelFL->ExportMeshPovray(out_dir);
-    wheelFR->ExportMeshPovray(out_dir);
+    return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
@@ -243,12 +178,10 @@ void HMMWV_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])
-        ->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[0])->LogHardpointLocations(ChVector<>(-37.78, 0, 30.77), true);
 
     GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
-    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])
-        ->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
+    std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[1])->LogHardpointLocations(ChVector<>(-170.77, 0, 30.77), true);
 
     GetLog() << "\n\n";
 

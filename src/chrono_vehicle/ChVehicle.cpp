@@ -18,6 +18,9 @@
 
 #include <algorithm>
 
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
+
 #include "chrono_vehicle/ChVehicle.h"
 
 namespace chrono {
@@ -73,16 +76,8 @@ void ChVehicle::Advance(double step) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChVector<> ChVehicle::GetVehicleAcceleration(const ChVector<>& locpos) const {
-    ChVector<> acc_abs = m_chassis->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
-    return m_chassis->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
-}
-
-// -----------------------------------------------------------------------------
-// Return the global driver position
-// -----------------------------------------------------------------------------
-ChVector<> ChVehicle::GetDriverPos() const {
-    return m_chassis->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
+void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
+    m_chassis->SetVisualizationType(vis);
 }
 
 }  // end namespace vehicle

@@ -143,14 +143,20 @@ class MyDriverInputs : public ChDriverInputsCallback {
 // This version uses cylindrical contact shapes.
 class MyCylindricalTire : public ChTireContactCallback {
   public:
-    virtual void onCallback(std::shared_ptr<ChBody> wheelBody, double radius, double width) {
+    virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
         wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
 
         wheelBody->GetCollisionModel()->ClearModel();
-        wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, width / 2);
+        wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);
         wheelBody->GetCollisionModel()->BuildModel();
 
         wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+
+        auto cyl = std::make_shared<ChCylinderShape>();
+        cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0.127, 0);
+        cyl->GetCylinderGeometry().p2 = ChVector<>(0, -0.127, 0);
+        cyl->GetCylinderGeometry().rad = 0.46;
+        wheelBody->AddAsset(cyl);
     }
 };
 
@@ -295,9 +301,13 @@ int main(int argc, char* argv[]) {
 
     // Initialize the vehicle at a height above the terrain.
     vehicle_assembly.Initialize(initLoc + ChVector<>(0, 0, vertical_offset), initRot);
+    vehicle_assembly.GetVehicle()->SetChassisVisualizationType(VisualizationType::MESH);
+    vehicle_assembly.GetVehicle()->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle_assembly.GetVehicle()->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle_assembly.GetVehicle()->SetWheelVisualizationType(VisualizationType::PRIMITIVES);
 
     // Initially, fix the chassis and wheel bodies (will be released after time_hold).
-    vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(true);
+    vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(true);
     for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles(); i++) {
         vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(true);
     }
@@ -320,9 +330,9 @@ int main(int argc, char* argv[]) {
 
     while (time < time_end) {
         // Release the vehicle chassis at the end of the hold time.
-        if (vehicle_assembly.GetVehicle()->GetChassis()->GetBodyFixed() && time > time_hold) {
+        if (vehicle_assembly.GetVehicle()->GetChassis()->IsFixed() && time > time_hold) {
             cout << endl << "Release vehicle t = " << time << endl;
-            vehicle_assembly.GetVehicle()->GetChassis()->SetBodyFixed(false);
+            vehicle_assembly.GetVehicle()->GetChassisBody()->SetBodyFixed(false);
             for (int i = 0; i < 2 * vehicle_assembly.GetVehicle()->GetNumberAxles(); i++) {
                 vehicle_assembly.GetVehicle()->GetWheelBody(i)->SetBodyFixed(false);
             }

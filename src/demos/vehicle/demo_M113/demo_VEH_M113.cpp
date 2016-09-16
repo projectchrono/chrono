@@ -89,9 +89,6 @@ int main(int argc, char* argv[]) {
 
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetChassisVisType(VisualizationType::MESH);
-
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
@@ -109,6 +106,7 @@ int main(int argc, char* argv[]) {
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
@@ -125,7 +123,9 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(0.5f, 0.8f, 0.5f));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     // ----------------------------
 
     M113_SimplePowertrain powertrain;
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // ---------------------------------------
     // Create the vehicle Irrlicht application
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetChaseCameraPosition(vehicle.GetChassisPos() + ChVector<>(0, 2, 0));
+    app.SetChaseCameraPosition(vehicle.GetVehiclePos() + ChVector<>(0, 2, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
@@ -215,8 +215,8 @@ int main(int argc, char* argv[]) {
         // Debugging output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
-            const ChFrameMoving<>& c_ref = vehicle.GetChassis()->GetFrame_REF_to_abs();
-            const ChVector<>& c_pos = vehicle.GetChassisPos();
+            const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
+            const ChVector<>& c_pos = vehicle.GetVehiclePos();
             cout << "      chassis:    " << c_pos.x << "  " << c_pos.y << "  " << c_pos.z << endl;
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();

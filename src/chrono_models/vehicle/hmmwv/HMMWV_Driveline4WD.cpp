@@ -43,7 +43,7 @@ const double HMMWV_Driveline4WD::m_rear_conicalgear_ratio = -0.2;
 // The direction of the motor block is along the X axis, while the directions of
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
-HMMWV_Driveline4WD::HMMWV_Driveline4WD() : ChShaftsDriveline4WD() {
+HMMWV_Driveline4WD::HMMWV_Driveline4WD(const std::string& name) : ChShaftsDriveline4WD(name) {
     SetMotorBlockDirection(ChVector<>(1, 0, 0));
     SetAxleDirection(ChVector<>(0, 1, 0));
 }

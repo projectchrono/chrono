@@ -60,6 +60,13 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
+    /// Add visualization assets for the steering subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the steering subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a
     /// value between -1 and +1).  Positive steering input indicates steering
@@ -129,17 +136,15 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     std::shared_ptr<ChLinkUniversal> m_universal;       ///< handle to the arm-link universal joint
 
   private:
-    static void AddVisualizationPitmanArm(std::shared_ptr<ChBody> arm,
-                                          const ChVector<>& pt_C,
-                                          const ChVector<>& pt_L,
-                                          double radius);
+    // Points for link visualization
+    ChVector<> m_pP;
+    ChVector<> m_pI;
+    ChVector<> m_pTP;
+    ChVector<> m_pTI;
 
-    static void AddVisualizationSteeringLink(std::shared_ptr<ChBody> link,
-                                             const ChVector<>& pt_P,
-                                             const ChVector<>& pt_I,
-                                             const ChVector<>& pt_TP,
-                                             const ChVector<>& pt_TI,
-                                             double radius);
+    // Points for arm visualization
+    ChVector<> m_pC;
+    ChVector<> m_pL;
 };
 
 /// @} vehicle_wheeled_steering

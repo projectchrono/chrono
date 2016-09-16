@@ -81,9 +81,9 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // (for visualization)
     ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
     ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
-    ChVector<> axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
+    m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y = -outer_local.y;
-    ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
+    m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
     m_axleTube = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -92,40 +92,37 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axleTube->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
-    AddVisualizationLink(m_axleTube, axleOuterL, axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_axleTube);
 
     // Calculate end points on the tierod body, expressed in the absolute frame
     // (for visualization)
     ChVector<> tierodOuter_local(getLocation(TIEROD_K));
-    ChVector<> tierodOuterL = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
+    m_tierodOuterL = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
     tierodOuter_local.y = -tierodOuter_local.y;
-    ChVector<> tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
+    m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
     m_tierod = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_tierod->SetNameString(m_name + "_tierodBody");
-    m_tierod->SetPos((tierodOuterL + tierodOuterR) / 2);
+    m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
     m_tierod->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_tierod->SetMass(getTierodMass());
     m_tierod->SetInertiaXX(getTierodInertia());
-    AddVisualizationLink(m_tierod, tierodOuterL, tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_tierod);
 
-    // Transform all points and directions on right and left sides to absolute frame
-    std::vector<ChVector<> > points_R(NUM_POINTS);
-    std::vector<ChVector<> > points_L(NUM_POINTS);
-
+    // Transform all hardpoints to absolute frame.
+    m_pointsL.resize(NUM_POINTS);
+    m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y = -rel_pos.y;
-        points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, points_L);
-    InitializeSide(RIGHT, chassis, tierod_body, points_R);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR);
 }
 
 void ChSolidAxle::InitializeSide(VehicleSide side,
@@ -151,8 +148,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_knuckle[side]->SetRot(chassisRot);
     m_knuckle[side]->SetMass(getKnuckleMass());
     m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
-    AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[TIEROD_K],
-                            getKnuckleRadius());
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
@@ -162,7 +157,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upper link body.
@@ -181,7 +175,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_upperLink[side]->SetRot(rot);
     m_upperLink[side]->SetMass(getULMass());
     m_upperLink[side]->SetInertiaXX(getULInertia());
-    AddVisualizationLink(m_upperLink[side], points[UL_A], points[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
     chassis->GetSystem()->AddBody(m_upperLink[side]);
 
     // Create and initialize the universal joint between chassis and upper link.
@@ -206,7 +199,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_lowerLink[side]->SetRot(rot);
     m_lowerLink[side]->SetMass(getLLMass());
     m_lowerLink[side]->SetInertiaXX(getLLInertia());
-    AddVisualizationLink(m_lowerLink[side], points[LL_A], points[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
     chassis->GetSystem()->AddBody(m_lowerLink[side]);
 
     // Create and initialize the universal joint between chassis and lower link.
@@ -214,9 +206,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_universalLowerLink[side]->SetNameString(m_name + "_universalLowerLink" + suffix);
     m_universalLowerLink[side]->Initialize(chassis, m_lowerLink[side], ChFrame<>(points[LL_C], rot.Get_A_quaternion()));
     chassis->GetSystem()->AddLink(m_universalLowerLink[side]);
-
-    // Append to the axle visualization
-    AddVisualizationLink(m_axleTube, points[LL_A], points[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
 
     // Create and initialize the joint between knuckle and tierod (one side has universal, the other has spherical).
     if (side == LEFT) {
@@ -299,7 +288,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       m_draglink->SetRot(rot.Get_A_quaternion());
       m_draglink->SetMass(getDraglinkMass());
       m_draglink->SetInertiaXX(getDraglinkInertia());
-      AddVisualizationLink(m_draglink, points[DRAGLINK_C], points[BELLCRANK_DRAGLINK], getDraglinkRadius(), ChColor(0.7f, 0.7f, 0.7f));
       chassis->GetSystem()->AddBody(m_draglink);
 
       // Create and initialize the spherical joint between steering mechanism and draglink.
@@ -315,7 +303,6 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
       m_bellCrank->SetRot(rot.Get_A_quaternion());
       m_bellCrank->SetMass(getBellCrankMass());
       m_bellCrank->SetInertiaXX(getBellCrankInertia());
-      AddVisualizationBellCrank(m_bellCrank, points[BELLCRANK_DRAGLINK], points[BELLCRANK_AXLE], points[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
       chassis->GetSystem()->AddBody(m_bellCrank);
 
       // Create and initialize the universal joint between draglink and bell crank.
@@ -484,6 +471,57 @@ void ChSolidAxle::LogConstraintViolations(VehicleSide side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChSolidAxle::AddVisualizationAssets(VisualizationType vis) {
+    ChSuspension::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddVisualizationLink(m_axleTube, m_axleOuterL, m_axleOuterR, getAxleTubeRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_pointsL[LL_A], m_pointsL[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationLink(m_axleTube, m_pointsR[LL_A], m_pointsR[UL_A], getLLRadius(), ChColor(0.7f, 0.7f, 0.7f));
+
+    AddVisualizationLink(m_tierod, m_tierodOuterL, m_tierodOuterR, getTierodRadius(), ChColor(0.7f, 0.7f, 0.7f));
+
+    AddVisualizationLink(m_draglink, m_pointsL[DRAGLINK_C], m_pointsL[BELLCRANK_DRAGLINK], getDraglinkRadius(),
+                         ChColor(0.7f, 0.7f, 0.7f));
+    AddVisualizationBellCrank(m_bellCrank, m_pointsL[BELLCRANK_DRAGLINK], m_pointsL[BELLCRANK_AXLE],
+                              m_pointsL[BELLCRANK_TIEROD], getBellCrankRadius(), ChColor(0.0f, 0.7f, 0.7f));
+
+    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
+                            getKnuckleRadius());
+    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
+                            getKnuckleRadius());
+
+    AddVisualizationLink(m_upperLink[LEFT], m_pointsL[UL_A], m_pointsL[UL_C], getULRadius(), ChColor(0.6f, 0.2f, 0.6f));
+    AddVisualizationLink(m_upperLink[RIGHT], m_pointsR[UL_A], m_pointsR[UL_C], getULRadius(),
+                         ChColor(0.6f, 0.2f, 0.6f));
+
+    AddVisualizationLink(m_lowerLink[LEFT], m_pointsL[LL_A], m_pointsL[LL_C], getLLRadius(), ChColor(0.2f, 0.6f, 0.2f));
+    AddVisualizationLink(m_lowerLink[RIGHT], m_pointsR[LL_A], m_pointsR[LL_C], getLLRadius(),
+                         ChColor(0.2f, 0.6f, 0.2f));
+}
+
+void ChSolidAxle::RemoveVisualizationAssets() {
+    ChSuspension::RemoveVisualizationAssets();
+
+    m_axleTube->GetAssets().clear();
+    m_tierod->GetAssets().clear();
+    m_draglink->GetAssets().clear();
+    m_bellCrank->GetAssets().clear();
+
+    m_knuckle[LEFT]->GetAssets().clear();
+    m_knuckle[RIGHT]->GetAssets().clear();
+
+    m_upperLink[LEFT]->GetAssets().clear();
+    m_upperLink[RIGHT]->GetAssets().clear();
+
+    m_lowerLink[LEFT]->GetAssets().clear();
+    m_lowerLink[RIGHT]->GetAssets().clear();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChSolidAxle::AddVisualizationLink(std::shared_ptr<ChBody> body,
                                        const ChVector<> pt_1,
                                        const ChVector<> pt_2,
@@ -530,14 +568,6 @@ void ChSolidAxle::AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
   auto col = std::make_shared<ChColorAsset>();
   col->SetColor(color);
   body->AddAsset(col);
-}
-
-void ChSolidAxle::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
-    auto cyl = std::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    spindle->AddAsset(cyl);
 }
 
 void ChSolidAxle::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,

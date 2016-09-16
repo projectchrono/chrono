@@ -16,11 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/assets/ChTexture.h"
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/physics/ChGlobal.h"
+#include <algorithm>
 
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -44,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Wheel::Wheel(const std::string& filename) : m_vis(VisualizationType::NONE) {
+Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -60,7 +56,7 @@ Wheel::Wheel(const std::string& filename) : m_vis(VisualizationType::NONE) {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-Wheel::Wheel(const rapidjson::Document& d) : m_vis(VisualizationType::NONE), m_radius(0), m_width(0) {
+Wheel::Wheel(const rapidjson::Document& d) : ChWheel(""), m_radius(0), m_width(0), m_has_mesh(false) {
     Create(d);
 }
 
@@ -69,6 +65,8 @@ void Wheel::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     // Read mass and inertia
     m_mass = d["Mass"].GetDouble();
@@ -79,9 +77,7 @@ void Wheel::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh Filename")) {
             m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
             m_meshName = d["Visualization"]["Mesh Name"].GetString();
-            m_vis = VisualizationType::MESH;
-        } else {
-            m_vis = VisualizationType::PRIMITIVES;
+            m_has_mesh = true;
         }
 
         m_radius = d["Visualization"]["Radius"].GetDouble();
@@ -91,40 +87,28 @@ void Wheel::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Wheel::Initialize(std::shared_ptr<ChBody> spindle) {
-    // Call the base class initialization function
-    ChWheel::Initialize(spindle);
-
-    // Attach visualization
-    switch (m_vis) {
-        case VisualizationType::PRIMITIVES: {
-            auto cyl = std::make_shared<ChCylinderShape>();
-            cyl->GetCylinderGeometry().rad = m_radius;
-            cyl->GetCylinderGeometry().p1 = ChVector<>(0, m_width / 2, 0);
-            cyl->GetCylinderGeometry().p2 = ChVector<>(0, -m_width / 2, 0);
-            spindle->AddAsset(cyl);
-
-            auto tex = std::make_shared<ChTexture>();
-            tex->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
-            spindle->AddAsset(tex);
-
-            break;
-        }
-        case VisualizationType::MESH: {
-            geometry::ChTriangleMeshConnected trimesh;
-            trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-
-            auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-            trimesh_shape->SetMesh(trimesh);
-            trimesh_shape->SetName(m_meshName);
-            spindle->AddAsset(trimesh_shape);
-
-            auto mcolor = std::make_shared<ChColorAsset>(0.3f, 0.3f, 0.3f);
-            spindle->AddAsset(mcolor);
-
-            break;
-        }
+void Wheel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(m_meshName);
+        m_spindle->AddAsset(m_trimesh_shape);
+    } else {
+        ChWheel::AddVisualizationAssets(vis);
     }
+}
+
+void Wheel::RemoveVisualizationAssets() {
+    ChWheel::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by Wheel::AddVisualizationAssets.
+    // This is important for the ChWheel object because a tire may add its own assets
+    // to the same body (the spindle).
+    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_trimesh_shape);
+    if (it != m_spindle->GetAssets().end())
+        m_spindle->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

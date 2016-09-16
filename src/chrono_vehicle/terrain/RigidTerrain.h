@@ -57,16 +57,31 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     ~RigidTerrain() {}
 
+    /// Set coefficient of friction.
+    /// The default value is 0.7
+    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
+
+    /// Set coefficient of restiturion.
+    /// The default value is 0.1
+    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
+
     /// Set contact material properties.
-    void SetContactMaterial(float friction_coefficient = 0.6f,    ///< [in] coefficient of friction
-                            float restitution_coefficient = 0.1,  ///< [in] coefficient of restitution
-                            float young_modulus = 2e5f,           ///< [in] Young's modulus of elasticity
-                            float poisson_ratio = 0.3f,           ///< [in] Poisson ratio
-                            float kn = 2.0e5f,                    ///< [in] normal contact stiffness
-                            float gn = 40.0f,                     ///< [in] normal contact damping
-                            float kt = 2.0e5f,                    ///< [in] tangential contact stiffness
-                            float gt = 20.0f                      ///< [in] tangential contact damping
-                            );
+    /// These values are used to calculate contact material coefficients (if the containing
+    /// system is so configured and if the DEM-P contact method is being used).
+    /// The default values are: Y = 2e5 and nu = 0.3
+    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
+                                      float poisson_ratio   ///< [in] Poisson ratio
+                                      );
+
+    /// Set contact material coefficients.
+    /// These values are used directly to compute contact forces (if the containing system
+    /// is so configured and if the DEM-P contact method is being used).
+    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
+    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
+                                        float gn,  ///< [in] normal contact damping
+                                        float kt,  ///< [in] tangential contact stiffness
+                                        float gt   ///< [in] tangential contact damping
+                                        );
 
     /// Enable/disable terrain visualization (default: true).
     /// Note that this is ignored when constructing a terrain object from a JSON specification file.
@@ -132,6 +147,17 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     geometry::ChTriangleMeshConnected m_trimesh;
     std::string m_mesh_name;
     double m_height;
+
+    float m_friction;
+    float m_restitution;
+    float m_young_modulus;
+    float m_poisson_ratio;
+    float m_kn;
+    float m_gn;
+    float m_kt;
+    float m_gt;
+
+    void ApplyContactMaterial();
 };
 
 /// @} vehicle_terrain

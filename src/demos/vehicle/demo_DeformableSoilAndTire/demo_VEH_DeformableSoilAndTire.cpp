@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
     tire_reissner->EnableContact(true);
     tire_reissner->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
     tire_reissner->EnableRimConnection(true);
-    tire_reissner->EnableVisualization(true);
     tire_reissner->Initialize(mrim, LEFT);
-    
+    tire_reissner->SetVisualizationType(VisualizationType::MESH);
+
     // the engine that rotates the rim:
 
     std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);

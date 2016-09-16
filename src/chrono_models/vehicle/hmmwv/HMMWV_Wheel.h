@@ -19,6 +19,8 @@
 #ifndef HMMWV_WHEEL_H
 #define HMMWV_WHEEL_H
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
@@ -31,21 +33,22 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_Wheel : public ChWheel {
   public:
-    HMMWV_Wheel(VisualizationType visType);
+    HMMWV_Wheel(const std::string& name);
     ~HMMWV_Wheel() {}
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
+    virtual double GetRadius() const { return m_radius; }
+    virtual double GetWidth() const { return m_width; }
 
-    virtual void Initialize(std::shared_ptr<ChBody> spindle) override;
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override;
 
-    virtual std::string getMeshName() const = 0;
-    virtual std::string getMeshFile() const = 0;
+  protected:
+    virtual std::string GetMeshName() const = 0;
+    virtual std::string GetMeshFile() const = 0;
 
-    virtual void ExportMeshPovray(const std::string& out_dir) = 0;
-
-  private:
-    VisualizationType m_visType;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 
     static const double m_radius;
     static const double m_width;
@@ -55,13 +58,11 @@ class CH_MODELS_API HMMWV_Wheel : public ChWheel {
 
 class CH_MODELS_API HMMWV_WheelLeft : public HMMWV_Wheel {
   public:
-    HMMWV_WheelLeft(VisualizationType visType);
+    HMMWV_WheelLeft(const std::string& name);
     ~HMMWV_WheelLeft() {}
 
-    virtual std::string getMeshName() const override { return m_meshName; }
-    virtual std::string getMeshFile() const override { return GetDataFile(m_meshFile); }
-
-    virtual void ExportMeshPovray(const std::string& out_dir) override;
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;
@@ -70,13 +71,11 @@ class CH_MODELS_API HMMWV_WheelLeft : public HMMWV_Wheel {
 
 class CH_MODELS_API HMMWV_WheelRight : public HMMWV_Wheel {
   public:
-    HMMWV_WheelRight(VisualizationType visType);
+    HMMWV_WheelRight(const std::string& name);
     ~HMMWV_WheelRight() {}
 
-    virtual std::string getMeshName() const override { return m_meshName; }
-    virtual std::string getMeshFile() const override { return GetDataFile(m_meshFile); }
-
-    virtual void ExportMeshPovray(const std::string& out_dir) override;
+    virtual std::string GetMeshName() const override { return m_meshName; }
+    virtual std::string GetMeshFile() const override { return GetDataFile(m_meshFile); }
 
   private:
     static const std::string m_meshName;

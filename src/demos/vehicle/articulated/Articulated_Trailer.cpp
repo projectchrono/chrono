@@ -22,14 +22,15 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "generic/Generic_SolidAxle.h"
-#include "generic/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
+#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
 
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // Static variables
@@ -54,8 +55,7 @@ const ChVector<> Articulated_Trailer::m_frontaxlePullerJoint(3.0,
 // -----------------------------------------------------------------------------
 Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
                                          const bool fixed,
-                                         SuspensionType suspType,
-                                         VisualizationType wheelVis)
+                                         SuspensionType suspType)
     : m_suspType(suspType) {
     // -------------------------------------------
     // Create the chassis body
@@ -128,18 +128,20 @@ Articulated_Trailer::Articulated_Trailer(ChSystem* mysystem,
     // -----------------
     // Create the wheels
     // -----------------
-    m_front_right_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_front_left_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_rear_right_wheel = std::make_shared<Generic_Wheel>(wheelVis);
-    m_rear_left_wheel = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels.resize(4);
+    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL");
+    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR");
 
     // -----------------
     // Create the brakes
     // -----------------
-    m_front_right_brake = std::make_shared<Generic_BrakeSimple>();
-    m_front_left_brake = std::make_shared<Generic_BrakeSimple>();
-    m_rear_right_brake = std::make_shared<Generic_BrakeSimple>();
-    m_rear_left_brake = std::make_shared<Generic_BrakeSimple>();
+    m_brakes.resize(4);
+    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[2] = std::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_brakes[3] = std::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
@@ -167,16 +169,31 @@ void Articulated_Trailer::Initialize(const ChCoordsys<>& chassisPos,
     m_suspensions[1]->Initialize(m_chassis, ChVector<>(-2, 0, 0), m_chassis);
 
     // Initialize wheels
-    m_front_left_wheel->Initialize(m_suspensions[0]->GetSpindle(LEFT));
-    m_front_right_wheel->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
-    m_rear_left_wheel->Initialize(m_suspensions[1]->GetSpindle(LEFT));
-    m_rear_right_wheel->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
+    m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
+    m_wheels[1]->Initialize(m_suspensions[0]->GetSpindle(RIGHT));
+    m_wheels[2]->Initialize(m_suspensions[1]->GetSpindle(LEFT));
+    m_wheels[3]->Initialize(m_suspensions[1]->GetSpindle(RIGHT));
 
     // Initialize the four brakes
-    m_front_left_brake->Initialize(m_suspensions[0]->GetRevolute(LEFT));
-    m_front_right_brake->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
-    m_rear_left_brake->Initialize(m_suspensions[1]->GetRevolute(LEFT));
-    m_rear_right_brake->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+    m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
+    m_brakes[1]->Initialize(m_suspensions[0]->GetRevolute(RIGHT));
+    m_brakes[2]->Initialize(m_suspensions[1]->GetRevolute(LEFT));
+    m_brakes[3]->Initialize(m_suspensions[1]->GetRevolute(RIGHT));
+}
+
+// -----------------------------------------------------------------------------
+// Set visualization type for the various subsystems
+// -----------------------------------------------------------------------------
+void Articulated_Trailer::SetSuspensionVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->SetVisualizationType(vis);
+    }
+}
+
+void Articulated_Trailer::SetWheelVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_wheels.size(); ++i) {
+        m_wheels[i]->SetVisualizationType(vis);
+    }
 }
 
 // -----------------------------------------------------------------------------
@@ -259,10 +276,10 @@ void Articulated_Trailer::Synchronize(double time, double braking, const TireFor
     m_suspensions[1]->Synchronize(RIGHT, tire_forces[REAR_RIGHT.id()]);
 
     // Apply braking
-    m_front_left_brake->Synchronize(braking);
-    m_front_right_brake->Synchronize(braking);
-    m_rear_left_brake->Synchronize(braking);
-    m_rear_right_brake->Synchronize(braking);
+    m_brakes[0]->Synchronize(braking);
+    m_brakes[1]->Synchronize(braking);
+    m_brakes[2]->Synchronize(braking);
+    m_brakes[3]->Synchronize(braking);
 }
 
 // -----------------------------------------------------------------------------

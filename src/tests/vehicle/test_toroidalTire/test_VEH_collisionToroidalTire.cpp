@@ -227,18 +227,20 @@ int main(int argc, char* argv[]) {
     tire->EnablePressure(true);
     tire->EnableRimConnection(true);
     tire->EnableContact(true);
-    tire->EnableVisualization(true);
 
     tire->SetContactSurfaceType(ChANCFTire::NODE_CLOUD);
     tire->SetContactNodeRadius(node_radius);
 
     tire->Initialize(wheel, LEFT);
+
+    tire->SetVisualizationType(VisualizationType::MESH);
+
     double tire_radius = tire->GetRadius();
     double rim_radius = tire->GetRimRadius();
     double tire_width = tire->GetWidth();
 
     // Customize tire mesh visualization
-    if (tire_mesh_wireframe) {
+    if (tire->GetMeshVisualization()) {
         tire->GetMeshVisualization()->SetFEMdataType(fea::ChVisualizationFEAmesh::E_PLOT_SURFACE);
         tire->GetMeshVisualization()->SetWireframe(true);
         tire->GetMeshVisualization()->SetDefaultMeshColor(ChColor(0.3f, 0.3f, 0.3f));
@@ -257,7 +259,9 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     auto terrain = std::make_shared<RigidTerrain>(&system);
-    terrain->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain->SetContactFrictionCoefficient(0.9f);
+    terrain->SetContactRestitutionCoefficient(0.01f);
+    terrain->SetContactMaterialProperties(2e7f, 0.3f);
     ////terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
     terrain->Initialize(z_min - tire_offset, terrain_length, terrain_width);
 

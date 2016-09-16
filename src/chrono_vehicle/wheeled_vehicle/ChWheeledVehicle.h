@@ -123,6 +123,15 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// speed about its rotation axis.
     WheelState GetWheelState(const WheelID& wheel_id) const;
 
+    /// Set visualization type for the suspension subsystems.
+    void SetSuspensionVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the steering subsystems.
+    void SetSteeringVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the wheel subsystems.
+    void SetWheelVisualizationType(VisualizationType vis);
+
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between
     /// 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque

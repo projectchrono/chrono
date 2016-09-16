@@ -64,9 +64,6 @@ VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
 // Type of tire type (ANCF, RIGID, RIGID_MESH)
 TireModelType tire_model = TireModelType::ANCF;
 
-// Enable/disable tire visualization
-bool tire_vis = true;
-
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -189,14 +186,17 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv(system);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis_type);
-    my_hmmwv.SetWheelVis(VisualizationType::NONE);
-    my_hmmwv.EnableTireVis(tire_vis);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.Initialize();
+
+    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::MESH);
 
     // Downcast tires (if needed)
     switch (tire_model) {
@@ -225,7 +225,10 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f, 2e5f, 40.0f, 2e5f, 20.0f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
+    terrain.SetContactMaterialCoefficients(2e5f, 40.0f, 2e5f, 20.0f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     switch (terrain_model) {
         case RigidTerrain::FLAT:

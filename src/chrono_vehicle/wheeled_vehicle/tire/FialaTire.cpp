@@ -16,7 +16,10 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono_vehicle/wheeled_vehicle/tire/FialaTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -37,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-FialaTire::FialaTire(const std::string& filename) : ChFialaTire("") {
+FialaTire::FialaTire(const std::string& filename) : ChFialaTire(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -53,7 +56,7 @@ FialaTire::FialaTire(const std::string& filename) : ChFialaTire("") {
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire("") {
+FialaTire::FialaTire(const rapidjson::Document& d) : ChFialaTire(""), m_has_mesh(false) {
     Create(d);
 }
 
@@ -80,6 +83,47 @@ void FialaTire::Create(const rapidjson::Document& d) {
     m_u_max = d["Fiala Parameters"]["UMAX"].GetDouble();
     m_relax_length_x = d["Fiala Parameters"]["X Relaxation Length"].GetDouble();
     m_relax_length_y = d["Fiala Parameters"]["Y Relaxation Length"].GetDouble();
+
+    m_visualization_width = m_width;
+
+    // Check how to visualize this tire.
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh Filename")) {
+            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
+            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+            m_has_mesh = true;
+        }
+
+        if (d["Visualization"].HasMember("Width")) {
+            m_visualization_width = d["Visualization"]["Width"].GetDouble();
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void FialaTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(m_trimesh_shape);
+    }
+    else {
+        ChFialaTire::AddVisualizationAssets(vis);
+    }
+}
+
+void FialaTire::RemoveVisualizationAssets() {
+    ChFialaTire::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by FialaTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
+    if (it != m_wheel->GetAssets().end())
+        m_wheel->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

@@ -34,11 +34,12 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
+#include "chrono_models/vehicle/generic/Generic_SimplePowertrain.h"
+#include "chrono_models/vehicle/generic/Generic_RigidTire.h"
+#include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
+
 #include "articulated/Articulated_Vehicle.h"
 #include "articulated/Articulated_Trailer.h"
-#include "generic/Generic_SimplePowertrain.h"
-#include "generic/Generic_RigidTire.h"
-#include "generic/Generic_FuncDriver.h"
 
 // If Irrlicht support is available...
 #ifdef CHRONO_IRRLICHT
@@ -55,6 +56,7 @@
 
 using namespace chrono;
 using namespace chrono::vehicle;
+using namespace chrono::vehicle::generic;
 
 // =============================================================================
 
@@ -101,19 +103,25 @@ int main(int argc, char* argv[]) {
 
     // Create the vehicle: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
-
+    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
     vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the trailer: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK, VisualizationType::PRIMITIVES);
-
-    trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassis());
+    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK);
+    trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassisBody());
+    trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    trailer.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(0.5f, 0.5f, 1));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -121,7 +129,7 @@ int main(int argc, char* argv[]) {
     // Create and initialize the powertrain system
     Generic_SimplePowertrain powertrain;
 
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create the tires
     Generic_RigidTire tire_front_left("FL");
@@ -134,6 +142,11 @@ int main(int argc, char* argv[]) {
     tire_rear_left.Initialize(vehicle.GetWheelBody(REAR_LEFT), LEFT);
     tire_rear_right.Initialize(vehicle.GetWheelBody(REAR_RIGHT), RIGHT);
 
+    tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+
     // Create the trailer tires
     Generic_RigidTire tr_tire_front_left("FL");
     Generic_RigidTire tr_tire_front_right("FR");
@@ -144,6 +157,11 @@ int main(int argc, char* argv[]) {
     tr_tire_front_right.Initialize(trailer.GetWheelBody(FRONT_RIGHT), RIGHT);
     tr_tire_rear_left.Initialize(trailer.GetWheelBody(REAR_LEFT), LEFT);
     tr_tire_rear_right.Initialize(trailer.GetWheelBody(REAR_RIGHT), RIGHT);
+
+    tr_tire_front_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_front_right.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_rear_left.SetVisualizationType(VisualizationType::PRIMITIVES);
+    tr_tire_rear_right.SetVisualizationType(VisualizationType::PRIMITIVES);
 
 #ifdef USE_IRRLICHT
     ChWheeledVehicleIrrApp app(&vehicle, &powertrain, L"Articulated Vehicle Demo");

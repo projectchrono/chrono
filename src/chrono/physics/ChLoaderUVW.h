@@ -157,6 +157,13 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     }
 };
 
+
+//--------------------------------------------------------------------------------
+// BASIC UVW LOADERS
+//
+// Some ready-to use basic loaders
+
+
 /// A very usual type of volume loader: the constant gravitational load on Y
 
 class ChLoaderGravity : public ChLoaderUVWdistributed {

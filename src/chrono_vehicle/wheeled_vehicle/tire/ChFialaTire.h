@@ -15,10 +15,6 @@
 // Template for Fiala tire model
 //
 // =============================================================================
-// =============================================================================
-// STILL UNDERDEVELOPMENT - DO NOT USE
-// =============================================================================
-// =============================================================================
 
 #ifndef CH_FIALATIRE_H
 #define CH_FIALATIRE_H
@@ -26,6 +22,8 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -48,6 +46,12 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
+
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
     /// Get the tire width.
     /// For a Fiala tire, this is the unloaded tire radius.
@@ -76,8 +80,11 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     /// Get the current value of the integration step size.
     double GetStepsize() const { return m_stepsize; }
 
-    /// Get the width of the tire
+    /// Get the width of the tire.
     double GetWidth() const { return m_width; }
+
+    /// Get visualization width.
+    virtual double GetVisualizationWidth() const { return m_width; }
 
     /// Get the tire slip angle.
     virtual double GetSlipAngle() const override { return m_states.cp_side_slip; }
@@ -131,6 +138,9 @@ class CH_VEHICLE_API ChFialaTire : public ChTire {
     TireStates m_states;
 
     TireForce m_tireforce;
+
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
+    std::shared_ptr<ChTexture> m_texture;          ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

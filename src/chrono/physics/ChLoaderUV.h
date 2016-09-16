@@ -156,6 +156,39 @@ public:
 };
 
 
+//--------------------------------------------------------------------------------
+// BASIC UV LOADERS
+//
+// Some ready-to use basic loaders
+
+
+/// A very simple surface loader: a constant force vector, 
+/// applied to a point on a u,v surface
+
+class ChLoaderForceOnSurface : public ChLoaderUVatomic {
+private:
+    ChVector<> force;
+public:    
+    ChLoaderForceOnSurface(std::shared_ptr<ChLoadableUV> mloadable) :
+            ChLoaderUVatomic(mloadable)
+        {};
+
+    virtual void ComputeF(const double U,             ///< parametric coordinate in surface
+                          const double V,             ///< parametric coordinate in surface
+                          ChVectorDynamic<>& F,       ///< Result F vector here, size must be = n.field coords.of loadable
+                          ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate F
+                          ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate F
+                          ) {
+        F.PasteVector(force, 0,0);
+    }
+    // Set constant force (assumed in absolute coordinates)
+    void SetForce(ChVector<> mforce) {force = mforce;}
+    // Get constant force (assumed in absolute coordinates)
+    ChVector<> GetForce() {return force;}
+
+    virtual bool IsStiff() override { return false; }
+};
+
 
 /// A very usual type of surface loader: the constant pressure load, 
 /// a 3D per-area force that is aligned to the surface normal.

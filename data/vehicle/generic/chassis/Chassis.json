@@ -1,0 +1,15 @@
+{
+  "Name":     "Generic chassis",
+  "Type":     "Chassis",
+  "Template": "RigidChassis",
+
+  "Mass":     95.0,
+  "COM":      [0, 0, 0],
+  "Inertia":  [200.0, 500.0, 500.0],
+
+  "Driver Position":
+  {
+    "Location":     [0, 0.5, 1.2],
+    "Orientation":  [1, 0, 0, 0]
+  }
+}

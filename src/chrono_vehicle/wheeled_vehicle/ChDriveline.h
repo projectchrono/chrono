@@ -23,6 +23,7 @@
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
 /**
@@ -39,9 +40,11 @@ namespace vehicle {
 /// @{
 
 /// Base class for a driveline subsystem.
-class CH_VEHICLE_API ChDriveline {
+class CH_VEHICLE_API ChDriveline : public ChPart {
   public:
-    ChDriveline();
+    ChDriveline(const std::string& name  ///< [in] name of the subsystem
+                );
+
     virtual ~ChDriveline() {}
 
     /// Return the number of driven axles.

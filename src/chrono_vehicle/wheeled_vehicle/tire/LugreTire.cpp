@@ -16,7 +16,10 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono_vehicle/wheeled_vehicle/tire/LugreTire.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -37,7 +40,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL) {
+LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -53,7 +56,7 @@ LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL) {
+LugreTire::LugreTire(const rapidjson::Document& d) : ChLugreTire(""), m_discLocs(NULL), m_has_mesh(false) {
     Create(d);
 }
 
@@ -101,6 +104,41 @@ void LugreTire::Create(const rapidjson::Document& d) {
 
     m_vs[0] = d["Lugre Parameters"]["vs"][0u].GetDouble();  // longitudinal
     m_vs[1] = d["Lugre Parameters"]["vs"][1u].GetDouble();  // lateral
+
+    // Check how to visualize this tire.
+    if (d.HasMember("Visualization")) {
+        if (d["Visualization"].HasMember("Mesh Filename")) {
+            m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
+            m_meshName = d["Visualization"]["Mesh Name"].GetString();
+            m_has_mesh = true;
+        }
+    }
+}
+
+// -----------------------------------------------------------------------------
+void LugreTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH && m_has_mesh) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(m_trimesh_shape);
+    }
+    else {
+        ChLugreTire::AddVisualizationAssets(vis);
+    }
+}
+
+void LugreTire::RemoveVisualizationAssets() {
+    ChLugreTire::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by LugreTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
+    if (it != m_wheel->GetAssets().end())
+        m_wheel->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

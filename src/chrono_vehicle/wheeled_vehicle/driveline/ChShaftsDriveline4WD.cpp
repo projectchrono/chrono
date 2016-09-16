@@ -31,9 +31,8 @@ namespace vehicle {
 // conic gear pair, in chassis local coords. This is needed because ChShaftsBody
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsDriveline4WD::ChShaftsDriveline4WD()
-    : ChDriveline(), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {
-}
+ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
+    : ChDriveline(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.

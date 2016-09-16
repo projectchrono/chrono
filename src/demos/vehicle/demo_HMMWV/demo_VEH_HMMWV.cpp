@@ -52,10 +52,10 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 enum DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DEFAULT;
 
-// Visualization type for chassis (PRIMITIVES, MESH, or NONE)
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
-
-// Visualization type for wheels (PRIMITIVES, MESH, or NONE)
+VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
@@ -66,7 +66,6 @@ DrivelineType drive_type = DrivelineType::AWD;
 
 // Type of tire model (RIGID, RIGID_MESH, PACEJKA, LUGRE, FIALA)
 TireModelType tire_model = TireModelType::RIGID;
-bool tire_vis = true;
 
 // Rigid terrain
 RigidTerrain::Type terrain_model = RigidTerrain::FLAT;
@@ -79,7 +78,7 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI;
+ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
 bool contact_vis = false;
 
 // Simulation step sizes
@@ -114,19 +113,28 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis_type);
-    my_hmmwv.SetWheelVis(wheel_vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
-    my_hmmwv.EnableTireVis(tire_vis);
+    my_hmmwv.SetPacejkaParamfile("hmmwv/tire/HMMWV_pacejka.tir");
     my_hmmwv.Initialize();
+
+    VisualizationType tire_vis_type =
+        (tire_model == TireModelType::RIGID_MESH) ? VisualizationType::MESH : VisualizationType::PRIMITIVES;
+
+    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    my_hmmwv.SetTireVisualizationType(tire_vis_type);
 
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     terrain.EnableVisualization(terrain_vis);
     switch (terrain_model) {

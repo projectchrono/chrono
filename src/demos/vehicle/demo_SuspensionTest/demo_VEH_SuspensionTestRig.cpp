@@ -51,19 +51,27 @@ std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    // Use rigid wheels to actuate suspension.
+    auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+    auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+
     // Create and initialize the testing mechanism.
     ////ChSuspensionTestRig rig(vehicle::GetDataFile(suspensionTest_file));
-    ChSuspensionTestRig rig(vehicle::GetDataFile(vehicle_file), axle_index);
-    rig.Initialize(ChCoordsys<>());
+    ChSuspensionTestRig rig(vehicle::GetDataFile(vehicle_file), axle_index, tire_L, tire_R);
 
     // Flat rigid terrain, height = 0.
     FlatTerrain flat_terrain(0);
 
-    // Use rigid wheels to actuate suspension.
-    auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
-    auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
+    // Initialize subsystems
+    rig.Initialize(ChCoordsys<>());
     tire_L->Initialize(rig.GetWheelBody(LEFT), LEFT);
     tire_R->Initialize(rig.GetWheelBody(RIGHT), RIGHT);
+
+    rig.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    rig.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    rig.SetWheelVisualizationType(VisualizationType::PRIMITIVES);
+    tire_L->SetVisualizationType(VisualizationType::MESH);
+    tire_R->SetVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
     ChVehicleIrrApp app(&rig, NULL, L"Suspension Test Rig");

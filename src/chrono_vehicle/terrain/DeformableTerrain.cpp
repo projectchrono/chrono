@@ -574,6 +574,15 @@ void DeformableSoil::UpdateInternalForces() {
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
                 }
+                if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(mrayhit_result.hitModel->GetContactable())) {
+                    // [](){} Trick: no deletion for this shared ptr
+                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*){});
+                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(
+                        new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                    mload->loader.SetForce( Fn +Ft );
+                    mload->loader.SetApplication(0.5, 0.5); //***TODO*** set UV, now just in middle
+                    this->Add(mload);
+                }
                 
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];

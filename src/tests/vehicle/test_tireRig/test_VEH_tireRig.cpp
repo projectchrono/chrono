@@ -397,8 +397,8 @@ int main() {
             } else {
                 tire_fiala = std::make_shared<hmmwv::HMMWV_FialaTire>("Fiala tire");
             }
-
             tire_fiala->Initialize(rim, LEFT);
+            tire_fiala->SetVisualizationType(VisualizationType::PRIMITIVES);
             tire_radius = tire_fiala->GetRadius();
             wheel_radius = tire_radius;
             tire_width = tire_fiala->GetWidth();
@@ -417,9 +417,9 @@ int main() {
             tire_ancf->EnablePressure(enable_tire_pressure);
             tire_ancf->EnableContact(enable_tire_contact);
             tire_ancf->EnableRimConnection(enable_rim_conection);
-            tire_ancf->EnableVisualization(true);
             rim->SetWvel_loc(ChVector<>(0, desired_speed / 0.463, 0));
             tire_ancf->Initialize(rim, LEFT);
+            tire_ancf->SetVisualizationType(VisualizationType::MESH);
             tire_radius = tire_ancf->GetRadius();
             wheel_radius = tire_ancf->GetRimRadius();
             tire_width = tire_ancf->GetWidth();
@@ -439,9 +439,9 @@ int main() {
             tire_reissner->EnablePressure(enable_tire_pressure);
             tire_reissner->EnableContact(enable_tire_contact);
             tire_reissner->EnableRimConnection(enable_rim_conection);
-            tire_reissner->EnableVisualization(true);
             rim->SetWvel_loc(ChVector<>(0, desired_speed / 0.463, 0));
             tire_reissner->Initialize(rim, LEFT);
+            tire_reissner->SetVisualizationType(VisualizationType::MESH);
             tire_radius = tire_reissner->GetRadius();
             wheel_radius = tire_reissner->GetRimRadius();
             tire_width = tire_reissner->GetWidth();
@@ -456,9 +456,9 @@ int main() {
             tire_fea->EnablePressure(enable_tire_pressure);
             tire_fea->EnableContact(enable_tire_contact);
             tire_fea->EnableRimConnection(enable_rim_conection);
-            tire_fea->EnableVisualization(true);
             rim->SetWvel_loc(ChVector<>(0, desired_speed / 0.7, 0));
             tire_fea->Initialize(rim, LEFT);
+            tire_fea->SetVisualizationType(VisualizationType::MESH);
             tire_radius = tire_fea->GetRadius();
             wheel_radius = tire_fea->GetRimRadius();
             tire_width = tire_fea->GetWidth();
@@ -467,6 +467,7 @@ int main() {
             break;
         }
     }
+
     // Create the Chassis Body
     // -----------------------
 
@@ -690,7 +691,9 @@ int main() {
     std::shared_ptr<ChTerrain> terrain;
     if (terrain_type == RIGID_TERRAIN) {
         auto rigid_terrain = std::make_shared<RigidTerrain>(my_system);
-        rigid_terrain->SetContactMaterial(0.9f, 0.01f, 2e6f, 0.3f);
+        rigid_terrain->SetContactFrictionCoefficient(0.9f);
+        rigid_terrain->SetContactRestitutionCoefficient(0.01f);
+        rigid_terrain->SetContactMaterialProperties(2e6f, 0.3f);
         rigid_terrain->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 4);
         rigid_terrain->Initialize(-tire_radius + 0.0015, 120, 0.5);
         terrain = rigid_terrain;

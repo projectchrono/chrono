@@ -18,7 +18,9 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <algorithm>
 
+#include "chrono/physics/ChGlobal.h"
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
@@ -173,6 +175,39 @@ void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) 
     // init all other variables
     m_Num_WriteOutData = 0;
     zero_slips();  // zeros slips, and some other vars
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChPacejkaTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetVisualizationWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetVisualizationWidth() / 2, 0);
+    m_wheel->AddAsset(m_cyl_shape);
+
+    m_texture = std::make_shared<ChTexture>();
+    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_wheel->AddAsset(m_texture);
+}
+
+void ChPacejkaTire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChPacejkaTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
 }
 
 // -----------------------------------------------------------------------------

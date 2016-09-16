@@ -25,6 +25,8 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
@@ -67,24 +69,19 @@ void ChDoubleWishbone::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-    // Transform all points to absolute frame and initialize left side.
-    std::vector<ChVector<> > points(NUM_POINTS);
-
+    // Transform all hardpoints to absolute frame.
+    m_pointsL.resize(NUM_POINTS);
+    m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-    }
-
-    InitializeSide(LEFT, chassis, tierod_body, points);
-
-    // Transform all points to absolute frame and initialize right side.
-    for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y = -rel_pos.y;
-        points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
-    InitializeSide(RIGHT, chassis, tierod_body, points);
+    // Initialize left and right sides.
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR);
 }
 
 void ChDoubleWishbone::InitializeSide(VehicleSide side,
@@ -104,7 +101,6 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
@@ -114,8 +110,6 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
     m_upright[side]->SetInertiaXX(getUprightInertia());
-    AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[UCA_U], points[LCA_U],
-                            points[TIEROD_U], getUprightRadius());
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Unit vectors for orientation matrices.
@@ -140,7 +134,6 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_UCA[side]->SetRot(rot);
     m_UCA[side]->SetMass(getUCAMass());
     m_UCA[side]->SetInertiaXX(getUCAInertia());
-    AddVisualizationControlArm(m_UCA[side], points[UCA_F], points[UCA_B], points[UCA_U], getUCARadius());
     chassis->GetSystem()->AddBody(m_UCA[side]);
 
     // Create and initialize Lower Control Arm body.
@@ -159,7 +152,6 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_LCA[side]->SetRot(rot);
     m_LCA[side]->SetMass(getLCAMass());
     m_LCA[side]->SetInertiaXX(getLCAInertia());
-    AddVisualizationControlArm(m_LCA[side], points[LCA_F], points[LCA_B], points[LCA_U], getLCARadius());
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
@@ -322,6 +314,42 @@ void ChDoubleWishbone::LogConstraintViolations(VehicleSide side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
+    ChSuspension::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::NONE)
+        return;
+
+    // Add visualization for uprights
+    AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[UCA_U],
+                            m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
+    AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U],
+                            m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
+
+    // Add visualization for upper control arms
+    AddVisualizationControlArm(m_UCA[LEFT], m_pointsL[UCA_F], m_pointsL[UCA_B], m_pointsL[UCA_U], getUCARadius());
+    AddVisualizationControlArm(m_UCA[RIGHT], m_pointsR[UCA_F], m_pointsR[UCA_B], m_pointsR[UCA_U], getUCARadius());
+
+    // Add visualization for lower control arms
+    AddVisualizationControlArm(m_LCA[LEFT], m_pointsL[LCA_F], m_pointsL[LCA_B], m_pointsL[LCA_U], getLCARadius());
+    AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
+}
+
+void ChDoubleWishbone::RemoveVisualizationAssets() {
+    ChSuspension::RemoveVisualizationAssets();
+
+    m_upright[LEFT]->GetAssets().clear();
+    m_upright[RIGHT]->GetAssets().clear();
+
+    m_UCA[LEFT]->GetAssets().clear();
+    m_UCA[RIGHT]->GetAssets().clear();
+
+    m_LCA[LEFT]->GetAssets().clear();
+    m_LCA[RIGHT]->GetAssets().clear();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChDoubleWishbone::AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                                   const ChVector<> pt_F,
                                                   const ChVector<> pt_B,
@@ -390,14 +418,6 @@ void ChDoubleWishbone::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     upright->AddAsset(col);
-}
-
-void ChDoubleWishbone::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
-    auto cyl = std::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    spindle->AddAsset(cyl);
 }
 
 }  // end namespace vehicle

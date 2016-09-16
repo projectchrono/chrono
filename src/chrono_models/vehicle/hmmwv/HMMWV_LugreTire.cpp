@@ -16,10 +16,9 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChColorAsset.h"
-#include "chrono/assets/ChCylinderShape.h"
-#include "chrono/assets/ChTexture.h"
+#include <algorithm>
 
+#include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_LugreTire.h"
 
 namespace chrono {
@@ -37,6 +36,9 @@ const double HMMWV_LugreTire::m_discLocs[] = {-5 * in2m, 0 * in2m, 5 * in2m};
 
 const double HMMWV_LugreTire::m_normalStiffness = 2e6;
 const double HMMWV_LugreTire::m_normalDamping = 1e3;
+
+const std::string HMMWV_LugreTire::m_meshName = "hmmwv_tire_POV_geom";
+const std::string HMMWV_LugreTire::m_meshFile = "hmmwv/hmmwv_tire.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -64,6 +66,33 @@ void HMMWV_LugreTire::SetLugreParams() {
     m_Fs[1] = 1.0;
 
     m_vs[1] = 3.5;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void HMMWV_LugreTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::MESH) {
+        geometry::ChTriangleMeshConnected trimesh;
+        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
+        m_trimesh_shape = std::make_shared<ChTriangleMeshShape>();
+        m_trimesh_shape->SetMesh(trimesh);
+        m_trimesh_shape->SetName(m_meshName);
+        m_wheel->AddAsset(m_trimesh_shape);
+    }
+    else {
+        ChLugreTire::AddVisualizationAssets(vis);
+    }
+}
+
+void HMMWV_LugreTire::RemoveVisualizationAssets() {
+    ChLugreTire::RemoveVisualizationAssets();
+
+    // Make sure we only remove the assets added by HMMWV_LugreTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_trimesh_shape);
+    if (it != m_wheel->GetAssets().end())
+        m_wheel->GetAssets().erase(it);
 }
 
 }  // end namespace hmmwv

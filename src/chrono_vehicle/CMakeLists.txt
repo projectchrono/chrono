@@ -83,6 +83,8 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
 
 set(CV_BASE_FILES
     ChApiVehicle.h
+    ChChassis.h
+    ChChassis.cpp
     ChDriver.h
     ChDriver.cpp
     ChPart.h
@@ -98,6 +100,12 @@ set(CV_BASE_FILES
     ChVehicleModelData.cpp
 )
 source_group("base" FILES ${CV_BASE_FILES})
+
+set(CV_CHASSIS_FILES
+	chassis/RigidChassis.h
+	chassis/RigidChassis.cpp
+)
+source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
@@ -141,8 +149,8 @@ set(CV_TERRAIN_FILES
 
 if(ENABLE_MODULE_FEA)
     set(CV_FEATERRAIN_FILES
-    terrain/FEADeformableTerrain.h
-    terrain/FEADeformableTerrain.cpp
+        terrain/FEADeformableTerrain.h
+        terrain/FEADeformableTerrain.cpp
     )
 else()
     set(CV_FEATERRAIN_FILES "")
@@ -335,22 +343,22 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
-    set(CV_WV_COSIM_FILES
-        wheeled_vehicle/cosim/ChCosimManager.h
-        wheeled_vehicle/cosim/ChCosimManager.cpp
-        wheeled_vehicle/cosim/ChCosimNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-        wheeled_vehicle/cosim/ChCosimTireNode.h
-        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-    )
-    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-else()
+#if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
+#    set(CV_WV_COSIM_FILES
+#        wheeled_vehicle/cosim/ChCosimManager.h
+#        wheeled_vehicle/cosim/ChCosimManager.cpp
+#        wheeled_vehicle/cosim/ChCosimNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTireNode.h
+#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
+#    )
+#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
+#else()
     set(CV_WV_COSIM_FILES "")
-endif()
+#endif()
 
 # --------------- TRACKED VEHICLE FILES
 
@@ -482,6 +490,12 @@ else()
 endif()
 source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
+set(CV_TV_VEHICLE_FILES
+    tracked_vehicle/vehicle/TrackedVehicle.h
+    tracked_vehicle/vehicle/TrackedVehicle.cpp
+)
+source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
+
 # --------------- THIRD-PARTY FILES
 
 set(CV_EASYBMP_FILES
@@ -522,6 +536,7 @@ endif()
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
+    ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
     ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
@@ -555,6 +570,7 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
+    ${CV_TV_VEHICLE_FILES}
 #
     ${CV_EASYBMP_FILES}
 )

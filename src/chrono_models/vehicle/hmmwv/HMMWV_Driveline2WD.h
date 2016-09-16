@@ -29,7 +29,7 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_Driveline2WD : public ChShaftsDriveline2WD {
   public:
-    HMMWV_Driveline2WD();
+    HMMWV_Driveline2WD(const std::string& name);
 
     ~HMMWV_Driveline2WD() {}
 

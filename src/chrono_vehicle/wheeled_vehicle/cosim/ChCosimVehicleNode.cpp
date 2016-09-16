@@ -38,7 +38,7 @@ void ChCosimVehicleNode::SetStepsize(double stepsize) {
 
 void ChCosimVehicleNode::Initialize(const ChCoordsys<>& chassisPos) {
     m_vehicle->Initialize(chassisPos);
-    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+    m_powertrain->Initialize(m_vehicle->GetChassisBody(), m_vehicle->GetDriveshaft());
     m_driver->Initialize();
 
     // Send wheel masses and inertias to the tire nodes

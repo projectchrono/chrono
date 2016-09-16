@@ -21,8 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChSteering::ChSteering(const std::string& name) : m_name(name) {
-}
+ChSteering::ChSteering(const std::string& name) : ChPart(name) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

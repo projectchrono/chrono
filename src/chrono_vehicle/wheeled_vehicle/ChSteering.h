@@ -25,6 +25,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -40,18 +41,12 @@ namespace vehicle {
 /// @{
 
 /// Base class for a steering subsystem.
-class CH_VEHICLE_API ChSteering {
+class CH_VEHICLE_API ChSteering : public ChPart {
   public:
     ChSteering(const std::string& name  ///< [in] name of the subsystem
                );
 
     virtual ~ChSteering() {}
-
-    /// Get the name identifier for this steering subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this steering subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerbale
@@ -83,8 +78,6 @@ class CH_VEHICLE_API ChSteering {
     virtual void LogConstraintViolations() {}
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 

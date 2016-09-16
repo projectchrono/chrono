@@ -32,14 +32,11 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     Articulated_Vehicle(
         const bool fixed,
         chrono::vehicle::SuspensionType suspType,
-        chrono::vehicle::VisualizationType wheelVis,
         chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
 
     ~Articulated_Vehicle() {}
 
     virtual int GetNumberAxles() const { return 2; }
-
-    virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const { return m_driverCsys; }
 
     double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
     double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
@@ -57,14 +54,6 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
 
   private:
     chrono::vehicle::SuspensionType m_suspType;
-
-    // Chassis mass properties
-    static const double m_chassisMass;
-    static const chrono::ChVector<> m_chassisCOM;
-    static const chrono::ChVector<> m_chassisInertia;
-
-    // Driver local coordinate system
-    static const chrono::ChCoordsys<> m_driverCsys;
 };
 
 #endif

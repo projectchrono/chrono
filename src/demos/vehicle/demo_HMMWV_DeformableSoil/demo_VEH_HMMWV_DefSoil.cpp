@@ -198,13 +198,15 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis);
-    my_hmmwv.SetWheelVis(wheel_type == CYLINDRICAL ? VisualizationType::MESH : VisualizationType::NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
     my_hmmwv.SetTireType(TireModelType::RIGID);
     my_hmmwv.Initialize();
+
+    VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
+    my_hmmwv.SetChassisVisualizationType(chassis_vis);
+    my_hmmwv.SetWheelVisualizationType(wheel_vis);
 
     ChSystem* system = my_hmmwv.GetSystem();
 
@@ -261,7 +263,9 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            terrainR->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+            terrainR->SetContactFrictionCoefficient(0.9f);
+            terrainR->SetContactRestitutionCoefficient(0.01f);
+            terrainR->SetContactMaterialProperties(2e7f, 0.3f);
             terrainR->SetColor(ChColor(0.8f, 0.8f, 0.5f));
             terrainR->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrainR->Initialize(terrainHeight, terrainLength, terrainWidth);

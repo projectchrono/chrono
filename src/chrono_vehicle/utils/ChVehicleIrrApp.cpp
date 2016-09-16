@@ -101,7 +101,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
     : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL),
       m_vehicle(vehicle),
       m_powertrain(powertrain),
-      m_camera(vehicle->GetChassis()),
+      m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
       m_HUD_x(700),
       m_HUD_y(20),
@@ -114,7 +114,7 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_throttle(0),
       m_braking(0) {
     // Initialize the chase camera with default values.
-    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetLocalDriverCoordsys(), 6.0, 0.5);
+    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -185,7 +185,7 @@ void ChVehicleIrrApp::SetSkyBox() {
 // Set parameters for the underlying chase camera.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_vehicle->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 }

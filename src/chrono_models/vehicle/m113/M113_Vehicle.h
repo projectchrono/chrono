@@ -36,33 +36,12 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
 
     ~M113_Vehicle() {}
 
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
-
     virtual void Initialize(const ChCoordsys<>& chassisPos) override;
-
-    void SetChassisVisType(VisualizationType vis);
-    void SetSprocketVisualizationType(VisualizationType vis);
-    void SetIdlerVisualizationType(VisualizationType vis);
-    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
-    void SetTrackShoeVisualizationType(VisualizationType vis);
-
-    void ExportMeshPovray(const std::string& out_dir);
 
   private:
     void Create(bool fixed);
 
     TrackShoeType m_type;  ///< type of track assembly (SINGLE_PIN or DOUBLE_PIN)
-
-    static const std::string m_chassisMeshName;  ///< name of chassis visualization mesh
-    static const std::string m_chassisMeshFile;  ///< name of Wavefront file with chassis visualization mesh
-
-    static const double m_chassisMass;         ///< chassis mass
-    static const ChVector<> m_chassisCOM;      ///< location of chassis center of mass
-    static const ChVector<> m_chassisInertia;  ///< chassis inertia moments
-
-    static const ChCoordsys<> m_driverCsys;  ///< driver local coordinate system
-
-    VisualizationType m_chassisVisType;  ///< chassis visualization type
 };
 
 }  // end namespace m113

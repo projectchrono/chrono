@@ -147,7 +147,7 @@ void VehicleNode::Initialize() {
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
 
     m_powertrain = new HMMWV_Powertrain;
-    m_powertrain->Initialize(m_vehicle->GetChassis(), m_vehicle->GetDriveshaft());
+    m_powertrain->Initialize(m_vehicle->GetChassisBody(), m_vehicle->GetDriveshaft());
 
     m_driver = new MyDriver(*m_vehicle, m_delay);
     m_driver->Initialize();
@@ -265,10 +265,10 @@ void VehicleNode::OutputData(int frame) {
 
         // Position, orientation, velocity of the chassis reference frame
         // (relative to absolute frame)
-        const ChVector<>& pos = m_vehicle->GetChassisPos();
-        const ChQuaternion<>& rot = m_vehicle->GetChassisRot();
-        const ChVector<>& lin_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetPos_dt();
-        const ChVector<>& ang_vel = m_vehicle->GetChassis()->GetFrame_REF_to_abs().GetWvel_par();
+        const ChVector<>& pos = m_vehicle->GetVehiclePos();
+        const ChQuaternion<>& rot = m_vehicle->GetChassis()->GetRot();
+        const ChVector<>& lin_vel = m_vehicle->GetChassisBody()->GetFrame_REF_to_abs().GetPos_dt();
+        const ChVector<>& ang_vel = m_vehicle->GetChassisBody()->GetFrame_REF_to_abs().GetWvel_par();
 
         // Current driver inputs
         double steering = m_driver->GetSteering();

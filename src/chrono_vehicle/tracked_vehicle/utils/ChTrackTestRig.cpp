@@ -46,6 +46,40 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// Defintion of a chassis for a track test rig
+// -----------------------------------------------------------------------------
+class ChTrackTestRigChassis : public ChChassis {
+  public:
+    ChTrackTestRigChassis() : ChChassis("Ground") {}
+    virtual double GetMass() const override { return m_mass; }
+    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+private:
+    static const double m_mass;
+    static const ChVector<> m_inertia;
+    static const ChVector<> m_COM_loc;
+    static const ChCoordsys<> m_driverCsys;
+};
+
+const double ChTrackTestRigChassis::m_mass = 1;
+const ChVector<> ChTrackTestRigChassis::m_inertia(1, 1, 1);
+const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
+const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+
+void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
+    m_body->AddAsset(box);
+
+    auto blue = std::make_shared<ChColorAsset>();
+    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
+    m_body->AddAsset(blue);
+}
+
+// -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
 // from the specified JSON array.
 // -----------------------------------------------------------------------------
@@ -89,19 +123,6 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
         m_track = std::make_shared<TrackAssemblySinglePin>(d);
     }
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
-
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
@@ -111,30 +132,21 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_track(assembly),
       m_location(location),
       m_max_torque(0) {
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
-    m_chassis->AddAsset(box);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
 }
 
 void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
+    // ----------------------------
+    // Create the chassis subsystem
+    // ----------------------------
+    m_chassis = std::make_shared<ChTrackTestRigChassis>();
+    m_chassis->Initialize(m_system, chassisPos);
+    m_chassis->GetBody()->SetBodyFixed(true);
+
     // ---------------------------------
     // Initialize the vehicle subsystems
     // ---------------------------------
 
-    m_track->Initialize(m_chassis, m_location);
+    m_track->Initialize(m_chassis->GetBody(), m_location);
 
     // ------------------------------------------
     // Create and initialize the shaker post body
@@ -174,7 +186,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Prismatic joint to force vertical translation
     m_post_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_post_prismatic->SetNameString("L_post_prismatic");
-    m_post_prismatic->Initialize(m_chassis, m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
+    m_post_prismatic->Initialize(m_chassis->GetBody(), m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
     m_system->AddLink(m_post_prismatic);
 
     // Post actuator
@@ -182,7 +194,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_linact = std::make_shared<ChLinkLinActuator>();
     m_post_linact->SetNameString("Post_linActuator");
-    m_post_linact->Initialize(m_chassis, m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
+    m_post_linact->Initialize(m_chassis->GetBody(), m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
     m_post_linact->Set_lin_offset(1.0);
     auto func = std::make_shared<ChFunction_Const>(0);
     m_post_linact->Set_dist_funct(func);

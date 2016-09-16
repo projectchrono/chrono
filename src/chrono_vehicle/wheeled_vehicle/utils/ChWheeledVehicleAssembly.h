@@ -66,9 +66,7 @@ class CH_VEHICLE_API ChTireContactCallback {
     /// append the contact shape(s) to the specified wheel body. Optionally,
     /// this function can first change the collision model type for the
     /// provided wheel body (consistent with the system type).
-    virtual void onCallback(std::shared_ptr<ChBody> wheelBody,  ///< Pointer to the wheel body
-                            double radius,                      ///< wheel radius
-                            double width                        ///< wheel width
+    virtual void onCallback(std::shared_ptr<ChBody> wheelBody  ///< Pointer to the wheel body
                             ) = 0;
 };
 

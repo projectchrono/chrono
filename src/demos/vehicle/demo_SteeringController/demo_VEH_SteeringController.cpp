@@ -54,8 +54,12 @@ PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 // Drive type (FWD, RWD, or AWD)
 DrivelineType drive_type = DrivelineType::RWD;
 
-// Visualization type for chassis & wheels (PRIMITIVES, MESH, or NONE)
-VisualizationType vis_type = VisualizationType::PRIMITIVES;
+// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
+VisualizationType chassis_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
+VisualizationType wheel_vis_type = VisualizationType::NONE;
+VisualizationType tire_vis_type = VisualizationType::PRIMITIVES;
 
 // Input file names for the path-follower driver model
 std::string steering_controller_file("generic/driver/SteeringController.json");
@@ -189,8 +193,6 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(vis_type);
-    my_hmmwv.SetWheelVis(vis_type);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
@@ -199,9 +201,17 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetPacejkaParamfile(pacejka_tire_file);
     my_hmmwv.Initialize();
 
+    my_hmmwv.SetChassisVisualizationType(chassis_vis_type);
+    my_hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
+    my_hmmwv.SetSteeringVisualizationType(steering_vis_type);
+    my_hmmwv.SetWheelVisualizationType(wheel_vis_type);
+    my_hmmwv.SetTireVisualizationType(tire_vis_type);
+
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(1, 1, 1));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -301,7 +311,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = my_hmmwv.GetVehicle().GetLocalDriverCoordsys().pos;
+    ChVector<> driver_pos = my_hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -317,7 +327,7 @@ int main(int argc, char* argv[]) {
     while (app.GetDevice()->run()) {
         // Extract system state
         double time = my_hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassis()->GetPos_dtdt();
+        ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
         ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x);
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y);
