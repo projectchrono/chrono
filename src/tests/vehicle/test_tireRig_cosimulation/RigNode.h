@@ -229,7 +229,16 @@ class RigNodeRigidTire : public RigNode {
     /// Write tire-related information at current synchronization frame.
     virtual void WriteTireInformation(chrono::utils::CSV_writer& csv) override;
 
+    /// Write mesh vertex positions and velocities.
+    void WriteTireStateInformation(chrono::utils::CSV_writer& csv);
+    /// Write mesh connectivity.
+    void WriteTireMeshInformation(chrono::utils::CSV_writer& csv);
+    /// Write contact forces on tire mesh vertices.
+    void WriteTireContactInformation(chrono::utils::CSV_writer& csv);
+
     std::shared_ptr<chrono::vehicle::ChRigidTire> m_tire;  ///< rigid tire
+    std::vector<std::vector<int>> m_adjElements;           ///< list of neighboring elements for each mesh vertex
+    std::vector<double> m_vertexArea;                      ///< representative areas for each mesh vertex
 };
 
 #endif
