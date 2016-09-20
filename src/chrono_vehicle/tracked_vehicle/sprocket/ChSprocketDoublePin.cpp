@@ -60,7 +60,6 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
         m_beta = CH_C_2PI / m_gear_nteeth;
         m_sbeta = std::sin(m_beta / 2);
         m_cbeta = std::cos(m_beta / 2);
-
     }
 
     virtual void PerformCustomCollision(ChSystem* system) override;
@@ -77,9 +76,27 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
                             const ChVector<>& p1L,
                             const ChVector<>& p2L,
                             const ChVector<>& p3L,
+                            const ChVector<>& p4L,
                             const ChVector<>& p1R,
                             const ChVector<>& p2R,
-                            const ChVector<>& p3R);
+                            const ChVector<>& p3R,
+                            const ChVector<>& p4R);
+
+    void CheckCircleArc(std::shared_ptr<ChBody> connector,  // connector body
+                        const ChVector<>& cc,               // circle center
+                        double cr,                          // circle radius
+                        const ChVector<> ac,                // arc center
+                        double ar,                          // arc radius
+                        const ChVector<>& p1,               // arc end point 1
+                        const ChVector<>& p2                // arc end point 2
+                        );
+
+    void CheckCircleSegment(std::shared_ptr<ChBody> connector,  // connector body
+                            const ChVector<>& cc,               // circle center
+                            double cr,                          // circle radius
+                            const ChVector<>& p1,               // segment end point 1
+                            const ChVector<>& p2                // segment end point 2
+                            );
 
     ChTrackAssembly* m_track;                // pointer to containing track assembly
     std::shared_ptr<ChSprocket> m_sprocket;  // handle to the sprocket
@@ -121,7 +138,7 @@ void SprocketDoublePinContactCB::PerformCustomCollision(ChSystem* system) {
     // Loop over all track shoes in the associated track
     for (size_t is = 0; is < m_track->GetNumTrackShoes(); ++is) {
         auto shoe = std::static_pointer_cast<ChTrackShoeDoublePin>(m_track->GetTrackShoe(is));
-        
+
         // Perform collision test for the "left" connector body
         CheckConnectorSprocket(shoe->m_connector_L, locS_abs);
 
@@ -189,28 +206,11 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
     ChVector<> P1 = m_sprocket->GetGearBody()->TransformPointParentToLocal(P1_abs);
     ChVector<> P2 = m_sprocket->GetGearBody()->TransformPointParentToLocal(P2_abs);
 
-    ////if (loc.y > 0) {
-    ////    std::cout << loc.x << " " << loc.y << " " << loc.z << std::endl;
-    ////    std::cout << P1.x << " " << P1.y << " " << P1.z << std::endl;
-    ////    std::cout << P2.x << " " << P2.y << " " << P2.z << std::endl;
-    ////    std::cout << p0L.x << " " << p0L.y << " " << p0L.z << std::endl;
-    ////    std::cout << p1L.x << " " << p1L.y << " " << p1L.z << std::endl;
-    ////    std::cout << p2L.x << " " << p2L.y << " " << p2L.z << std::endl;
-    ////    std::cout << p3L.x << " " << p3L.y << " " << p3L.z << std::endl;
-    ////    std::cout << p4L.x << " " << p4L.y << " " << p4L.z << std::endl;
-    ////    std::cout << p0R.x << " " << p0R.y << " " << p0R.z << std::endl;
-    ////    std::cout << p1R.x << " " << p1R.y << " " << p1R.z << std::endl;
-    ////    std::cout << p2R.x << " " << p2R.y << " " << p2R.z << std::endl;
-    ////    std::cout << p3R.x << " " << p3R.y << " " << p3R.z << std::endl;
-    ////    std::cout << p4R.x << " " << p4R.y << " " << p4R.z << std::endl;
-    ////    std::cout << std::endl;
-    ////}
-
     // (6) Perform collision test between the front end of the connector and the gear profile.
-    CheckCircleProfile(connector, P1, p1L, p2L, p3L, p1R, p2R, p3R);
+    CheckCircleProfile(connector, P1, p1L, p2L, p3L, p4L, p1R, p2R, p3R, p4R);
 
     // (7) Perform collision test between the rear end of the connector and the gear profile.
-    CheckCircleProfile(connector, P2, p1L, p2L, p3L, p1R, p2R, p3R);
+    CheckCircleProfile(connector, P2, p1L, p2L, p3L, p4L, p1R, p2R, p3R, p4R);
 }
 
 // Working in the (x-z) plane of the gear, perform a 2D collision test between a circle
@@ -220,23 +220,119 @@ void SprocketDoublePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> conn
                                                     const ChVector<>& p1L,
                                                     const ChVector<>& p2L,
                                                     const ChVector<>& p3L,
+                                                    const ChVector<>& p4L,
                                                     const ChVector<>& p1R,
                                                     const ChVector<>& p2R,
-                                                    const ChVector<>& p3R) {    
+                                                    const ChVector<>& p3R,
+                                                    const ChVector<>& p4R) {
     // Check circle against arc centered at p3L.
+    CheckCircleArc(connector, loc, m_shoe_R, p3L, m_gear_R, p2L, p4L);
 
     // Check circle against arc centered at p3R.
+    CheckCircleArc(connector, loc, m_shoe_R, p3R, m_gear_R, p3R, p4R);
 
     // Check circle against segment p1L - p2L.
+    CheckCircleSegment(connector, loc, m_shoe_R, p1L, p2L);
 
     // Check circle against segment p1R - p2R.
+    CheckCircleSegment(connector, loc, m_shoe_R, p1R, p2R);
 
+    // Check circle against segment p4L - p4R.
+    CheckCircleSegment(connector, loc, m_shoe_R, p4L, p4R);
+}
+
+// Working in the (x-z) plane, perform a 2D collision test between a circle of radius 'cr'
+// centerd at 'cc' (on the connector body) and an arc on the circle of radius 'ar' centered
+// at 'ac', with the arc endpoints 'p1' and 'p2' (on the gear body).
+void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connector,  // connector body
+                                                const ChVector<>& cc,               // circle center
+                                                double cr,                          // circle radius
+                                                const ChVector<> ac,                // arc center
+                                                double ar,                          // arc radius
+                                                const ChVector<>& p1,               // arc end point 1
+                                                const ChVector<>& p2                // arc end point 2
+                                                ) {
+    // Find distance between centers
+    ChVector<> delta = cc - ac;
+    double dist2 = delta.Length2();
+
+    // If the two centers (circle and arc) are separated by less than the difference
+    // of their adjusted radii, there is no contact.
+    double Rdiff = ar - cr;
+    if (dist2 <= Rdiff * Rdiff)
+        return;
+
+    // If the contact point is outisde the arc (p1-p2), there is no contact.
+    ChVector<> a = p1 - ac;
+    ChVector<> b = p2 - ac;
+    ChVector<> axb = Vcross(a, b);
+    ChVector<> axd = Vcross(a, delta);
+    ChVector<> dxb = Vcross(delta, b);
+    if (Vdot(axb, axd) <= 0 || Vdot(axb, dxb) <= 0)
+        return;
+
+    // Generate contact information (still in the sprocket frame)
+    double dist = std::sqrt(dist2);
+    ChVector<> normal = -delta / dist;
+    ChVector<> pt_gear = ac - m_gear_R * normal;
+    ChVector<> pt_shoe = cc - m_shoe_R * normal;
+
+    // Fill in contact information and add the contact to the system.
+    // Express all vectors in the global frame
+    collision::ChCollisionInfo contact;
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel();
+    contact.modelB = connector->GetCollisionModel();
+    contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
+    contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
+    contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
+    contact.distance = Rdiff - dist;
+
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
+}
+
+// Working in the (x-z) plane, perform a 2D collision test between the circle of radius 'cr'
+// centerd at 'cc' (on the connector body) and the line segment with endpoints 'p1' and 'p2'
+// (on the gear body).
+void SprocketDoublePinContactCB::CheckCircleSegment(std::shared_ptr<ChBody> connector,  // connector body
+                                                    const ChVector<>& cc,               // circle center
+                                                    double cr,                          // circle radius
+                                                    const ChVector<>& p1,               // segment end point 1
+                                                    const ChVector<>& p2                // segment end point 2
+                                                    ) {
+    // Find closest point on segment to circle center: X = p1 + t * (p2-p1)
+    ChVector<> s = p2 - p1;
+    double t = Vdot(cc - p1, s) / Vdot(s, s);
+    ChClampValue(t, 0.0, 1.0);
+
+    ChVector<> pt_gear = p1 + t * s;
+
+    // No contact if circle center is too far from segment.
+    ChVector<> delta = cc - pt_gear;
+    double dist2 = delta.Length2();
+    if (dist2 >= cr * cr)
+        return;
+
+    // Generate contact information (still in sprocket frame)
+    double dist = std::sqrt(dist2);
+    ChVector<> normal = delta / dist;
+    ChVector<> pt_shoe = cc - cr * normal;
+
+    // Fill in contact information and add the contact to the system.
+    // Express all vectors in the global frame
+    collision::ChCollisionInfo contact;
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel();
+    contact.modelB = connector->GetCollisionModel();
+    contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
+    contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
+    contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
+    contact.distance = dist - cr;
+
+    m_sprocket->GetGearBody()->GetSystem()->GetContactContainer()->AddContact(contact);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocketDoublePin::ChSprocketDoublePin(const std::string& name) : ChSprocket(name) {
-}
+ChSprocketDoublePin::ChSprocketDoublePin(const std::string& name) : ChSprocket(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -287,8 +383,8 @@ std::shared_ptr<geometry::ChLinePath> ChSprocketDoublePin::GetProfile() {
         ChVector<> p1L = p0L + ChVector<>(+D * cbeta, D * sbeta, 0);
         ChVector<> p1R = p0R + ChVector<>(-D * cbeta, D * sbeta, 0);
 
-        ChVector<> p2L = ChVector<>(-C*sbeta, C*cbeta, 0) + ChVector<>(+D * cbeta, D * sbeta, 0);
-        ChVector<> p2R = ChVector<>(+C*sbeta, C*cbeta, 0) + ChVector<>(-D * cbeta, D * sbeta, 0);
+        ChVector<> p2L = ChVector<>(-C * sbeta, C * cbeta, 0) + ChVector<>(+D * cbeta, D * sbeta, 0);
+        ChVector<> p2R = ChVector<>(+C * sbeta, C * cbeta, 0) + ChVector<>(-D * cbeta, D * sbeta, 0);
 
         ChVector<> p3L = p2L + ChVector<>(+R * cbeta, R * sbeta, 0);
         ChVector<> p3R = p2R + ChVector<>(-R * cbeta, R * sbeta, 0);

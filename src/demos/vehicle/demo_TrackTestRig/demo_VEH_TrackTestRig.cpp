@@ -51,10 +51,10 @@ double render_step_size = 1.0 / 50;  // Time interval between two render frames
 // =============================================================================
 int main(int argc, char* argv[]) {
     ChTrackTestRig* rig = nullptr;
-    ChVector<> location(0, 1, 0);
+    ChVector<> attach_loc(0, 1, 0);
 
     if (use_JSON) {
-        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), location);
+        rig = new ChTrackTestRig(vehicle::GetDataFile(filename), attach_loc);
     } else {
         VehicleSide side = LEFT;
         TrackShoeType type = TrackShoeType::SINGLE_PIN;
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        rig = new ChTrackTestRig(track_assembly, location, ChMaterialSurfaceBase::DVI);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurfaceBase::DEM);
     }
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -88,25 +88,28 @@ int main(int argc, char* argv[]) {
 
     rig->SetMaxTorque(6000);
 
-    rig->Initialize(ChCoordsys<>());
+    ChVector<> rig_loc(0, 0, 2);
+    ChQuaternion<> rig_rot(1, 0, 0, 0);
+    rig->Initialize(ChCoordsys<>(rig_loc, rig_rot));
 
     rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
+    ////rig->SetCollide(TrackCollide::NONE);
     ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.
-    ChVector<> target_point = rig->GetPostPosition();
+    ////ChVector<> target_point = rig->GetPostPosition();
     ////ChVector<> target_point = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
-    ////ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
+    ChVector<> target_point = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
 
     ChVehicleIrrApp app(rig, NULL, L"Suspension Test Rig");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
-    app.SetChaseCamera(target_point, 3.0, 1.0);
+    app.SetChaseCamera(ChVector<>(0), 3.0, 0.0);
     app.SetChaseCameraPosition(target_point + ChVector<>(0, 3, 0));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
