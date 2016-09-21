@@ -247,8 +247,10 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
 
         if (istep==3 && use_mkl)
         {
+#ifdef CHRONO_MKL
             mkl_solver_speed->SetSparsityPatternLock(true);
             mkl_solver_stab->SetSparsityPatternLock(true);
+#endif
         }
 
         if (istep == skip_steps) {

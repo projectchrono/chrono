@@ -75,10 +75,10 @@ namespace chrono {
 
 		std::vector<std::list<int>>& GetSparsityPattern()
 		{
-			for (auto& list : row_lists)
+			for (auto list_iter = row_lists.begin(); list_iter!= row_lists.end(); ++list_iter)
 			{
-				list.sort();
-				list.unique();
+                list_iter->sort();
+                list_iter->unique();
 			}
 			return row_lists;
 		}
@@ -87,8 +87,8 @@ namespace chrono {
 
 		int GetNNZ() const override {
 			int nnz_temp = 0;
-			for each (auto list in row_lists)
-				nnz_temp += static_cast<int>(list.size());
+            for (auto list_iter = row_lists.begin(); list_iter != row_lists.end(); ++list_iter)
+				nnz_temp += static_cast<int>(list_iter->size());
 
 			const_cast<ChSparsityPatternLearner*>(this)->m_nnz = nnz_temp;
 			return nnz_temp;
