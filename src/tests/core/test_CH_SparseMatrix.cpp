@@ -159,8 +159,6 @@ void timeSetElement() {
     cout << "      NNZ:  " << C.GetNNZ() << endl;
     cout << "      Time: " << timer() << endl;
 
-    Sleep(1000);
-
     cout << "   Second insertion: " << nnz << " values" << endl;
     C.Reset(n, n);
     timer.reset();
