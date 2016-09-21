@@ -14,8 +14,6 @@
 // Constraint utility functions
 // =============================================================================
 
-#pragma once
-
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 namespace chrono {
