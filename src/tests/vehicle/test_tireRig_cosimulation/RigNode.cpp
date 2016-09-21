@@ -716,10 +716,10 @@ void RigNode::OutputData(int frame) {
         m_outf << rtrq_motor.x << del << rtrq_motor.y << del << rtrq_motor.z << del;
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
-               << del << m_system->GetTimerUpdate();
+               << del << m_system->GetTimerUpdate() << del;
         if (m_int_type == ChSystem::INT_HHT) {
             m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
-                   << m_integrator->GetNumSolveCalls();
+                   << m_integrator->GetNumSolveCalls() << del;
         }
         // Tire statistics
         OutputTireData(del);
