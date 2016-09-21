@@ -22,6 +22,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <string>
 #include <valarray>
 #include <vector>
@@ -68,8 +69,6 @@ void TimingOutput(chrono::ChSystem* mSys) {
     int CNTC = mSys->GetNcontacts();
     if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(mSys)) {
         REQ_ITS = ((chrono::ChIterativeSolverParallel*)(mSys->GetSolverSpeed()))->GetTotalIterations();
-        BODS = parallel_sys->GetNbodies();
-        CNTC = parallel_sys->GetNcontacts();
     }
 
     printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f |\n", TIME, STEP, BROD, NARR,
@@ -83,6 +82,7 @@ int main(int argc, char** argv) {
     ChMaterialSurfaceBase::ContactMethod method = ChMaterialSurfaceBase::DEM;
     bool use_mat_properties = true;
     bool render = false;
+    bool track_granule = false;
 
     // Get number of threads from arguments (if specified)
     if (argc > 1) {
@@ -119,6 +119,8 @@ int main(int argc, char** argv) {
     float gn_terrain = 1.0e3f;
     float kt_terrain = 2.86e6f;
     float gt_terrain = 1.0e3f;
+    float coh_pressure_terrain = 0e3f;
+    float coh_force_terrain = (float)(CH_C_PI * radius_g * radius_g) * coh_pressure_terrain;
 
     // Estimates for number of bins for broad-phase
     int factor = 2;
@@ -137,7 +139,7 @@ int main(int argc, char** argv) {
     switch (method) {
         case ChMaterialSurfaceBase::DEM: {
             ChSystemParallelDEM* sys = new ChSystemParallelDEM;
-            sys->GetSettings()->solver.contact_force_model = ChSystemDEM::Hooke;
+            sys->GetSettings()->solver.contact_force_model = ChSystemDEM::Hertz;
             sys->GetSettings()->solver.tangential_displ_mode = ChSystemDEM::TangentialDisplacementModel::OneStep;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
@@ -191,7 +193,7 @@ int main(int argc, char** argv) {
             mat_ter->SetRestitution(restitution_terrain);
             mat_ter->SetYoungModulus(Y_terrain);
             mat_ter->SetPoissonRatio(nu_terrain);
-            mat_ter->SetAdhesion(100.0f);  // TODO
+            mat_ter->SetAdhesion(coh_force_terrain);
             mat_ter->SetKn(kn_terrain);
             mat_ter->SetGn(gn_terrain);
             mat_ter->SetKt(kt_terrain);
@@ -205,6 +207,7 @@ int main(int argc, char** argv) {
             auto mat_ter = std::make_shared<ChMaterialSurface>();
             mat_ter->SetFriction(friction_terrain);
             mat_ter->SetRestitution(restitution_terrain);
+            mat_ter->SetCohesion(coh_force_terrain);
 
             material_terrain = mat_ter;
 
@@ -266,11 +269,31 @@ int main(int argc, char** argv) {
     unsigned int num_particles = gen.getTotalNumBodies();
     std::cout << "Generated particles:  " << num_particles << std::endl;
 
-// -------------------------------
-// Create the visualization window
-// -------------------------------
+    // If tracking a granule (roughly in the "middle of the pack"),
+    // grab a pointer to the tracked body and open an output file.
+    std::shared_ptr<ChBody> granule;  // tracked granule
+    std::ofstream outf;             // output file stream
+
+    if (track_granule) {
+        int id = Id_g + num_particles / 2;
+        auto bodies = system->Get_bodylist();
+        for (auto body = bodies->begin(); body != bodies->end(); ++body) {
+            if ((*body)->GetIdentifier() == id) {
+                granule = *body;
+                break;
+            }
+        }
+
+        outf.open("../settling_granule.dat", std::ios::out);
+        outf.precision(7);
+        outf << std::scientific;
+    }
 
 #ifdef CHRONO_OPENGL
+    // -------------------------------
+    // Create the visualization window
+    // -------------------------------
+
     if (render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         gl_window.Initialize(1280, 720, "Settling test", system);
@@ -299,6 +322,19 @@ int main(int argc, char** argv) {
         ////cumm_sim_time += timer();
         ////std::cout << std::fixed << std::setprecision(6) << system->GetChTime() << "  [" << timer.GetTimeSeconds() << "]"
         ////          << std::endl;
+
+        if (track_granule) {
+            assert(outf.is_open());
+            assert(granule);
+            const ChVector<>& pos = granule->GetPos();
+            const ChVector<>& vel = granule->GetPos_dt();
+            outf << system->GetChTime() << " ";
+            outf << system->GetNbodies() << " " << system->GetNcontacts() << " ";
+            outf << pos.x << " " << pos.y << " " << pos.z << " ";
+            outf << vel.x << " " << vel.y << " " << vel.z;
+            outf << std::endl << std::flush;
+        }
+
 #ifdef CHRONO_OPENGL
         if (render) {
             opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
