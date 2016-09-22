@@ -306,22 +306,27 @@ int main(int argc, char** argv) {
     // Simulate system
     // ---------------
 
-    ChTimer<double> timer;
-    double cumm_sim_time = 0;
-
     double time_end = 0.4;
     double time_step = 1e-4;
 
+    double cum_sim_time = 0;
+    double cum_broad_time = 0;
+    double cum_narrow_time = 0;
+    double cum_solver_time = 0;
+    double cum_update_time = 0;
+
     TimingHeader();
+
     while (system->GetChTime() < time_end) {
-        ////timer.reset();
-        ////timer.start();
         system->DoStepDynamics(time_step);
+
         TimingOutput(system);
-        ////timer.stop();
-        ////cumm_sim_time += timer();
-        ////std::cout << std::fixed << std::setprecision(6) << system->GetChTime() << "  [" << timer.GetTimeSeconds() << "]"
-        ////          << std::endl;
+
+        cum_sim_time += system->GetTimerStep();
+        cum_broad_time += system->GetTimerCollisionBroad();
+        cum_narrow_time += system->GetTimerCollisionNarrow();
+        cum_solver_time += system->GetTimerSolver();
+        cum_update_time += system->GetTimerUpdate();
 
         if (track_granule) {
             assert(outf.is_open());
@@ -346,6 +351,14 @@ int main(int argc, char** argv) {
         }
 #endif
     }
+
+    std::cout << std::endl;
+    std::cout << "Simulation time: " << cum_sim_time << std::endl;
+    std::cout << "    Broadphase:  " << cum_broad_time << std::endl;
+    std::cout << "    Narrowphase: " << cum_narrow_time << std::endl;
+    std::cout << "    Solver:      " << cum_solver_time << std::endl;
+    std::cout << "    Update:      " << cum_update_time << std::endl;
+    std::cout << std::endl;
 
     return 0;
 }

@@ -52,13 +52,13 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
 
     /// Get the element at the specified location.
-    virtual double GetElement(int row, int col) override;
+    virtual double GetElement(int row, int col) const override;
 
     /// Return the row index array in the CSR representation of this matrix.
-    virtual int* GetCSR_RowIndexArray() const override;
+    virtual int* GetCSR_LeadingIndexArray() const override;
 
     /// Return the column index array in the CSR representation of this matrix.
-    virtual int* GetCSR_ColIndexArray() const override;
+    virtual int* GetCSR_TrailingIndexArray() const override;
 
     /// Return the array of matrix values in the CSR representation of this matrix.
     virtual double* GetCSR_ValueArray() const override;
@@ -67,7 +67,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
     void ConvertToDense(ChMatrixDynamic<double>& mat);
 
     /// Convert to CSR arrays.
-    void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
+	void ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::vector<double>& a) const;
 
     /// Method to allow serializing transient data into in ASCII stream (e.g., a file) as a
     /// Matlab sparse matrix format; each row in file has three elements: {row, column, value}.
@@ -81,7 +81,7 @@ class ChApi ChMapMatrix : public ChSparseMatrix {
   private:
     struct MatrixRow {
         MatrixRow() : m_nnz(0) {}
-        int m_nnz;                               ///< number of non-zero elements in row
+		int m_nnz;                               ///< number of non-zero elements in row
         std::unordered_map<int, double> m_data;  ///< column - value pairs in row
     };
 

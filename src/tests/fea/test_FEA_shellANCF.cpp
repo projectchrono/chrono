@@ -42,18 +42,18 @@ using std::endl;
 
 // -----------------------------------------------------------------------------
 
-int num_threads = 4;      // default number of threads
+int num_threads = 1;      // default number of threads
 double step_size = 1e-3;  // integration step size
-int num_steps = 22;       // number of integration steps
-int skip_steps = 2;       // initial number of steps excluded from timing
+int num_steps = 20;       // number of integration steps
+int skip_steps = 0;       // initial number of steps excluded from timing
 
 int numDiv_x = 50;  // mesh divisions in X direction
 int numDiv_y = 50;  // mesh divisions in Y direction
 int numDiv_z = 1;   // mesh divisions in Z direction
 
 std::string out_dir = "../TEST_SHELL_ANCF";  // name of output directory
-bool output = false;                         // generate output file?
-bool verbose = false;                        // verbose output?
+bool output = true;                         // generate output file?
+bool verbose = true;                        // verbose output?
 
 // -----------------------------------------------------------------------------
 
@@ -245,6 +245,14 @@ void RunModel(bool use_mkl,              // use MKL solver (if available)
 #endif
         my_system.DoStepDynamics(step_size);
 
+        if (istep==3 && use_mkl)
+        {
+#ifdef CHRONO_MKL
+            mkl_solver_speed->SetSparsityPatternLock(true);
+            mkl_solver_stab->SetSparsityPatternLock(true);
+#endif
+        }
+
         if (istep == skip_steps) {
             if (verbose)
                 cout << "Resetting counters at step = " << istep << endl;
@@ -380,5 +388,5 @@ int main(int argc, char* argv[]) {
     RunModel(false, true, false, "MINRES_adaptive_full");     // MINRES, adaptive step, full Newton
     RunModel(false, true, true, "MINRES_adaptive_modified");  // MINRES, adaptive step, modified Newton
 
-    return 0;
+     return 0;
 }

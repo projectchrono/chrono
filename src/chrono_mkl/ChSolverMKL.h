@@ -22,7 +22,9 @@
 #include "chrono/core/ChTimer.h"
 
 #include "chrono_mkl/ChMklEngine.h"
-#include "chrono_mkl/ChCSR3Matrix.h"
+#include "chrono/core/ChCSR3Matrix.h"
+
+
 
 namespace chrono {
 
@@ -34,27 +36,32 @@ namespace chrono {
 template <typename Matrix = ChCSR3Matrix>
 class ChSolverMKL : public ChSolver {
   public:
-    ChSolverMKL()
-        : m_engine(0, ChSparseMatrix::GENERAL),
-          m_mat(1, 1),
-          m_solver_call(0),
-          m_dim(0),
-          m_nnz(0),
-          m_lock(false),
-          m_use_perm(false),
-          m_use_rhs_sparsity(false) {}
+    ChSolverMKL() {}
 
-    ~ChSolverMKL() {}
+    ~ChSolverMKL() override {}
 
-    /// Get a handle to thenunderlying MKL engine.
+    /// Get a handle to the underlying MKL engine.
     ChMklEngine& GetMklEngine() { return m_engine; }
 
+    /// Get a handle to the underlying matrix.
     Matrix& GetMatrix() { return m_mat; }
 
     /// Enable/disable locking the sparsity pattern (default: false).
-    /// If on_off is set to true, then the sparsity pattern of the problem matrix is assumed
+    /// If \a val is set to true, then the sparsity pattern of the problem matrix is assumed
     /// to be unchanged from call to call.
-    void SetSparsityPatternLock(bool val) { m_lock = val; }
+    void SetSparsityPatternLock(bool val)
+    {
+	    m_lock = val;
+		m_mat.SetSparsityPatternLock(m_lock);
+    }
+
+	/// Call an update of the sparsiy pattern on the underlying matrix.
+	/// It is used to inform the solver (and the underlying matrices) that the sparsity pattern is changed.
+	/// It is suggested to call this function just after the construction of the solver.
+	void ForceSparsityPatternUpdate()
+    {
+		m_mat.ForceSparsityPatternUpdate();
+    }
 
     /// Enable/disable use of permutation vector (default: false).
     void UsePermutationVector(bool val) { m_use_perm = val; }
@@ -76,13 +83,13 @@ class ChSolverMKL : public ChSolver {
     }
 
     /// Get cumulative time for assembly operations in Solve phase.
-    double GetTimeSolveAssembly() { return m_timer_solve_assembly(); }
+    double GetTimeSolveAssembly() const { return m_timer_solve_assembly(); }
     /// Get cumulative time for Pardiso calls in Solve phase.
-    double GetTimeSolvePardiso() { return m_timer_solve_pardiso(); }
+    double GetTimeSolvePardiso() const { return m_timer_solve_pardiso(); }
     /// Get cumulative time for assembly operations in Setup phase.
-    double GetTimeSetupAssembly() { return m_timer_setup_assembly(); }
+    double GetTimeSetupAssembly() const { return m_timer_setup_assembly(); }
     /// Get cumulative time for Pardiso calls in Setup phase.
-    double GetTimeSetupPardiso() { return m_timer_setup_pardiso(); }
+    double GetTimeSetupPardiso() const { return m_timer_setup_pardiso(); }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
@@ -104,7 +111,7 @@ class ChSolverMKL : public ChSolver {
         int pardiso_message_phase33 = m_engine.PardisoCall(33, 0);
         m_timer_solve_pardiso.stop();
 
-        m_solver_call++;
+        m_solve_call++;
 
         if (pardiso_message_phase33) {
             GetLog() << "Pardiso solve+refine error code = " << pardiso_message_phase33 << "\n";
@@ -113,7 +120,7 @@ class ChSolverMKL : public ChSolver {
 
         if (verbose) {
             double res_norm = m_engine.GetResidualNorm();
-            GetLog() << " MKL solve call " << m_solver_call << "  |residual| = " << res_norm << "\n";
+            GetLog() << " MKL solve call " << m_solve_call << "  |residual| = " << res_norm << "\n";
         }
 
         // Scatter solution vector to the system descriptor.
@@ -130,11 +137,11 @@ class ChSolverMKL : public ChSolver {
     virtual bool Setup(ChSystemDescriptor& sysd) override {
         m_timer_setup_assembly.start();
 
-        // Set the lock on the matrix sparsity pattern (if enabled).
-        m_mat.SetSparsityPatternLock(m_lock);
+        // Let the matrix acquire the information about ChSystem
+        m_mat.BindToChSystemDescriptor(&sysd);
 
         // Calculate problem size at first call.
-        if (m_solver_call == 0) {
+        if (m_setup_call == 0) {
             m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
         }
 
@@ -143,17 +150,16 @@ class ChSolverMKL : public ChSolver {
         // Otherwise, do this only at the first call, using the default sparsity fill-in.
         if (m_nnz != 0) {
             m_mat.Reset(m_dim, m_dim, m_nnz);
-        } else if (m_solver_call == 0) {
+        } else if (m_setup_call == 0) {
             m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
         }
 
-        // Assemble the matrix.
-        sysd.ConvertToMatrixForm(&m_mat, nullptr);
-        m_dim = m_mat.GetNumRows();
+		sysd.ConvertToMatrixForm(&m_mat, nullptr);        
 
 
         // Allow the matrix to be compressed.
         bool change = m_mat.Compress();
+
 
         // Set current matrix in the MKL engine.
         m_engine.SetMatrix(m_mat);
@@ -177,6 +183,8 @@ class ChSolverMKL : public ChSolver {
         m_timer_setup_pardiso.start();
         int pardiso_message_phase12 = m_engine.PardisoCall(12, 0);
         m_timer_setup_pardiso.stop();
+
+		m_setup_call++;
 
         if (pardiso_message_phase12 != 0) {
             GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
@@ -211,17 +219,19 @@ class ChSolverMKL : public ChSolver {
     }
 
   private:
-    ChMklEngine m_engine;           ///< interface to MKL solver
-    Matrix m_mat;                   ///< problem matrix
-    ChMatrixDynamic<double> m_rhs;  ///< right-hand side vector
-    ChMatrixDynamic<double> m_sol;  ///< solution vector
-    int m_dim;                      ///< problem size
-    int m_nnz;                      ///< user-supplied estimate of NNZ
-    int m_solver_call;              ///< counter for calls to Solve
+    ChMklEngine m_engine = {0, ChSparseMatrix::GENERAL };           ///< interface to MKL solver
+    Matrix m_mat = {1, 1};                                          ///< problem matrix
+    ChMatrixDynamic<double> m_rhs;                                  ///< right-hand side vector
+    ChMatrixDynamic<double> m_sol;                                  ///< solution vector
 
-    bool m_lock;              ///< is the matrix sparsity pattern locked?
-    bool m_use_perm;          ///< enable use of the permutation vector?
-    bool m_use_rhs_sparsity;  ///< leverage right-hand side sparsity?
+    int m_dim = 0;                      ///< problem size
+    int m_nnz = 0;                      ///< user-supplied estimate of NNZ
+    int m_solve_call = 0;               ///< counter for calls to Solve
+    int m_setup_call = 0;               ///< counter for calls to Setup
+
+    bool m_lock = false;              ///< is the matrix sparsity pattern locked?
+    bool m_use_perm = false;          ///< enable use of the permutation vector?
+    bool m_use_rhs_sparsity = false;  ///< leverage right-hand side sparsity?
 
     ChTimer<> m_timer_setup_assembly;  ///< timer for matrix assembly
     ChTimer<> m_timer_setup_pardiso;   ///< timer for factorization

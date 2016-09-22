@@ -3,6 +3,7 @@
 
 SET(TESTS
   test_CH_function_recorder
+  test_CH_SparseMatrix
 )
 
 if(AVX_FOUND)

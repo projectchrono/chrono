@@ -22,7 +22,7 @@
 #include "chrono/core/ChMatrixDynamic.h"
 #include "chrono/core/ChLinkedListMatrix.h"
 #include "chrono/core/ChMapMatrix.h"
-#include "chrono_mkl/ChCSR3Matrix.h"
+#include "chrono/core/ChCSR3Matrix.h"
 
 using namespace chrono;
 using std::cout;
@@ -36,7 +36,7 @@ void timeSetElement() {
     ChTimer<> timer;
 
     // Generate randomized row-column indices in a sparse matrix.
-    int n = 2000;
+    int n = 10000;
     int nnz = (n * n) * 0.05;
 
     cout << "N   = " << n << endl;
@@ -67,47 +67,91 @@ void timeSetElement() {
     cout << "Time LinkedList matrix: " << timer() << endl;
     */
 
-    // Insert non-zero elements in a CSR3 matrix
+
+    {
+        // -----------------------------------------
+        // Insert non-zero elements in a CSR3 matrix
+        // without using sparsity pattern lock
+        // -----------------------------------------
+        cout << "ChCSR3Matrix" << endl;
+        ChCSR3Matrix B(n, n);
+
+        cout << "   First insertion: " << nnz << " values" << endl;
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("a", 6);
+        for (int i = 0; i < nnz; i++) {
+            B.SetElement(row_indices[i], col_indices[i], 1.0);
+        }
+        B.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << B.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+
+        cout << "   Second insertion: " << nnz << " values" << endl;
+        B.Reset(n, n);
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("b", 6);
+        for (int i = 0; i < nnz; i++) {
+            B.SetElement(row_indices[i], col_indices[i], 2.0);
+        }
+        B.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << B.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+    }
+
+    {
+        // -----------------------------------------
+        // Insert non-zero elements in a CSR3 matrix
+        // using sparsity pattern lock
+        // -----------------------------------------
+        cout << "ChCSR3Matrix" << endl;
+        ChCSR3Matrix B(n, n);
+
+        cout << "   First insertion: " << nnz << " values" << endl;
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("a", 6);
+        for (int i = 0; i < nnz; i++) {
+            B.SetElement(row_indices[i], col_indices[i], 1.0);
+        }
+        B.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << B.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+
+        B.SetSparsityPatternLock(true);
+
+
+        cout << "   Second insertion: " << nnz << " values" << endl;
+        B.Reset(n, n);
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("b", 6);
+        for (int i = 0; i < nnz; i++) {
+            B.SetElement(row_indices[i], col_indices[i], 2.0);
+        }
+        B.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << B.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+    }
+
     // -----------------------------------------
-
-    cout << "ChCSR3Matrix" << endl;
-    ChCSR3Matrix B(n, n);
-
-    cout << "   First insertion: " << nnz / 2 << " values" << endl;
-    timer.reset();
-    timer.start();
-    for (int i = 0; i < nnz / 2; i++) {
-        B.SetElement(row_indices[i], col_indices[i], 1.0);
-    }
-    B.Compress();
-    timer.stop();
-    cout << "      NNZ:  " << B.GetColIndexLength() << endl;
-    cout << "      Time: " << timer() << endl;
-
-    cout << "   Second insertion: " << nnz - nnz / 2 << " additional values" << endl;
-    B.Reset(n, n);
-    timer.reset();
-    timer.start();
-    for (int i = 0; i < nnz; i++) {
-        B.SetElement(row_indices[i], col_indices[i], 2.0);
-    }
-    B.Compress();
-    timer.stop();
-    cout << "      NNZ:  " << B.GetColIndexLength() << endl;
-    cout << "      Time: " << timer() << endl;
-
     // Insert non-zero elements in a Map matrix
-    // ----------------------------------------
+    // -----------------------------------------
     cout << "MapMatrix" << endl;
     ChMapMatrix C(n, n);
     std::vector<int> ia;
     std::vector<int> ja;
     std::vector<double> vals;
 
-    cout << "   First insertion: " << nnz / 2 << " values" << endl;
+    cout << "   First insertion: " << nnz << " values" << endl;
     timer.reset();
     timer.start();
-    for (int i = 0; i < nnz / 2; i++) {
+    for (int i = 0; i < nnz; i++) {
         C.SetElement(row_indices[i], col_indices[i], 1.0);
     }
     C.ConvertToCSR(ia, ja, vals);
@@ -115,7 +159,7 @@ void timeSetElement() {
     cout << "      NNZ:  " << C.GetNNZ() << endl;
     cout << "      Time: " << timer() << endl;
 
-    cout << "   Second insertion: " << nnz - nnz / 2 << " additional values" << endl;
+    cout << "   Second insertion: " << nnz << " values" << endl;
     C.Reset(n, n);
     timer.reset();
     timer.start();

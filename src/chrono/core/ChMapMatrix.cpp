@@ -81,7 +81,7 @@ void ChMapMatrix::SetElement(int row, int col, double elem, bool overwrite) {
     m_CSR_current = false;
 }
 
-double ChMapMatrix::GetElement(int row, int col) {
+double ChMapMatrix::GetElement(int row, int col) const {
     assert(row < m_num_rows);
     assert(col < m_num_cols);
 
@@ -136,13 +136,15 @@ void ChMapMatrix::ConvertToCSR(std::vector<int>& ia, std::vector<int>& ja, std::
     m_CSR_current = true;
 }
 
-int* ChMapMatrix::GetCSR_RowIndexArray() const {
+int* ChMapMatrix::GetCSR_LeadingIndexArray() const
+{
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_ia.data();
 }
 
-int* ChMapMatrix::GetCSR_ColIndexArray() const {
+int* ChMapMatrix::GetCSR_TrailingIndexArray() const
+{
     if (!m_CSR_current)
         ConvertToCSR(m_ia, m_ja, m_a);
     return m_ja.data();
