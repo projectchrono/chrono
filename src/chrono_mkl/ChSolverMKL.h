@@ -58,9 +58,9 @@ class ChSolverMKL : public ChSolver {
 	/// Call an update of the sparsiy pattern on the underlying matrix.
 	/// It is used to inform the solver (and the underlying matrices) that the sparsity pattern is changed.
 	/// It is suggested to call this function just after the construction of the solver.
-	void ForceSparsityPatternUpdate()
+	void ForceSparsityPatternUpdate(bool val = true)
     {
-		m_mat.ForceSparsityPatternUpdate();
+        m_force_sparsity_pattern_update = val;
     }
 
     /// Enable/disable use of permutation vector (default: false).
@@ -95,6 +95,85 @@ class ChSolverMKL : public ChSolver {
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
     virtual bool SolveRequiresMatrix() const override { return false; }
 
+
+    /// Perform the solver setup operations.
+    /// For the MKL solver, this means assembling and factorizing the system matrix.
+    /// Returns true if successful and false otherwise.
+    virtual bool Setup(ChSystemDescriptor& sysd) override {
+        m_timer_setup_assembly.start();
+
+        // Calculate problem size at first call.
+        if (m_setup_call == 0) {
+            m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
+        }
+
+        // Let the matrix acquire the information about ChSystem
+        if (m_force_sparsity_pattern_update)
+        {
+            m_force_sparsity_pattern_update = false;
+
+            ChSparsityPatternLearner sparsity_learner(m_dim, m_dim, true);
+            sysd.ConvertToMatrixForm(&sparsity_learner, nullptr);
+            m_mat.LoadSparsityPattern(sparsity_learner);
+        }
+        else
+        {
+            // If an NNZ value for the underlying matrix was specified, perform an initial resizing, *before*
+            // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
+            // Otherwise, do this only at the first call, using the default sparsity fill-in.
+            if (m_nnz != 0) {
+                m_mat.Reset(m_dim, m_dim, m_nnz);
+            }
+            else
+                if (m_setup_call == 0) {
+                    m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
+                }
+        }
+
+        sysd.ConvertToMatrixForm(&m_mat, nullptr);
+
+
+
+        // Allow the matrix to be compressed.
+        bool change = m_mat.Compress();
+
+
+        // Set current matrix in the MKL engine.
+        m_engine.SetMatrix(m_mat);
+
+        // If compression made any change, flag for update of permutation vector.
+        if (change && m_use_perm) {
+            m_engine.UsePermutationVector(true);
+        }
+
+        // The sparsity of rhs must be updated at every cycle (is this true?)
+        if (m_use_rhs_sparsity && !m_use_perm)
+            m_engine.UsePartialSolution(2);
+
+        m_timer_setup_assembly.stop();
+
+        // Perform the factorization with the Pardiso sparse direct solver.
+        m_timer_setup_solvercall.start();
+        int pardiso_message_phase12 = m_engine.PardisoCall(ChMklEngine::phase_t::ANALYSIS_NUMFACTORIZATION, 0);
+        m_timer_setup_solvercall.stop();
+
+        m_setup_call++;
+
+        if (verbose) {
+            GetLog() << " MKL setup n = " << m_dim << "  nnz = " << m_mat.GetNNZ() << "\n";
+            GetLog() << "  assembly: " << m_timer_setup_assembly.GetTimeSecondsIntermediate() << "s" <<
+                        "  solver_call: " << m_timer_setup_solvercall.GetTimeSecondsIntermediate() << "\n";
+        }
+
+        if (pardiso_message_phase12 != 0) {
+            GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
+            return false;
+        }
+
+        return true;
+    }
+
+
     /// Solve using the MKL Pardiso sparse direct solver.
     /// It uses the matrix factorization obtained at the last call to Setup().
     virtual double Solve(ChSystemDescriptor& sysd) override {
@@ -121,6 +200,9 @@ class ChSolverMKL : public ChSolver {
         if (verbose) {
             double res_norm = m_engine.GetResidualNorm();
             GetLog() << " MKL solve call " << m_solve_call << "  |residual| = " << res_norm << "\n";
+            GetLog() << "  assembly: " << m_timer_solve_assembly.GetTimeSecondsIntermediate() << "s\n" <<
+                        "  solver_call: " << m_timer_solve_solvercall.GetTimeSecondsIntermediate() << "\n";
+
         }
 
         // Scatter solution vector to the system descriptor.
@@ -131,68 +213,7 @@ class ChSolverMKL : public ChSolver {
         return 0.0f;
     }
 
-    /// Perform the solver setup operations.
-    /// For the MKL solver, this means assembling and factorizing the system matrix.
-    /// Returns true if successful and false otherwise.
-    virtual bool Setup(ChSystemDescriptor& sysd) override {
-        m_timer_setup_assembly.start();
-
-        // Let the matrix acquire the information about ChSystem
-        m_mat.BindToChSystemDescriptor(&sysd);
-
-        // Calculate problem size at first call.
-        if (m_setup_call == 0) {
-            m_dim = sysd.CountActiveVariables() + sysd.CountActiveConstraints();
-        }
-
-        // If an NNZ value for the underlying matrix was specified, perform an initial resizing, *before*
-        // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
-        // Otherwise, do this only at the first call, using the default sparsity fill-in.
-        if (m_nnz != 0) {
-            m_mat.Reset(m_dim, m_dim, m_nnz);
-        } else if (m_setup_call == 0) {
-            m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
-        }
-
-		sysd.ConvertToMatrixForm(&m_mat, nullptr);        
-
-
-        // Allow the matrix to be compressed.
-        bool change = m_mat.Compress();
-
-
-        // Set current matrix in the MKL engine.
-        m_engine.SetMatrix(m_mat);
-
-        // If compression made any change, flag for update of permutation vector.
-        if (change && m_use_perm) {
-            m_engine.UsePermutationVector(true);
-        }
-
-        // The sparsity of rhs must be updated at every cycle (is this true?)
-        if (m_use_rhs_sparsity && !m_use_perm)
-            m_engine.UsePartialSolution(2);
-
-        m_timer_setup_assembly.stop();
-
-        if (verbose) {
-            GetLog() << " MKL setup n = " << m_dim << "  nnz = " << m_mat.GetNNZ() << "\n";
-        }
-
-        // Perform the factorization with the Pardiso sparse direct solver.
-        m_timer_setup_solvercall.start();
-        int pardiso_message_phase12 = m_engine.PardisoCall(ChMklEngine::phase_t::ANALYSIS_NUMFACTORIZATION, 0);
-        m_timer_setup_solvercall.stop();
-
-		m_setup_call++;
-
-        if (pardiso_message_phase12 != 0) {
-            GetLog() << "Pardiso analyze+reorder+factorize error code = " << pardiso_message_phase12 << "\n";
-            return false;
-        }
-
-        return true;
-    }
+    
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
@@ -219,7 +240,7 @@ class ChSolverMKL : public ChSolver {
     }
 
   private:
-    ChMklEngine m_engine = {0, ChSparseMatrix::GENERAL };           ///< interface to MKL solver
+    ChMklEngine m_engine = { 0, ChSparseMatrix::GENERAL };           ///< interface to MKL solver
     Matrix m_mat = {1, 1};                                          ///< problem matrix
     ChMatrixDynamic<double> m_rhs;                                  ///< right-hand side vector
     ChMatrixDynamic<double> m_sol;                                  ///< solution vector
@@ -230,6 +251,7 @@ class ChSolverMKL : public ChSolver {
     int m_setup_call = 0;               ///< counter for calls to Setup
 
     bool m_lock = false;              ///< is the matrix sparsity pattern locked?
+    bool m_force_sparsity_pattern_update = false; ///< is the sparsity pattern changed compared to last call?
     bool m_use_perm = false;          ///< enable use of the permutation vector?
     bool m_use_rhs_sparsity = false;  ///< leverage right-hand side sparsity?
 
