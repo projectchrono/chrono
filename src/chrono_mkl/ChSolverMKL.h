@@ -77,19 +77,19 @@ class ChSolverMKL : public ChSolver {
     /// Reset timers for internal phases in Solve and Setup.
     void ResetTimers() {
         m_timer_setup_assembly.reset();
-        m_timer_setup_pardiso.reset();
+        m_timer_setup_solvercall.reset();
         m_timer_solve_assembly.reset();
-        m_timer_solve_pardiso.reset();
+        m_timer_solve_solvercall.reset();
     }
 
     /// Get cumulative time for assembly operations in Solve phase.
-    double GetTimeSolveAssembly() const { return m_timer_solve_assembly(); }
+    double GetTimeSolve_Assembly() const { return m_timer_solve_assembly(); }
     /// Get cumulative time for Pardiso calls in Solve phase.
-    double GetTimeSolvePardiso() const { return m_timer_solve_pardiso(); }
+    double GetTimeSolve_SolverCall() const { return m_timer_solve_solvercall(); }
     /// Get cumulative time for assembly operations in Setup phase.
-    double GetTimeSetupAssembly() const { return m_timer_setup_assembly(); }
+    double GetTimeSetup_Assembly() const { return m_timer_setup_assembly(); }
     /// Get cumulative time for Pardiso calls in Setup phase.
-    double GetTimeSetupPardiso() const { return m_timer_setup_pardiso(); }
+    double GetTimeSetup_SolverCall() const { return m_timer_setup_solvercall(); }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
@@ -107,9 +107,9 @@ class ChSolverMKL : public ChSolver {
         m_timer_solve_assembly.stop();
 
         // Solve the problem using Pardiso.
-        m_timer_solve_pardiso.start();
-        int pardiso_message_phase33 = m_engine.PardisoCall(33, 0);
-        m_timer_solve_pardiso.stop();
+        m_timer_solve_solvercall.start();
+        int pardiso_message_phase33 = m_engine.PardisoCall(ChMklEngine::phase_t::SOLVE, 0);
+        m_timer_solve_solvercall.stop();
 
         m_solve_call++;
 
@@ -180,9 +180,9 @@ class ChSolverMKL : public ChSolver {
         }
 
         // Perform the factorization with the Pardiso sparse direct solver.
-        m_timer_setup_pardiso.start();
-        int pardiso_message_phase12 = m_engine.PardisoCall(12, 0);
-        m_timer_setup_pardiso.stop();
+        m_timer_setup_solvercall.start();
+        int pardiso_message_phase12 = m_engine.PardisoCall(ChMklEngine::phase_t::ANALYSIS_NUMFACTORIZATION, 0);
+        m_timer_setup_solvercall.stop();
 
 		m_setup_call++;
 
@@ -234,9 +234,9 @@ class ChSolverMKL : public ChSolver {
     bool m_use_rhs_sparsity = false;  ///< leverage right-hand side sparsity?
 
     ChTimer<> m_timer_setup_assembly;  ///< timer for matrix assembly
-    ChTimer<> m_timer_setup_pardiso;   ///< timer for factorization
+    ChTimer<> m_timer_setup_solvercall;   ///< timer for factorization
     ChTimer<> m_timer_solve_assembly;  ///< timer for RHS assembly
-    ChTimer<> m_timer_solve_pardiso;   ///< timer for solution
+    ChTimer<> m_timer_solve_solvercall;   ///< timer for solution
 };
 
 /// @} mkl_module
