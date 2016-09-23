@@ -40,6 +40,7 @@ HMMWV::HMMWV()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
+      m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::HMMWV(ChSystem* system)
@@ -54,6 +55,7 @@ HMMWV::HMMWV(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
+      m_initFwdVel(0),
       m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
 
 HMMWV::~HMMWV() {
@@ -69,7 +71,7 @@ HMMWV::~HMMWV() {
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
-    m_vehicle->Initialize(m_initPos);
+    m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // Create and initialize the powertrain system
     switch (m_powertrainType) {

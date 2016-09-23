@@ -96,7 +96,8 @@ class CH_VEHICLE_API ChVehicle {
     ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Initialize this vehicle at the specified global location and orientation.
-    virtual void Initialize(const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             ) = 0;
 
     /// Set visualization mode for the chassis subsystem.

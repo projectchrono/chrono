@@ -92,7 +92,8 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     virtual double GetDriveshaftSpeed() const override { return 0; }
 
     /// Initialize this chassis at the specified global location and orientation.
-    virtual void Initialize(const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial forward velocity (ignored)
                             ) override;
 
     /// Set collision flags for the various subsystems.

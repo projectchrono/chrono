@@ -60,7 +60,7 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     double GetShockLength(const WheelID& wheel_id) const;
     double GetShockVelocity(const WheelID& wheel_id) const;
 
-    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design

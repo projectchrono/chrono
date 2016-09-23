@@ -52,7 +52,7 @@ class CH_MODELS_API HMMWV_VehicleReduced : public ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return 2; }
 
-    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
     void Create(bool fixed);

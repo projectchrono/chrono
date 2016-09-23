@@ -56,6 +56,7 @@ class CH_MODELS_API HMMWV {
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
+    void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
     void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
@@ -101,6 +102,7 @@ class CH_MODELS_API HMMWV {
     std::string m_pacejkaParamFile;
 
     ChCoordsys<> m_initPos;
+    double m_initFwdVel;
 
     ChSystem* m_system;
     ChWheeledVehicle* m_vehicle;

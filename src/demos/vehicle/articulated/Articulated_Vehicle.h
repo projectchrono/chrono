@@ -36,7 +36,7 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
 
     ~Articulated_Vehicle() {}
 
-    virtual int GetNumberAxles() const { return 2; }
+    virtual int GetNumberAxles() const override { return 2; }
 
     double GetSpringForce(const chrono::vehicle::WheelID& wheel_id) const;
     double GetSpringLength(const chrono::vehicle::WheelID& wheel_id) const;
@@ -46,7 +46,7 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     double GetShockLength(const chrono::vehicle::WheelID& wheel_id) const;
     double GetShockVelocity(const chrono::vehicle::WheelID& wheel_id) const;
 
-    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos);
+    virtual void Initialize(const chrono::ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
     // Log debugging information
     void LogHardpointLocations();  /// suspension hardpoints at design
