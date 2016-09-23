@@ -124,12 +124,15 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     WheelState GetWheelState(const WheelID& wheel_id) const;
 
     /// Set visualization type for the suspension subsystems.
+    /// This function should be called only after vehicle initialization.
     void SetSuspensionVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the steering subsystems.
+    /// This function should be called only after vehicle initialization.
     void SetSteeringVisualizationType(VisualizationType vis);
 
     /// Set visualization type for the wheel subsystems.
+    /// This function should be called only after vehicle initialization.
     void SetWheelVisualizationType(VisualizationType vis);
 
     /// Update the state of this vehicle at the current time.

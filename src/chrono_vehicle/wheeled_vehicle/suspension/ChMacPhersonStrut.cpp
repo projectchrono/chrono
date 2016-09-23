@@ -59,7 +59,9 @@ ChMacPhersonStrut::ChMacPhersonStrut(const std::string& name) : ChSuspension(nam
 // -----------------------------------------------------------------------------
 void ChMacPhersonStrut::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                    const ChVector<>& location,
-                                   std::shared_ptr<ChBody> tierod_body) {
+                                   std::shared_ptr<ChBody> tierod_body,
+                                   double left_ang_vel,
+                                   double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -75,14 +77,15 @@ void ChMacPhersonStrut::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
 }
 
 void ChMacPhersonStrut::InitializeSide(VehicleSide side,
                                       std::shared_ptr<ChBodyAuxRef> chassis,
                                       std::shared_ptr<ChBody> tierod_body,
-                                      const std::vector<ChVector<> >& points) {
+                                      const std::vector<ChVector<> >& points,
+                                      double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -94,6 +97,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -229,6 +233,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_axle[side] = std::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
+    m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
     m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();

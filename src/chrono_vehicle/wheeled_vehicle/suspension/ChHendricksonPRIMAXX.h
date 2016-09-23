@@ -76,7 +76,9 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -269,7 +271,8 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
                         const std::vector<ChVector<>>& points,
-                        const std::vector<ChVector<>>& dirs);
+                        const std::vector<ChVector<>>& dirs,
+                        double ang_vel);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
                                      const ChVector<> pt_1,
