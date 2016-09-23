@@ -516,7 +516,7 @@ void DeformableSoil::UpdateInternalForces() {
             p_hit_level[i] = plane.TransformLocalToParent(mrayhit_result.abs_hitPoint).y;
             p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
-            if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetPhysicsItem())) {
+            if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetContactable())) {
                 p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
             }
             
