@@ -55,26 +55,34 @@ static std::ostream null_stream(&null_buffer);
 
 #endif
 
+#if defined(CHRONO_OPENMP_ENABLED)
+#define THRUST_PAR thrust::omp::par,
+#elif defined(CHRONO_TBB_ENABLED)
+#define THRUST_PAR thrust::tbb::par,
+#else
+#define THRUST_PAR
+#endif
+
 #define Thrust_Inclusive_Scan_Sum(x, y)                    \
-    thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
+    thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin()); \
     y = x.back();
-#define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(x.begin(), x.end(), y.begin())
+#define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(THRUST_PAR x.begin(), x.end(), y.begin())
 
 #define Run_Length_Encode(y, z, w)                                                                                 \
-    (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
+    (thrust::reduce_by_key(THRUST_PAR y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
         w.begin()
 
-#define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
-#define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(x.begin(), x.end(), x.begin())
+#define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin())
+#define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
-#define Thrust_Sort(x) thrust::sort(x.begin(), x.end())
-#define Thrust_Count(x, y) thrust::count(x.begin(), x.end(), y)
+#define Thrust_Sort(x) thrust::sort(THRUST_PAR x.begin(), x.end())
+#define Thrust_Count(x, y) thrust::count(THRUST_PAR x.begin(), x.end(), y)
 #define Thrust_Sequence(x) thrust::sequence(x.begin(), x.end())
-#define Thrust_Equal(x, y) thrust::equal(x.begin(), x.end(), y.begin())
-#define Thrust_Max(x) x[thrust::max_element(x.begin(), x.end()) - x.begin()]
-#define Thrust_Min(x) x[thrust::min_element(x.begin(), x.end()) - x.begin()]
-#define Thrust_Total(x) thrust::reduce(x.begin(), x.end())
-#define Thrust_Unique(x) thrust::unique(x.begin(), x.end()) - x.begin();
+#define Thrust_Equal(x, y) thrust::equal(THRUST_PAR x.begin(), x.end(), y.begin())
+#define Thrust_Max(x) x[thrust::max_element(THRUST_PAR x.begin(), x.end()) - x.begin()]
+#define Thrust_Min(x) x[thrust::min_element(THRUST_PAR x.begin(), x.end()) - x.begin()]
+#define Thrust_Total(x) thrust::reduce(THRUST_PAR x.begin(), x.end())
+#define Thrust_Unique(x) thrust::unique(THRUST_PAR x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
 enum SOLVERTYPE {

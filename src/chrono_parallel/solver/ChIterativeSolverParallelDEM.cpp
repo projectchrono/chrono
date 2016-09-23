@@ -23,6 +23,13 @@
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include <thrust/sort.h>
+
+#if defined(CHRONO_OPENMP_ENABLED)
+#include <thrust/system/omp/execution_policy.h>
+#elif defined(CHRONO_TBB_ENABLED)
+#include <thrust/system/tbb/execution_policy.h>
+#endif
+
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
@@ -500,7 +507,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
-        thrust::fill(shear_touch.begin(), shear_touch.end(), false);
+		Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
         for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
             vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
@@ -526,7 +533,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(ext_body_id.begin(), ext_body_id.end(),
+	thrust::sort_by_key(THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
                         thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
@@ -540,7 +547,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     // in contact. We do this simultaneously for contact forces and torques, using
     // zip iterators.
     uint ct_body_count =
-        thrust::reduce_by_key(
+        thrust::reduce_by_key(THRUST_PAR 
             ext_body_id.begin(), ext_body_id.end(),
             thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
             ct_body_id.begin(),
@@ -627,7 +634,7 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
 
     // Calculate contact forces (impulses) and append them to the body forces
     data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
-    thrust::fill(data_manager->host_data.ct_body_map.begin(), data_manager->host_data.ct_body_map.end(), -1);
+	Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
     if (data_manager->num_rigid_contacts > 0) {
         data_manager->system_timer.start("ChIterativeSolverParallelDEM_ProcessContact");
