@@ -22,9 +22,9 @@
 #define SPM_DEF_MAXELEMENTS 10000  ///< default limit on initial number of off-diagonal elements
 
 namespace chrono {
-	class ChSystemDescriptor; // forward declaration
+    class ChSparsityPatternLearner;
 
-/// Base class for all sparse matrices.
+    /// Base class for all sparse matrices.
 class ChApi ChSparseMatrix {
 public:
     enum SymmetryType {
@@ -70,14 +70,11 @@ public:
     /// Enable/disable a lock on the matrix sparsity pattern (default: false).
     void SetSparsityPatternLock(bool val) { m_lock = val; }
 
-	/// (Optional) Inform the matrix of the ChSystemDescriptor that is going to write element on it.
-	/// The matrix might perform a check on ChSystemDescriptor in order to get useful informations
-	/// such as the sparsity pattern. (iff also ForceSparsityPatternUpdate() has been called).
-	virtual void BindToChSystemDescriptor(ChSystemDescriptor* sysd_in) { m_sysd = sysd_in; }
-
-	/// (Optional) Force the update of the sparsity pattern (iff also BindToChSystemDescriptor() has set the ChSystemDescriptor)
+	/// (Optional) Force the update of the sparsity pattern
     /// Depending on the internal data structure, this can highly speed up the insertion of elements in the matrix.
-	virtual void ForceSparsityPatternUpdate() { m_update_sparsity_pattern = true; }
+    /// Suggested for matrix with dimension >1e5
+    virtual void LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner){}
+
 
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
     virtual double GetElement(int row, int col) const = 0;
@@ -99,15 +96,13 @@ public:
         if (transp) {
             for (auto i = 0; i < maxcols; i++) {
                 for (auto j = 0; j < maxrows; j++) {
-                    if ((*matra)(j, i) != 0)
-                        this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
+                    this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
                 }
             }
         } else {
             for (auto i = 0; i < maxrows; i++) {
                 for (auto j = 0; j < maxcols; j++) {
-                    if ((*matra)(i, j) != 0)
-                        this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
+                    this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
                 }
             }
         }
@@ -163,8 +158,7 @@ public:
       int m_nnz;                                    ///< number of non-zero elements
       SymmetryType m_type = GENERAL;                ///< matrix type
       bool m_lock = false;                          ///< indicate whether or not the matrix sparsity pattern should be locked
-      bool m_update_sparsity_pattern = false;	    ///< let the matrix acquire the sparsity pattern from the ChSystemDescriptor
-      ChSystemDescriptor* m_sysd = nullptr;         ///< m_sysd
+      bool m_update_sparsity_pattern = false;	    ///< let the matrix acquire the sparsity pattern
 };
 
 }  // end namespace chrono
