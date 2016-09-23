@@ -68,12 +68,12 @@ CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real3, real3);
 CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real3, real3);
 
 CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v1, const real3& v2) {
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-    // return simd::Dot3(v1, v2);
+    //return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    return simd::Dot3(v1, v2);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v) {
-    return v.x * v.x + v.y * v.y + v.z * v.z;
-    // return simd::Dot3(v);
+    //return v.x * v.x + v.y * v.y + v.z * v.z;
+    return simd::Dot3(v);
 }
 
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 Normalize(const real3& v) {

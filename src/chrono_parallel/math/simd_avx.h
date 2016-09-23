@@ -246,7 +246,7 @@ inline __m256d Cross(__m256d a, __m256d b) {
     __m256d b1 = permute4d<1, 2, 0, -256>(b);
     __m256d a2 = permute4d<2, 0, 1, -256>(a);
     __m256d b2 = permute4d<2, 0, 1, -256>(b);
-    __m256d c = a1 * b2 - a2 * b1;
+    __m256d c = _mm256_sub_pd(_mm256_mul_pd(a1 , b2) , _mm256_mul_pd(a2 , b1));
     return c;
 }
 inline __m256d Normalize(const __m256d& v) {
@@ -429,17 +429,17 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d a2231 = permute4d<2, 2, 3, 1>(a);
     __m256d b1000 = permute4d<1, 0, 0, 0>(b);
     __m256d b2312 = permute4d<2, 3, 1, 2>(b);
-    __m256d t1 = a1123 * b1000;
-    __m256d t2 = a2231 * b2312;
-    __m256d t12 = t1 + t2;
+    __m256d t1 = _mm256_mul_pd(a1123 , b1000);
+    __m256d t2 = _mm256_mul_pd(a2231 , b2312);
+    __m256d t12 = _mm256_add_pd(t1 , t2);
     __m256d t12m = change_sign<1, 0, 0, 0>(t12);
     __m256d a3312 = permute4d<3, 3, 1, 2>(a);
     __m256d b3231 = permute4d<3, 2, 3, 1>(b);
     __m256d a0000 = permute4d<0, 0, 0, 0>(a);
-    __m256d t3 = a3312 * b3231;
-    __m256d t0 = a0000 * b;
-    __m256d t03 = t0 - t3;
-    return t03 + t12m;
+    __m256d t3 = _mm256_mul_pd(a3312 , b3231);
+    __m256d t0 = _mm256_mul_pd(a0000 , b);
+    __m256d t03 = _mm256_sub_pd(t0 , t3);
+    return _mm256_add_pd(t03 , t12m);
 }
 
 inline __m128i Set(int x) {

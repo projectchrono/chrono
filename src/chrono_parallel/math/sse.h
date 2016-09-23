@@ -59,7 +59,7 @@
 // Disable AVX support on Windows
 #ifdef _MSC_VER
 // To address Visual Studio C2593 errors (ambiguous operator) in simd_avx & matrix
-#undef USE_AVX
+//#undef USE_AVX
 // Fix for Blaze
 #undef __AVX__
 #undef __AVX2__
