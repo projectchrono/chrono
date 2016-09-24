@@ -70,7 +70,6 @@ TerrainNode::TerrainNode(Type type,
       m_settling_output(false),
       m_num_particles(0),
       m_particles_start_index(0),
-      m_proxy_start_index(0),
       m_init_height(0) {
     cout << "[Terrain node] type = " << type << " method = " << method << " use_checkpoint = " << use_checkpoint
          << " num_threads = " << num_threads << endl;
@@ -238,7 +237,7 @@ void TerrainNode::Construct() {
     int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
     int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
     int binsZ = 1;
-    m_system->GetSettings()->collision.bins_per_axis = I3(binsX, binsY, binsZ);
+    m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
     cout << "[Terrain node] broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
 
     // ---------------------
@@ -334,13 +333,6 @@ void TerrainNode::Construct() {
         m_num_particles = gen.getTotalNumBodies();
         cout << "[Terrain node] Generated particles:  " << m_num_particles << endl;
     }
-
-    // Cache the number of contact shapes that have been added so far to the parallel system.
-    // ATTENTION: This will be used to index into the various global arrays to access/modify
-    // information on contact shapes for the proxy bodies.  The implicit assumption here is
-    // that *NO OTHER CONTACT SHAPES* are created before the proxy bodies!
-
-    m_proxy_start_index = m_system->data_manager->num_rigid_shapes;
 
     // --------------------------------------
     // Write file with terrain node settings
@@ -769,10 +761,9 @@ void TerrainNode::UpdateNodeProxies() {
 //    - linear and angular velocity: consistent with vertex velocities
 //    - contact shape: redefined to match vertex locations
 void TerrainNode::UpdateFaceProxies() {
-    // Readability replacements
-    auto& dataA = m_system->data_manager->host_data.ObA_rigid;  // all first vertices
-    auto& dataB = m_system->data_manager->host_data.ObB_rigid;  // all second vertices
-    auto& dataC = m_system->data_manager->host_data.ObC_rigid;  // all third vertices
+    // Readability replacement: shape_data contains all triangle vertex locations, in groups
+    // of three real3, one group for each triangle.
+    auto& shape_data = m_system->data_manager->shape_data.triangle_rigid;
 
     for (unsigned int it = 0; it < m_num_tri; it++) {
         // Vertex locations (expressed in global frame)
@@ -800,12 +791,13 @@ void TerrainNode::UpdateFaceProxies() {
         //// TODO: angular velocity
         m_proxies[it].m_body->SetWvel_loc(ChVector<>(0, 0, 0));
 
-        // Update contact shape (expressed in local frame).
-        // Write directly into the Chrono::Parallel data structures, properly offsetting
-        // to the entries corresponding to the proxy bodies.
-        dataA[m_proxy_start_index + it] = R3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
-        dataB[m_proxy_start_index + it] = R3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
-        dataC[m_proxy_start_index + it] = R3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
+        // Update triangle contact shape (expressed in local frame) by writting directly
+        // into the Chrono::Parallel data structures.
+        // ATTENTION: It is assumed that no other triangle contact shapes have been added
+        // to the system BEFORE those corresponding to the tire mesh faces!
+        shape_data[3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
+        shape_data[3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
+        shape_data[3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
     }
 }
 

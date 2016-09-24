@@ -135,5 +135,9 @@
 @CHRONO_AVX_2_0@
 
 
+// If FMA support was found, then
+//   #define CHRONO_HAS_FMA
+
+@CHRONO_HAS_FMA@
 
 #endif

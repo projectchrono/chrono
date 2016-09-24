@@ -40,6 +40,8 @@ typedef struct
     std::vector<float>          normals;
     std::vector<float>          texcoords;
     std::vector<unsigned int>   indices;
+    //Testing Hammad
+    std::vector<float>          input_pos;
 } mesh_t;
 
 typedef struct

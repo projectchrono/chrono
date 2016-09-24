@@ -20,34 +20,34 @@ namespace chrono {
 /// * Currently, only contacts between rigid bodies are considered
 
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase {
-  CH_RTTI(ChContactContainerParallel, ChContactContainerBase);
+    CH_RTTI(ChContactContainerParallel, ChContactContainerBase);
 
- public:
-  typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
+  public:
+    typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
 
-  ChContactContainerParallel(ChParallelDataManager* dc);
-  ChContactContainerParallel(const ChContactContainerParallel& other);
-  ~ChContactContainerParallel();
+    ChContactContainerParallel(ChParallelDataManager* dc);
+    ChContactContainerParallel(const ChContactContainerParallel& other);
+    ~ChContactContainerParallel();
 
-  /// "Virtual" copy constructor (covariant return type).
-  virtual ChContactContainerParallel* Clone() const override { return new ChContactContainerParallel(*this); }
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChContactContainerParallel* Clone() const override { return new ChContactContainerParallel(*this); }
 
-  virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
+    virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
 
-  virtual void RemoveAllContacts();
-  virtual void BeginAddContact();
-  virtual void AddContact(const collision::ChCollisionInfo& mcontact);
-  virtual void EndAddContact();
+    virtual void RemoveAllContacts();
+    virtual void BeginAddContact();
+    virtual void AddContact(const collision::ChCollisionInfo& mcontact);
+    virtual void EndAddContact();
 
-  /// Return the list of contacts between rigid bodies
-  const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
+    /// Return the list of contacts between rigid bodies
+    const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
 
-  ChParallelDataManager* data_manager;
+    ChParallelDataManager* data_manager;
 
- private:
-  int n_added_6_6;
-  std::list<ChContact_6_6*> contactlist_6_6;
-  std::list<ChContact_6_6*>::iterator lastcontact_6_6;
+  private:
+    int n_added_6_6;
+    std::list<ChContact_6_6*> contactlist_6_6;
+    std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
 
 /// @} parallel_module

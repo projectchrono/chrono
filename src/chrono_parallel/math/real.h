@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -18,200 +18,157 @@
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
+#include "chrono_parallel/ChApiParallel.h"
+#include "chrono_parallel/ChConfigParallel.h"
+#include "chrono_parallel/ChCudaDefines.h"
+
 #include <cmath>
 #include <float.h>
 
-namespace chrono {
-
-// Check if SSE was found in CMake
-#ifdef CHRONO_HAS_SSE
-// Include the proper header file for the available SSE version
-// and enable use of SSE in Chrono::Parallel
-#ifdef CHRONO_SSE_1_0
-#include <xmmintrin.h>
-#elif defined CHRONO_SSE_2_0
-#include <emmintrin.h>
-#elif defined CHRONO_SSE_3_0
-#include <pmmintrin.h>
-#elif defined CHRONO_SSE_4_1
-#include <smmintrin.h>
-#elif defined CHRONO_SSE_4_2
-#include <nmmintrin.h>
-#endif
-#ifndef CHRONO_PARALLEL_USE_SIMD
-#define CHRONO_PARALLEL_USE_SIMD
-#endif
-#else
-// Disable use of SSE in Chrono::Parallel
-#undef CHRONO_PARALLEL_USE_SIMD
-#endif
-
-// If the user specified using doubles in CMake make sure that SSE is disabled
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-#undef CHRONO_PARALLEL_USE_SIMD
-#endif
-
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-typedef double real;
-#define LARGE_REAL 1e30
-#define ZERO_EPSILON DBL_EPSILON
+#if defined(CHRONO_PARALLEL_USE_DOUBLE)
+#include "real_double.h"
 #else
-typedef float real;
-#define LARGE_REAL 1e18f
-#define ZERO_EPSILON FLT_EPSILON
+#include "real_single.h"
 #endif
 
-#ifdef CHRONO_PARALLEL_USE_DOUBLE
-inline real Sin(real theta) {
-    return sin(theta);
-}
-inline real Cos(real theta) {
-    return cos(theta);
-}
-inline real Tan(real theta) {
-    return tan(theta);
-}
-inline real ASin(real theta) {
-    return asin(theta);
-}
-inline real ACos(real theta) {
-    return acos(theta);
-}
-inline real ATan(real theta) {
-    return atan(theta);
-}
-inline real ATan2(real x, real y) {
-    return atan2(x, y);
-}
-inline real Sqrt(real x) {
-    return sqrt(x);
-}
-inline real InvSqrt(real x) {
-    return 1.0f / sqrt(x);  // could also use rsqrt(x) here and avoid division
-}
-inline real Abs(real x) {
-    return fabs(x);
-}
-inline real Pow(real b, real e) {
-    return pow(b, e);
-}
-inline real Mod(real x, real y) {
-    return fmod(x, y);
-}
-inline real Log(real x) {
-    return log(x);
-}
-inline real Tanh(real x) {
-    return tanh(x);
-}
-#else
-inline real Sin(real theta) {
-    return sinf(theta);
-}
-inline real Cos(real theta) {
-    return cosf(theta);
-}
-inline real Tan(real theta) {
-    return tanf(theta);
-}
-inline real ASin(real theta) {
-    return asinf(theta);
-}
-inline real ACos(real theta) {
-    return acosf(theta);
-}
-inline real ATan(real theta) {
-    return atanf(theta);
-}
-inline real ATan2(real x, real y) {
-    return atan2f(x, y);
-}
-inline real Sqrt(real x) {
-    return sqrtf(x);
-}
-inline real InvSqrt(real x) {
-    return 1.0f / sqrtf(x);  // could also use rsqrtf(x) here and avoid division
-}
-inline real Abs(real x) {
-    return fabsf(x);
-}
-inline real Pow(real b, real e) {
-    return powf(b, e);
-}
-inline real Mod(real x, real y) {
-    return fmodf(x, y);
-}
-inline real Log(real x) {
-    return logf(x);
-}
-inline real Tanh(real x) {
-    return tanhf(x);
-}
-#endif
+namespace chrono {
+// CUDA_HOST_DEVICE static inline real DegToRad(real t) {
+//    return t * C_DegToRad;
+//}
+// CUDA_HOST_DEVICE static inline real RadToDeg(real t) {
+//    return t * C_RadToDeg;
+//}
 
+// CUDA_HOST_DEVICE static inline real Sign(const real x) {
+//  return x < real(0.0) ? -1.0f : 1.0f;
+//}
+// Returns a -1 if the value is negative
+// Returns a +1 if the value is positive
+// Otherwise returns zero, this should only happen if the given value is zero
 template <typename T>
-inline  T Min(T a, T b) {
-    return a < b ? a : b;
-}
-
-template <typename T>
-inline  T Max(T a, T b) {
-    return a > b ? a : b;
-}
-
-
-// Clamps a given value a between user specified minimum and maximum values
-static inline real clamp(const real& a, const real& clamp_min, const real& clamp_max) {
-    if (a < clamp_min) {
-        return clamp_min;
-    } else if (a > clamp_max) {
-        return clamp_max;
+CUDA_HOST_DEVICE static inline T Sign(const T& x) {
+    if (x < 0) {
+        return T(-1);
+    } else if (x > 0) {
+        return T(1);
     } else {
-        return a;
+        return T(0);
     }
 }
-// Performs a linear interpolation between a and b using alpha
-static inline real lerp(const real& a, const real& b, const real& alpha) {
-    return (a + alpha * (b - a));
+template <typename T>
+CUDA_HOST_DEVICE static inline T Sqr(const T x) {
+    return x * x;
 }
+template <typename T>
+CUDA_HOST_DEVICE static inline T Cube(const T x) {
+    return x * x * x;
+}
+
 // Checks if the value is zero to within a certain epsilon
 // in this case ZERO_EPSILON is defined based on what the base type of real is
-static inline bool IsZero(const real& a) {
-    return Abs(a) < ZERO_EPSILON;
+CUDA_HOST_DEVICE static inline bool IsZero(const real x) {
+    return Abs(x) < C_EPSILON;
 }
+
+// template <typename T>
+// inline T Min(T a, T b) {
+//    return a < b ? a : b;
+//}
+//
+// template <typename T>
+// inline T Max(T a, T b) {
+//    return a > b ? a : b;
+//}
 
 // Check if two values are equal using a small delta/epsilon value.
 // Essentially a fuzzy comparison operator
-static inline bool isEqual(const real& _a, const real& _b) {
+// template <typename T>
+// inline bool IsEqual(const T& x, const T& y) {
+//    return IsZero(x - y);
+//}
+
+// Check if two values are equal using a small delta/epsilon value.
+// Essentially a fuzzy comparison operator
+template <typename T>
+CUDA_HOST_DEVICE static inline bool IsEqual(const T& _a, const T& _b) {
     real ab;
     ab = Abs(_a - _b);
-    if (Abs(ab) < ZERO_EPSILON)
+    if (Abs(ab) < C_EPSILON)
         return 1;
     real a, b;
     a = Abs(_a);
     b = Abs(_b);
     if (b > a) {
-        return ab < ZERO_EPSILON * b;
+        return ab < C_EPSILON * b;
     } else {
-        return ab < ZERO_EPSILON * a;
+        return ab < C_EPSILON * a;
     }
 }
 
-// Returns a -1 if the value is negative
-// Returns a +1 if the value is positive
-// Otherwise returns zero, this should only happen if the given value is zero
-static inline real sign(const real& x) {
-    if (x < 0) {
-        return -1;
-    } else if (x > 0) {
-        return 1;
-    } else {
-        return 0;
+CUDA_HOST_DEVICE inline real Lerp(const real& start, const real& end, const real& t) {
+    return start + (end - start) * t;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE inline void Swap(T& a, T& b) {
+    T temp = a;
+    a = b;
+    b = temp;
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void Sort(T& a, T& b, T& c) {
+    if (a > b)
+        Swap(a, b);
+    if (b > c)
+        Swap(b, c);
+    if (a > b)
+        Swap(a, b);
+}
+
+template <typename T>
+CUDA_HOST_DEVICE void SwapIfGreater(T& a, T& b) {
+    if (a > b) {
+        Swap(a, b);
     }
 }
 
-
+// Clamps a given value a between user specified minimum and maximum values
+CUDA_HOST_DEVICE inline real Clamp(real x, real low, real high) {
+    if (low > high) {
+        Swap(low, high);
+    }
+    return Max(low, Min(x, high));
 }
+
+CUDA_HOST_DEVICE inline real ClampMin(real x, real low) {
+    return Max(low, x);
+}
+
+CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
+    return Min(x, high);
+}
+}
+//=========MACROS
+#define OPERATOR_EQUALS(op, tin, tout)         \
+	inline tout& operator op## = (tin scale) { \
+	*this = *this op scale;                    \
+	return *this;                              \
+	}
+#define OPERATOR_EQUALSALT_PROTO(op, tin, tout)  tout& operator op## = (tout & a, const tin& scale);
+
+#define OPERATOR_EQUALSALT(op, tin, tout)                \
+	tout& operator op## = (tout & a, const tin& scale) { \
+	a = a op scale;                                      \
+	return a;                                            \
+	}
+
+#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin& scale);
+
+#define OPERATOR_EQUALS_IMPL(op, tin, tout)            \
+    tout& operator op##=(tout & a, const tin& scale) { \
+        a = a op scale;                                \
+        return a;                                      \
+    }

@@ -44,7 +44,7 @@ enum ShapeType {
     ROUNDEDCYL,   // Currently implemented in parallel only
     ROUNDEDCONE,  // Currently implemented in parallel only
     CONVEX,       // Currently implemented in parallel only
-    FLUID         // Currently implemented in parallel only
+    TETRAHEDRON   // Currently implemented in parallel only
 };
 
 ///

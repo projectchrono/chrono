@@ -28,6 +28,9 @@ SET(DEMOS
     demo_PAR_ballsDVI
     demo_PAR_mixerDEM
     demo_PAR_mixerDVI
+    demo_PAR_fluidDVI
+    demo_PAR_snowMPM
+    demo_PAR_rigid3DOFDVI
 )
 
 # ------------------------------------------------------------------------------

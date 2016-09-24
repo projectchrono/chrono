@@ -9,8 +9,7 @@
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
-
+#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
 // Chrono::Parallel OpenGL header files
 #include "chrono_opengl/ChOpenGLWindow.h"
 
@@ -236,7 +235,7 @@ int main(int argc, char* argv[]) {
 
     system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
-    system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+    system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // -------------------
     // Create the terrain.

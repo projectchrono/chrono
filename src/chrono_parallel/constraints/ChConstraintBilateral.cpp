@@ -3,7 +3,6 @@
 #include "chrono_parallel/constraints/ChConstraintBilateral.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/ChThrustLinearAlgebra.h"
 
 #include "chrono/solver/ChConstraintTwoBodies.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
@@ -14,6 +13,7 @@
 using namespace chrono;
 
 void ChConstraintBilateral::Build_b() {
+
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
 
 #pragma omp parallel for
@@ -39,9 +39,7 @@ void ChConstraintBilateral::Build_D() {
 
     // Loop over the active constraints and fill in the rows of the Jacobian,
     // taking into account the type of each constraint.
-    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-    CompressedMatrix<real>& D_b = data_manager->host_data.D_b;
-    CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
+    SubMatrixType D_b_T = _DBT_;
 
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
 
@@ -78,10 +76,12 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_SHAFT: {
+
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
 
@@ -90,10 +90,12 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_BODY: {
+
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = idB * 6;
 
@@ -109,10 +111,12 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_SHAFT_SHAFT: {
+
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
                 int idC = ((ChVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
+
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
                 int colC = data_manager->num_rigid_bodies * 6 + idC;
@@ -127,6 +131,7 @@ void ChConstraintBilateral::Build_D() {
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
                 int idC = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
+
                 int colA = data_manager->num_rigid_bodies * 6 + idA;
                 int colB = data_manager->num_rigid_bodies * 6 + idB;
                 int colC = idC * 6;
@@ -144,17 +149,13 @@ void ChConstraintBilateral::Build_D() {
             } break;
         }
     }
-
-    LOG(INFO) << "ChConstraintBilateral::Build_D - D_b";
-    D_b = trans(D_b_T);
-    LOG(INFO) << "ChConstraintBilateral::Build_D - M_invD_b";
-    M_invD_b = M_inv * D_b;
 }
 
 void ChConstraintBilateral::GenerateSparsity() {
     LOG(INFO) << "ChConstraintBilateral::GenerateSparsity";
     // Grab the list of all bilateral constraints present in the system
     // (note that this includes possibly inactive constraints)
+
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
 
     // Loop over the active constraints and fill in the sparsity pattern of the
@@ -162,22 +163,26 @@ void ChConstraintBilateral::GenerateSparsity() {
     // Note that the data for a Blaze compressed matrix must be filled in increasing
     // order of the column index for each row. Recall that body states are always
     // before shaft states.
-    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
 
+    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_T;
+    int off = data_manager->num_unilaterals;
     for (int index = 0; index < data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         int type = data_manager->host_data.bilateral_type[cntr];
-        int row = index;
+        int row = off + index;
+
         int col1;
         int col2;
         int col3;
 
         switch (type) {
             case BODY_BODY: {
+
                 ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
 
                 int idA = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+
                 if (idA < idB) {
                     col1 = idA * 6;
                     col2 = idB * 6;
@@ -202,10 +207,12 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT: {
+
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
+
                 if (idA < idB) {
                     col1 = data_manager->num_rigid_bodies * 6 + idA;
                     col2 = data_manager->num_rigid_bodies * 6 + idB;
@@ -219,10 +226,12 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_BODY: {
+
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_b()))->GetUserData())->GetId();
+
                 col1 = idB * 6;
                 col2 = data_manager->num_rigid_bodies * 6 + idA;
 
@@ -237,11 +246,13 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT_SHAFT: {
+
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 std::vector<int> ids(3);
                 ids[0] = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 ids[1] = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
                 ids[2] = ((ChVariablesShaft*)(mbilateral->GetVariables_c()))->GetShaft()->GetId();
+
                 std::sort(ids.begin(), ids.end());
                 col1 = data_manager->num_rigid_bodies * 6 + ids[0];
                 col2 = data_manager->num_rigid_bodies * 6 + ids[1];
@@ -253,10 +264,12 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT_BODY: {
+
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
                 int idC = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_c()))->GetUserData())->GetId();
+
                 col1 = idC * 6;
                 if (idA < idB) {
                     col2 = data_manager->num_rigid_bodies * 6 + idA;

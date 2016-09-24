@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
   msystem.GetSettings()->collision.collision_envelope = 0.01;
-  msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
   // Create the fixed and moving bodies
   // ----------------------------------

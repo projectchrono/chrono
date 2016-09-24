@@ -82,9 +82,8 @@ void ChContactContainerParallel::AddContact(const collision::ChCollisionInfo& mc
         data_manager->host_data.cptb_rigid_rigid.push_back(real3(mcontact.vpB.x, mcontact.vpB.y, mcontact.vpB.z));
         data_manager->host_data.dpth_rigid_rigid.push_back(mcontact.distance);
         data_manager->host_data.bids_rigid_rigid.push_back(
-
-            I2(((ChBody*)(mcontact.modelA->GetPhysicsItem()))->GetId(),
-               ((ChBody*)(mcontact.modelB->GetPhysicsItem()))->GetId()));
+            vec2(((ChBody*)(mcontact.modelA->GetPhysicsItem()))->GetId(),
+                 ((ChBody*)(mcontact.modelB->GetPhysicsItem()))->GetId()));
         data_manager->num_rigid_contacts++;
     }
 }
