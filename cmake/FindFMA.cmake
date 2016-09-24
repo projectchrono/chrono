@@ -44,11 +44,11 @@ if(_FMA_TEST)
   #include <immintrin.h>
   int main()
     {
-    __m256 a = _mm256_set_pd (-1, 2, -3, 4);
-    __m256 b = _mm256_set_pd (-2, 3, -4, 1);
-    __m256 c = _mm256_set_pd (-11, 6, 4, -1);
+    __m256d a = _mm256_set_pd (-1, 2, -3, 4);
+    __m256d b = _mm256_set_pd (-2, 3, -4, 1);
+    __m256d c = _mm256_set_pd (-11, 6, 4, -1);
 
-    __m256 result =  _mm256_fmsub_pd (a, b, c);
+    __m256d result =  _mm256_fmsub_pd (a, b, c);
     return 0;
     }" DETECTED_FMA)
 endif()
