@@ -21,20 +21,6 @@
 
 namespace chrono {
 
-enum phase_t {
-    COMPLETE = 13,
-    ANALYSIS = 11,
-    ANALYSIS_NUMFACTORIZATION = 12,
-    NUMFACTORIZATION = 22,
-    NUMFACTORIZATION_SOLVE = 23,
-    SOLVE = 33,
-    SOLVE_FORWARD = 331,
-    SOLVE_DIAGONAL = 332,
-    SOLVE_BACKWARD = 333,
-    RELEASE_FACTORS = 0,
-    RELEASE_ALL = -1
-};
-
 // Constructor.
 // m_nrhs   - number of RHS vectors (currently only 1 supported)
 // m_maxfct - max. number of factors with identical sparsity structure that must be kept in

@@ -21,8 +21,6 @@
 
 #include "chrono/core/ChSparseMatrix.h"
 #include "chrono/core/ChAlignedAllocator.h"
-#include "ChTimer.h"
-#include <future>
 
 namespace chrono {
 
@@ -41,7 +39,7 @@ namespace chrono {
 		int* trailing_dimension;
 
 	public:
-		ChSparsityPatternLearner(int nrows, int ncols, bool row_major_format_in) :
+		ChSparsityPatternLearner(int nrows, int ncols, bool row_major_format_in = true) :
 			ChSparseMatrix(nrows, ncols)
 		{
 			row_major_format = row_major_format_in;
@@ -125,9 +123,6 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
     bool isCompressed = false;
     int max_shifts = std::numeric_limits<int>::max();
 
-	// Sparsity pattern learning variables
-	ChSparsityPatternLearner sparsity_learner;
-
     // CSR matrix arrays typedefs
 #ifdef ALIGNED_ALLOCATORS
 	typedef std::vector<int, aligned_allocator<int, array_alignment>> index_vector_t;
@@ -158,13 +153,6 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
 							 std::vector<bool>& initialized_element_dest,
 							 int& trail_ins, int lead_ins,
 							 int storage_augm);
-
-    static void resize_to_their_limits(index_vector_t& trailIndex_in,
-                                       values_vector_t& values_in,
-                                       std::vector<bool>& initialized_element_in,
-                                       int new_size);
-
-	void loadSparsityPattern();
 
   public:
     ChCSR3Matrix(int nrows = 1, int ncols = 1, bool row_major_format_on = true, int nonzeros = 1);
@@ -220,20 +208,16 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
     /// Check if the matrix is compressed i.e. the matrix elements are stored contiguously in the arrays.
     bool IsCompressed() const { return isCompressed; }
 
+    /// Check if the matrix is stored in row major format.
+    bool IsRowMajor() const { return row_major_format; }
+
+    void LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner) override;
+
     int VerifyMatrix() const;
 
     // Import/Export functions
 	void ImportFromDatFile(std::string filepath = "", bool row_major_format_on = true);
     void ExportToDatFile(std::string filepath = "", int precision = 6) const;
-
-	// Profiling
-	ChTimer<> timer_insert;
-	ChTimer<> timer_reset;
-	ChTimer<> timer_setelement;
-
-	int counter_insert = 0;
-	int counter_reset = 0;
-	int counter_setelement = 0;
 
 };
 
