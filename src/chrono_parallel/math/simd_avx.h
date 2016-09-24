@@ -123,24 +123,16 @@ static __m256d change_sign(__m256d a) {
 //    return _mm256_and_pd(c, REAL3MASK);
 //}
 
-inline real3 Cross3(const real3& a, const real3& b) {
-    real3 result;
+inline __m256d Cross3( __m256d a012, __m256d b012) {
 #if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
     // https://www.nersc.gov/assets/Uploads/Language-Impact-on-Vectorization-Vector-Programming-in-C++.pdf
-    __m256d a012 = a;
-    __m256d b012 = b;
     __m256d a201 = _mm256_permute4x64_pd(a012, _MM_SHUFFLE(3, 1, 0, 2));
     __m256d b201 = _mm256_permute4x64_pd(b012, _MM_SHUFFLE(3, 1, 0, 2));
     __m256d tmp = _mm256_fmsub_pd(b012, a201, _mm256_mul_pd(a012, b201));
     tmp = _mm256_permute4x64_pd(tmp, _MM_SHUFFLE(3, 1, 0, 2));
     tmp = _mm256_blend_pd(_mm256_setzero_pd(), tmp, 0x7);  // put zero on 4th position
-    _mm256_storeu_pd(&result.array[0], tmp);
-#else
-    result[0] = (a[1] * b[2]) - (a[2] * b[1]);
-    result[1] = (a[2] * b[0]) - (a[0] * b[2]);
-    result[2] = (a[0] * b[1]) - (a[1] * b[0]);
+	return tmp;
 #endif
-    return result;
 }
 
 inline __m256d Normalize3(__m256d v) {

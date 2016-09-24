@@ -88,7 +88,19 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 Cross(const real3& b, const real3& c) {
+
+
+#if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
     return simd::Cross3(b, c);
+#else
+	real3 result;
+	result[0] = (b[1] * c[2]) - (b[2] * c[1]);
+	result[1] = (b[2] * c[0]) - (b[0] * c[2]);
+	result[2] = (b[0] * c[1]) - (b[1] * c[0]);
+	result[3] = 0; // tests fail without this
+	return result;
+#endif
+
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 Abs(const real3& v) {
     return simd::Abs(v);
