@@ -101,7 +101,7 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const quaternion& v) {
     return simd::Dot4(v);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Mult(const quaternion& a, const quaternion& b) {
-#if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
+#if defined(CHRONO_AVX_2_0)
 	return simd::QuatMult(a, b);
 #else
 	quaternion temp;
