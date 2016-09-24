@@ -101,7 +101,16 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const quaternion& v) {
     return simd::Dot4(v);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Mult(const quaternion& a, const quaternion& b) {
-    return simd::QuatMult(a, b);
+#if defined(CHRONO_AVX_2_0)
+	return simd::QuatMult(a, b);
+#else
+	quaternion temp;
+	temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+	temp.x = a.w * b.x + a.x * b.w - a.z * b.y + a.y * b.z;
+	temp.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+	temp.z = a.w * b.z + a.z * b.w - a.y * b.x + a.x * b.y;
+	return temp;
+#endif
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Normalize(const quaternion& v) {
     return simd::Normalize(v);
