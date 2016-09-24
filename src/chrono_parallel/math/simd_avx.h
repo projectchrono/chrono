@@ -1,6 +1,6 @@
 #include "chrono_parallel/math/sse.h"
 #include "chrono_parallel/math/real.h"
-#include <stdio.h>
+
 using namespace chrono;
 
 namespace simd {
@@ -244,6 +244,7 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c, __m256d d) {
 
 
 inline __m256d QuatMult(__m256d a, __m256d b) {
+#if defined(CHRONO_AVX_2_0)
 	__m256d a1123 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(3,2,1,1));
 	__m256d a2231 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(1,3,2,2));
 	__m256d b1000 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(0,0,0,1));
@@ -259,6 +260,7 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d t0 = _mm256_mul_pd(a0000 , b);
     __m256d t03 = _mm256_sub_pd(t0 , t3);
     return _mm256_add_pd(t03 , t12m);
+#endif
 }
 
 inline __m128i Set(int x) {
