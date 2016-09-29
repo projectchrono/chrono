@@ -17,6 +17,7 @@ uint ChSolverParallelJacobi::Solve(ChShurProduct& ShurProduct,
 
 	uint num_contacts = data_manager->num_constraints;
 	ml = gamma;
+	ml_old = gamma;
 	CompressedMatrix<real> Nshur = data_manager->host_data.D_T * data_manager->host_data.M_invD;
 	DynamicVector<real> D;
 	D.resize(num_contacts, false);
@@ -44,6 +45,18 @@ uint ChSolverParallelJacobi::Solve(ChShurProduct& ShurProduct,
 		residual =  Sqrt((double)(ml_old, ml_old));
 
 		AtIterationEnd(residual, objective_value);
+
+		if (data_manager->settings.solver.test_objective) {
+			if (objective_value <= data_manager->settings.solver.tolerance_objective) {
+				break;
+			}
+		}
+		else {
+			if (residual < data_manager->settings.solver.tol_speed) {
+				break;
+			}
+		}
+
 	}
 	gamma = ml;
 	return current_iteration;
