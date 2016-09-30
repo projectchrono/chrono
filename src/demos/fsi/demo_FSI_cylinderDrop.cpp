@@ -204,7 +204,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI &mphysicalSystem,
   //    collisionEnvelop;   // global collisionEnvelop
   //    does not work. Maybe due to sph-tire size mismatch
   mphysicalSystem.GetSettings()->collision.bins_per_axis =
-      _make_int3(40, 40,
+      vec3(40, 40,
                  40); // Arman check
 }
 

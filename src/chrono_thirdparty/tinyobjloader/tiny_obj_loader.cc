@@ -533,7 +533,7 @@ std::string LoadObj(
   MaterialReader& readMatFn)
 {
   std::stringstream err;
-
+  std::vector<float> v_temp;
   std::vector<float> v;
   std::vector<float> vn;
   std::vector<float> vt;
@@ -582,6 +582,9 @@ std::string LoadObj(
       v.push_back(x);
       v.push_back(y);
       v.push_back(z);
+      v_temp.push_back(x);
+      v_temp.push_back(y);
+      v_temp.push_back(z);
       continue;
     }
 
@@ -664,7 +667,10 @@ std::string LoadObj(
       shape_t shape;
       bool ret = exportFaceGroupToShape(shape, v, vn, vt, faceGroup, material, name, is_material_seted);
       if (ret) {
+    	  shape.mesh.input_pos =v_temp;
+    	  v_temp.clear();
         shapes.push_back(shape);
+
       }
 
       is_material_seted = false;
@@ -696,6 +702,8 @@ std::string LoadObj(
       shape_t shape;
       bool ret = exportFaceGroupToShape(shape, v, vn, vt, faceGroup, material, name, is_material_seted);
       if (ret) {
+    	  shape.mesh.input_pos =v_temp;
+    	     	  v_temp.clear();
         shapes.push_back(shape);
       }
 
@@ -718,6 +726,8 @@ std::string LoadObj(
   shape_t shape;
   bool ret = exportFaceGroupToShape(shape, v, vn, vt, faceGroup, material, name, is_material_seted);
   if (ret) {
+	  shape.mesh.input_pos =v_temp;
+	     	  v_temp.clear();
     shapes.push_back(shape);
   }
   is_material_seted = false; // for safety

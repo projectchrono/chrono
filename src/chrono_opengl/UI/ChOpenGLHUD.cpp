@@ -16,42 +16,58 @@
 
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
-
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/solver/ChIterativeSolver.h"
+
+#include "chrono/ChConfig.h"
+
+#ifdef CHRONO_PARALLEL
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
+#endif
 
 // Includes that are generated at compile time
 #include "resources/text_frag.h"
 #include "resources/text_vert.h"
+#include "resources/bar_frag.h"
+#include "resources/bar_vert.h"
 
 namespace chrono {
 using namespace collision;
 namespace opengl {
 using namespace glm;
 
-#define LEFT -.95f
-#define TOP .95f
-#define BOTTOM -.95f
-#define RIGHT .55f
-#define CENTER 0.0f
-#define SPACING (sy * 35.0f)
-#define SCALE .001f
-
+#define LEFT -.98
+#define TOP .95
+#define BOTTOM -.95
+#define RIGHT .55
+#define CENTER 0
+#define SPACING sy * 45.0
+#define SCALE .0007
 ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
   time_total = time_text = time_geometry = 0;
   fps = 0;
 }
 
-bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera) {
-  if (GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
+bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimer<>* t_render, ChTimer<>* t_text, ChTimer<>* t_geometry) {
+  if (this->GLReturnedError("ChOpenGLHUD::Initialize - on entry"))
     return false;
 
   if (!font_shader.InitializeStrings("text", text_vert, text_frag)) {
     return 0;
   }
+  if (!bar_shader.InitializeStrings("bar", bar_vert, bar_frag)) {
+    return 0;
+  }
 
   text.Initialize(text_mat, &font_shader);
+  bars.Initialize(&bar_shader);
+
   render_camera = camera;
+  timer_render = t_render;
+  timer_text = t_text;
+  timer_geometry = t_geometry;
   return true;
 }
 
@@ -95,6 +111,7 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size,
   //  "<<width<<std::endl;
 
   text.Update();
+  bars.Clear();
 
   time_geometry = t_geometry;
   time_text = t_text;
@@ -104,6 +121,7 @@ void ChOpenGLHUD::Update(const glm::ivec2& window_size,
 
 void ChOpenGLHUD::TakeDown() {
   font_shader.TakeDown();
+  bar_shader.TakeDown();
   text.TakeDown();
 }
 
@@ -133,132 +151,196 @@ void ChOpenGLHUD::GenerateHelp() {
 }
 
 void ChOpenGLHUD::GenerateCamera() {
-  sprintf(buffer, "Camera Pos :  [%04f, %04f, %04f]", render_camera->camera_position.x,
+  sprintf(buffer, "CAM POS [%07.5f, %07.5f, %07.5f]", render_camera->camera_position.x,
           render_camera->camera_position.y, render_camera->camera_position.z);
   text.Render(buffer, LEFT, TOP - SPACING * 1, sx, sy);
-  sprintf(buffer, "Camera Look:  [%04f, %04f, %04f]", render_camera->camera_look_at.x, render_camera->camera_look_at.y,
+  sprintf(buffer, "CAM EYE [%07.5f, %07.5f, %07.5f]", render_camera->camera_look_at.x, render_camera->camera_look_at.y,
           render_camera->camera_look_at.z);
   text.Render(buffer, LEFT, TOP - SPACING * 2, sx, sy);
-  sprintf(buffer, "Camera Up  :  [%04f, %04f, %04f]", render_camera->camera_up.x, render_camera->camera_up.y,
+  sprintf(buffer, "CAM UPV [%07.5f, %07.5f, %07.5f]", render_camera->camera_up.x, render_camera->camera_up.y,
           render_camera->camera_up.z);
   text.Render(buffer, LEFT, TOP - SPACING * 3, sx, sy);
+  sprintf(buffer, "--------------------------------");
+  text.Render(buffer, LEFT, TOP - SPACING * 4, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
   int num_shapes = 0;
-  int num_bodies = 0;
+  int num_rigid_bodies = 0;
+  int num_fluid_bodies = 0;
   int num_contacts = 0;
   int num_bilaterals = 0;
   double timer_step = physics_system->GetTimerStep();
   double timer_collision_broad = physics_system->GetTimerCollisionBroad();
   double timer_collision_narrow = physics_system->GetTimerCollisionNarrow();
-  double timer_solver = physics_system->GetTimerSolver();
+  double timer_lcp = physics_system->GetTimerSolver();
   double timer_update = physics_system->GetTimerUpdate();
-//  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-//    num_shapes = parallel_system->data_manager->num_rigid_shapes;
-//    num_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
-//    num_contacts = parallel_system->GetNumContacts();
-//    num_bilaterals = parallel_system->data_manager->num_bilaterals;
-//  } else
-  {
+#ifdef CHRONO_PARALLEL
+  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    num_shapes = parallel_system->data_manager->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
+    num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
+    num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
+    num_contacts = parallel_system->GetNcontacts();
+    num_bilaterals = parallel_system->data_manager->num_bilaterals;
+  } else {
     ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
     num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
-    num_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
+    num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
     num_contacts = physics_system->GetNcontacts();
   }
 
-  int average_contacts_per_body = num_bodies > 0 ? num_contacts / num_bodies : 0;
+  double left_b = LEFT + RIGHT;
+  double right_b = -LEFT;
+  double thick = 0.05;
+  double broad_v = glm::mix(left_b, right_b, timer_collision_broad / timer_step);
+  double narrow_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow) / timer_step);
+  double lcp_v = glm::mix(left_b, right_b, (timer_collision_broad + timer_collision_narrow + timer_lcp) / timer_step);
 
+  bars.AddBar(left_b, broad_v, BOTTOM + thick, BOTTOM, ColorConverter(0x5D9CEC));
+  bars.AddBar(broad_v, narrow_v, BOTTOM + thick, BOTTOM, ColorConverter(0x48CFAD));
+  bars.AddBar(narrow_v, lcp_v, BOTTOM + thick, BOTTOM, ColorConverter(0xA0D468));
+  bars.AddBar(lcp_v, right_b, BOTTOM + thick, BOTTOM, ColorConverter(0xFFCE54));
+
+  if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    real build_m = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_M");
+    real build_d = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_D");
+    real build_e = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_E");
+    real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_R");
+    real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_N");
+    real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
+    real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
+
+    real number = build_m;
+    real build_m_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += build_d;
+    real build_d_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += build_e;
+    real build_e_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += build_r;
+    real build_r_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += build_n;
+    real build_n_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += stab;
+    real stab_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    number += shur;
+    real shur_v = glm::mix(left_b, right_b, number / timer_lcp);
+
+    bars.AddBar(left_b, build_m_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x5D9CEC));
+    bars.AddBar(build_m_v, build_d_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0x48CFAD));
+    bars.AddBar(build_d_v, build_e_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xA0D468));
+    bars.AddBar(build_e_v, build_r_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFFCE54));
+    bars.AddBar(build_r_v, build_n_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xFC6E51));
+    bars.AddBar(build_n_v, stab_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xED5565));
+    bars.AddBar(stab_v, shur_v, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xAC92EC));
+    bars.AddBar(shur_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, ColorConverter(0xEC87C0));
+    // bars.AddBar(stab_v, right_b, BOTTOM + thick * 3, BOTTOM + thick * 2, normalize(glm::vec3(149, 165, 166)));
+  }
+
+   int average_contacts_per_body = num_rigid_bodies > 0 ? num_contacts / num_rigid_bodies : 0;
+#endif
   sprintf(buffer, "MODEL INFO");
-  text.Render(buffer, RIGHT, TOP - SPACING * 0, sx, sy);
-  sprintf(buffer, "BODIES     %04d", num_bodies);
-  text.Render(buffer, RIGHT, TOP - SPACING * 1, sx, sy);
-
+  text.Render(buffer, LEFT, TOP - SPACING * 5, sx, sy);
+  sprintf(buffer, "BODIES R,F %04d, %04d", num_rigid_bodies, num_fluid_bodies);
+  text.Render(buffer, LEFT, TOP - SPACING * 6, sx, sy);
   sprintf(buffer, "AABB       %04d", num_shapes);
-  text.Render(buffer, RIGHT, TOP - SPACING * 2, sx, sy);
-
+  text.Render(buffer, LEFT, TOP - SPACING * 7, sx, sy);
   sprintf(buffer, "CONTACTS   %04d", num_contacts);
-  text.Render(buffer, RIGHT, TOP - SPACING * 3, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 8, sx, sy);
   sprintf(buffer, "BILATERALS %04d", num_bilaterals);
-  text.Render(buffer, RIGHT, TOP - SPACING * 4, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 9, sx, sy);
+
+  sprintf(buffer, "--------------------------------");
+  text.Render(buffer, LEFT, TOP - SPACING * 10, sx, sy);
 
   sprintf(buffer, "TIMING INFO");
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 11, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 22, sx, sy);
   sprintf(buffer, "STEP     %04f", timer_step);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 10, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 23, sx, sy);
   sprintf(buffer, "BROAD    %04f", timer_collision_broad);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 9, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 24, sx, sy);
   sprintf(buffer, "NARROW   %04f", timer_collision_narrow);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 8, sx, sy);
-  sprintf(buffer, "SOLVE    %04f", timer_solver);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 7, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 25, sx, sy);
+  sprintf(buffer, "SOLVE    %04f", timer_lcp);
+  text.Render(buffer, LEFT, TOP - SPACING * 26, sx, sy);
   sprintf(buffer, "UPDATE   %04f", timer_update);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 6, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 27, sx, sy);
+  sprintf(buffer, "--------------------------------");
+  text.Render(buffer, LEFT, TOP - SPACING * 28, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    int iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
-    const std::vector<double>& vhist =
-        ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
-    const std::vector<double>& dhist =
-        ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
-    double residual = vhist.size() > 0 ? vhist.back() : 0.0;
-    double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
+  double iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
+  const std::vector<double>& vhist =
+      ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
+  const std::vector<double>& dhist =
+      ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
+  double residual = vhist.size() > 0 ? vhist.back() : 0.0;
+  double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
-    sprintf(buffer, "SOLVER INFO");
-    text.Render(buffer, RIGHT, TOP - SPACING * 6, sx, sy);
-    sprintf(buffer, "ITERS    %04d", iters);
-    text.Render(buffer, RIGHT, TOP - SPACING * 7, sx, sy);
-    sprintf(buffer, "RESIDUAL %04f", residual);
-    text.Render(buffer, RIGHT, TOP - SPACING * 8, sx, sy);
-    sprintf(buffer, "CORRECT  %04f", dlambda);
-    text.Render(buffer, RIGHT, TOP - SPACING * 9, sx, sy);
+  sprintf(buffer, "SOLVER INFO");
+  text.Render(buffer, LEFT, TOP - SPACING * 11, sx, sy);
+  sprintf(buffer, "ITERS    %04d", int(iters));
+  text.Render(buffer, LEFT, TOP - SPACING * 12, sx, sy);
+  sprintf(buffer, "RESIDUAL %04f", residual);
+  text.Render(buffer, LEFT, TOP - SPACING * 13, sx, sy);
+  sprintf(buffer, "CORRECT  %04f", dlambda);
+  text.Render(buffer, LEFT, TOP - SPACING * 14, sx, sy);
+  sprintf(buffer, "--------------------------------");
+  text.Render(buffer, LEFT, TOP - SPACING * 15, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateCD(ChSystem* physics_system) {
-//  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-//    int3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
-//    real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size_vec;
-//    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
-//    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
-//    real3 center = (min_pt + max_pt) * .5;
-//    sprintf(buffer, "COLLISION INFO");
-//    text.Render(buffer, RIGHT, TOP - SPACING * 11, sx, sy);
-//    sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
-//    text.Render(buffer, RIGHT, TOP - SPACING * 12, sx, sy);
-//    sprintf(buffer, "SX    %f", bin_size_vec.x);
-//    text.Render(buffer, RIGHT, TOP - SPACING * 13, sx, sy);
-//    sprintf(buffer, "SY    %f", bin_size_vec.y);
-//    text.Render(buffer, RIGHT, TOP - SPACING * 14, sx, sy);
-//    sprintf(buffer, "SZ    %f", bin_size_vec.z);
-//    text.Render(buffer, RIGHT, TOP - SPACING * 15, sx, sy);
-//    sprintf(buffer, "RIGID %d", parallel_sys->data_manager->num_rigid_contacts);
-//    text.Render(buffer, RIGHT, TOP - SPACING * 16, sx, sy);
-//  } else {
-//    // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
-//    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
-//    // collision_system->GetBulletCollisionWorld()->getBroadphase();
-//  }
+#ifdef CHRONO_PARALLEL
+  if (ChSystemParallel* parallel_sys = dynamic_cast<ChSystemParallel*>(physics_system)) {
+    vec3 bins_per_axis = parallel_sys->data_manager->settings.collision.bins_per_axis;
+    real3 bin_size_vec = 1.0 / parallel_sys->data_manager->measures.collision.bin_size;
+    real3 min_pt = parallel_sys->data_manager->measures.collision.min_bounding_point;
+    real3 max_pt = parallel_sys->data_manager->measures.collision.max_bounding_point;
+    real3 center = (min_pt + max_pt) * .5;
+    sprintf(buffer, "COLLISION INFO");
+    text.Render(buffer, LEFT, TOP - SPACING * 16, sx, sy);
+    sprintf(buffer, "DIMS  [%d,%d,%d]", bins_per_axis.x, bins_per_axis.y, bins_per_axis.z);
+    text.Render(buffer, LEFT, TOP - SPACING * 17, sx, sy);
+    sprintf(buffer, "SIZE  [%07.5f,%07.5f,%07.5f]", bin_size_vec.x, bin_size_vec.y, bin_size_vec.z);
+    text.Render(buffer, LEFT, TOP - SPACING * 18, sx, sy);
+
+    sprintf(buffer, "R: %d B: %d F: %d", parallel_sys->data_manager->num_rigid_contacts,
+            parallel_sys->data_manager->num_rigid_fluid_contacts, parallel_sys->data_manager->num_fluid_contacts);
+    text.Render(buffer, LEFT, TOP - SPACING * 20, sx, sy);
+    sprintf(buffer, "--------------------------------");
+    text.Render(buffer, LEFT, TOP - SPACING * 21, sx, sy);
+  } else {
+    // ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+    // btDbvtBroadphase * broadphase = (btDbvtBroadphase* )
+    // collision_system->GetBulletCollisionWorld()->getBroadphase();
+  }
+#endif
 }
 
 void ChOpenGLHUD::GenerateRenderer() {
   sprintf(buffer, "RENDER INFO");
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 4, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 29, sx, sy);
   sprintf(buffer, "GEOMETRY %04f", time_geometry);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 3, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 30, sx, sy);
   sprintf(buffer, "TEXT     %04f", time_text);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 2, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 31, sx, sy);
   sprintf(buffer, "TOTAL    %04f", time_total);
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 1, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 32, sx, sy);
   sprintf(buffer, "FPS      %04d", int(fps));
-  text.Render(buffer, RIGHT, BOTTOM + SPACING * 0, sx, sy);
+  text.Render(buffer, LEFT, TOP - SPACING * 33, sx, sy);
 }
 
 void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   sprintf(buffer, "Press h for help");
   text.Render(buffer, CENTER, TOP, sx, sy);
 
-  sprintf(buffer, "TIME:  %04f  | %04f", physics_system->GetChTime(), physics_system->GetStep());
+  sprintf(buffer, "TIME:  %04f  [%04f]", physics_system->GetChTime(), physics_system->GetStep());
   text.Render(buffer, LEFT, TOP, sx, sy);
 
   GenerateCamera();
@@ -267,108 +349,107 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
   GenerateCD(physics_system);
   GenerateRenderer();
 }
-
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
-//  if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-//    ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
-//
-//    sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
-//
-//    sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverParallel_R"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
-//
-//    sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverParallel_E"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
-//
-//    sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverParallel_D"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
-//
-//    sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
-//
-//    sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"),
-//            system_timer.GetRuns("ShurProduct"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
-//
-//    sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"),
-//            system_timer.GetRuns("ChSolverParallel_Project"));
-//    text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
-//
-//    //    sprintf(buffer, "TimerA:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 9, sx, sy);
-//    //    sprintf(buffer, "TimerB:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverB"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 8, sx, sy);
-//    //    sprintf(buffer, "TimerC:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverC"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 7, sx, sy);
-//    //    sprintf(buffer, "TimerD:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverD"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 6, sx, sy);
-//    //    sprintf(buffer, "TimerE:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverE"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 5, sx, sy);
-//    //    sprintf(buffer, "TimerF:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverF"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 4, sx, sy);
-//    //    sprintf(buffer, "TimerG:  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 3, sx, sy);
-//    //    sprintf(buffer, "Shur A:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 2, sx, sy);
-//    //    sprintf(buffer, "Shur B:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 1, sx, sy);
-//    //    sprintf(buffer, "Proj  :  %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
-//    //    text.Render(buffer, -.95, -0.925 + SPACING * 0, sx, sy);
-//    //    float posx = -.6;
-//    //    sprintf(buffer, "B_Initial : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Init"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 9, sx, sy);
-//    //    sprintf(buffer, "B_AABBBINC: %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Count"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 8, sx, sy);
-//    //    sprintf(buffer, "B_AABBBINS: %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Store"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 7, sx, sy);
-//    //    sprintf(buffer, "B_SORT_RED: %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_SortReduce"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 6, sx, sy);
-//    //    sprintf(buffer, "BAABBAABBC: %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Count"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 5, sx, sy);
-//    //    sprintf(buffer, "BAABBAABBS: %04f",
-//    //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Store"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 4, sx, sy);
-//    //    sprintf(buffer, "B_POST    : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Post"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 3, sx, sy);
-//    //    sprintf(buffer, "BROADPHASE: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
-//    //
-//    //    posx = -.6 + .45;
-//    //    sprintf(buffer, "BuildD : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildD"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 9, sx, sy);
-//    //    sprintf(buffer, "BuildDA: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDAllocate"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 8, sx, sy);
-//    //    sprintf(buffer, "BuildDC: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDCompute"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 7, sx, sy);
-//    //    sprintf(buffer, "BuildE : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildE"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 6, sx, sy);
-//    //    sprintf(buffer, "BuildN : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildN"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 5, sx, sy);
-//    //    sprintf(buffer, "BuildM : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildM"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 4, sx, sy);
-//    //    sprintf(buffer, "Buildb : %04f", parallel_sys->data_manager->system_timer.GetTime("Buildb"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 3, sx, sy);
-//    //    sprintf(buffer, "SchurP : %04f", parallel_sys->data_manager->system_timer.GetTime("ShurProduct"));
-//    //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
-//  }
-}
+  //if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+  //  ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
+  //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 6, sx, sy);
+
+  //  sprintf(buffer, "Compute R:  %04f", system_timer.GetTime("ChIterativeSolverParallel_R"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 5, sx, sy);
+
+  //  sprintf(buffer, "Compute E:  %04f", system_timer.GetTime("ChIterativeSolverParallel_E"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 4, sx, sy);
+
+  //  sprintf(buffer, "Compute D:  %04f", system_timer.GetTime("ChIterativeSolverParallel_D"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 3, sx, sy);
+
+  //  sprintf(buffer, "Solve:  %04f", system_timer.GetTime("ChSolverParallel_Solve"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 2, sx, sy);
+
+  //  sprintf(buffer, "ShurProduct:  %04f [%d]", system_timer.GetTime("ShurProduct"),
+  //          system_timer.GetRuns("ShurProduct"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 1, sx, sy);
+
+  //  sprintf(buffer, "Project:  %04f [%d]", system_timer.GetTime("ChSolverParallel_Project"),
+  //          system_timer.GetRuns("ChSolverParallel_Project"));
+  //  text.Render(buffer, LEFT, BOTTOM + SPACING * 0, sx, sy);
+
+  //  //    sprintf(buffer, "TimerA:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverA"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 9, sx, sy);
+  //  //    sprintf(buffer, "TimerB:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverB"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 8, sx, sy);
+  //  //    sprintf(buffer, "TimerC:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverC"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 7, sx, sy);
+  //  //    sprintf(buffer, "TimerD:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverD"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 6, sx, sy);
+  //  //    sprintf(buffer, "TimerE:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverE"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 5, sx, sy);
+  //  //    sprintf(buffer, "TimerF:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverF"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 4, sx, sy);
+  //  //    sprintf(buffer, "TimerG:  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_solverG"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 3, sx, sy);
+  //  //    sprintf(buffer, "Shur A:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurA"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 2, sx, sy);
+  //  //    sprintf(buffer, "Shur B:  %04f", parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_shurB"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 1, sx, sy);
+  //  //    sprintf(buffer, "Proj  :  %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("ChSolverParallel_Project"));
+  //  //    text.Render(buffer, -.95, -0.925 + SPACING * 0, sx, sy);
+  //  //    float posx = -.6;
+  //  //    sprintf(buffer, "B_Initial : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Init"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 9, sx, sy);
+  //  //    sprintf(buffer, "B_AABBBINC: %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Count"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 8, sx, sy);
+  //  //    sprintf(buffer, "B_AABBBINS: %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_BIN_Store"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 7, sx, sy);
+  //  //    sprintf(buffer, "B_SORT_RED: %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_SortReduce"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 6, sx, sy);
+  //  //    sprintf(buffer, "BAABBAABBC: %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Count"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 5, sx, sy);
+  //  //    sprintf(buffer, "BAABBAABBS: %04f",
+  //  //    parallel_sys->data_manager->system_timer.GetTime("Broadphase_AABB_AABB_Store"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 4, sx, sy);
+  //  //    sprintf(buffer, "B_POST    : %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase_Post"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 3, sx, sy);
+  //  //    sprintf(buffer, "BROADPHASE: %04f", parallel_sys->data_manager->system_timer.GetTime("Broadphase"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
+  //  //
+  //  //    posx = -.6 + .45;
+  //  //    sprintf(buffer, "BuildD : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildD"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 9, sx, sy);
+  //  //    sprintf(buffer, "BuildDA: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDAllocate"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 8, sx, sy);
+  //  //    sprintf(buffer, "BuildDC: %04f", parallel_sys->data_manager->system_timer.GetTime("BuildDCompute"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 7, sx, sy);
+  //  //    sprintf(buffer, "BuildE : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildE"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 6, sx, sy);
+  //  //    sprintf(buffer, "BuildN : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildN"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 5, sx, sy);
+  //  //    sprintf(buffer, "BuildM : %04f", parallel_sys->data_manager->system_timer.GetTime("BuildM"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 4, sx, sy);
+  //  //    sprintf(buffer, "Buildb : %04f", parallel_sys->data_manager->system_timer.GetTime("Buildb"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 3, sx, sy);
+  //  //    sprintf(buffer, "SchurP : %04f", parallel_sys->data_manager->system_timer.GetTime("ShurProduct"));
+  //  //    text.Render(buffer, posx, -0.925 + SPACING * 2, sx, sy);
+  //}
+}
 void ChOpenGLHUD::Draw() {
+ // bars.Update();
   text.Draw();
+  //bars.Draw();
 }
-
-}  // end namespace opengl
-}  // end namespace chrono
+}
+}

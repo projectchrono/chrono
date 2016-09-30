@@ -990,7 +990,6 @@ endif()
 
 # Set some custom properties of this target
 set_target_properties(ChronoEngine PROPERTIES
-    COMPILE_FLAGS "${CH_CXX_FLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
     COMPILE_DEFINITIONS "CH_API_COMPILE")
 

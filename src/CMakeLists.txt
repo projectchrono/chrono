@@ -23,7 +23,6 @@ set(CH_CXX_FLAGS "")
 #-----------------------------------------------------------------------------
 
 find_package(ModernCXX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 
 #-----------------------------------------------------------------------------
@@ -33,6 +32,7 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 message(STATUS "Searching for Threads...")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
+
 message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
 message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
 message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
@@ -83,6 +83,7 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
                        "OPENMP_FOUND" OFF)
 
 if(ENABLE_OPENMP)
+
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -127,7 +128,7 @@ if(AVX_FOUND)
 else()
   message("  No AVX support")
 endif()
-  
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
@@ -146,7 +147,18 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # using Visual Studio C++
 endif()
- 
+
+message(STATUS "Searching for FMA...")
+find_package(FMA)
+
+# Set substitution variables for configuration file.
+if(FMA_FOUND)
+	message(STATUS "  FMA found")
+	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+else()
+  message("  No FMA support")
+endif()  
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------

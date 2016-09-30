@@ -78,8 +78,9 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
     const GLFWvidmode* mode = glfwGetVideoMode(primary);
     viewer->dpi = mode->width / (viewer->window_physical_size.x / 25.4);
   }
-  viewer->Initialize();
-
+  if(!viewer->Initialize()){
+	  printf("Viewer Initialization Failed\n");
+  }
   glfwSetWindowUserPointer(window, viewer);
   GLReturnedError("Initialize Viewer ");
   poll_frame = 0;

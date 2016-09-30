@@ -193,7 +193,6 @@ class TerrainNode : public BaseNode {
     std::vector<Triangle> m_triangles;         ///< tire mesh connectivity
 
     int m_particles_start_index;       ///< start index for granular material bodies in system body list
-    unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
 
     bool m_render;  ///< if true, use OpenGL rendering
 

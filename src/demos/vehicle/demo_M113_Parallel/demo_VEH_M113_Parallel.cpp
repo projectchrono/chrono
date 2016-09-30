@@ -26,7 +26,7 @@
 // Chrono::Parallel header files
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
-#include "chrono_parallel/collision/ChCNarrowphaseRUtils.h"
+#include "chrono_parallel/collision/ChNarrowphaseRUtils.h"
 
 // Chrono::Parallel OpenGL header files
 //#undef CHRONO_OPENGL
@@ -300,7 +300,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
 #endif
 
-    system->GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+    system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
 #endif
 

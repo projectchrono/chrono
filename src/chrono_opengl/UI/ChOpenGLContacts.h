@@ -20,6 +20,7 @@
 #include "chrono_opengl/shapes/ChOpenGLCloud.h"
 #include "physics/ChSystem.h"
 namespace chrono {
+class ChSystemParallel;
 namespace opengl {
 
 /// @addtogroup opengl
@@ -37,14 +38,13 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
 
   private:
     void UpdateChrono(ChSystem* physics_system);
-    // void UpdateChronoParallel(ChSystemParallel* system);
+    void UpdateChronoParallel(ChSystemParallel* system);
 
     ChOpenGLCloud contacts;
     std::vector<glm::vec3> contact_data;
 };
 
 /// @} opengl
-
 }
 }
 #endif  // END of CHOPENGLCONTACTS_H

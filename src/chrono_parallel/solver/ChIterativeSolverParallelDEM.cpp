@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -22,6 +22,13 @@
 
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
+#include <thrust/sort.h>
+
+#if defined(CHRONO_OPENMP_ENABLED)
+#include <thrust/system/omp/execution_policy.h>
+#elif defined(CHRONO_TBB_ENABLED)
+#include <thrust/system/tbb/execution_policy.h>
+#endif
 
 using namespace chrono;
 
@@ -43,7 +50,7 @@ void function_CalcContactForces(
     real dT,                                              // integration time step
     real* mass,                                           // body masses
     real3* pos,                                           // body positions
-    real4* rot,                                           // body orientations
+    quaternion* rot,                                      // body orientations
     real* vel,                                            // body linear and angular velocities
     real2* elastic_moduli,                                // Young's modulus (per body)
     real* cr,                                             // coefficient of restitution (per body)
@@ -51,15 +58,15 @@ void function_CalcContactForces(
     real* mu,                                             // coefficient of friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
-    int2* body_id,                                        // body IDs (per contact)
-    int2* shape_id,                                       // shape IDs (per contact)
+    vec2* body_id,                                        // body IDs (per contact)
+    vec2* shape_id,                                       // shape IDs (per contact)
     real3* pt1,                                           // point on shape 1 (per contact)
     real3* pt2,                                           // point on shape 2 (per contact)
     real3* normal,                                        // contact normal (per contact)
     real* depth,                                          // penetration depth (per contact)
     real* eff_radius,                                     // effective contact radius (per contact)
-    int3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
-    bool* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
+    vec3* shear_neigh,      // neighbor list of contacting bodies and shapes (max_shear per body)
+    char* shear_touch,      // flag if contact in neighbor list is persistent (max_shear per body)
     real3* shear_disp,      // accumulated shear displacement for each neighbor (max_shear per body)
     int* ext_body_id,       // [output] body IDs (two per contact)
     real3* ext_body_force,  // [output] body force (two per contact)
@@ -73,10 +80,10 @@ void function_CalcContactForces(
     if (depth[index] >= 0) {
         ext_body_id[2 * index] = body1;
         ext_body_id[2 * index + 1] = body2;
-        ext_body_force[2 * index] = ZERO_VECTOR;
-        ext_body_force[2 * index + 1] = ZERO_VECTOR;
-        ext_body_torque[2 * index] = ZERO_VECTOR;
-        ext_body_torque[2 * index + 1] = ZERO_VECTOR;
+        ext_body_force[2 * index] = real3(0);
+        ext_body_force[2 * index + 1] = real3(0);
+        ext_body_torque[2 * index] = real3(0);
+        ext_body_torque[2 * index + 1] = real3(0);
 
         return;
     }
@@ -97,17 +104,17 @@ void function_CalcContactForces(
     real3 o_body1 = real3(vel[body1 * 6 + 3], vel[body1 * 6 + 4], vel[body1 * 6 + 5]);
     real3 o_body2 = real3(vel[body2 * 6 + 3], vel[body2 * 6 + 4], vel[body2 * 6 + 5]);
 
-    real3 vel1 = v_body1 + quatRotateMat(cross(o_body1, pt1_loc), rot[body1]);
-    real3 vel2 = v_body2 + quatRotateMat(cross(o_body2, pt2_loc), rot[body2]);
+    real3 vel1 = v_body1 + Rotate(Cross(o_body1, pt1_loc), rot[body1]);
+    real3 vel2 = v_body2 + Rotate(Cross(o_body2, pt2_loc), rot[body2]);
 
     // Calculate relative velocity (in global frame)
     // Note that relvel_n_mag is a signed quantity, while relvel_t_mag is an
     // actual magnitude (always positive).
     real3 relvel = vel2 - vel1;
-    real relvel_n_mag = dot(relvel, normal[index]);
+    real relvel_n_mag = Dot(relvel, normal[index]);
     real3 relvel_n = relvel_n_mag * normal[index];
     real3 relvel_t = relvel - relvel_n;
-    real relvel_t_mag = length(relvel_t);
+    real relvel_t_mag = Length(relvel_t);
 
     // Calculate composite material properties
     // ---------------------------------------
@@ -133,10 +140,10 @@ void function_CalcContactForces(
         G_eff = 1 / inv_G;
         cr_eff = (cr[body1] + cr[body2]) / 2;
     } else {
-        user_kn = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
-        user_kt = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
-        user_gn = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
-        user_gt = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
+        user_kn = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
+        user_kt = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
+        user_gn = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
+        user_gt = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
     }
 
     // Contact force
@@ -153,7 +160,7 @@ void function_CalcContactForces(
     real gt;
 
     real delta_n = -depth[index];
-    real3 delta_t = R3(0, 0, 0);
+    real3 delta_t = real3(0);
 
     int i;
     int contact_id;
@@ -185,9 +192,8 @@ void function_CalcContactForces(
         // Check if contact history already exists.
         // If not, initialize new contact history.
         for (i = 0; i < max_shear; i++) {
-        	int ctIdUnrolled= max_shear * shear_body1 + i;
-            if (shear_neigh[ctIdUnrolled].x == shear_body2 &&
-                shear_neigh[ctIdUnrolled].y == shear_shape1 &&
+            int ctIdUnrolled = max_shear * shear_body1 + i;
+            if (shear_neigh[ctIdUnrolled].x == shear_body2 && shear_neigh[ctIdUnrolled].y == shear_shape1 &&
                 shear_neigh[ctIdUnrolled].z == shear_shape2) {
                 contact_id = i;
                 newcontact = false;
@@ -196,7 +202,7 @@ void function_CalcContactForces(
         }
         if (newcontact == true) {
             for (i = 0; i < max_shear; i++) {
-            	int ctIdUnrolled= max_shear * shear_body1 + i;
+                int ctIdUnrolled = max_shear * shear_body1 + i;
                 if (shear_neigh[ctIdUnrolled].x == -1) {
                     contact_id = i;
                     shear_neigh[ctIdUnrolled].x = shear_body2;
@@ -219,13 +225,11 @@ void function_CalcContactForces(
 
         if (shear_body1 == body1) {
             shear_disp[ctSaveId] += delta_t;
-            shear_disp[ctSaveId] -=
-                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = shear_disp[ctSaveId];
         } else {
             shear_disp[ctSaveId] -= delta_t;
-            shear_disp[ctSaveId] -=
-                dot(shear_disp[ctSaveId], normal[index]) * normal[index];
+            shear_disp[ctSaveId] -= Dot(shear_disp[ctSaveId], normal[index]) * normal[index];
             delta_t = -shear_disp[ctSaveId];
         }
     }
@@ -307,8 +311,8 @@ void function_CalcContactForces(
                 if (relvel_t_mag >= (real)1e-4)
                     force -= (forceT_mag / relvel_t_mag) * relvel_t;
 
-                real3 torque1_loc = cross(pt1_loc, quatRotateMatT(force, rot[body1]));
-                real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
+                real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
+                real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
                 ext_body_id[2 * index] = body1;
                 ext_body_id[2 * index + 1] = body2;
@@ -363,9 +367,9 @@ void function_CalcContactForces(
     // below the Coulomb limit.  Also, if there is sliding, then there is no
     // viscous damping in the tangential direction (to keep the Coulomb limit
     // strict, and independent of velocity).
-    //  real forceT_mag = length(forceT_stiff + forceT_damp);  // This seems correct
-    real forceT_stiff_mag = length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
-    real delta_t_mag = length(delta_t);
+    //  real forceT_mag = Length(forceT_stiff + forceT_damp);  // This seems correct
+    real forceT_stiff_mag = Length(forceT_stiff);  // This is what LAMMPS/LIGGGHTS does
+    real delta_t_mag = Length(delta_t);
     real forceT_slide = mu_eff * Abs(forceN_mag);
     if (forceT_stiff_mag > forceT_slide) {
         if (delta_t_mag > CH_MICROTOL) {
@@ -398,8 +402,8 @@ void function_CalcContactForces(
 
     // Convert force into the local body frames and calculate induced torques
     //    n' = s' x F' = s' x (A*F)
-    real3 torque1_loc = cross(pt1_loc, quatRotateMatT(force, rot[body1]));
-    real3 torque2_loc = cross(pt2_loc, quatRotateMatT(force, rot[body2]));
+    real3 torque1_loc = Cross(pt1_loc, RotateT(force, rot[body1]));
+    real3 torque2_loc = Cross(pt2_loc, RotateT(force, rot[body2]));
 
     // Store body forces and torques, duplicated for the two bodies.
     ext_body_id[2 * index] = body1;
@@ -413,11 +417,12 @@ void function_CalcContactForces(
 // -----------------------------------------------------------------------------
 // Calculate contact forces and torques for all contact pairs.
 // -----------------------------------------------------------------------------
+
 void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
                                                           custom_vector<real3>& ext_body_force,
                                                           custom_vector<real3>& ext_body_torque,
-                                                          custom_vector<int2>& shape_pairs,
-                                                          custom_vector<bool>& shear_touch) {
+                                                          custom_vector<vec2>& shape_pairs,
+                                                          custom_vector<char>& shear_touch) {
 #pragma omp parallel for
     for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(
@@ -476,9 +481,11 @@ void ChIterativeSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, 
 
 // Binary operation for adding two-object tuples
 struct sum_tuples {
-  thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3> & a, const thrust::tuple<real3, real3> & b) const {
-    return thrust::tuple<real3, real3> (thrust::get<0>(a) + thrust::get<0>(b), thrust::get<1>(a) + thrust::get<1>(b));
-  }
+    thrust::tuple<real3, real3> operator()(const thrust::tuple<real3, real3>& a,
+                                           const thrust::tuple<real3, real3>& b) const {
+        return thrust::tuple<real3, real3>(thrust::get<0>(a) + thrust::get<0>(b),
+                                           thrust::get<1>(a) + thrust::get<1>(b));
+    }
 };
 
 // -----------------------------------------------------------------------------
@@ -494,17 +501,17 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     custom_vector<int> ext_body_id(2 * data_manager->num_rigid_contacts);
     custom_vector<real3> ext_body_force(2 * data_manager->num_rigid_contacts);
     custom_vector<real3> ext_body_torque(2 * data_manager->num_rigid_contacts);
-    custom_vector<int2> shape_pairs;
-    custom_vector<bool> shear_touch;
+    custom_vector<vec2> shape_pairs;
+    custom_vector<char> shear_touch;
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
-        thrust::fill(thrust_parallel, shear_touch.begin(), shear_touch.end(), false);
+		Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
         for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
-            int2 pair = I2(int(data_manager->host_data.pair_rigid_rigid[i] >> 32),
-                           int(data_manager->host_data.pair_rigid_rigid[i] & 0xffffffff));
+            vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
+                           int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
             shape_pairs[i] = pair;
         }
     }
@@ -526,7 +533,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     //    involved in at least one contact, by reducing the contact forces and
     //    torques from all contacts these bodies are involved in. The number of
     //    bodies that experience at least one contact is 'ct_body_count'.
-    thrust::sort_by_key(thrust_parallel, ext_body_id.begin(), ext_body_id.end(),
+	thrust::sort_by_key(THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
                         thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())));
 
     custom_vector<int> ct_body_id(data_manager->num_rigid_bodies);
@@ -540,7 +547,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     // in contact. We do this simultaneously for contact forces and torques, using
     // zip iterators.
     uint ct_body_count =
-        thrust::reduce_by_key(
+        thrust::reduce_by_key(THRUST_PAR 
             ext_body_id.begin(), ext_body_id.end(),
             thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
             ct_body_id.begin(),
@@ -574,16 +581,19 @@ void ChIterativeSolverParallelDEM::ComputeD() {
     uint num_bilaterals = data_manager->num_bilaterals;
     uint nnz_bilaterals = data_manager->nnz_bilaterals;
 
-    CompressedMatrix<real>& D_b_T = data_manager->host_data.D_b_T;
-    if (D_b_T.capacity() > 0)
-        clear(D_b_T);
+    CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
+	if (D_T.capacity() > 0) {
+		clear(D_T);
+	}
 
-    D_b_T.reserve(nnz_bilaterals);
+    D_T.reserve(nnz_bilaterals);
+    D_T.resize(num_constraints, num_dof, false);
 
-    D_b_T.resize(num_constraints, num_dof, false);
+    data_manager->bilateral->GenerateSparsity();
+    data_manager->bilateral->Build_D();
 
-    bilateral.GenerateSparsity();
-    bilateral.Build_D();
+    data_manager->host_data.D = trans(D_T);
+    data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
 }
 
 void ChIterativeSolverParallelDEM::ComputeE() {
@@ -594,7 +604,7 @@ void ChIterativeSolverParallelDEM::ComputeE() {
     data_manager->host_data.E.resize(data_manager->num_constraints);
     reset(data_manager->host_data.E);
 
-    bilateral.Build_E();
+    data_manager->bilateral->Build_E();
 }
 
 void ChIterativeSolverParallelDEM::ComputeR() {
@@ -604,10 +614,10 @@ void ChIterativeSolverParallelDEM::ComputeR() {
 
     data_manager->host_data.b.resize(data_manager->num_constraints);
     reset(data_manager->host_data.b);
-    bilateral.Build_b();
+    data_manager->bilateral->Build_b();
 
     data_manager->host_data.R_full =
-        -data_manager->host_data.b - data_manager->host_data.D_b_T * data_manager->host_data.M_invk;
+        -data_manager->host_data.b - data_manager->host_data.D_T * data_manager->host_data.M_invk;
 }
 
 // -----------------------------------------------------------------------------
@@ -624,7 +634,7 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
 
     // Calculate contact forces (impulses) and append them to the body forces
     data_manager->host_data.ct_body_map.resize(data_manager->num_rigid_bodies);
-    thrust::fill(data_manager->host_data.ct_body_map.begin(), data_manager->host_data.ct_body_map.end(), -1);
+	Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
     if (data_manager->num_rigid_contacts > 0) {
         data_manager->system_timer.start("ChIterativeSolverParallelDEM_ProcessContact");
@@ -633,20 +643,19 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
     }
 
     // Generate the mass matrix and compute M_inv_k
-    ComputeMassMatrix();
+    ComputeInvMassMatrix();
 
     // If there are (bilateral) constraints, calculate Lagrange multipliers.
     if (data_manager->num_constraints != 0) {
         data_manager->system_timer.start("ChIterativeSolverParallel_Setup");
 
-        bilateral.Setup(data_manager);
+        data_manager->bilateral->Setup(data_manager);
 
         solver->current_iteration = 0;
         data_manager->measures.solver.total_iteration = 0;
         data_manager->measures.solver.maxd_hist.clear();            ////
         data_manager->measures.solver.maxdeltalambda_hist.clear();  ////  currently not used
 
-        solver->bilateral = &bilateral;
         solver->Setup(data_manager);
 
         // Set the initial guess for the iterative solver to zero.
@@ -660,6 +669,9 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
 
         data_manager->system_timer.stop("ChIterativeSolverParallel_Setup");
 
+        ShurProductBilateral.Setup(data_manager);
+
+        bilateral_solver->Setup(data_manager);
         // Solve for the Lagrange multipliers associated with bilateral constraints.
         PerformStabilization();
     }
@@ -678,14 +690,13 @@ void ChIterativeSolverParallelDEM::ComputeImpulses() {
     DynamicVector<real>& v = data_manager->host_data.v;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
-    const CompressedMatrix<real>& M_invD_b = data_manager->host_data.M_invD_b;
 
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
     if (data_manager->num_constraints > 0) {
         ConstSubVectorType gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
-        v = M_invk + M_invD_b * gamma_b;
+        v = M_invk + data_manager->host_data.M_invD * gamma_b;
     } else {
         v = M_invk;
     }

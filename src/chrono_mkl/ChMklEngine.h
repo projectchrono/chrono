@@ -36,6 +36,20 @@ class ChApiMkl ChMklEngine {
     ChMklEngine(int pb_size = 0, ChSparseMatrix::SymmetryType matrix_type = ChSparseMatrix::GENERAL);
     ~ChMklEngine();
 
+    enum phase_t {
+        COMPLETE = 13,
+        ANALYSIS = 11,
+        ANALYSIS_NUMFACTORIZATION = 12,
+        NUMFACTORIZATION = 22,
+        NUMFACTORIZATION_SOLVE = 23,
+        SOLVE = 33,
+        SOLVE_FORWARD = 331,
+        SOLVE_DIAGONAL = 332,
+        SOLVE_BACKWARD = 333,
+        RELEASE_FACTORS = 0,
+        RELEASE_ALL = -1
+    };
+
     /// Set problem dimension.
     void SetProblemSize(int pb_size) { m_n = pb_size; }
 
@@ -103,7 +117,7 @@ class ChApiMkl ChMklEngine {
   private:
     // Internal functions
 
-    MKL_INT ConvertMatrixType(ChSparseMatrix::SymmetryType type);
+    static MKL_INT ConvertMatrixType(ChSparseMatrix::SymmetryType type);
     void resetIparmElement(int iparm_num, int reset_value = 0);
 
     // Data

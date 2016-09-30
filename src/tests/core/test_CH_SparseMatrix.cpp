@@ -61,7 +61,7 @@ void timeSetElement() {
     timer.reset();
     timer.start();
     for (int i = 0; i < nnz; i++) {
-        A.SetElement(row_indices[i], col_indices[i], 1.0);
+    A.SetElement(row_indices[i], col_indices[i], 1.0);
     }
     timer.stop();
     cout << "Time LinkedList matrix: " << timer() << endl;
@@ -88,7 +88,7 @@ void timeSetElement() {
         cout << "      NNZ:  " << B.GetNNZ() << endl;
         cout << "      Time: " << timer() << endl;
 
-        cout << "   Second insertion: " << nnz << " values" << endl;
+        cout << "   Second insertion w/o sparsity lock: " << nnz << " values" << endl;
         B.Reset(n, n);
         timer.reset();
         timer.start();
@@ -100,6 +100,8 @@ void timeSetElement() {
         timer.stop();
         cout << "      NNZ:  " << B.GetNNZ() << endl;
         cout << "      Time: " << timer() << endl;
+        cout << endl;
+
     }
 
     {
@@ -125,7 +127,7 @@ void timeSetElement() {
         B.SetSparsityPatternLock(true);
 
 
-        cout << "   Second insertion: " << nnz << " values" << endl;
+        cout << "   Second insertion with sparsity lock: " << nnz << " values" << endl;
         B.Reset(n, n);
         timer.reset();
         timer.start();
@@ -137,41 +139,89 @@ void timeSetElement() {
         timer.stop();
         cout << "      NNZ:  " << B.GetNNZ() << endl;
         cout << "      Time: " << timer() << endl;
+        cout << endl;
+
     }
 
-    // -----------------------------------------
-    // Insert non-zero elements in a Map matrix
-    // -----------------------------------------
-    cout << "MapMatrix" << endl;
-    ChMapMatrix C(n, n);
-    std::vector<int> ia;
-    std::vector<int> ja;
-    std::vector<double> vals;
+    {
+        // -----------------------------------------
+        // Insert non-zero elements in a ChSparsityPatternLearner matrix
+        // and then to CSR3 with sparsity pattern lock
+        // -----------------------------------------
+        cout << "ChSparsityPatternLearner" << endl;
+        ChSparsityPatternLearner SL(n, n);
 
-    cout << "   First insertion: " << nnz << " values" << endl;
-    timer.reset();
-    timer.start();
-    for (int i = 0; i < nnz; i++) {
-        C.SetElement(row_indices[i], col_indices[i], 1.0);
-    }
-    C.ConvertToCSR(ia, ja, vals);
-    timer.stop();
-    cout << "      NNZ:  " << C.GetNNZ() << endl;
-    cout << "      Time: " << timer() << endl;
+        cout << " ...inserting into ChSparsityPatternLearner: " << nnz << " values" << endl;
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("a", 6);
+        for (int i = 0; i < nnz; i++) {
+            SL.SetElement(row_indices[i], col_indices[i], 1.0);
+        }
+        SL.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << SL.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
 
-    cout << "   Second insertion: " << nnz << " values" << endl;
-    C.Reset(n, n);
-    timer.reset();
-    timer.start();
-    for (int i = 0; i < nnz; i++) {
-        C.SetElement(row_indices[i], col_indices[i], 2.0);
+
+        ChCSR3Matrix B(n, n);
+        B.LoadSparsityPattern(SL);
+
+        B.SetSparsityPatternLock(true);
+
+        cout << " ...inserting into ChCSR3Matrix with sparsity lock: " << nnz << " values" << endl;
+        B.Reset(n, n);
+        timer.reset();
+        timer.start();
+        //B.ExportToDatFile("b", 6);
+        for (int i = 0; i < nnz; i++) {
+            B.SetElement(row_indices[i], col_indices[i], 2.0);
+        }
+        B.Compress();
+        timer.stop();
+        cout << "      NNZ:  " << B.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+        cout << endl;
     }
-    C.ConvertToCSR(ia, ja, vals);
-    timer.stop();
-    cout << "      NNZ:  " << C.GetNNZ() << endl;
-    cout << "      Time: " << timer() << endl;
+
+    {
+        // -----------------------------------------
+        // Insert non-zero elements in a Map matrix
+        // -----------------------------------------
+        cout << "MapMatrix" << endl;
+        ChMapMatrix C(n, n);
+        std::vector<int> ia;
+        std::vector<int> ja;
+        std::vector<double> vals;
+
+        cout << "   First insertion: " << nnz << " values" << endl;
+        timer.reset();
+        timer.start();
+        for (int i = 0; i < nnz; i++) {
+            C.SetElement(row_indices[i], col_indices[i], 1.0);
+        }
+        C.ConvertToCSR(ia, ja, vals);
+        timer.stop();
+        cout << "      NNZ:  " << C.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+
+        cout << "   Second insertion: " << nnz << " values" << endl;
+        C.Reset(n, n);
+        timer.reset();
+        timer.start();
+        for (int i = 0; i < nnz; i++) {
+            C.SetElement(row_indices[i], col_indices[i], 2.0);
+        }
+        C.ConvertToCSR(ia, ja, vals);
+        timer.stop();
+        cout << "      NNZ:  " << C.GetNNZ() << endl;
+        cout << "      Time: " << timer() << endl;
+        cout << endl;
+    }
 
 }
+
+
 
 int main() {
     timeSetElement();

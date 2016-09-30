@@ -94,16 +94,26 @@ static bool GLReturnedError(std::string err) {
 
 /// Base class for all OpenGL related classes.
 class CH_OPENGL_API ChOpenGLBase {
- public:
-  ChOpenGLBase() {}
-  virtual ~ChOpenGLBase() {}
+  public:
+    ChOpenGLBase() {}
+    virtual ~ChOpenGLBase() {}
 
-  // Children must implement this function
-  virtual void TakeDown() = 0;
+    // Children must implement this function
+    virtual void TakeDown() = 0;
+
+    // Check for opengl Errors and output if error along with input char strings
+    bool GLReturnedError(const char* s) {
+        bool return_error = false;
+        GLenum glerror;
+        while ((glerror = glGetError()) != GL_NO_ERROR) {
+            return_error = true;
+            std::cerr << s << ": " << GetErrorString(glerror) << std::endl;
+        }
+        return return_error;
+    }
 };
 
 /// @} opengl
-
 }
 }
 

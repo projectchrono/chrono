@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
   // Settings for the broad-phase collision detection
-  msystem.GetSettings()->collision.bins_per_axis = I3(10, 10, 10);
+  msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
   // Select the narrow phase collision algorithm
   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;

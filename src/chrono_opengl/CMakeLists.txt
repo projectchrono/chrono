@@ -42,7 +42,7 @@ ELSE()
 ENDIF()
 
 # ------------------------------------------------------------------------------
-# Collect all include directories necessary for the PARALLEL module
+# Collect all include directories necessary for the OpenGL module
 # ------------------------------------------------------------------------------
 
 SET(CH_OPENGL_INCLUDES
@@ -52,6 +52,13 @@ SET(CH_OPENGL_INCLUDES
 )
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+
+IF(ENABLE_MODULE_PARALLEL)
+INCLUDE_DIRECTORIES(
+	${BLAZE_DIR}     
+	${BOOST_DIR}
+    ${THRUST_INCLUDE_DIR})
+ENDIF()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -67,6 +74,8 @@ ADD_EXECUTABLE(embedfile embedfile.cpp)
 
 #All shaders are compiled into strings by embedfile.cpp
 SET(GLSL_SHADERS
+  bar_frag
+  bar_vert
   cloud_frag
   cloud_vert
   dot_frag
@@ -163,11 +172,13 @@ SET(CE_OpenGL_SHAPES_FILES
   shapes/ChOpenGLCloud.cpp
   shapes/ChOpenGLWires.cpp
   shapes/ChOpenGLText.cpp
+  shapes/ChOpenGLBars.cpp
   shapes/ChOpenGLOBJ.cpp
   shapes/obj/ChOpenGLOBJLoader.cpp
   shapes/ChOpenGLCloud.h
   shapes/ChOpenGLWires.h
   shapes/ChOpenGLText.h
+  shapes/ChOpenGLBars.h
   shapes/ChOpenGLOBJ.h
   shapes/obj/ChOpenGLOBJLoader.h
   )
@@ -190,6 +201,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   ${CMAKE_BINARY_DIR}/resources/cloud_vert.h
   ${CMAKE_BINARY_DIR}/resources/dot_frag.h
   ${CMAKE_BINARY_DIR}/resources/dot_vert.h
+  ${CMAKE_BINARY_DIR}/resources/bar_frag.h
+  ${CMAKE_BINARY_DIR}/resources/bar_vert.h
   ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
   ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
   ${CMAKE_BINARY_DIR}/resources/box.h
@@ -220,8 +233,6 @@ ELSE()
   SET(CE_OpenGL_BULLET_FILES "")
 ENDIF()
 
-INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
-
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
@@ -245,7 +256,8 @@ TARGET_LINK_LIBRARIES(ChronoEngine_opengl
   ${GLEW_LIBRARY}
   ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
-  ChronoEngine)
+  ChronoEngine
+  ChronoEngine_parallel)
 
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin

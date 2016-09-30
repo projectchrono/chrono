@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -20,64 +20,26 @@
 #undef _GLIBCXX_ATOMIC_BUILTINS
 #undef _GLIBCXX_USE_INT128
 
-// Fix for Blaze on Windows
-#ifdef _MSC_VER
-#undef __AVX__
-#undef __AVX2__
-#endif
-
 #include <iostream>
 
 #ifndef _MSC_VER
 #include <fenv.h>
 #endif
+
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChConfigParallel.h"
-//
-//// Without the following define, thrust needs the cuda sdk to compile
-//
-//#if defined(CHRONO_OMP_FOUND)
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_OMP
-//
-//#elif defined(CHRONO_TBB_ENABLED)
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_TBB
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_TBB
-//#else
-//#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-//#define THRUST_HOST_SYSTEM THRUST_HOST_SYSTEM_CPP
-//#endif
-
-#include <thrust/execution_policy.h>
-#include <thrust/system/cpp/execution_policy.h>
-#include <thrust/system/omp/execution_policy.h>
-
-#if defined(_MSC_VER)
-#define thrust_parallel thrust::cpp::par
-#else
-#if defined(CHRONO_OMP_FOUND)
-#define thrust_parallel thrust::omp::par
-#elif defined(CHRONO_TBB_ENABLED)
-#define thrust_parallel thrust::tbb::par
-#else
-#define thrust_parallel thrust::cpp::par
-#endif
-#endif
 
 typedef int shape_type;
 
 #ifdef __CDT_PARSER__
 #define BLAZE_SERIAL_SECTION
-#endif
-
-#ifndef __CDT_PARSER__
-#define custom_vector thrust::host_vector
+#define CH_PARALLEL_API
+#define custom_vector std::vector
 #else
-using namespace thrust;
-#define custom_vector host_vector
+#define custom_vector std::vector
 #endif
 
-#if defined _MSC_VER || defined __clang__
+#if defined _MSC_VER
 class NullBuffer : public std::streambuf {
   public:
     int overflow(int c) { return c; }
@@ -93,26 +55,34 @@ static std::ostream null_stream(&null_buffer);
 
 #endif
 
-#define Thrust_Inclusive_Scan_Sum(x, y)                    \
-    thrust::inclusive_scan(x.begin(), x.end(), x.begin()); \
-    y = x.back();
-#define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(x.begin(), x.end(), y.begin())
+#if defined(CHRONO_OPENMP_ENABLED)
+#define THRUST_PAR thrust::omp::par,
+#elif defined(CHRONO_TBB_ENABLED)
+#define THRUST_PAR thrust::tbb::par,
+#else
+#define THRUST_PAR
+#endif
 
-#define Run_Length_Encode(y, z, w)                                                                              \
-    (thrust::reduce_by_key(y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
+#define Thrust_Inclusive_Scan_Sum(x, y)                    \
+    thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin()); \
+    y = x.back();
+#define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(THRUST_PAR x.begin(), x.end(), y.begin())
+
+#define Run_Length_Encode(y, z, w)                                                                                 \
+    (thrust::reduce_by_key(THRUST_PAR y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
         w.begin()
 
-#define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(x.begin(), x.end(), x.begin())
-#define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(x.begin(), x.end(), x.begin())
+#define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin())
+#define Thrust_Exclusive_Scan(x) thrust::exclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin())
 #define Thrust_Fill(x, y) thrust::fill(x.begin(), x.end(), y)
-#define Thrust_Sort(x) thrust::sort(x.begin(), x.end())
-#define Thrust_Count(x, y) thrust::count(x.begin(), x.end(), y)
+#define Thrust_Sort(x) thrust::sort(THRUST_PAR x.begin(), x.end())
+#define Thrust_Count(x, y) thrust::count(THRUST_PAR x.begin(), x.end(), y)
 #define Thrust_Sequence(x) thrust::sequence(x.begin(), x.end())
-#define Thrust_Equal(x, y) thrust::equal(x.begin(), x.end(), y.begin())
-#define Thrust_Max(x) x[thrust::max_element(x.begin(), x.end()) - x.begin()]
-#define Thrust_Min(x) x[thrust::min_element(x.begin(), x.end()) - x.begin()]
-#define Thrust_Total(x) thrust::reduce(x.begin(), x.end())
-#define Thrust_Unique(x) thrust::unique(x.begin(), x.end()) - x.begin();
+#define Thrust_Equal(x, y) thrust::equal(THRUST_PAR x.begin(), x.end(), y.begin())
+#define Thrust_Max(x) x[thrust::max_element(THRUST_PAR x.begin(), x.end()) - x.begin()]
+#define Thrust_Min(x) x[thrust::min_element(THRUST_PAR x.begin(), x.end()) - x.begin()]
+#define Thrust_Total(x) thrust::reduce(THRUST_PAR x.begin(), x.end())
+#define Thrust_Unique(x) thrust::unique(THRUST_PAR x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
 enum SOLVERTYPE {
@@ -128,7 +98,9 @@ enum SOLVERTYPE {
     APGDREF,
     JACOBI,
     GAUSS_SEIDEL,
-    PDIP
+    PDIP,
+    BB,
+    SPGQP
 };
 
 enum SOLVERMODE { NORMAL, SLIDING, SPINNING, BILATERAL };
@@ -137,10 +109,8 @@ enum COLLISIONSYSTEMTYPE { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
 
 enum NARROWPHASETYPE {
     NARROWPHASE_MPR,
-    NARROWPHASE_GJK,
     NARROWPHASE_R,
     NARROWPHASE_HYBRID_MPR,
-    NARROWPHASE_HYBRID_GJK
 };
 
 // This is set so that parts of the code that have been "flattened" can know what
@@ -151,3 +121,6 @@ enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAF
 
 // Supported Logging Levels
 enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
+
+#define max_neighbors 64
+#define max_rigid_neighbors 32
