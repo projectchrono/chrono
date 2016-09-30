@@ -81,6 +81,7 @@ set(ChronoEngine_core_HEADERS
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
+	core/ChBitmaskEnums.h
     )
 
 source_group(core FILES
@@ -510,6 +511,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
+	timestepper/ChUpdateFlags.h
     )
 
 source_group(timestepper FILES
