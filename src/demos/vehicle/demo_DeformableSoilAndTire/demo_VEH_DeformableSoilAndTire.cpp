@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     
 
     
-    application.SetTimestep(0.001);
+    application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
