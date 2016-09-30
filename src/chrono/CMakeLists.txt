@@ -122,7 +122,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkDistance.cpp
     physics/ChLinkMasked.cpp
     physics/ChLinkMarkers.cpp
-    physics/ChLinkNumdiff.cpp
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
     physics/ChLinkBushing.cpp
@@ -223,7 +222,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
     physics/ChLinkMasked.h
-    physics/ChLinkNumdiff.h
     physics/ChLinkPneumaticActuator.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
