@@ -88,6 +88,7 @@ void ChConveyor::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  ) {
     conveyor_truss->IntStateScatter(off_x, x, off_v, v, T);
     conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T);
+    this->Update(T);
 }
 
 void ChConveyor::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

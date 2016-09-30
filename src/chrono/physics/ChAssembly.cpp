@@ -701,6 +701,12 @@ void ChAssembly::IntStateScatter(const unsigned int off_x,  ///< offset in x sta
         Ppointer->IntStateScatter(displ_x + Ppointer->GetOffset_x(), x, displ_v + Ppointer->GetOffset_w(), v, T);
     }
     this->SetChTime(T);
+
+    // Note: all those IntStateScatter() above should call Update() automatically 
+    // for each object in the loop, therefore:
+    // -do not call Update() on this.
+    // -do not call ChPhysicsItem::IntStateScatter() -it calls this->Update() anyway-
+    // because this would cause redundant updates.
 }
 
 void ChAssembly::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
