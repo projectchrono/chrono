@@ -215,18 +215,27 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
                     );
 
   private:
+
+    // Updates the forces and the geometry, at the beginning of each timestep
+    virtual void Setup() override {
+        
+        //GetLog() << " Setup update soil t= "<< this->ChTime << "\n";
+        this->ComputeInternalForces();
+
+        ChLoadContainer::Update(ChTime, true);
+       
+    }
+
     // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
-        // optimization to avoid double updates per each integration time step
-        if (last_t != mytime) {
-            // Computes the internal forces
-            this->UpdateInternalForces();
-            // Overloading base class
-            ChLoadContainer::Update(mytime, update_assets);
-            last_t = mytime;
-            //GetLog() << "update soil t= "<< mytime << "\n";
-        } 
-        //else GetLog() << "unneeded update t= "<< mytime << "\n";
+        
+        // Note!!! we cannot call ComputeInternalForces here, because Update() could
+        // be called multiple times per timestep (ex. see HHT or RungKutta) and not
+        // necessarily in time-increasing order; this is a problem because in this
+        // force model the force is dissipative and keeps an 'history'. So we do
+        // ComputeInternalForces only at the beginning of the timestep; look Setup().
+
+        ChTime = mytime;
     }
 
     // Reset the list of forces, and fills it with forces from a soil contact model.
