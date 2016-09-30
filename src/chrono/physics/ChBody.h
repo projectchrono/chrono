@@ -577,13 +577,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void UpdateForces(double mytime);
     /// Update local time of rigid body, and time-dependant data
     void UpdateTime(double mytime);
-    /// Update all auxiliary data of the rigid body, at given time
-    void UpdateState(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt);
-    /// Update all auxiliary data of the rigid body, at given time and state
-    void UpdateStateTime(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime);
-    /// Update all auxiliary data of the rigid body and of
-    /// its children (markers, forces..), at given time and state
-    void Update(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime);
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..), at given time

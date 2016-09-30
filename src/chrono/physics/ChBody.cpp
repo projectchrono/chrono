@@ -644,29 +644,6 @@ void ChBody::UpdateTime(double mytime) {
     ChTime = mytime;
 }
 
-void ChBody::UpdateState(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt) {
-    SetCoord(mypos);        // Set the state coordsys,
-    SetCoord_dt(mypos_dt);  // automatically updating auxiliary variables
-
-    // TrySleeping();          // See if the body can fall asleep; if so, put it to sleeping
-    ClampSpeed();   // Apply limits (if in speed clamping mode) to speeds.
-    ComputeGyro();  // Set the gyroscopic momentum.
-}
-
-void ChBody::UpdateStateTime(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime) {
-    UpdateTime(mytime);
-    UpdateState(mypos, mypos_dt);
-}
-
-void ChBody::Update(const ChCoordsys<>& mypos, const ChCoordsys<>& mypos_dt, double mytime) {
-    UpdateTime(mytime);
-
-    ChCoordsys<> pos = mypos;
-    pos.rot.Normalize();
-    UpdateState(pos, mypos_dt);
-
-    Update();
-}
 
 // UpdateALL updates the state and time
 // of the object AND the dependant (linked)
