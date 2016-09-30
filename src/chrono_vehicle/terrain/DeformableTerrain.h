@@ -232,7 +232,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     // Reset the list of forces, and fills it with forces from a soil contact model.
     // This is called automatically during timestepping (only at the beginning of
     // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
-    void UpdateInternalForces();
+    void ComputeInternalForces();
 
     
     // Override the ChLoadContainer method for computing the generalized force F term:
@@ -240,10 +240,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
                                    ) override {
-        // reset the internal forces
-        // this->GetLoadList().clear();
-        // Computes the internal forces
-        // this->UpdateInternalForces();
+
         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }

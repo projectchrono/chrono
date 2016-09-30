@@ -451,7 +451,7 @@ void DeformableSoil::SetupAuxData() {
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
-void DeformableSoil::UpdateInternalForces() {
+void DeformableSoil::ComputeInternalForces() {
 
     // Readibility aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
