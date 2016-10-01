@@ -41,12 +41,12 @@ static const double lbf2N = 4.44822162;
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineType driveType,
                                            ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : ChWheeledVehicle(contactMethod), m_driveType(driveType) {
+    : HMMWV_Vehicle(contactMethod, driveType) {
     Create(fixed);
 }
 
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system, const bool fixed, DrivelineType driveType)
-    : ChWheeledVehicle(system), m_driveType(driveType) {
+    : HMMWV_Vehicle(system, driveType) {
     Create(fixed);
 }
 
@@ -115,8 +115,10 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
 
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039), m_steerings[0]->GetSteeringLink());
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody());
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039),
+                                 m_steerings[0]->GetSteeringLink(), m_omega[0], m_omega[1]);
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(),
+                                 m_omega[2], m_omega[3]);
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));

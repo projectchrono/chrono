@@ -30,7 +30,7 @@
 
 #include "chrono_vehicle/ChDriver.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 
 #include "BaseNode.h"
@@ -73,7 +73,7 @@ class VehicleNode : public BaseNode {
 
     bool m_chassis_fixed;  ///< flag indicating whther or not chassis is fixed to ground
 
-    chrono::vehicle::hmmwv::HMMWV_Vehicle* m_vehicle;        ///< vehicle system
+    chrono::vehicle::hmmwv::HMMWV_VehicleFull* m_vehicle;    ///< vehicle system
     chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;  ///< powertrain system
     chrono::vehicle::ChDriver* m_driver;                     ///< driver system
 

@@ -9,41 +9,53 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban, Justin Madsen, Daniel Melanz
 // =============================================================================
 //
-// HMMWV 9-body vehicle model...
+// HMMWV full vehicle model...
 //
 // =============================================================================
 
-#ifndef HMMWV_VEHICLE_REDUCED_H
-#define HMMWV_VEHICLE_REDUCED_H
+#ifndef HMMWV_VEHICLE_FULL_H
+#define HMMWV_VEHICLE_FULL_H
 
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishboneReduced.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_RackPinion.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
-class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
+class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
-    HMMWV_VehicleReduced(const bool fixed = false,
-                         DrivelineType driveType = DrivelineType::AWD,
-                         ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+    HMMWV_VehicleFull(const bool fixed = false,
+                      DrivelineType driveType = DrivelineType::AWD,
+                      ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
 
-    HMMWV_VehicleReduced(ChSystem* system, const bool fixed = false, DrivelineType driveType = DrivelineType::AWD);
+    HMMWV_VehicleFull(ChSystem* system, const bool fixed = false, DrivelineType driveType = DrivelineType::AWD);
 
-    ~HMMWV_VehicleReduced();
+    ~HMMWV_VehicleFull();
+
+    double GetSpringForce(const WheelID& wheel_id) const;
+    double GetSpringLength(const WheelID& wheel_id) const;
+    double GetSpringDeformation(const WheelID& wheel_id) const;
+
+    double GetShockForce(const WheelID& wheel_id) const;
+    double GetShockLength(const WheelID& wheel_id) const;
+    double GetShockVelocity(const WheelID& wheel_id) const;
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
+
+    // Log debugging information
+    void LogHardpointLocations();  /// suspension hardpoints at design
+    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
     void Create(bool fixed);

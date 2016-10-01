@@ -143,7 +143,7 @@ void VehicleNode::Initialize() {
     // Create and initialize subsystems
     // --------------------------------------------
 
-    m_vehicle = new HMMWV_Vehicle(m_system, m_chassis_fixed);
+    m_vehicle = new HMMWV_VehicleFull(m_system, m_chassis_fixed);
     m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
 
     m_powertrain = new HMMWV_Powertrain;

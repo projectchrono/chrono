@@ -9,16 +9,17 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen, Daniel Melanz
+// Authors: Radu Serban
 // =============================================================================
 //
-// HMMWV full vehicle model...
+// Base class for the HMMWV vehicle models
 //
 // =============================================================================
 
 #ifndef HMMWV_VEHICLE_H
 #define HMMWV_VEHICLE_H
 
+#include <vector>
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 #include "chrono/physics/ChSystem.h"
@@ -26,13 +27,6 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 
 namespace chrono {
 namespace vehicle {
@@ -40,36 +34,23 @@ namespace hmmwv {
 
 class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
-    HMMWV_Vehicle(const bool fixed = false,
-                  DrivelineType driveType = DrivelineType::AWD,
-                  ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
-
-    HMMWV_Vehicle(ChSystem* system,
-                  const bool fixed = false,
-                  DrivelineType driveType = DrivelineType::AWD);
-
-    ~HMMWV_Vehicle();
+    virtual ~HMMWV_Vehicle() {}
 
     virtual int GetNumberAxles() const override { return 2; }
 
-    double GetSpringForce(const WheelID& wheel_id) const;
-    double GetSpringLength(const WheelID& wheel_id) const;
-    double GetSpringDeformation(const WheelID& wheel_id) const;
+    void SetInitWheelAngVel(const std::vector<double>& omega) {
+        assert(omega.size() == 4);
+        m_omega = omega;
+    }
 
-    double GetShockForce(const WheelID& wheel_id) const;
-    double GetShockLength(const WheelID& wheel_id) const;
-    double GetShockVelocity(const WheelID& wheel_id) const;
+  protected:
+    HMMWV_Vehicle(ChMaterialSurfaceBase::ContactMethod contactMethod, DrivelineType driveType)
+        : ChWheeledVehicle(contactMethod), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
 
-    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
-
-    // Log debugging information
-    void LogHardpointLocations();  /// suspension hardpoints at design
-    void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
-
-  private:
-    void Create(bool fixed);
+    HMMWV_Vehicle(ChSystem* system, DrivelineType driveType) : ChWheeledVehicle(system), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
 
     DrivelineType m_driveType;
+    std::vector<double> m_omega;
 };
 
 }  // end namespace hmmwv

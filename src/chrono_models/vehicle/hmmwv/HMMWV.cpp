@@ -41,7 +41,8 @@ HMMWV::HMMWV()
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initOmega({0, 0, 0, 0}) {}
 
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
@@ -56,7 +57,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
       m_initFwdVel(0),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initOmega({0, 0, 0, 0}) {}
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
@@ -71,6 +73,7 @@ HMMWV::~HMMWV() {
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
+    m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // Create and initialize the powertrain system
