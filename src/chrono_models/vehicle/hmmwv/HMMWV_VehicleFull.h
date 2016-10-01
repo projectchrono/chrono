@@ -26,6 +26,7 @@
 #include "chrono_models/vehicle/hmmwv/HMMWV_DoubleWishbone.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline2WD.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Driveline4WD.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_SimpleDriveline.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_PitmanArm.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Wheel.h"
 

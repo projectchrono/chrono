@@ -265,7 +265,8 @@ enum class SuspensionType {
 enum class DrivelineType {
     FWD,  ///< front-wheel drive
     RWD,  ///< rear-wheel drive
-    AWD   ///< all-wheel drive
+    AWD,  ///< all-wheel drive
+    SIMPLE
 };
 
 /// Enum for track shoe types.

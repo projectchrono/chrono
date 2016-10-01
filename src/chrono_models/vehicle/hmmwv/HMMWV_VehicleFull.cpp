@@ -81,6 +81,9 @@ void HMMWV_VehicleFull::Create(bool fixed) {
         case DrivelineType::AWD:
             m_driveline = std::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
+        case DrivelineType::SIMPLE:
+            m_driveline = std::make_shared<HMMWV_SimpleDriveline>("Driveline");
+            break;
     }
 
     // -----------------
@@ -130,6 +133,7 @@ void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassi
             driven_susp_indexes[0] = 1;
             break;
         case DrivelineType::AWD:
+        case DrivelineType::SIMPLE:
             driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
             break;
