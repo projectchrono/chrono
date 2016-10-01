@@ -81,6 +81,7 @@ set(ChronoEngine_core_HEADERS
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
+	core/ChBitmaskEnums.h
     )
 
 source_group(core FILES
@@ -122,7 +123,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkDistance.cpp
     physics/ChLinkMasked.cpp
     physics/ChLinkMarkers.cpp
-    physics/ChLinkNumdiff.cpp
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
     physics/ChLinkBushing.cpp
@@ -223,7 +223,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
     physics/ChLinkMasked.h
-    physics/ChLinkNumdiff.h
     physics/ChLinkPneumaticActuator.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
@@ -512,6 +511,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
+	timestepper/ChUpdateFlags.h
     )
 
 source_group(timestepper FILES

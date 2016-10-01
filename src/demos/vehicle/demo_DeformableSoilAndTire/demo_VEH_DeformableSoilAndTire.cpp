@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&my_system, L"Deformable soil", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&my_system, L"Deformable soil and deformable tire", core::dimension2d<u32>(1280, 720), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     application.AddTypicalLogo();
@@ -69,9 +69,9 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> mrim (new ChBody);
     my_system.Add(mrim);
-    mrim->SetMass(10);
+    mrim->SetMass(100);
     mrim->SetInertiaXX(ChVector<>(2,2,2));
-    mrim->SetPos(tire_center + ChVector<>(0,0.1,0));
+    mrim->SetPos(tire_center + ChVector<>(0,0.2,0));
     mrim->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Z));
 
     // the tire:
@@ -89,9 +89,8 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
     myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
-    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(myengine->Get_spe_funct()) )
-        mfun->Set_yconst(CH_C_PI / 4.0);
+    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    myengine->Set_rot_funct( std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0)); // CH_C_PI / 4.0) ); // phase, speed
     myengine->Initialize(mrim, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
     my_system.Add(myengine);
 
@@ -99,12 +98,12 @@ int main(int argc, char* argv[]) {
     //
     // THE DEFORMABLE TERRAIN
     //
-
+    
     // Create the 'deformable terrain' object
     vehicle::DeformableTerrain mterrain(&my_system);
 
     // Optionally, displace/tilt/rotate the terrain reference plane:
-    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.5)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector<>(0, 0, 0.3)));
 
     // Initialize the geometry of the soil: use either a regular grid:
      mterrain.Initialize(0.2,1.5,5,20,60);
@@ -133,15 +132,15 @@ int main(int argc, char* argv[]) {
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_ISLAND_ID, 0, 8);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_IS_TOUCHED, 0, 8);
     mterrain.GetMesh()->SetWireframe(true);
-
+    
 
 
     // ==IMPORTANT!== Use this function for adding a ChIrrNodeAsset to all items
@@ -170,21 +169,22 @@ int main(int argc, char* argv[]) {
     mkl_solver_speed->SetSparsityPatternLock(true);
     mkl_solver_stab->SetSparsityPatternLock(true);
     
-    /*
+    
     // Change the timestepper to HHT: 
     my_system.SetIntegrationType(ChSystem::INT_HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
+    integrator->SetMaxiters(8);
     integrator->SetAbsTolerances(5e-05, 1.8e00);
     integrator->SetMode(ChTimestepperHHT::POSITION);
     integrator->SetModifiedNewton(false);
     integrator->SetScaling(true);
     integrator->SetVerbose(true);
-    */
+    
+    
 
     
-    application.SetTimestep(0.005);
+    application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

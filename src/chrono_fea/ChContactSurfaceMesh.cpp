@@ -65,6 +65,66 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
     return (ChPhysicsItem*)container->GetMesh();
 }
 
+// interface to ChLoadableUV
+
+// Gets all the DOFs packed in a single vector (position part).
+void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    mD.PasteVector(mnode1->GetPos(), block_offset, 0);
+    mD.PasteVector(mnode2->GetPos(), block_offset + 3, 0);
+    mD.PasteVector(mnode3->GetPos(), block_offset + 6, 0);
+}
+// Gets all the DOFs packed in a single vector (velocity part).
+void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    mD.PasteVector(mnode1->GetPos_dt(), block_offset, 0);
+    mD.PasteVector(mnode2->GetPos_dt(), block_offset + 3, 0);
+    mD.PasteVector(mnode3->GetPos_dt(), block_offset + 6, 0);
+}
+// Get the pointers to the contained ChVariables, appending to the mvars vector.
+void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    mvars.push_back(&mnode1->Variables());
+    mvars.push_back(&mnode2->Variables());
+    mvars.push_back(&mnode3->Variables());
+}
+
+// Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
+void ChContactTriangleXYZ::ComputeNF(
+    const double U,              // parametric coordinate in surface
+    const double V,              // parametric coordinate in surface
+    ChVectorDynamic<>& Qi,       // Return result of Q = N'*F  here
+    double& detJ,                // Return det[J] here
+    const ChVectorDynamic<>& F,  // Input F vector, size is =n. field coords.
+    ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate Q
+    ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate Q
+    ) {
+    ChMatrixNM<double, 1, 3> N;
+    // shape functions (U and V in 0..1 as triangle integration)
+    N(0) = 1-U-V;
+    N(1) = U;
+    N(2) = V;
+
+    // determinant of jacobian is also =2*areaoftriangle, also length of cross product of sides
+    ChVector<> p0 = GetNode1()->GetPos();
+    ChVector<> p1 = GetNode2()->GetPos();
+    ChVector<> p2 = GetNode3()->GetPos();
+    detJ = (Vcross(p2-p0,p1-p0)).Length(); 
+
+    ChVector<> tmp;
+    ChVector<> Fv = F.ClipVector(0, 0);
+    tmp = N(0) * Fv;
+    Qi.PasteVector(tmp, 0, 0);
+    tmp = N(1) * Fv;
+    Qi.PasteVector(tmp, 3, 0);
+    tmp = N(2) * Fv;
+    Qi.PasteVector(tmp, 6, 0);
+}
+
+ChVector<> ChContactTriangleXYZ::ComputeNormal(const double U, const double V)
+{
+    ChVector<> p0 = GetNode1()->GetPos();
+    ChVector<> p1 = GetNode2()->GetPos();
+    ChVector<> p2 = GetNode3()->GetPos();
+    return Vcross(p1-p0, p2-p0).GetNormalized();
+}
 
 //////////////////////////////////////////////////////////////////////////////
 ////  ChContactTriangleXYZROT
@@ -159,7 +219,6 @@ void ChContactTriangleXYZROT::ComputeNF(
     Qi.PasteVector(tmp, 12, 0);
     tmp = N(2) * Mv;
     Qi.PasteVector(tmp, 15, 0);
-    tmp = N(3) * Fv;
 }
 
 ChVector<> ChContactTriangleXYZROT::ComputeNormal(const double U, const double V)
