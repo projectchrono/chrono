@@ -8,6 +8,10 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 
 #include <windows.h>
 
+#elif defined(__linux__)
+
+#include <X11/Xlib.h>
+
 #endif
 
 #include <string>
@@ -21,11 +25,19 @@ namespace ChOgre {
 std::string const ChOgre_SDLInputHandler::WheelGUID = "6d049bc2000000000000504944564944";
 
 ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow) {
-    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_VIDEO | SDL_INIT_HAPTIC) != 0) {
+
+    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_VIDEO) != 0) {
         Ogre::LogManager::getSingleton().logMessage(
             Ogre::LogMessageLevel::LML_CRITICAL,
             "\n\nCould not initialize SDL: " + std::string(SDL_GetError()) + "\n\n");
     }
+    else {
+      Ogre::LogManager::getSingleton().logMessage(
+          Ogre::LogMessageLevel::LML_NORMAL,
+          "\n\nSDL2 Initialized\n\n");
+    }
+
+    m_disabled = false;
 
 #if defined(_WIN32) || defined(WIN32)
 
@@ -36,11 +48,36 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow)
 
     m_pSDLWindow = SDL_CreateWindowFrom(windowHnd);
 
+#elif defined(__linux__)
+
+    Window windowHandle = 123456789;
+    // Get window handle
+    renderWindow->getCustomAttribute("WINDOW", &windowHandle);
+
+    std::cout << "Received window information: " << windowHandle << "\n";
+
+    if (windowHandle != 123456789) {
+      m_pSDLWindow = SDL_CreateWindowFrom((void*)windowHandle);
+
+      std::cout << "Passed window information to SDL2\n";
+    }
+    else {
+      std::cout << "Window information was invalid\n";
+    }
+
 #endif
 
     if (m_pSDLWindow == nullptr) {
         Ogre::LogManager::getSingleton().logMessage(
-            Ogre::LogMessageLevel::LML_CRITICAL, "\n\nCould make SDL window: " + std::string(SDL_GetError()) + "\n\n");
+            Ogre::LogMessageLevel::LML_CRITICAL, "\n\nCouldn't make SDL window: " + std::string(SDL_GetError()) + "\n\n");
+        m_disabled = true;
+
+        SDL_Quit();
+        return;
+    }
+    else {
+      Ogre::LogManager::getSingleton().logMessage(
+          Ogre::LogMessageLevel::LML_NORMAL, "\n\nSDL2 Window created successfully\n\n");
     }
 
     m_pController = nullptr;
@@ -51,7 +88,7 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow)
         m_pController = SDL_JoystickOpen(i);
 
         SDL_JoystickGUID k = SDL_JoystickGetGUID(m_pController);
-        char* l = new char[33];
+        char l[33];
         SDL_JoystickGetGUIDString(k, l, 33);
         if (l == WheelGUID) {
             m_WheelState.active = true;
@@ -60,7 +97,6 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow)
             m_ControllerState.active = true;
             m_WheelState.active = false;
         }
-        delete l;
 
         if (m_pController) {
             m_pHaptic = SDL_HapticOpen(0);
@@ -74,14 +110,19 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow)
     }
 
     AxisThreshold = INPUT_DEADZONE;
-    WindowClose = false;
+    m_windowClose = false;
 }
 
 ChOgre_SDLInputHandler::~ChOgre_SDLInputHandler() {
-    SDL_Quit();
+  SDL_Quit();
 }
 
 void ChOgre_SDLInputHandler::update() {
+    if (m_disabled == false) {
+
+
+      m_windowClose = false;
+
     SDL_Event _event;
     while (SDL_PollEvent(&_event)) {
         if (_event.type == SDL_KEYDOWN) {
@@ -658,7 +699,7 @@ void ChOgre_SDLInputHandler::update() {
                 m_pController = SDL_JoystickOpen(0);
 
                 SDL_JoystickGUID k = SDL_JoystickGetGUID(m_pController);
-                char* l = new char[33];
+                char l[33];
                 SDL_JoystickGetGUIDString(k, l, 33);
                 if (l == WheelGUID) {
                     m_WheelState.active = true;
@@ -667,7 +708,6 @@ void ChOgre_SDLInputHandler::update() {
                     m_ControllerState.active = true;
                     m_WheelState.active = false;
                 }
-                delete l;
 
                 m_pHaptic = SDL_HapticOpen(0);
                 SDL_HapticRumbleInit(m_pHaptic);
@@ -684,10 +724,11 @@ void ChOgre_SDLInputHandler::update() {
             }
         } else if (_event.type == SDL_WINDOWEVENT) {
             if (_event.window.event == SDL_WINDOWEVENT_CLOSE) {
-                WindowClose = true;
+                m_windowClose = true;
             }
         }
     }
+  }
 }
 
 void ChOgre_SDLInputHandler::grabMouse(bool grab) {
@@ -806,6 +847,10 @@ void ChOgre_SDLInputHandler::m_CallWindowCallbacks() {
     std::for_each(m_WindowCallbackPtrs.begin(), m_WindowCallbackPtrs.end(),
 
                   [this](ChOgreWindowCallback* ptr) { ptr->call(); });
+}
+
+bool ChOgre_SDLInputHandler::isWindowToClose() {
+  return m_windowClose;
 }
 }
 }

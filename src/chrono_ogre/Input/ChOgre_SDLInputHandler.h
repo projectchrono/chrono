@@ -59,10 +59,14 @@ class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
 
     double AxisThreshold;
 
-    bool WindowClose;
+    bool isWindowToClose();
 
   protected:
     SDL_Window* m_pSDLWindow;
+
+    bool m_windowClose;
+
+    bool m_disabled;
 
     void m_CallKeyboardCallbacks(scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState);
     void m_CallMouseCallbacks();

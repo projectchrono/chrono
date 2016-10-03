@@ -8,6 +8,7 @@ Data structures for passing around user input information
 
 #include "chrono_ogre/ChOgreApi.h"
 #include <cinttypes>
+#include <SDL.h>
 
 namespace chrono{
 namespace ChOgre {

@@ -4,7 +4,9 @@ using namespace chrono::ChOgre;
 
 int main(int argc, char** args) {
 	ChOgreApplication app;
-	
+
+	std::cout << "Window Creation\n";
+
 	app.createWindow("Test", 1280, 720, 0, false, false);
 
 	ChOgreCamera* DebugCamera = app.getCameraManager()->createCamera("DebugCamera");
@@ -41,8 +43,8 @@ int main(int argc, char** args) {
 	std::cout<<"about to add skybox"<<std::endl;
 
 	app.getScene()->setSkyBox("sky"); //does not exist in chrono data folder
-	
-	std::cout<<"finished adding skybox)"<<std::endl;
+
+	std::cout<<"finished adding skybox"<<std::endl;
 
 	ChOgreKeyboardCallback EpsilonCallback;
 	EpsilonCallback.call = [&Epsilon](scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {

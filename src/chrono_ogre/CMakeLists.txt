@@ -6,23 +6,27 @@ endif()
 
 message(STATUS "==== Chrono Ogre module ====")
 
-find_package(SDL2 REQUIRED)
+#find_package(SDL2 REQUIRED)
 find_package(Ogre REQUIRED)
 find_package(MyGUI REQUIRED)
+find_package(GLFW)
 
 #SET(Boost_USE_STATIC_LIBS ON)
 #SET(Boost_USE_MULTITHREADED ON)
 #SET(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS thread system chrono date_time REQUIRED)
 
-SET(LIBRARIES 
+
+
+SET(LIBRARIES
     ChronoEngine
-	${SDL2_LIBRARY} 
+	${SDL2_LIBRARY}
+  ${GLFW_LIBRARY}
 	#${Boost_threadlib}
 	#${Boost_systemlib}
 	#${Boost_date_timelib}
 	#${Boost_chronolib}
-	${Boost_LIBRARIES} 
+	${Boost_LIBRARIES}
 	${OGRE_LIBRARIES}
 	${MYGUI_LIBRARIES}
 	${MYGUI_PLATFORM_LIBRARIES}
@@ -33,7 +37,9 @@ set(CH_OGRE_INCLUDES
        ${Boost_INCLUDE_DIR}
        ${SDL_INCLUDE_DIR}
        ${MYGUI_INCLUDE_DIRS}
-       ${SDL2_INCLUDE_DIR})
+     ${SDL2_INCLUDE_DIR}
+     ${GLFW_INCLUDE_DIR}
+   )
 set(CH_OGRE_INCLUDES "${CH_OGRE_INCLUDES}" PARENT_SCOPE)
 include_directories(${CH_OGRE_INCLUDES})
 
@@ -41,13 +47,13 @@ include_directories(${CH_OGRE_INCLUDES})
 SET(ROOT_INCLUDE
 	ChOgreApi.h
 	)
-	
+
 SET(CORE_FILES
 	Core/ChOgreApplication.cpp
 	Core/ChOgreApplication.h
 	Core/ChOgreCallback.h
 	)
-	
+
 SET(GRAPHICS_FILES
 	Graphics/ChOgreBody.cpp
 	Graphics/ChOgreBody.h
@@ -64,7 +70,7 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreLight.cpp
 	Graphics/ChOgreLight.h
 	)
-	
+
 SET(UTIL_FILES
 	Util/ChOgreBodyHandle.h
 	Util/ChOgreBodyHandle.cpp
@@ -83,10 +89,12 @@ SET(GUI_FILES
 	GUI/ChOgreGUIText.cpp
 	GUI/ChOgreGUIText.h
 	)
-	
+
 SET(INPUT_FILES
 	Input/ChOgre_SDLInputHandler.cpp
 	Input/ChOgre_SDLInputHandler.h
+  Input/ChOgre_GLFWInputHandler.cpp
+  Input/ChOgre_GLFWInputHandler.h
 	Input/ChOgreControllerCallback.h
 	Input/ChOgreMouseCallback.h
 	Input/ChOgreKeyboardCallback.h
@@ -94,12 +102,12 @@ SET(INPUT_FILES
 	Input/ChOgreWindowCallback.h
 	Input/ChOgreInputDataStructures.h
 	)
-	
+
 SET(TINYOBJLOADER_FILES
 	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
 	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
 	)
-	
+
 SOURCE_GROUP("" FILES ${ROOT_INCLUDE})
 SOURCE_GROUP("Core" FILES ${CORE_FILES})
 SOURCE_GROUP("Util" FILES ${UTIL_FILES})
@@ -107,17 +115,17 @@ SOURCE_GROUP("Graphics" FILES ${GRAPHICS_FILES})
 SOURCE_GROUP("GUI" FILES ${GUI_FILES})
 SOURCE_GROUP("Input" FILES ${INPUT_FILES})
 SOURCE_GROUP("tinyobjloader" FILES ${TINYOBJLOADER_FILES})
-	
-ADD_LIBRARY(ChronoEngine_ogre SHARED 	
-							${ROOT_INCLUDE} 
-							${CORE_FILES} 
+
+ADD_LIBRARY(ChronoEngine_ogre SHARED
+							${ROOT_INCLUDE}
+							${CORE_FILES}
 							${UTIL_FILES}
-							${GRAPHICS_FILES} 
-							${GUI_FILES} 
-							${INPUT_FILES} 
+							${GRAPHICS_FILES}
+							${GUI_FILES}
+							${INPUT_FILES}
 							${TINYOBJLOADER_FILES}
 			)
-			
+
 TARGET_LINK_LIBRARIES(ChronoEngine_ogre ${LIBRARIES})
 
   SET_TARGET_PROPERTIES(ChronoEngine_ogre PROPERTIES
@@ -131,4 +139,3 @@ INSTALL(TARGETS ChronoEngine_ogre
 	LIBRARY DESTINATION lib
 	ARCHIVE DESTINATION lib
 	)
-	

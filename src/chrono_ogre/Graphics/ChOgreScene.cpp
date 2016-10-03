@@ -204,7 +204,7 @@ void ChOgreScene::update() {
     }
 }
 
-ChOgreBodyHandle ChOgreScene::spawnBox(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnBox(const std::string& Name,
                                        double mass,
                                        const chrono::ChVector<>& position,
                                        const chrono::ChVector<>& size,
@@ -231,13 +231,13 @@ ChOgreBodyHandle ChOgreScene::spawnBox(std::string Name,
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnCapsule(std::string Name) {
+ChOgreBodyHandle ChOgreScene::spawnCapsule(const std::string& Name) {
     ChOgreBodyHandle _ret = createBody(Name);
 
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnCone(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnCone(const std::string& Name,
                                         double mass,
                                         const chrono::ChVector<>& position,
                                         const chrono::ChVector<>& size,
@@ -264,7 +264,7 @@ ChOgreBodyHandle ChOgreScene::spawnCone(std::string Name,
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnCylinder(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnCylinder(const std::string& Name,
                                             double mass,
                                             const chrono::ChVector<>& position,
                                             const chrono::ChVector<>& size,
@@ -293,7 +293,7 @@ ChOgreBodyHandle ChOgreScene::spawnCylinder(std::string Name,
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnEllipsoid(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnEllipsoid(const std::string& Name,
                                              double mass,
                                              const chrono::ChVector<>& position,
                                              const chrono::ChVector<>& size,
@@ -320,7 +320,7 @@ ChOgreBodyHandle ChOgreScene::spawnEllipsoid(std::string Name,
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnSphere(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnSphere(const std::string& Name,
                                           double mass,
                                           const chrono::ChVector<>& position,
                                           double radius,
@@ -345,13 +345,13 @@ ChOgreBodyHandle ChOgreScene::spawnSphere(std::string Name,
     return _ret;
 }
 
-ChOgreBodyHandle ChOgreScene::spawnMesh(std::string Name,
+ChOgreBodyHandle ChOgreScene::spawnMesh(const std::string& Name,
                                         double mass,
                                         const chrono::ChVector<>& position,
                                         const chrono::ChVector<>& size,
                                         const chrono::ChQuaternion<>& rotation,
-                                        std::string FileName,
-                                        std::string Path,
+                                        const std::string& FileName,
+                                        const std::string& Path,
                                         bool fixed) {
     ChOgreBodyHandle _ret = createBody(Name);
 
@@ -480,7 +480,7 @@ double ChOgreScene::getLowerLimit() {
     return m_LowerLimit;
 }
 
-void ChOgreScene::setSkyBox(std::string Path) {
+void ChOgreScene::setSkyBox(const std::string& Path) {
     m_pSceneManager->setSkyBox(true, Path);
 }
 
@@ -488,7 +488,7 @@ void ChOgreScene::disableSkyBox() {
     m_pSceneManager->setSkyBoxEnabled(false);
 }
 
-ChOgreBodyHandle ChOgreScene::loadHeightMap(std::string FilePath, const chrono::ChVector<>& Scale) {
+ChOgreBodyHandle ChOgreScene::loadHeightMap(const std::string& FilePath, const chrono::ChVector<>& Scale) {
     Ogre::TexturePtr l_tex =
         Ogre::TextureManager::getSingleton().load(FilePath, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
 

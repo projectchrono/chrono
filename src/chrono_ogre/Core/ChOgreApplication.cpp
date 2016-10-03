@@ -111,7 +111,7 @@ namespace ChOgre {
 
 	int ChOgreApplication::startLoop(std::function<int()> _func) {
 		int l_run = 0;
-		
+
 		isRunning = true;
 
 		double l_systemTimeIncriment = 0.0;
@@ -122,7 +122,7 @@ namespace ChOgre {
 		std::cout<<"about to add rtt_texture"<<std::endl;
 
 
-		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
+		/*Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
 		        "_tex",
 				"General",
 		        TEX_TYPE_2D,
@@ -132,11 +132,11 @@ namespace ChOgre {
 				1,
 				PF_R8G8B8
 		        );
+*/
 
-
-//		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
-//				"TEX", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(),
-//				m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
+		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
+				"TEX", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(),
+				m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
 		std::cout<<"created rtt_texture"<<std::endl;
 		Ogre::RenderTexture* renderTexture = rtt_texture->getBuffer()->getRenderTarget();
 
@@ -146,6 +146,8 @@ namespace ChOgre {
 		renderTexture->getViewport(0)->setClearEveryFrame(true);
 		renderTexture->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
 		renderTexture->getViewport(0)->setOverlaysEnabled(false);
+
+		std::cout << "configured renderTexture\n";
 
 		std::chrono::high_resolution_clock l_time;
 		auto l_start = l_time.now();
@@ -170,7 +172,8 @@ namespace ChOgre {
 
 			l_run = _func();
 
-			if (m_pInputManager->WindowClose) {
+			if (m_pInputManager->isWindowToClose() == true) {
+				std::cout << "Closing\n";
 				l_run++;
 				break;
 			}
@@ -219,14 +222,14 @@ namespace ChOgre {
 				else {
 					name = "frame" + frame_count + ".png";
 				}
-				
+
 				renderTexture->update();
 				renderTexture->writeContentsToFile(name);
 				l_frame++;
 			}
 
 			Ogre::WindowEventUtilities::messagePump();
-			
+
 		}
 		isRunning = false;
 
@@ -235,9 +238,9 @@ namespace ChOgre {
 
 
 	void ChOgreApplication::chronoThread() {
-		
+
 		while (isRunning) {
-			
+
 		}
 	}
 
@@ -275,6 +278,8 @@ namespace ChOgre {
 		m_pInputManager = new ChOgre_SDLInputHandler(m_pRenderWindow);
 		m_pGUIManager = new ChOgreGUIManager(m_pRenderWindow, m_pSceneManager, m_pInputManager);
 
+		m_pRenderWindow->setActive(true);
+
 		return m_pRenderWindow;
 	}
 
@@ -305,6 +310,7 @@ namespace ChOgre {
 			}
 			delete m_pRenderWindow;
 			delete m_pInputManager;
+			delete m_pGUIManager;
 		}
 	}
 
