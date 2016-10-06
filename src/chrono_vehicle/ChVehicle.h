@@ -37,12 +37,6 @@ namespace vehicle {
 /// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChVehicle {
   public:
-    /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
-
-    /// Construct a vehicle system using the specified ChSystem.
-    ChVehicle(ChSystem* system);
-
     /// Destructor.
     virtual ~ChVehicle();
 
@@ -116,6 +110,12 @@ class CH_VEHICLE_API ChVehicle {
     virtual void LogConstraintViolations() = 0;
 
   protected:
+    /// Construct a vehicle system with a default ChSystem.
+    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+
+    /// Construct a vehicle system using the specified ChSystem.
+    ChVehicle(ChSystem* system);
+
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 
