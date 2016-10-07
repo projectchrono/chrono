@@ -191,6 +191,7 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
             my_terrain->SetContainerDimensions(10, 3, 1, 0.2);
+            my_terrain->SetPlatformLength(0);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;

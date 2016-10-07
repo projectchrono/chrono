@@ -127,7 +127,7 @@ void VehicleNode::Initialize() {
     // Receive terrain height information
     // ----------------------------------
 
-    // Receive terrain height and half-length of the container
+    // Receive terrain height and longitudinal offset (in X direction)
     double init_dim[2];
     MPI_Status status;
     MPI_Recv(init_dim, 2, MPI_DOUBLE, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD, &status);
