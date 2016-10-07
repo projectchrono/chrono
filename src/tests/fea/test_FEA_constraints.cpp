@@ -26,7 +26,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 #include "chrono_fea/ChLoadsBeam.h"
@@ -90,7 +90,7 @@ void test_beam(const std::string& name,  /// test name
     mesh->AddNode(node1);
     mesh->AddNode(node2);
 
-    auto beam_elem = std::make_shared<ChElementBeamANCF>();
+    auto beam_elem = std::make_shared<ChElementCableANCF>();
     beam_elem->SetNodes(node1, node2);
     beam_elem->SetSection(msection_cable);
     beam_elem->SetAlphaDamp(alpha);

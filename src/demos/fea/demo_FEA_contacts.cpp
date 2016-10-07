@@ -28,7 +28,7 @@
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChBuilderBeam.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -239,8 +239,8 @@ int main(int argc, char* argv[]) {
 	ChBuilderBeamANCF builder;
 
 	builder.BuildBeam(	my_mesh_beams,	// the mesh where to put the created nodes and elements 
-						msection_cable2,// the ChBeamSectionCable to use for the ChElementBeamANCF elements
-						10,				// the number of ChElementBeamANCF to create
+						msection_cable2,// the ChBeamSectionCable to use for the ChElementCableANCF elements
+						10,				// the number of ChElementCableANCF to create
 						ChVector<>(0, 0.1, -0.1),		// the 'A' point in space (beginning of beam)
 						ChVector<>(0.5, 0.13, -0.1));	// the 'B' point in space (end of beam)
 

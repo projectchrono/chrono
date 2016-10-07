@@ -636,7 +636,7 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     ///     - ChElementShellANCF ANCF: shells (only one side)
     ///     - ChElementShellReissner: Reissner 4-nodes shells (only one side)
     /// - beams:
-    ///     - ChElementBeamANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
+    ///     - ChElementCableANCF: ANCF beams (as sphere-swept lines, i.e. sequence of capsules)
     ///     - ChElementBeamEuler: Euler-Bernoulli beams (as sphere-swept lines, i.e. sequence of capsules)
     /// More will follow in future.
 

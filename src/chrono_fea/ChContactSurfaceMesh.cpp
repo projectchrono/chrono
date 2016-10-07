@@ -18,7 +18,7 @@
 #include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementBrick_9.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChFaceTetra_4.h"
 #include "chrono_fea/ChFaceBrick_9.h"
@@ -349,7 +349,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     /// Case4. ANCF BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     ///
     for (unsigned int ie= 0; ie< this->mmesh->GetNelements(); ++ie) {
-        if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamANCF>(mmesh->GetElement(ie))) {
+        if (auto mbeam = std::dynamic_pointer_cast<ChElementCableANCF>(mmesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = mbeam->GetNodeB();
 

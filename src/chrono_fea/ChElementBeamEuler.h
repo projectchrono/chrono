@@ -33,7 +33,7 @@ namespace fea {
 /// Further information in the 
 /// [white paper PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
 ///
-/// Note that there are also ChElementBeamANCF if no torsional effects
+/// Note that there are also ChElementCableANCF if no torsional effects
 /// are needed, as in cables. 
 
 class ChApiFea ChElementBeamEuler : public ChElementBeam,
