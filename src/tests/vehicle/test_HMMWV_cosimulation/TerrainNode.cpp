@@ -295,7 +295,7 @@ void TerrainNode::Construct() {
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
     m_system->GetSettings()->collision.use_aabb_active = true;
-    m_system->GetSettings()->collision.aabb_min = real3(-m_hdimX - m_hthick, -m_hdimY - m_hthick, -m_hthick);
+    m_system->GetSettings()->collision.aabb_min = real3(-m_hdimX - m_hthick - 2*hlenX, -m_hdimY - m_hthick, -m_hthick);
     m_system->GetSettings()->collision.aabb_max = real3(m_hdimX + m_hthick, m_hdimY + m_hthick, 2 * m_hdimZ + 2);
 
     // Collision between two bodies fixed to ground is always ignored.

@@ -136,7 +136,7 @@ void VehicleNode::Initialize() {
     cout << m_prefix << " Received container half-length = " << init_dim[1] << endl;
 
     // Set initial vehicle position and orientation
-    ChVector<> init_loc(2.75 - init_dim[1], 0, 0.6 + init_dim[0]);
+    ChVector<> init_loc(2.75 - init_dim[1], 0, 0.52 + init_dim[0]);
     ChQuaternion<> init_rot(1, 0, 0, 0);
 
     // --------------------------------------------

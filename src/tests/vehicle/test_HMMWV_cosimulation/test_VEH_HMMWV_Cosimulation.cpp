@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
             break;
         }
         case TERRAIN_NODE_RANK: {
-            auto type = TerrainNode::RIGID;
+            auto type = TerrainNode::GRANULAR;
             auto method = ChMaterialSurfaceBase::DEM;
 
             my_terrain = new TerrainNode(type, method, 4, use_checkpoint, render, nthreads_terrain);
