@@ -48,6 +48,12 @@ class VehicleNode : public BaseNode {
     /// Specify whether or not chassis is fixed to ground (default: false).
     void SetChassisFixed(bool fixed) { m_chassis_fixed = fixed; }
 
+    /// Specify initial chassis forward velocity (default: 0).
+    void SetInitFwdVel(double fwd_vel) { m_init_fwd_vel = fwd_vel; }
+
+    /// Specify initial wheel angular velocity (default: 0).
+    void SetInitWheelAngVel(double ang_vel) { m_init_ang_vel = ang_vel; }
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -71,7 +77,9 @@ class VehicleNode : public BaseNode {
     chrono::ChSystemDEM* m_system;  ///< containing system
     double m_delay;                 ///< delay in generating driver inputs
 
-    bool m_chassis_fixed;  ///< flag indicating whther or not chassis is fixed to ground
+    bool m_chassis_fixed;   ///< flag indicating whther or not chassis is fixed to ground
+    double m_init_fwd_vel;  ///< initial chassis forward velocity
+    double m_init_ang_vel;  ///< initial wheel angular velocity
 
     chrono::vehicle::hmmwv::HMMWV_VehicleFull* m_vehicle;    ///< vehicle system
     chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;  ///< powertrain system

@@ -143,8 +143,11 @@ void VehicleNode::Initialize() {
     // Create and initialize subsystems
     // --------------------------------------------
 
+    std::vector<double> init_omega(4, m_init_ang_vel);
+
     m_vehicle = new HMMWV_VehicleFull(m_system, m_chassis_fixed);
-    m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot));
+    m_vehicle->SetInitWheelAngVel(init_omega);
+    m_vehicle->Initialize(ChCoordsys<>(init_loc, init_rot), m_init_fwd_vel);
 
     m_powertrain = new HMMWV_Powertrain;
     m_powertrain->Initialize(m_vehicle->GetChassisBody(), m_vehicle->GetDriveshaft());
