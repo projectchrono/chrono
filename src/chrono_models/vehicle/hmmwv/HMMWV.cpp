@@ -32,7 +32,7 @@ HMMWV::HMMWV()
     : m_system(NULL),
       m_vehicle(NULL),
       m_powertrain(NULL),
-      m_tires({NULL, NULL, NULL, NULL}),
+      m_tires({{NULL, NULL, NULL, NULL}}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),
@@ -40,13 +40,15 @@ HMMWV::HMMWV()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
+      m_initFwdVel(0),
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initOmega({0, 0, 0, 0}) {}
 
 HMMWV::HMMWV(ChSystem* system)
     : m_system(system),
       m_vehicle(NULL),
       m_powertrain(NULL),
-      m_tires({NULL, NULL, NULL, NULL}),
+      m_tires({{NULL, NULL, NULL, NULL}}),
       m_contactMethod(ChMaterialSurfaceBase::DVI),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),
@@ -54,7 +56,9 @@ HMMWV::HMMWV(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_pacejkaParamFile(""),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)) {}
+      m_initFwdVel(0),
+      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initOmega({0, 0, 0, 0}) {}
 
 HMMWV::~HMMWV() {
     delete m_vehicle;
@@ -69,7 +73,8 @@ HMMWV::~HMMWV() {
 void HMMWV::Initialize() {
     // Create and initialize the HMMWV vehicle
     m_vehicle = CreateVehicle();
-    m_vehicle->Initialize(m_initPos);
+    m_vehicle->SetInitWheelAngVel(m_initOmega);
+    m_vehicle->Initialize(m_initPos, m_initFwdVel);
 
     // Create and initialize the powertrain system
     switch (m_powertrainType) {

@@ -74,7 +74,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) override;
 
     /// Add visualization assets for the suspension subsystem.
@@ -210,7 +212,8 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points);
+                        const std::vector<ChVector<> >& points,
+                        double ang_vel);
 
     static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,
                                            const ChVector<> pt_F,

@@ -42,10 +42,13 @@ set(CVM_HMMWV_FILES
     hmmwv/HMMWV_RackPinion.h
     hmmwv/HMMWV_RigidTire.cpp
     hmmwv/HMMWV_RigidTire.h
+    hmmwv/HMMWV_SimpleDriveline.cpp
+    hmmwv/HMMWV_SimpleDriveline.h
     hmmwv/HMMWV_SimplePowertrain.cpp
     hmmwv/HMMWV_SimplePowertrain.h
-    hmmwv/HMMWV_Vehicle.cpp
     hmmwv/HMMWV_Vehicle.h
+    hmmwv/HMMWV_VehicleFull.cpp
+    hmmwv/HMMWV_VehicleFull.h
     hmmwv/HMMWV_VehicleReduced.cpp
     hmmwv/HMMWV_VehicleReduced.h
     hmmwv/HMMWV_Wheel.cpp

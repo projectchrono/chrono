@@ -134,12 +134,12 @@ ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
       m_max_torque(0) {
 }
 
-void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
+void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // ----------------------------
     // Create the chassis subsystem
     // ----------------------------
     m_chassis = std::make_shared<ChTrackTestRigChassis>();
-    m_chassis->Initialize(m_system, chassisPos);
+    m_chassis->Initialize(m_system, chassisPos, 0);
     m_chassis->GetBody()->SetBodyFixed(true);
 
     // ---------------------------------

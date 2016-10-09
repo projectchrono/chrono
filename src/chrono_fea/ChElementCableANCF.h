@@ -11,11 +11,11 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Radu Serban, Antonio Recuero
 // =============================================================================
-// ANCF gradient-deficient beam element (cable element).
+// ANCF gradient-deficient cable element.
 // =============================================================================
 
-#ifndef CHELEMENTBEAMANCF_H
-#define CHELEMENTBEAMANCF_H
+#ifndef CHELEMENTCABLEANCF_H
+#define CHELEMENTCABLEANCF_H
 
 //#define BEAM_VERBOSE
 #include "chrono/core/ChVector.h"
@@ -43,7 +43,7 @@ namespace fea {
 /// "On the Validation and Applications of a Parallel Flexible Multi-body
 ///  Dynamics Implementation"
 ///  D. MELANZ
-class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
+class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLoadableUVW {
   protected:
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > nodes;
 
@@ -53,7 +53,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     ChMatrixNM<double, 12, 12> m_MassMatrix;      ///< mass matrix
 
   public:
-    ChElementBeamANCF() {
+    ChElementCableANCF() {
         nodes.resize(2);
         m_use_damping = false;  ///< flag to add internal damping and its Jacobian
         m_alpha = 0.0;          ///< scaling factor for internal damping
@@ -65,7 +65,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
     bool m_use_damping;  ///< Boolean indicating whether internal damping is added
     double m_alpha;      ///< Scaling factor for internal damping
 
-    virtual ~ChElementBeamANCF() {}
+    virtual ~ChElementCableANCF() {}
 
     virtual int GetNnodes() override { return 2; }
     virtual int GetNdofs() override { return 2 * 6; }
@@ -315,7 +315,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
             class MyStiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12> > {
               public:
-                ChElementBeamANCF* element;
+                ChElementCableANCF* element;
                 ChMatrixNM<double, 4, 3>* d;
                 ChMatrixNM<double, 3, 12> Sd;
                 ChMatrixNM<double, 1, 4> N;
@@ -380,7 +380,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
             class MyStiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12> > {
               public:
-                ChElementBeamANCF* element;
+                ChElementCableANCF* element;
                 ChMatrixNM<double, 4, 3>* d;
                 ChMatrixNM<double, 3, 12> Sd;
                 ChMatrixNM<double, 3, 12> Sdd;
@@ -501,7 +501,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
         class MyMass : public ChIntegrable1D<ChMatrixNM<double, 12, 12> > {
           public:
-            ChElementBeamANCF* element;
+            ChElementCableANCF* element;
             ChMatrixNM<double, 3, 12> S;
             ChMatrixNM<double, 1, 4> N;
 
@@ -640,7 +640,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
         class MyForcesAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 1> > {
           public:
-            ChElementBeamANCF* element;
+            ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
             ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
             ChMatrixNM<double, 3, 12> Sd;
@@ -706,7 +706,7 @@ class ChElementBeamANCF : public ChElementBeam, public ChLoadableU, public ChLoa
 
         class MyForcesCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 1> > {
           public:
-            ChElementBeamANCF* element;
+            ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;      // this is an external matrix, use pointer
             ChMatrixNM<double, 12, 1>* d_dt;  // this is an external matrix, use pointer
             ChMatrixNM<double, 3, 12> Sd;

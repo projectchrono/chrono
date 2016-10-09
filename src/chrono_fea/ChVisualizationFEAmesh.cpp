@@ -14,7 +14,7 @@
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono_fea/ChContactSurfaceNodeCloud.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementCableANCF.h"
 #include "chrono_fea/ChElementBeamEuler.h"
 #include "chrono_fea/ChElementBrick.h"
 #include "chrono_fea/ChElementBrick_9.h"
@@ -351,7 +351,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 if (auto mybeameuler = std::dynamic_pointer_cast<ChElementBeamEuler>(this->FEMmesh->GetElement(iel))) {
                     if (mybeameuler->GetSection()->IsCircular())
                         m_circular = true;
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(this->FEMmesh->GetElement(iel))) {
+                } else if (auto mybeamancf =
+                               std::dynamic_pointer_cast<ChElementCableANCF>(this->FEMmesh->GetElement(iel))) {
                     if (mybeamancf->GetSection()->IsCircular())
                         m_circular = true;
                 }
@@ -620,7 +621,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     z_thick = 0.5 * mybeameuler->GetSection()->GetDrawThicknessZ();
                     m_circular = mybeameuler->GetSection()->IsCircular();
                     m_rad = mybeameuler->GetSection()->GetDrawCircularRadius();
-                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementBeamANCF>(mybeam)) {
+                } else if (auto mybeamancf = std::dynamic_pointer_cast<ChElementCableANCF>(mybeam)) {
                     // if the beam has a section info, use section specific thickness for drawing
                     y_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessY();
                     z_thick = 0.5 * mybeamancf->GetSection()->GetDrawThicknessZ();

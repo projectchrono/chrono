@@ -22,7 +22,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,19 +30,19 @@ namespace hmmwv {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Vehicle::HMMWV_Vehicle(const bool fixed,
-                             DrivelineType driveType,
-                             ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : ChWheeledVehicle(contactMethod), m_driveType(driveType) {
+HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
+                                     DrivelineType driveType,
+                                     ChMaterialSurfaceBase::ContactMethod contactMethod)
+    : HMMWV_Vehicle(contactMethod, driveType) {
     Create(fixed);
 }
 
-HMMWV_Vehicle::HMMWV_Vehicle(ChSystem* system, const bool fixed, DrivelineType driveType)
-    : ChWheeledVehicle(system), m_driveType(driveType) {
+HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system, const bool fixed, DrivelineType driveType)
+    : HMMWV_Vehicle(system, driveType) {
     Create(fixed);
 }
 
-void HMMWV_Vehicle::Create(bool fixed) {
+void HMMWV_VehicleFull::Create(bool fixed) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
@@ -81,6 +81,9 @@ void HMMWV_Vehicle::Create(bool fixed) {
         case DrivelineType::AWD:
             m_driveline = std::make_shared<HMMWV_Driveline4WD>("Driveline");
             break;
+        case DrivelineType::SIMPLE:
+            m_driveline = std::make_shared<HMMWV_SimpleDriveline>("Driveline");
+            break;
     }
 
     // -----------------
@@ -93,12 +96,12 @@ void HMMWV_Vehicle::Create(bool fixed) {
     m_brakes[3] = std::make_shared<HMMWV_BrakeSimple>("Brake_RR");
 }
 
-HMMWV_Vehicle::~HMMWV_Vehicle() {}
+HMMWV_VehicleFull::~HMMWV_VehicleFull() {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
-    m_chassis->Initialize(m_system, chassisPos);
+void HMMWV_VehicleFull::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).
@@ -108,8 +111,10 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.688965, 0, 0), m_steerings[0]->GetSteeringLink());
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.688965, 0, 0), m_chassis->GetBody());
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.688965, 0, 0), m_steerings[0]->GetSteeringLink(),
+                                 m_omega[0], m_omega[1]);
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.688965, 0, 0), m_chassis->GetBody(), m_omega[2],
+                                 m_omega[3]);
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
@@ -128,6 +133,7 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
             driven_susp_indexes[0] = 1;
             break;
         case DrivelineType::AWD:
+        case DrivelineType::SIMPLE:
             driven_susp_indexes[0] = 0;
             driven_susp_indexes[1] = 1;
             break;
@@ -144,29 +150,29 @@ void HMMWV_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetSpringForce(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetSpringLength(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetSpringDeformation(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-double HMMWV_Vehicle::GetShockForce(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetShockForce(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetShockLength(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetShockLength(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
 }
 
-double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
+double HMMWV_VehicleFull::GetShockVelocity(const WheelID& wheel_id) const {
     return std::static_pointer_cast<ChDoubleWishbone>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
 }
 
@@ -174,7 +180,7 @@ double HMMWV_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
 // Log the hardpoint locations for the front-right and rear-right suspension
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
-void HMMWV_Vehicle::LogHardpointLocations() {
+void HMMWV_VehicleFull::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
@@ -195,7 +201,7 @@ void HMMWV_Vehicle::LogHardpointLocations() {
 //
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
-void HMMWV_Vehicle::DebugLog(int what) {
+void HMMWV_VehicleFull::DebugLog(int what) {
     GetLog().SetNumFormat("%10.2f");
 
     if (what & OUT_SPRINGS) {

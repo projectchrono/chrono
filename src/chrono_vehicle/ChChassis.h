@@ -90,8 +90,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     ChVector<> GetPointAcceleration(const ChVector<>& locpos) const;
 
     /// Initialize the chassis at the specified global position and orientation.
-    virtual void Initialize(ChSystem* system,               ///< [in] containing system
-                            const ChCoordsys<>& chassisPos  ///< [in] absolute chassis position
+    virtual void Initialize(ChSystem* system,                ///< [in] containing system
+                            const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
+                            double chassisFwdVel             ///< [in] initial chassis forward velocity
                             );
 
     /// Set the "fixed to ground" status of the chassis body.

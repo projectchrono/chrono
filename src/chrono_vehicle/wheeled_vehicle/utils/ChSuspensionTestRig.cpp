@@ -298,12 +298,12 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     m_tires[RIGHT] = tire_right;
 }
 
-void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos) {
+void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     // ----------------------------
     // Create the chassis subsystem
     // ----------------------------
     m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
-    m_chassis->Initialize(m_system, chassisPos);
+    m_chassis->Initialize(m_system, chassisPos, 0);
     m_chassis->GetBody()->SetBodyFixed(true);
 
     // ---------------------------------

@@ -7,6 +7,13 @@ IF(NOT ENABLE_MODULE_IRRLICHT)
     RETURN()
 ENDIF()
 
+IF(NOT ENABLE_MODULE_MKL)
+    RETURN()
+ENDIF()
+
+IF(NOT ENABLE_MODULE_VEHICLE)
+    RETURN()
+ENDIF()
 #--------------------------------------------------------------
 # List all model files for this demo
 
@@ -17,7 +24,8 @@ SOURCE_GROUP("" FILES ${DEMO}.cpp)
 # Additional include directories
 
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
-
+INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
+INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
 #--------------------------------------------------------------
 # Add executable
 
@@ -31,5 +39,6 @@ TARGET_LINK_LIBRARIES(${DEMO}
                       ChronoEngine
                       ChronoEngine_irrlicht
                       ChronoEngine_vehicle
-                      ChronoModels_vehicle)
+                      ChronoModels_vehicle
+		      ChronoEngine_mkl)
 INSTALL(TARGETS ${DEMO} DESTINATION bin)

@@ -64,7 +64,9 @@ ChMultiLink::ChMultiLink(const std::string& name) : ChSuspension(name) {
 // -----------------------------------------------------------------------------
 void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
-                             std::shared_ptr<ChBody> tierod_body) {
+                             std::shared_ptr<ChBody> tierod_body,
+                             double left_ang_vel,
+                             double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -91,15 +93,16 @@ void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL);
-    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChMultiLink::InitializeSide(VehicleSide side,
                                  std::shared_ptr<ChBodyAuxRef> chassis,
                                  std::shared_ptr<ChBody> tierod_body,
                                  const std::vector<ChVector<> >& points,
-                                 const std::vector<ChVector<> >& dirs) {
+                                 const std::vector<ChVector<> >& dirs,
+                                 double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -111,6 +114,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
     chassis->GetSystem()->AddBody(m_spindle[side]);
@@ -276,6 +280,7 @@ void ChMultiLink::InitializeSide(VehicleSide side,
     m_axle[side] = std::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
+    m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
     m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();

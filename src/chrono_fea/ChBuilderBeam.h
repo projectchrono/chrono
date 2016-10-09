@@ -15,7 +15,7 @@
 
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChElementBeamEuler.h"
-#include "chrono_fea/ChElementBeamANCF.h"
+#include "chrono_fea/ChElementCableANCF.h"
 
 namespace chrono {
 namespace fea {
@@ -79,18 +79,18 @@ class ChApiFea ChBuilderBeam {
 
 
 /// Class for an helper object that provides easy functions to create
-/// complex beams of ChElementBeamANCF class, for example subdivides a segment 
+/// complex beams of ChElementCableANCF class, for example subdivides a segment 
 /// in multiple finite elements.
 
 class ChApiFea ChBuilderBeamANCF {
   protected:
-    std::vector<std::shared_ptr<ChElementBeamANCF> > beam_elems;
+    std::vector<std::shared_ptr<ChElementCableANCF> > beam_elems;
     std::vector<std::shared_ptr<ChNodeFEAxyzD> > beam_nodes;
 
   public:
     /// Helper function.
     /// Adds beam FEM elements to the mesh to create a segment beam
-    /// from point A to point B, using ChElementBeamANCF type elements.
+    /// from point A to point B, using ChElementCableANCF type elements.
     /// Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionCable> sect,     ///< section material for beam elements
@@ -102,7 +102,7 @@ class ChApiFea ChBuilderBeamANCF {
     /// Access the list of elements used by the last built beam.
     /// It can be useful for changing properties afterwards.
     /// This list is reset all times a 'Build...' function is called.
-    std::vector<std::shared_ptr<ChElementBeamANCF> >& GetLastBeamElements() { return beam_elems; }
+    std::vector<std::shared_ptr<ChElementCableANCF> >& GetLastBeamElements() { return beam_elems; }
 
     /// Access the list of nodes used by the last built beam.
     /// It can be useful for adding constraints or changing properties afterwards.

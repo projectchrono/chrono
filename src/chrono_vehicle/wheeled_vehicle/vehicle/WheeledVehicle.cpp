@@ -435,8 +435,8 @@ void WheeledVehicle::Create(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos) {
-    m_chassis->Initialize(m_system, chassisPos);
+void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {

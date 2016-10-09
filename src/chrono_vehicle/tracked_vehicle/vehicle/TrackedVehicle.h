@@ -41,7 +41,7 @@ class CH_VEHICLE_API TrackedVehicle : public ChTrackedVehicle {
 
     ~TrackedVehicle() {}
 
-    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
     void Create(const std::string& filename);

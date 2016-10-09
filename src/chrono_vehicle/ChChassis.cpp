@@ -43,7 +43,7 @@ ChVector<> ChChassis::GetDriverPos() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos) {
+void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, double chassisFwdVel) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
     m_body->SetName("chassis");
@@ -53,6 +53,7 @@ void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos) {
     m_body->SetBodyFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+    m_body->SetPos_dt(chassisFwdVel * chassisPos.TransformDirectionLocalToParent(ChVector<>(1, 0, 0)));
 
     system->Add(m_body);
 }

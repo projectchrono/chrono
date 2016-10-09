@@ -2,7 +2,7 @@
 #include "chrono_parallel/physics/MPMUtils.h"
 #include "chrono_parallel/ChCudaHelper.cuh"
 #include "chrono_parallel/ChGPUVector.cuh"
-#include "thirdparty/cub/cub.cuh"
+#include "chrono_thirdparty/cub/cub.cuh"
 #include "chrono_parallel/math/matrixf.cuh"
 
 //#define BOX_YIELD

@@ -26,7 +26,7 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPacejkaTire.h"
 
 #include "chrono_models/ChApiModels.h"
-#include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV_VehicleFull.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_VehicleReduced.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Powertrain.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_SimplePowertrain.h"
@@ -56,6 +56,8 @@ class CH_MODELS_API HMMWV {
     void SetTireType(TireModelType val) { m_tireType = val; }
 
     void SetInitPosition(const ChCoordsys<>& pos) { m_initPos = pos; }
+    void SetInitFwdVel(double fwdVel) { m_initFwdVel = fwdVel; }
+    void SetInitWheelAngVel(const std::vector<double>& omega) { m_initOmega = omega; }
 
     void SetTireStepSize(double step_size) { m_tire_step_size = step_size; }
     void SetPacejkaParamfile(const std::string& filename) { m_pacejkaParamFile = filename; }
@@ -88,7 +90,7 @@ class CH_MODELS_API HMMWV {
     HMMWV();
     HMMWV(ChSystem* system);
 
-    virtual ChWheeledVehicle* CreateVehicle() = 0;
+    virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChMaterialSurfaceBase::ContactMethod m_contactMethod;
     bool m_fixed;
@@ -101,9 +103,11 @@ class CH_MODELS_API HMMWV {
     std::string m_pacejkaParamFile;
 
     ChCoordsys<> m_initPos;
+    double m_initFwdVel;
+    std::vector<double> m_initOmega;
 
     ChSystem* m_system;
-    ChWheeledVehicle* m_vehicle;
+    HMMWV_Vehicle* m_vehicle;
     ChPowertrain* m_powertrain;
     std::array<ChTire*, 4> m_tires;
 };
@@ -113,13 +117,13 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
     HMMWV_Full() {}
     HMMWV_Full(ChSystem* system) : HMMWV(system) {}
 
-    void LogHardpointLocations() { ((HMMWV_Vehicle*)m_vehicle)->LogHardpointLocations(); }
-    void DebugLog(int what) { ((HMMWV_Vehicle*)m_vehicle)->DebugLog(what); }
+    void LogHardpointLocations() { ((HMMWV_VehicleFull*)m_vehicle)->LogHardpointLocations(); }
+    void DebugLog(int what) { ((HMMWV_VehicleFull*)m_vehicle)->DebugLog(what); }
 
   private:
-    virtual ChWheeledVehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_Vehicle(m_system, m_fixed, m_driveType)
-                        : new HMMWV_Vehicle(m_fixed, m_driveType, m_contactMethod);
+    virtual HMMWV_Vehicle* CreateVehicle() override {
+        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType)
+                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod);
     }
 };
 
@@ -129,7 +133,7 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
     HMMWV_Reduced(ChSystem* system) : HMMWV(system) {}
 
   private:
-    virtual ChWheeledVehicle* CreateVehicle() override {
+    virtual HMMWV_Vehicle* CreateVehicle() override {
         return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType)
                         : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod);
     }

@@ -43,7 +43,7 @@ class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
 
     virtual int GetNumberAxles() const override { return m_num_axles; }
 
-    virtual void Initialize(const ChCoordsys<>& chassisPos) override;
+    virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
     void Create(const std::string& filename);
