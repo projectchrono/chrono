@@ -28,69 +28,111 @@
     <script type="text/javascript" src="$relpath^bootstrap-hover-dropdown.min.js"></script>
 </head>
 <body>
-    <nav class="navbar navbar-default" role="navigation">
-      <div class="container">
+
+<!-- HERE STARTS THE NAVIGATION BAR (as in the index.html web site generated with bootstrap) -->
+    <nav class="navbar navbar-default role="navigation">
+      <div class="container-fluid">
         <div class="navbar-header">
           <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
             <span class="sr-only">Toggle navigation</span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
-        </button>
-        <a class="navbar-brand" href="http://projectchrono.org">
+          </button>
+          <a class="navbar-brand" href="/">
             <span class="logo first">PROJECT</span><span class="logo second">CHRONO</span>
-        </a>
-    </div>
-    <div class="navbar-collapse collapse">
-      <ul class="nav navbar-nav">
-        <li><a href="http://projectchrono.org/download">Download</a></li>
-        <li class="dropdown">
-            <a href="http://api.chrono.projectchrono.org" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Documentation <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-                <li><a href="http://api.chrono.projectchrono.org">API</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/faq_root.html">FAQ</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html">Install Guide</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/tutorial_root.html">Examples/Tutorials</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/model_root.html">Model Library</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/validation_studies_root.html">Validation Studies</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/whitepaper_root.html">White Papers</a></li>
-                <li><a href="http://api.chrono.projectchrono.org/refman.pdf">PDF Version</a></li>
-
-            </ul>
-        </li>
-        <li class="dropdown">
-            <a href="http://projectchrono.org/gallery/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" style="dropdown:hover" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-                <li><a href="http://projectchrono.org/gallery/">Gallery</a></li>
-                <li><a href="http://sbel.wisc.edu/Animations/">SBEL</a></li>
-                <li><a href="https://vimeo.com/uwsbel">On Vimeo</a></li>
-            </ul>
-        </li>
-        <li><a href="http://projectchrono.org/news/">News</a></li>
-        <li><a href="http://projectchrono.org/forum">Forum</a></li>
-        <li class="dropdown">
-            <a href="http://projectchrono.org/about/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
-            <ul class="dropdown-menu">
-                <li><a href="http://projectchrono.org/about/">Quick Facts</a></li>
-                <li><a href="http://projectchrono.org/testimonials/">Current/Past Users</a></li>
-            </ul>
-        </li>
-        <li><a href="http://projectchrono.org/status">Status</a></li>            
-        <li>
-          <form method="get" action="http://projectchrono.org/search" id="search_bar_triggered">
-              <input type="submit" value="Search">
-
-              <input type="text" id="search_bar" name="query" value="" />
-          </form> 
-      </li>
-
-  </ul>
-          <!-- <ul class="nav navbar-nav navbar-right">
+          </a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+             
             
-      </ul> -->
-  </div><!--/.navbar-collapse -->
-</div>
-</nav>
+            <li><a href="/download">Download</a></li>
+             
+             
+            
+            <li class="dropdown">
+            <a href="http://api.chrono.projectchrono.org" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Documentation <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                
+                <li><a href="http://api.chrono.projectchrono.org">API main page</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/faq_root.html">FAQ</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/tutorial_table_of_content_install.html">Install Guide</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/tutorial_root.html">Tutorials</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/manual_root.html">Reference manual</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/model_root.html">Model Library</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/validation_studies_root.html">Validation Studies</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/whitepaper_root.html">White Papers</a></li>
+                
+                <li><a href="http://api.chrono.projectchrono.org/refman.pdf">PDF Version</a></li>
+                
+              </ul>
+            </li>
+             
+             
+            
+            <li class="dropdown">
+            <a href="/gallery/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">Movies <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                
+                <li><a href="/gallery/">Gallery</a></li>
+                
+                <li><a href="http://sbel.wisc.edu/Animations/">SBEL</a></li>
+                
+                <li><a href="https://vimeo.com/uwsbel">On Vimeo</a></li>
+                
+              </ul>
+            </li>
+             
+             
+            
+            <li><a href="/news/">News</a></li>
+             
+             
+            
+            <li><a href="/forum/">Forum</a></li>
+             
+             
+            
+            <li class="dropdown">
+            <a href="/about/" class="dropdown-toggle disabled" data-hover="dropdown" data-toggle="dropdown" data-delay="100" role="button" aria-haspopup="true" aria-expanded="false">About <span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                
+                <li><a href="/about/">Quick Facts</a></li>
+                
+                <li><a href="/testimonials/">Current/Past Users</a></li>
+                
+                <li><a href="/consulting/">Consulting</a></li>
+                
+              </ul>
+            </li>
+             
+             
+            
+            <li><a href="/status">Status</a></li>
+             
+            
+            <li>
+              <form method="get" action="/search" id="search_bar_triggered">
+                          <input type="submit" value="Search">
+
+                <input type="text" id="search_bar" name="query" value="" />
+              </form> 
+            </li>
+          </ul>
+         
+        </div><!--/.navbar-collapse -->
+      </div>
+    </nav>
+<!-- HERE ENDS THE NAVIGATION BAR -->
+	
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
     <div class="content" id="content">
         <div class="container">
