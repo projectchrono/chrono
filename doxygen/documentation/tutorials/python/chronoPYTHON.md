@@ -13,3 +13,6 @@ Chrono **from the Python side** see also
 </div>
 
 
+- @subpage  tutorial_demo_pyparser
+
+  How to load and execute Python commands or programs **from the C++ side.**
