@@ -89,7 +89,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_THREADS_TIRE, "--num-threads-tire", SO_
                                     {OPT_COHESION, "--cohesion-terrain", SO_REQ_CMB},
                                     {OPT_INIT_VEL, "-v", SO_REQ_CMB},
                                     {OPT_INIT_VEL, "--initial-fwd-velocity", SO_REQ_CMB},
-                                    {OPT_INIT_VEL, "-o", SO_REQ_CMB},
+                                    {OPT_INIT_OMEGA, "-o", SO_REQ_CMB},
                                     {OPT_INIT_OMEGA, "--initial-wheel-omega", SO_REQ_CMB},
                                     {OPT_SUFFIX, "--suffix", SO_REQ_CMB},
                                     {OPT_HELP, "-?", SO_NONE},
@@ -456,6 +456,12 @@ bool GetProblemSpecs(int argc,
                 break;
             case OPT_USE_CHECKPOINT:
                 use_checkpoint = true;
+                break;
+            case OPT_INIT_VEL:
+                init_fwd_vel = std::stod(args.OptionArg());
+                break;
+            case OPT_INIT_OMEGA:
+                init_wheel_omega = std::stod(args.OptionArg());
                 break;
             case OPT_SUFFIX:
                 suffix = args.OptionArg();
