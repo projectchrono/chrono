@@ -85,10 +85,9 @@ int main(int argc, char* argv[]) {
     mrigidbody->AddAsset(mcol);
     
     std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
-    myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);
-    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
-    if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(myengine->Get_spe_funct()) )
-        mfun->Set_yconst(CH_C_PI / 4.0);
+    myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);  
+    myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
+    myengine->Set_rot_funct( std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0)); // CH_C_PI / 4.0) ); // phase, speed
     myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
     my_system.Add(myengine);
  
@@ -156,9 +155,22 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-
-    
-    application.SetTimestep(0.005);
+/*
+        // Change the timestepper to HHT: 
+    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
+    integrator->SetAlpha(-0.2);
+    integrator->SetMaxiters(8);
+    integrator->SetAbsTolerances(1e-05, 1.8e00);
+    integrator->SetMode(ChTimestepperHHT::POSITION);
+    integrator->SetModifiedNewton(true);
+    integrator->SetScaling(true);
+    integrator->SetVerbose(true);
+*/
+/*
+    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
+*/
+    application.SetTimestep(0.002);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
