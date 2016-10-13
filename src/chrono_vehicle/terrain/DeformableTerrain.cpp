@@ -433,7 +433,7 @@ void DeformableSoil::SetupAuxData() {
     p_erosion.resize(vertices.size());
 
     for (int i=0; i< vertices.size(); ++i) {
-        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
         p_level_initial[i] = p_level[i];
     }
 
@@ -503,7 +503,7 @@ void DeformableSoil::ComputeInternalForces() {
         p_step_plastic_flow[i]=0;
         p_erosion[i] = false;
 
-        p_level[i] = plane.TransformLocalToParent(vertices[i]).y;
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
 
         ChVector<> to   = vertices[i] +N*test_high_offset; 
         ChVector<> from = to - N*test_low_offset;
@@ -518,7 +518,7 @@ void DeformableSoil::ComputeInternalForces() {
 
             ChContactable* contactable = mrayhit_result.hitModel->GetContactable();
 
-            p_hit_level[i] = plane.TransformLocalToParent(mrayhit_result.abs_hitPoint).y;
+            p_hit_level[i] = plane.TransformParentToLocal(mrayhit_result.abs_hitPoint).y;
             p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
             p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
