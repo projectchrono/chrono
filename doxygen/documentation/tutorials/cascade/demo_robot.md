@@ -592,14 +592,12 @@ Modify the settings of the solver.
 By default, the solver might not have sufficient precision to keep the robot joints 'mounted'. Expecially, the SOR, SSOR and other fixed point methods cannot simulate well this robot problem because the mass of the last body in the kinematic chain, i.e. the hand, is very low when compared to other bodies, so the convergence of the solver would be bad when 'pulling the hand' as in this 'teaching mode' IK. So switch to a more precise solver; this SOLVER_ITERATIVE_MINRES is fast and precise (although it is not fit for frictional collisions):
 
 ~~~{.cpp}
-	my_system.SetLcpSolverType(ChSystem::SOLVER_ITERATIVE_MINRES);
+	my_system.SetLcpSolverType(ChSystem::SOLVER_MINRES);
 ~~~
 
 Now, finally, run the loop of the simulator: here are snapshots from the real-time simulator:
 
 ![](http://projectchrono.org/assets/manual/Tutorial_robot_06.jpg)
-
-![](http://projectchrono.org/assets/manual/ico_robot_big.gif)
 
  
 # Here is the full source code:
