@@ -63,8 +63,8 @@ double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
 
 // Divisions (X and Y)
-int divLength = 1024;
-int divWidth = 512;
+int divLength = 128;//1024;
+int divWidth = 64;//512;
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -246,9 +246,17 @@ int main(int argc, char* argv[]) {
                                            0.01,  // Janosi shear coefficient (m)
                                            2e8    // Elastic stiffness (Pa/m), before plastic yeld
                                            );
-            ////terrainD->SetBulldozingFlow(true);     // inflate soil at the border of the rut
-            ////terrainD->SetBulldozingParameters(40,  // angle of friction for erosion of displaced material at the border
-            ////                                1.6);  // displaced material vs. downward pressed material
+            /*
+            terrainD->SetBulldozingFlow(true);    // inflate soil at the border of the rut
+            terrainD->SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
+                                            0.8, // displaced material vs downward pressed material.
+                                            5,   // number of erosion refinements per timestep
+                                            10); // number of concentric vertex selections subject to erosion
+            */
+            // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+            // is automatically improved by adding more points under the wheel contact patch:
+            terrainD->SetAutomaticRefinement(true);
+            terrainD->SetAutomaticRefinementResolution(0.04);
 
             ////terrainD->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
             ////terrainD->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
