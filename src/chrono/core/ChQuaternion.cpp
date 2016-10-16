@@ -111,6 +111,93 @@ ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) 
     return (quat);
 }
 
+
+// Declarations used for Q_from_Vect_to_Vect()
+static ChVector<double> getOrthogonalVector(const ChVector<double>& vect);
+static int maxComponent(const ChVector<double>& vect);
+static double boundToPlusMinusOne(double arg);
+
+
+// Gets the quaternion from a source vector and a destination vector
+// which specifies the rotation from one to the other.  The vectors
+// do not need to be normalized.
+ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect) {
+	const double ANGLE_TOLERANCE = 1e-6;
+	ChQuaternion<double> quat;
+	double halfang;
+	double sinhalf;
+	ChVector<double> axis;
+
+	double lenXlen = fr_vect.Length() * to_vect.Length();
+	axis = fr_vect % to_vect;
+	double sinangle = boundToPlusMinusOne(axis.Length() / lenXlen);
+	double cosangle = boundToPlusMinusOne(fr_vect ^ to_vect / lenXlen);
+
+	// Consider three cases: Parallel, Opposite, non-colinear
+	if (abs(sinangle) == 0.0 && cosangle > 0) {
+		// fr_vect & to_vect are parallel 
+		quat.e0 = 1.0;
+		quat.e1 = 0.0;
+		quat.e2 = 0.0;
+		quat.e3 = 0.0;
+	}
+	else if (abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
+		// fr_vect & to_vect are opposite, i.e. ~180 deg apart
+		axis = getOrthogonalVector(fr_vect) + getOrthogonalVector(-to_vect);
+		axis.Normalize();
+		quat.e0 = 0.0;
+		quat.e1 = boundToPlusMinusOne(axis.x);
+		quat.e2 = boundToPlusMinusOne(axis.y);
+		quat.e3 = boundToPlusMinusOne(axis.z);
+	}
+	else {
+		// fr_vect & to_vect are not co-linear case
+		axis.Normalize();
+		halfang = 0.5 * atan2(sinangle, cosangle);
+		sinhalf = sin(halfang);
+
+		quat.e0 = cos(halfang);
+		quat.e1 = boundToPlusMinusOne(axis.x * sinhalf);
+		quat.e2 = boundToPlusMinusOne(axis.y * sinhalf);
+		quat.e3 = boundToPlusMinusOne(axis.z * sinhalf);
+	}
+	return (quat);
+}
+
+
+// Returns the maximum component of a vector.
+static int maxComponent(const ChVector<double>& vect) {
+	int idx = 0;
+	double max = abs(vect(0));
+	if (abs(vect(1)) > max) { idx = 1; max = vect(1); }
+	if (abs(vect(2)) > max) { idx = 2; max = vect(2); }
+	return idx;
+}
+
+// bounds values to +/- 1 to condition them for inverse trig functions
+static double boundToPlusMinusOne(double arg) {
+	if (arg > 1.0) return 1.0;
+	if (arg < -1.0) return -1.0;
+	return arg;
+}
+
+// Find a vector which is orthogonal to the given vector.
+static ChVector<double> getOrthogonalVector(const ChVector<double>& vect) {
+	ChVector<double> v2, ortho;
+	int idx1 = maxComponent(vect);
+	int idx2 = (idx1 + 1) % 3;  // Cycle to the next component
+	int idx3 = (idx2 + 1) % 3;  // Cycle to the next component
+
+	// Construct v2 by rotating in the plane containing the maximum component
+	v2(idx1) = -vect(idx2);
+	v2(idx2) = vect(idx1);
+	v2(idx3) = vect(idx3);
+
+	ortho = vect % v2;
+	ortho.Normalize();
+	return ortho;
+}
+
 ChQuaternion<double> Q_from_AngZ(double angleZ) {
     return Q_from_AngAxis(angleZ, VECT_Z);
 }
