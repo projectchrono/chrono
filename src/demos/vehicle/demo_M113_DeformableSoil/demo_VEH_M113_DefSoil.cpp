@@ -25,7 +25,6 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
-#include "chrono_vehicle/terrain/FEADeformableTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -40,7 +39,7 @@ using namespace chrono::vehicle::m113;
 // =============================================================================
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.5);
+ChVector<> initLoc(-5, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -57,7 +56,7 @@ int divLength = 640;
 int divWidth = 128;
 
 // Simulation step size
-double step_size = 5e-5;
+double step_size = 1e-2;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
@@ -72,6 +71,8 @@ const std::string img_dir = out_dir + "/IMG";
 // Visualization output
 bool img_output = false;
 
+// Use MKL
+bool use_mkl = false;
 // =============================================================================
 
 // Simple powertrain model
@@ -88,62 +89,47 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Construct the M113 vehicle
     // --------------------------
-	ChSystemDEM* system = new ChSystemDEM(true);
-	system->Set_G_acc(ChVector<>(0, 0, -9.81));
-
-	// Set number threads
-	//system->SetParallelThreadNumber(8);
-	//system->SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-	//CHOMPfunctions::SetNumThreads(8);
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, system);
-
-    // Set visualization type for vehicle components (default: PRIMITIVES).
-    ////vehicle.SetRoadWheelVisType(VisualizationType::NONE);
-    ////vehicle.SetTrackShoeVisType(VisualizationType::NONE);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::DEM);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Solver settings.
-//#ifdef CHRONO_MKL
-//	// MKL solver settings
-    GetLog() << "Using MKL solver\n";
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    vehicle.GetSystem()->ChangeSolverStab(mkl_solver_stab);
-    vehicle.GetSystem()->ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(true);
+    if (use_mkl) {
+        // MKL solver settings
+        GetLog() << "Using MKL solver\n";
+        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
+        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
+        vehicle.GetSystem()->ChangeSolverStab(mkl_solver_stab);
+        vehicle.GetSystem()->ChangeSolverSpeed(mkl_solver_speed);
+        mkl_solver_speed->SetSparsityPatternLock(true);
+        mkl_solver_stab->SetSparsityPatternLock(true);
 
-    vehicle.GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
-    auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
-    integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
-    integrator->SetAbsTolerances(5e-05, 1.8e00);
-    integrator->SetMode(ChTimestepperHHT::POSITION);
-    integrator->SetModifiedNewton(false);
-    integrator->SetScaling(true);
-    integrator->SetVerbose(true);
-//#else
-	// Default solver settings
-	//system->SetMaxItersSolverSpeed(100);
-	//system->SetMaxItersSolverStab(100);
-	//system->SetSolverType(ChSystem::SOLVER_SOR);
-	//system->SetTol(1e-10);
-	//system->SetTolForce(1e-8);
-//#endif
+        vehicle.GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
+        auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
+        integrator->SetAlpha(-0.2);
+        integrator->SetMaxiters(50);
+        integrator->SetAbsTolerances(5e-05, 1.8e00);
+        integrator->SetMode(ChTimestepperHHT::POSITION);
+        integrator->SetModifiedNewton(false);
+        integrator->SetScaling(true);
+        integrator->SetVerbose(true);
+    } else {
+        // Solver settings.
+        vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
+        vehicle.GetSystem()->SetMaxItersSolverStab(50);
+    }
 
-	//// Integrator settings
+    //// Integrator settings
 
     // Initialize the vehicle at the specified position.
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
-	// Set visualization type for vehicle components.
-	vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-	vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
-	vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
-	vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
-	vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+    // Set visualization type for vehicle components.
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
     ////vehicle.SetCollide(TrackCollide::NONE);
@@ -154,34 +140,22 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
 
-    //DeformableTerrain terrain(vehicle.GetSystem());
-    //terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    //terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
-    //                             0,     // Bekker Kc
-    //                             1.1,   // Bekker n exponent
-    //                             0,     // Mohr cohesive limit (Pa)
-    //                             20,    // Mohr friction limit (degrees)
-    //                             0.01,  // Janosi shear coefficient (m)
-    //                             2e8    // Elastic stiffness (Pa/m), before plastic yeld
-    //                             );
-    //////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    //terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    //terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    DeformableTerrain terrain(vehicle.GetSystem());
+    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
+                                 0,     // Bekker Kc
+                                 1.1,   // Bekker n exponent
+                                 0,     // Mohr cohesive limit (Pa)
+                                 20,    // Mohr friction limit (degrees)
+                                 0.01,  // Janosi shear coefficient (m)
+                                 2e8    // Elastic stiffness (Pa/m), before plastic yeld
+                                 );
+    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    ////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    AddFixedObstacles(vehicle.GetSystem());
 
-	/*FEADeformableTerrain terrain(vehicle.GetSystem());*/
- //   auto fea_terrain = std::make_shared<FEADeformableTerrain>(vehicle.GetSystem());
- //   fea_terrain->SetSoilParametersFEA(200, 1.379e5, 0.25, 0.0, 50000, 20.0, 2.0);
-	//fea_terrain->Initialize(ChVector<>(-2.5, -1.5, -1.0), ChVector<>(8.0, 3.0, 0.1),
-	//	ChVector<int>(20, 8, 2));  // ChVector<int>(10, 10, 4)
-
-
-
-
-	// Add contact surface mesh.
-	//fea_terrain->SetContactMaterial(0.001, 0.3f, 0.2f, 6e4, 0.3, 1e5, 4e4, 0, 0);
-
-    //AddFixedObstacles(vehicle.GetSystem());
     ////AddMovingObstacles(vehicle.GetSystem());
 
     // ----------------------------
@@ -199,12 +173,11 @@ int main(int argc, char* argv[]) {
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
     app.SetChaseCamera(trackPoint, 6.0, 0.5);
-    app.SetChaseCameraPosition(ChVector<>(-3, 4, 4.5));
+    app.SetChaseCameraPosition(ChVector<>(-3, 4, 1.5));
     app.SetChaseCameraMultipliers(1e-4, 10);
     app.SetTimestep(step_size);
     app.AssetBindAll();
     app.AssetUpdateAll();
-	
 
     // ------------------------
     // Create the driver system
@@ -248,7 +221,6 @@ int main(int argc, char* argv[]) {
 
     vehicle.GetSystem()->SetupInitial();
 
-
     // Inter-module communication data
     BodyStates shoe_states_left(vehicle.GetNumTrackShoes(LEFT));
     BodyStates shoe_states_right(vehicle.GetNumTrackShoes(RIGHT));
@@ -262,9 +234,8 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
     ChRealtimeStepTimer realtime_timer;
-	
+
     while (app.GetDevice()->run()) {
-		app.SetPaused(true);
         // Render scene
         if (step_number % render_steps == 0) {
             app.BeginScene(true, true, irr::video::SColor(255, 140, 161, 192));
@@ -292,13 +263,16 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         double time = vehicle.GetChTime();
         driver.Synchronize(time);
+        terrain.Synchronize(time);
         powertrain.Synchronize(time, throttle_input, driveshaft_speed);
-        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left, shoe_forces_right);
+        vehicle.Synchronize(time, steering_input, braking_input, powertrain_torque, shoe_forces_left,
+                            shoe_forces_right);
         app.Synchronize("", steering_input, throttle_input, braking_input);
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver.Advance(step);
+        terrain.Advance(step);
         powertrain.Advance(step);
         vehicle.Advance(step);
         app.Advance(step);
@@ -363,7 +337,6 @@ void AddFixedObstacles(ChSystem* system) {
 
     system->AddBody(obstacle);
 }
-
 
 void AddMovingObstacles(ChSystem* system) {
     double radius = 0.2;
