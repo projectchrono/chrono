@@ -142,8 +142,11 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system
     my_system.Add(my_mesh);
 
+#ifndef CHRONO_MKL
+    use_mkl = false;
+#endif
     // Setup solver
-    if (true) {
+    if (use_mkl) {
 #ifdef CHRONO_MKL
         ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
         ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
