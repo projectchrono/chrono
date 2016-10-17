@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(100);
         my_system.SetMaxItersSolverStab(100);
-        my_system.SetTolForce(1e-09);
+        my_system.SetTolForce(1e-14);
     }
 
     // Setup integrator
