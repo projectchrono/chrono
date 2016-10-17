@@ -14,7 +14,6 @@
 // ANCF beam element with 3 nodes.
 // =============================================================================
 
-
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono_fea/ChElementBeamANCF.h"
@@ -119,10 +118,10 @@ void ChElementBeamANCF::ComputeMmatrixGlobal(ChMatrix<>& M) {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the inertia matrix.
-class MyMass : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
+class MyMassBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
   public:
-    MyMass(ChElementBeamANCF* element) : m_element(element) {}
-    ~MyMass() {}
+    MyMassBeam(ChElementBeamANCF* element) : m_element(element) {}
+    ~MyMassBeam() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -130,7 +129,7 @@ class MyMass : public ChIntegrable3D<ChMatrixNM<double, 27, 27> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) override;
 };
 
-void MyMass::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
+void MyMassBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 9> N;
     m_element->ShapeFunctions(N, x, y, z);
 
@@ -170,7 +169,7 @@ void ChElementBeamANCF::ComputeMassMatrix() {
     m_MassMatrix.Reset();
 
     double rho = GetMaterial()->Get_rho();
-    MyMass myformula(this);
+    MyMassBeam myformula(this);
     ChMatrixNM<double, 27, 27> TempMassMatrix;
 
     ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 27> >(TempMassMatrix,  // result of integration will go there
@@ -194,10 +193,10 @@ void ChElementBeamANCF::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
+class MyGravityBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
   public:
-    MyGravity(ChElementBeamANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
-    ~MyGravity() {}
+    MyGravityBeam(ChElementBeamANCF* element, const ChVector<> gacc) : m_element(element), m_gacc(gacc) {}
+    ~MyGravityBeam() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -206,7 +205,7 @@ class MyGravity : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) override;
 };
 
-void MyGravity::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) {
+void MyGravityBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) {
     ChMatrixNM<double, 1, 9> N;
     m_element->ShapeFunctions(N, x, y, z);
 
@@ -225,7 +224,7 @@ void ChElementBeamANCF::ComputeGravityForce(const ChVector<>& g_acc) {
     m_GravForce.Reset();
 
     double rho = GetMaterial()->Get_rho();
-    MyGravity myformula(this, g_acc);
+    MyGravityBeam myformula(this, g_acc);
     ChMatrixNM<double, 27, 1> Fgravity;
 
     ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1> >(Fgravity,   // result of integration will go there
@@ -244,15 +243,15 @@ void ChElementBeamANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // Elastic force calculation
 // -----------------------------------------------------------------------------
 
-// The class MyForce provides the integrand for the calculation of the internal forces
+// The class MyForceBeam provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The 27 entries in the integrand represent the internal force.
 
-class MyForce : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
+class MyForceBeam : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
   public:
-    MyForce(ChElementBeamANCF* element)  // Containing element
+    MyForceBeam(ChElementBeamANCF* element)  // Containing element
         : m_element(element) {}
-    ~MyForce() {}
+    ~MyForceBeam() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -261,7 +260,7 @@ class MyForce : public ChIntegrable3D<ChMatrixNM<double, 27, 1> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) override;
 };
 
-void MyForce::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) {
+void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const double y, const double z) {
     // Element shape function
     ChMatrixNM<double, 1, 9> N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -356,7 +355,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const 
     d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
     d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-    // Strain component 
+    // Strain component
     ChMatrixNM<double, 6, 1> strain_til;
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -495,7 +494,7 @@ void MyForce::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const 
 
     // Internal force calculation
     ChMatrixNM<double, 27, 6> tempC;
-    tempC.MatrTMultiply(strainD, E_eps);  
+    tempC.MatrTMultiply(strainD, E_eps);
 
     // for (unsigned int i = 0; i < 26; i++) {
     //    tempC(i, 0) = E_eps(0, 0) * strainD(0, i);
@@ -511,15 +510,15 @@ void MyForce::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, const 
     result.PasteClippedMatrix(&Fint, 0, 0, 27, 1, 0, 0);
 }
 
-// The class MyForce provides the integrand for the calculation of the internal forces
+// The class MyForceBeam provides the integrand for the calculation of the internal forces
 // for one layer of an ANCF shell element.
 // The 27 entries in the integrand represent the internal force.
 
-class MyForce_Nu : public ChIntegrable1D<ChMatrixNM<double, 27, 1> > {
+class MyForceBeam_Nu : public ChIntegrable1D<ChMatrixNM<double, 27, 1> > {
   public:
-    MyForce_Nu(ChElementBeamANCF* element)  // Containing element
+    MyForceBeam_Nu(ChElementBeamANCF* element)  // Containing element
         : m_element(element) {}
-    ~MyForce_Nu() {}
+    ~MyForceBeam_Nu() {}
 
   private:
     ChElementBeamANCF* m_element;
@@ -528,7 +527,7 @@ class MyForce_Nu : public ChIntegrable1D<ChMatrixNM<double, 27, 1> > {
     virtual void Evaluate(ChMatrixNM<double, 27, 1>& result, const double x) override;
 };
 
-void MyForce_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x) {
+void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x) {
     // Element shape function
     ChMatrixNM<double, 1, 9> N;
     double y = 0;
@@ -626,7 +625,7 @@ void MyForce_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x) {
     d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
     d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-    // Strain component 
+    // Strain component
     ChMatrixNM<double, 6, 1> strain_til;
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -782,7 +781,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     // Three-dimensional integration of Poisson-less terms
     ChMatrixNM<double, 27, 1> Finternal0;
     ChMatrixNM<double, 27, 1> result;
-    MyForce formula(this);
+    MyForceBeam formula(this);
     ChQuadrature::Integrate3D<ChMatrixNM<double, 27, 1> >(result,   // result of integration
                                                           formula,  // integrand formula
                                                           -1, 1,    // x limits
@@ -801,7 +800,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         // One-dimensional integration of Poisson terms (over centerline)
         result.Reset();
         Finternal0.Reset();
-        MyForce_Nu formula_Nu(this);
+        MyForceBeam_Nu formula_Nu(this);
         ChQuadrature::Integrate1D<ChMatrixNM<double, 27, 1> >(result,      // result of integration
                                                               formula_Nu,  // integrand formula
                                                               -1, 1,       // x limits
@@ -825,18 +824,18 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 // Jacobians of internal forces
 // -----------------------------------------------------------------------------
 
-// The class MyJacobian provides the integrand for the calculation of the Jacobians
+// The class MyJacobianBeam provides the integrand for the calculation of the Jacobians
 // (stiffness and damping matrices) of the internal forces for one layer of an ANCF
 // shell element.
 // The 729 entries in the integrated vector represent the 27x27 Jacobian
 //      Kfactor * [K] + Rfactor * [R]
 
-class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 729, 1> > {
+class MyJacobianBeam : public ChIntegrable3D<ChMatrixNM<double, 729, 1> > {
   public:
-    MyJacobian(ChElementBeamANCF* element,  // Containing element
-               double Kfactor,              // Scaling coefficient for stiffness component
-               double Rfactor               // Scaling coefficient for damping component
-               )
+    MyJacobianBeam(ChElementBeamANCF* element,  // Containing element
+                   double Kfactor,              // Scaling coefficient for stiffness component
+                   double Rfactor               // Scaling coefficient for damping component
+                   )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor) {}
 
   private:
@@ -848,7 +847,7 @@ class MyJacobian : public ChIntegrable3D<ChMatrixNM<double, 729, 1> > {
     virtual void Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, const double y, const double z) override;
 };
 
-void MyJacobian::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, const double y, const double z) {
+void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, const double y, const double z) {
     // Element shape function
     ChMatrixNM<double, 1, 9> N;
     m_element->ShapeFunctions(N, x, y, z);
@@ -944,7 +943,7 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, co
     d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
     d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-    // Strain component 
+    // Strain component
     ChMatrixNM<double, 6, 1> strain_til;
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -1101,8 +1100,8 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, co
     // Stress tensor calculation
     ChMatrixNM<double, 6, 1> stress;
 
-    // Following loop does: stress.MatrMultiply(E_eps, strain);  
-     for (unsigned int i = 0; i < 6; i++) {
+    // Following loop does: stress.MatrMultiply(E_eps, strain);
+    for (unsigned int i = 0; i < 6; i++) {
         stress(i, 0) = E_eps(i, i) * strain(i, 0);
     }
     // Declaration and computation of Sigm, to be removed
@@ -1168,12 +1167,12 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x, co
     result.PasteClippedMatrixToVector(&KTE, 0, 0, 27, 27, 0);
 }
 
-class MyJacobian_Nu : public ChIntegrable1D<ChMatrixNM<double, 729, 1> > {
+class MyJacobianBeam_Nu : public ChIntegrable1D<ChMatrixNM<double, 729, 1> > {
   public:
-    MyJacobian_Nu(ChElementBeamANCF* element,  // Containing element
-                  double Kfactor,              // Scaling coefficient for stiffness component
-                  double Rfactor               // Scaling coefficient for damping component
-                  )
+    MyJacobianBeam_Nu(ChElementBeamANCF* element,  // Containing element
+                      double Kfactor,              // Scaling coefficient for stiffness component
+                      double Rfactor               // Scaling coefficient for damping component
+                      )
         : m_element(element), m_Kfactor(Kfactor), m_Rfactor(Rfactor) {}
 
   private:
@@ -1185,7 +1184,7 @@ class MyJacobian_Nu : public ChIntegrable1D<ChMatrixNM<double, 729, 1> > {
     virtual void Evaluate(ChMatrixNM<double, 729, 1>& result, const double x) override;
 };
 
-void MyJacobian_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x) {
+void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x) {
     // Element shape function
     ChMatrixNM<double, 1, 9> N;
     double y = 0;
@@ -1284,7 +1283,7 @@ void MyJacobian_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x)
     d0d0Ny.MatrMultiplyT(m_element->m_d0d0T, Ny);
     d0d0Nz.MatrMultiplyT(m_element->m_d0d0T, Nz);
 
-    // Strain component 
+    // Strain component
     ChMatrixNM<double, 6, 1> strain_til;
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -1514,7 +1513,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
 
     // Jacobian from diagonal terms D0 (three-dimensional)
     ChMatrixNM<double, 729, 1> result;
-    MyJacobian formula(this, Kfactor, Rfactor);
+    MyJacobianBeam formula(this, Kfactor, Rfactor);
     ChQuadrature::Integrate3D<ChMatrixNM<double, 729, 1> >(result,   // result of integration
                                                            formula,  // integrand formula
                                                            -1, 1,    // x limits
@@ -1531,7 +1530,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
     result.Reset();
 
     if (GetStrainFormulation() == ChElementBeamANCF::StrainFormulation::CMPoisson) {
-        MyJacobian_Nu formula_Nu(this, Kfactor, Rfactor);
+        MyJacobianBeam_Nu formula_Nu(this, Kfactor, Rfactor);
         ChQuadrature::Integrate1D<ChMatrixNM<double, 729, 1> >(result,      // result of integration
                                                                formula_Nu,  // integrand formula
                                                                -1, 1,       // x limits
@@ -1830,7 +1829,7 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     d0d0Ny.MatrMultiplyT(this->m_d0d0T, Ny);
     d0d0Nz.MatrMultiplyT(this->m_d0d0T, Nz);
 
-    // Strain component 
+    // Strain component
     ChMatrixNM<double, 6, 1> strain_til;
     strain_til(0, 0) = 0.5 * ((Nx * ddNx)(0, 0) - (Nx * d0d0Nx)(0, 0));
     strain_til(1, 0) = 0.5 * ((Ny * ddNy)(0, 0) - (Ny * d0d0Ny)(0, 0));
@@ -2124,7 +2123,6 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
     m_E_eps(5, 5) = G.z;
 }
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-    
     double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
                    2.0 * nu.x * nu.y * nu.z * E.z / E.x;
     double nu_yx = nu.x * E.y / E.x;

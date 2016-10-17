@@ -11,11 +11,11 @@
 // =============================================================================
 // Authors: Antonio Recuero
 // =============================================================================
-// ANCF beam element with 3 nodes. Description of this element and its internal 
+// ANCF beam element with 3 nodes. Description of this element and its internal
 // forces may be found in Nachbagauer, Gruber, Gerstmayr, "Structural and Continuum
-// Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element: 
+// Mechanics Approaches for a 3D Shear Deformable ANCF Beam Finite Element:
 // Application to Static and Linearized Dynamic Examples", Journal of Computational
-//  and Nonlinear Dynamics, 2013, April 2013, Vol. 8, 021004. 
+//  and Nonlinear Dynamics, 2013, April 2013, Vol. 8, 021004.
 // =============================================================================
 
 #ifndef CHELEMENTBEAMANCF_H
@@ -72,7 +72,7 @@ class ChApiFea ChMaterialBeamANCF {
     /// Calculate the matrix of elastic coefficients.
     void Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
 
-    double m_rho;  ///< density
+    double m_rho;                         ///< density
     ChMatrixNM<double, 6, 6> m_E_eps;     ///< matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> m_E_eps_Nu;  ///< matrix of elastic coefficients
 };
@@ -385,12 +385,12 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     /// Each coordinate ranging in -1..+1.
     ChVector<> ComputeTangent(const double U);
 
-    friend class MyMass;
-    friend class MyGravity;
-    friend class MyForce;
-    friend class MyForce_Nu;
-    friend class MyJacobian;
-    friend class MyJacobian_Nu;
+    friend class MyMassBeam;
+    friend class MyGravityBeam;
+    friend class MyForceBeam;
+    friend class MyForceBeam_Nu;
+    friend class MyJacobianBeam;
+    friend class MyJacobianBeam_Nu;
 };
 
 /// @} fea_elements
