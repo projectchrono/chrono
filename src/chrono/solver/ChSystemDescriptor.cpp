@@ -166,8 +166,10 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // If some stiffness / hessian matrix has been added to M ,
     // also add it to the sparse M
     int s_k = 0;
-    for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        this->vstiffness[ik]->Build_K(*M, true);
+    if (H) {
+        for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
+            this->vstiffness[ik]->Build_K(*H, true);
+        }
     }
 
     // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
