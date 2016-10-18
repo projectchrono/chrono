@@ -53,8 +53,8 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 double terrainHeight = 0;
 double terrainLength = 20.0;  // size in X direction
 double terrainWidth = 4.0;    // size in Y direction
-int divLength = 640;
-int divWidth = 128;
+int divLength = 100;
+int divWidth = 24;
 
 // Simulation step size
 double step_size = 5e-5;
@@ -132,7 +132,8 @@ int main(int argc, char* argv[]) {
 	//system->SetTol(1e-10);
 	//system->SetTolForce(1e-8);
 //#endif
-
+ vehicle.GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
+ vehicle.GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
 	//// Integrator settings
 
     // Initialize the vehicle at the specified position.
@@ -154,20 +155,31 @@ int main(int argc, char* argv[]) {
     // Create the terrain
     // ------------------
 
-    //DeformableTerrain terrain(vehicle.GetSystem());
-    //terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
-    //terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
-    //                             0,     // Bekker Kc
-    //                             1.1,   // Bekker n exponent
-    //                             0,     // Mohr cohesive limit (Pa)
-    //                             20,    // Mohr friction limit (degrees)
-    //                             0.01,  // Janosi shear coefficient (m)
-    //                             2e8    // Elastic stiffness (Pa/m), before plastic yeld
-    //                             );
-    //////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-    //terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    //////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
-    //terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
+    DeformableTerrain terrain(vehicle.GetSystem());
+    terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
+                                 0,     // Bekker Kc
+                                 1.1,   // Bekker n exponent
+                                 0,     // Mohr cohesive limit (Pa)
+                                 20,    // Mohr friction limit (degrees)
+                                 0.01,  // Janosi shear coefficient (m)
+                                 2e8    // Elastic stiffness (Pa/m), before plastic yeld
+                                 );
+    /*
+    terrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
+    terrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
+                                    0.8, // displaced material vs downward pressed material.
+                                    5,   // number of erosion refinements per timestep
+                                    10); // number of concentric vertex selections subject to erosion
+    */
+    // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+    // is automatically improved by adding more points under the wheel contact patch:
+    terrain.SetAutomaticRefinement(true);
+    terrain.SetAutomaticRefinementResolution(0.04);
+    ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
+    terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    ////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 
 	/*FEADeformableTerrain terrain(vehicle.GetSystem());*/
  //   auto fea_terrain = std::make_shared<FEADeformableTerrain>(vehicle.GetSystem());
