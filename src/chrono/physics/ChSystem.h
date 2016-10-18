@@ -775,12 +775,32 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// This counter is reset at each timestep.
     int GetSolverSetupCount() const { return setupcount; }
 
-    /// Set this to "true" to enable saving of matrices at each time
+    /// Set this to "true" to enable automatic saving of solver matrices at each time
     /// step, for debugging purposes. Note that matrices will be saved in the
-    /// working directory of the exe, with format 0001_01_M.dat 0002_01_M.dat
+    /// working directory of the exe, with format 0001_01_H.dat 0002_01_H.dat
     /// (if the timestepper requires multiple solves, also 0001_01. 0001_02.. etc.)
-    void SetDumpMatrices(bool md) { dump_matrices = md; }
-    bool GetDumpMatrices() const { return dump_matrices; }
+    /// The matrices being saved are:
+    ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
+    ///    dump_rhs.dat has the assembled RHS
+    ///    dump_H.dat   has usually H=M (mass), but could be also H=a*M+b*K+c*R or such. (Matlab sparse format)
+    ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
+    ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
+    ///    dump_f.dat   has the applied loads
+    ///    dump_b.dat   has the constraint rhs
+    /// as passed to the solver in the problem
+    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+    ///  | Cq -E | |l|  |-b|  |c|
+
+    void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
+    bool GetDumpSolverMatrices() const { return dump_matrices; }
+
+    /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
+    /// matrix (at the current configuration). 
+    /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
+    /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
+    /// Might throw ChException if file can't be saved.
+    void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
+
 
     // ---- KINEMATICS
 

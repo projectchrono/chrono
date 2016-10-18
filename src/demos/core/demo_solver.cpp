@@ -151,7 +151,7 @@ void test_1() {
     ChLinkedListMatrix matrM;
     ChLinkedListMatrix matrCq;
 
-    mdescriptor.BuildMatrices(&matrCq, &matrM);
+    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
     try {
         ChStreamOutAsciiFile fileM("dump_M.dat");

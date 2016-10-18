@@ -86,16 +86,16 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             }
         case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                app->DumpMatrices();
+                app->DumpSystemMatrices();
                 return true;
         case irr::KEY_F7:
-                if (!app->system->GetDumpMatrices()) {
+                if (!app->system->GetDumpSolverMatrices()) {
                     GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
-                    app->system->SetDumpMatrices(true);
+                    app->system->SetDumpSolverMatrices(true);
                 }
                 else {
                     GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
-                    app->system->SetDumpMatrices(false);
+                    app->system->SetDumpSolverMatrices(false);
                 }
                 return true;
         case irr::KEY_SNAPSHOT:
@@ -874,7 +874,7 @@ void ChIrrAppInterface::DrawAll() {
 }
 
 // Dump the last used system matrices and vectors in the current directory,
-void ChIrrAppInterface::DumpMatrices() {
+void ChIrrAppInterface::DumpSystemMatrices() {
     // For safety
     GetSystem()->Setup();
     GetSystem()->Update();

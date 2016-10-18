@@ -145,7 +145,7 @@ class ChApiIrr ChIrrAppInterface {
     /// benchmarking etc. It saves M mass matrix, Cq jacobians, E compliance
     /// as Matlab sparse matrix format, and known vectors fb, bi as column Matlab
     /// matrices.
-    void DumpMatrices();
+    void DumpSystemMatrices();
 
     //
     // Some wizard functions for 'easy setup' of the application window:
