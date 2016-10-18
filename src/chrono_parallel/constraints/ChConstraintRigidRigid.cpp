@@ -203,7 +203,21 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
     custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
     custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
-    host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
+    //host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
+
+	switch (data_manager->settings.solver.local_solver_mode) {
+	case NORMAL: {
+		func_Project_normal(index, bids.data(), cohesion.data(), gamma);
+	} break;
+	case SLIDING: {
+		func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
+	} break;
+
+	case SPINNING: {
+		func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
+		func_Project_spinning(index, bids.data(), friction.data(), gamma);
+	} break;
+	}
 }
 
 void ChConstraintRigidRigid::Build_b() {
