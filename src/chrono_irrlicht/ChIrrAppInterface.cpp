@@ -879,23 +879,14 @@ void ChIrrAppInterface::DumpMatrices() {
     GetSystem()->Setup();
     GetSystem()->Update();
 
-    // Save the current speeds, maybe these are needed.
     try {
-        ChMatrixDynamic<double> mvold;
-        GetSystem()->GetSystemDescriptor()->FromVariablesToVector(mvold);
-        ChStreamOutAsciiFile file_vold("dump_v_old.dat");
-        mvold.StreamOUTdenseMatlabFormat(file_vold);
+        // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
+        GetSystem()->DumpSystemMatrices(true, true, true, true, "dump_");
+
     } catch (ChException myexc) {
         GetLog() << myexc.what();
     }
 
-    // This DoStep() is necessary because we want to get the matrices as they
-    // are set-up for the time stepping problem.
-    // (If we avoid this, the previous 'mvold' vector won't be in-sync.)
-    DoStep();
-
-    // Now save the matrices - as they were setup by the previous time stepping scheme.
-    GetSystem()->GetSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
 }  // end namespace irrlicht
