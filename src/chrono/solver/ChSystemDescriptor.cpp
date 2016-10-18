@@ -281,16 +281,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs)
 
 }
 
-void ChSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
-                                       ChSparseMatrix* M,
-                                       bool only_bilaterals,
-                                       bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
-}
-
-void ChSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
-}
 
 void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];

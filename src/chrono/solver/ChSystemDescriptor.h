@@ -367,16 +367,7 @@ class ChApi ChSystemDescriptor {
     ///    dump_b.dat   has the constraint rhs
     virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
-    /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
-	virtual void BuildMatrices(ChSparseMatrix* Cq,
-								ChSparseMatrix* M,
-                               bool only_bilaterals = false,
-                               bool skip_contacts_uv = false);
-    /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
-	virtual void BuildVectors(ChMatrix<>* f,
-								ChMatrix<>* b,
-                              bool only_bilaterals = false,
-                              bool skip_contacts_uv = false);
+
 
     //
     // SERIALIZATION
