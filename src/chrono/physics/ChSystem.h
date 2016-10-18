@@ -801,6 +801,29 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Might throw ChException if file can't be saved.
     void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
 
+    /// Compute the system-level mass matrix. 
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetMassMatrix(ChSparseMatrix* M);    ///< fill this system mass matrix
+
+    /// Compute the system-level stiffness matrix, i.e. the jacobian -dF/dq where F are stiff loads.
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetStiffnessMatrix(ChSparseMatrix* K);    ///< fill this system stiffness matrix
+
+    /// Compute the system-level damping matrix, i.e. the jacobian -dF/dv where F are stiff loads.
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
+
+    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian 
+    /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);    ///< fill this system damping matrix
+
 
     // ---- KINEMATICS
 

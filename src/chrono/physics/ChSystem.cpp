@@ -30,6 +30,7 @@
 #include "chrono/solver/ChSolverSORmultithread.h"
 #include "chrono/solver/ChSolverSymmSOR.h"
 #include "chrono/timestepper/ChStaticAnalysis.h"
+#include "chrono/core/ChLinkedListMatrix.h"
 
 using namespace chrono::collision;
 
@@ -1421,14 +1422,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         chrono::ChStreamOutAsciiFile file_v((sprefix + "v_pre.dat").c_str());
         file_v.SetNumFormat(numformat);
         ((ChMatrix<>)v).StreamOUTdenseMatlabFormat(file_v);
-
-        chrono::ChStreamOutAsciiFile file_R((sprefix + "R.dat").c_str());
-        file_R.SetNumFormat(numformat);
-        ((ChMatrix<>)R).StreamOUTdenseMatlabFormat(file_R);  // already saved as f from DumpLastMatrices?
-
-        chrono::ChStreamOutAsciiFile file_Qc((sprefix + "Qc.dat").c_str());
-        file_Qc.SetNumFormat(numformat);
-        ((ChMatrix<>)Qc).StreamOUTdenseMatlabFormat(file_Qc);  // already saved as b from DumpLastMatrices?
     }
 
     // If indicated, first perform a solver setup.
@@ -1598,6 +1591,94 @@ double ChSystem::ComputeCollisions() {
 // =============================================================================
 //   PHYSICAL OPERATIONS
 // =============================================================================
+
+
+void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
+    //IntToDescriptor(0, Dv, R, 0, L, Qc);
+    //ConstraintsLoadJacobians();
+    
+        // Load all KRM matrices with the M part only
+    KRMmatricesLoad(0, 0, 1.0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(1.0);
+
+        // Fill system-level M matrix
+    this->GetSystemDescriptor()->ConvertToMatrixForm(false, M, false, false, false, false, false, false);
+}
+
+void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
+    //IntToDescriptor(0, Dv, R, 0, L, Qc);
+    //ConstraintsLoadJacobians();
+    
+        // Load all KRM matrices with the K part only
+    this->KRMmatricesLoad(1.0, 0, 0); 
+
+        // Fill system-level K matrix
+    this->GetSystemDescriptor()->ConvertToMatrixForm(false, K, false, false, false, false, false, false);
+}
+
+void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
+    //IntToDescriptor(0, Dv, R, 0, L, Qc);
+    //ConstraintsLoadJacobians();
+    
+        // Load all KRM matrices with the R part only
+    this->KRMmatricesLoad(0, 1.0, 0); 
+
+        // Fill system-level R matrix
+    this->GetSystemDescriptor()->ConvertToMatrixForm(false, R, false, false, false, false, false, false);
+}
+
+void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
+    //IntToDescriptor(0, Dv, R, 0, L, Qc);
+
+        // Load all jacobian matrices 
+    this->ConstraintsLoadJacobians();
+
+        // Fill system-level R matrix
+    this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, false, false, false, false, false, false, false);
+}
+
+void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path) {
+    char filename[300];
+    const char* numformat = "%.12g";
+
+    if (save_M) {
+        ChLinkedListMatrix mM;
+        this->GetMassMatrix(&mM);
+        sprintf(filename, "%s%s", path, "_M.dat");
+        ChStreamOutAsciiFile file_M(filename);
+        file_M.SetNumFormat(numformat);
+        mM.StreamOUTsparseMatlabFormat(file_M);
+    }
+    if (save_K) {
+        ChLinkedListMatrix mK;
+        this->GetStiffnessMatrix(&mK);
+        sprintf(filename, "%s%s", path, "_K.dat");
+        ChStreamOutAsciiFile file_K(filename);
+        file_K.SetNumFormat(numformat);
+        mK.StreamOUTsparseMatlabFormat(file_K);
+    }
+    if (save_R) {
+        ChLinkedListMatrix mR;
+        this->GetDampingMatrix(&mR);
+        sprintf(filename, "%s%s", path, "_R.dat");
+        ChStreamOutAsciiFile file_R(filename);
+        file_R.SetNumFormat(numformat);
+        mR.StreamOUTsparseMatlabFormat(file_R);
+    }
+    if (save_Cq) {
+        ChLinkedListMatrix mCq;
+        this->GetConstraintJacobianMatrix(&mCq);
+        sprintf(filename, "%s%s", path, "_Cq.dat");
+        ChStreamOutAsciiFile file_Cq(filename);
+        file_Cq.SetNumFormat(numformat);
+        mCq.StreamOUTsparseMatlabFormat(file_Cq);
+    }  
+}
+
+
+
+
 
 // -----------------------------------------------------------------------------
 //  PERFORM AN INTEGRATION STEP.  ----
