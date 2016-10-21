@@ -97,7 +97,8 @@ void DeformableTerrain::SetSoilParametersSCM(
     double mMohr_cohesion,  // Cohesion in, Pa, for shear failure
     double mMohr_friction,  // Friction angle (in degrees!), for shear failure
     double mJanosi_shear,   // J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-    double melastic_K       // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+    double melastic_K,      // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+    double mdamping_R       // vertical damping R, per unit area (vertical speed proportional, it is zero in original SCM model)
     ) {
     m_ground->Bekker_Kphi = mBekker_Kphi;
     m_ground->Bekker_Kc = mBekker_Kc;
@@ -106,6 +107,7 @@ void DeformableTerrain::SetSoilParametersSCM(
     m_ground->Mohr_friction = mMohr_friction;
     m_ground->Janosi_shear = mJanosi_shear;
     m_ground->elastic_K = ChMax(melastic_K, mBekker_Kphi);
+    m_ground->damping_R = mdamping_R;
 }
 
 void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
@@ -429,6 +431,7 @@ void DeformableSoil::SetupAuxData() {
     p_sigma.resize( vertices.size());
     p_sigma_yeld.resize( vertices.size());
     p_tau.resize( vertices.size());  
+    p_massremainder.resize( vertices.size());  
     p_id_island.resize (vertices.size());
     p_erosion.resize(vertices.size());
 
@@ -525,6 +528,7 @@ void DeformableSoil::ComputeInternalForces() {
 
             ChVector<> T = -p_speeds[i];
             T = plane.TransformDirectionParentToLocal(T);
+            double Vn = -T.y;
             T.y=0;
             T = plane.TransformDirectionLocalToParent(T);
             T.Normalize();   
@@ -534,12 +538,18 @@ void DeformableSoil::ComputeInternalForces() {
             ChVector<> Ft;
 
             // Elastic try:
-            p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);
+            p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);   
 
             // Handle unilaterality:
             if (p_sigma[i] <0) {
                 p_sigma[i] =0;
             } else {
+                
+                // add compressive speed-proportional damping 
+                if (Vn < 0) {
+                    p_sigma[i] += -Vn*this->damping_R;
+                }
+                
                 p_sinkage[i] = p_hit_offset;
                 p_level[i]   = p_hit_level[i];
 
@@ -615,7 +625,8 @@ void DeformableSoil::ComputeInternalForces() {
         aux_data_double.push_back(&p_area);
         aux_data_double.push_back(&p_sigma);
         aux_data_double.push_back(&p_sigma_yeld);
-        aux_data_double.push_back(&p_tau); 
+        aux_data_double.push_back(&p_tau);
+        aux_data_double.push_back(&p_massremainder);
         std::vector<std::vector<int>*> aux_data_int;  
         aux_data_int.push_back(&p_id_island);
         std::vector<std::vector<bool>*> aux_data_bool; 
@@ -874,6 +885,9 @@ void DeformableSoil::ComputeInternalForces() {
                     break;
                 case DeformableTerrain::PLOT_SHEAR:
                     mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                    break;
+                case DeformableTerrain::PLOT_MASSREMAINDER:
+                    mcolor = ChColor::ComputeFalseColor(p_massremainder[iv], plot_v_min, plot_v_max);
                     break;
                 case DeformableTerrain::PLOT_ISLAND_ID:
                     mcolor = ChColor(0,0,1);

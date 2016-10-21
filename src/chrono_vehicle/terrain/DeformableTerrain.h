@@ -59,7 +59,8 @@ public:
         PLOT_SHEAR,
         PLOT_K_JANOSI,
         PLOT_IS_TOUCHED,
-        PLOT_ISLAND_ID
+        PLOT_ISLAND_ID,
+        PLOT_MASSREMAINDER
     };
 
     /// Construct a default DeformableSoil.
@@ -110,7 +111,8 @@ public:
         double mMohr_cohesion,  ///< Cohesion in, Pa, for shear failure
         double mMohr_friction,  ///< Friction angle (in degrees!), for shear failure
         double mJanosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double melastic_K       ///< elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+        double melastic_K,      ///< elastic stiffness K, per unit area, [Pa/m] (must be > Kphi; very high values gives the original SCM model)
+        double mdamping_R       ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical negative speed, it is zero in original SCM model)
         );
 
     /// If true, enable the creation of soil inflation at the side of the ruts, 
@@ -277,6 +279,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     std::vector<double> p_sigma;
     std::vector<double> p_sigma_yeld;
     std::vector<double> p_tau;
+    std::vector<double> p_massremainder;
     std::vector<int>    p_id_island;
     std::vector<bool>   p_erosion;
 
@@ -287,6 +290,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     double Mohr_friction;
     double Janosi_shear;
     double elastic_K;
+    double damping_R;
 
     int plot_type;
     double plot_v_min;
