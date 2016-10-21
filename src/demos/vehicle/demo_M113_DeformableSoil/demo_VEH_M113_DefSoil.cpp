@@ -148,7 +148,8 @@ int main(int argc, char* argv[]) {
                                  0,     // Mohr cohesive limit (Pa)
                                  20,    // Mohr friction limit (degrees)
                                  0.01,  // Janosi shear coefficient (m)
-                                 2e8    // Elastic stiffness (Pa/m), before plastic yeld
+                                 2e8,   // Elastic stiffness (Pa/m), before plastic yeld
+                                 0      // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                  );
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
     terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
