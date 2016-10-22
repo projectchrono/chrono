@@ -196,14 +196,25 @@ void ChTrackShoeSinglePin::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next) {
-    // Create and initialize the revolute joint.
     ChVector<> loc = m_shoe->TransformPointLocalToParent(ChVector<>(GetPitch() / 2, 0, 0));
-    ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
-    m_revolute = std::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_revolute");
-    m_revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
-    m_shoe->GetSystem()->AddLink(m_revolute);
+    if (m_index == 0) {
+        // Create and initialize a point-line joint (sliding line along X)
+        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngZ(CH_C_PI_2);
+
+        auto pointline = std::make_shared<ChLinkLockPointLine>();
+        pointline->SetNameString(m_name + "_pointline");
+        pointline->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
+        m_shoe->GetSystem()->AddLink(pointline);
+    } else {
+        // Create and initialize the revolute joint (rotation axis along Z)
+        ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
+
+        auto revolute = std::make_shared<ChLinkLockRevolute>();
+        revolute->SetNameString(m_name + "_revolute");
+        revolute->Initialize(m_shoe, next->GetShoeBody(), ChCoordsys<>(loc, rot));
+        m_shoe->GetSystem()->AddLink(revolute);
+    }
 }
 
 }  // end namespace vehicle
