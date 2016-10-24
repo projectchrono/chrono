@@ -67,7 +67,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
-    // Read wheel geometry and mass properties
+    // Read shoe body geometry and mass properties
     assert(d.HasMember("Shoe"));
     m_shoe_height = d["Shoe"]["Height"].GetDouble();
     m_shoe_pitch = d["Shoe"]["Pitch"].GetDouble();
