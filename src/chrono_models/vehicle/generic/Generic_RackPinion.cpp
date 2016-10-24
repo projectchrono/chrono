@@ -26,15 +26,16 @@ namespace generic {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Generic_RackPinion::m_steeringLinkMass = 9.0;
-const ChVector<> Generic_RackPinion::m_steeringLinkInertia(1, 1, 1);
+const double Generic_RackPinion::m_steeringLinkMass = 1.889;
+const ChVector<> Generic_RackPinion::m_steeringLinkInertia(.138, 0.00009, .138);
 const double Generic_RackPinion::m_steeringLinkCOM = 0;
-const double Generic_RackPinion::m_steeringLinkLength = 0.896;
+//const double Generic_RackPinion::m_steeringLinkLength = 0.896;
+const double Generic_RackPinion::m_steeringLinkLength = 0.8;
 const double Generic_RackPinion::m_steeringLinkRadius = 0.03;
 
-const double Generic_RackPinion::m_pinionRadius = 0.1;
+const double Generic_RackPinion::m_pinionRadius = 0.03;
 
-const double Generic_RackPinion::m_maxAngle = 50.0 * (CH_C_PI / 180);
+const double Generic_RackPinion::m_maxAngle = 0.1 / 0.03; //0.1m travel;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
