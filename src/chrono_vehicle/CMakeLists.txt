@@ -475,6 +475,8 @@ set(CV_TV_TRACKASSEMBLY_FILES
 
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 

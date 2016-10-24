@@ -12,17 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Track assembly (single-pin) model constructed from a JSON specification file
+// Track assembly (double-pin) model constructed from a JSON specification file
 //
 // =============================================================================
 
-#ifndef TRACK_ASSEMBLY_SINGLE_PIN_H
-#define TRACK_ASSEMBLY_SINGLE_PIN_H
+#ifndef TRACK_ASSEMBLY_DOUBLE_PIN_H
+#define TRACK_ASSEMBLY_DOUBLE_PIN_H
 
 #include <vector>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -32,12 +32,12 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked
 /// @{
 
-/// Single-pin track assembly model constructed from a JSON specification file
-class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
+/// Double-pin track assembly model constructed from a JSON specification file
+class CH_VEHICLE_API TrackAssemblyDoublePin : public ChTrackAssemblyDoublePin {
   public:
-    TrackAssemblySinglePin(const std::string& filename);
-    TrackAssemblySinglePin(const rapidjson::Document& d);
-    ~TrackAssemblySinglePin() {}
+    TrackAssemblyDoublePin(const std::string& filename);
+    TrackAssemblyDoublePin(const rapidjson::Document& d);
+    ~TrackAssemblyDoublePin() {}
 
     virtual const ChVector<>& GetSprocketLocation() const override { return m_sprocket_loc; }
     virtual const ChVector<>& GetIdlerLocation() const override { return m_idler_loc; }
