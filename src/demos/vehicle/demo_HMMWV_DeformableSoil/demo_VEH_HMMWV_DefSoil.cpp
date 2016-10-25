@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
                                            30,    // Mohr friction limit (degrees)
                                            0.01,  // Janosi shear coefficient (m)
                                            2e8,   // Elastic stiffness (Pa/m), before plastic yeld
-                                           2e5    // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                           3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                            );
             /*
             terrainD->SetBulldozingFlow(true);    // inflate soil at the border of the rut

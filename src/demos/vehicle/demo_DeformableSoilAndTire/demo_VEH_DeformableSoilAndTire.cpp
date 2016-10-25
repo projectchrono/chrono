@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
                                     30,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
                                     5e7, // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi
-                                    2e5  // Damping (Pa s/m), proportional to negative vertical speed (optional)
+                                    2e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
