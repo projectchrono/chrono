@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Single-pin track shoe constructed with data from file (JSON format).
+// Double-pin track shoe constructed with data from file (JSON format).
 //
 // =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeSinglePin.h"
+#include "chrono_vehicle/tracked_vehicle/track_shoe/TrackShoeDoublePin.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -39,7 +39,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackShoeSinglePin(""), m_has_mesh(false) {
+TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename) : ChTrackShoeDoublePin(""), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -55,11 +55,11 @@ TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackSho
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-TrackShoeSinglePin::TrackShoeSinglePin(const rapidjson::Document& d) : ChTrackShoeSinglePin(""), m_has_mesh(false) {
+TrackShoeDoublePin::TrackShoeDoublePin(const rapidjson::Document& d) : ChTrackShoeDoublePin(""), m_has_mesh(false) {
     Create(d);
 }
 
-void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
+void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
@@ -69,10 +69,20 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
 
     // Read shoe body geometry and mass properties
     assert(d.HasMember("Shoe"));
+
+    m_shoe_length = d["Shoe"]["Length"].GetDouble();
+    m_shoe_width = d["Shoe"]["Width"].GetDouble();
     m_shoe_height = d["Shoe"]["Height"].GetDouble();
-    m_shoe_pitch = d["Shoe"]["Pitch"].GetDouble();
     m_shoe_mass = d["Shoe"]["Mass"].GetDouble();
     m_shoe_inertia = loadVector(d["Shoe"]["Inertia"]);
+
+    // Read connector body geometry and mass properties
+    assert(d.HasMember("Connector"));
+    m_connector_radius = d["Connector"]["Radius"].GetDouble();
+    m_connector_length = d["Connector"]["Length"].GetDouble();
+    m_connector_width = d["Connector"]["Width"].GetDouble();
+    m_connector_mass = d["Connector"]["Mass"].GetDouble();
+    m_connector_inertia = loadVector(d["Connector"]["Inertia"]);
 
     // Read contact geometry data
     assert(d.HasMember("Contact Geometry"));
@@ -83,10 +93,6 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
     m_pad_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Pad Location"]);
     m_guide_box_dims = loadVector(d["Contact Geometry"]["Shoe"]["Guide Dimensions"]);
     m_guide_box_loc = loadVector(d["Contact Geometry"]["Shoe"]["Guide Location"]);
-
-    m_cyl_radius = d["Contact Geometry"]["Cylinder"]["Radius"].GetDouble();
-    m_front_cyl_loc = d["Contact Geometry"]["Cylinder"]["Front Offset"].GetDouble();
-    m_rear_cyl_loc = d["Contact Geometry"]["Cylinder"]["Rear Offset"].GetDouble();
 
     // Read contact material data
     assert(d.HasMember("Contact Material"));
@@ -122,7 +128,7 @@ void TrackShoeSinglePin::Create(const rapidjson::Document& d) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
+void TrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         geometry::ChTriangleMeshConnected trimesh;
         trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
@@ -131,7 +137,7 @@ void TrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
         trimesh_shape->SetName(m_meshName);
         m_shoe->AddAsset(trimesh_shape);
     } else {
-        ChTrackShoeSinglePin::AddVisualizationAssets(vis);
+        ChTrackShoeDoublePin::AddVisualizationAssets(vis);
     }
 }
 

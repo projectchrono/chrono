@@ -9,34 +9,43 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// Generic Fiala tire subsystem
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#ifndef GENERIC_FIALA_TIRE_H
+#define GENERIC_FIALA_TIRE_H
+
+#include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
+
+#include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {
 namespace generic {
 
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
+class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
+  public:
+    Generic_FialaTire(const std::string& name);
+    ~Generic_FialaTire() {}
 
-const double Generic_Wheel::m_mass = 25.0;
-const ChVector<> Generic_Wheel::m_inertia(0.800, 1.000, 0.800);
+    virtual double GetNormalStiffnessForce(double depth) const override;
+    virtual double GetNormalDampingForce(double depth, double velocity) const override {
+        return m_normalDamping * velocity;
+    }
 
-const double Generic_Wheel::m_radius = 0.3099;
-const double Generic_Wheel::m_width = 0.235;
+    virtual void SetFialaParams();
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-Generic_Wheel::Generic_Wheel(const std::string& name) : ChWheel(name) {}
-
+  private:
+    static const double m_normalStiffness;
+    static const double m_normalDamping;
+};
 
 }  // end namespace generic
 }  // end namespace vehicle
 }  // end namespace chrono
+
+#endif

@@ -45,10 +45,10 @@
 #endif
 
 // Decide whether to use AVX, SSE, or neither
-#if defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_DOUBLE)
+#if defined(CHRONO_HAS_AVX) && defined(CHRONO_PARALLEL_USE_SIMD) && defined(CHRONO_PARALLEL_USE_DOUBLE)
 #define USE_AVX
 #undef USE_SSE
-#elif defined(CHRONO_HAS_SSE) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
+#elif defined(CHRONO_HAS_SSE) && defined(CHRONO_PARALLEL_USE_SIMD) && !defined(CHRONO_PARALLEL_USE_DOUBLE)
 #undef USE_AVX
 #define USE_SSE
 #else
@@ -65,4 +65,4 @@
 #undef __AVX2__
 #endif
 
-#endif  // __CUDACC__
+#endif

@@ -12,16 +12,16 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Tracked vehicle single-pin sprocket model constructed with data from file
+// Tracked vehicle double-pin sprocket model constructed with data from file
 // (JSON format).
 //
 // =============================================================================
 
-#ifndef SPROCKET_SINGLE_PIN_H
-#define SPROCKET_SINGLE_PIN_H
+#ifndef SPROCKET_DOUBLE_PIN_H
+#define SPROCKET_DOUBLE_PIN_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketSinglePin.h"
+#include "chrono_vehicle/tracked_vehicle/sprocket/ChSprocketDoublePin.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -31,12 +31,12 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked_sprocket
 /// @{
 
-/// Tracked vehicle single-pin sprocket model constructed with data from file (JSON format).
-class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
+/// Tracked vehicle double-pin sprocket model constructed with data from file (JSON format).
+class CH_VEHICLE_API SprocketDoublePin : public ChSprocketDoublePin {
   public:
-    SprocketSinglePin(const std::string& filename);
-    SprocketSinglePin(const rapidjson::Document& d);
-    ~SprocketSinglePin() {}
+    SprocketDoublePin(const std::string& filename);
+    SprocketDoublePin(const rapidjson::Document& d);
+    ~SprocketDoublePin() {}
 
     /// Get the number of teeth of the gear.
     virtual int GetNumTeeth() const override { return m_num_teeth; }
@@ -58,8 +58,10 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     virtual double GetOuterRadius() const override { return m_gear_RT; }
     /// Return the radius of the (concave) tooth circular arc.
     virtual double GetArcRadius() const override { return m_gear_R; }
-    /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const override { return m_gear_RC; }
+    /// Return height of arc center.
+    virtual double GetArcCenterHeight() const override { return m_gear_C; }
+    /// Return offset of arc center.
+    virtual double GetArcCenterOffset() const override { return m_gear_W; }
 
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -75,9 +77,10 @@ class CH_VEHICLE_API SprocketSinglePin : public ChSprocketSinglePin {
     double m_separation;
 
     double m_gear_RT;
-    double m_gear_RC;
     double m_gear_R;
     double m_gear_RA;
+    double m_gear_C;
+    double m_gear_W;
 
     bool m_has_mesh;
     std::string m_meshName;

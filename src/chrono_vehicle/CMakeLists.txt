@@ -297,11 +297,11 @@ if(ENABLE_MODULE_FEA)
         wheeled_vehicle/tire/ChDeformableTire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
-		wheeled_vehicle/tire/ChReissnerTire.h
+        wheeled_vehicle/tire/ChReissnerTire.h
         wheeled_vehicle/tire/ChReissnerTire.cpp
         wheeled_vehicle/tire/ChFEATire.h
         wheeled_vehicle/tire/ChFEATire.cpp
-		wheeled_vehicle/tire/ReissnerTire.h
+        wheeled_vehicle/tire/ReissnerTire.h
         wheeled_vehicle/tire/ReissnerTire.cpp
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
@@ -440,6 +440,8 @@ set(CV_TV_SPROCKET_FILES
 
     tracked_vehicle/sprocket/SprocketSinglePin.h
     tracked_vehicle/sprocket/SprocketSinglePin.cpp
+    tracked_vehicle/sprocket/SprocketDoublePin.h
+    tracked_vehicle/sprocket/SprocketDoublePin.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
@@ -460,6 +462,8 @@ set(CV_TV_TRACKSHOE_FILES
 
     tracked_vehicle/track_shoe/TrackShoeSinglePin.h
     tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
+    tracked_vehicle/track_shoe/TrackShoeDoublePin.h
+    tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
@@ -471,6 +475,8 @@ set(CV_TV_TRACKASSEMBLY_FILES
 
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
     tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 

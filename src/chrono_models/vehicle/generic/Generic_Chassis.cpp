@@ -30,9 +30,9 @@ namespace generic {
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Generic_Chassis::m_mass = 995.0;
-const ChVector<> Generic_Chassis::m_inertia(200.0, 500.0, 600.0);
-const ChVector<> Generic_Chassis::m_COM_loc(0, 0, 0);
+const double Generic_Chassis::m_mass = 1399.13;
+const ChVector<> Generic_Chassis::m_inertia(222.8, 944.1, 1053.5);
+const ChVector<> Generic_Chassis::m_COM_loc(1.5-1.763, 0, 0.440 - 0.450);
 const ChCoordsys<> Generic_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------

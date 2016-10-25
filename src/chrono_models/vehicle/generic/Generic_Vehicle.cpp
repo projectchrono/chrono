@@ -70,8 +70,10 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
             m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
             break;
         case SuspensionType::DOUBLE_WISHBONE:
-            m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
-            m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
+            //m_suspensions[0] = std::make_shared<Generic_DoubleWishbone>("Front suspension");
+            //m_suspensions[1] = std::make_shared<Generic_DoubleWishbone>("Rear suspension");
+            m_suspensions[0] = std::make_shared<Generic_DoubleWishboneFront>("Front suspension");
+            m_suspensions[1] = std::make_shared<Generic_DoubleWishboneRear>("Rear suspension");
             break;
         case SuspensionType::HENDRICKSON_PRIMAXX:
             m_suspensions[0] = std::make_shared<Generic_HendricksonPRIMAXX>("Front suspension");
@@ -137,7 +139,8 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
             offset = ChVector<>(1.25, 0, 0.01);
             break;
         case SuspensionType::DOUBLE_WISHBONE:
-            offset = ChVector<>(1.25, 0, 0.07);
+            //offset = ChVector<>(1.25, 0, 0.07);
+            offset = ChVector<>(1.6914 - 0.6584, 0, -0.12);
             break;
         case SuspensionType::HENDRICKSON_PRIMAXX:
             offset = ChVector<>(1.25, 0, -0.21);

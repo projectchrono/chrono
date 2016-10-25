@@ -9,14 +9,16 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban
+// Authors: Radu Serban, Michael Taylor
 // =============================================================================
 //
-// HMMWV wheel subsystem
+// Generic Fiala tire subsystem
+// Parameters are based on the MSC ADAMS/tire 2015.1 help document
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#include <cmath>
+#include "chrono_models/vehicle/generic/Generic_FialaTire.h"
 
 namespace chrono {
 namespace vehicle {
@@ -26,16 +28,32 @@ namespace generic {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Generic_Wheel::m_mass = 25.0;
-const ChVector<> Generic_Wheel::m_inertia(0.800, 1.000, 0.800);
-
-const double Generic_Wheel::m_radius = 0.3099;
-const double Generic_Wheel::m_width = 0.235;
+const double Generic_FialaTire::m_normalStiffness = 310000;
+const double Generic_FialaTire::m_normalDamping = 3100;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Generic_Wheel::Generic_Wheel(const std::string& name) : ChWheel(name) {}
+Generic_FialaTire::Generic_FialaTire(const std::string& name) : ChFialaTire(name) {}
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void Generic_FialaTire::SetFialaParams() {
+    m_unloaded_radius = 0.3099;
+    m_width = 0.235;
+    m_rolling_resistance = 0.001;
+    m_c_slip = 1000000;
+    m_c_alpha = 45836.6236;
+    m_u_min = 0.9;
+    m_u_max = 1.0;
+    m_relax_length_x = 0.05;
+    m_relax_length_y = 0.15;
+}
+
+double Generic_FialaTire::GetNormalStiffnessForce(double depth) const {
+    depth = depth * (depth > 0);  // Ensure that depth is positive;
+
+    return (m_normalStiffness * depth);
+}
 
 }  // end namespace generic
 }  // end namespace vehicle

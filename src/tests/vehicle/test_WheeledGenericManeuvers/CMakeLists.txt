@@ -1,19 +1,15 @@
-# Various tests using the HMMWV model
-# Required: Chrono::Vehicle,
-#           Chrono::FEA,
-#           Chrono::Irrlicht modules
-# Optional: Chrono::MKL module
+# Various vehicle manuever tests using the Generic vehicle model
+# Required: Chrono::Irrlicht modules
 # ------------------------------------------------------
 
-if(NOT ENABLE_MODULE_FEA OR NOT ENABLE_MODULE_IRRLICHT)
+if(NOT ENABLE_MODULE_IRRLICHT)
     return()
 endif()
 
 # ------------------------------------------------------
 # List all tests in this suite
 SET(TESTS
-    test_VEH_HMMWV_ANCFTire
-    test_VEH_HMMWV_Cornering
+    test_VEH_WheeledGeneric_Accel
 )
 
 # ------------------------------------------------------
@@ -26,10 +22,9 @@ include_directories(${CH_IRRLICHTINC})
 
 set(LIBRARIES
     ChronoEngine
-    ChronoEngine_fea
     ChronoEngine_irrlicht
     ChronoEngine_vehicle
-    ChronoModels_vehicle)
+	ChronoModels_vehicle)
 
 if (ENABLE_MODULE_MKL)
     include_directories(${CH_MKL_INCLUDES})
@@ -50,3 +45,4 @@ foreach(PROGRAM ${TESTS})
                         LINK_FLAGS "${LINKER_FLAGS}")
   target_link_libraries(${PROGRAM} ${LIBRARIES})
 endforeach()
+

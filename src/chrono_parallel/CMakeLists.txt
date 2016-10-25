@@ -15,6 +15,8 @@ if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE BOOST_DIR)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
+  mark_as_advanced(FORCE USE_PARALLEL_SIMD)
+  mark_as_advanced(FORCE USE_PARALLEL_CUDA)
   return()
 endif()
 
@@ -23,6 +25,7 @@ message(STATUS "==== Chrono Parallel module ====")
 mark_as_advanced(CLEAR BLAZE_DIR)
 mark_as_advanced(CLEAR BOOST_DIR)
 mark_as_advanced(CLEAR USE_PARALLEL_DOUBLE)
+mark_as_advanced(CLEAR USE_PARALLEL_SIMD)
 mark_as_advanced(CLEAR USE_PARALLEL_CUDA)
 
 # ------------------------------------------------------------------------------
@@ -35,7 +38,9 @@ set(CH_PARALLEL_C_FLAGS "")
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
 # ------------------------------------------------------------------------------
-# Find CUDA
+
+# ----- CUDA support -----
+
 find_package(CUDA)
 
 cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
@@ -48,8 +53,6 @@ IF(USE_PARALLEL_CUDA)
 	ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
 	ENDIF()
-
-	
 
 #    try_run(RUN_RESULT_VAR COMPILE_RESULT_VAR
 #        ${CMAKE_BINARY_DIR} 
@@ -80,19 +83,28 @@ ELSE()
 	SET(CHRONO_PARALLEL_USE_CUDA "#undef CHRONO_PARALLEL_USE_CUDA")
 ENDIF()
 
+# ----- SIMD (SSE or AVX) support -----
 
+cmake_dependent_option(USE_PARALLEL_SIMD "Enable SIMD support in Chrono::Parallel (if available)" ON "CHRONO_HAS_AVX" OFF)
 
-OPTION(USE_PARALLEL_DOUBLE "Compile Chrono::Parallel with double precision math (no SSE support)" ON)
+if(USE_PARALLEL_SIMD)
+   set(CHRONO_PARALLEL_USE_SIMD "#define CHRONO_PARALLEL_USE_SIMD")
+endif()
+
+# ----- Double precision support -----
+
+OPTION(USE_PARALLEL_DOUBLE "Compile Chrono::Parallel with double precision math" ON)
 
 IF(USE_PARALLEL_DOUBLE)
   SET(CHRONO_PARALLEL_USE_DOUBLE "#define CHRONO_PARALLEL_USE_DOUBLE")
 ENDIF()
 
+# ----- Thrust library -----
 
-# Find the Thrust library
 find_package(Thrust)
 
-# Find the Blaze library
+# ----- Blaze library -----
+
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   SET(BLAZE_DIR ""  CACHE PATH   "Where is Blaze located?")
 ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -101,7 +113,7 @@ ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   FIND_PATH(BLAZE_DIR NAMES blaze/Blaze.h PATHS "/usr/include" "/usr/local/include")
 ENDIF()
 
-#Configure Blaze and Thrust
+# ----- Configure Blaze and Thrust -----
 
 IF(ENABLE_OPENMP)
 	add_definitions(-DTHRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_OMP)
@@ -116,7 +128,8 @@ ELSE()
 	add_definitions(-DTHRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_CPP)
 ENDIF()
 
-# Find BOOST -- required for Blaze
+# ----- BOOST -- required for Blaze -----
+
 # TODO: is this robust enough on other platforms?
 IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
    SET(BOOST_DIR ""  CACHE PATH   "Where is Boost located?")
