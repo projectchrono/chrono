@@ -22,7 +22,7 @@
 namespace chrono {
 namespace collision {
 
-ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0), inertia(0), total_volume(0) {
+ChCollisionModelParallel::ChCollisionModelParallel() : nObjects(0) {
     model_safe_margin = 0;
 }
 
@@ -34,17 +34,17 @@ int ChCollisionModelParallel::ClearModel() {
     if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
         GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Remove(this);
     }
+
     local_convex_data.clear();
     mData.clear();
     nObjects = 0;
     family_group = 1;
     family_mask = 0x7FFF;
+
     return 1;
 }
 
 int ChCollisionModelParallel::BuildModel() {
-    this->GetBody()->SetInertiaXX(ChVector<>(inertia.x, inertia.y, inertia.z));
-
     if (GetPhysicsItem()->GetSystem() && GetPhysicsItem()->GetCollide()) {
         GetPhysicsItem()->GetSystem()->GetCollisionSystem()->Add(this);
     }
@@ -69,15 +69,6 @@ bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<>& pos) {
     TransformToCOG(GetBody(), pos, ChMatrix33<>(1), frame);
     const ChVector<>& position = frame.GetPos();
 
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia =
-        real3(2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius, 2 / 5.0 * mass * radius * radius);
-
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -86,7 +77,6 @@ bool ChCollisionModelParallel::AddSphere(double radius, const ChVector<>& pos) {
     tData.R = quaternion(1, 0, 0, 0);
     tData.type = SPHERE;
     mData.push_back(tData);
-    total_volume += 4.0 / 3.0 * CH_C_PI * pow(radius, 3.0);
 
     return true;
 }
@@ -101,14 +91,6 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia = real3(1 / 5.0 * mass * (ry * ry + rz * rz), 1 / 5.0 * mass * (rx * rx + rz * rz),
-                                1 / 5.0 * mass * (rx * rx + ry * ry));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -117,7 +99,7 @@ bool ChCollisionModelParallel::AddEllipsoid(double rx,
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = ELLIPSOID;
     mData.push_back(tData);
-    total_volume += 4.0 / 3.0 * CH_C_PI * rx * ry * rz;
+
     return true;
 }
 
@@ -127,14 +109,6 @@ bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, const ChV
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia = real3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz),
-                                1 / 12.0 * mass * (rx * rx + ry * ry));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -143,7 +117,7 @@ bool ChCollisionModelParallel::AddBox(double rx, double ry, double rz, const ChV
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = BOX;
     mData.push_back(tData);
-    total_volume += rx * 2 * ry * 2 * rz * 2;
+
     return true;
 }
 
@@ -157,13 +131,6 @@ bool ChCollisionModelParallel::AddRoundedBox(double rx,
     TransformToCOG(GetBody(), pos, rot, frame);
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia = real3(1 / 12.0 * mass * (ry * ry + rz * rz), 1 / 12.0 * mass * (rx * rx + rz * rz),
-                                1 / 12.0 * mass * (rx * rx + ry * ry));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
 
     nObjects++;
     ConvexModel tData;
@@ -172,9 +139,8 @@ bool ChCollisionModelParallel::AddRoundedBox(double rx,
     tData.C = real3(sphere_r, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = ROUNDEDBOX;
-
     mData.push_back(tData);
-    total_volume += rx * 2 * ry * 2 * rz * 2;
+
     return true;
 }
 
@@ -188,8 +154,6 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(A.x + position.x, A.y + position.y, A.z + position.z);
@@ -197,8 +161,8 @@ bool ChCollisionModelParallel::AddTriangle(ChVector<> A,
     tData.C = real3(C.x + position.x, C.y + position.y, C.z + position.z);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = TRIANGLEMESH;
-
     mData.push_back(tData);
+
     return true;
 }
 
@@ -212,14 +176,6 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia = real3(1 / 12.0 * mass * (3 * rx * rx + hy * hy), 1 / 2.0 * mass * (rx * rz),
-                                1 / 12.0 * mass * (3 * rz * rz + hy * hy));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -227,9 +183,8 @@ bool ChCollisionModelParallel::AddCylinder(double rx,
     tData.C = real3(0, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = CYLINDER;
-
     mData.push_back(tData);
-    total_volume += CH_C_PI * rx * rz * hy * 2;
+
     return true;
 }
 
@@ -244,14 +199,6 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
-    real3 local_inertia = real3(1 / 12.0 * mass * (3 * rx * rx + hy * hy), 1 / 2.0 * mass * (rx * rz),
-                                1 / 12.0 * mass * (3 * rz * rz + hy * hy));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -259,9 +206,8 @@ bool ChCollisionModelParallel::AddRoundedCylinder(double rx,
     tData.C = real3(sphere_r, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = ROUNDEDCYL;
-
     mData.push_back(tData);
-    total_volume += CH_C_PI * rx * rz * hy * 2;
+
     return true;
 }
 
@@ -275,27 +221,15 @@ bool ChCollisionModelParallel::AddCone(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-    real radius = rx;
-    real height = hy;
-
-    real3 local_inertia =
-        real3((3.0f / 80.0f) * mass * (radius * radius + 4 * height * height), (3.0f / 10.0f) * mass * radius * radius,
-              (3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
-    tData.B = real3(rx, height, rz);
+    tData.B = real3(rx, hy, rz);
     tData.C = real3(0, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = CONE;
-
     mData.push_back(tData);
-    total_volume += 1 / 3.0 * rx * hy * 2;
+
     return true;
 }
 
@@ -310,27 +244,15 @@ bool ChCollisionModelParallel::AddRoundedCone(double rx,
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-    real radius = rx;
-    real height = hy;
-
-    real3 local_inertia =
-        real3((3.0f / 80.0f) * mass * (radius * radius + 4 * height * height), (3.0f / 10.0f) * mass * radius * radius,
-              (3.0f / 80.0f) * mass * (radius * radius + 4 * height * height));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
-    tData.B = real3(rx, height, rz);
+    tData.B = real3(rx, hy, rz);
     tData.C = real3(sphere_r, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = ROUNDEDCONE;
-
     mData.push_back(tData);
-    total_volume += 1 / 3.0 * rx * hy * 2;
+
     return true;
 }
 
@@ -340,17 +262,6 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    double mass = GetBody()->GetMass();
-
-    //// TODO  For now just approximate inertia with that of a cylinder
-    real hlen1 = radius + hlen;
-    real3 local_inertia =
-        real3(1 / 12.0 * mass * (3 * radius * radius + hlen1 * hlen1), 1 / 2.0 * mass * (radius * radius),
-              1 / 12.0 * mass * (3 * radius * radius + hlen1 * hlen1));
-    inertia.x += local_inertia.x + mass * (position.Length2() - position.x * position.x);
-    inertia.y += local_inertia.y + mass * (position.Length2() - position.y * position.y);
-    inertia.z += local_inertia.z + mass * (position.Length2() - position.z * position.z);
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -358,10 +269,7 @@ bool ChCollisionModelParallel::AddCapsule(double radius, double hlen, const ChVe
     tData.C = real3(0, 0, 0);
     tData.R = quaternion(rotation.e0, rotation.e1, rotation.e2, rotation.e3);
     tData.type = CAPSULE;
-
     mData.push_back(tData);
-
-    total_volume += 2 * CH_C_PI * radius * radius * (hlen + 2 * radius / 3);
 
     return true;
 }
@@ -374,8 +282,6 @@ bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& poi
     const ChVector<>& position = frame.GetPos();
     const ChQuaternion<>& rotation = frame.GetRot();
 
-    inertia = real3(1);  // so that it gets initialized to something
-
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x, position.y, position.z);
@@ -385,7 +291,6 @@ bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& poi
     tData.type = CONVEX;
 
     mData.push_back(tData);
-    total_volume += 0;
 
     for (int i = 0; i < pointlist.size(); i++) {
         local_convex_data.push_back(real3(pointlist[i].x, pointlist[i].y, pointlist[i].z));
@@ -445,10 +350,6 @@ void ChCollisionModelParallel::SyncPosition() {
     // assert(bpointer->GetSystem());
 }
 
-float ChCollisionModelParallel::getVolume() {
-    return total_volume;
-}
-
 void ChCollisionModelParallel::SetContactable(ChContactable* mc) {
     // Invoke the base class method.
     ChCollisionModel::SetContactable(mc);
@@ -458,5 +359,5 @@ void ChCollisionModelParallel::SetContactable(ChContactable* mc) {
     assert(mbody);
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
