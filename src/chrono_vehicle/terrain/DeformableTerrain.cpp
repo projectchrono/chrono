@@ -546,9 +546,9 @@ void DeformableSoil::ComputeInternalForces() {
             } else {
                 
                 // add compressive speed-proportional damping 
-                if (Vn < 0) {
-                    p_sigma[i] += -Vn*this->damping_R;
-                }
+                //if (Vn < 0) {
+                //    p_sigma[i] += -Vn*this->damping_R;
+                //}
                 
                 p_sinkage[i] = p_hit_offset;
                 p_level[i]   = p_hit_level[i];
@@ -568,6 +568,11 @@ void DeformableSoil::ComputeInternalForces() {
                 }
 
                 p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
+
+                // add compressive speed-proportional damping (not clamped by pressure yeld)
+                //if (Vn < 0) {
+                    p_sigma[i] += -Vn*this->damping_R;
+                //}
 
                 // Mohr-Coulomb
                 double tau_max = this->Mohr_cohesion + p_sigma[i] * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
