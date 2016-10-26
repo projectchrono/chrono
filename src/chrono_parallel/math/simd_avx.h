@@ -27,6 +27,9 @@ inline __m256d Mul(__m256d a, __m256d b) {
 inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
+inline __m256d Div3(__m256d a, __m256d b) {
+	return _mm256_and_pd(_mm256_div_pd(a, b), REAL3MASK);
+}
 inline __m256d Negate(__m256d a) {
     return _mm256_xor_pd(a, NEGATEMASK);
 }

@@ -35,6 +35,9 @@ inline __m128 Mul(__m128 a, __m128 b) {
 inline __m128 Div(__m128 a, __m128 b) {
     return _mm_div_ps(a, b);
 }
+inline __m128 Div3(__m128 a, __m128 b) {
+	return _mm_and_ps(_mm_div_ps(a, b), REAL3MASK);
+}
 inline __m128 Negate(__m128 a) {
     return _mm_xor_ps(a, NEGATEMASK);
 }

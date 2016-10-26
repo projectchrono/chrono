@@ -15,7 +15,7 @@ CUDA_HOST_DEVICE inline real3 Sub(const real3& a, const real3& b) {
 CUDA_HOST_DEVICE inline real3 Mul(const real3& a, const real3& b) {
     return real3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
 }
-CUDA_HOST_DEVICE inline real3 Div(const real3& a, const real3& b) {
+CUDA_HOST_DEVICE inline real3 Div3(const real3& a, const real3& b) {
     return real3(a[0] / b[0], a[1] / b[1], a[2] / b[2]);
 }
 
