@@ -248,9 +248,9 @@ inline Mat33 MulM_TM(const real* M, const real* N) {
 
 inline real3 MulMV(const real* a, const real* b) {
     real3 r;
-    __m128 v1 = _mm_loadu_ps(&a[0]) * _mm_set1_ps(b[0]);
-    __m128 v2 = _mm_loadu_ps(&a[4]) * _mm_set1_ps(b[1]);
-    __m128 v3 = _mm_loadu_ps(&a[8]) * _mm_set1_ps(b[2]);
+    __m128 v1 = _mm_mul_ps(_mm_loadu_ps(&a[0]) , _mm_set1_ps(b[0]));
+    __m128 v2 = _mm_mul_ps(_mm_loadu_ps(&a[4]) , _mm_set1_ps(b[1]));
+    __m128 v3 = _mm_mul_ps(_mm_loadu_ps(&a[8]) , _mm_set1_ps(b[2]));
     __m128 out = _mm_add_ps(_mm_add_ps(v1, v2), v3);
     _mm_storeu_ps(&r.array[0], out);
 
