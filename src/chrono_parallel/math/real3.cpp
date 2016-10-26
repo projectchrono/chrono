@@ -124,10 +124,10 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 Min(const real3& a, const real& b) {
     return simd::Min(a, Set3(b));
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real Max(const real3& a) {
-    return simd::Max(a);
+    return simd::Max3(a);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real Min(const real3& a) {
-    return simd::Min(a);
+    return simd::Min3(a);
 }
 
 CUDA_HOST_DEVICE CH_PARALLEL_API real Length2(const real3& v1) {
