@@ -67,7 +67,7 @@ void CalcControlPoints(double run,
     ChVector<> P4_out = P4 - ChVector<>(0, factor, 0);
 
     // Start point
-    ChVector<> P0(radius + offset - run, -radius, z);
+    ChVector<> P0(-run, -radius, z);
     ChVector<> P0_in = P0;
     ChVector<> P0_out = P0 + ChVector<>(factor, 0, 0);
 
@@ -103,16 +103,16 @@ int main(int argc, char* argv[]) {
 
     double radius = 20;
     double offset = 1;
-    double run = 50;
+    double run = 30;
     int nturns = 4;
 
     // Terrain dimensions
     double terrainHeight = 0;
-    double terrainLength = 20 + 2 * std::max(run - radius - offset, 2 * radius + offset);
+    double terrainLength = 20 + 2 * std::max(run, 2 * radius + offset);
     double terrainWidth = 20 + 2 * radius;
 
     // Initial vehicle location
-    ChVector<> initLoc(radius + offset - run, -radius, 0.5);
+    ChVector<> initLoc(-run, -radius, 0.5);
 
     // ---------------------------------------------
     // Parameters for steering and speed controllers
@@ -150,6 +150,7 @@ int main(int argc, char* argv[]) {
     my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc));
+    my_hmmwv.SetInitFwdVel(1.5 * target_speed);
     my_hmmwv.SetPowertrainType(PowertrainModelType::SHAFTS);
     my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(TireModelType::RIGID);
