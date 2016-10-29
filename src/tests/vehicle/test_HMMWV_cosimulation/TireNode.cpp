@@ -61,7 +61,7 @@ using namespace rapidjson;
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
 TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_threads)
-    : BaseNode(""), m_tire_json(json_filename), m_wheel_id(wheel_id), m_TIRE(nullptr) {
+    : BaseNode(""), m_tire_json(json_filename), m_wheel_id(wheel_id), m_tire_wrapper(nullptr) {
     m_name = "TIRE_" + std::to_string(m_wheel_id.id());
     m_prefix = "[Tire node " + std::to_string(m_wheel_id.id()) + " ]";
 
@@ -147,13 +147,15 @@ TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_t
 }
 
 // -----------------------------------------------------------------------------
+// Destructor - free memory for underlying system and tire wrapper object
 // -----------------------------------------------------------------------------
 TireNode::~TireNode() {
     delete m_system;
-    delete m_TIRE;
+    delete m_tire_wrapper;
 }
 
 // -----------------------------------------------------------------------------
+// Set the inertia properties for the rim body proxy
 // -----------------------------------------------------------------------------
 void TireNode::SetProxyProperties(double mass, const ChVector<>& inertia, bool fixed) {
     m_rim_mass = mass;
@@ -206,20 +208,20 @@ void TireNode::Initialize() {
     // Create the tire wrapper
     switch (m_type) {
         case ANCF:
-            m_TIRE = new TireANCF(m_tire_json, m_tire_pressure);
+            m_tire_wrapper = new TireANCF(m_tire_json, m_tire_pressure);
             break;
         ////case FEA:
-        ////    m_TIRE = new TireFEA(m_tire_json, m_tire_pressure);
+        ////    m_tire_wrapper = new TireFEA(m_tire_json, m_tire_pressure);
         ////    break;
         case RIGID:
-            m_TIRE = new TireRigid(m_tire_json);
+            m_tire_wrapper = new TireRigid(m_tire_json);
             break;
     }
 
     // Initialize the tire and obtain contact surface properties.
     std::array<int, 2> surf_props;
     std::array<float, 8> mat_props;
-    m_TIRE->Initialize(m_rim, m_wheel_id.side(), surf_props, mat_props);
+    m_tire_wrapper->Initialize(m_rim, m_wheel_id.side(), surf_props, mat_props);
 
 
     // Mark completion of system construction
@@ -253,6 +255,7 @@ void TireNode::Initialize() {
 }
 
 // -----------------------------------------------------------------------------
+// Constructors for the tire wrappers
 // -----------------------------------------------------------------------------
 
 TireANCF::TireANCF(const std::string& json, bool enable_pressure) {
@@ -269,6 +272,7 @@ TireRigid::TireRigid(const std::string& json) {
 }
 
 // -----------------------------------------------------------------------------
+// Initialize underlying tire and return surface contact properties
 // -----------------------------------------------------------------------------
 
 void TireANCF::Initialize(std::shared_ptr<ChBody> rim,
@@ -384,7 +388,7 @@ void TireNode::Synchronize(int step_number, double time) {
     std::vector<ChVector<>> vert_pos;
     std::vector<ChVector<>> vert_vel;
     std::vector<ChVector<int>> triangles;
-    m_TIRE->GetMeshState(vert_pos, vert_vel, triangles);
+    m_tire_wrapper->GetMeshState(vert_pos, vert_vel, triangles);
 
     // Display information on lowest contact vertex.
     PrintLowestVertex(vert_pos, vert_vel);
@@ -435,7 +439,7 @@ void TireNode::Synchronize(int step_number, double time) {
         m_vert_pos[iv] = vert_pos[index];
         m_vert_forces[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
     }
-    m_TIRE->SetContactForces(m_rim, m_vert_indices, m_vert_pos, m_vert_forces);
+    m_tire_wrapper->SetContactForces(m_rim, m_vert_indices, m_vert_pos, m_vert_forces);
 
     PrintContactData(m_vert_forces, m_vert_indices);
 
@@ -451,7 +455,7 @@ void TireNode::Synchronize(int step_number, double time) {
 
     // Get tire force as applied to the rim
     TireForce tire_force;
-    m_TIRE->GetTireForce(tire_force);
+    m_tire_wrapper->GetTireForce(tire_force);
 
     // Send tire force to the vehicle node
     double bufTF[9];
@@ -552,7 +556,7 @@ void TireNode::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
-        m_TIRE->OnAdvance();
+        m_tire_wrapper->OnAdvance();
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
@@ -562,6 +566,7 @@ void TireNode::Advance(double step_size) {
 }
 
 // -----------------------------------------------------------------------------
+// Callback invoked before taking a new step
 // -----------------------------------------------------------------------------
 
 void TireANCF::OnAdvance() {
@@ -570,6 +575,7 @@ void TireANCF::OnAdvance() {
 }
 
 // -----------------------------------------------------------------------------
+// Append current information to cumulative output stream
 // -----------------------------------------------------------------------------
 void TireNode::OutputData(int frame) {
     // Append to results output file
@@ -592,7 +598,7 @@ void TireNode::OutputData(int frame) {
         m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
                << m_integrator->GetNumSolveCalls() << del;
         // Tire-specific stats
-        m_TIRE->OutputData(m_outf, del);
+        m_tire_wrapper->OutputData(m_outf, del);
         m_outf << endl;
     }
 
@@ -603,9 +609,10 @@ void TireNode::OutputData(int frame) {
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
         << endl;
 
-    m_TIRE->WriteStateInformation(csv);  // tire state information
-    m_TIRE->WriteMeshInformation(csv);   // connectivity and strain state
-    m_TIRE->WriteContactInformation(csv, m_rim, m_vert_indices, m_vert_pos, m_vert_forces);  // vertex contact forces
+    // Write tire state infromation, connectivity and strain state, and vertex contact forces
+    m_tire_wrapper->WriteStateInformation(csv);
+    m_tire_wrapper->WriteMeshInformation(csv);
+    m_tire_wrapper->WriteContactInformation(csv, m_rim, m_vert_indices, m_vert_pos, m_vert_forces);
 
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
@@ -615,6 +622,7 @@ void TireNode::OutputData(int frame) {
 }
 
 // -----------------------------------------------------------------------------
+// Append tire-specific solution stats in cumulative output stream
 // -----------------------------------------------------------------------------
 
 void TireANCF::OutputData(std::ofstream& outf, const std::string& del) {
@@ -625,6 +633,7 @@ void TireANCF::OutputData(std::ofstream& outf, const std::string& del) {
 }
 
 // -----------------------------------------------------------------------------
+// Write tire mesh node state information
 // -----------------------------------------------------------------------------
 
 void TireANCF::WriteStateInformation(utils::CSV_writer& csv) {
@@ -668,6 +677,7 @@ void TireRigid::WriteStateInformation(utils::CSV_writer& csv) {
 }
 
 // -----------------------------------------------------------------------------
+// Write tire mesh connectivity and strain information
 // -----------------------------------------------------------------------------
 
 void TireANCF::WriteMeshInformation(utils::CSV_writer& csv) {
@@ -718,6 +728,7 @@ void TireRigid::WriteMeshInformation(utils::CSV_writer& csv) {
 }
 
 // -----------------------------------------------------------------------------
+// Write contact forces on tire mesh vertices
 // -----------------------------------------------------------------------------
 
 void TireANCF::WriteContactInformation(utils::CSV_writer& csv,
@@ -767,6 +778,7 @@ void TireRigid::WriteContactInformation(utils::CSV_writer& csv,
 }
 
 // -----------------------------------------------------------------------------
+// Log various stats
 // -----------------------------------------------------------------------------
 void TireNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const std::vector<ChVector<>>& vert_vel) {
     auto lowest = std::min_element(vert_pos.begin(), vert_pos.end(),
@@ -777,8 +789,6 @@ void TireNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const 
          << "  " << vel.y << "  " << vel.z << endl;
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void TireNode::PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices) {
     if (indices.size() == 0)
         return;

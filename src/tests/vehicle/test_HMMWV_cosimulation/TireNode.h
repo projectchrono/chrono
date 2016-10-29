@@ -42,6 +42,10 @@ class TireBase;
 
 // =============================================================================
 
+/// Definition of an MPI node responsible for tire co-simulation.
+/// A tire node communicates with the vehicle node (RECV rim body states and SEND
+/// tire forces on the rim body) and with the terrain node (SEND tire mesh state
+/// and RECV contact forces on mesh vertices).
 class TireNode : public BaseNode {
   public:
     TireNode(const std::string& json_filename,   ///< JSON tire specification file
@@ -97,7 +101,7 @@ class TireNode : public BaseNode {
     std::string m_tire_json;  ///< name of tire JSON specification file
     bool m_tire_pressure;     ///< tire pressure enabled?
 
-    TireBase* m_TIRE;  ///< wrapper object for a Chrono::Vehicle tire
+    TireBase* m_tire_wrapper;  ///< wrapper object for a Chrono::Vehicle tire
 
     // Current contact forces on tire mesh vertices
     std::vector<int> m_vert_indices;                ///< indices of vertices experiencing contact forces
@@ -110,49 +114,55 @@ class TireNode : public BaseNode {
     void PrintContactData(const std::vector<chrono::ChVector<>>& forces, const std::vector<int>& indices);
 };
 
-// Base class for underlying tire
+// =============================================================================
+
+/// Interface class for a tire wrapper.
 class TireBase {
   public:
     virtual ~TireBase() {}
 
+    /// Get handle to underlying ChTire.
     virtual std::shared_ptr<chrono::vehicle::ChTire> GetTire() const = 0;
 
+    /// Initialize underlying tire and return surface contact properties.
     virtual void Initialize(std::shared_ptr<chrono::ChBody> rim,
                             chrono::vehicle::VehicleSide side,
                             std::array<int, 2>& surf_props,
                             std::array<float, 8>& mat_props) = 0;
 
+    /// Extract and return current tire mesh state (SEND to terrain node).
     virtual void GetMeshState(std::vector<chrono::ChVector<>>& vert_pos,
                               std::vector<chrono::ChVector<>>& vert_vel,
                               std::vector<chrono::ChVector<int>>& triangles) = 0;
 
+    /// Apply contact forces on tire mesh (RECV from terrain node).
     virtual void SetContactForces(std::shared_ptr<chrono::ChBody> rim,
                                   const std::vector<int>& vert_indices,
                                   const std::vector<chrono::ChVector<>>& vert_pos,
                                   const std::vector<chrono::ChVector<>>& vert_forces) = 0;
 
+    /// Extract and return current tire forces on rim body (SEND to vehicle node).
     virtual void GetTireForce(chrono::vehicle::TireForce& tire_force) = 0;
 
+    /// Callback invoked before taking a new step.
     virtual void OnAdvance() = 0;
 
+    /// Append tire-specific solution stats in cumulative output stream.
     virtual void OutputData(std::ofstream& outf, const std::string& del) = 0;
 
-    // Write mesh node state information
+    /// Write mesh node state information.
     virtual void WriteStateInformation(chrono::utils::CSV_writer& csv) = 0;
-    // Write mesh connectivity and strain information
+    /// Write mesh connectivity and strain information.
     virtual void WriteMeshInformation(chrono::utils::CSV_writer& csv) = 0;
-    // Write contact forces on tire mesh vertices
+    /// Write contact forces on tire mesh vertices.
     virtual void WriteContactInformation(chrono::utils::CSV_writer& csv,
                                          std::shared_ptr<chrono::ChBody> rim,
                                          const std::vector<int>& vert_indices,
                                          const std::vector<chrono::ChVector<>>& vert_pos,
                                          const std::vector<chrono::ChVector<>>& vert_forces) = 0;
-
-  protected:
-    TireBase() {}
 };
 
-// Deformable (ANCF) tire
+/// Deformable (ANCF) tire wrapper.
 class TireANCF : public TireBase {
   public:
     TireANCF(const std::string& json, bool enable_pressure);
@@ -194,7 +204,7 @@ class TireANCF : public TireBase {
     std::vector<std::vector<int>> m_adjVertices;  ///< list of vertex indices for each mesh element
 };
 
-// Rigid (mesh) tire
+/// Rigid (mesh) tire wrapper.
 class TireRigid : public TireBase {
   public:
     TireRigid(const std::string& json);
