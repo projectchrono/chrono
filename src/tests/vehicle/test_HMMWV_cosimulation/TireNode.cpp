@@ -323,6 +323,35 @@ void TireRigid::Initialize(std::shared_ptr<ChBody> rim,
     // Initialize underlying tire
     m_tire->Initialize(rim, side);
 
+    // Preprocess the tire mesh and store neighbor element information for each vertex.
+    // Calculate mesh triangle areas.
+    m_adjElements.resize(m_tire->GetNumVertices());
+    std::vector<double> triArea(m_tire->GetNumTriangles());
+    const std::vector<ChVector<>>& vertices = m_tire->GetMeshVertices();
+    const std::vector<ChVector<int>>& triangles = m_tire->GetMeshConnectivity();
+    for (unsigned int ie = 0; ie < m_tire->GetNumTriangles(); ie++) {
+        int iv1 = triangles[ie].x;
+        int iv2 = triangles[ie].y;
+        int iv3 = triangles[ie].z;
+        ChVector<> v1 = vertices[iv1];
+        ChVector<> v2 = vertices[iv2];
+        ChVector<> v3 = vertices[iv3];
+        triArea[ie] = 0.5 * Vcross(v2 - v1, v3 - v1).Length();
+        m_adjElements[iv1].push_back(ie);
+        m_adjElements[iv2].push_back(ie);
+        m_adjElements[iv3].push_back(ie);
+    }
+
+    // Preprocess the tire mesh and store representative area for each vertex.
+    m_vertexArea.resize(m_tire->GetNumVertices());
+    for (unsigned int in = 0; in < m_tire->GetNumVertices(); in++) {
+        double area = 0;
+        for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
+            area += triArea[m_adjElements[in][ie]];
+        }
+        m_vertexArea[in] = area / m_adjElements[in].size();
+    }
+
     // Extract number of vertices and faces from tire mesh
     surf_props[0] = m_tire->GetNumVertices();
     surf_props[1] = m_tire->GetNumTriangles();
@@ -574,9 +603,9 @@ void TireNode::OutputData(int frame) {
     csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
         << endl;
 
-    m_TIRE->WriteStateInformation(csv);                                               // tire state information
-    m_TIRE->WriteMeshInformation(csv);                                                // connectivity and strain state
-    m_TIRE->WriteContactInformation(csv, m_vert_indices, m_vert_pos, m_vert_forces);  // vertex contact forces
+    m_TIRE->WriteStateInformation(csv);  // tire state information
+    m_TIRE->WriteMeshInformation(csv);   // connectivity and strain state
+    m_TIRE->WriteContactInformation(csv, m_rim, m_vert_indices, m_vert_pos, m_vert_forces);  // vertex contact forces
 
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
@@ -624,7 +653,18 @@ void TireANCF::WriteStateInformation(utils::CSV_writer& csv) {
 }
 
 void TireRigid::WriteStateInformation(utils::CSV_writer& csv) {
-    //// TODO
+    // Write number of vertices
+    unsigned int num_vertices = m_tire->GetNumVertices();
+    csv << num_vertices << endl;
+
+    // Write mesh vertex positions and velocities
+    std::vector<ChVector<>> pos;
+    std::vector<ChVector<>> vel;
+    m_tire->GetMeshVertexStates(pos, vel);
+    for (unsigned int in = 0; in < num_vertices; in++)
+        csv << pos[in] << endl;
+    for (unsigned int in = 0; in < num_vertices; in++)
+        csv << vel[in] << endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -668,13 +708,20 @@ void TireANCF::WriteMeshInformation(utils::CSV_writer& csv) {
 }
 
 void TireRigid::WriteMeshInformation(utils::CSV_writer& csv) {
-    //// TODO
+    // Print tire mesh connectivity
+    csv << "\n Connectivity " << m_tire->GetNumTriangles() << endl;
+
+    const std::vector<ChVector<int>>& triangles = m_tire->GetMeshConnectivity();
+    for (unsigned int ie = 0; ie < m_tire->GetNumTriangles(); ie++) {
+        csv << triangles[ie] << endl;
+    }
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
 void TireANCF::WriteContactInformation(utils::CSV_writer& csv,
+                                       std::shared_ptr<chrono::ChBody> rim,
                                        const std::vector<int>& vert_indices,
                                        const std::vector<chrono::ChVector<>>& vert_pos,
                                        const std::vector<chrono::ChVector<>>& vert_forces) {
@@ -703,10 +750,20 @@ void TireANCF::WriteContactInformation(utils::CSV_writer& csv,
 }
 
 void TireRigid::WriteContactInformation(utils::CSV_writer& csv,
+                                        std::shared_ptr<chrono::ChBody> rim,
                                         const std::vector<int>& vert_indices,
                                         const std::vector<chrono::ChVector<>>& vert_pos,
                                         const std::vector<chrono::ChVector<>>& vert_forces) {
-    //// TODO
+    // Write the number of vertices in contact
+    csv << vert_indices.size() << endl;
+
+    // For each vertex in contact, output vertex index, contact force, normal, and area.
+    const std::vector<ChVector<>>& normals = m_tire->GetMeshNormals();
+    for (unsigned int iv = 0; iv < vert_indices.size(); iv++) {
+        int in = vert_indices[iv];
+        ChVector<> nrm = rim->TransformDirectionLocalToParent(normals[in]);
+        csv << in << vert_pos[iv] << vert_forces[iv] << nrm << m_vertexArea[in] << endl;
+    }
 }
 
 // -----------------------------------------------------------------------------

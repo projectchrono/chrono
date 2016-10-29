@@ -143,6 +143,7 @@ class TireBase {
     virtual void WriteMeshInformation(chrono::utils::CSV_writer& csv) = 0;
     // Write contact forces on tire mesh vertices
     virtual void WriteContactInformation(chrono::utils::CSV_writer& csv,
+                                         std::shared_ptr<chrono::ChBody> rim,
                                          const std::vector<int>& vert_indices,
                                          const std::vector<chrono::ChVector<>>& vert_pos,
                                          const std::vector<chrono::ChVector<>>& vert_forces) = 0;
@@ -180,6 +181,7 @@ class TireANCF : public TireBase {
     virtual void WriteStateInformation(chrono::utils::CSV_writer& csv) override;
     virtual void WriteMeshInformation(chrono::utils::CSV_writer& csv) override;
     virtual void WriteContactInformation(chrono::utils::CSV_writer& csv,
+                                         std::shared_ptr<chrono::ChBody> rim,
                                          const std::vector<int>& vert_indices,
                                          const std::vector<chrono::ChVector<>>& vert_pos,
                                          const std::vector<chrono::ChVector<>>& vert_forces) override;
@@ -221,6 +223,7 @@ class TireRigid : public TireBase {
     virtual void WriteStateInformation(chrono::utils::CSV_writer& csv) override;
     virtual void WriteMeshInformation(chrono::utils::CSV_writer& csv) override;
     virtual void WriteContactInformation(chrono::utils::CSV_writer& csv,
+                                         std::shared_ptr<chrono::ChBody> rim,
                                          const std::vector<int>& vert_indices,
                                          const std::vector<chrono::ChVector<>>& vert_pos,
                                          const std::vector<chrono::ChVector<>>& vert_forces) override;
@@ -228,6 +231,9 @@ class TireRigid : public TireBase {
   private:
     std::shared_ptr<chrono::vehicle::ChRigidTire> m_tire;  ///< rigid tire
     chrono::vehicle::TireForce m_tire_force;               ///< accumulated tire force
+
+    std::vector<std::vector<int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex
+    std::vector<double> m_vertexArea;             ///< representative areas for each mesh vertex
 };
 
 #endif
