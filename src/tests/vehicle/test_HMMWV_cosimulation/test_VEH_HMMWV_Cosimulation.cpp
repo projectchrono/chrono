@@ -272,13 +272,12 @@ int main(int argc, char** argv) {
         case TIRE_NODE_RANK(1):
         case TIRE_NODE_RANK(2):
         case TIRE_NODE_RANK(3): {
-            my_tire = new TireNode(WheelID(rank - 2), nthreads_tire);
+            my_tire = new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(rank - 2), nthreads_tire);
             my_tire->SetStepSize(step_size);
             my_tire->SetOutDir(out_dir, suffix);
             cout << my_tire->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_tire->GetPrefix() << " output directory: " << my_tire->GetOutDirName() << endl;
 
-            my_tire->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
             my_tire->SetProxyProperties(45, ChVector<>(0.113, 0.113, 0.113), false);
             my_tire->EnableTirePressure(true);
 

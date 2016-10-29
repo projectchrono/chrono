@@ -37,6 +37,9 @@
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ANCFTire.h"
 
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
@@ -49,24 +52,54 @@ using std::endl;
 using namespace chrono;
 using namespace chrono::vehicle;
 
+using namespace rapidjson;
+
 // =============================================================================
 
 // -----------------------------------------------------------------------------
 // Construction of the tire node:
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-TireNode::TireNode(WheelID wheel_id, int num_threads) : BaseNode(""), m_wheel_id(wheel_id) {
+TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_threads)
+    : BaseNode(""), m_tire_json(json_filename), m_wheel_id(wheel_id), m_TIRE(nullptr) {
     m_name = "TIRE_" + std::to_string(m_wheel_id.id());
     m_prefix = "[Tire node " + std::to_string(m_wheel_id.id()) + " ]";
 
-    cout << m_prefix << " axle = " << m_wheel_id.axle() << " side = " << m_wheel_id.side()
+    // -------------------------------------
+    // Peek in JSON file and infer tire type
+    // -------------------------------------
+
+    FILE* fp = fopen(json_filename.c_str(), "r");
+
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+    fclose(fp);
+
+    Document d;
+    d.ParseStream(is);
+
+    assert(d.HasMember("Type"));
+    assert(d.HasMember("Template"));
+    std::string template_type = d["Type"].GetString();
+    std::string template_subtype = d["Template"].GetString();
+    assert(template_type.compare("Tire") == 0);
+
+    if (template_subtype.compare("ANCFTire") == 0) {
+        m_type = ANCF;
+    } else if (template_subtype.compare("FEATire") == 0) {
+        m_type = FEA;
+    } else if (template_subtype.compare("RigidTire") == 0) {
+        m_type = RIGID;
+    }
+
+    cout << m_prefix << " axle = " << m_wheel_id.axle() << " side = " << m_wheel_id.side() << " tire type = " << m_type
          << " num_threads = " << num_threads << endl;
 
     // ------------------------
     // Default model parameters
     // ------------------------
 
-    //// TODO: should these be user-specified? received from vehicle node?
     m_rim_mass = 15;
     m_rim_inertia = ChVector<>(1, 1, 1);
     m_rim_fixed = false;
@@ -117,19 +150,11 @@ TireNode::TireNode(WheelID wheel_id, int num_threads) : BaseNode(""), m_wheel_id
 // -----------------------------------------------------------------------------
 TireNode::~TireNode() {
     delete m_system;
+    delete m_TIRE;
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-
-void TireNode::SetTireJSONFile(const std::string& filename) {
-    m_tire_json = filename;
-}
-
-void TireNode::EnableTirePressure(bool val) {
-    m_tire_pressure = val;
-}
-
 void TireNode::SetProxyProperties(double mass, const ChVector<>& inertia, bool fixed) {
     m_rim_mass = mass;
     m_rim_inertia = inertia;
@@ -178,51 +203,36 @@ void TireNode::Initialize() {
     m_rim->SetPos_dt(ChVector<>(0, 0, 0));
     m_rim->SetWvel_loc(ChVector<>(0, 0, 0));
 
-    // Create the tire
-    m_tire = std::make_shared<ANCFTire>(m_tire_json);
-    m_tire->EnablePressure(m_tire_pressure);
-    m_tire->EnableContact(true);
-    m_tire->EnableRimConnection(true);
-    m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+    // Create the tire wrapper
+    switch (m_type) {
+        case ANCF:
+            m_TIRE = new TireANCF(m_tire_json, m_tire_pressure);
+            break;
+        ////case FEA:
+        ////    m_TIRE = new TireFEA(m_tire_json, m_tire_pressure);
+        ////    break;
+        case RIGID:
+            m_TIRE = new TireRigid(m_tire_json);
+            break;
+    }
 
-    // Initialize tire
-    m_tire->Initialize(m_rim, LEFT);
+    // Initialize the tire and obtain contact surface properties.
+    std::array<int, 2> surf_props;
+    std::array<float, 8> mat_props;
+    m_TIRE->Initialize(m_rim, m_wheel_id.side(), surf_props, mat_props);
 
-    // Create a mesh load for contact forces and add it to the tire's load container
-    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
-    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
-    m_tire->GetLoadContainer()->Add(m_contact_load);
 
     // Mark completion of system construction
     m_system->SetupInitial();
 
-    // ---------------------------------------
-    // Send tire contact surface specification
-    // ---------------------------------------
+    // -------------------------------------------------
+    // Send tire contact surface and material properties
+    // -------------------------------------------------
 
-    unsigned int surf_props[2];
-    surf_props[0] = contact_surface->GetNumVertices();
-    surf_props[1] = contact_surface->GetNumTriangles();
-    MPI_Send(surf_props, 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
+    MPI_Send(surf_props.data(), 2, MPI_UNSIGNED, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     cout << m_prefix << " vertices = " << surf_props[0] << "  triangles = " << surf_props[1] << endl;
 
-    // -------------------------------------
-    // Send tire contact material properties
-    // -------------------------------------
-
-    auto contact_mat = m_tire->GetContactMaterial();
-    float mat_props[8] = {m_tire->GetCoefficientFriction(),
-                          m_tire->GetCoefficientRestitution(),
-                          m_tire->GetYoungModulus(),
-                          m_tire->GetPoissonRatio(),
-                          m_tire->GetKn(),
-                          m_tire->GetGn(),
-                          m_tire->GetKt(),
-                          m_tire->GetGt()};
-
-    MPI_Send(mat_props, 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
-
+    MPI_Send(mat_props.data(), 8, MPI_FLOAT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);
     cout << m_prefix << " friction = " << mat_props[0] << endl;
 
     // ----------------------------------
@@ -236,9 +246,79 @@ void TireNode::Initialize() {
     outf << "   Integration step size = " << m_step_size << endl;
     outf << "Tire specification" << endl;
     outf << "   JSON file: " << m_tire_json << endl;
+    outf << "   Tire type: " << m_type << endl;
     outf << "   Pressure enabled? " << (m_tire_pressure ? "YES" : "NO") << endl;
     outf << "Rim body" << endl;
-    outf << "   mass = " << m_rim_mass << endl;
+    outf << "   Mass = " << m_rim_mass << endl;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+TireANCF::TireANCF(const std::string& json, bool enable_pressure) {
+    m_tire = std::make_shared<ANCFTire>(json);
+    m_tire->EnablePressure(enable_pressure);
+    m_tire->EnableContact(true);
+    m_tire->EnableRimConnection(true);
+    m_tire->SetContactSurfaceType(ChDeformableTire::TRIANGLE_MESH);
+}
+
+TireRigid::TireRigid(const std::string& json) {
+    m_tire = std::make_shared<RigidTire>(json);
+    assert(m_tire->UseContactMesh());
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void TireANCF::Initialize(std::shared_ptr<ChBody> rim,
+                          VehicleSide side,
+                          std::array<int, 2>& surf_props,
+                          std::array<float, 8>& mat_props) {
+    // Initialize underlying tire
+    m_tire->Initialize(rim, side);
+
+    // Create a mesh load for contact forces and add it to the tire's load container
+    auto contact_surface = std::static_pointer_cast<fea::ChContactSurfaceMesh>(m_tire->GetContactSurface());
+    m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
+    m_tire->GetLoadContainer()->Add(m_contact_load);
+
+    // Extract number of vertices and faces from tire mesh
+    surf_props[0] = contact_surface->GetNumVertices();
+    surf_props[1] = contact_surface->GetNumTriangles();
+
+    // Extract tire contact properties
+    mat_props[0] = m_tire->GetCoefficientFriction();
+    mat_props[0] = m_tire->GetCoefficientRestitution();
+    mat_props[0] = m_tire->GetYoungModulus();
+    mat_props[0] = m_tire->GetPoissonRatio();
+    mat_props[0] = m_tire->GetKn();
+    mat_props[0] = m_tire->GetGn();
+    mat_props[0] = m_tire->GetKt();
+    mat_props[0] = m_tire->GetGt();
+}
+
+void TireRigid::Initialize(std::shared_ptr<ChBody> rim,
+                           VehicleSide side,
+                           std::array<int, 2>& surf_props,
+                           std::array<float, 8>& mat_props) {
+    // Initialize underlying tire
+    m_tire->Initialize(rim, side);
+
+    // Extract number of vertices and faces from tire mesh
+    surf_props[0] = m_tire->GetNumVertices();
+    surf_props[1] = m_tire->GetNumTriangles();
+
+    // Extract tire contact properties
+    auto contact_mat = rim->GetMaterialSurfaceDEM();
+    mat_props[0] = contact_mat->GetSfriction();
+    mat_props[1] = contact_mat->GetRestitution();
+    mat_props[2] = contact_mat->GetYoungModulus();
+    mat_props[3] = contact_mat->GetPoissonRatio();
+    mat_props[4] = contact_mat->GetKn();
+    mat_props[5] = contact_mat->GetGn();
+    mat_props[6] = contact_mat->GetKt();
+    mat_props[7] = contact_mat->GetGt();
 }
 
 // -----------------------------------------------------------------------------
@@ -257,10 +337,9 @@ void TireNode::Synchronize(int step_number, double time) {
     std::vector<ChVector<>> vert_pos;
     std::vector<ChVector<>> vert_vel;
     std::vector<ChVector<int>> triangles;
-    m_contact_load->OutputSimpleMesh(vert_pos, vert_vel, triangles);
+    m_TIRE->GetMeshState(vert_pos, vert_vel, triangles);
 
-    // Display information on lowest mesh node and lowest contact vertex.
-    PrintLowestNode();
+    // Display information on lowest contact vertex.
     PrintLowestVertex(vert_pos, vert_vel);
 
     // Send tire mesh vertex locations and velocities to the terrain node
@@ -309,7 +388,7 @@ void TireNode::Synchronize(int step_number, double time) {
         m_vert_pos[iv] = vert_pos[index];
         m_vert_forces[iv] = ChVector<>(force_data[3 * iv + 0], force_data[3 * iv + 1], force_data[3 * iv + 2]);
     }
-    m_contact_load->InputSimpleForces(m_vert_forces, m_vert_indices);
+    m_TIRE->SetContactForces(m_rim, m_vert_indices, m_vert_pos, m_vert_forces);
 
     PrintContactData(m_vert_forces, m_vert_indices);
 
@@ -323,10 +402,11 @@ void TireNode::Synchronize(int step_number, double time) {
     // Communication with VEHICLE node
     // -------------------------------
 
-    //// TODO check this
+    // Get tire force as applied to the rim
+    TireForce tire_force;
+    m_TIRE->GetTireForce(tire_force);
 
     // Send tire force to the vehicle node
-    TireForce tire_force = m_tire->GetTireForce(true);
     double bufTF[9];
     bufTF[0] = tire_force.force.x;
     bufTF[1] = tire_force.force.y;
@@ -364,6 +444,60 @@ void TireNode::Synchronize(int step_number, double time) {
 }
 
 // -----------------------------------------------------------------------------
+// Extract mesh state information (SEND to terrain node)
+// -----------------------------------------------------------------------------
+
+void TireANCF::GetMeshState(std::vector<ChVector<>>& vert_pos,
+                            std::vector<ChVector<>>& vert_vel,
+                            std::vector<ChVector<int>>& triangles) {
+    m_contact_load->OutputSimpleMesh(vert_pos, vert_vel, triangles);
+}
+
+void TireRigid::GetMeshState(std::vector<ChVector<>>& vert_pos,
+                             std::vector<ChVector<>>& vert_vel,
+                             std::vector<ChVector<int>>& triangles) {
+    triangles = m_tire->GetMeshConnectivity();
+    m_tire->GetMeshVertexStates(vert_pos, vert_vel);
+}
+
+// -----------------------------------------------------------------------------
+// Apply contact forces (RECV from terrain node)
+// -----------------------------------------------------------------------------
+
+void TireANCF::SetContactForces(std::shared_ptr<chrono::ChBody> rim,
+                                const std::vector<int>& vert_indices,
+                                const std::vector<chrono::ChVector<>>& vert_pos,
+                                const std::vector<chrono::ChVector<>>& vert_forces) {
+    m_contact_load->InputSimpleForces(vert_forces, vert_indices);
+}
+
+void TireRigid::SetContactForces(std::shared_ptr<chrono::ChBody> rim,
+                                 const std::vector<int>& vert_indices,
+                                 const std::vector<chrono::ChVector<>>& vert_pos,
+                                 const std::vector<chrono::ChVector<>>& vert_forces) {
+    rim->Empty_forces_accumulators();
+    for (size_t i = 0; i < vert_indices.size(); ++i) {
+        rim->Accumulate_force(vert_forces[i], vert_pos[i], false);
+    }
+
+    m_tire_force.force = rim->Get_accumulated_force();
+    m_tire_force.moment = rim->Get_accumulated_torque();
+    m_tire_force.point = rim->GetPos();
+}
+
+// -----------------------------------------------------------------------------
+// Extract tire force on wheel (SEND to vehicle node)
+// -----------------------------------------------------------------------------
+
+void TireANCF::GetTireForce(chrono::vehicle::TireForce& tire_force) {
+    tire_force = m_tire->GetTireForce(true);
+}
+
+void TireRigid::GetTireForce(chrono::vehicle::TireForce& tire_force) {
+    tire_force = m_tire_force;
+}
+
+// -----------------------------------------------------------------------------
 // Advance simulation of the tire node by the specified duration
 // -----------------------------------------------------------------------------
 void TireNode::Advance(double step_size) {
@@ -371,14 +505,21 @@ void TireNode::Advance(double step_size) {
     m_timer.start();
     double t = 0;
     while (t < step_size) {
-        m_tire->GetMesh()->ResetCounters();
-        m_tire->GetMesh()->ResetTimers();
+        m_TIRE->OnAdvance();
         double h = std::min<>(m_step_size, step_size - t);
         m_system->DoStepDynamics(h);
         t += h;
     }
     m_timer.stop();
     m_cum_sim_time += m_timer();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void TireANCF::OnAdvance() {
+    m_tire->GetMesh()->ResetCounters();
+    m_tire->GetMesh()->ResetTimers();
 }
 
 // -----------------------------------------------------------------------------
@@ -392,7 +533,6 @@ void TireNode::OutputData(int frame) {
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
         const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
 
-        auto mesh = m_tire->GetMesh();
 
         m_outf << m_system->GetChTime() << del;
         // Body states
@@ -402,22 +542,26 @@ void TireNode::OutputData(int frame) {
         // Solver statistics (for last integration step)
         m_outf << m_system->GetTimerStep() << del << m_system->GetTimerSetup() << del << m_system->GetTimerSolver()
                << del << m_system->GetTimerUpdate();
-        m_outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad() << del;
         m_outf << m_integrator->GetNumIterations() << del << m_integrator->GetNumSetupCalls() << del
                << m_integrator->GetNumSolveCalls() << del;
-        m_outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad() << del;
+        // Tire-specific stats
+        m_TIRE->OutputData(m_outf, del);
         m_outf << endl;
     }
 
     // Create and write frame output file.
+    utils::CSV_writer csv(" ");
+
+    csv << m_system->GetChTime() << endl;
+    csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
+        << endl;
+
+    m_TIRE->WriteStateInformation(csv);                                               // tire state information
+    m_TIRE->WriteMeshInformation(csv);                                                // connectivity and strain state
+    m_TIRE->WriteContactInformation(csv, m_vert_indices, m_vert_pos, m_vert_forces);  // vertex contact forces
+
     char filename[100];
     sprintf(filename, "%s/data_%04d.dat", m_node_out_dir.c_str(), frame + 1);
-
-    utils::CSV_writer csv(" ");
-    csv << m_system->GetChTime() << endl;  // current time
-    WriteStateInformation(csv);            // state of bodies and tire
-    WriteMeshInformation(csv);             // connectivity and strain state
-    WriteContactInformation(csv);          // vertex contact forces
     csv.write_to_file(filename);
 
     cout << m_prefix << " write output file ==> " << filename << endl;
@@ -425,10 +569,18 @@ void TireNode::OutputData(int frame) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TireNode::WriteStateInformation(utils::CSV_writer& csv) {
-    csv << m_rim->GetIdentifier() << m_rim->GetPos() << m_rim->GetRot() << m_rim->GetPos_dt() << m_rim->GetRot_dt()
-        << endl;
 
+void TireANCF::OutputData(std::ofstream& outf, const std::string& del) {
+    auto mesh = m_tire->GetMesh();
+
+    outf << mesh->GetTimeInternalForces() << del << mesh->GetTimeJacobianLoad() << del;
+    outf << mesh->GetNumCallsInternalForces() << del << mesh->GetNumCallsJacobianLoad() << del;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+void TireANCF::WriteStateInformation(utils::CSV_writer& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire->GetMesh();
     ChState x(mesh->GetDOF(), NULL);
@@ -453,9 +605,14 @@ void TireNode::WriteStateInformation(utils::CSV_writer& csv) {
         csv << v(iv) << endl;
 }
 
+void TireRigid::WriteStateInformation(utils::CSV_writer& csv) {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TireNode::WriteMeshInformation(utils::CSV_writer& csv) {
+
+void TireANCF::WriteMeshInformation(utils::CSV_writer& csv) {
     // Extract mesh
     auto my_mesh = m_tire->GetMesh();
 
@@ -507,10 +664,18 @@ void TireNode::WriteMeshInformation(utils::CSV_writer& csv) {
     }
 }
 
+void TireRigid::WriteMeshInformation(utils::CSV_writer& csv) {
+    //// TODO
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void TireNode::WriteContactInformation(utils::CSV_writer& csv) {
-    csv << m_vert_indices.size() << endl;
+
+void TireANCF::WriteContactInformation(utils::CSV_writer& csv,
+                                       const std::vector<int>& vert_indices,
+                                       const std::vector<chrono::ChVector<>>& vert_pos,
+                                       const std::vector<chrono::ChVector<>>& vert_forces) {
+    csv << vert_indices.size() << endl;
     // Output nodal position, contact force, and normal vectors; and
     // representative nodal area
 
@@ -544,7 +709,7 @@ void TireNode::WriteContactInformation(utils::CSV_writer& csv) {
     }
 
     // Loop to calculate representative area of a contacting node (node with net contact force)
-    for (unsigned int iv = 0; iv < m_vert_indices.size(); iv++) {
+    for (unsigned int iv = 0; iv < vert_indices.size(); iv++) {
         double myarea = 0;
 
         for (int j = 0; j < NodeNeighborElement[iv].size(); j++) {
@@ -555,34 +720,19 @@ void TireNode::WriteContactInformation(utils::CSV_writer& csv) {
             myarea += dx * dy / NodeNeighborElement[iv].size();
         }
         // Output index, position, force, and normal vectors, and representative area
-        csv << m_vert_indices[iv] << m_vert_pos[iv] << m_vert_forces[iv]
-            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_tire->GetMesh()->GetNode(m_vert_indices[iv]))
+        csv << vert_indices[iv] << vert_pos[iv] << vert_forces[iv]
+            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_tire->GetMesh()->GetNode(vert_indices[iv]))
                    ->GetD()
                    .GetNormalized()
             << myarea << endl;
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void TireNode::PrintLowestNode() {
-    // Unfortunately, we do not have access to the node container of a mesh,
-    // so we cannot use some nice algorithm here...
-    unsigned int num_nodes = m_tire->GetMesh()->GetNnodes();
-    unsigned int index = 0;
-    double zmin = 1e10;
-    for (unsigned int i = 0; i < num_nodes; ++i) {
-        // Ugly casting here. (Note also that we need dynamic downcasting, due to the virtual base)
-        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(i));
-        if (node->GetPos().z < zmin) {
-            zmin = node->GetPos().z;
-            index = i;
-        }
-    }
-
-    ChVector<> vel = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(m_tire->GetMesh()->GetNode(index))->GetPos_dt();
-    cout << m_prefix << " lowest node:    index = " << index << "  height = " << zmin << "  velocity = " << vel.x
-         << "  " << vel.y << "  " << vel.z << endl;
+void TireRigid::WriteContactInformation(utils::CSV_writer& csv,
+                                        const std::vector<int>& vert_indices,
+                                        const std::vector<chrono::ChVector<>>& vert_pos,
+                                        const std::vector<chrono::ChVector<>>& vert_forces) {
+    //// TODO
 }
 
 // -----------------------------------------------------------------------------
@@ -599,6 +749,9 @@ void TireNode::PrintLowestVertex(const std::vector<ChVector<>>& vert_pos, const 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TireNode::PrintContactData(const std::vector<ChVector<>>& forces, const std::vector<int>& indices) {
+    if (indices.size() == 0)
+        return;
+
     cout << m_prefix << " contact forces" << endl;
     for (int i = 0; i < indices.size(); i++) {
         cout << "  id = " << indices[i] << "  force = " << forces[i].x << "  " << forces[i].y << "  " << forces[i].z
