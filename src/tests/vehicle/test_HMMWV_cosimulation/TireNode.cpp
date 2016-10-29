@@ -283,6 +283,24 @@ void TireANCF::Initialize(std::shared_ptr<ChBody> rim,
     m_contact_load = std::make_shared<fea::ChLoadContactSurfaceMesh>(contact_surface);
     m_tire->GetLoadContainer()->Add(m_contact_load);
 
+    // Preprocess the tire mesh and store neighbor element information for each vertex
+    // and vertex indices for each element. This data is used in output.
+    auto mesh = m_tire->GetMesh();
+    m_adjElements.resize(mesh->GetNnodes());
+    m_adjVertices.resize(mesh->GetNelements());
+
+    int nodeOrder[] = { 0, 1, 2, 3 };
+    for (unsigned int ie = 0; ie < mesh->GetNelements(); ie++) {
+        auto element = mesh->GetElement(ie);
+        for (int in = 0; in < 4; in++) {
+            auto node = element->GetNodeN(nodeOrder[in]);
+            auto node_itr = std::find(mesh->GetNodes().begin(), mesh->GetNodes().end(), node);
+            auto iv = std::distance(mesh->GetNodes().begin(), node_itr);
+            m_adjElements[iv].push_back(ie);
+            m_adjVertices[ie].push_back(iv);
+        }
+    }
+
     // Extract number of vertices and faces from tire mesh
     surf_props[0] = contact_surface->GetNumVertices();
     surf_props[1] = contact_surface->GetNumTriangles();
@@ -614,53 +632,38 @@ void TireRigid::WriteStateInformation(utils::CSV_writer& csv) {
 
 void TireANCF::WriteMeshInformation(utils::CSV_writer& csv) {
     // Extract mesh
-    auto my_mesh = m_tire->GetMesh();
+    auto mesh = m_tire->GetMesh();
 
     // Vector to roughly interpolate strain information
     std::vector<std::vector<int>> NodeNeighborElement;
-    NodeNeighborElement.resize(my_mesh->GetNnodes());
+    NodeNeighborElement.resize(mesh->GetNnodes());
 
     // Print tire mesh connectivity
-    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> myvector;
-    myvector.resize(my_mesh->GetNnodes());
-    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
-        myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
-    }
-    csv << "\n Connectivity " << my_mesh->GetNelements() << 5 * my_mesh->GetNelements() << "\n";
+    csv << "\n Connectivity " << mesh->GetNelements() << 5 * mesh->GetNelements() << "\n";
 
-    for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
-        auto element = my_mesh->GetElement(iele);
-        int nodeOrder[] = {0, 1, 2, 3};
-        for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
-            auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
-            std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
-            it = find(myvector.begin(), myvector.end(), nodeA);
-            if (it != myvector.end()) {
-                auto index = std::distance(myvector.begin(), it);
-                csv << (unsigned int)index << " ";
-                NodeNeighborElement[index].push_back(iele);
-            }
+    for (unsigned int ie = 0; ie < mesh->GetNelements(); ie++) {
+        for (unsigned int in = 0; in < m_adjVertices[ie].size(); in++) {
+            csv << m_adjVertices[ie][in];
         }
-        csv << "\n";
+        csv << endl;
     }
 
-    // Print strain information: eps_xx, eps_yy, eps_xy averaged over 4 surrounding elements
+    // Print strain information: eps_xx, eps_yy, eps_xy averaged over surrounding elements
     csv << "\n Vectors of Strains \n";
-    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
-        double areaAve1 = 0, areaAve2 = 0, areaAve3 = 0;
-        double myarea = 0;
-        for (int j = 0; j < NodeNeighborElement[i].size(); j++) {
-            int myelemInx = NodeNeighborElement[i][j];
-            auto element = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx));
+    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
+        double areaX = 0, areaY = 0, areaZ = 0;
+        double area = 0;
+        for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
+            auto element = std::static_pointer_cast<fea::ChElementShellANCF>(mesh->GetElement(m_adjElements[in][ie]));
             ChVector<> StrainVector = element->EvaluateSectionStrains();
             double dx = element->GetLengthX();
             double dy = element->GetLengthY();
-            myarea += dx * dy / 4;
-            areaAve1 += StrainVector.x * dx * dy / 4;
-            areaAve2 += StrainVector.y * dx * dy / 4;
-            areaAve3 += StrainVector.z * dx * dy / 4;
+            area += dx * dy / 4;
+            areaX += StrainVector.x * dx * dy / 4;
+            areaY += StrainVector.y * dx * dy / 4;
+            areaZ += StrainVector.z * dx * dy / 4;
         }
-        csv << areaAve1 / myarea << " " << areaAve2 / myarea << " " << areaAve3 / myarea << "\n";
+        csv << areaX / area << " " << areaY / area << " " << areaZ / area << endl;
     }
 }
 
@@ -675,56 +678,27 @@ void TireANCF::WriteContactInformation(utils::CSV_writer& csv,
                                        const std::vector<int>& vert_indices,
                                        const std::vector<chrono::ChVector<>>& vert_pos,
                                        const std::vector<chrono::ChVector<>>& vert_forces) {
-    csv << vert_indices.size() << endl;
-    // Output nodal position, contact force, and normal vectors; and
-    // representative nodal area
-
     // Extract mesh
-    auto my_mesh = m_tire->GetMesh();
+    auto mesh = m_tire->GetMesh();
 
-    // Vector to identify surrounding elements to a node (4 max, 2 min)
-    std::vector<std::vector<int>> NodeNeighborElement;
-    NodeNeighborElement.resize(my_mesh->GetNnodes());
+    // Write the number of vertices in contact
+    csv << vert_indices.size() << endl;
 
-    // Create vector with all nodes
-    std::vector<std::shared_ptr<fea::ChNodeFEAbase>> myvector;
-    myvector.resize(my_mesh->GetNnodes());
-    for (unsigned int i = 0; i < my_mesh->GetNnodes(); i++) {
-        myvector[i] = std::dynamic_pointer_cast<fea::ChNodeFEAbase>(my_mesh->GetNode(i));
-    }
-
-    // Go through the nodes of all elements and store neighboring elements to each node
-    for (unsigned int iele = 0; iele < my_mesh->GetNelements(); iele++) {
-        auto element = my_mesh->GetElement(iele);
-        int nodeOrder[] = {0, 1, 2, 3};
-        for (int myNodeN = 0; myNodeN < 4; myNodeN++) {
-            auto nodeA = element->GetNodeN(nodeOrder[myNodeN]);
-            std::vector<std::shared_ptr<fea::ChNodeFEAbase>>::iterator it;
-            it = find(myvector.begin(), myvector.end(), nodeA);
-            if (it != myvector.end()) {
-                auto index = std::distance(myvector.begin(), it);
-                NodeNeighborElement[index].push_back(iele);
-            }
-        }
-    }
-
-    // Loop to calculate representative area of a contacting node (node with net contact force)
+    // For each vertex in contact, calculate a representative area by averaging
+    // the areas of its adjacent elements.
     for (unsigned int iv = 0; iv < vert_indices.size(); iv++) {
-        double myarea = 0;
-
-        for (int j = 0; j < NodeNeighborElement[iv].size(); j++) {
-            int myelemInx = NodeNeighborElement[iv][j];
-            auto element = std::dynamic_pointer_cast<fea::ChElementShellANCF>(my_mesh->GetElement(myelemInx));
+        int in = vert_indices[iv];
+        auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(mesh->GetNode(in));
+        double area = 0;
+        for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
+            auto element = std::static_pointer_cast<fea::ChElementShellANCF>(mesh->GetElement(m_adjElements[in][ie]));
             double dx = element->GetLengthX();
             double dy = element->GetLengthY();
-            myarea += dx * dy / NodeNeighborElement[iv].size();
+            area += dx * dy / 4;
         }
-        // Output index, position, force, and normal vectors, and representative area
-        csv << vert_indices[iv] << vert_pos[iv] << vert_forces[iv]
-            << std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_tire->GetMesh()->GetNode(vert_indices[iv]))
-                   ->GetD()
-                   .GetNormalized()
-            << myarea << endl;
+        area /= m_adjElements[in].size();
+        // Output vertex index, position, contact force, normal, and area.
+        csv << in << vert_pos[iv] << vert_forces[iv] << node->GetD().GetNormalized() << area << endl;
     }
 }
 
