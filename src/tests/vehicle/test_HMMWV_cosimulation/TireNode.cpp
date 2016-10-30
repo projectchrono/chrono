@@ -61,7 +61,13 @@ using namespace rapidjson;
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
 TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_threads)
-    : BaseNode(""), m_tire_json(json_filename), m_wheel_id(wheel_id), m_tire_wrapper(nullptr) {
+    : BaseNode(""),
+      m_tire_json(json_filename),
+      m_wheel_id(wheel_id),
+      m_tire_wrapper(nullptr),
+      m_verbose_forces(false),
+      m_verbose_states(false),
+      m_verbose_solver(false) {
     m_name = "TIRE_" + std::to_string(m_wheel_id.id());
     m_prefix = "[Tire node " + std::to_string(m_wheel_id.id()) + " ]";
 
@@ -142,7 +148,7 @@ TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_t
     m_integrator->SetAbsTolerances(5e-05, 1.8e00);
     m_integrator->SetMode(ChTimestepperHHT::POSITION);
     m_integrator->SetScaling(true);
-    m_integrator->SetVerbose(true);
+    m_integrator->SetVerbose(m_verbose_solver);
     m_integrator->SetMaxItersSuccess(5);
 }
 
@@ -391,7 +397,9 @@ void TireNode::Synchronize(int step_number, double time) {
     m_tire_wrapper->GetMeshState(vert_pos, vert_vel, triangles);
 
     // Display information on lowest contact vertex.
-    PrintLowestVertex(vert_pos, vert_vel);
+    if (m_verbose_states) {
+        PrintLowestVertex(vert_pos, vert_vel);
+    }
 
     // Send tire mesh vertex locations and velocities to the terrain node
     unsigned int num_vert = (unsigned int)vert_pos.size();
@@ -441,7 +449,9 @@ void TireNode::Synchronize(int step_number, double time) {
     }
     m_tire_wrapper->SetContactForces(m_rim, m_vert_indices, m_vert_pos, m_vert_forces);
 
-    PrintContactData(m_vert_forces, m_vert_indices);
+    if (m_verbose_forces) {
+        PrintContactData(m_vert_forces, m_vert_indices);
+    }
 
     delete[] vert_data;
     delete[] tri_data;
@@ -470,9 +480,11 @@ void TireNode::Synchronize(int step_number, double time) {
     bufTF[8] = tire_force.point.z;
     MPI_Send(bufTF, 9, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD);
 
-    cout << m_prefix << " sent tire forces: " << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
-    cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
-    cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
+    if (m_verbose_forces) {
+        cout << m_prefix << " sent tire forces: " << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
+        cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
+        cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
+    }
 
     // Receive wheel state from the vehicle node
     double bufWS[14];
@@ -485,8 +497,12 @@ void TireNode::Synchronize(int step_number, double time) {
     wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
     wheel_state.omega = bufWS[13];
 
-    cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
-    cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << endl;
+    if (m_verbose_states) {
+        cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
+        cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << endl;
+        cout << m_prefix << "                 " << bufWS[7] << " " << bufWS[8] << " " << bufWS[9] << "  ,  ";
+        cout << bufWS[10] << " " << bufWS[11] << " " << bufWS[12] << endl;
+    }
 
     m_rim->SetPos(wheel_state.pos);
     m_rim->SetRot(wheel_state.rot);

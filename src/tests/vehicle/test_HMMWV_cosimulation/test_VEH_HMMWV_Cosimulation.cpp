@@ -272,7 +272,8 @@ int main(int argc, char** argv) {
         case TIRE_NODE_RANK(1):
         case TIRE_NODE_RANK(2):
         case TIRE_NODE_RANK(3): {
-            my_tire = new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(rank - 2), nthreads_tire);
+            int wheel_id = rank - 2;
+            my_tire = new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(wheel_id), nthreads_tire);
             my_tire->SetStepSize(step_size);
             my_tire->SetOutDir(out_dir, suffix);
             cout << my_tire->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
@@ -280,6 +281,10 @@ int main(int argc, char** argv) {
 
             my_tire->SetProxyProperties(45, ChVector<>(0.113, 0.113, 0.113), false);
             my_tire->EnableTirePressure(true);
+
+            my_tire->SetVerboseSolver(false);
+            my_tire->SetVerboseStates(wheel_id == 0);
+            my_tire->SetVerboseForces(false);
 
             break;
         }
@@ -327,7 +332,7 @@ int main(int argc, char** argv) {
                 cout << " --- " << endl;
 
                 my_vehicle->Advance(step_size);
-                cout << my_vehicle->GetPrefix() << " sim time =    " << my_vehicle->GetSimTime() << "  ["
+                cout << my_vehicle->GetPrefix() << " sim time = " << my_vehicle->GetSimTime() << "  ["
                      << my_vehicle->GetTotalSimTime() << "]" << endl;
 
                 if (output && is % output_steps == 0) {
@@ -361,7 +366,7 @@ int main(int argc, char** argv) {
             case TIRE_NODE_RANK(3): {
                 my_tire->Synchronize(is, time);
                 my_tire->Advance(step_size);
-                cout << my_tire->GetPrefix() << " sim time =    " << my_tire->GetSimTime() << "  ["
+                cout << my_tire->GetPrefix() << " sim time = " << my_tire->GetSimTime() << "  ["
                      << my_tire->GetTotalSimTime() << "]" << endl;
 
                 if (output && is % output_steps == 0) {

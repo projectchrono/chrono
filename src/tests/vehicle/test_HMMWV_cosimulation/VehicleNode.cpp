@@ -305,6 +305,8 @@ void VehicleNode::Synchronize(int step_number, double time) {
         MPI_Send(bufWS, 14, MPI_DOUBLE, TIRE_NODE_RANK(iw), iw, MPI_COMM_WORLD);
     }
 
+    cout << m_prefix << " Driver inputs:   S = " << steering << " T = " << throttle << " B = " << braking << endl;
+
     // Synchronize vehicle, powertrain, and driver
     m_vehicle->Synchronize(time, steering, braking, powertrain_torque, m_tire_forces);
     m_powertrain->Synchronize(time, throttle, driveshaft_speed);

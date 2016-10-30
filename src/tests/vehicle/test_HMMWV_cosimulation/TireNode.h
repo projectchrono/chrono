@@ -83,6 +83,11 @@ class TireNode : public BaseNode {
     /// Output logging and debugging data.
     virtual void OutputData(int frame) override;
 
+    /// Control log detail
+    void SetVerboseStates(bool val) { m_verbose_states = val; }
+    void SetVerboseForces(bool val) { m_verbose_forces = val; }
+    void SetVerboseSolver(bool val) { m_verbose_solver = val; }
+
   private:
     enum Type { ANCF, FEA, RIGID };
 
@@ -107,6 +112,11 @@ class TireNode : public BaseNode {
     std::vector<int> m_vert_indices;                ///< indices of vertices experiencing contact forces
     std::vector<chrono::ChVector<>> m_vert_pos;     ///< position of vertices experiencing contact forces
     std::vector<chrono::ChVector<>> m_vert_forces;  ///< contact forces on mesh vertices
+
+    // Verbose level
+    bool m_verbose_states;
+    bool m_verbose_forces;
+    bool m_verbose_solver;
 
     // Private methods
     void PrintLowestVertex(const std::vector<chrono::ChVector<>>& vert_pos,
