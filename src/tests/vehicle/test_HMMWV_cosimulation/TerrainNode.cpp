@@ -236,12 +236,14 @@ void TerrainNode::Construct() {
         return;
 
     // Estimates for number of bins for broad-phase.
-    int factor = 2;
-    int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
-    int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
-    int binsZ = 1;
-    m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-    cout << m_prefix << " broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
+    if (m_type == GRANULAR) {
+        int factor = 2;
+        int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
+        int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
+        int binsZ = 1;
+        m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
+        cout << m_prefix << " broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
+    }
 
     // ------------------------------
     // Create the start platform body
