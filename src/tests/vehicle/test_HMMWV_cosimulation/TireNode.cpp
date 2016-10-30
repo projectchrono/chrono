@@ -387,6 +387,56 @@ void TireRigid::Initialize(std::shared_ptr<ChBody> rim,
 // -----------------------------------------------------------------------------
 void TireNode::Synchronize(int step_number, double time) {
     // -------------------------------
+    // Communication with VEHICLE node
+    // -------------------------------
+
+    // Get tire force as applied to the rim
+    TireForce tire_force;
+    m_tire_wrapper->GetTireForce(tire_force);
+
+    // Send tire force to the vehicle node
+    double bufTF[9];
+    bufTF[0] = tire_force.force.x;
+    bufTF[1] = tire_force.force.y;
+    bufTF[2] = tire_force.force.z;
+    bufTF[3] = tire_force.moment.x;
+    bufTF[4] = tire_force.moment.y;
+    bufTF[5] = tire_force.moment.z;
+    bufTF[6] = tire_force.point.x;
+    bufTF[7] = tire_force.point.y;
+    bufTF[8] = tire_force.point.z;
+    MPI_Send(bufTF, 9, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD);
+
+    if (m_verbose_forces) {
+        cout << m_prefix << " sent tire forces: " << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
+        cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
+        cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
+    }
+
+    // Receive wheel state from the vehicle node
+    double bufWS[14];
+    MPI_Status statusWS;
+    MPI_Recv(bufWS, 14, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD, &statusWS);
+    WheelState wheel_state;
+    wheel_state.pos = ChVector<>(bufWS[0], bufWS[1], bufWS[2]);
+    wheel_state.rot = ChQuaternion<>(bufWS[3], bufWS[4], bufWS[5], bufWS[6]);
+    wheel_state.lin_vel = ChVector<>(bufWS[7], bufWS[8], bufWS[9]);
+    wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
+    wheel_state.omega = bufWS[13];
+
+    if (m_verbose_states) {
+        cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
+        cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << "\n";
+        cout << m_prefix << "                 " << bufWS[7] << " " << bufWS[8] << " " << bufWS[9] << "  ,  ";
+        cout << bufWS[10] << " " << bufWS[11] << " " << bufWS[12] << endl;
+    }
+
+    m_rim->SetPos(wheel_state.pos);
+    m_rim->SetRot(wheel_state.rot);
+    m_rim->SetPos_dt(wheel_state.lin_vel);
+    m_rim->SetWvel_par(wheel_state.ang_vel);
+
+    // -------------------------------
     // Communication with TERRAIN node
     // -------------------------------
 
@@ -458,56 +508,6 @@ void TireNode::Synchronize(int step_number, double time) {
 
     delete[] index_data;
     delete[] force_data;
-
-    // -------------------------------
-    // Communication with VEHICLE node
-    // -------------------------------
-
-    // Get tire force as applied to the rim
-    TireForce tire_force;
-    m_tire_wrapper->GetTireForce(tire_force);
-
-    // Send tire force to the vehicle node
-    double bufTF[9];
-    bufTF[0] = tire_force.force.x;
-    bufTF[1] = tire_force.force.y;
-    bufTF[2] = tire_force.force.z;
-    bufTF[3] = tire_force.moment.x;
-    bufTF[4] = tire_force.moment.y;
-    bufTF[5] = tire_force.moment.z;
-    bufTF[6] = tire_force.point.x;
-    bufTF[7] = tire_force.point.y;
-    bufTF[8] = tire_force.point.z;
-    MPI_Send(bufTF, 9, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD);
-
-    if (m_verbose_forces) {
-        cout << m_prefix << " sent tire forces: " << bufTF[0] << " " << bufTF[1] << " " << bufTF[2] << "  ,  ";
-        cout << bufTF[3] << " " << bufTF[4] << " " << bufTF[5] << "  ,  ";
-        cout << bufTF[6] << " " << bufTF[7] << " " << bufTF[8] << endl;
-    }
-
-    // Receive wheel state from the vehicle node
-    double bufWS[14];
-    MPI_Status statusWS;
-    MPI_Recv(bufWS, 14, MPI_DOUBLE, VEHICLE_NODE_RANK, m_wheel_id.id(), MPI_COMM_WORLD, &statusWS);
-    WheelState wheel_state;
-    wheel_state.pos = ChVector<>(bufWS[0], bufWS[1], bufWS[2]);
-    wheel_state.rot = ChQuaternion<>(bufWS[3], bufWS[4], bufWS[5], bufWS[6]);
-    wheel_state.lin_vel = ChVector<>(bufWS[7], bufWS[8], bufWS[9]);
-    wheel_state.ang_vel = ChVector<>(bufWS[10], bufWS[11], bufWS[12]);
-    wheel_state.omega = bufWS[13];
-
-    if (m_verbose_states) {
-        cout << m_prefix << " recv rim state: " << bufWS[0] << " " << bufWS[1] << " " << bufWS[2] << "  ,  ";
-        cout << bufWS[3] << " " << bufWS[4] << " " << bufWS[5] << " " << bufWS[6] << endl;
-        cout << m_prefix << "                 " << bufWS[7] << " " << bufWS[8] << " " << bufWS[9] << "  ,  ";
-        cout << bufWS[10] << " " << bufWS[11] << " " << bufWS[12] << endl;
-    }
-
-    m_rim->SetPos(wheel_state.pos);
-    m_rim->SetRot(wheel_state.rot);
-    m_rim->SetPos_dt(wheel_state.lin_vel);
-    m_rim->SetWvel_par(wheel_state.ang_vel);
 }
 
 // -----------------------------------------------------------------------------

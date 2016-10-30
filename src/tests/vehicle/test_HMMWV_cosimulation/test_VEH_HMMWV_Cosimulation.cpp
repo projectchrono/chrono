@@ -329,8 +329,6 @@ int main(int argc, char** argv) {
             case VEHICLE_NODE_RANK: {
                 cout << is << " ---------------------------- " << endl;
                 my_vehicle->Synchronize(is, time);
-                cout << " --- " << endl;
-
                 my_vehicle->Advance(step_size);
                 cout << my_vehicle->GetPrefix() << " sim time = " << my_vehicle->GetSimTime() << "  ["
                      << my_vehicle->GetTotalSimTime() << "]" << endl;
