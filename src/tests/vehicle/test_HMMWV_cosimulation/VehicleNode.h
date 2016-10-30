@@ -60,7 +60,7 @@ class VehicleNode : public BaseNode {
     void SetDataDriver(const std::vector<chrono::vehicle::ChDataDriver::Entry>& data);
 
     /// Set path-follower driver.
-    void SetPathDriver(double run, double radius, double offset, int nturns, double target_speed);
+    void SetPathDriver(double run, double radius, int nturns, double target_speed);
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an

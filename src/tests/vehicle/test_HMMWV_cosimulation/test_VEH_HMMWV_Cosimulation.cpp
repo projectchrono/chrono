@@ -177,6 +177,26 @@ int main(int argc, char** argv) {
     int output_steps = (int)std::ceil(1 / (output_fps * step_size));
     int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
+    // Terrain dimensions
+    double container_length = 10;
+    double container_width = 3;
+    double container_height = 1;
+    double platform_length = 0;
+    double clearance = 2;
+
+    ////double container_length = 40;
+    ////double container_width = 40;
+    ////double container_height = 1;
+    ////double platform_length = 10;
+    ////double clearance = 2;
+
+    // Infer parameters of circular path
+    double radius = 15;
+    double run = platform_length + container_length / 2;
+    double max_radius = std::min(container_length / 2 - clearance, container_width / 2 - clearance);
+    max_radius = std::max(max_radius, 0.0);
+    radius = std::min(radius, max_radius);
+
     // Create the systems and run the settling phase for terrain.
     VehicleNode* my_vehicle = nullptr;
     TerrainNode* my_terrain = nullptr;
@@ -191,22 +211,21 @@ int main(int argc, char** argv) {
             my_vehicle->SetInitFwdVel(init_fwd_vel);
             my_vehicle->SetInitWheelAngVel(init_wheel_omega);
 
+            cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
+            cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
+
             std::vector<ChDataDriver::Entry> data;
             data.push_back({0.0, 0, 0.0, 0});
             data.push_back({0.5, 0, 0.0, 0});
             data.push_back({0.7, 0, 0.8, 0});
             data.push_back({1.0, 0, 0.8, 0});
             my_vehicle->SetDataDriver(data);
+            cout << my_vehicle->GetPrefix() << " Acceleration test." << endl;
 
-            ////double run = 10.0;
-            ////double radius = 15.0;
-            ////double offset = 2.0;
             ////int nturns = 5;
             ////double target_speed = 10.0;
-            ////my_vehicle->SetPathDriver(run, radius, offset, nturns, target_speed);
-
-            cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
-            cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
+            ////my_vehicle->SetPathDriver(run, radius, nturns, target_speed);
+            ////cout << my_vehicle->GetPrefix() << " Constant radius turn test.  R = " << radius << " V = " << target_speed << endl;
 
             break;
         }
@@ -220,8 +239,8 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
-            my_terrain->SetContainerDimensions(10, 3, 1, 0.2);
-            my_terrain->SetPlatformLength(0);
+            my_terrain->SetContainerDimensions(container_length, container_width, container_height, 0.2);
+            my_terrain->SetPlatformLength(platform_length);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;

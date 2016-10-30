@@ -105,7 +105,7 @@ void VehicleNode::SetDataDriver(const std::vector<ChDataDriver::Entry>& data) {
 // -----------------------------------------------------------------------------
 // Specify data for PATH_FOLLOWER driver type
 // -----------------------------------------------------------------------------
-void VehicleNode::SetPathDriver(double run, double radius, double offset, int nturns, double target_speed) {
+void VehicleNode::SetPathDriver(double run, double radius, int nturns, double target_speed) {
     m_driver_type = PATH_DRIVER;
     m_driver_target_speed = target_speed;
 
@@ -113,19 +113,19 @@ void VehicleNode::SetPathDriver(double run, double radius, double offset, int nt
     double z = 1;
     double factor = radius * (4.0 / 3.0) * std::tan(CH_C_PI / 8);
 
-    ChVector<> P1(radius + offset, -radius, z);
+    ChVector<> P1(0, -radius, z);
     ChVector<> P1_in = P1 - ChVector<>(factor, 0, 0);
     ChVector<> P1_out = P1 + ChVector<>(factor, 0, 0);
 
-    ChVector<> P2(2 * radius + offset, 0, z);
+    ChVector<> P2(radius, 0, z);
     ChVector<> P2_in = P2 - ChVector<>(0, factor, 0);
     ChVector<> P2_out = P2 + ChVector<>(0, factor, 0);
 
-    ChVector<> P3(radius + offset, radius, z);
+    ChVector<> P3(0, radius, z);
     ChVector<> P3_in = P3 + ChVector<>(factor, 0, 0);
     ChVector<> P3_out = P3 - ChVector<>(factor, 0, 0);
 
-    ChVector<> P4(offset, 0, z);
+    ChVector<> P4(-radius, 0, z);
     ChVector<> P4_in = P4 + ChVector<>(0, factor, 0);
     ChVector<> P4_out = P4 - ChVector<>(0, factor, 0);
 
@@ -325,6 +325,8 @@ void VehicleNode::Advance(double step_size) {
         m_system->DoStepDynamics(h);
         t += h;
     }
+    m_driver->Advance(step_size);
+    m_powertrain->Advance(step_size);
     m_timer.stop();
     m_cum_sim_time += m_timer();
 }
