@@ -193,7 +193,7 @@ void TireNode::Initialize() {
     // ----------------------------------
 
     // Create the rim body
-    m_rim = std::make_shared<ChBody>();
+    m_rim = std::shared_ptr<ChBody>(m_system->NewBody());
     m_rim->SetMass(m_rim_mass);
     m_rim->SetInertiaXX(m_rim_inertia);
     m_rim->SetBodyFixed(m_rim_fixed);
