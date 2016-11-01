@@ -131,6 +131,17 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector<> >& points) : m_points(
     delete[] z;
 }
 
+void ChBezierCurve::setPoints(const std::vector<ChVector<> >& points,
+                              const std::vector<ChVector<> >& inCV,
+                              const std::vector<ChVector<> >& outCV) {
+    assert(points.size() > 1);
+    assert(points.size() == inCV.size());
+    assert(points.size() == outCV.size());
+    m_points = points;
+    m_inCV = inCV;
+    m_outCV = outCV;
+}
+
 // Utility function for solving the tridiagonal system for one of the
 // coordinates (x, y, or z) of the outCV control points.
 void ChBezierCurve::solveTriDiag(size_t n, double* rhs, double* x) {
