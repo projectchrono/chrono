@@ -40,6 +40,12 @@
 
 class VehicleNode : public BaseNode {
   public:
+    enum DriverType {
+        DEFAULT_DRIVER,  ///< default driver inputs (all zero)
+        DATA_DRIVER,     ///< driver inputs from data (linear interpolation)
+        PATH_DRIVER      ///< PID path-follower driver
+    };
+
     VehicleNode();
     ~VehicleNode();
 
@@ -60,7 +66,7 @@ class VehicleNode : public BaseNode {
     void SetDataDriver(const std::vector<chrono::vehicle::ChDataDriver::Entry>& data);
 
     /// Set path-follower driver.
-    void SetPathDriver(double run, double radius, int nturns, double target_speed);
+    void SetPathDriver(const chrono::ChBezierCurve& path, double target_speed);
 
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
@@ -82,12 +88,6 @@ class VehicleNode : public BaseNode {
     virtual void OutputData(int frame) override;
 
   private:
-    enum DriverType {
-        DEFAULT_DRIVER,  ///< default driver inputs (all zero)
-        DATA_DRIVER,     ///< driver inputs from data (linear interpolation)
-        PATH_DRIVER      ///< PID path-follower driver
-    };
-
     chrono::ChSystemDEM* m_system;  ///< containing system
     double m_delay;                 ///< delay in generating driver inputs
 
@@ -100,8 +100,8 @@ class VehicleNode : public BaseNode {
 
     std::vector<chrono::vehicle::ChDataDriver::Entry> m_driver_data;  ///< data points for DATA driver type
 
-    chrono::ChBezierCurve* m_driver_path;  ///< path (Bezier curve) for PATH_FOLLOWER driver type
-    double m_driver_target_speed;          ///< target speed for PATH_FOLLOWER driver type
+    chrono::ChBezierCurve m_driver_path;  ///< path (Bezier curve) for PATH_FOLLOWER driver type
+    double m_driver_target_speed;         ///< target speed for PATH_FOLLOWER driver type
 
     chrono::vehicle::hmmwv::HMMWV_VehicleFull* m_vehicle;    ///< vehicle system
     chrono::vehicle::hmmwv::HMMWV_Powertrain* m_powertrain;  ///< powertrain system

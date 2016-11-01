@@ -52,7 +52,6 @@ VehicleNode::VehicleNode()
       m_vehicle(nullptr),
       m_powertrain(nullptr),
       m_driver(nullptr),
-      m_driver_path(nullptr),
       m_driver_type(DEFAULT_DRIVER) {
     m_prefix = "[Vehicle node]";
 
@@ -90,7 +89,6 @@ VehicleNode::~VehicleNode() {
     delete m_vehicle;
     delete m_powertrain;
     delete m_driver;
-    delete m_driver_path;
     delete m_system;
 }
 
@@ -105,63 +103,10 @@ void VehicleNode::SetDataDriver(const std::vector<ChDataDriver::Entry>& data) {
 // -----------------------------------------------------------------------------
 // Specify data for PATH_FOLLOWER driver type
 // -----------------------------------------------------------------------------
-void VehicleNode::SetPathDriver(double run, double radius, int nturns, double target_speed) {
+void VehicleNode::SetPathDriver(const ChBezierCurve& path, double target_speed) {
     m_driver_type = PATH_DRIVER;
+    m_driver_path = path;
     m_driver_target_speed = target_speed;
-
-    // Construct the Bezier curve
-    double z = 1;
-    double factor = radius * (4.0 / 3.0) * std::tan(CH_C_PI / 8);
-
-    ChVector<> P1(0, -radius, z);
-    ChVector<> P1_in = P1 - ChVector<>(factor, 0, 0);
-    ChVector<> P1_out = P1 + ChVector<>(factor, 0, 0);
-
-    ChVector<> P2(radius, 0, z);
-    ChVector<> P2_in = P2 - ChVector<>(0, factor, 0);
-    ChVector<> P2_out = P2 + ChVector<>(0, factor, 0);
-
-    ChVector<> P3(0, radius, z);
-    ChVector<> P3_in = P3 + ChVector<>(factor, 0, 0);
-    ChVector<> P3_out = P3 - ChVector<>(factor, 0, 0);
-
-    ChVector<> P4(-radius, 0, z);
-    ChVector<> P4_in = P4 + ChVector<>(0, factor, 0);
-    ChVector<> P4_out = P4 - ChVector<>(0, factor, 0);
-
-    // Start point
-    ChVector<> P0(-run, -radius, z);
-    ChVector<> P0_in = P0;
-    ChVector<> P0_out = P0 + ChVector<>(factor, 0, 0);
-
-    // Load Bezier curve points
-    std::vector<ChVector<>> points;
-    std::vector<ChVector<>> inCV;
-    std::vector<ChVector<>> outCV;
-
-    points.push_back(P0);
-    inCV.push_back(P0_in);
-    outCV.push_back(P0_out);
-
-    for (int i = 0; i < nturns; i++) {
-        points.push_back(P1);
-        inCV.push_back(P1_in);
-        outCV.push_back(P1_out);
-
-        points.push_back(P2);
-        inCV.push_back(P2_in);
-        outCV.push_back(P2_out);
-
-        points.push_back(P3);
-        inCV.push_back(P3_in);
-        outCV.push_back(P3_out);
-
-        points.push_back(P4);
-        inCV.push_back(P4_in);
-        outCV.push_back(P4_out);
-    }
-
-    m_driver_path = new ChBezierCurve(points, inCV, outCV);
 }
 
 // -----------------------------------------------------------------------------
@@ -186,7 +131,7 @@ void VehicleNode::Initialize() {
     // Set initial vehicle position and orientation
     double y_offset = 0;
     if (m_driver_type == PATH_DRIVER) {
-        y_offset = m_driver_path->getPoint(0).y;
+        y_offset = m_driver_path.getPoint(0).y;
     }
     ChVector<> init_loc(2.75 - init_dim[1], y_offset, 0.52 + init_dim[0]);
     ChQuaternion<> init_rot(1, 0, 0, 0);
@@ -212,7 +157,7 @@ void VehicleNode::Initialize() {
             m_driver = new ChDataDriver(*m_vehicle, m_driver_data);
             break;
         case PATH_DRIVER: {
-            auto driver = new ChPathFollowerDriver(*m_vehicle, m_driver_path, "path", m_driver_target_speed);
+            auto driver = new ChPathFollowerDriver(*m_vehicle, &m_driver_path, "path", m_driver_target_speed);
             driver->GetSteeringController().SetLookAheadDistance(5.0);
             driver->GetSteeringController().SetGains(0.5, 0.0, 0.0);
             driver->GetSpeedController().SetGains(0.4, 0.0, 0.0);

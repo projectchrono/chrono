@@ -28,6 +28,8 @@
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/geometry/ChLineBezier.h"
+#include "chrono/assets/ChLineShape.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -59,6 +61,7 @@ TerrainNode::TerrainNode(Type type,
       m_num_tires(num_tires),
       m_use_checkpoint(use_checkpoint),
       m_render(render),
+      m_render_path(false),
       m_constructed(false),
       m_settling_output(false),
       m_num_particles(0),
@@ -182,6 +185,18 @@ void TerrainNode::SetContainerDimensions(double length, double width, double hei
     m_hdimY = width / 2;
     m_hdimZ = height / 2;
     m_hthick = thickness / 2;
+
+#ifdef CHRONO_OPENGL
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.SetCamera(ChVector<>(0, -m_hdimY - 1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    }
+#endif
+}
+
+void TerrainNode::SetPath(const ChBezierCurve& path) {
+    m_render_path = true;
+    m_path = path;
 }
 
 void TerrainNode::SetPlatformLength(double length) {
@@ -293,6 +308,15 @@ void TerrainNode::Construct() {
     utils::AddBoxGeometry(container.get(), ChVector<>(m_hdimX, m_hthick, m_hdimZ + m_hthick),
                           ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
+
+    // Add path as visualization asset to the container body
+    if (m_render_path) {
+        auto path_asset = std::make_shared<ChLineShape>();
+        path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(&m_path));
+        path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
+        path_asset->SetName("path");
+        container->AddAsset(path_asset);
+    }
 
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
@@ -597,7 +621,8 @@ void TerrainNode::Initialize() {
     // Move OpenGL camera
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.SetCamera(ChVector<>(-m_hdimX, -4, 0), ChVector<>(-m_hdimX, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -m_hdimY - 1, 1), ChVector<>(-m_hdimX - 2 * m_hlenX, 0, 0),
+                            ChVector<>(0, 0, 1), 0.05f);
     }
 #endif
 
