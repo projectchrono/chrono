@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> mrigidbody (new ChBody);
     my_system.Add(mrigidbody);
-    mrigidbody->SetMass(200);
+    mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
     mrigidbody->SetPos(tire_center + ChVector<>(0,0.3,0));
 
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters:
-    mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
+    mterrain.SetSoilParametersSCM(0.2e6,  // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
                                     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                    0.8, // displaced material vs downward pressed material.
+                                    1, // displaced material vs downward pressed material.
                                     5,   // number of erosion refinements per timestep
                                     10); // number of concentric vertex selections subject to erosion
     // Turn on the automatic level of detail refinement, so a coarse terrain mesh
