@@ -56,8 +56,10 @@ void test_1() {
     // While creating them, also set X0 undeformed positions.
     auto mnodeA = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
     auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    mnodeA->SetMass(0.01); // Note, node masses must be zero in static analysis, otherwise added to K stiffness in current release,
-    mnodeB->SetMass(0.01); // however this example requires this trick otherwise a single spring would give rank-deficient K. 
+
+    // For example, you can attach local 'point masses' (FE node masses are zero by default)
+    mnodeA->SetMass(0.01); 
+    mnodeB->SetMass(0.01);  
 
     // For example, set an applied force to a node:
     mnodeB->SetForce(ChVector<>(0, 5, 0));
