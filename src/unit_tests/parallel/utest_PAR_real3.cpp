@@ -318,16 +318,28 @@ int main(int argc, char* argv[]) {
     }
     {
         std::cout << "float 3 Min\n";
-        real3 a(-10.0, 3.0, 5);
+        real3 a(10.0, -10.0, 5.0);
         real res = Min(a);
         WeakEqual(res, -10.0, precision);
     }
+	{
+		std::cout << "float 3 Min\n";
+		real3 a(3.0, 1.0, 5);
+		real res = Min(a);
+		WeakEqual(res, 1.0, precision);
+	}
     {
         std::cout << "float 3 Max\n";
         real3 a(-10.0, 3.0, 5);
         real res = Max(a);
         WeakEqual(res, 5.0, precision);
     }
+	{
+		std::cout << "float 3 Max\n";
+		real3 a(-10.0, -3.0, -5);
+		real res = Max(a);
+		WeakEqual(res, -3.0, precision);
+	}
     {
         std::cout << "float 3 Round\n";
         real3 a(-3.2, 3.6, 5.4);
@@ -345,5 +357,17 @@ int main(int argc, char* argv[]) {
         c = IsZero(a);
         StrictEqual(c, true);
     }
+
+	{
+		std::cout << "float 3 add, divite, dot product\n";
+		real3 a(1.0, 2.0, 3.0);
+		real3 b(3.0, 2.0, 1.0);
+		real3 c(4.0, 5.0, 8.0);
+		a = (a+b)/c;
+		real d = Dot(a,b);
+
+		WeakEqual(d, 5.1, precision);
+
+	}
     return 0;
 }

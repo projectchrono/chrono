@@ -19,6 +19,9 @@
 //
 // =============================================================================
 
+////#include <float.h>
+////unsigned int fp_control_state = _controlfp(_EM_INEXACT, _MCW_EM);
+
 #include <iostream>
 #include <string>
 #include <algorithm>
@@ -175,9 +178,9 @@ int main(int argc, char** argv) {
     int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
 
     // Create the systems and run the settling phase for terrain.
-    VehicleNode* my_vehicle = NULL;
-    TerrainNode* my_terrain = NULL;
-    TireNode* my_tire = NULL;
+    VehicleNode* my_vehicle = nullptr;
+    TerrainNode* my_terrain = nullptr;
+    TireNode* my_tire = nullptr;
 
     switch (rank) {
         case VEHICLE_NODE_RANK: {
@@ -187,6 +190,21 @@ int main(int argc, char** argv) {
             my_vehicle->SetChassisFixed(false);
             my_vehicle->SetInitFwdVel(init_fwd_vel);
             my_vehicle->SetInitWheelAngVel(init_wheel_omega);
+
+            std::vector<ChDataDriver::Entry> data;
+            data.push_back({0.0, 0, 0.0, 0});
+            data.push_back({0.5, 0, 0.0, 0});
+            data.push_back({0.7, 0, 0.8, 0});
+            data.push_back({1.0, 0, 0.8, 0});
+            my_vehicle->SetDataDriver(data);
+
+            ////double run = 10.0;
+            ////double radius = 15.0;
+            ////double offset = 2.0;
+            ////int nturns = 5;
+            ////double target_speed = 10.0;
+            ////my_vehicle->SetPathDriver(run, radius, offset, nturns, target_speed);
+
             cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
 

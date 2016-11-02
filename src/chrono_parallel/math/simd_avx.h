@@ -27,6 +27,9 @@ inline __m256d Mul(__m256d a, __m256d b) {
 inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
+inline __m256d Div3(__m256d a, __m256d b) {
+	return _mm256_and_pd(_mm256_div_pd(a, b), REAL3MASK);
+}
 inline __m256d Negate(__m256d a) {
     return _mm256_xor_pd(a, NEGATEMASK);
 }
@@ -97,6 +100,25 @@ inline real Min(__m256d x) {
     __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
     return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
+inline real Max3(__m256d a) {
+	__m256d x = _mm256_permute_pd(a, 1);		  // copy over 4th value
+	__m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+	__m256d m1 = _mm256_max_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), etc.
+	__m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+	__m256d m = _mm256_max_pd(m1, m2);            // all m[0] ... m[3] contain the horiz max(x[0], x[1], x[2], x[3])
+	__m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+	return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+}
+inline real Min3(__m256d a) {
+	__m256d x = _mm256_permute_pd(a, 1);		  // copy over 4th value
+	__m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+	__m256d m1 = _mm256_min_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = min(x[1], x[3]), etc.
+	__m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+	__m256d m = _mm256_min_pd(m1, m2);            // all m[0] ... m[3] contain the horiz min(x[0], x[1], x[2], x[3])
+	__m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+	return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+}
+
 inline __m256d Round(__m256d a) {
     return _mm256_round_pd(a, _MM_FROUND_TO_NEAREST_INT);
 }
