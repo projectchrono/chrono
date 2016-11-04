@@ -455,21 +455,33 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
                 model_obj[trimesh_shape->GetName()].push_back(model);
             }
         }else if (ChPathShape* path_shape = dynamic_cast<ChPathShape*>(asset.get())) {
-			std::shared_ptr<geometry::ChLine> mline;
-			mline = path_shape->GetPathGeometry();
+			//std::shared_ptr<geometry::ChLine> mline;
+			//mline = path_shape->GetPathGeometry();
 		}else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
 			std::shared_ptr<geometry::ChLine> mline;
 			mline = line_shape->GetLineGeometry();
 
-			ChVector<> t2;
-			mline->Evaluate(t2, 0, 0, 0);
-			t2 = visual_asset->Pos + visual_asset->Rot * t2;
-			line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+			Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+			lrot = rot % lrot;
+			lrot.Q_to_AngAxis(angle, axis);
 
-			mline->Evaluate(t2, 1, 0, 0);
-			t2 = visual_asset->Pos + visual_asset->Rot * t2;
-			line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+			double maxU = 1;
+			if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+			maxU = mline_path->GetPathDuration();
+			ChVector<> pos_final = pos + center;
 
+			for (unsigned int ig = 0; ig < 200; ig++) {
+				double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
+				ChVector<> t2;
+				mline->Evaluate(t2, mU, 0, 0);
+				t2 = pos_final + lrot.Rotate(t2);
+				line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+
+				 mU = maxU * ((double)(ig+1) / (double)(200 - 1));  // abscyssa
+				 mline->Evaluate(t2, mU, 0, 0);
+				 t2 = pos_final + lrot.Rotate(t2);
+				 line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+			}
 		}
     }
 }
