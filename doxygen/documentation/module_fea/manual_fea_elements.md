@@ -115,7 +115,7 @@ In this page you can find a description of their properties.
 - Useful for solids, with structured grids
 
 
-# ChElementBrick_9    {#manual_ChElementBrick}
+# ChElementBrick_9    {#manual_ChElementBrick_9}
 
 - 9 nodes of ChNodeFEAxyz type (8 at the corners, 1 at the center)
 - Linear interpolation
@@ -135,7 +135,7 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementCableANCF.png)
 
-- 2 nodes of ChNodeFEAxyzD type
+- 2 nodes of @ref ChNodeFEAxyzD type
 - 3 integration point (stiffness), 4 (mass)
 - ANCF formulation for large displacements
 - Thin beam (no shear)
@@ -147,6 +147,7 @@ In this page you can find a description of their properties.
 # ChElementBeamEuler   {#manual_ChElementBeamEuler}
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler.png)
+![](http://www.projectchrono.org/assets/manual/fea_ChElementBeamEuler_section.png)
 
 - 2 nodes of ChNodeFEAxyzrot type
 - Linear interpolation
