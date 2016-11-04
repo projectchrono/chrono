@@ -90,6 +90,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLCloud fea_nodes;
     ChOpenGLWires fea_elements;
 
+	ChOpenGLWires line_path;
+
     ChOpenGLContacts contact_renderer;
     ChOpenGLHUD HUD_renderer;
     ChOpenGLGraphs graph_renderer;
@@ -101,6 +103,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> grid_data;
     std::vector<glm::vec3> mpm_grid_data;
     std::vector<glm::vec3> mpm_node_data;
+	std::vector<glm::vec3> line_path_data;
+
     int simulation_frame;   // The current frame number
     float simulation_h;     // The simulation step size
     float simulation_time;  // The current simulation time
