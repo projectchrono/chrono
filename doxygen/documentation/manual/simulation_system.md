@@ -6,6 +6,8 @@ The Chrono system contains all other objects being simulated, e.g.:
 [bodies](@ref rigid_bodies), [links](@ref links), etc.
 The system is the cornerstone of a Chrono simulation.
 
+\tableofcontents
+
 
 # ChSystem  {#manual_ChSystem}
 
