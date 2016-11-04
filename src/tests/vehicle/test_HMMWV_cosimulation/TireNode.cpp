@@ -317,13 +317,13 @@ void TireANCF::Initialize(std::shared_ptr<ChBody> rim,
 
     // Extract tire contact properties
     mat_props[0] = m_tire->GetCoefficientFriction();
-    mat_props[0] = m_tire->GetCoefficientRestitution();
-    mat_props[0] = m_tire->GetYoungModulus();
-    mat_props[0] = m_tire->GetPoissonRatio();
-    mat_props[0] = m_tire->GetKn();
-    mat_props[0] = m_tire->GetGn();
-    mat_props[0] = m_tire->GetKt();
-    mat_props[0] = m_tire->GetGt();
+    mat_props[1] = m_tire->GetCoefficientRestitution();
+    mat_props[2] = m_tire->GetYoungModulus();
+    mat_props[3] = m_tire->GetPoissonRatio();
+    mat_props[4] = m_tire->GetKn();
+    mat_props[5] = m_tire->GetGn();
+    mat_props[6] = m_tire->GetKt();
+    mat_props[7] = m_tire->GetGt();
 }
 
 void TireRigid::Initialize(std::shared_ptr<ChBody> rim,
