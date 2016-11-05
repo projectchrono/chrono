@@ -918,9 +918,10 @@ void TerrainNode::UpdateFaceProxies(int which) {
         // into the Chrono::Parallel data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
         // to the system BEFORE those corresponding to the tire mesh faces!
-        shape_data[3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
-        shape_data[3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
-        shape_data[3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
+        unsigned int offset = 3 * m_tire_data[which].m_start_tri + 3 * it;
+        shape_data[offset + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
+        shape_data[offset + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
+        shape_data[offset + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
     }
 }
 

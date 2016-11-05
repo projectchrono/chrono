@@ -47,6 +47,10 @@ Reference Manual {#manual_root}
 	* [Solvers](@ref solvers)
 	* [Other simulation parameters](@ref other_simulation_parameters)
 	
+* @subpage manual_fea
+	* [List of nodes](@ref manual_fea_nodes)
+	* [List of elements](@ref manual_fea_elements)
+	
 * @subpage introduction_chrono_pyengine
 
 * @subpage introduction_chrono_solidworks

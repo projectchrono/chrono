@@ -64,6 +64,8 @@ binary directory, among other default demos.
 
 ## How to use it
 
+- Look at the [manual](manual_fea.html) of this module for the reference.
+
 - Look at the [API section](group__fea__module.html) of this module for documentation about classes and functions.
 
 - Look at the C++ source of [demos](@ref tutorial_table_of_content_chrono_fea) to learn how to use the functions of this module.

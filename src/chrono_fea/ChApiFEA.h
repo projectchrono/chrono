@@ -41,6 +41,7 @@
     This module allows Finite Element Analysis (FEA) in Chrono::Engine.
 
     For additional information, see:
+    - the [manual](manual_fea.html)
     - the [installation guide](@ref module_fea_installation)
     - the [tutorials](@ref tutorial_table_of_content_chrono_fea)
 
