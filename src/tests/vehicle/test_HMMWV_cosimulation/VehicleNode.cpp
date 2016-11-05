@@ -48,11 +48,7 @@ using namespace chrono::vehicle::hmmwv;
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
 VehicleNode::VehicleNode()
-    : BaseNode("VEHICLE"),
-      m_vehicle(nullptr),
-      m_powertrain(nullptr),
-      m_driver(nullptr),
-      m_driver_type(DEFAULT_DRIVER) {
+    : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertrain(nullptr), m_driver(nullptr), m_driver_type(DEFAULT_DRIVER) {
     m_prefix = "[Vehicle node]";
 
     cout << m_prefix << " num_threads = 1" << endl;
@@ -311,7 +307,7 @@ void VehicleNode::OutputData(int frame) {
 
     utils::CSV_writer csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
-    WriteStateInformation(csv);            // 
+    WriteStateInformation(csv);            //
     csv.write_to_file(filename);
 
     cout << m_prefix << " write output file ==> " << filename << endl;

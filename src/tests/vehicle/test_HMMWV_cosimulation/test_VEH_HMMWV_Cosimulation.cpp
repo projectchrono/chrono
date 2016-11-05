@@ -324,7 +324,8 @@ int main(int argc, char** argv) {
         case TIRE_NODE_RANK(2):
         case TIRE_NODE_RANK(3): {
             int wheel_id = rank - 2;
-            my_tire = new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(wheel_id), nthreads_tire);
+            my_tire =
+                new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(wheel_id), nthreads_tire);
             my_tire->SetStepSize(step_size);
             my_tire->SetOutDir(out_dir, suffix);
             cout << my_tire->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
@@ -502,9 +503,9 @@ void CreateBezierPath(double run, double radius, int nturns, ChBezierCurve& path
 // =============================================================================
 
 void ShowUsage() {
-    cout << "Usage:  mpiexec -np 2 test_VEH_tireRig_Cosimulation [OPTIONS]" << endl;
+    cout << "Usage:  mpiexec -np 6 test_VEH_HMMWV_Cosimulation [OPTIONS]" << endl;
     cout << endl;
-    cout << " --num-threads-rig=NUM_THREADS_RIG" << endl;
+    cout << " --num-threads-tire=NUM_THREADS_TIRE" << endl;
     cout << "        Specify number of OpenMP threads for the rig node [default: 2]" << endl;
     cout << " --num-threads-terrain=NUM_THREADS_TERRAIN" << endl;
     cout << "        Specify number of OpenMP threads for the terrain node [default: 2]" << endl;

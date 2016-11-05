@@ -229,7 +229,6 @@ void TireNode::Initialize() {
     std::array<float, 8> mat_props;
     m_tire_wrapper->Initialize(m_rim, m_wheel_id.side(), surf_props, mat_props);
 
-
     // Mark completion of system construction
     m_system->SetupInitial();
 
@@ -299,7 +298,7 @@ void TireANCF::Initialize(std::shared_ptr<ChBody> rim,
     m_adjElements.resize(mesh->GetNnodes());
     m_adjVertices.resize(mesh->GetNelements());
 
-    int nodeOrder[] = { 0, 1, 2, 3 };
+    int nodeOrder[] = {0, 1, 2, 3};
     for (unsigned int ie = 0; ie < mesh->GetNelements(); ie++) {
         auto element = mesh->GetElement(ie);
         for (int in = 0; in < 4; in++) {
@@ -601,7 +600,6 @@ void TireNode::OutputData(int frame) {
         const ChVector<>& rim_pos = m_rim->GetPos();
         const ChVector<>& rim_vel = m_rim->GetPos_dt();
         const ChVector<>& rim_angvel = m_rim->GetWvel_loc();
-
 
         m_outf << m_system->GetChTime() << del;
         // Body states
