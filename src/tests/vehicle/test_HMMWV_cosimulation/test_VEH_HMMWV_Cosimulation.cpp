@@ -101,6 +101,7 @@ CSimpleOptA::SOption g_options[] = {{OPT_THREADS_TIRE, "--num-threads-tire", SO_
                                     SO_END_OF_OPTIONS};
 
 // Forward declarations
+void CreateBezierPath(double run, double radius, int nturns, ChBezierCurve& path);
 void ShowUsage();
 bool GetProblemSpecs(int argc,
                      char** argv,
@@ -172,10 +173,47 @@ int main(int argc, char** argv) {
         }
     }
 
-    // Number of simulation steps between miscellaneous events.
-    int sim_steps = (int)std::ceil(sim_time / step_size);
-    int output_steps = (int)std::ceil(1 / (output_fps * step_size));
-    int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
+    // Driver type
+    VehicleNode::DriverType driver_type = VehicleNode::DATA_DRIVER;
+    ////VehicleNode::DriverType driver_type = VehicleNode::DEFAULT_DRIVER;
+    ////VehicleNode::DriverType driver_type = VehicleNode::PATH_DRIVER;
+
+    // Terrain dimensions
+    double container_length;
+    double container_width;
+    double container_height;
+    double platform_length;
+    ChBezierCurve path;
+
+    switch (driver_type) {
+        case VehicleNode::DEFAULT_DRIVER:
+        case VehicleNode::DATA_DRIVER: {
+            container_length = 10;
+            container_width = 3;
+            container_height = 1;
+            platform_length = 0;
+
+            break;
+        }
+        case VehicleNode::PATH_DRIVER: {
+            container_length = 40;
+            container_width = 40;
+            container_height = 1;
+            platform_length = 10;
+
+            double clearance = 2;
+            double radius = 15;
+            int nturns = 5;
+            double run = platform_length + container_length / 2;
+            double max_radius = std::min(container_length / 2 - clearance, container_width / 2 - clearance);
+            max_radius = std::max(max_radius, 0.0);
+            radius = std::min(radius, max_radius);
+
+            CreateBezierPath(run, radius, nturns, path);
+
+            break;
+        }
+    }
 
     // Create the systems and run the settling phase for terrain.
     VehicleNode* my_vehicle = nullptr;
@@ -191,22 +229,31 @@ int main(int argc, char** argv) {
             my_vehicle->SetInitFwdVel(init_fwd_vel);
             my_vehicle->SetInitWheelAngVel(init_wheel_omega);
 
-            std::vector<ChDataDriver::Entry> data;
-            data.push_back({0.0, 0, 0.0, 0});
-            data.push_back({0.5, 0, 0.0, 0});
-            data.push_back({0.7, 0, 0.8, 0});
-            data.push_back({1.0, 0, 0.8, 0});
-            my_vehicle->SetDataDriver(data);
-
-            ////double run = 10.0;
-            ////double radius = 15.0;
-            ////double offset = 2.0;
-            ////int nturns = 5;
-            ////double target_speed = 10.0;
-            ////my_vehicle->SetPathDriver(run, radius, offset, nturns, target_speed);
-
             cout << my_vehicle->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_vehicle->GetPrefix() << " output directory: " << my_vehicle->GetOutDirName() << endl;
+
+            switch (driver_type) {
+                case VehicleNode::DEFAULT_DRIVER: {
+                    cout << my_vehicle->GetPrefix() << " Drop test." << endl;
+                    break;
+                }
+                case VehicleNode::DATA_DRIVER: {
+                    std::vector<ChDataDriver::Entry> data;
+                    data.push_back({0.0, 0, 0.0, 0});
+                    data.push_back({0.5, 0, 0.0, 0});
+                    data.push_back({0.7, 0, 0.8, 0});
+                    data.push_back({1.0, 0, 0.8, 0});
+                    my_vehicle->SetDataDriver(data);
+                    cout << my_vehicle->GetPrefix() << " Acceleration test." << endl;
+                    break;
+                }
+                case VehicleNode::PATH_DRIVER: {
+                    double target_speed = 10.0;
+                    my_vehicle->SetPathDriver(path, target_speed);
+                    cout << my_vehicle->GetPrefix() << " Constant radius turn test.  V = " << target_speed << endl;
+                    break;
+                }
+            }
 
             break;
         }
@@ -220,8 +267,8 @@ int main(int argc, char** argv) {
             cout << my_terrain->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_terrain->GetPrefix() << " output directory: " << my_terrain->GetOutDirName() << endl;
 
-            my_terrain->SetContainerDimensions(10, 3, 1, 0.2);
-            my_terrain->SetPlatformLength(0);
+            my_terrain->SetContainerDimensions(container_length, container_width, container_height, 0.2);
+            my_terrain->SetPlatformLength(platform_length);
 
             double radius = 0.006;
             double coh_force = CH_C_PI * radius * radius * coh_pressure;
@@ -266,21 +313,30 @@ int main(int argc, char** argv) {
                     break;
             }
 
+            if (driver_type == VehicleNode::PATH_DRIVER) {
+                my_terrain->SetPath(path);
+            }
+
             break;
         }
         case TIRE_NODE_RANK(0):
         case TIRE_NODE_RANK(1):
         case TIRE_NODE_RANK(2):
         case TIRE_NODE_RANK(3): {
-            my_tire = new TireNode(WheelID(rank - 2), nthreads_tire);
+            int wheel_id = rank - 2;
+            my_tire =
+                new TireNode(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"), WheelID(wheel_id), nthreads_tire);
             my_tire->SetStepSize(step_size);
             my_tire->SetOutDir(out_dir, suffix);
             cout << my_tire->GetPrefix() << " rank = " << rank << " running on: " << procname << endl;
             cout << my_tire->GetPrefix() << " output directory: " << my_tire->GetOutDirName() << endl;
 
-            my_tire->SetTireJSONFile(vehicle::GetDataFile("hmmwv/tire/HMMWV_ANCFTire.json"));
             my_tire->SetProxyProperties(45, ChVector<>(0.113, 0.113, 0.113), false);
             my_tire->EnableTirePressure(true);
+
+            my_tire->SetVerboseSolver(false);
+            my_tire->SetVerboseStates(wheel_id == 0);
+            my_tire->SetVerboseForces(false);
 
             break;
         }
@@ -307,6 +363,11 @@ int main(int argc, char** argv) {
             break;
     }
 
+    // Number of simulation steps between miscellaneous events.
+    int sim_steps = (int)std::ceil(sim_time / step_size);
+    int output_steps = (int)std::ceil(1 / (output_fps * step_size));
+    int checkpoint_steps = (int)std::ceil(1 / (checkpoint_fps * step_size));
+
     // Perform co-simulation.
     // At synchronization, there is bi-directional data exchange:
     //     tire => terrain (vertex state information)
@@ -325,10 +386,8 @@ int main(int argc, char** argv) {
             case VEHICLE_NODE_RANK: {
                 cout << is << " ---------------------------- " << endl;
                 my_vehicle->Synchronize(is, time);
-                cout << " --- " << endl;
-
                 my_vehicle->Advance(step_size);
-                cout << my_vehicle->GetPrefix() << " sim time =    " << my_vehicle->GetSimTime() << "  ["
+                cout << my_vehicle->GetPrefix() << " sim time = " << my_vehicle->GetSimTime() << "  ["
                      << my_vehicle->GetTotalSimTime() << "]" << endl;
 
                 if (output && is % output_steps == 0) {
@@ -362,7 +421,7 @@ int main(int argc, char** argv) {
             case TIRE_NODE_RANK(3): {
                 my_tire->Synchronize(is, time);
                 my_tire->Advance(step_size);
-                cout << my_tire->GetPrefix() << " sim time =    " << my_tire->GetSimTime() << "  ["
+                cout << my_tire->GetPrefix() << " sim time = " << my_tire->GetSimTime() << "  ["
                      << my_tire->GetTotalSimTime() << "]" << endl;
 
                 if (output && is % output_steps == 0) {
@@ -386,10 +445,67 @@ int main(int argc, char** argv) {
 
 // =============================================================================
 
+void CreateBezierPath(double run, double radius, int nturns, ChBezierCurve& path) {
+    double z = 1;
+    double factor = radius * (4.0 / 3.0) * std::tan(CH_C_PI / 8);
+
+    ChVector<> P1(0, -radius, z);
+    ChVector<> P1_in = P1 - ChVector<>(factor, 0, 0);
+    ChVector<> P1_out = P1 + ChVector<>(factor, 0, 0);
+
+    ChVector<> P2(radius, 0, z);
+    ChVector<> P2_in = P2 - ChVector<>(0, factor, 0);
+    ChVector<> P2_out = P2 + ChVector<>(0, factor, 0);
+
+    ChVector<> P3(0, radius, z);
+    ChVector<> P3_in = P3 + ChVector<>(factor, 0, 0);
+    ChVector<> P3_out = P3 - ChVector<>(factor, 0, 0);
+
+    ChVector<> P4(-radius, 0, z);
+    ChVector<> P4_in = P4 + ChVector<>(0, factor, 0);
+    ChVector<> P4_out = P4 - ChVector<>(0, factor, 0);
+
+    // Start point
+    ChVector<> P0(-run, -radius, z);
+    ChVector<> P0_in = P0;
+    ChVector<> P0_out = P0 + ChVector<>(factor, 0, 0);
+
+    // Load Bezier curve points
+    std::vector<ChVector<>> points;
+    std::vector<ChVector<>> inCV;
+    std::vector<ChVector<>> outCV;
+
+    points.push_back(P0);
+    inCV.push_back(P0_in);
+    outCV.push_back(P0_out);
+
+    for (int i = 0; i < nturns; i++) {
+        points.push_back(P1);
+        inCV.push_back(P1_in);
+        outCV.push_back(P1_out);
+
+        points.push_back(P2);
+        inCV.push_back(P2_in);
+        outCV.push_back(P2_out);
+
+        points.push_back(P3);
+        inCV.push_back(P3_in);
+        outCV.push_back(P3_out);
+
+        points.push_back(P4);
+        inCV.push_back(P4_in);
+        outCV.push_back(P4_out);
+    }
+
+    path.setPoints(points, inCV, outCV);
+}
+
+// =============================================================================
+
 void ShowUsage() {
-    cout << "Usage:  mpiexec -np 2 test_VEH_tireRig_Cosimulation [OPTIONS]" << endl;
+    cout << "Usage:  mpiexec -np 6 test_VEH_HMMWV_Cosimulation [OPTIONS]" << endl;
     cout << endl;
-    cout << " --num-threads-rig=NUM_THREADS_RIG" << endl;
+    cout << " --num-threads-tire=NUM_THREADS_TIRE" << endl;
     cout << "        Specify number of OpenMP threads for the rig node [default: 2]" << endl;
     cout << " --num-threads-terrain=NUM_THREADS_TERRAIN" << endl;
     cout << "        Specify number of OpenMP threads for the terrain node [default: 2]" << endl;
