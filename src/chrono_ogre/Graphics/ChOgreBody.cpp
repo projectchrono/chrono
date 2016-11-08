@@ -33,9 +33,15 @@ ChOgreBody::~ChOgreBody() {
 
 void ChOgreBody::update() {
     if (!isStaticMesh) {
-        std::vector<std::shared_ptr<ChAsset> > l_pAssetList = m_pBody->GetAssets();
+
+        std::vector<std::shared_ptr<ChAsset>> l_pAssetList = m_pBody->GetAssets();
+
         for (int i = 0; i < l_pAssetList.size(); i++) {
-            if (typeid(l_pAssetList[i]) == typeid(ChVisualization)) {
+
+			auto AssetRTTIName = std::string(l_pAssetList[i]->GetRTTI()->GetBaseRTTI()->GetName());
+			auto VisualizationRTTIName = std::string(chrono::ChVisualization::GetClassRTTI()->GetName());
+
+            if (AssetRTTIName == VisualizationRTTIName) {
                 ChVector<> _pos = ((chrono::ChVisualization*)l_pAssetList[i].get())->Pos;
                 // m_SceneNodes[i]->setPosition((_pos.x + m_pBody->GetPos().x), (_pos.y + m_pBody->GetPos().y), (_pos.z)
                 // + m_pBody->GetPos().z);
@@ -83,33 +89,44 @@ void ChOgreBody::refresh() {
     for (int i = 0; i < m_pBody->GetAssets().size(); i++) {
         std::shared_ptr<chrono::ChAsset> temp_asset = m_pBody->GetAssets().at(i);
 
+		auto RTTI = temp_asset->GetRTTI();
+		auto RTTI_Name = std::string(RTTI->GetName());
+
+		auto BoxRTTI = chrono::ChBoxShape::GetClassRTTI();
+		auto CapsuleRTTI = chrono::ChCapsuleShape::GetClassRTTI();
+		auto ConeRTTI = chrono::ChConeShape::GetClassRTTI();
+		auto CylinderRTTI = chrono::ChCylinderShape::GetClassRTTI();
+		auto EllipsoidRTTI = chrono::ChEllipsoidShape::GetClassRTTI();
+		auto SphereRTTI = chrono::ChSphereShape::GetClassRTTI();
+		auto TriangleMeshRTTI = chrono::ChTriangleMeshShape::GetClassRTTI();
+		auto TextureRTTI = chrono::ChTexture::GetClassRTTI();
+
         // Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
         // Ogre::Entity* l_pEntity = nullptr;
         ChOgreModel l_Model(m_pSceneManager);
 
-        if (typeid(temp_asset)==typeid(ChBoxShape)) {
+        if (RTTI_Name == std::string(BoxRTTI->GetName())) {
             l_Model.loadMesh("box.mesh");
             chrono::ChBoxShape* shape = (chrono::ChBoxShape*)temp_asset.get();
             double _w = shape->GetBoxGeometry().Size.x;
             double _h = shape->GetBoxGeometry().Size.y;
             double _d = shape->GetBoxGeometry().Size.z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_w, (Ogre::Real)_h, (Ogre::Real)_d);
-
-        } else if (typeid(temp_asset)==typeid(ChCapsuleShape)) {
-        } else if (typeid(temp_asset)==typeid(ChConeShape)) {
+        } else if (RTTI_Name == std::string(CapsuleRTTI->GetName())) {
+        } else if (RTTI_Name == std::string(ConeRTTI->GetName())) {
             l_Model.loadMesh("cone.mesh");
             chrono::ChConeShape* shape = (chrono::ChConeShape*)temp_asset.get();
             double _r1 = shape->GetConeGeometry().rad.x;
             double _r2 = shape->GetConeGeometry().rad.z;
             double _h = shape->GetConeGeometry().rad.y;
             l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r2);
-        } else if (typeid(temp_asset)==typeid(ChCylinderShape)) {
+        } else if (RTTI_Name == std::string(CylinderRTTI->GetName())) {
             l_Model.loadMesh("cylinder.mesh");
             chrono::ChCylinderShape* shape = (chrono::ChCylinderShape*)temp_asset.get();
             double _r1 = shape->GetCylinderGeometry().rad;
             double _h = (shape->GetCylinderGeometry().p1 - shape->GetCylinderGeometry().p2).Length();
             l_Model.getSceneNode()->setScale((Ogre::Real)_r1, (Ogre::Real)_h, (Ogre::Real)_r1);
-        } else if (typeid(temp_asset)==typeid(ChEllipsoidShape)) {
+        } else if (RTTI_Name == std::string(EllipsoidRTTI->GetName())) {
             l_Model.loadMesh("sphere.mesh");
             chrono::ChEllipsoidShape* shape = (chrono::ChEllipsoidShape*)temp_asset.get();
 
@@ -117,11 +134,11 @@ void ChOgreBody::refresh() {
             double _ry = shape->GetEllipsoidGeometry().rad.y;
             double _rz = shape->GetEllipsoidGeometry().rad.z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_rx, (Ogre::Real)_ry, (Ogre::Real)_rz);
-        } else if (typeid(temp_asset)==typeid(ChSphereShape)) {
+        } else if (RTTI_Name == std::string(SphereRTTI->GetName())) {
             l_Model.loadMesh("sphere.mesh");
             double _r = std::static_pointer_cast<chrono::ChSphereShape>(temp_asset)->GetSphereGeometry().rad;
             l_Model.getSceneNode()->setScale((Ogre::Real)_r, (Ogre::Real)_r, (Ogre::Real)_r);
-        } else if (typeid(temp_asset)==typeid(ChTriangleMeshShape)) {
+        } else if (RTTI_Name == std::string(TriangleMeshRTTI->GetName())) {
             std::string filepath = std::static_pointer_cast<chrono::ChTriangleMeshShape>(temp_asset)->GetName();
 
             std::string _base;
@@ -194,7 +211,7 @@ void ChOgreBody::refresh() {
             double _sy = shape->GetScale().y;
             double _sz = shape->GetScale().z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
-		} else if (typeid(temp_asset)==typeid(ChTexture)) {
+		} else if (RTTI_Name == std::string(TextureRTTI->GetName())) {
 
 		}
 

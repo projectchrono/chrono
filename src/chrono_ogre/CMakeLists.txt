@@ -6,10 +6,10 @@ endif()
 
 message(STATUS "==== Chrono Ogre module ====")
 
-#find_package(SDL2 REQUIRED)
+find_package(SDL2 REQUIRED)
 find_package(Ogre REQUIRED)
 find_package(MyGUI REQUIRED)
-find_package(GLFW)
+#find_package(GLFW)
 
 #SET(Boost_USE_STATIC_LIBS ON)
 #SET(Boost_USE_MULTITHREADED ON)
@@ -21,7 +21,7 @@ find_package(Boost COMPONENTS thread system chrono date_time REQUIRED)
 SET(LIBRARIES
     ChronoEngine
 	${SDL2_LIBRARY}
-  ${GLFW_LIBRARY}
+	#${GLFW_LIBRARY}
 	#${Boost_threadlib}
 	#${Boost_systemlib}
 	#${Boost_date_timelib}
@@ -38,7 +38,7 @@ set(CH_OGRE_INCLUDES
        ${SDL_INCLUDE_DIR}
        ${MYGUI_INCLUDE_DIRS}
      ${SDL2_INCLUDE_DIR}
-     ${GLFW_INCLUDE_DIR}
+     #${GLFW_INCLUDE_DIR}
    )
 set(CH_OGRE_INCLUDES "${CH_OGRE_INCLUDES}" PARENT_SCOPE)
 include_directories(${CH_OGRE_INCLUDES})
@@ -93,8 +93,8 @@ SET(GUI_FILES
 SET(INPUT_FILES
 	Input/ChOgre_SDLInputHandler.cpp
 	Input/ChOgre_SDLInputHandler.h
-  Input/ChOgre_GLFWInputHandler.cpp
-  Input/ChOgre_GLFWInputHandler.h
+  #Input/ChOgre_GLFWInputHandler.cpp
+  #Input/ChOgre_GLFWInputHandler.h
 	Input/ChOgreControllerCallback.h
 	Input/ChOgreMouseCallback.h
 	Input/ChOgreKeyboardCallback.h

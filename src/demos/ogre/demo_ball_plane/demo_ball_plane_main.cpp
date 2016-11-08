@@ -7,7 +7,7 @@ int main(int argc, char** args) {
 
 	std::cout << "Window Creation\n";
 
-	app.createWindow("Test", 1280, 720, 0, false, false);
+	auto window = app.createWindow("Test", 1280, 720, 0, false, false);
 
 	ChOgreCamera* DebugCamera = app.getCameraManager()->createCamera("DebugCamera");
 
@@ -40,11 +40,7 @@ int main(int argc, char** args) {
 	lightHandle->setDirection(0.0f, 0.0f, 0.0f);
 	lightHandle->setIntensity(400.0f);
 
-	std::cout<<"about to add skybox"<<std::endl;
-
-	app.getScene()->setSkyBox("sky"); //does not exist in chrono data folder
-
-	std::cout<<"finished adding skybox"<<std::endl;
+	app.getScene()->setSkyBox("sky");
 
 	ChOgreKeyboardCallback EpsilonCallback;
 	EpsilonCallback.call = [&Epsilon](scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
@@ -70,12 +66,8 @@ int main(int argc, char** args) {
 		}
 	};
 
-	std::cout<<"About to do app.getInputManager()"<<std::endl;
-
 	app.getInputManager()->addCallback(EpsilonCallback);
 	app.getInputManager()->addCallback(EpsilonCallback2);
-
-	std::cout<<"About to do loop"<<std::endl;
 
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 

@@ -16,33 +16,33 @@ namespace ChOgre {
 
 
 	ChOgreApplication::ChOgreApplication() {
-		m_pRoot = new Ogre::Root("plugins.cfg", "", "ChOgre.log");
+		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
 
 		//NOTE: Probably terrible practice. Do better
 		{
-//			std::vector<std::string> l_Plugins;
-//
-//			l_Plugins.push_back("RenderSystem_GL");
-//			l_Plugins.push_back("Plugin_ParticleFX");
-//			l_Plugins.push_back("Plugin_CgProgramManager");
-//			l_Plugins.push_back("Plugin_OctreeSceneManager");
-//			//l_tPlugins.push_back("Plugin_PCZSceneManager");
-//			//l_tPlugins.push_back("Plugin_OctreeZone");
-//			//l_tPlugins.push_back("Plugin_BSPSceneManager");
-//
-//			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
-//			{
-//				for (auto p : l_Plugins) {
-//					std::string& l_PluginName = p;
-//
-//					bool l_IsInDebugMode = OGRE_DEBUG_MODE;
-//
-//					if (l_IsInDebugMode) {
-//						l_PluginName += "_d";
-//					}
-//					m_pRoot->loadPlugin(l_PluginName);
-//				}
-//			}
+			std::vector<std::string> l_Plugins;
+
+			l_Plugins.push_back("RenderSystem_GL");
+			l_Plugins.push_back("Plugin_ParticleFX");
+			l_Plugins.push_back("Plugin_CgProgramManager");
+			l_Plugins.push_back("Plugin_OctreeSceneManager");
+			//l_tPlugins.push_back("Plugin_PCZSceneManager");
+			//l_tPlugins.push_back("Plugin_OctreeZone");
+			//l_tPlugins.push_back("Plugin_BSPSceneManager");
+
+			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
+			{
+				for (auto p : l_Plugins) {
+					std::string& l_PluginName = p;
+
+					bool l_IsInDebugMode = OGRE_DEBUG_MODE;
+
+					if (l_IsInDebugMode) {
+						l_PluginName += "_d";
+					}
+					m_pRoot->loadPlugin(l_PluginName);
+				}
+			}
 			//const std::string pluginfile = "plugins.cfg";
 
 			//m_pRoot->loadPlugin("RenderSystem_GL");
@@ -81,7 +81,7 @@ namespace ChOgre {
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/models", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/skyboxes/sky", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/heightmaps", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
+			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/particle", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/DeferredShadingMedia", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/RTShaderLib", "FileSystem");
