@@ -48,17 +48,20 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     virtual void setCamera(ChOgreCamera* Camera);
     virtual void setVSync(bool VSync);
 
+	void drawFrame();
+	void pollInput();
+
     virtual void chronoThread();
 
     virtual void closeWindow();
 
-    virtual ChOgreCameraManager* getCameraManager();
-    virtual ChOgreScene* getScene();
-    virtual ChOgre_SDLInputHandler* getInputManager();
-    virtual ChOgreGUIManager* getGUIManager();
-    virtual Ogre::RenderWindow* getWindow();
-    virtual Ogre::SceneManager* getSceneManager();
-    virtual chrono::ChSystem* getChSystem();
+    ChOgreCameraManager* getCameraManager();
+    ChOgreScene* getScene();
+    ChOgre_SDLInputHandler* getInputManager();
+    ChOgreGUIManager* getGUIManager();
+    Ogre::RenderWindow* getWindow();
+    Ogre::SceneManager* getSceneManager();
+    chrono::ChSystem* getChSystem();
 
     static void logMessage(const std::string& Message,
                            Ogre::LogMessageLevel lml = Ogre::LML_NORMAL,

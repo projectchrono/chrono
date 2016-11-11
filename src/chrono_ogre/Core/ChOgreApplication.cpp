@@ -116,11 +116,7 @@ namespace ChOgre {
 
 		double l_systemTimeIncriment = 0.0;
 
-		std::cout<<"startloop....line 116"<<std::endl;
-
 		int l_frame = 0;
-		std::cout<<"about to add rtt_texture"<<std::endl;
-
 
 		/*Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
 		        "_tex",
@@ -156,19 +152,13 @@ namespace ChOgre {
 		while (l_run == 0) {
 
 			try {
-				m_pChSystem->DoFrameDynamics((l_systemTimeIncriment / 2.0));
-			}
-			catch (...) {
-
-			}
-			try {
-				m_pChSystem->DoFrameDynamics((l_systemTimeIncriment / 2.0));
+				m_pChSystem->DoFrameDynamics(l_systemTimeIncriment);
 			}
 			catch (...) {
 
 			}
 
-			m_pInputManager->update();
+			pollInput();
 
 			l_run = _func();
 
@@ -179,17 +169,6 @@ namespace ChOgre {
 			}
 
 			//m_pGUIManager->update();
-
-			m_pScene->update();
-
-			m_pViewport->update();
-
-			m_pRenderWindow->update(false);
-			m_pRenderWindow->swapBuffers();
-
-			m_pRoot->renderOneFrame();
-
-			m_pCamera->setAspectRatio((((float)(m_pViewport->getActualWidth())) / ((float)(m_pViewport->getActualHeight()))));
 
 			if (!isRealTime) {
 				l_systemTimeIncriment += timestep_max;
@@ -228,7 +207,7 @@ namespace ChOgre {
 				l_frame++;
 			}
 
-			Ogre::WindowEventUtilities::messagePump();
+			drawFrame();
 
 		}
 		isRunning = false;
@@ -296,6 +275,25 @@ namespace ChOgre {
 		isVSyncEnabled = VSync;
 		m_pRenderWindow->setVSyncEnabled(isVSyncEnabled);
 		m_pRenderWindow->setVSyncInterval(60);
+	}
+
+	void ChOgreApplication::drawFrame() {
+		m_pScene->update();
+
+		m_pViewport->update();
+
+		m_pRenderWindow->update(true);
+		//m_pRenderWindow->swapBuffers();
+
+		m_pRoot->renderOneFrame();
+
+		m_pCamera->setAspectRatio((((float)(m_pViewport->getActualWidth())) / ((float)(m_pViewport->getActualHeight()))));
+
+		Ogre::WindowEventUtilities::messagePump();
+	}
+
+	void ChOgreApplication::pollInput() {
+		m_pInputManager->update();
 	}
 
 	void ChOgreApplication::closeWindow() {

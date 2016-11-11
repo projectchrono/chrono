@@ -13,7 +13,7 @@ int main(int argc, char** args) {
 	DebugCamera->lookAt(0.0f, 0.0f, 0.0f);
 	app.getCameraManager()->makeActive(DebugCamera);
 
-	app.timestep_max = 0.01;
+	app.timestep_max = 0.005;
 	app.isRealTime = false;
 
 	//app.WriteToFile = true;
@@ -22,7 +22,7 @@ int main(int argc, char** args) {
 	std::random_device l_rand;
 
 
-	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Spheere", 10, chrono::ChVector<>(0, 20, -20), 3, false);
+	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Ball", 10, chrono::ChVector<>(0, 20, -20), 3, false);
 	Epsilon->SetInertiaXX(chrono::ChVector<>(
 		((2.0 / 5.0)*Epsilon->GetMass() * 4.0 * 4.0),
 		((2.0 / 5.0)*Epsilon->GetMass()  * 4.0 * 4.0),
@@ -32,7 +32,7 @@ int main(int argc, char** args) {
 
 	for (float y = 0.f; y < 10.f; y += 1.f) {
 		for (float x = 0.f; x < 8.f; x += 1.f) {
-			ChOgreBodyHandle Brick = app.getScene()->spawnBox("Brick", 5, chrono::ChVector<>((8.f * x) - 24.f, (4 * y) + 1.25, 5.f), chrono::ChVector<>(4, 2, 2));
+			ChOgreBodyHandle Brick = app.getScene()->spawnBox("Murstein", 5, chrono::ChVector<>((8.f * x) - 24.f, (4 * y) + 1.25, 5.f), chrono::ChVector<>(4, 2, 2));
 			Brick->SetInertiaXX(chrono::ChVector<>(
 				((1.0 / 12.0)*Brick->GetMass() * (16 + 4)),
 				((1.0 / 12.0)*Brick->GetMass()  * (4 + 4)),
@@ -42,9 +42,9 @@ int main(int argc, char** args) {
 		}
 	}
 
-	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Boox", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(100, 0.5, 20), chrono::ChQuaternion<>(), true);
+	ChOgreBodyHandle Alpha = app.getScene()->spawnBox("Ekse", 1, chrono::ChVector<>(0, 0, 0), chrono::ChVector<>(100, 0.5, 20), chrono::ChQuaternion<>(), true);
 
-	ChOgreLightHandle yeh = app.getScene()->createLight("Swag");
+	ChOgreLightHandle yeh = app.getScene()->createLight("Lys1");
 	yeh->setType(ChOgreLight::POINT);
 	yeh->setPosition(0.0f, 100.0f, 0.0f);
 	yeh->setDiffuse(1.0f, 1.0f, 1.0f);
@@ -52,7 +52,7 @@ int main(int argc, char** args) {
 	yeh->setDirection(0.0f, 0.0f, 0.0f);
 	yeh->setIntensity(400.0f);
 
-	ChOgreLightHandle yeh2 = app.getScene()->createLight("Yeh");
+	ChOgreLightHandle yeh2 = app.getScene()->createLight("Lys2");
 	yeh2->setType(ChOgreLight::POINT);
 	yeh2->setPosition(0.0f, 30.0f, -5.0f);
 	yeh2->setDiffuse(1.0f, 1.0f, 1.0f);
