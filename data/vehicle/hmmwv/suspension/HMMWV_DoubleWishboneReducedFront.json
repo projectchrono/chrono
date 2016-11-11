@@ -44,7 +44,7 @@
   {
     "Location Chassis":         [0.104, 0.498, 0.323],
     "Location Upright":         [0.097, 0.543, -0.047],
-    "Free Length" :             0.339
+    "Free Length" :             0.339,
     "Spring Coefficient":       167062.000,
     "Damping Coefficient":      60068.000
   },
