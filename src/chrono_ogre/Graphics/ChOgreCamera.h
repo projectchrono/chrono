@@ -25,8 +25,6 @@ class CHOGRE_DLL_TAG ChOgreCamera {
     void setPosition(float x, float y, float z);
     void setPosition(const chrono::ChVector<>& position);
 
-    void setName(const std::string& Name);
-
     Ogre::Camera* getCamera() { return m_pCamera; }
     chrono::ChVector<> getPosition() {
         return chrono::ChVector<>(m_pCamera->getPosition().x, m_pCamera->getPosition().y, m_pCamera->getPosition().z);

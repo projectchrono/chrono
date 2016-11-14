@@ -69,6 +69,8 @@ SET(GRAPHICS_FILES
 	Graphics/ChOgreModel.h
 	Graphics/ChOgreLight.cpp
 	Graphics/ChOgreLight.h
+	Graphics/ChOgreSprite.cpp
+	Graphics/ChOgreSprite.h
 	)
 
 SET(UTIL_FILES

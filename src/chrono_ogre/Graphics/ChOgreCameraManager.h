@@ -24,17 +24,17 @@ class CHOGRE_DLL_TAG ChOgreCameraManager {
     ChOgreCameraManager(Ogre::SceneManager* SceneManager, Ogre::Viewport* Viewport);
     ~ChOgreCameraManager();
 
-    virtual ChOgreCamera* createCamera(const std::string& Name = ("Camera" + std::to_string(g_CameraCount)));
+    ChOgreCamera* createCamera(const std::string& Name = ("Camera" + std::to_string(g_CameraCount)));
 
-    virtual ChOgreCamera* getCamera(unsigned int iterator);
+    ChOgreCamera* getCamera(unsigned int iterator);
 
-    virtual ChOgreCamera* getCamera(const std::string& Name);
+    ChOgreCamera* getCamera(const std::string& Name);
 
-    virtual ChOgreCamera* operator[](unsigned int iterator);
+    ChOgreCamera* operator[](unsigned int iterator);
 
-    virtual ChOgreCamera* operator[](const std::string& Name);
+    ChOgreCamera* operator[](const std::string& Name);
 
-    virtual void makeActive(ChOgreCamera* Camera);
+    void makeActive(ChOgreCamera* Camera);
 
   protected:
     std::vector<ChOgreCamera*> m_CameraList;

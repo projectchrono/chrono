@@ -21,7 +21,6 @@ int main(int argc, char** args) {
 
 	std::random_device l_rand;
 
-
 	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Ball", 10, chrono::ChVector<>(0, 20, -20), 3, false);
 	Epsilon->SetInertiaXX(chrono::ChVector<>(
 		((2.0 / 5.0)*Epsilon->GetMass() * 4.0 * 4.0),

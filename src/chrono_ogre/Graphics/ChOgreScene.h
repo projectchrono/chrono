@@ -11,6 +11,7 @@ bodies for actual simulation
 #include <physics/ChSystem.h>
 
 #include "ChOgreBody.h"
+#include "ChOgreSprite.h"
 #include "chrono_ogre/Util/ChOgreBodyHandle.h"
 #include "chrono_ogre/Util/ChOgreLightHandle.h"
 
@@ -18,77 +19,85 @@ namespace chrono{
 namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreScene {
+
   public:
+
     ChOgreScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
     ~ChOgreScene();
 
+	////////
+	// Sprite Management
+	////////
+
+	ChOgreSprite* createSprite();
+
     ////////
     // Lighting Abstration
-    ///////
+    ////////
 
-    virtual void setAmbientLight(Ogre::ColourValue Color);
-    virtual void setAmbientLight(float r, float g, float b);
+    void setAmbientLight(Ogre::ColourValue Color);
+    void setAmbientLight(float r, float g, float b);
 
-    virtual ChOgreLightHandle createLight();
-    virtual ChOgreLightHandle createLight(const std::string& Name);
+    ChOgreLightHandle createLight();
+    ChOgreLightHandle createLight(const std::string& Name);
 
-    virtual void removeLight(ChOgreLightHandle Light);
-    virtual void removeLight(const std::string& Name);
+    void removeLight(ChOgreLightHandle Light);
+    void removeLight(const std::string& Name);
 
     ////////
     // Body Creation
-    ///////
+    ////////
 
-    virtual ChOgreBodyHandle createBody(const std::string& Name = "");
+    ChOgreBodyHandle createBody(const std::string& Name = "");
 
-    virtual ChOgreBodyHandle getBody(const std::string& Name);
+    ChOgreBodyHandle getBody(const std::string& Name);
 
-    virtual void removeBody(ChOgreBodyHandle& Body);
-    virtual void removeBody(const std::string& Name);
+    void removeBody(ChOgreBodyHandle& Body);
+    void removeBody(const std::string& Name);
 
-    virtual void update();
+	void update();
 
     ////////
     // Convenience functions
     ////////
 
-    virtual ChOgreBodyHandle spawnBox(const std::string& Name = "",
+    ChOgreBodyHandle spawnBox(const std::string& Name = "",
                                       double mass = 1.0,
                                       const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                       const chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
                                       const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
                                       bool fixed = false);
 
-    virtual ChOgreBodyHandle spawnCapsule(const std::string& Name = "");  // TODO: Actually implement the capsule
+    ChOgreBodyHandle spawnCapsule(const std::string& Name = "");  // TODO: Actually implement the capsule
 
-    virtual ChOgreBodyHandle spawnCone(const std::string& Name = "",
+    ChOgreBodyHandle spawnCone(const std::string& Name = "",
                                        double mass = 1.0,
                                        const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                        const chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
                                        const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
                                        bool fixed = false);
 
-    virtual ChOgreBodyHandle spawnCylinder(const std::string& Name = "",
+    ChOgreBodyHandle spawnCylinder(const std::string& Name = "",
                                            double mass = 1.0,
                                            const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                            const chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
                                            const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
                                            bool fixed = false);
 
-    virtual ChOgreBodyHandle spawnEllipsoid(const std::string& Name = "",
+    ChOgreBodyHandle spawnEllipsoid(const std::string& Name = "",
                                             double mass = 1.0,
                                             const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                             const chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
                                             const chrono::ChQuaternion<>& rotation = chrono::ChQuaternion<>(1, 0, 0, 0),
                                             bool fixed = false);
 
-    virtual ChOgreBodyHandle spawnSphere(const std::string& Name = "",
+    ChOgreBodyHandle spawnSphere(const std::string& Name = "",
                                          double mass = 1.0,
                                          const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                          double radius = 1.0,
                                          bool fixed = false);
 
-    virtual ChOgreBodyHandle spawnMesh(const std::string& Name = "",
+    ChOgreBodyHandle spawnMesh(const std::string& Name = "",
                                        double mass = 1.0,
                                        const chrono::ChVector<>& position = chrono::ChVector<>(0, 0, 0),
                                        const chrono::ChVector<>& size = chrono::ChVector<>(1, 1, 1),
@@ -101,14 +110,14 @@ class CHOGRE_DLL_TAG ChOgreScene {
     // Various world management functions
     ////////
 
-    virtual void setLowerLimit(double height);
+    void setLowerLimit(double height);
 
-    virtual double getLowerLimit();
+    double getLowerLimit();
 
-    virtual void setSkyBox(const std::string& FilePath);
-    virtual void disableSkyBox();
+    void setSkyBox(const std::string& FilePath);
+    void disableSkyBox();
 
-    virtual ChOgreBodyHandle loadHeightMap(const std::string& FilePath,
+    ChOgreBodyHandle loadHeightMap(const std::string& FilePath,
                                            const chrono::ChVector<>& Scale = chrono::ChVector<>(1, 1, 1));
 
   protected:
@@ -121,6 +130,14 @@ class CHOGRE_DLL_TAG ChOgreScene {
     ////////
 
     std::vector<ChOgreBodySharedPtr> m_ChOgreBodies;
+
+	////////
+	// Billboard/Sprite Management Space
+	////////
+
+	std::vector<ChOgreSprite*> m_Sprites;
+	Ogre::BillboardSet* m_pBillboardSet;
+	Ogre::SceneNode* m_pBillboardSetNode;
 
     double m_LowerLimit;
 

@@ -60,5 +60,6 @@ void ChOgreCamera::setPosition(float x, float y, float z) {
 void ChOgreCamera::setPosition(const chrono::ChVector<>& pos) {
     m_pCamera->setPosition(pos.x, pos.y, pos.z);
 }
+
 }
 }
