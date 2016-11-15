@@ -60,7 +60,7 @@ int main(int argc, char** args) {
 	yeh2->setIntensity(800.0f);
 
 	app.getScene()->setSkyBox("sky");
-	
+
 	ChOgreKeyboardCallback EpsilonCallback;
 	EpsilonCallback.call = [&Epsilon](scancode_t ScanCode, keycode_t KeyCode, const ChOgreKeyState& KeyState) {
 		if (KeyCode == SDLK_SPACE) {
@@ -74,7 +74,6 @@ int main(int argc, char** args) {
 	};
 
 	app.getInputManager()->addCallback(EpsilonCallback);
-
 
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 

@@ -30,6 +30,7 @@ class CHOGRE_DLL_TAG ChOgreScene {
 	////////
 
 	ChOgreSprite* createSprite();
+	void removeSprite(ChOgreSprite* Sprite);
 
     ////////
     // Lighting Abstration
@@ -135,9 +136,7 @@ class CHOGRE_DLL_TAG ChOgreScene {
 	// Billboard/Sprite Management Space
 	////////
 
-	std::vector<ChOgreSprite*> m_Sprites;
-	Ogre::BillboardSet* m_pBillboardSet;
-	Ogre::SceneNode* m_pBillboardSetNode;
+	std::vector<ChOgreSprite*> m_ChOgreSprites;
 
     double m_LowerLimit;
 

@@ -119,14 +119,24 @@ ChOgreScene::ChOgreScene(Ogre::SceneManager* SceneManager, chrono::ChSystem* Sys
     m_pSceneManager = SceneManager;
     m_pChSystem = System;
     m_LowerLimit = 0;
-
-	m_pBillboardSetNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
-	//m_pBillboardSet = m_pSceneManager->createBillboardSet();
-	//m_pBillboardSetNode->attachObject(m_pBillboardSet);
 }
 
 ChOgreScene::~ChOgreScene() {
-	m_pSceneManager->getRootSceneNode()->removeChild(m_pBillboardSetNode);
+}
+
+ChOgreSprite* ChOgreScene::createSprite() {
+	auto Sprite = new ChOgreSprite(m_pSceneManager);
+	m_ChOgreSprites.push_back(Sprite);
+
+	return Sprite;
+}
+
+void ChOgreScene::removeSprite(ChOgreSprite* Sprite) {
+	auto Index = std::find(m_ChOgreSprites.begin(), m_ChOgreSprites.end(), Sprite);
+	std::swap(*Index, *m_ChOgreSprites.end());
+	m_ChOgreSprites.pop_back();
+
+	delete Sprite;
 }
 
 void ChOgreScene::setAmbientLight(Ogre::ColourValue Color) {

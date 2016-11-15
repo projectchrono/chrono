@@ -17,13 +17,13 @@ namespace chrono {
 
 		public:
 
-			ChOgreSprite(Ogre::BillboardSet* Billboardset);
+			ChOgreSprite(Ogre::SceneManager* SceneManager);
 			~ChOgreSprite();
-
-
 
 		protected:
 
+			Ogre::SceneManager* m_pSceneManager;
+			Ogre::SceneNode* m_pSceneNode;
 			Ogre::BillboardSet* m_pBillboardSet;
 			Ogre::Billboard* m_pBillboard;
 		};
