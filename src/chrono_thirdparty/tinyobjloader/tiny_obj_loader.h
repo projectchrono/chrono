@@ -10,6 +10,8 @@
 #include <vector>
 #include <map>
 
+#include "chrono/core/ChPlatform.h"
+
 namespace tinyobj {
 
 typedef struct
@@ -81,7 +83,7 @@ class MaterialFileReader:
 /// The function returns error string.
 /// Returns empty string when loading .obj success.
 /// 'mtl_basepath' is optional, and used for base path for .mtl file.
-std::string LoadObj(
+ChApiEXPORT std::string LoadObj(
     std::vector<shape_t>& shapes,   // [output]
     const char* filename,
     const char* mtl_basepath = NULL);
@@ -89,14 +91,14 @@ std::string LoadObj(
 /// Loads object from a std::istream, uses GetMtlIStreamFn to retrieve
 /// std::istream for materials.
 /// Returns empty string when loading .obj success.
-std::string LoadObj(
+ChApiEXPORT std::string LoadObj(
     std::vector<shape_t>& shapes,   // [output]
     std::istream& inStream,
     MaterialReader& readMatFn);
 
 /// Loads materials into std::map
 /// Returns an empty string if successful
-std::string LoadMtl (
+ChApiEXPORT std::string LoadMtl (
   std::map<std::string, material_t>& material_map,
   std::istream& inStream);
 }
