@@ -115,8 +115,6 @@ ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) 
 // Declarations used for Q_from_Vect_to_Vect()
 static ChVector<double> getOrthogonalVector(const ChVector<double>& vect);
 static int maxComponent(const ChVector<double>& vect);
-static double boundToPlusMinusOne(double arg);
-
 
 // Gets the quaternion from a source vector and a destination vector
 // which specifies the rotation from one to the other.  The vectors
@@ -130,8 +128,8 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
 
 	double lenXlen = fr_vect.Length() * to_vect.Length();
 	axis = fr_vect % to_vect;
-	double sinangle = boundToPlusMinusOne(axis.Length() / lenXlen);
-	double cosangle = boundToPlusMinusOne(fr_vect ^ to_vect / lenXlen);
+	double sinangle = ChClamp(axis.Length() / lenXlen, -1.0, +1.0);
+	double cosangle = ChClamp(fr_vect ^ to_vect / lenXlen, -1.0, +1.0);
 
 	// Consider three cases: Parallel, Opposite, non-colinear
 	if (abs(sinangle) == 0.0 && cosangle > 0) {
@@ -146,20 +144,20 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
 		axis = getOrthogonalVector(fr_vect) + getOrthogonalVector(-to_vect);
 		axis.Normalize();
 		quat.e0 = 0.0;
-		quat.e1 = boundToPlusMinusOne(axis.x);
-		quat.e2 = boundToPlusMinusOne(axis.y);
-		quat.e3 = boundToPlusMinusOne(axis.z);
+		quat.e1 = ChClamp(axis.x, -1.0, +1.0);
+		quat.e2 = ChClamp(axis.y, -1.0, +1.0);
+		quat.e3 = ChClamp(axis.z, -1.0, +1.0);
 	}
 	else {
 		// fr_vect & to_vect are not co-linear case
 		axis.Normalize();
-		halfang = 0.5 * atan2(sinangle, cosangle);
+		halfang = 0.5 * ChAtan2(sinangle, cosangle);
 		sinhalf = sin(halfang);
 
 		quat.e0 = cos(halfang);
-		quat.e1 = boundToPlusMinusOne(axis.x * sinhalf);
-		quat.e2 = boundToPlusMinusOne(axis.y * sinhalf);
-		quat.e3 = boundToPlusMinusOne(axis.z * sinhalf);
+		quat.e1 = ChClamp(axis.x, -1.0, +1.0);
+		quat.e2 = ChClamp(axis.y, -1.0, +1.0);
+		quat.e3 = ChClamp(axis.z, -1.0, +1.0);
 	}
 	return (quat);
 }
@@ -172,13 +170,6 @@ static int maxComponent(const ChVector<double>& vect) {
 	if (abs(vect(1)) > max) { idx = 1; max = vect(1); }
 	if (abs(vect(2)) > max) { idx = 2; max = vect(2); }
 	return idx;
-}
-
-// bounds values to +/- 1 to condition them for inverse trig functions
-static double boundToPlusMinusOne(double arg) {
-	if (arg > 1.0) return 1.0;
-	if (arg < -1.0) return -1.0;
-	return arg;
 }
 
 // Find a vector which is orthogonal to the given vector.
