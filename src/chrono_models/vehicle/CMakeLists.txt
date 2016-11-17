@@ -88,8 +88,12 @@ set(CVM_GENERIC_FILES
     generic/Generic_RackPinion.cpp
     generic/Generic_RigidTire.h
     generic/Generic_RigidTire.cpp
+	generic/Generic_FialaTire.h
+	generic/Generic_FialaTire.cpp
     generic/Generic_SimplePowertrain.h
     generic/Generic_SimplePowertrain.cpp
+	generic/Generic_SimpleMapPowertrain.cpp
+	generic/Generic_SimpleMapPowertrain.h
     generic/Generic_SolidAxle.cpp
     generic/Generic_SolidAxle.h
     generic/Generic_Vehicle.cpp

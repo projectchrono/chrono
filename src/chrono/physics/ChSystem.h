@@ -775,12 +775,55 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// This counter is reset at each timestep.
     int GetSolverSetupCount() const { return setupcount; }
 
-    /// Set this to "true" to enable saving of matrices at each time
+    /// Set this to "true" to enable automatic saving of solver matrices at each time
     /// step, for debugging purposes. Note that matrices will be saved in the
-    /// working directory of the exe, with format 0001_01_M.dat 0002_01_M.dat
+    /// working directory of the exe, with format 0001_01_H.dat 0002_01_H.dat
     /// (if the timestepper requires multiple solves, also 0001_01. 0001_02.. etc.)
-    void SetDumpMatrices(bool md) { dump_matrices = md; }
-    bool GetDumpMatrices() const { return dump_matrices; }
+    /// The matrices being saved are:
+    ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
+    ///    dump_rhs.dat has the assembled RHS
+    ///    dump_H.dat   has usually H=M (mass), but could be also H=a*M+b*K+c*R or such. (Matlab sparse format)
+    ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
+    ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
+    ///    dump_f.dat   has the applied loads
+    ///    dump_b.dat   has the constraint rhs
+    /// as passed to the solver in the problem
+    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+    ///  | Cq -E | |l|  |-b|  |c|
+
+    void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
+    bool GetDumpSolverMatrices() const { return dump_matrices; }
+
+    /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
+    /// matrix (at the current configuration). 
+    /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
+    /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat 
+    /// Might throw ChException if file can't be saved.
+    void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path);
+
+    /// Compute the system-level mass matrix. 
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetMassMatrix(ChSparseMatrix* M);    ///< fill this system mass matrix
+
+    /// Compute the system-level stiffness matrix, i.e. the jacobian -dF/dq where F are stiff loads.
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetStiffnessMatrix(ChSparseMatrix* K);    ///< fill this system stiffness matrix
+
+    /// Compute the system-level damping matrix, i.e. the jacobian -dF/dv where F are stiff loads.
+    /// Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
+
+    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian 
+    /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
+    /// This function has a small overhead, because it must assembly the
+    /// sparse matrix -which is used only for the purpose of this function.
+    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);    ///< fill this system damping matrix
+
 
     // ---- KINEMATICS
 

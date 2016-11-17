@@ -35,6 +35,8 @@
 #include "chrono/assets/ChCapsuleShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/solver/ChIterativeSolver.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChPathShape.h"
 
 // Includes are generated at compile time!
 #include "resources/phong_frag.h"
@@ -140,12 +142,14 @@ bool ChOpenGLViewer::Initialize() {
     fea_element_data.push_back(glm::vec3(0, 0, 0));
     mpm_grid_data.push_back(glm::vec3(0, 0, 0));
     mpm_node_data.push_back(glm::vec3(0, 0, 0));
+	line_path_data.push_back(glm::vec3(0, 0, 0));
 
     cloud.Initialize(cloud_data, white, &cloud_shader);
     fluid.Initialize(cloud_data, white, &sphere_shader);
     grid.Initialize(grid_data, white, &cloud_shader);
     mpm_grid.Initialize(grid_data, white, &cloud_shader);
     mpm_node.Initialize(cloud_data, white, &cloud_shader);
+	line_path.Initialize(line_path_data, red, &cloud_shader);
 
     fea_nodes.Initialize(fea_node_data, fea_color, &dot_shader);
     fea_elements.Initialize(fea_element_data, fea_color, &cloud_shader);
@@ -204,6 +208,7 @@ void ChOpenGLViewer::Render() {
             model_cone.clear();
             model_cylinder.clear();
             model_obj.clear();
+			line_path_data.clear();
             for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
                 auto abody = physics_system->Get_bodylist()->at(i);
                 DrawObject(abody);
@@ -231,6 +236,10 @@ void ChOpenGLViewer::Render() {
                     (*iter).second.Draw(projection, view);
                 }
             }
+			if (line_path_data.size() > 0) {
+				line_path.Update(line_path_data);
+				line_path.Draw(projection, view);
+			}
 
         } else {
             cloud_data.resize(physics_system->Get_bodylist()->size());
@@ -445,7 +454,35 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             } else {
                 model_obj[trimesh_shape->GetName()].push_back(model);
             }
-        }
+        }else if (ChPathShape* path_shape = dynamic_cast<ChPathShape*>(asset.get())) {
+			//std::shared_ptr<geometry::ChLine> mline;
+			//mline = path_shape->GetPathGeometry();
+		}else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
+			std::shared_ptr<geometry::ChLine> mline;
+			mline = line_shape->GetLineGeometry();
+
+			Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+			lrot = rot % lrot;
+			lrot.Q_to_AngAxis(angle, axis);
+
+			double maxU = 1;
+			if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+			maxU = mline_path->GetPathDuration();
+			ChVector<> pos_final = pos + center;
+
+			for (unsigned int ig = 0; ig < 200; ig++) {
+				double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
+				ChVector<> t2;
+				mline->Evaluate(t2, mU, 0, 0);
+				t2 = pos_final + lrot.Rotate(t2);
+				line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+
+				 mU = maxU * ((double)(ig+1) / (double)(200 - 1));  // abscyssa
+				 mline->Evaluate(t2, mU, 0, 0);
+				 t2 = pos_final + lrot.Rotate(t2);
+				 line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+			}
+		}
     }
 }
 

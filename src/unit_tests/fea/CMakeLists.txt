@@ -4,6 +4,7 @@
 SET(LIBRARIES ChronoEngine ChronoEngine_fea)
 
 SET(TESTS
+    utest_FEA_ANCFCable
     utest_FEA_ANCFBeam
     utest_FEA_ANCFShell_Iso
     utest_FEA_ANCFShell_Ort

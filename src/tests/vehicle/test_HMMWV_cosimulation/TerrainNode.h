@@ -99,6 +99,9 @@ class TerrainNode : public BaseNode {
     /// If enabled, output files are generated with a frequency of 100 FPS.
     void EnableSettlingOutput(bool val) { m_settling_output = val; }
 
+    /// Enable rendering of the specified Bezier path.
+    void SetPath(const chrono::ChBezierCurve& path);
+
     /// Initialize this node.
     /// This function allows the node to initialize itself and, optionally, perform an
     /// initial data exchange with any other node.
@@ -198,6 +201,9 @@ class TerrainNode : public BaseNode {
 
     int m_particles_start_index;       ///< start index for granular material bodies in system body list
     unsigned int m_proxy_start_index;  ///< start index for proxy contact shapes in global arrays
+
+    bool m_render_path;            ///< if true, render the Bezier curve
+    chrono::ChBezierCurve m_path;  ///< path for closed-loop driver (for rendering only)
 
     bool m_render;  ///< if true, use OpenGL rendering
 

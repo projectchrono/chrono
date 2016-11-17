@@ -15,7 +15,7 @@ CUDA_HOST_DEVICE inline real3 Sub(const real3& a, const real3& b) {
 CUDA_HOST_DEVICE inline real3 Mul(const real3& a, const real3& b) {
     return real3(a[0] * b[0], a[1] * b[1], a[2] * b[2]);
 }
-CUDA_HOST_DEVICE inline real3 Div(const real3& a, const real3& b) {
+CUDA_HOST_DEVICE inline real3 Div3(const real3& a, const real3& b) {
     return real3(a[0] / b[0], a[1] / b[1], a[2] / b[2]);
 }
 
@@ -136,10 +136,10 @@ CUDA_HOST_DEVICE inline real3 Round(const real3& a) {
 CUDA_HOST_DEVICE inline bool IsZero(const real3& v, const real& a) {
     return chrono::Abs(v.x) < a && chrono::Abs(v.y) < a && chrono::Abs(v.z) < a;
 }
-CUDA_HOST_DEVICE inline real Max(const real3& a) {
+CUDA_HOST_DEVICE inline real Max3(const real3& a) {
     return chrono::Max(a[0], chrono::Max(a[1], a[2]));
 }
-CUDA_HOST_DEVICE inline real Min(const real3& a) {
+CUDA_HOST_DEVICE inline real Min3(const real3& a) {
     return chrono::Min(a[0], chrono::Min(a[1], a[2]));
 }
 

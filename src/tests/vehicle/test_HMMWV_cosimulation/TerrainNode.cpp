@@ -28,6 +28,8 @@
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
+#include "chrono/geometry/ChLineBezier.h"
+#include "chrono/assets/ChLineShape.h"
 
 #ifdef CHRONO_OPENGL
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -59,6 +61,7 @@ TerrainNode::TerrainNode(Type type,
       m_num_tires(num_tires),
       m_use_checkpoint(use_checkpoint),
       m_render(render),
+      m_render_path(false),
       m_constructed(false),
       m_settling_output(false),
       m_num_particles(0),
@@ -182,6 +185,18 @@ void TerrainNode::SetContainerDimensions(double length, double width, double hei
     m_hdimY = width / 2;
     m_hdimZ = height / 2;
     m_hthick = thickness / 2;
+
+#ifdef CHRONO_OPENGL
+    if (m_render) {
+        opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+        gl_window.SetCamera(ChVector<>(0, -m_hdimY - 1, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    }
+#endif
+}
+
+void TerrainNode::SetPath(const ChBezierCurve& path) {
+    m_render_path = true;
+    m_path = path;
 }
 
 void TerrainNode::SetPlatformLength(double length) {
@@ -236,12 +251,14 @@ void TerrainNode::Construct() {
         return;
 
     // Estimates for number of bins for broad-phase.
-    int factor = 2;
-    int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
-    int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
-    int binsZ = 1;
-    m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
-    cout << m_prefix << " broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
+    if (m_type == GRANULAR) {
+        int factor = 2;
+        int binsX = (int)std::ceil(m_hdimX / m_radius_g) / factor;
+        int binsY = (int)std::ceil(m_hdimY / m_radius_g) / factor;
+        int binsZ = 1;
+        m_system->GetSettings()->collision.bins_per_axis = vec3(binsX, binsY, binsZ);
+        cout << m_prefix << " broad-phase bins: " << binsX << " x " << binsY << " x " << binsZ << endl;
+    }
 
     // ------------------------------
     // Create the start platform body
@@ -292,10 +309,20 @@ void TerrainNode::Construct() {
                           ChVector<>(0, -m_hdimY - m_hthick, m_hdimZ - m_hthick), ChQuaternion<>(1, 0, 0, 0), false);
     container->GetCollisionModel()->BuildModel();
 
+    // Add path as visualization asset to the container body
+    if (m_render_path) {
+        auto path_asset = std::make_shared<ChLineShape>();
+        path_asset->SetLineGeometry(std::make_shared<geometry::ChLineBezier>(&m_path));
+        path_asset->SetColor(ChColor(0.0f, 0.8f, 0.0f));
+        path_asset->SetName("path");
+        container->AddAsset(path_asset);
+    }
+
     // Enable deactivation of bodies that exit a specified bounding box.
     // We set this bounding box to encapsulate the container with a conservative height.
     m_system->GetSettings()->collision.use_aabb_active = true;
-    m_system->GetSettings()->collision.aabb_min = real3(-m_hdimX - m_hthick - 2*hlenX, -m_hdimY - m_hthick, -m_hthick);
+    m_system->GetSettings()->collision.aabb_min =
+        real3(-m_hdimX - m_hthick - 2 * hlenX, -m_hdimY - m_hthick, -m_hthick);
     m_system->GetSettings()->collision.aabb_max = real3(m_hdimX + m_hthick, m_hdimY + m_hthick, 2 * m_hdimZ + 2);
 
     // Collision between two bodies fixed to ground is always ignored.
@@ -311,7 +338,7 @@ void TerrainNode::Construct() {
         ground->SetBodyFixed(true);
         ground->SetCollide(false);
         m_system->AddBody(ground);
-        
+
         m_platform->SetBodyFixed(false);
 
         auto weld_p = std::make_shared<ChLinkLockLock>();
@@ -560,9 +587,9 @@ void TerrainNode::Initialize() {
 
     // Reset system time
     m_system->SetChTime(0);
-    
+
     // Send information for initial vehicle position
-    double init_dim[2] = { m_init_height, m_hdimX + 2 * m_hlenX };
+    double init_dim[2] = {m_init_height, m_hdimX + 2 * m_hlenX};
     MPI_Send(init_dim, 2, MPI_DOUBLE, VEHICLE_NODE_RANK, 0, MPI_COMM_WORLD);
 
     cout << m_prefix << " Sent initial terrain height = " << init_dim[0] << endl;
@@ -574,13 +601,13 @@ void TerrainNode::Initialize() {
 
     real3 box_pos = shape_pos[0];
     real3 box_hdims = shape_data[0];
-    
+
     double zmin = box_pos.z - box_hdims.z;
     double zmax = m_init_height;
     double height = zmax - zmin;
 
-    box_pos.z = zmin + height/2;
-    box_hdims.z = height/2;
+    box_pos.z = zmin + height / 2;
+    box_hdims.z = height / 2;
 
     shape_pos[0] = box_pos;
     shape_data[0] = box_hdims;
@@ -595,7 +622,8 @@ void TerrainNode::Initialize() {
     // Move OpenGL camera
     if (m_render) {
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-        gl_window.SetCamera(ChVector<>(-m_hdimX, -4, 0), ChVector<>(-m_hdimX, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+        gl_window.SetCamera(ChVector<>(0, -m_hdimY - 1, 1), ChVector<>(-m_hdimX - 2 * m_hlenX, 0, 0),
+                            ChVector<>(0, 0, 1), 0.05f);
     }
 #endif
 
@@ -604,7 +632,6 @@ void TerrainNode::Initialize() {
     unsigned int start_tri_index = 0;
 
     for (int which = 0; which < m_num_tires; which++) {
-
         // Receive tire contact surface specification.
         unsigned int surf_props[2];
         MPI_Status status_p;
@@ -663,16 +690,15 @@ void TerrainNode::Initialize() {
         // -------------------
 
         switch (m_type) {
-        case RIGID:
-            // For contact with rigid ground, represent the tire as spheres associated with mesh vertices.
-            CreateNodeProxies(which);
-            break;
-        case GRANULAR:
-            // For contact with granular terrain, represent the tire as triangles associated with mesh faces.
-            CreateFaceProxies(which);
-            break;
+            case RIGID:
+                // For contact with rigid ground, represent the tire as spheres associated with mesh vertices.
+                CreateNodeProxies(which);
+                break;
+            case GRANULAR:
+                // For contact with granular terrain, represent the tire as triangles associated with mesh faces.
+                CreateFaceProxies(which);
+                break;
         }
-
     }
 }
 
@@ -746,13 +772,11 @@ void TerrainNode::CreateFaceProxies(int which) {
 // - extract and send forces at each vertex
 // -----------------------------------------------------------------------------
 void TerrainNode::Synchronize(int step_number, double time) {
-
     // --------------------------------------------------------------
     // Loop over all tires, receive mesh vertex state, update proxies
     // --------------------------------------------------------------
 
     for (int which = 0; which < m_num_tires; which++) {
-
         // Receive tire mesh vertex locations and velocities.
         MPI_Status status;
         unsigned int num_vert = m_tire_data[which].m_num_vert;
@@ -764,9 +788,11 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
         for (unsigned int iv = 0; iv < num_vert; iv++) {
             unsigned int offset = 3 * iv;
-            m_tire_data[which].m_vertex_states[iv].pos = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
+            m_tire_data[which].m_vertex_states[iv].pos =
+                ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
             offset += 3 * num_vert;
-            m_tire_data[which].m_vertex_states[iv].vel = ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
+            m_tire_data[which].m_vertex_states[iv].vel =
+                ChVector<>(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
         }
 
         for (unsigned int it = 0; it < num_tri; it++) {
@@ -807,7 +833,6 @@ void TerrainNode::Synchronize(int step_number, double time) {
     msg += "  [  ";
 
     for (int which = 0; which < m_num_tires; which++) {
-
         // Collect contact forces on subset of mesh vertices.
         // Note that no forces are collected at the first step.
         std::vector<double> vert_forces;
@@ -815,12 +840,12 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
         if (step_number > 0) {
             switch (m_type) {
-            case RIGID:
-                ForcesNodeProxies(which, vert_forces, vert_indices);
-                break;
-            case GRANULAR:
-                ForcesFaceProxies(which, vert_forces, vert_indices);
-                break;
+                case RIGID:
+                    ForcesNodeProxies(which, vert_forces, vert_indices);
+                    break;
+                case GRANULAR:
+                    ForcesFaceProxies(which, vert_forces, vert_indices);
+                    break;
             }
         }
 
@@ -834,7 +859,6 @@ void TerrainNode::Synchronize(int step_number, double time) {
 
     msg += "]";
     cout << m_prefix << msg << endl;
-
 }
 
 // Set position and velocity of proxy bodies based on tire mesh vertices.
@@ -891,9 +915,10 @@ void TerrainNode::UpdateFaceProxies(int which) {
         // into the Chrono::Parallel data structures.
         // ATTENTION: It is assumed that no other triangle contact shapes have been added
         // to the system BEFORE those corresponding to the tire mesh faces!
-        shape_data[3 * it + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
-        shape_data[3 * it + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
-        shape_data[3 * it + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
+        unsigned int offset = 3 * m_tire_data[which].m_start_tri + 3 * it;
+        shape_data[offset + 0] = real3(pA.x - pos.x, pA.y - pos.y, pA.z - pos.z);
+        shape_data[offset + 1] = real3(pB.x - pos.x, pB.y - pos.y, pB.z - pos.z);
+        shape_data[offset + 2] = real3(pC.x - pos.x, pC.y - pos.y, pC.z - pos.z);
     }
 }
 

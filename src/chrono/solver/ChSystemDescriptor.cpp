@@ -109,7 +109,7 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 }
 
 void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
-                                             ChSparseMatrix* M,
+                                             ChSparseMatrix* H,
                                              ChSparseMatrix* E,
                                              ChMatrix<>* Fvector,
                                              ChMatrix<>* Bvector,
@@ -139,8 +139,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 
     if (Cq)
         Cq->Reset(mn_c, n_q);
-    if (M)
-        M->Reset(n_q, n_q);
+    if (H)
+        H->Reset(n_q, n_q);
     if (E)
         E->Reset(mn_c, mn_c);
     if (Fvector)
@@ -150,24 +150,26 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     if (Frict)
         Frict->Reset(mn_c, 1);
 
-    // Fills M submasses and 'f' vector,
+    // Fills H submasses and 'f' vector,
     // by looping on variables
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            if (M)
-                mvariables[iv]->Build_M(*M, s_q, s_q, this->c_a);  // .. fills  M
+            if (H)
+                mvariables[iv]->Build_M(*H, s_q, s_q, this->c_a);  // .. fills  H  (often H=M , the mass)
             if (Fvector)
                 Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
             s_q += mvariables[iv]->Get_ndof();
         }
     }
 
-    // If some stiffness / hessian matrix has been added to M ,
-    // also add it to the sparse M
+    // If some stiffness / hessian matrix has been added to H ,
+    // also add it to the sparse H
     int s_k = 0;
-    for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        this->vstiffness[ik]->Build_K(*M, true);
+    if (H) {
+        for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
+            this->vstiffness[ik]->Build_K(*H, true);
+        }
     }
 
     // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
@@ -281,16 +283,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs)
 
 }
 
-void ChSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
-                                       ChSparseMatrix* M,
-                                       bool only_bilaterals,
-                                       bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
-}
-
-void ChSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
-}
 
 void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];

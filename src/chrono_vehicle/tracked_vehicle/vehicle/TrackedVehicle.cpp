@@ -29,7 +29,7 @@
 #include "chrono_vehicle/chassis/RigidChassis.h"
 #include "chrono_vehicle/tracked_vehicle/vehicle/TrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-////#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/driveline/SimpleTrackDriveline.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -111,6 +111,8 @@ void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide 
     // Create the steering using the appropriate template.
     if (subtype.compare("TrackAssemblySinglePin") == 0) {
         m_tracks[side] = std::make_shared<TrackAssemblySinglePin>(d);
+    } else if (subtype.compare("TrackAssemblyDoublePin") == 0) {
+        m_tracks[side] = std::make_shared<TrackAssemblyDoublePin>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";

@@ -295,29 +295,6 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     ///
-    /// Case2. skin of ANCF SHELLS:
-    ///
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
-        if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF>(mmesh->GetElement(ie))) {
-            std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
-            std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
-            std::shared_ptr<ChNodeFEAxyz> nC = mshell->GetNodeC();
-            std::shared_ptr<ChNodeFEAxyz> nD = mshell->GetNodeD();
-            if (ccw) {
-                triangles.push_back({{nA.get(), nD.get(), nB.get()}});
-                triangles.push_back({{nB.get(), nD.get(), nC.get()}});
-                triangles_ptrs.push_back({{nA, nD, nB}});
-                triangles_ptrs.push_back({{nB, nD, nC}});
-            } else {
-                triangles.push_back({{nA.get(), nB.get(), nD.get()}});
-                triangles.push_back({{nB.get(), nC.get(), nD.get()}});
-                triangles_ptrs.push_back({{nA, nB, nD}});
-                triangles_ptrs.push_back({{nB, nC, nD}});
-            }
-        }
-    }
-
-    ///
     /// Case3. EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
     ///
     for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {

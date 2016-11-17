@@ -13,6 +13,7 @@ endif()
 # List all tests in this suite
 SET(TESTS
     test_VEH_HMMWV_ANCFTire
+    test_VEH_HMMWV_Cornering
 )
 
 # ------------------------------------------------------

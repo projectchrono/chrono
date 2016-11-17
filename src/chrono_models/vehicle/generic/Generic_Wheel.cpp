@@ -26,11 +26,11 @@ namespace generic {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double Generic_Wheel::m_mass = 45.4;
-const ChVector<> Generic_Wheel::m_inertia(0.113, 0.113, 0.113);
+const double Generic_Wheel::m_mass = 25.0;
+const ChVector<> Generic_Wheel::m_inertia(0.800, 1.000, 0.800);
 
-const double Generic_Wheel::m_radius = 0.268;
-const double Generic_Wheel::m_width = 0.22;
+const double Generic_Wheel::m_radius = 0.3099;
+const double Generic_Wheel::m_width = 0.235;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

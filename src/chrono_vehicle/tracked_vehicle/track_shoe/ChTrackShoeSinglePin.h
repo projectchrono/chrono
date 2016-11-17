@@ -94,8 +94,6 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     /// The default implementation uses contact boxes for the pad and central guiding pin.
     virtual void AddShoeContact();
 
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to revolute joint connection to next shoe
-
     friend class ChSprocketSinglePin;
     friend class ChTrackAssemblySinglePin;
 };

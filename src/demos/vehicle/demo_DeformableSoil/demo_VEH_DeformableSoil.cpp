@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     std::shared_ptr<ChBody> mrigidbody (new ChBody);
     my_system.Add(mrigidbody);
-    mrigidbody->SetMass(200);
+    mrigidbody->SetMass(500);
     mrigidbody->SetInertiaXX(ChVector<>(20,20,20));
     mrigidbody->SetPos(tire_center + ChVector<>(0,0.3,0));
 
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChLinkEngine> myengine(new ChLinkEngine);
     myengine->Set_shaft_mode(ChLinkEngine::ENG_SHAFT_OLDHAM);  
     myengine->Set_eng_mode(ChLinkEngine::ENG_MODE_ROTATION);
-    myengine->Set_rot_funct( std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0)); // CH_C_PI / 4.0) ); // phase, speed
+    myengine->Set_rot_funct( std::make_shared<ChFunction_Ramp>(0, CH_C_PI / 4.0));  // phase, speed
     myengine->Initialize(mrigidbody, mtruss, ChCoordsys<>(tire_center, Q_from_AngAxis(CH_C_PI_2,VECT_Y)));
     my_system.Add(myengine);
  
@@ -108,17 +108,18 @@ int main(int argc, char* argv[]) {
     //mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), "test64", 1.6, 1.6, 0, 0.3);
 
     // Set the soil terramechanical parameters:
-    mterrain.SetSoilParametersSCM(1.2e6,  // Bekker Kphi
+    mterrain.SetSoilParametersSCM(0.2e6,  // Bekker Kphi
                                     0,   // Bekker Kc
                                     1.1, // Bekker n exponent
                                     0,   // Mohr cohesive limit (Pa)
                                     30,  // Mohr friction limit (degrees)
                                     0.01,// Janosi shear coefficient (m)
-                                    5e7  // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
+                                    4e7, // Elastic stiffness (Pa/m), before plastic yeld, must be > Kphi 
+                                    3e4  // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                     );
     mterrain.SetBulldozingFlow(true);    // inflate soil at the border of the rut
     mterrain.SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
-                                    0.8, // displaced material vs downward pressed material.
+                                    1, // displaced material vs downward pressed material.
                                     5,   // number of erosion refinements per timestep
                                     10); // number of concentric vertex selections subject to erosion
     // Turn on the automatic level of detail refinement, so a coarse terrain mesh
@@ -128,9 +129,9 @@ int main(int argc, char* argv[]) {
 
     // Set some visualization parameters: either with a texture, or with falsecolor plot, etc.
     //mterrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 16, 16);
-    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
+    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE, 0, 30000.2);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_PLASTIC, 0, 0.15);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE_ELASTIC, 0, 0.05);
     //mterrain.SetPlotType(vehicle::DeformableTerrain::PLOT_STEP_PLASTIC_FLOW, 0, 0.0001);

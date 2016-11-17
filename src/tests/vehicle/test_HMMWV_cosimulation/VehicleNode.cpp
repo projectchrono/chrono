@@ -19,10 +19,9 @@
 //
 // =============================================================================
 
-#include <omp.h>
+#include <cmath>
 #include <algorithm>
 #include <set>
-#include <vector>
 #include "mpi.h"
 
 #include "chrono/ChConfig.h"
@@ -44,39 +43,12 @@ using namespace chrono::vehicle::hmmwv;
 
 // =============================================================================
 
-class MyDriver : public ChDriver {
-public:
-    MyDriver(ChVehicle& vehicle, double delay) : ChDriver(vehicle), m_delay(delay) {}
-    ~MyDriver() {}
-
-    virtual void Synchronize(double time) override {
-        m_throttle = 0;
-        m_steering = 0;
-        m_braking = 0;
-
-        double eff_time = time - m_delay;
-
-        // Do not generate any driver inputs for a duration equal to m_delay.
-        if (eff_time < 0)
-            return;
-
-        if (eff_time > 0.2)
-            m_throttle = 0.8;
-        else
-            m_throttle = 4 * eff_time;
-    }
-
-private:
-    double m_delay;
-};
-
-// =============================================================================
-
 // -----------------------------------------------------------------------------
 // Construction of the vehicle node:
 // - create the (sequential) Chrono system and set solver parameters
 // -----------------------------------------------------------------------------
-VehicleNode::VehicleNode() : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertrain(nullptr), m_driver(nullptr) {
+VehicleNode::VehicleNode()
+    : BaseNode("VEHICLE"), m_vehicle(nullptr), m_powertrain(nullptr), m_driver(nullptr), m_driver_type(DEFAULT_DRIVER) {
     m_prefix = "[Vehicle node]";
 
     cout << m_prefix << " num_threads = 1" << endl;
@@ -117,6 +89,23 @@ VehicleNode::~VehicleNode() {
 }
 
 // -----------------------------------------------------------------------------
+// Specify data for DATA driver type
+// -----------------------------------------------------------------------------
+void VehicleNode::SetDataDriver(const std::vector<ChDataDriver::Entry>& data) {
+    m_driver_type = DATA_DRIVER;
+    m_driver_data = data;
+}
+
+// -----------------------------------------------------------------------------
+// Specify data for PATH_FOLLOWER driver type
+// -----------------------------------------------------------------------------
+void VehicleNode::SetPathDriver(const ChBezierCurve& path, double target_speed) {
+    m_driver_type = PATH_DRIVER;
+    m_driver_path = path;
+    m_driver_target_speed = target_speed;
+}
+
+// -----------------------------------------------------------------------------
 // Initialization of the vehicle node:
 // - receive terrain height and container half-length
 // - construct and initialize subsystems
@@ -136,7 +125,11 @@ void VehicleNode::Initialize() {
     cout << m_prefix << " Received container half-length = " << init_dim[1] << endl;
 
     // Set initial vehicle position and orientation
-    ChVector<> init_loc(2.75 - init_dim[1], 0, 0.52 + init_dim[0]);
+    double y_offset = 0;
+    if (m_driver_type == PATH_DRIVER) {
+        y_offset = m_driver_path.getPoint(0).y;
+    }
+    ChVector<> init_loc(2.75 - init_dim[1], y_offset, 0.52 + init_dim[0]);
     ChQuaternion<> init_rot(1, 0, 0, 0);
 
     // --------------------------------------------
@@ -152,7 +145,23 @@ void VehicleNode::Initialize() {
     m_powertrain = new HMMWV_Powertrain;
     m_powertrain->Initialize(m_vehicle->GetChassisBody(), m_vehicle->GetDriveshaft());
 
-    m_driver = new MyDriver(*m_vehicle, m_delay);
+    switch (m_driver_type) {
+        case DEFAULT_DRIVER:
+            m_driver = new ChDriver(*m_vehicle);
+            break;
+        case DATA_DRIVER:
+            m_driver = new ChDataDriver(*m_vehicle, m_driver_data);
+            break;
+        case PATH_DRIVER: {
+            auto driver = new ChPathFollowerDriver(*m_vehicle, &m_driver_path, "path", m_driver_target_speed);
+            driver->GetSteeringController().SetLookAheadDistance(5.0);
+            driver->GetSteeringController().SetGains(0.5, 0.0, 0.0);
+            driver->GetSpeedController().SetGains(0.4, 0.0, 0.0);
+            m_driver = driver;
+            break;
+        }
+    }
+
     m_driver->Initialize();
 
     // ---------------------------------------
@@ -237,6 +246,8 @@ void VehicleNode::Synchronize(int step_number, double time) {
         MPI_Send(bufWS, 14, MPI_DOUBLE, TIRE_NODE_RANK(iw), iw, MPI_COMM_WORLD);
     }
 
+    cout << m_prefix << " Driver inputs:   S = " << steering << " T = " << throttle << " B = " << braking << endl;
+
     // Synchronize vehicle, powertrain, and driver
     m_vehicle->Synchronize(time, steering, braking, powertrain_torque, m_tire_forces);
     m_powertrain->Synchronize(time, throttle, driveshaft_speed);
@@ -255,6 +266,8 @@ void VehicleNode::Advance(double step_size) {
         m_system->DoStepDynamics(h);
         t += h;
     }
+    m_driver->Advance(step_size);
+    m_powertrain->Advance(step_size);
     m_timer.stop();
     m_cum_sim_time += m_timer();
 }
@@ -294,7 +307,7 @@ void VehicleNode::OutputData(int frame) {
 
     utils::CSV_writer csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
-    WriteStateInformation(csv);            // 
+    WriteStateInformation(csv);            //
     csv.write_to_file(filename);
 
     cout << m_prefix << " write output file ==> " << filename << endl;

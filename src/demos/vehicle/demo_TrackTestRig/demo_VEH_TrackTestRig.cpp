@@ -15,6 +15,7 @@
 //
 // =============================================================================
 
+#include "chrono/core/ChFileutils.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -45,8 +46,15 @@ std::string filename("M113/track_assembly/M113_TrackAssemblySinglePin_Left.json"
 double post_limit = 0.2;
 
 // Simulation step size
-double step_size = 1e-2;
-double render_step_size = 1.0 / 50;  // Time interval between two render frames
+double step_size = 1e-3;
+
+// Time interval between two render frames
+double render_step_size = 1.0 / 50;
+
+// Output (screenshot captures)
+bool img_output = false;
+
+const std::string out_dir = "../TRACK_TESTRIG";
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -73,7 +81,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurfaceBase::DEM);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurfaceBase::DVI);
     }
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
@@ -124,6 +132,12 @@ int main(int argc, char* argv[]) {
     driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
     driver.Initialize();
 
+    // Initialize output
+    if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
     // ---------------
     // Simulation loop
     // ---------------
@@ -139,7 +153,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize simulation frame counter
     int step_number = 0;
-    ChRealtimeStepTimer realtime_timer;
+    int render_frame = 0;
 
     while (app.GetDevice()->run()) {
         // Debugging output
@@ -158,8 +172,13 @@ int main(int argc, char* argv[]) {
             app.DrawAll();
             app.EndScene();
 
-            if (step_number == 2)
-                app.WriteImageToFile("assembled_track.jpg");
+            if (img_output && step_number > 1000) {
+                char filename[100];
+                sprintf(filename, "%s/img_%03d.jpg", out_dir.c_str(), render_frame + 1);
+                app.WriteImageToFile(filename);
+            }
+
+            render_frame++;
         }
 
         // Collect output data from modules
@@ -173,10 +192,9 @@ int main(int argc, char* argv[]) {
         app.Synchronize("", 0, throttle_input, 0);
 
         // Advance simulation for one timestep for all modules
-        double step = realtime_timer.SuggestSimulationStep(step_size);
-        driver.Advance(step);
-        rig->Advance(step);
-        app.Advance(step);
+        driver.Advance(step_size);
+        rig->Advance(step_size);
+        app.Advance(step_size);
 
         // Increment frame number
         step_number++;

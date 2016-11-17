@@ -35,6 +35,9 @@ inline __m128 Mul(__m128 a, __m128 b) {
 inline __m128 Div(__m128 a, __m128 b) {
     return _mm_div_ps(a, b);
 }
+inline __m128 Div3(__m128 a, __m128 b) {
+	return _mm_and_ps(_mm_div_ps(a, b), REAL3MASK);
+}
 inline __m128 Negate(__m128 a) {
     return _mm_xor_ps(a, NEGATEMASK);
 }
@@ -95,6 +98,22 @@ inline real Max(__m128 x) {
     __m128 elem1 = _mm_shuffle_ps(low_accum, low_accum, _MM_SHUFFLE(1, 1, 1, 1)); /* [1|3, 1|3, 1|3, 1|3] */
     __m128 accum = _mm_max_ss(low_accum, elem1);
     return _mm_cvtss_f32(accum);
+}
+inline real Min3(__m128 a) {
+	__m128 x = _mm_permute_ps(a, 6); // copy over 4th value
+	__m128 low = _mm_movehl_ps(x, x);                                             /* [2, 3, 2, 3] */
+	__m128 low_accum = _mm_min_ps(low, x);                                        /* [0|2, 1|3, 2|2, 3|3] */
+	__m128 elem1 = _mm_shuffle_ps(low_accum, low_accum, _MM_SHUFFLE(1, 1, 1, 1)); /* [1|3, 1|3, 1|3, 1|3] */
+	__m128 accum = _mm_min_ss(low_accum, elem1);
+	return _mm_cvtss_f32(accum);
+}
+inline real Max3(__m128 a) {
+	__m128 x = _mm_permute_ps(a, 6); // copy over 4th value
+	__m128 low = _mm_movehl_ps(x, x);                                             /* [2, 3, 2, 3] */
+	__m128 low_accum = _mm_max_ps(low, x);                                        /* [0|2, 1|3, 2|2, 3|3] */
+	__m128 elem1 = _mm_shuffle_ps(low_accum, low_accum, _MM_SHUFFLE(1, 1, 1, 1)); /* [1|3, 1|3, 1|3, 1|3] */
+	__m128 accum = _mm_max_ss(low_accum, elem1);
+	return _mm_cvtss_f32(accum);
 }
 inline __m128 Abs(__m128 v) {
     return _mm_and_ps(v, ABSMASK);

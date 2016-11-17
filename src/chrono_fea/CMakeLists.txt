@@ -18,6 +18,7 @@ MESSAGE(STATUS "==== Chrono FEA module ====")
 
 SET(ChronoEngine_FEA_SOURCES
     ChBuilderBeam.cpp
+    ChElementBeamANCF.cpp
     ChElementGeneric.cpp
     ChElementSpring.cpp  
     ChElementBar.cpp  
@@ -33,6 +34,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChNodeFEAxyzrot.cpp
     ChNodeFEAxyzP.cpp
     ChNodeFEAxyzD.cpp
+    ChNodeFEAxyzDD.cpp
     ChNodeFEAcurv.cpp
     ChGaussIntegrationRule.cpp
     ChGaussPoint.cpp
@@ -67,6 +69,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChNodeFEAxyzrot.h
     ChNodeFEAxyzP.h 
     ChNodeFEAxyzD.h 
+    ChNodeFEAxyzDD.h
     ChNodeFEAcurv.h
     ChElementBase.h
     ChElementGeneric.h
@@ -74,6 +77,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementSpring.h
     ChElementBar.h 
     ChElementBeam.h
+    ChElementBeamANCF.h
     ChElementBeamEuler.h
     ChElementCableANCF.h
     ChElementBrick.h 

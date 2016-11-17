@@ -86,16 +86,16 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             }
         case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                app->DumpMatrices();
+                app->DumpSystemMatrices();
                 return true;
         case irr::KEY_F7:
-                if (!app->system->GetDumpMatrices()) {
+                if (!app->system->GetDumpSolverMatrices()) {
                     GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
-                    app->system->SetDumpMatrices(true);
+                    app->system->SetDumpSolverMatrices(true);
                 }
                 else {
                     GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
-                    app->system->SetDumpMatrices(false);
+                    app->system->SetDumpSolverMatrices(false);
                 }
                 return true;
         case irr::KEY_SNAPSHOT:
@@ -874,28 +874,19 @@ void ChIrrAppInterface::DrawAll() {
 }
 
 // Dump the last used system matrices and vectors in the current directory,
-void ChIrrAppInterface::DumpMatrices() {
+void ChIrrAppInterface::DumpSystemMatrices() {
     // For safety
     GetSystem()->Setup();
     GetSystem()->Update();
 
-    // Save the current speeds, maybe these are needed.
     try {
-        ChMatrixDynamic<double> mvold;
-        GetSystem()->GetSystemDescriptor()->FromVariablesToVector(mvold);
-        ChStreamOutAsciiFile file_vold("dump_v_old.dat");
-        mvold.StreamOUTdenseMatlabFormat(file_vold);
+        // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
+        GetSystem()->DumpSystemMatrices(true, true, true, true, "dump_");
+
     } catch (ChException myexc) {
         GetLog() << myexc.what();
     }
 
-    // This DoStep() is necessary because we want to get the matrices as they
-    // are set-up for the time stepping problem.
-    // (If we avoid this, the previous 'mvold' vector won't be in-sync.)
-    DoStep();
-
-    // Now save the matrices - as they were setup by the previous time stepping scheme.
-    GetSystem()->GetSystemDescriptor()->DumpLastMatrices("dump_");
 }
 
 }  // end namespace irrlicht

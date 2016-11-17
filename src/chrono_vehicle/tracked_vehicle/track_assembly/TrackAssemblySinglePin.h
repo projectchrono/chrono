@@ -32,7 +32,7 @@ namespace vehicle {
 /// @addtogroup vehicle_tracked
 /// @{
 
-/// Wheeled vehicle model constructed from a JSON specification file
+/// Single-pin track assembly model constructed from a JSON specification file
 class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
   public:
     TrackAssemblySinglePin(const std::string& filename);

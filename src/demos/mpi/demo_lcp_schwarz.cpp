@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     /*
         ChSparseMatrix matrM;
         ChSparseMatrix matrCq;
-        mdescriptor.BuildMatrices(&matrCq, &matrM);
+        mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
         try
         {
             ChStreamOutAsciiFile fileM ("sch_dump_M.dat");

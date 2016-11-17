@@ -111,10 +111,6 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
 
     std::shared_ptr<ChBody> m_connector_L;             ///< handle to left connector body
     std::shared_ptr<ChBody> m_connector_R;             ///< handle to right connector body
-    std::shared_ptr<ChLinkLockRevolute> m_rev_this_L;  ///< revolute joint between left connector and shoe
-    std::shared_ptr<ChLinkLockRevolute> m_rev_this_R;  ///< revolute joint between right connector and shoe
-    std::shared_ptr<ChLinkLockRevolute> m_rev_next_L;  ///< revolute joint between left connector and next shoe
-    std::shared_ptr<ChLinkLockRevolute> m_rev_next_R;  ///< revolute joint between right connector and next shoe
 
     friend class ChSprocketDoublePin;
     friend class SprocketDoublePinContactCB;
