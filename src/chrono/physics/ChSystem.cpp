@@ -1603,7 +1603,7 @@ void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
     descriptor->SetMassFactor(1.0);
 
         // Fill system-level M matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(false, M, false, false, false, false, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
@@ -1614,7 +1614,7 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     this->KRMmatricesLoad(1.0, 0, 0); 
 
         // Fill system-level K matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(false, K, false, false, false, false, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
@@ -1625,7 +1625,7 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     this->KRMmatricesLoad(0, 1.0, 0); 
 
         // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(false, R, false, false, false, false, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
@@ -1635,7 +1635,7 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
     this->ConstraintsLoadJacobians();
 
         // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, false, false, false, false, false, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
 void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const char* path) {
