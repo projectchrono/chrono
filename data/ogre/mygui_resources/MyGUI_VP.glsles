@@ -1,0 +1,20 @@
+#version 100
+
+precision highp int;
+precision highp float;
+
+attribute vec4 position;
+attribute vec4 uv0;
+attribute vec4 colour;
+
+varying vec4 outUV0;
+varying vec4 outColor;
+
+// Texturing vertex program for GLSL ES
+void main()
+{
+	gl_Position = position;
+	outUV0 = uv0;
+	outColor = colour;
+}
+

@@ -1,0 +1,491 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Resource">
+	<Resource type="ResourceLayout" name="CheckBox" version="3.2.0">
+		<Widget type="Widget" skin="CheckBoxSkin" position="20 20 23 21" name="Root">
+			<Property key="TextAlign" value="Default"/>
+			<Property key="FontName" value="Default"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="RadioButton" version="3.2.0">
+		<Widget type="Widget" skin="RadioButtonSkin" position="20 20 21 20" name="Root">
+			<Property key="TextAlign" value="Default"/>
+			<Property key="FontName" value="Default"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ScrollBarH" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelHSkin" position="25 50 125 15" name="Root">
+			<Property key="VerticalAlignment" value="false"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="14 0 98 15" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+				<Widget type="Button" skin="ScrollTrackHSkin" position="35 1 19 14" align="Left VStretch" name="Track">
+					<UserString key="MinTrackSize" value="10"/>
+				</Widget>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 35 15" align="Left VStretch" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="54 0 44 15" align="Left VStretch" name="SecondPart"/>
+			</Widget>
+			<Widget type="Button" skin="ButtonLeftSkin" position="2 1 12 14" align="Left VCenter" name="Start"/>
+			<Widget type="Button" skin="ButtonRightSkin" position="112 1 12 14" align="Right VCenter" name="End"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ScrollBarV" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelVSkin" position="25 50 15 125" name="Root">
+			<Property key="VerticalAlignment" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="0 14 15 99" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+				<Widget type="Button" skin="ScrollTrackVSkin" position="1 25 14 19" align="HStretch Top" name="Track">
+					<UserString key="MinTrackSize" value="10"/>
+				</Widget>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 15 25" align="HStretch Top" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 44 15 55" align="HStretch Top" name="SecondPart"/>
+			</Widget>
+			<Widget type="Button" skin="ButtonUpSkin" position="1 2 14 11" align="HCenter Top" name="Start"/>
+			<Widget type="Button" skin="ButtonDownSkin" position="1 113 14 11" align="HCenter Bottom" name="End"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="SliderH" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelHSkin" position="25 50 125 15" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<Property key="VerticalAlignment" value="false"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="2 0 122 15" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+				<Widget type="Button" skin="SliderTrackHSkin" position="35 1 7 14" align="Left VStretch" name="Track"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 35 15" align="Left VStretch" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="42 0 80 15" align="Left VStretch" name="SecondPart"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="SliderV" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelVSkin" position="20 20 15 125" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<Property key="VerticalAlignment" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="0 2 15 122" align="Stretch">
+				<Widget type="Button" skin="SliderTrackVSkin" position="1 25 14 7" align="HStretch Top" name="Track"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 15 25" align="HStretch Top" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 32 15 90" align="HStretch Top" name="SecondPart"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="SliderHEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="25 50 125 15" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<Property key="VerticalAlignment" value="false"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="2 0 122 15" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+				<Widget type="Button" skin="SliderTrackHSkin" position="35 1 7 14" align="Left VStretch" name="Track"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 35 15" align="Left VStretch" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="42 0 80 15" align="Left VStretch" name="SecondPart"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="SliderVEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="20 20 15 125" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<Property key="VerticalAlignment" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ScrollBar"/>
+			<Widget type="Widget" skin="PanelEmpty" position="0 2 15 122" align="Stretch">
+				<Widget type="Button" skin="SliderTrackVSkin" position="1 25 14 7" align="HStretch Top" name="Track"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 0 15 25" align="HStretch Top" name="FirstPart"/>
+				<Widget type="Widget" skin="PanelEmpty" position="0 32 15 90" align="HStretch Top" name="SecondPart"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="Button" version="3.2.0">
+		<Widget type="Widget" skin="ButtonSkin" position="20 25 29 26" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ButtonImage" version="3.2.0">
+		<Widget type="Widget" skin="ButtonEmptySkin" position="20 20 16 16" name="Root">
+			<Property key="TextAlign" value="Center"/>
+			<Property key="FontName" value="Default"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+			<Widget type="ImageBox" skin="ImageBox" position="0 0 16 16" align="Stretch" name="Image">
+				<Property key="NeedMouse" value="false"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="TextBox" version="3.2.0">
+		<Widget type="Widget" skin="TextBoxSkin" position="20 20 16 16" name="Root">
+			<Property key="TextAlign" value="Default"/>
+			<Property key="FontName" value="Default"/>
+			<Property key="TextColour" value="0 0 0"/>
+			<UserString key="LE_TargetWidgetType" value="TextBox"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="EditBox" version="3.2.0">
+		<Widget type="Widget" skin="EditBoxSkin" position="65 10 29 26" name="Root">
+			<UserString key="LE_TargetWidgetType" value="EditBox"/>
+			<Widget type="TextBox" skin="EditClientSkin" position="2 2 23 20" align="Stretch" name="Client">
+				<Property key="TextAlign" value="Left VCenter"/>
+				<Property key="FontName" value="Default"/>
+				<Property key="TextColour" value="0 0 0"/>
+				<Property key="Pointer" value="beam"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="EditBoxStretch" version="3.2.0">
+		<Widget type="Widget" skin="EditBoxSkin" position="25 10 55 55" name="Root">
+			<Property key="MultiLine" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="EditBox"/>
+			<Widget type="TextBox" skin="EditClientSkin" position="2 3 33 32" align="Stretch" name="Client">
+				<Property key="TextAlign" value="Default"/>
+				<Property key="TextColour" value="0 0 0"/>
+				<Property key="FontName" value="Default"/>
+				<Property key="Pointer" value="beam"/>
+			</Widget>
+			<Widget type="ScrollBar" skin="ScrollBarH" position="2 36 34 15" align="HStretch Bottom" name="HScroll"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="36 2 15 34" align="Right VStretch" name="VScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="EditBoxEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="65 10 16 16" name="Root">
+			<UserString key="LE_TargetWidgetType" value="EditBox"/>
+			<Widget type="TextBox" skin="EditClientSkin" position="0 0 16 16" align="Stretch" name="Client">
+				<Property key="TextAlign" value="Default"/>
+				<Property key="FontName" value="Default"/>
+				<Property key="TextColour" value="0 0 0"/>
+				<Property key="Pointer" value="beam"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="WordWrapEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="65 10 16 16" name="Root">
+			<Property key="WordWrap" value="true"/>
+			<Property key="Static" value="true"/>
+			<Property key="MultiLine" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="EditBox"/>
+			<Widget type="TextBox" skin="EditClientSkin" position="0 0 16 16" align="Stretch" name="Client">
+				<Property key="TextAlign" value="Default"/>
+				<Property key="FontName" value="Default"/>
+				<Property key="TextColour" value="0 0 0"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ComboBox" version="3.2.0">
+		<Widget type="Widget" skin="EditBoxSkin" position="65 10 100 26" name="Root">
+			<Property key="MaxListLength" value="200"/>
+			<Property key="SmoothShow" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ComboBox"/>
+			<Widget type="TextBox" skin="EditClientSkin" position="2 2 75 20" align="Stretch" name="Client">
+				<Property key="TextAlign" value="Left VCenter"/>
+				<Property key="TextColour" value="0 0 0"/>
+				<Property key="FontName" value="Default"/>
+				<Property key="Pointer" value="beam"/>
+			</Widget>
+			<Widget type="ListBox" skin="ListBox" position="65 38 100 200" style="Popup" layer="Popup" name="List">
+				<Property key="Visible" value="false"/>
+			</Widget>
+			<Widget type="Button" skin="ButtonDownSkin" position="79 7 14 11" align="Right VCenter" name="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="Window" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="15 10 68 49" name="Root">
+			<Property key="Snap" value="true"/>
+			<Property key="Movable" value="false"/>
+			<UserString key="LE_TargetWidgetType" value="Window"/>
+			<Widget type="Widget" skin="CaptionEmptySkin" position="0 0 68 28" align="HStretch Top">
+				<Widget type="TextBox" skin="TextBox" position="2 3 62 24" align="HStretch Top" name="Caption">
+					<Property key="TextColour" value="0 0 0"/>
+					<Property key="TextAlign" value="Center"/>
+					<Property key="FontName" value="Default"/>
+				</Widget>
+			</Widget>
+			<Widget type="Widget" skin="WindowFrameSkin" position="0 28 68 20" align="Stretch">
+				<Widget type="Widget" skin="ClientTileSkin" position="4 2 58 12" align="Stretch" name="Client"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="WindowC" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="15 10 68 49" name="Root">
+			<Property key="Snap" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="Window"/>
+			<Widget type="Widget" skin="CaptionSkin" position="0 0 68 28" align="HStretch Top">
+				<Widget type="TextBox" skin="TextBox" position="7 1 52 22" align="HStretch Top" name="Caption">
+					<Property key="TextColour" value="0 0 0"/>
+					<Property key="TextAlign" value="Center"/>
+					<Property key="FontName" value="Default"/>
+				</Widget>
+			</Widget>
+			<Widget type="Widget" skin="WindowFrameSkin" position="0 28 68 20" align="Stretch">
+				<Widget type="Widget" skin="ClientTileSkin" position="4 2 58 12" align="Stretch" name="Client"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="WindowCS" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="15 10 68 49" name="Root">
+			<Property key="Snap" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="Window"/>
+			<Widget type="Widget" skin="CaptionSkin" position="0 0 68 28" align="HStretch Top">
+				<Widget type="TextBox" skin="TextBox" position="7 1 52 22" align="HStretch Top" name="Caption">
+					<Property key="TextColour" value="0 0 0"/>
+					<Property key="TextAlign" value="Center"/>
+					<Property key="FontName" value="Default"/>
+				</Widget>
+			</Widget>
+			<Widget type="Widget" skin="WindowFrameSkin" position="0 28 68 20" align="Stretch">
+				<Widget type="Widget" skin="ClientTileSkin" position="4 2 58 12" align="Stretch" name="Client"/>
+				<Widget type="Button" skin="WindowResizeRightDownSkin" position="57 9 9 9" align="Right Bottom" name="ResizeRightBottom">
+					<Property key="Pointer" value="size_left"/>
+				</Widget>
+				<Widget type="Button" skin="WindowResizeLeftDownSkin" position="0 9 9 9" align="Left Bottom" name="ResizeLeftBottom">
+					<Property key="Pointer" value="size_right"/>
+				</Widget>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="WindowCX" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="15 10 68 49" name="Root">
+			<Property key="Snap" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="Window"/>
+			<Widget type="Widget" skin="WindowFrameSkin" position="0 28 68 20" align="Stretch">
+				<Widget type="Widget" skin="ClientTileSkin" position="4 2 58 12" align="Stretch" name="Client"/>
+			</Widget>
+			<Widget type="Widget" skin="CaptionWithButtonSkin" position="0 0 68 28" align="HStretch Top">
+				<Widget type="Button" skin="ButtonCloseSkin" position="44 6 18 17" align="Right Top" name="Button">
+					<UserString key="Event" value="close"/>
+				</Widget>
+				<Widget type="TextBox" skin="TextBox" position="7 1 29 22" align="HStretch Top" name="Caption">
+					<Property key="TextColour" value="0 0 0"/>
+					<Property key="TextAlign" value="Center"/>
+					<Property key="FontName" value="Default"/>
+				</Widget>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="WindowCSX" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="15 10 68 49" name="Root">
+			<Property key="Snap" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="Window"/>
+			<Widget type="Widget" skin="WindowFrameSkin" position="0 28 68 20" align="Stretch">
+				<Widget type="Widget" skin="ClientTileSkin" position="4 2 58 12" align="Stretch" name="Client"/>
+				<Widget type="Button" skin="WindowResizeRightDownSkin" position="57 9 9 9" align="Right Bottom" name="ResizeRightBottom">
+					<Property key="Pointer" value="size_left"/>
+				</Widget>
+				<Widget type="Button" skin="WindowResizeLeftDownSkin" position="0 9 9 9" align="Left Bottom" name="ResizeLeftBottom">
+					<Property key="Pointer" value="size_right"/>
+				</Widget>
+			</Widget>
+			<Widget type="Widget" skin="CaptionWithButtonSkin" position="0 0 68 28" align="HStretch Top">
+				<Widget type="Button" skin="ButtonCloseSkin" position="44 6 18 17" align="Right Top" name="Button">
+					<UserString key="Event" value="close"/>
+				</Widget>
+				<Widget type="TextBox" skin="TextBox" position="7 1 29 22" align="HStretch Top" name="Caption">
+					<Property key="TextColour" value="0 0 0"/>
+					<Property key="TextAlign" value="Center"/>
+					<Property key="FontName" value="Default"/>
+				</Widget>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MenuBar" version="3.2.0">
+		<Widget type="Widget" skin="MenuBarSkin" position="5 5 29 26" name="Root">
+			<Property key="VerticalAlignment" value="false"/>
+			<UserString key="LE_TargetWidgetType" value="MenuBar"/>
+			<UserString key="DistanceButton" value="6"/>
+			<UserString key="SubMenuLayer" value="Popup"/>
+			<UserString key="NormalSkin" value="MenuBarButton"/>
+			<UserString key="PopupSkin" value="MenuBarButton"/>
+			<UserString key="SeparatorSkin" value="MenuBarSeparator"/>
+			<UserString key="SubMenuSkin" value="PopupMenu"/>
+			<Widget type="Widget" skin="PanelEmpty" position="2 2 25 20" align="Stretch" name="Client"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MenuBarButton" version="3.2.0">
+		<Widget type="Widget" skin="MenuItemSkin" position="20 25 25 20" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MenuBarSeparator" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="20 20 10 10" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="MinSize" value="10 10"/>
+			<Widget type="Widget" skin="SepDownVSkin" position="4 2 2 6" align="HCenter VStretch"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="PopupMenu" version="3.2.0">
+		<Widget type="Widget" skin="PanelSkin" position="5 5 29 26" name="Root">
+			<Property key="VerticalAlignment" value="true"/>
+			<UserString key="SubMenuLayer" value="Popup"/>
+			<UserString key="SubMenuSkin" value="PopupMenu"/>
+			<UserString key="LE_TargetWidgetType" value="PopupMenu"/>
+			<UserString key="SeparatorSkin" value="PopupMenuSeparator"/>
+			<UserString key="NormalSkin" value="PopupMenuNormal"/>
+			<UserString key="PopupSkin" value="PopupMenuPopup"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 4 21 16" align="Stretch" name="Client"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="PopupMenuSeparator" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="20 20 10 10" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="MinSize" value="10 10"/>
+			<Widget type="Widget" skin="SepDownHSkin" position="2 4 6 2" align="HStretch VCenter"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="PopupMenuNormal" version="3.2.0">
+		<Widget type="Widget" skin="MenuItemNormalSkin" position="20 25 43 14" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Left VCenter"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+			<Widget type="Widget" skin="MenuItemCheckButtonSkin" position="1 0 15 13" align="Left VCenter" name="Check"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="PopupMenuPopup" version="3.2.0">
+		<Widget type="Widget" skin="MenuItemNormalSkin" position="20 25 43 14" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Left VCenter"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+			<Widget type="Widget" skin="MenuItemPopupButtonSkin" position="31 1 10 12" align="Right VCenter">
+				<Property key="NeedMouse" value="false"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ProgressBar" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelHSkin" position="25 50 125 15" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ProgressBar"/>
+			<UserString key="TrackWidth" value="7"/>
+			<UserString key="TrackFill" value="false"/>
+			<UserString key="TrackSkin" value="SliderTrackHSkin"/>
+			<Widget type="Widget" skin="PanelEmpty" position="2 1 122 14" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ProgressBarFill" version="3.2.0">
+		<Widget type="Widget" skin="ScrollPanelHSkin" position="25 50 125 15" name="Root">
+			<Property key="MoveToClick" value="true"/>
+			<UserString key="LE_TargetWidgetType" value="ProgressBar"/>
+			<UserString key="TrackFill" value="true"/>
+			<UserString key="TrackSkin" value="ProgressBarTrackHSkin"/>
+			<UserString key="TrackWidth" value="6"/>
+			<Widget type="Widget" skin="PanelEmpty" position="2 1 122 14" align="Stretch" name="TrackPlace">
+				<Property key="NeedKey" value="false"/>
+				<Property key="InheritsPick" value="true"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ListBoxItem" version="3.2.0">
+		<Widget type="Widget" skin="ListBoxItemSkin" position="20 20 43 13" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Left VCenter"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ListBox" version="3.2.0">
+		<Widget type="Widget" skin="PanelSkin" position="5 5 55 55" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ListBox"/>
+			<UserString key="HeightLine" value="21"/>
+			<UserString key="SkinLine" value="ListBoxItem"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 3 32 47" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="35 3 15 47" align="Right VStretch" name="VScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ItemBox" version="3.2.0">
+		<Widget type="Widget" skin="PanelSkin" position="5 5 55 55" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ItemBox"/>
+			<UserString key="DragLayer" value="DragAndDrop"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 3 32 32" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="35 3 15 32" align="Right VStretch" name="VScroll"/>
+			<Widget type="ScrollBar" skin="ScrollBarH" position="3 35 32 15" align="HStretch Bottom" name="HScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ItemBoxEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="7 7 48 48" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ItemBox"/>
+			<UserString key="DragLayer" value="DragAndDrop"/>
+			<Widget type="Widget" skin="PanelEmpty" position="1 1 32 32" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="33 1 15 32" align="Right VStretch" name="VScroll"/>
+			<Widget type="ScrollBar" skin="ScrollBarH" position="1 33 32 15" align="HStretch Bottom" name="HScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ScrollView" version="3.2.0">
+		<Widget type="Widget" skin="PanelSkin" position="5 5 55 55" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ScrollView"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 3 32 32" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="35 3 15 32" align="Right VStretch" name="VScroll"/>
+			<Widget type="ScrollBar" skin="ScrollBarH" position="3 35 32 15" align="HStretch Bottom" name="HScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="ScrollViewEmpty" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="8 8 47 47" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ScrollView"/>
+			<Widget type="Widget" skin="PanelEmpty" position="0 0 32 32" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="32 0 15 32" align="Right VStretch" name="VScroll"/>
+			<Widget type="ScrollBar" skin="ScrollBarH" position="0 32 32 15" align="HStretch Bottom" name="HScroll"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="TabHeaderButton" version="3.2.0">
+		<Widget type="Widget" skin="TabHeaderButtonSkin" position="20 25 52 23" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="TabControl" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="5 5 89 60" name="Root">
+			<UserString key="LE_TargetWidgetType" value="TabControl"/>
+			<UserString key="ButtonSkin" value="TabHeaderButton"/>
+			<Widget type="Widget" skin="TabPanelSkin" position="0 21 89 39" align="Stretch">
+				<Widget type="Widget" skin="PanelEmpty" position="2 3 83 32" align="Stretch" name="TabItem"/>
+			</Widget>
+			<Widget type="Widget" skin="PanelEmpty" position="7 0 78 23" align="HStretch Top" name="HeaderPlace">
+				<Widget type="Widget" skin="TabHeaderEmptySkin" position="52 0 26 23" name="Controls">
+					<Widget type="Button" skin="ButtonRightSkin" position="14 4 12 14" name="Right"/>
+					<Widget type="Button" skin="ButtonLeftSkin" position="1 4 12 14" name="Left"/>
+				</Widget>
+				<Widget type="Widget" skin="TabHeaderEmptySkin" position="0 0 52 23" name="Empty"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MultiListBox" version="3.2.0">
+		<Widget type="Widget" skin="PanelSkin" position="5 5 55 55" name="Root">
+			<UserString key="LE_TargetWidgetType" value="MultiListBox"/>
+			<UserString key="SkinButton" value="MultiListButton"/>
+			<UserString key="SkinList" value="MultiSubListBox"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 24 47 26" align="Stretch" name="Client"/>
+			<Widget type="Widget" skin="PanelEmpty" position="3 3 47 21" align="HStretch Top" name="HeaderPlace">
+				<Widget type="Widget" skin="MultiListButtonSkin" position="0 0 47 21" name="Empty"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MultiListButton" version="3.2.0">
+		<Widget type="Widget" skin="MultiListButtonSkin" position="20 25 45 21" name="Root">
+			<Property key="FontName" value="Default"/>
+			<Property key="TextAlign" value="Center"/>
+			<UserString key="LE_TargetWidgetType" value="Button"/>
+			<Widget type="ImageBox" skin="ImageBox" position="29 4 12 10" align="Right VCenter" name="Image">
+				<Property key="ImageResource" value="MultiListButtonImage"/>
+				<Property key="ImageGroup" value="Icons"/>
+				<Property key="ImageName" value="Down"/>
+				<Property key="NeedMouse" value="false"/>
+			</Widget>
+		</Widget>
+	</Resource>
+	<Resource type="ResourceLayout" name="MultiSubListBox" version="3.2.0">
+		<Widget type="Widget" skin="PanelEmpty" position="8 8 47 47" name="Root">
+			<UserString key="LE_TargetWidgetType" value="ListBox"/>
+			<UserString key="HeightLine" value="21"/>
+			<UserString key="SkinLine" value="ListBoxItem"/>
+			<Widget type="Widget" skin="PanelEmpty" position="0 0 32 47" align="Stretch" name="Client"/>
+			<Widget type="ScrollBar" skin="ScrollBarV" position="32 0 15 47" align="Right VStretch" name="VScroll"/>
+		</Widget>
+	</Resource>
+</MyGUI>

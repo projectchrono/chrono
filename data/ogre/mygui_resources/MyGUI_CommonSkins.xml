@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Resource" version="1.1">
+	<Resource type="ResourceSkin" name="PanelEmpty" size="16 16"/>
+	<Resource type="ResourceSkin" name="RotatingSkin" size="16 16">
+		<BasisSkin type="RotatingSkin" offset="0 0 16 16" align="Stretch"/>
+	</Resource>
+	<Resource type="ResourceSkin" name="TextBoxSkin" size="16 16">
+		<BasisSkin type="SimpleText" offset="0 0 16 16" align="Stretch"/>
+	</Resource>
+	<Resource type="ResourceSkin" name="ImageBox" size="16 16">
+		<BasisSkin type="MainSkin" offset="0 0 16 16"/>
+	</Resource>
+	<Resource type="ResourceSkin" name="Canvas" size="16 16">
+		<BasisSkin type="MainSkin" offset="0 0 16 16"/>
+	</Resource>
+	<Resource type="ResourceSkin" name="EditClientSkin" size="16 16">
+		<BasisSkin type="EditText" offset="0 0 16 16" align="Stretch"/>
+	</Resource>
+</MyGUI>

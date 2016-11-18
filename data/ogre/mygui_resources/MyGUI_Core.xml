@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="List">
+	<List file="MyGUI_GeneratedFonts.xml"/>
+	<List file="MyGUI_Fonts.xml"/>
+	<List file="MyGUI_CommonSkins.xml"/>
+	<List file="MyGUI_BlueWhiteTheme.xml"/>
+	<List file="MyGUI_PointerImages.xml"/>
+	<List file="MyGUI_Pointers.xml"/>
+	<List file="MyGUI_Layers.xml"/>
+	<List file="MyGUI_Settings.xml"/>
+</MyGUI>

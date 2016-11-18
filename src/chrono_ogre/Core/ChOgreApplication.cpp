@@ -72,10 +72,12 @@ namespace ChOgre {
 		{
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/mygui_resources/", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/programs", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/materials/textures", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/materials/", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/fonts/minecraftia", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/nvidia", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/models", "FileSystem");
@@ -117,33 +119,6 @@ namespace ChOgre {
 		double l_systemTimeIncriment = 0.0;
 
 		int l_frame = 0;
-
-		/*Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
-		        "_tex",
-				"General",
-		        TEX_TYPE_2D,
-		        256,
-		        256,
-		        0,
-				1,
-				PF_R8G8B8
-		        );
-*/
-
-		Ogre::TexturePtr rtt_texture = Ogre::TextureManager::getSingleton().createManual(
-				"TEX", Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, Ogre::TEX_TYPE_2D, m_pRenderWindow->getWidth(),
-				m_pRenderWindow->getHeight(), 0, Ogre::PF_R8G8B8, Ogre::TU_RENDERTARGET);
-		std::cout<<"created rtt_texture"<<std::endl;
-		Ogre::RenderTexture* renderTexture = rtt_texture->getBuffer()->getRenderTarget();
-
-		std::cout<<"created renderTexture"<<std::endl;
-
-		renderTexture->addViewport(m_pViewport->getCamera());
-		renderTexture->getViewport(0)->setClearEveryFrame(true);
-		renderTexture->getViewport(0)->setBackgroundColour(Ogre::ColourValue::Black);
-		renderTexture->getViewport(0)->setOverlaysEnabled(false);
-
-		std::cout << "configured renderTexture\n";
 
 		std::chrono::high_resolution_clock l_time;
 		auto l_start = l_time.now();
@@ -196,14 +171,14 @@ namespace ChOgre {
 				frame_count = pad + frame_count;
 
 				if (!OutputImageFolder.empty()) {
-					name = OutputImageFolder + "/frame" + frame_count + "time" + std::to_string(l_systemTimeIncriment) + ".png";
+					name = OutputImageFolder + "/frame" + frame_count + ".png";
 				}
 				else {
 					name = "frame" + frame_count + ".png";
 				}
 
-				renderTexture->update();
-				renderTexture->writeContentsToFile(name);
+				m_pRenderWindow->writeContentsToFile(name);
+
 				l_frame++;
 			}
 

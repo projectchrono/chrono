@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Resource" version="1.1">
+	<Resource type="ResourceImageSetPointer" name="arrow">
+		<Property key="Point" value="1 1"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="ArrowPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="beam">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="BeamPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="size_left">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="SizeLeftPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="size_right">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="SizeRightPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="size_horz">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="SizeHorzPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="size_vert">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="SizeVertPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="hand">
+		<Property key="Point" value="16 16"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="HandPointerImage"/>
+	</Resource>
+	<Resource type="ResourceImageSetPointer" name="link">
+		<Property key="Point" value="1 1"/>
+		<Property key="Size" value="32 32"/>
+		<Property key="Resource" value="LinkPointerImage"/>
+	</Resource>
+</MyGUI>

@@ -90,6 +90,8 @@ SET(GUI_FILES
 	GUI/ChOgreGUIElement.h
 	GUI/ChOgreGUIText.cpp
 	GUI/ChOgreGUIText.h
+	GUI/ChOgreGUIImage.cpp
+	GUI/ChOgreGUIImage.h
 	)
 
 SET(INPUT_FILES

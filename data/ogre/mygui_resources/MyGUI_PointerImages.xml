@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<MyGUI type="Resource" version="1.1">
+	<Resource type="ResourceImageSet" name="ArrowPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer" rate="0.15">
+				<Frame point="13 11" count="30"/>
+				<Frame point="13 52"/>
+				<Frame point="56 52"/>
+				<Frame point="91 52"/>
+				<Frame point="56 52"/>
+				<Frame point="13 52"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="BeamPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="45 8"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="SizeLeftPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="122 48"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="SizeRightPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="160 48"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="SizeHorzPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="123 87"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="SizeVertPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="164 90"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="HandPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="154 11"/>
+			</Index>
+		</Group>
+	</Resource>
+	<Resource type="ResourceImageSet" name="LinkPointerImage">
+		<Group name="Pointer" texture="MyGUI_Pointers.png" size="32 32">
+			<Index name="Pointer">
+				<Frame point="91 11"/>
+			</Index>
+		</Group>
+	</Resource>
+</MyGUI>
