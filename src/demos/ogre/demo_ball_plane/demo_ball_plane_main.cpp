@@ -63,6 +63,9 @@ int main(int argc, char** args) {
 	app.getInputManager()->addCallback(EpsilonCallback);
 	app.getInputManager()->addCallback(EpsilonCallback2);
 
+	auto Image = app.getGUIManager()->createWidget<ChOgreGUIImage>(ChFloat3(0.f, 0.f, 0.f), ChFloat3(0.2f, 0.2f, 1.f));
+	Image->setImage("logo_projectchrono_alpha.png");
+
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 
 		return 0;
