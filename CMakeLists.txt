@@ -208,7 +208,8 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA}
+        PATTERN "testing" EXCLUDE)
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs
