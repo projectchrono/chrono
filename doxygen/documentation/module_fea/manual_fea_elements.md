@@ -135,7 +135,7 @@ In this page you can find a description of their properties.
 
 ![](http://www.projectchrono.org/assets/manual/fea_ChElementCableANCF.png)
 
-- 2 nodes of @ref ChNodeFEAxyzD type
+- 2 nodes of @ref chrono::fea::ChNodeFEAxyzD type
 - 3 integration point (stiffness), 4 (mass)
 - ANCF formulation for large displacements
 - Thin beam (no shear)
