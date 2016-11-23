@@ -92,15 +92,15 @@ M113_TrackAssemblySinglePin::M113_TrackAssemblySinglePin(VehicleSide side) : ChT
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-const ChVector<>& M113_TrackAssemblySinglePin::GetSprocketLocation() const {
+const ChVector<> M113_TrackAssemblySinglePin::GetSprocketLocation() const {
     return m_sprocket_loc;
 }
 
-const ChVector<>& M113_TrackAssemblySinglePin::GetIdlerLocation() const {
+const ChVector<> M113_TrackAssemblySinglePin::GetIdlerLocation() const {
     return m_idler_loc;
 }
 
-const ChVector<>& M113_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
+const ChVector<> M113_TrackAssemblySinglePin::GetRoadWhelAssemblyLocation(int which) const {
     return (m_side == LEFT) ? m_susp_locs_L[which] : m_susp_locs_R[which];
 }
 

@@ -28,6 +28,8 @@
 
 #include "chrono_vehicle/tracked_vehicle/suspension/LinearDamperRWAssembly.h"
 
+#include "chrono_vehicle/tracked_vehicle/roller/DoubleRoller.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -171,6 +173,36 @@ void TrackAssemblySinglePin::LoadSuspension(const std::string& filename, int whi
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void TrackAssemblySinglePin::LoadRoller(const std::string& filename, int which) {
+    FILE* fp = fopen(filename.c_str(), "r");
+
+    char readBuffer[65536];
+    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
+
+    fclose(fp);
+
+    Document d;
+    d.ParseStream(is);
+
+    // Check that the given file is a roller specification file.
+    assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("Roller") == 0);
+
+    // Extract roller type.
+    assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
+
+    // Create the roller using the appropriate template.
+    if (subtype.compare("DoubleRoller") == 0) {
+        m_rollers[which] = std::make_shared<DoubleRoller>(d);
+    }
+
+    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void TrackAssemblySinglePin::LoadTrackShoes(const std::string& filename, int num_shoes) {
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -264,6 +296,20 @@ void TrackAssemblySinglePin::Create(const rapidjson::Document& d) {
         bool has_shock = d["Suspension Subsystems"][i]["Has Shock"].GetBool();
         m_susp_locs[i] = loadVector(d["Suspension Subsystems"][i]["Location"]);
         LoadSuspension(vehicle::GetDataFile(file_name), i, has_shock);
+    }
+
+    // Create the rollers
+    m_num_rollers = 0;
+    if (d.HasMember("Rollers")) {
+        assert(d["Rollers"].IsArray());
+        m_num_rollers = d["Rollers"].Size();
+        m_rollers.resize(m_num_rollers);
+        m_roller_locs.resize(m_num_rollers);
+        for (int i = 0; i < m_num_rollers; i++) {
+            std::string file_name = d["Rollers"][i]["Input File"].GetString();
+            m_susp_locs[i] = loadVector(d["Rollers"][i]["Location"]);
+            LoadRoller(vehicle::GetDataFile(file_name), i);
+        }
     }
 
     // Create the track shoes

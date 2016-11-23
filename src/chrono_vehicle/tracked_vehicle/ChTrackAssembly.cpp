@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), and a collection of
-// track shoes.
+// a collection of road wheel assemblies (suspensions), a collection of rollers,
+// and a collection of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -71,6 +71,11 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
         m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(i));
     }
 
+    // Initialize the roller subsystems
+    for (size_t i = 0; i < m_rollers.size(); ++i) {
+        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(i));
+    }
+
     // Assemble the track. This positions all track shoes around the sprocket,
     // road wheels, and idler. (Implemented by derived classes)
     bool ccw = Assemble(chassis);
@@ -104,6 +109,12 @@ void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vi
     }
 }
 
+void ChTrackAssembly::SetRollerVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_rollers.size(); ++i) {
+        m_rollers[i]->SetVisualizationType(vis);
+    }
+}
+
 void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
         GetTrackShoe(i)->SetVisualizationType(vis);
@@ -117,6 +128,8 @@ double ChTrackAssembly::GetMass() const {
     double mass = GetSprocket()->GetMass() + m_idler->GetMass();
     for (size_t i = 0; i < m_suspensions.size(); i++)
         mass += m_suspensions[i]->GetMass();
+    for (size_t i = 0; i < m_rollers.size(); i++)
+        mass += m_rollers[i]->GetMass();
     for (size_t i = 0; i < GetNumTrackShoes(); ++i)
         mass += GetTrackShoe(i)->GetMass();
 
@@ -149,6 +162,10 @@ void ChTrackAssembly::LogConstraintViolations() {
     for (size_t i = 0; i < m_suspensions.size(); i++) {
         GetLog() << "SUSPENSION #" << i << " constraint violations\n";
         m_suspensions[i]->LogConstraintViolations();
+    }
+    for (size_t i = 0; i < m_rollers.size(); i++) {
+        GetLog() << "ROLLER #" << i << " constraint violations\n";
+        m_rollers[i]->LogConstraintViolations();
     }
 }
 
