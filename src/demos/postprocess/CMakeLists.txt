@@ -75,6 +75,6 @@ TARGET_LINK_LIBRARIES(demo_gnuplot ChronoEngine)
 ADD_DEPENDENCIES (demo_gnuplot ChronoEngine ChronoEngine_postprocess)
 
 
-install(TARGETS demo_postprocess DESTINATION bin)
-install(TARGETS demo_timestepping DESTINATION bin)
+install(TARGETS demo_postprocess DESTINATION ${CH_INSTALL_DEMO})
+install(TARGETS demo_timestepping DESTINATION ${CH_INSTALL_DEMO})
 

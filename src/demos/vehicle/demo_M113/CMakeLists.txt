@@ -44,4 +44,4 @@ TARGET_LINK_LIBRARIES(${DEMO}
                       ChronoEngine_vehicle
                       ChronoModels_vehicle
                       ${LIBS})
-INSTALL(TARGETS ${DEMO} DESTINATION bin)
+INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})
