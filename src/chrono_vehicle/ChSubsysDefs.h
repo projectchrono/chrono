@@ -305,7 +305,8 @@ enum Enum {
     CHASSIS = 0,  ///< chassis collision family
     IDLERS = 1,   ///< collision family for idler subsystems
     WHEELS = 2,   ///< collision family for road-wheel assemblies
-    SHOES = 3     ///< collision family for track shoe subsystems
+    SHOES = 3,    ///< collision family for track shoe subsystems
+    ROLLERS = 4   ///< collision family for roller subsystems
 };
 }
 

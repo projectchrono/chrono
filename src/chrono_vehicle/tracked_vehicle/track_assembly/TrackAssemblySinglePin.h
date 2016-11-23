@@ -39,9 +39,10 @@ class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
     TrackAssemblySinglePin(const rapidjson::Document& d);
     ~TrackAssemblySinglePin() {}
 
-    virtual const ChVector<>& GetSprocketLocation() const override { return m_sprocket_loc; }
-    virtual const ChVector<>& GetIdlerLocation() const override { return m_idler_loc; }
-    virtual const ChVector<>& GetRoadWhelAssemblyLocation(int which) const override { return m_susp_locs[which]; }
+    virtual const ChVector<> GetSprocketLocation() const override { return m_sprocket_loc; }
+    virtual const ChVector<> GetIdlerLocation() const override { return m_idler_loc; }
+    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const override { return m_susp_locs[which]; }
+    virtual const ChVector<> GetRollerLocation(int which) const override { return m_roller_locs[which]; }
 
   private:
     void Create(const rapidjson::Document& d);
@@ -50,15 +51,18 @@ class CH_VEHICLE_API TrackAssemblySinglePin : public ChTrackAssemblySinglePin {
     void LoadBrake(const std::string& filename);
     void LoadIdler(const std::string& filename);
     void LoadSuspension(const std::string& filename, int which, bool has_shock);
+    void LoadRoller(const std::string& filename, int which);
     void LoadTrackShoes(const std::string& filename, int num_shoes);
 
   private:
     int m_num_susp;
+    int m_num_rollers;
     int m_num_track_shoes;
 
     ChVector<> m_sprocket_loc;
     ChVector<> m_idler_loc;
     std::vector<ChVector<>> m_susp_locs;
+    std::vector<ChVector<>> m_roller_locs;
 };
 
 /// @} vehicle_tracked
