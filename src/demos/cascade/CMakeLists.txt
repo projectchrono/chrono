@@ -49,7 +49,7 @@ if(ENABLE_MODULE_IRRLICHT)
             ChronoEngine
             ChronoEngine_cascade
             ChronoEngine_irrlicht)
-        INSTALL(TARGETS ${PROGRAM} DESTINATION bin) 
+        INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO}) 
     ENDFOREACH()
 
 endif()

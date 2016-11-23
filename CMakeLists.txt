@@ -186,6 +186,18 @@ set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
 
 #------------------------------------------------------------
+# Install destinations for data and demo programs
+#------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_INSTALL_DATA "data")
+    set(CH_INSTALL_DEMO "bin")
+else()
+    set(CH_INSTALL_DATA "share/chrono/data")
+    set(CH_INSTALL_DEMO "share/chrono/bin")
+endif()
+
+#------------------------------------------------------------
 # Copy data directory to BUILD tree 
 # Install data directory 
 #------------------------------------------------------------
@@ -196,7 +208,7 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION share/data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

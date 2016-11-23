@@ -38,7 +38,7 @@ IF (ENABLE_MODULE_IRRLICHT)
 	    ChronoEngine
 	    ChronoEngine_pyparser
 	    ChronoEngine_irrlicht)	
-	install(TARGETS demo_import_solidworks DESTINATION bin)
+	install(TARGETS demo_import_solidworks DESTINATION ${CH_INSTALL_DEMO})
 ENDIF()	
  	
  	
