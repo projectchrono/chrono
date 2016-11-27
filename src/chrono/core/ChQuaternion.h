@@ -526,7 +526,7 @@ class ChQuaternion {
         this->e3 = axis.z * sinhalf;
     }
 
-    /// Sets the quaternion from an agle of rotation about X axis
+	/// Sets the quaternion from an agle of rotation about X axis
     void Q_from_AngX(const Real angleX) { Q_from_AngAxis(angleX, ChVector<Real>(1, 0, 0)); }
 
     /// Sets the quaternion from an agle of rotation about Y axis
@@ -745,7 +745,6 @@ class ChQuaternion {
         marchive >> CHNVP(e2);
         marchive >> CHNVP(e3);
     }
-
 };
 
 /// Shortcut for faster use of typical double-precision quaternion.
@@ -778,6 +777,7 @@ ChApi ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaterni
 ChApi ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact);
 ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
 ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis);
+ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect);
 ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
 ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
