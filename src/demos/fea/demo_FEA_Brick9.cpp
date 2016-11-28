@@ -168,7 +168,6 @@ void DPCapPress() {
 	inputfile = fopen(GetChronoDataFile("fea/CapHardeningInformation_TriaxialAxial.INP").c_str(), "r");
 	if (inputfile == NULL) {
 		printf("Input data file not found!!\n");
-		system("pause");
 		exit(1);
 	}
 	fgets(str1, MAXCOUNT, inputfile);

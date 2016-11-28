@@ -100,7 +100,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6> &COORDFlex, ChMatrixNM<double, 30
     printf("Open IndataBiLinearShell_Tire(HMMWV50x24).INP \n");
     if (inputfile == NULL){
         printf("Input data file not found!!\n");
-        system("pause");
         exit(1);
     }
 
@@ -152,7 +151,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6> &COORDFlex, ChMatrixNM<double, 30
         fscanf(inputfile, "%lf %lf %lf %lf %lf %lf\n", &VELCYFlex(i, 0), &VELCYFlex(i, 1), &VELCYFlex(i, 2), &VELCYFlex(i, 3), &VELCYFlex(i, 4), &VELCYFlex(i, 5));
         //printf("NumNodes %d %d %d %d %d %d\n",NDR[i][0],NDR[i][1],NDR[i][2],NDR[i][3],NDR[i][4],NDR[i][5]);
         //printf("NumNodes %lf %lf %lf %lf %lf %lf\n",COORDFlex[i][0],COORDFlex[i][1],COORDFlex[i][2],COORDFlex[i][3],COORDFlex[i][4],COORDFlex[i][5]);
-        //system("pause");
     }
 
     //!--------------------------------------!
@@ -176,7 +174,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6> &COORDFlex, ChMatrixNM<double, 30
             //printf("%lf %lf %d\n%d\n", LayerPROP(counted + j, 0), LayerPROP(counted + j, 1), MatID(i, j), counted + j);
         }
         counted += NumLayPerSect(i);
-        //system("pause");
     }
 
     //!--------------------------------------!
@@ -724,7 +721,6 @@ int main(int argc, char* argv[]) {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     chrono::GetLog() << "Computation Time: " << duration;
-    system("pause");
 
     /*my_system.Setup();
     my_system.Update();
@@ -747,6 +743,6 @@ int main(int argc, char* argv[]) {
     }
     double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
     chrono::GetLog() << "Computation Time: " << duration;
-    system("pause");*/
+    */
     return 0;
 }

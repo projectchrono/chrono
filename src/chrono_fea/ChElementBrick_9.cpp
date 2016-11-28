@@ -1009,7 +1009,6 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
 									if (A11*A22 - A12*A21 == 0.0) {
 										printf("Cap Return Singular Matrix!!\n");
-										system("pause");
 										exit(1);
 									}
 
@@ -1089,7 +1088,6 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
 
 										if (DRes01 == 0.0) {
 											printf("Singular for Transition DP/CAP!!\n");
-											system("pause");
 											exit(1);
 										}
 
@@ -1946,7 +1944,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
 						//alphUp = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);
 						//GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
-						//system("pause");
 
 						// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
 						m_element->ComputeHardening_a(MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter, 0), m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
@@ -2101,7 +2098,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
 									if (A11*A22 - A12*A21 == 0.0) {
 										printf("Cap Return Singular Matrix!!\n");
-										system("pause");
 										exit(1);
 									}
 
@@ -2177,7 +2173,6 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
 										if (DRes01 == 0.0) {
 											printf("Singular for Transition DP/CAP!!\n");
-											system("pause");
 											exit(1);
 										}
 

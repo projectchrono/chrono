@@ -294,7 +294,6 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
         for (int i = 0; i < n; i++) {
             if (a(1, i) == 0.0) {
                 GetLog() << "\nR83_NP_FS - Fatal error!\n A(1," << i << ") = 0";
-                system("pause");
             }
             x(i) = b(i);
         }
@@ -350,13 +349,11 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
             GetLog()
                 << "\nSPLINE_CUBIC_SET - Fatal error!\nThe number of knots must be at least 2.\nThe input value of N = "
                 << n;
-            system("pause");
         }
         for (int i = 0; i < n - 1; i++) {
             if (t(i + 1) <= t(i)) {
                 GetLog() << "\nSPLINE_CUBIC_SET - Fatal error!\nThe knots must be strictly increasing, but T(" << i
                          << ") = " << t(i) << " T(" << i + 1 << ") = " << t(i + 1);
-                system("pause");
             }
         }
         if (ibcbeg == 0) {
@@ -375,7 +372,6 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
             GetLog() << "\nSPLINE_CUBIC_SET - Fatal error!\nThe boundary flag IBCBEG must be 0, 1, or 2.\nThe input "
                         "value of IBCBEG = "
                      << ibcbeg;
-            system("pause");
         }
 
         ////////////////////////////////////////
@@ -406,7 +402,6 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
             GetLog() << "\nSPLINE_CUBIC_SET - Fatal error!\nThe boundary flag IBCBEG must be 0, 1, or 2.\nThe input "
                         "value of IBCBEG = "
                      << ibcbeg;
-            system("pause");
         }
 
         if (n == 2 && ibcbeg == 0 && ibcend == 0) {
@@ -824,7 +819,6 @@ class ChLoaderLuGre : public ChLoadCustomMultiple {
                 if (G_Func < 0.0) {
                     GetLog() << "G_Func is negative!"
                              << "\n";
-                    system("pause");
                 }
                 Gx_Func =
                     G_Func * sqrt((ZetaVr(0, 0) / sqrt(ZetaVr(0, 0) * ZetaVr(0, 0) + ZetaVr(0, 1) * ZetaVr(0, 1))) *
@@ -1041,7 +1035,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6>& COORDFlex,
     printf("Open HMMWVBiLinearShell_Tire.INP\n");
     if (inputfile == NULL) {
         printf("Input data file not found!!\n");
-        system("pause");
         exit(1);
     }
 
@@ -1149,7 +1142,6 @@ void ReadRestartInput(ChMatrixNM<double, 2, 7>& COORDRigid,
 
     if (inputfile1 == NULL) {
         printf("Restart Information not found!\n");
-        system("pause");
         exit(1);
     }
 
@@ -1967,6 +1959,5 @@ int main(int argc, char* argv[]) {
     fprintf(outputfile3, "%d  ", mystepper1->GetNumIterations());
     fprintf(outputfile3, "\n  ");
 
-    system("pause");
     return 0;
 }

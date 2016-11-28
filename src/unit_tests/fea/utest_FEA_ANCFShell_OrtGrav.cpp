@@ -225,7 +225,6 @@ int main(int argc, char* argv[]) {
         double AbsVal = std::abs(nodetip->pos.z - FileInputMat[it][1]);
         if (AbsVal > precision) {
             std::cout << "Unit test check failed \n";
-            system("pause");
             return 1;
         }
 

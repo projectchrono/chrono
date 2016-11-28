@@ -109,7 +109,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6>& COORDFlex,
     printf("Open IndataBiLinearShell_Tire(HMMWV50x24).INP \n");
     if (inputfile == NULL) {
         printf("Input data file not found!!\n");
-        system("pause");
         exit(1);
     }
 
@@ -180,7 +179,6 @@ void ReadInputFile(ChMatrixNM<double, 3000, 6>& COORDFlex,
             // j);
         }
         counted += NumLayPerSect(i);
-        // system("pause");
     }
 
     //!--------------------------------------!

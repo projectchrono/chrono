@@ -439,6 +439,5 @@ int main(int argc, char* argv[]) {
 
     GetLog() << "\n  CHRONO execution terminated.";
 
-    system("pause");
     return 0;
 }
