@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
             // Ex.: attach some optional assets, ex for visualization
             float acolscale = (float)ChRandom();
             auto mvisual = std::make_shared<ChColorAsset>();
-            mvisual->SetColor(ChColor(0.3f+acolscale*0.6, 0.2f+acolscale*0.7, 0.2f+acolscale*0.7));
+            mvisual->SetColor(ChColor(0.3f+acolscale*0.6f, 0.2f+acolscale*0.7f, 0.2f+acolscale*0.7f));
             mbody->AddAsset(mvisual);
         }
     };
