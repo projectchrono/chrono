@@ -10,6 +10,8 @@ Contains the prototype for a basic application. Manages things such as window cr
 #include "OgreHardwarePixelBuffer.h"
 
 #include <physics/ChSystem.h>
+
+#define SDL_MAIN_HANDLED
 #include <SDL.h>
 
 #include <memory>

@@ -9,6 +9,8 @@ written more elegantly.
 #include "ChOgreApplication.h"
 #include "physics/ChGlobal.h"
 
+#define SDL_MAIN_HANDLED
+
 #include <SDL_syswm.h>
 
 using namespace Ogre;
@@ -217,12 +219,17 @@ namespace ChOgre {
                     "\n\nCould not initialize SDL video: " + std::string(SDL_GetError())
                             + "\n\n");
         }
-        mSdlWindow = SDL_CreateWindow(Title.c_str(), 0, 0, Width, Height, SDL_WINDOW_SHOWN |
+        mSdlWindow = SDL_CreateWindow(Title.c_str(), 50, 50, Width, Height, SDL_WINDOW_SHOWN |
                 (Fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE);
         SDL_SysWMinfo wmInfo;
         SDL_VERSION(&wmInfo.version);
         SDL_GetWindowWMInfo(mSdlWindow, &wmInfo);
+
+#ifdef WIN32
+		Ogre::String winHandle = Ogre::StringConverter::toString((uintptr_t)wmInfo.info.win.window);
+#else
         Ogre::String winHandle = Ogre::StringConverter::toString( (uintptr_t)wmInfo.info.x11.window );
+#endif
 
 		Ogre::NameValuePairList l_Params;
 
