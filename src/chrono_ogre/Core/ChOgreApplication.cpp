@@ -225,13 +225,16 @@ namespace ChOgre {
         SDL_VERSION(&wmInfo.version);
         SDL_GetWindowWMInfo(mSdlWindow, &wmInfo);
 
+		Ogre::NameValuePairList l_Params;
+
 #ifdef WIN32
 		Ogre::String winHandle = Ogre::StringConverter::toString((uintptr_t)wmInfo.info.win.window);
+		l_Params["externalWindowHandle"] = winHandle;
 #else
         Ogre::String winHandle = Ogre::StringConverter::toString( (uintptr_t)wmInfo.info.x11.window );
+		l_Params["parentWindowHandle"] = winHandle;
 #endif
 
-		Ogre::NameValuePairList l_Params;
 
 		l_Params["FSAA"] = std::to_string(FSAA_Level);
 
@@ -241,7 +244,6 @@ namespace ChOgre {
 		else {
 			l_Params["vsync"] = "false";
 		}
-        l_Params["parentWindowHandle"] = winHandle;
 
 		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
 
