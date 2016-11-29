@@ -24,9 +24,9 @@ namespace ChOgre {
 
 std::string const ChOgre_SDLInputHandler::WheelGUID = "6d049bc2000000000000504944564944";
 
-ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow) {
+ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(SDL_Window* renderWindow) {
 
-    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC | SDL_INIT_VIDEO) != 0) {
+    if (SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_HAPTIC) != 0) {
         Ogre::LogManager::getSingleton().logMessage(
             Ogre::LogMessageLevel::LML_CRITICAL,
             "\n\nCould not initialize SDL: " + std::string(SDL_GetError()) + "\n\n");
@@ -38,34 +38,35 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow)
     }
 
     m_disabled = false;
+    m_pSDLWindow = renderWindow;
 
-#if defined(_WIN32) || defined(WIN32)
-
-    HWND windowHnd = 0;
-
-    // Get window handle
-    renderWindow->getCustomAttribute("WINDOW", &windowHnd);
-
-    m_pSDLWindow = SDL_CreateWindowFrom(windowHnd);
-
-#elif defined(__linux__)
-
-    Window windowHandle = 123456789;
-    // Get window handle
-    renderWindow->getCustomAttribute("WINDOW", &windowHandle);
-
-    std::cout << "Received window information: " << windowHandle << "\n";
-
-    if (windowHandle != 123456789) {
-      m_pSDLWindow = SDL_CreateWindowFrom((void*)windowHandle);
-
-      std::cout << "Passed window information to SDL2\n";
-    }
-    else {
-      std::cout << "Window information was invalid\n";
-    }
-
-#endif
+//#if defined(_WIN32) || defined(WIN32)
+//
+//    HWND windowHnd = 0;
+//
+//    // Get window handle
+//    renderWindow->getCustomAttribute("WINDOW", &windowHnd);
+//
+//    m_pSDLWindow = SDL_CreateWindowFrom(windowHnd);
+//
+//#elif defined(__linux__)
+//
+//    Window windowHandle = 123456789;
+//    // Get window handle
+//    renderWindow->getCustomAttribute("WINDOW", &windowHandle);
+//
+//    std::cout << "Received window information: " << windowHandle << "\n";
+//
+//    if (windowHandle != 123456789) {
+//      m_pSDLWindow = SDL_CreateWindowFrom((void*)windowHandle);
+//
+//      std::cout << "Passed window information to SDL2\n";
+//    }
+//    else {
+//      std::cout << "Window information was invalid\n";
+//    }
+//
+//#endif
 
     if (m_pSDLWindow == nullptr) {
         Ogre::LogManager::getSingleton().logMessage(

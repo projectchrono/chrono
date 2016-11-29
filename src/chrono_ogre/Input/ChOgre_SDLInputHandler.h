@@ -29,7 +29,7 @@ namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
   public:
-    ChOgre_SDLInputHandler(Ogre::RenderWindow* renderWindow);
+    ChOgre_SDLInputHandler(SDL_Window* renderWindow);
     ~ChOgre_SDLInputHandler();
 
     virtual void update();

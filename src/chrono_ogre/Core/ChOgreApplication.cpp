@@ -9,6 +9,8 @@ written more elegantly.
 #include "ChOgreApplication.h"
 #include "physics/ChGlobal.h"
 
+#include <SDL_syswm.h>
+
 using namespace Ogre;
 
 namespace chrono{
@@ -32,6 +34,12 @@ namespace ChOgre {
 
 			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
 			{
+				// use configuration file in the future for better compatibility
+#if defined(__linux__)
+				std::string plugin_root = "/usr/local/lib/OGRE/";
+#else
+				std::string plugin_root = "";
+#endif
 				for (auto p : l_Plugins) {
 					std::string& l_PluginName = p;
 
@@ -40,7 +48,7 @@ namespace ChOgre {
 					if (l_IsInDebugMode) {
 						l_PluginName += "_d";
 					}
-					m_pRoot->loadPlugin(l_PluginName);
+					m_pRoot->loadPlugin(plugin_root + l_PluginName);
 				}
 			}
 			//const std::string pluginfile = "plugins.cfg";
@@ -69,28 +77,31 @@ namespace ChOgre {
 			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
 		}
 
-		{
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/mygui_resources/", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/programs", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/materials/textures", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/materials/", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/fonts/minecraftia", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/nvidia", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/models", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "../data/ogre/skyboxes/sky", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/heightmaps", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/particle", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/DeferredShadingMedia", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/RTShaderLib", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/RTShaderLib/materials", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts/SSAO", "FileSystem");
-			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/SSAO", "FileSystem");
-
+        {
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath(), "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre", "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre/mygui_resources",
+                    "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre/materials", "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre/materials/textures",
+                    "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre/models", "FileSystem",
+                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+                    chrono::GetChronoDataPath() + "/ogre/skyboxes/sky",
+                    "FileSystem",
+            Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
 
 			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
 
@@ -200,6 +211,19 @@ namespace ChOgre {
 
 	Ogre::RenderWindow* ChOgreApplication::createWindow(const std::string& Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
 
+        if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+            Ogre::LogManager::getSingleton().logMessage(
+                    Ogre::LogMessageLevel::LML_CRITICAL,
+                    "\n\nCould not initialize SDL video: " + std::string(SDL_GetError())
+                            + "\n\n");
+        }
+        mSdlWindow = SDL_CreateWindow(Title.c_str(), 0, 0, Width, Height, SDL_WINDOW_SHOWN |
+                (Fullscreen ? SDL_WINDOW_FULLSCREEN : 0) | SDL_WINDOW_RESIZABLE);
+        SDL_SysWMinfo wmInfo;
+        SDL_VERSION(&wmInfo.version);
+        SDL_GetWindowWMInfo(mSdlWindow, &wmInfo);
+        Ogre::String winHandle = Ogre::StringConverter::toString( (uintptr_t)wmInfo.info.x11.window );
+
 		Ogre::NameValuePairList l_Params;
 
 		l_Params["FSAA"] = std::to_string(FSAA_Level);
@@ -210,6 +234,7 @@ namespace ChOgre {
 		else {
 			l_Params["vsync"] = "false";
 		}
+        l_Params["parentWindowHandle"] = winHandle;
 
 		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
 
@@ -229,7 +254,7 @@ namespace ChOgre {
 
 		m_pRoot->clearEventTimes();
 
-		m_pInputManager = new ChOgre_SDLInputHandler(m_pRenderWindow);
+		m_pInputManager = new ChOgre_SDLInputHandler(mSdlWindow);
 		m_pGUIManager = new ChOgreGUIManager(m_pRenderWindow, m_pSceneManager, m_pInputManager);
 
 		m_pRenderWindow->setActive(true);
