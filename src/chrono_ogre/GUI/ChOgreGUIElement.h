@@ -3,14 +3,12 @@
 #include "chrono_ogre/ChOgreApi.h"
 #include <MYGUI/MyGUI.h>
 #include <MYGUI/MyGUI_OgrePlatform.h>
-#include <core/ChVector.h>
+#include <core/ChVector2.h>
 #include <memory>
 #include <string>
 
 namespace chrono{
 namespace ChOgre {
-
-typedef chrono::ChVector<float> ChFloat3;
 
 class CHOGRE_DLL_TAG ChOgreGUIElement {
   public:
@@ -20,14 +18,14 @@ class CHOGRE_DLL_TAG ChOgreGUIElement {
 
     virtual void setName(std::string Name);
     virtual void setGUI(MyGUI::Gui* GUI);
-    virtual void setPosition(const ChFloat3& Position) = 0;
-    virtual void setSize(const ChFloat3& Size) = 0;
+    virtual void setPosition(const ChVector2<>& Position) = 0;
+    virtual void setSize(const ChVector2<>& Size) = 0;
     virtual void setColor(float r, float g, float b) = 0;
     virtual void update(){};
 
     virtual std::string getName();
-    virtual ChFloat3 getSize() = 0;
-    virtual ChFloat3 getPosition() = 0;
+    virtual ChVector2<> getSize() = 0;
+    virtual ChVector2<> getPosition() = 0;
 
   protected:
     std::string m_Name;

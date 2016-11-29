@@ -17,7 +17,7 @@ namespace chrono {
 			m_pGUI = GUI;
 		}
 
-		ChOgreGUIImage::ChOgreGUIImage(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
+		ChOgreGUIImage::ChOgreGUIImage(const ChVector2<>& Position, const ChVector2<>& Size, MyGUI::Gui* GUI) {
 			m_pGUI = GUI;
 
 			m_pImageBox = m_pGUI->createWidgetReal<MyGUI::ImageBox>("ImageBox", Position.x, Position.y, Size.x, Size.y,
@@ -37,12 +37,12 @@ namespace chrono {
 			m_pImageBox->setImageTexture(Path);
 		}
 
-		void ChOgreGUIImage::setPosition(const ChFloat3& Position) {
+		void ChOgreGUIImage::setPosition(const ChVector2<>& Position) {
 			m_pImageBox->setRealPosition(Position.x, Position.y);
 			//m_pTextBox->setDepth(int(Position.z)); //setDepth is not a function in mygui::button
 		}
 
-		void ChOgreGUIImage::setSize(const ChFloat3& Size) {
+		void ChOgreGUIImage::setSize(const ChVector2<>& Size) {
 			m_pImageBox->setRealSize(Size.x, Size.y);
 		}
 	}

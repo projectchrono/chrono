@@ -32,7 +32,7 @@ int main(int argc, char** args) {
 
 	app.getScene()->setSkyBox("sky");
 
-	auto Image = app.getGUIManager()->createWidget<ChOgreGUIImage>(ChFloat3(0.f, 0.f, 0.f), ChFloat3(0.2f, 0.2f, 1.f));
+	auto Image = app.getGUIManager()->createWidget<ChOgreGUIImage>(chrono::ChVector2<>(0.0, 0.0), chrono::ChVector2<>(0.2, 0.2));
 	Image->setImage("logo_projectchrono_alpha.png");
 
 	int spheresLeft = 2000;
@@ -50,6 +50,8 @@ int main(int argc, char** args) {
 				((2.0 / 5.0)*Ball->GetMass() * 0.5 * 0.5),
 				((2.0 / 5.0)*Ball->GetMass() * 0.5 * 0.5),
 				((2.0 / 5.0)*Ball->GetMass() * 0.5 * 0.5)));
+
+			Ball.m_pBody->setColor(0.f, 1.f, 0.f);
 
 			Ball->SetPos_dt(chrono::ChVector<>(-7.0 + variance, -7.0, -7.0));
 		}

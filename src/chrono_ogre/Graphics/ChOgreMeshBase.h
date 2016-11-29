@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chrono_ogre/ChOgreApi.h"
+#include <chrono/core/ChVector.h>
 #include <Ogre.h>
 
 namespace chrono{
@@ -21,6 +22,9 @@ class CHOGRE_DLL_TAG ChOgreMeshBase {
     void assignSceneManager(Ogre::SceneManager* SceneManager);
     void loadMesh(const std::string& MeshPath);
     void setMesh(const Ogre::MeshPtr& pMesh);
+
+	void setColor(const chrono::ChVector<>& Color);
+	void setColor(float r, float g, float b);
 
     Ogre::SceneManager* getSceneManager() { return m_pSceneManager; }
     Ogre::Entity* getEntity() { return m_pEntity; }

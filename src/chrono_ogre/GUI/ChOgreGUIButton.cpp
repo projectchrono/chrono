@@ -11,7 +11,7 @@ ChOgreGUIButton::ChOgreGUIButton(MyGUI::Gui* GUI) {
     m_pGUI = GUI;
 }
 
-ChOgreGUIButton::ChOgreGUIButton(const ChFloat3& Position, const ChFloat3& Size, MyGUI::Gui* GUI) {
+ChOgreGUIButton::ChOgreGUIButton(const ChVector2<>& Position, const ChVector2<>& Size, MyGUI::Gui* GUI) {
     m_pGUI = GUI;
 
     m_pButton = m_pGUI->createWidgetReal<MyGUI::Button>("Button", Position.x, Position.y, Size.x, Size.y,
@@ -42,12 +42,12 @@ void ChOgreGUIButton::setFont(const std::string& Name) {
     m_pButton->setFontName(Name);
 }
 
-void ChOgreGUIButton::setPosition(const ChFloat3& Position) {
+void ChOgreGUIButton::setPosition(const ChVector2<>& Position) {
     m_pButton->setRealPosition(Position.x, Position.y);
     //m_pButton->setDepth(int(Position.z)); //setdepth is not a function of a mygui button
 }
 
-void ChOgreGUIButton::setSize(const ChFloat3& Size) {
+void ChOgreGUIButton::setSize(const ChVector2<>& Size) {
     m_pButton->setRealSize(Size.x, Size.y);
 }
 

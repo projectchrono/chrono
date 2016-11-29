@@ -7,7 +7,7 @@
 #include <MYGUI/MyGUI.h>
 #include <MYGUI/MyGUI_OgrePlatform.h>
 #include <memory>
-#include <core/ChVector.h>
+#include <core/ChVector2.h>
 
 namespace chrono{
 namespace ChOgre {
@@ -23,7 +23,7 @@ class CHOGRE_DLL_TAG ChOgreGUIManager {
     bool isVisible() { return m_isVisible; }
 
     template <typename T>
-    inline std::unique_ptr<T> createWidget(const ChFloat3& Position, const ChFloat3& Size) {
+    inline std::unique_ptr<T> createWidget(const ChVector2<>& Position, const ChVector2<>& Size) {
         static_assert(std::is_base_of<ChOgreGUIElement, T>::value, "T must inherit from ChOgreGUIElement");
         return std::unique_ptr<T>(new T(Position, Size, m_pGUI));
     }

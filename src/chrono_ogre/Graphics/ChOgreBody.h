@@ -47,6 +47,9 @@ class CHOGRE_DLL_TAG ChOgreBody {
     virtual std::shared_ptr<ChBody> operator->();  // Operator magic. Allows a refrence to an ChOgreBody to offer
                                                        // members as an ChOgreBody object, and as a ChBody pointer
 
+	void setColor(const chrono::ChVector<>& Color);
+	void setColor(float r, float g, float b);
+
     std::string name;
     bool deletable;
     bool isStaticMesh;

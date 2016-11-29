@@ -64,7 +64,23 @@ void ChOgreMeshBase::loadMesh(const std::string& MeshPath) {
 }
 
 void ChOgreMeshBase::setMesh(const Ogre::MeshPtr& pMesh) {
-    m_pEntity = m_pSceneManager->createEntity(pMesh);
+	m_pEntity = m_pSceneManager->createEntity(pMesh);
 }
+
+void ChOgreMeshBase::setColor(const chrono::ChVector<>& Color) {
+	setColor(Color.x, Color.y, Color.z);
+}
+
+void ChOgreMeshBase::setColor(float r, float g, float b) {
+//	auto pPass = m_pEntity->getSubEntity(0)->getMaterial()->getTechnique(0)->getPass(0);
+//	pPass->setAmbient(r, g, b);
+//	pPass->setDiffuse(r, g, b, 0);
+
+//	auto pParameters = m_pEntity->getSubEntity(0)->getMaterial()->getTechnique(0)->getPass(0)->getVertexProgramParameters();
+
+//	pParameters->setNamedConstant("ambient", Ogre::ColourValue(r, g, b));
+//	pParameters->setNamedConstant("diffuse", Ogre::ColourValue(r, g, b));
+}
+
 }
 }

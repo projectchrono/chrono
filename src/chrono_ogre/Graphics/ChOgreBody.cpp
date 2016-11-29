@@ -252,5 +252,16 @@ std::shared_ptr<ChBody> ChOgreBody::getChBody() {
 std::shared_ptr<ChBody> ChOgreBody::operator->() {
     return getChBody();
 }
+
+void ChOgreBody::setColor(const chrono::ChVector<>& Color) {
+	setColor(Color.x, Color.y, Color.z);
+}
+
+void ChOgreBody::setColor(float r, float g, float b) {
+	for (auto& Model : m_Models) {
+		Model.mesh.setColor(r, g, b);
+	}
+}
+
 }
 }
