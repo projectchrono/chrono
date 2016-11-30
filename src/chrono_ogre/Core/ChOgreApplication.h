@@ -11,6 +11,9 @@ Contains the prototype for a basic application. Manages things such as window cr
 
 #include <physics/ChSystem.h>
 
+#define SDL_MAIN_HANDLED
+#include <SDL.h>
+
 #include <memory>
 #include <exception>
 #include <thread>
@@ -79,6 +82,8 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     std::string OutputImageFolder;
 
   protected:
+    SDL_Window *mSdlWindow;
+
     Ogre::Root* m_pRoot;
     Ogre::RenderWindow* m_pRenderWindow;
     Ogre::SceneManager* m_pSceneManager;

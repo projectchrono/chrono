@@ -62,7 +62,7 @@ void ChOgreMeshBase::assignSceneManager(Ogre::SceneManager* SceneManager) {
 void ChOgreMeshBase::loadMesh(const std::string& MeshPath) {
 	m_pEntity = m_pSceneManager->createEntity(MeshPath);
 
-	Ogre::MaterialPtr m = m_pEntity->getSubEntity(0)->getMaterial()->clone(std::to_string((uint64_t)this));
+	//Ogre::MaterialPtr m = m_pEntity->getSubEntity(0)->getMaterial()->clone(std::to_string((uint64_t)this));
 }
 
 void ChOgreMeshBase::setMesh(const Ogre::MeshPtr& pMesh) {
@@ -87,8 +87,8 @@ void ChOgreMeshBase::setColor(float r, float g, float b) {
 //	pParameters->setNamedConstant("ambient", Ogre::ColourValue(r, g, b));
 //	pParameters->setNamedConstant("diffuse", Ogre::ColourValue(r, g, b));
 
-	m_pEntity->getSubEntity(0)->getTechnique()->setAmbient(r, g, b);
-	m_pEntity->getSubEntity(0)->getTechnique()->setDiffuse(r, g, b, 1);
+//	m_pEntity->getSubEntity(0)->getTechnique()->setAmbient(r, g, b);
+//	m_pEntity->getSubEntity(0)->getTechnique()->setDiffuse(r, g, b, 1);
 }
 
 }
