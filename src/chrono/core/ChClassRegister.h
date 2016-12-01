@@ -210,54 +210,6 @@ public:
 
 
 
-/// Class for registration data of classes 
-/// whose objects can be created via a class factory.
-
-template <class t>
-class ChClassRegistration : public ChClassRegistrationBase {
-  protected:
-    //
-    // DATA
-    //
-
-    /// Name of the class for dynamic creation
-    std::string m_sConventionalName;
-
-  public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Creator (adds this to the global list of
-    /// ChClassRegistration<t> objects).
-    ChClassRegistration() {
-        // set name using the 'fake' RTTI system of Chrono
-        this->m_sConventionalName = t::FactoryClassNameTag();
-
-        // register in global class factory
-        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
-    }
-
-    /// Destructor (removes this from the global list of
-    /// ChClassRegistration<t> objects).
-    virtual ~ChClassRegistration() {
-
-        // register in global class factory
-        ChClassFactory::ClassUnregister(this->m_sConventionalName);
-    }
-
-    //
-    // METHODS
-    //
-
-    virtual void* create() {
-        return (void*)(new t);
-    }
-
-};
-
-
-
 /// A class factory. 
 /// It can create C++ objects from their string name.
 /// Just use the  ChClassFactory::create()  function, given a string.
@@ -306,10 +258,19 @@ class ChApi ChClassFactory {
             DisposeGlobalClassFactory();
     }
 
-    /// Create from tag name, for registered classes.
+    /// Create from tag name, for registered classes. 
+    /// Returns object as void*, must use reinterpret_cast<>() later if needed.
     static void* create(std::string& keyName) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         return global_factory->_create(keyName);
+    }
+
+    /// Create from tag name, for registered classes.
+    /// The created object is returned in "ptr"
+    template <class T>
+    static void create(std::string& keyName, T** ptr) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        *ptr = reinterpret_cast<T*>(global_factory->create(keyName));
     }
 
 private:
@@ -354,6 +315,56 @@ private:
 private:
     std::unordered_map<std::string, ChClassRegistrationBase*> class_map;
 };
+
+
+
+/// Class for registration data of classes 
+/// whose objects can be created via a class factory.
+
+template <class t>
+class ChClassRegistration : public ChClassRegistrationBase {
+  protected:
+    //
+    // DATA
+    //
+
+    /// Name of the class for dynamic creation
+    std::string m_sConventionalName;
+
+  public:
+    //
+    // CONSTRUCTORS
+    //
+
+    /// Creator (adds this to the global list of
+    /// ChClassRegistration<t> objects).
+    ChClassRegistration() {
+        // set name using the 'fake' RTTI system of Chrono
+        this->m_sConventionalName = t::FactoryClassNameTag();
+
+        // register in global class factory
+        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+    }
+
+    /// Destructor (removes this from the global list of
+    /// ChClassRegistration<t> objects).
+    virtual ~ChClassRegistration() {
+
+        // register in global class factory
+        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+    }
+
+    //
+    // METHODS
+    //
+
+    virtual void* create() {
+        return (void*)(new t);
+    }
+
+};
+
+
 
 
 
