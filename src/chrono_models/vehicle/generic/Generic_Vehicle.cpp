@@ -38,6 +38,7 @@
 #include "chrono_models/vehicle/generic/Generic_Wheel.h"
 #include "chrono_models/vehicle/generic/Generic_RackPinion.h"
 #include "chrono_models/vehicle/generic/Generic_Driveline2WD.h"
+#include "chrono_models/vehicle/generic/Generic_SimpleDriveline.h"
 #include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 
 namespace chrono {
@@ -111,7 +112,8 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>("Driveline");
+    //m_driveline = std::make_shared<Generic_Driveline2WD>("Driveline");
+    m_driveline = std::make_shared<Generic_SimpleDriveline>("Driveline");
 
     // -----------------
     // Create the brakes

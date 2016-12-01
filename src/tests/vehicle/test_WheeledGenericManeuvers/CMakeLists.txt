@@ -10,6 +10,8 @@ endif()
 # List all tests in this suite
 SET(TESTS
     test_VEH_WheeledGeneric_Accel
+	test_VEH_WheeledGeneric_CRC
+	test_VEH_WheeledGeneric_LaneChange
 )
 
 # ------------------------------------------------------
