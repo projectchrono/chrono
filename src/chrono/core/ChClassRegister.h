@@ -210,9 +210,64 @@ public:
 
 
 
+/// Class for registration data of classes 
+/// whose objects can be created via a class factory.
 
-/// ChClassFactory is instanced once as a static object at ChronoEngine DLL startup.
-/// Use the public static methods to add ChClassRegistration objects to the map. 
+template <class t>
+class ChClassRegistration : public ChClassRegistrationBase {
+  protected:
+    //
+    // DATA
+    //
+
+    /// Name of the class for dynamic creation
+    std::string m_sConventionalName;
+
+  public:
+    //
+    // CONSTRUCTORS
+    //
+
+    /// Creator (adds this to the global list of
+    /// ChClassRegistration<t> objects).
+    ChClassRegistration() {
+        // set name using the 'fake' RTTI system of Chrono
+        this->m_sConventionalName = t::FactoryClassNameTag();
+
+        // register in global class factory
+        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+    }
+
+    /// Destructor (removes this from the global list of
+    /// ChClassRegistration<t> objects).
+    virtual ~ChClassRegistration() {
+
+        // register in global class factory
+        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+    }
+
+    //
+    // METHODS
+    //
+
+    virtual void* create() {
+        return (void*)(new t);
+    }
+
+};
+
+
+
+/// A class factory. 
+/// It can create C++ objects from their string name.
+/// Just use the  ChClassFactory::create()  function, given a string.
+/// NOTE: desired classes must be previously registered 
+///  via the CH_FACTORY_REGISTER macro, or using ClassRegister, otherwise
+///  the ChClassFactory::create()  throws an exception.
+/// NOTE: You do not need to explicitly create it: a static ChClassFactory
+///  class factory is automatically instanced once, at the first time
+///  that someone registers a class. It is consistent also across different DLLs.
+
 
 class ChApi ChClassFactory {
   public:
@@ -268,6 +323,7 @@ private:
     void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
     {
        class_map[keyName] = mregistration;
+       GetLog() << " register class: " << keyName << "\n";
     }
 
     void _ClassUnregister(std::string& keyName)
@@ -301,52 +357,26 @@ private:
 
 
 
-/// Class for registration data of classes 
-/// whose objects can be created via a class factory.
 
-template <class t>
-class ChClassRegistration : public ChClassRegistrationBase {
-  protected:
-    //
-    // DATA
-    //
 
-    /// Name of the class for dynamic creation
-    std::string m_sConventionalName;
 
-  public:
-    //
-    // CONSTRUCTORS
-    //
-
-    /// Creator (adds this to the global list of
-    /// ChClassRegistration<t> objects).
-    ChClassRegistration() {
-        // set name using the 'fake' RTTI system of Chrono
-        this->m_sConventionalName = t::FactoryClassNameTag();
-
-        // register in global class factory
-        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
-    }
-
-    /// Destructor (removes this from the global list of
-    /// ChClassRegistration<t> objects).
-    virtual ~ChClassRegistration() {
-
-        // register in global class factory
-        ChClassFactory::ClassUnregister(this->m_sConventionalName);
-    }
-
-    //
-    // METHODS
-    //
-
-    virtual void* create() {
-        return (void*)(new t);
-    }
-
-};
-
+/// MACRO TO MARK CLASSES FOR CLASS FACTORY
+/// Different compilers use different name decorations, so typeid(ptr).name() is 
+/// not guaranteed to be the same across different platforms/compilers. 
+/// The solution is adding a static function FactoryClassNameTag() in classes, 
+/// that return a unique string.
+/// Use this macro inside the body of a class declaration, better if just
+/// at the beginning, for example:
+///
+/// class my_class {
+///     CH_FACTORY_TAG(my_class)
+/// }
+///
+/// NOTE! to support polimorphism, for ChArchive, an additional FactoryNameTag()  is made
+/// virtual: a side effect is that the class and its children will be promoted VIRTUAL, keep this
+/// in mind if you care about extreme performance with small objects (ex. 3d vectors, etc.).
+/// This not a big issue anyway, as class factories in ChArchive are needed mostly when 
+/// polimorphism comes into play (serialization of polimorphic objects, for example).
 
 #define CH_FACTORY_TAG(classname)                           \
   public:                                                   \
@@ -359,6 +389,12 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return mtag;                                        \
     }                                                       \
 
+
+/// MACRO TO REGISTER A CLASS INTO THE GLOBAL CLASS FACTORY 
+/// - Put this macro into a .cpp, where you prefer, but not into a .h header!
+/// - Use it as 
+///      CH_FACTORY_REGISTER(my_class)
+/// - Note that my_class must be marked with the CH_FACTORY_TAG macro (see above)
 
 #define CH_FACTORY_REGISTER(classname)                                          \
 namespace class_factory {                                                       \
