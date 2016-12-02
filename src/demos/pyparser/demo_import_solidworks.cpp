@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
 
     ChSystem::IteratorPhysicsItems myiter = mphysicalSystem.IterBeginPhysicsItems();
     while (myiter.HasItem()) {
-        GetLog() << "item:" << (*myiter)->GetRTTI()->GetName() << "\n";
+        GetLog() << "item:" << (*myiter)->FactoryNameTag() << "\n";
         ++myiter;
     }
 

@@ -17,8 +17,6 @@
 //     - archives for serialization,
 //     - serialization, with versioning and dynamic
 //       creation (class factory)
-//     - class runtime type identification, without
-//       enabling the RTTI compiler feature
 //
 ///////////////////////////////////////////////////
 

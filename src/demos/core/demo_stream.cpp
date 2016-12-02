@@ -11,13 +11,7 @@
 
 //////////////////////////////////////////////////
 //
-//   Demos code about
-//
-//     - streams,
-//     - serialization, with versioning and dynamic
-//       creation (class factory)
-//     - class runtime type identification, without
-//       enabling the RTTI compiler feature
+//   Demos code about streams
 //
 //	 CHRONO
 //   ------

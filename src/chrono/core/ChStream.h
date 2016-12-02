@@ -371,9 +371,8 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
+            std::string str = pObj->FactoryNameTag();
             *this << str;   // serialize class type
             *this < *pObj;  // serialize data
         } else {
@@ -400,9 +399,8 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
+            std::string str = pObj->FactoryNameTag();
             *this << str;               // serialize class type
             pObj->StreamOUTall(*this);  // serialize data
         } else {

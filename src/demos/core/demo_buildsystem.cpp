@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
         GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
         ChSystem::IteratorLinks myiter = my_system.IterBeginLinks();
         while (myiter != my_system.IterEndLinks()) {
-            GetLog() << "   Link class: " << (*myiter)->GetRTTI()->GetName()
+            GetLog() << "   Link class: " << (*myiter)->FactoryNameTag()
                      << "  , leaves n.DOFs: " << (*myiter)->GetLeftDOF() << "\n";
             ++myiter;
         }
