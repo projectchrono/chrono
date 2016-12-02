@@ -42,8 +42,8 @@ namespace collision {
 
 class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCollisionSystemBullet, ChCollisionSystem);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCollisionSystemBullet)
 
   public:
     ChCollisionSystemBullet(unsigned int max_objects = 16000, double scene_size = 500);

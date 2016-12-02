@@ -36,9 +36,11 @@ namespace fea {
 
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.
+
 class ChApiFea ChMesh : public ChIndexedNodes {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMesh, ChIndexedNodes);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMesh)
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAbase> > vnodes;     ///<  nodes

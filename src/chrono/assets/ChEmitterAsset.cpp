@@ -17,7 +17,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChEmitterAsset> a_registration_ChEmitterAsset;
+CH_FACTORY_REGISTER(ChEmitterAsset)
 
 
 void ChEmitterAsset::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {

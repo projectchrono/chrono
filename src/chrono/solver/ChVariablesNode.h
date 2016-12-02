@@ -24,7 +24,9 @@ namespace chrono {
 /// associate variables (a 3 element vector, ex.speed)
 
 class ChApi ChVariablesNode : public ChVariables {
-    CH_RTTI(ChVariablesNode, ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesNode)
 
   private:
     void* user_data;  ///< user-specified data

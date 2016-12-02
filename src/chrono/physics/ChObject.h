@@ -38,8 +38,9 @@ class ChTag;
 
 /// Base class for items which can be named, deleted, copied. etc. as in the editor of a 3d modeler.
 class ChApi ChObj {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChObj);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChObj)
 
   private:
     std::string name;  ///< name of object

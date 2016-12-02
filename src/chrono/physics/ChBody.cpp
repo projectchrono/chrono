@@ -31,7 +31,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChBody> a_registration_ChBody;
+CH_FACTORY_REGISTER(ChBody)
 
 ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     marklist.clear();

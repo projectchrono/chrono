@@ -25,8 +25,8 @@ namespace fea {
 /// Proxy to FEA nodes, to grant them the features
 /// needed for collision detection.
 class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactNodeXYZ);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactNodeXYZ)
 
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
@@ -148,8 +148,8 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
 /// type of collisions.
 class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
 
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChContactNodeXYZsphere, ChContactNodeXYZ);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactNodeXYZsphere)
 
 public:
     ChContactNodeXYZsphere(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0);
@@ -170,8 +170,8 @@ private:
 /// from ChNodeFEAxyzrot, but this does not happen -hopefully it will be, in future API-, so we need
 /// to implement also this ChContactNodeXYZROT as a proxy to ChNodeFEAxyzrot, sorry for code redundancy.
 class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactNodeXYZROT);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactNodeXYZROT)
 
   public:
     ChContactNodeXYZROT(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0) {
@@ -293,8 +293,8 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
 /// type of collisions.
 class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChContactNodeXYZROTsphere, ChContactNodeXYZROT);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactNodeXYZROTsphere)
 
 public:
     ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0);
@@ -314,8 +314,8 @@ private:
 /// cases, and misses FEAedge-vs-edges)
 class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
 
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChContactSurfaceNodeCloud, ChContactSurface);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactSurfaceNodeCloud)
 
 
   public:

@@ -16,6 +16,6 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChCamera> a_registration_ChCamera;
+CH_FACTORY_REGISTER(ChCamera)
 
 }  // END_OF_NAMESPACE____

@@ -25,8 +25,9 @@ namespace chrono {
 /// Class for a single 'point' node, that has 3 DOF degrees of freedom and a mass.
 
 class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChNodeXYZ, ChNodeBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChNodeXYZ)
 
   public:
     ChNodeXYZ();

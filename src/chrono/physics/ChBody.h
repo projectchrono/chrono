@@ -61,8 +61,9 @@ class ChSystem;
 /// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChBody, ChPhysicsItem);
+    
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChBody)
 
   protected:
     collision::ChCollisionModel* collision_model;  ///< Pointer to the collision model

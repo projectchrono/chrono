@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLoadContainer> a_registration_ChLoadContainer;
+CH_FACTORY_REGISTER(ChLoadContainer)
 
 ChLoadContainer::ChLoadContainer(const ChLoadContainer& other) : ChPhysicsItem(other) {
     loadlist = other.loadlist;

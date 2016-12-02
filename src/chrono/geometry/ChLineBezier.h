@@ -29,8 +29,9 @@ namespace geometry {
 
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLineBezier, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLineBezier)
 
   public:
     ChLineBezier() : m_own_data(false), m_path(NULL) {}

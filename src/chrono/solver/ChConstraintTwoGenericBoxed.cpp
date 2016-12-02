@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConstraintTwoGenericBoxed> a_registration_ChConstraintTwoGenericBoxed;
+CH_FACTORY_REGISTER(ChConstraintTwoGenericBoxed)
 
 ChConstraintTwoGenericBoxed::ChConstraintTwoGenericBoxed(const ChConstraintTwoGenericBoxed& other)
     : ChConstraintTwoGeneric(other) {

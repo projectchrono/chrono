@@ -25,8 +25,9 @@ namespace geometry {
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 
 class ChApi ChLinePoly : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinePoly, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinePoly)
 
   private:
     std::vector<ChVector<> > points;  ///< control points

@@ -223,8 +223,9 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 /// 'meshless' FEA approach.
 
 class ChApi ChMatterSPH : public ChIndexedNodes {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMatterSPH, ChIndexedNodes);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMatterSPH)
 
   private:
     std::vector<std::shared_ptr<ChNodeSPH> > nodes;     ///< the nodes (markers)

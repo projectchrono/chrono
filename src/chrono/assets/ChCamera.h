@@ -22,8 +22,8 @@ namespace chrono {
 /// with basic settings
 
 class ChApi ChCamera : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCamera, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCamera)
 
   private:
     //

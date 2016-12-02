@@ -193,9 +193,11 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 /// Class for clusters of nodes that can simulate a visco-elasto-plastic deformable
 /// solid using the approach in Mueller ("Point based.." 2004 paper), that is with
 /// a 'meshless' FEA approach.
+
 class ChApiFea ChMatterMeshless : public ChIndexedNodes {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMatterMeshless, ChIndexedNodes);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMatterMeshless)
 
   private:
     std::vector<std::shared_ptr<ChNodeMeshless> > nodes;  ///< nodes

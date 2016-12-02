@@ -15,7 +15,7 @@
 #ifndef CHMATERIALSURFACEBASE_H
 #define CHMATERIALSURFACEBASE_H
 
-#include "chrono/core/ChRunTimeType.h"
+#include "chrono/core/ChClassFactory.h"
 #include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
@@ -23,8 +23,9 @@ namespace chrono {
 /// Base class for specifying material properties for contact force generation.
 
 class ChApi ChMaterialSurfaceBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChMaterialSurfaceBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMaterialSurfaceBase)
 
   public:
     enum ContactMethod {

@@ -62,7 +62,7 @@ void ChFseqNode::SetDuration(double mdur) {
 // -------------------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Sequence> a_registration_sequence;
+CH_FACTORY_REGISTER(ChFunction_Sequence)
 
 ChFunction_Sequence::ChFunction_Sequence(const ChFunction_Sequence& other) {
     start = other.start;

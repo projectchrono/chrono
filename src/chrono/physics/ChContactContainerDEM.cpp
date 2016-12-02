@@ -21,7 +21,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContactContainerDEM> a_registration_ChContactContainerDEM;
+CH_FACTORY_REGISTER(ChContactContainerDEM)
 
 ChContactContainerDEM::ChContactContainerDEM()
     : n_added_3_3(0),

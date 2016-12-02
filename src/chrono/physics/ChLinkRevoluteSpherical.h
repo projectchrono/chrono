@@ -29,7 +29,9 @@ namespace chrono {
 /// revolute joint.
 
 class ChApi ChLinkRevoluteSpherical : public ChLink {
-    CH_RTTI(ChLinkRevoluteSpherical, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkRevoluteSpherical)
 
   public:
     ChLinkRevoluteSpherical();

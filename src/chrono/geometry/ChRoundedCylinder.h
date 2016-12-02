@@ -23,8 +23,9 @@ namespace geometry {
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 
 class ChApi ChRoundedCylinder : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChRoundedCylinder, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChRoundedCylinder)
 
   public:
     ChVector<> center;  ///< cylinder center

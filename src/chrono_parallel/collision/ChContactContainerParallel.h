@@ -20,7 +20,9 @@ namespace chrono {
 /// * Currently, only contacts between rigid bodies are considered
 
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase {
-    CH_RTTI(ChContactContainerParallel, ChContactContainerBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactContainerParallel)
 
   public:
     typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;

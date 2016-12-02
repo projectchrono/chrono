@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMask> a_registration_ChLinkMask;
+CH_FACTORY_REGISTER(ChLinkMask)
 
 ChLinkMask::ChLinkMask() : nconstr(1) {
     constraints.resize(1);
@@ -199,7 +199,7 @@ void ChLinkMask::ArchiveIN(ChArchiveIn& marchive) {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChLinkMaskLF> a_registration_ChLinkMaskLF;
+CH_FACTORY_REGISTER(ChLinkMaskLF)
 
 ChLinkMaskLF::ChLinkMaskLF() {
     ResetNconstr(7);  // the LF formulation uses 7 constraint flags

@@ -26,7 +26,8 @@ namespace chrono {
 /// Repeats a 'window' of a function, periodically.
 
 class ChApi ChFunction_Repeat : public ChFunction {
-    CH_RTTI(ChFunction_Repeat, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Repeat)
 
   private:
     double window_start;   ///< window begin position

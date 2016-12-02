@@ -24,7 +24,7 @@ ChContinuumMaterial::ChContinuumMaterial(const ChContinuumMaterial& other) {
 }
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContinuumMaterial> a_registration_ChContinuumMaterial;
+CH_FACTORY_REGISTER(ChContinuumMaterial)
 
 void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -45,7 +45,7 @@ void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContinuumElastic> a_registration_ChContinuumElastic;
+CH_FACTORY_REGISTER(ChContinuumElastic)
 
 ChContinuumElastic::ChContinuumElastic(double myoung, double mpoisson, double mdensity)
     : ChContinuumMaterial(mdensity) {
@@ -172,7 +172,7 @@ void ChContinuumElastoplastic::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContinuumPlasticVonMises> a_registration_ChContinuumPlasticVonMises;
+CH_FACTORY_REGISTER(ChContinuumPlasticVonMises)
 
 ChContinuumPlasticVonMises::ChContinuumPlasticVonMises(double myoung,
                                                        double mpoisson,
@@ -249,7 +249,7 @@ void ChContinuumPlasticVonMises::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContinuumDruckerPrager> a_registration_ChContinuumDruckerPrager;
+CH_FACTORY_REGISTER(ChContinuumDruckerPrager)
 
 ChContinuumDruckerPrager::ChContinuumDruckerPrager(double myoung,
                                                    double mpoisson,

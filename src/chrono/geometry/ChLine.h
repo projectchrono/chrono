@@ -26,8 +26,9 @@ namespace geometry {
 /// Base class for all geometric objects representing lines in 3D space.
 
 class ChApi ChLine : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLine, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLine)
 
   protected:
     bool closed;

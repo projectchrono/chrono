@@ -29,8 +29,8 @@ namespace irrlicht {
 /// This must be added as an 'asset' to the item (ex., a ChBody).
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChIrrNodeAsset, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChIrrNodeAsset)
 
   protected:
     ChIrrNode* mnode;

@@ -33,9 +33,11 @@ namespace fea {
 /// and a ChBodyFrame (frame) object.
 /// The node position is enforced to coincide to a given position associated
 /// with the ChBodyFrame.
+
 class ChApiFea ChLinkPointFrame : public ChLinkBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkPointFrame, ChLinkBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPointFrame)
 
   private:
     ChVector<> m_react;

@@ -25,8 +25,9 @@ namespace geometry {
 /// Base class for triangle meshes.
 
 class ChApi ChTriangleMesh : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTriangleMesh, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTriangleMesh)
 
   public:
     ChTriangleMesh() {}

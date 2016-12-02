@@ -50,7 +50,8 @@ class ChApi ChRecPoint {
 ///     where (x,y) points can be inserted randomly.
 
 class ChApi ChFunction_Recorder : public ChFunction {
-    CH_RTTI(ChFunction_Recorder, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Recorder)
 
   private:
     std::list<ChRecPoint> m_points;  ///< the list of points

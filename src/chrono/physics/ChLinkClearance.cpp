@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkClearance> a_registration_ChLinkClearance;
+CH_FACTORY_REGISTER(ChLinkClearance)
 
 ChLinkClearance::ChLinkClearance() {
     type = LNK_CLEARANCE;  // initializes type

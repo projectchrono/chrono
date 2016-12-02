@@ -53,7 +53,8 @@ CH_ENUM_MAPPER_END(eChOperation);
 ///   - fb = second operand function
 
 class ChApi ChFunction_Operation : public ChFunction {
-    CH_RTTI(ChFunction_Operation, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Operation)
 
   private:
     std::shared_ptr<ChFunction> fa;

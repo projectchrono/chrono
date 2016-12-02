@@ -24,7 +24,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
-ChClassRegister<ChLinkBushing> a_registration_ChLinkLockBushing;
+CH_FACTORY_REGISTER(ChLinkBushing)
 
 ChLinkBushing::ChLinkBushing(bushing_joint bushing_joint_type) {
     m_bushing_joint = bushing_joint_type;

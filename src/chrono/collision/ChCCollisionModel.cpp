@@ -26,7 +26,7 @@ namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChCollisionModel> a_registration_ChCollisionModel;
+//CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
 
 static double default_model_envelope = 0.03;

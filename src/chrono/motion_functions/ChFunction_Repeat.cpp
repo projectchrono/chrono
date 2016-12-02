@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Repeat> a_registration_repeat;
+CH_FACTORY_REGISTER(ChFunction_Repeat)
 
 ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1) {
     fa = std::make_shared<ChFunction_Const>();  // default

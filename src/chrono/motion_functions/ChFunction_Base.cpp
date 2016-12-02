@@ -25,7 +25,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChFunction> a_registration;
+//CH_FACTORY_REGISTER(ChFunction) // NO! this is an abstract class, rather use for children concrete classes.
 
 double ChFunction::Get_y_dN(double x, int derivate) const {
     switch (derivate) {

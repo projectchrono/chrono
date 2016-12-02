@@ -37,8 +37,9 @@ class ChBody;
 /// represent either forces and torques, depending on a flag.
 
 class ChApi ChForce : public ChObj {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChForce, ChObj);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChForce)
 
   public:
     // Types of force application

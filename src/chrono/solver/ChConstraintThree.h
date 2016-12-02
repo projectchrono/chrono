@@ -31,7 +31,9 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintThree : public ChConstraint {
-    CH_RTTI(ChConstraintThree, ChConstraint)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConstraintThree)
 
   protected:
     ChVariables* variables_a;  ///< The first  constrained object

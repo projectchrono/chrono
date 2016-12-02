@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Noise> a_registration_noise;
+CH_FACTORY_REGISTER(ChFunction_Noise)
 
 ChFunction_Noise::ChFunction_Noise(const ChFunction_Noise& other) {
     amp = other.amp;

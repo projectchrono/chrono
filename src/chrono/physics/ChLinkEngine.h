@@ -28,7 +28,9 @@ namespace chrono {
 /// an engine with a torque/speed custom curve. etc.
 
 class ChApi ChLinkEngine : public ChLinkLock {
-    CH_RTTI(ChLinkEngine, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkEngine)
 
   public:
     enum eCh_eng_mode {

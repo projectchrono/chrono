@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConstraintThreeGeneric> a_registration_ChConstraintThreeGeneric;
+CH_FACTORY_REGISTER(ChConstraintThreeGeneric)
 
 ChConstraintThreeGeneric::ChConstraintThreeGeneric(ChVariables* mvariables_a,
                                                    ChVariables* mvariables_b,

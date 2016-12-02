@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChShaftsTorsionSpring> a_registration_ChShaftsTorsionSpring;
+CH_FACTORY_REGISTER(ChShaftsTorsionSpring)
 
 ChShaftsTorsionSpring::ChShaftsTorsionSpring() : stiffness(0), damping(0) {}
 

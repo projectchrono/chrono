@@ -24,8 +24,8 @@ namespace chrono {
 /// geometry of the line and causes race conditions.
 
 class ChApi ChPointPointDrawing : public ChLineShape {
-	// Chrono RTTI, needed for serialization
-	CH_RTTI(ChPointPointDrawing, ChLineShape);
+	// Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChPointPointDrawing)
 
 public:
 	ChPointPointDrawing() = default;
@@ -48,8 +48,8 @@ private:
 /// Otherwise drawing may broken since each physics item will try to update
 /// geometry of the line and causes race conditions.
 class ChApi ChPointPointSegment : public ChPointPointDrawing {
-	// Chrono RTTI, needed for serialization
-	CH_RTTI(ChPointPointSegment, ChPointPointDrawing);
+	// Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChPointPointSegment)
 
 private:
 	// Set line geometry as segment between two end point
@@ -64,8 +64,9 @@ private:
 /// geometry of the line and causes race conditions.
 
 class ChApi ChPointPointSpring : public ChPointPointDrawing {
-	// Chrono RTTI, needed for serialization
-	CH_RTTI(ChPointPointSpring, ChPointPointDrawing);
+
+	// Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChPointPointSpring)
 
 public:
 	ChPointPointSpring(double mradius = 0.05, int mresolution = 65, double mturns = 5.)

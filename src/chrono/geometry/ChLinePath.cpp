@@ -18,7 +18,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinePath> a_registration_ChLinePath;
+CH_FACTORY_REGISTER(ChLinePath)
 
 ChLinePath::ChLinePath(const ChLinePath& source) : ChLine(source) {
     lines = source.lines;

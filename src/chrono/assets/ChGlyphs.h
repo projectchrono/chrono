@@ -24,8 +24,8 @@ namespace chrono {
 /// (POVray, Irrlicht,etc.) this asset might not be supported.
 
 class ChApi ChGlyphs : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChGlyphs, ChVisualization);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChGlyphs)
 
   public:
     enum eCh_GlyphType { 

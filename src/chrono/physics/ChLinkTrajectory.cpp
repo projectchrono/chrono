@@ -20,7 +20,7 @@ namespace chrono {
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkTrajectory> a_registration_ChLinkTrajectory;
+CH_FACTORY_REGISTER(ChLinkTrajectory)
 
 ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     // initializes type

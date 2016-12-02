@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Sine> a_registration_sine;
+CH_FACTORY_REGISTER(ChFunction_Sine)
 
 ChFunction_Sine::ChFunction_Sine(const ChFunction_Sine& other) {
     amp = other.amp;

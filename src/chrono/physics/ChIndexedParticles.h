@@ -46,8 +46,9 @@ class ChApi ChParticleBase : public ChFrameMoving<double> {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedParticles : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChIndexedParticles, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChIndexedParticles)
 
   public:
     ChIndexedParticles() {}

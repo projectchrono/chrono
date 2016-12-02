@@ -27,7 +27,9 @@ namespace chrono {
 /// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 
 class ChApi ChVariablesBody : public ChVariables {
-    CH_RTTI(ChVariablesBody, ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesBody)
 
   private:
     void* user_data;

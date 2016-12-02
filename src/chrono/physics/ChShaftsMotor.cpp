@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChShaftsMotor> a_registration_ChShaftsMotor;
+CH_FACTORY_REGISTER(ChShaftsMotor)
 
 ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_mode(MOT_MODE_TORQUE), motor_set_rot(0), motor_set_rot_dt(0) {
 }

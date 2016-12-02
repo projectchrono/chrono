@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChPhysicsItem> a_registration_ChPhysicsItem;
+CH_FACTORY_REGISTER(ChPhysicsItem)
 
 ChPhysicsItem::ChPhysicsItem(const ChPhysicsItem& other) : ChObj(other) {
     assets = other.assets;

@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Recorder> a_registration_recorder;
+CH_FACTORY_REGISTER(ChFunction_Recorder)
 
 ChFunction_Recorder::ChFunction_Recorder(const ChFunction_Recorder& other) {
     m_points = other.m_points;

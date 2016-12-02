@@ -25,7 +25,9 @@ namespace chrono {
 /// Class representing a wheel constraint (for fast simulation of cars, etc.)
 
 class ChApi ChLinkWheel : public ChLinkLock {
-    CH_RTTI(ChLinkWheel, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkWheel)
 
   protected:
     ChFunction* wheel_rotation;  ///< rotation(time) or rotation_speed(time)

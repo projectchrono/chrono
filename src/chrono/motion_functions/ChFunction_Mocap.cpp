@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Mocap> a_registration_mocap;
+CH_FACTORY_REGISTER(ChFunction_Mocap)
 
 ChFunction_Mocap::ChFunction_Mocap() : array_y(NULL), array_y_dt(NULL), array_y_dtdt(NULL) {
     Set_samples(2);  // this creates arrays

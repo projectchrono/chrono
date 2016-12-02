@@ -47,7 +47,9 @@ class ChParallelDataManager;
 class settings_container;
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-    CH_RTTI(ChSystemParallel, ChSystem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG((ChSystemParallel)
 
   public:
     ChSystemParallel(unsigned int max_objects);
@@ -140,7 +142,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
-    CH_RTTI(ChSystemParallelDVI, ChSystemParallel);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSystemParallelDVI)
 
   public:
     ChSystemParallelDVI(unsigned int max_objects = 1000);
@@ -172,7 +176,9 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
-    CH_RTTI(ChSystemParallelDEM, ChSystemParallel);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSystemParallelDEM)
 
   public:
     ChSystemParallelDEM(unsigned int max_objects = 1000);

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Matlab> a_registration_matlab;
+CH_FACTORY_REGISTER(ChFunction_Matlab)
 
 ChFunction_Matlab::ChFunction_Matlab() {
     strcpy(this->mat_command, "x*2+x^2");

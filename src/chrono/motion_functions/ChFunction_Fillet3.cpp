@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Fillet3> a_registration_fillet3;
+CH_FACTORY_REGISTER(ChFunction_Fillet3)
 
 ChFunction_Fillet3::ChFunction_Fillet3(const ChFunction_Fillet3& other) {
     end = other.end;

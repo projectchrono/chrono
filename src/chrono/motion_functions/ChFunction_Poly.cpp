@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Poly> a_registration_poly;
+CH_FACTORY_REGISTER(ChFunction_Poly)
 
 ChFunction_Poly::ChFunction_Poly() {
     order = 0;

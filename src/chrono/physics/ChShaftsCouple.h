@@ -23,8 +23,9 @@ namespace chrono {
 /// parts; i.e., shafts that can be used to build 1D models of powertrains.
 
 class ChApi ChShaftsCouple : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsCouple, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsCouple)
 
   protected:
     ChShaft* shaft1;  ///< first shaft

@@ -17,7 +17,7 @@ namespace irrlicht {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChIrrNodeAsset> a_registration_ChIrrNodeAsset;
+CH_FACTORY_REGISTER(ChIrrNodeAsset)
 
 }  // end namespace irrlicht
 }  // end namespace chrono

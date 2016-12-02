@@ -33,8 +33,9 @@ class ChBodyFrame;
 /// can connect the former (at least, the wheels) to the latter using this constraint.
 
 class ChApi ChShaftsBody : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsBody, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsBody)
 
   private:
     double torque_react;                ///< reaction torque

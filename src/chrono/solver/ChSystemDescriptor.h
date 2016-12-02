@@ -54,8 +54,9 @@ namespace chrono {
 /// and variables structures with more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChSystemDescriptor);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSystemDescriptor)
 
   protected:
     //

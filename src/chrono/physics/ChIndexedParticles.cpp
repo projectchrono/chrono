@@ -27,7 +27,8 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time  dynamic creation and persistence
-ChClassRegisterABSTRACT<ChIndexedParticles> a_registration_ChIndexedParticles;
+// CH_FACTORY_REGISTER(ChIndexedParticles)  // NO! abstract class!
+
 
 // Base class for particles
 

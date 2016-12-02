@@ -18,7 +18,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLineCam> a_registration_ChLineCam;
+CH_FACTORY_REGISTER(ChLineCam)
 
 ChLineCam::ChLineCam() {
     Set_complexity(10);

@@ -15,7 +15,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChGlyphs> a_registration_ChGlyphs;
+CH_FACTORY_REGISTER(ChGlyphs)
 
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
     colors.resize(n_glyphs);

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverSymmSOR> a_registration_ChSolverSymmSOR;
+CH_FACTORY_REGISTER(ChSolverSymmSOR)
 
 double ChSolverSymmSOR::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                               ) {

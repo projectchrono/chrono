@@ -31,7 +31,8 @@ namespace chrono {
 /// use in many cases.
 
 class ChApi ChFunction_Oscilloscope : public ChFunction {
-    CH_RTTI(ChFunction_Oscilloscope, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Oscilloscope)
 
   private:
     std::list<double> values;

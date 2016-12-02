@@ -32,7 +32,7 @@ using namespace geometry;
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChNodeSPH> a_registration_ChNodeSPH;
+CH_FACTORY_REGISTER(ChNodeSPH)
 
 ChNodeSPH::ChNodeSPH() : container(NULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), pressure(0) {
     collision_model = new ChModelBullet;
@@ -167,7 +167,7 @@ void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContinuumSPH> a_registration_ChContinuumSPH;
+CH_FACTORY_REGISTER(ChContinuumSPH)
 
 ChContinuumSPH::ChContinuumSPH(const ChContinuumSPH& other) : fea::ChContinuumMaterial(other) {
     viscosity = other.viscosity;
@@ -207,7 +207,7 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChMatterSPH> a_registration_ChMatterSPH;
+CH_FACTORY_REGISTER(ChMatterSPH)
 
 ChMatterSPH::ChMatterSPH() : do_collide(false) {
     matsurface = std::make_shared<ChMaterialSurface>();

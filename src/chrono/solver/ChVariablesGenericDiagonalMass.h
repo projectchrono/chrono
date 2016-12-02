@@ -25,7 +25,9 @@ namespace chrono {
 /// associate variables.
 
 class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
-    CH_RTTI(ChVariablesGenericDiagonalMass, ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesGenericDiagonalMass)
 
   private:
     ChVectorDynamic<>* MmassDiag;

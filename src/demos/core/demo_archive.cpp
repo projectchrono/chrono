@@ -74,16 +74,16 @@ CH_ENUM_MAPPER_END(myEnum);
 // abstract class creation (class factory) which can load an
 // object from stream even if the object class is not known in advance.
 // This more advanced feature requires a 'class factory' registration
-// of your object type by means of the ChClassRegister<> statement (in
-// its turn, it requires that your object has also the Chrono simulation
-// of run-time-type information enabled, that is the CH_RTTI_.. macros).
+// of your object type by means of the CH_FACTORY_REGISTER macro (in
+// its turn, it requires that your class has also enabled the Chrono 
+// compiler-independent type name, that is the CH_FACTORY_TAG macro.
 //
 
 class myEmployee {
-    // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
-    // if you want to deserialize objects whose exact class is not known in advance!
+    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
+    // if you want to deserialize objects whose exact class is not known in advance:
 
-    CH_RTTI_ROOT(myEmployee)  //***** for _advanced_ Chrono serialization
+    CH_FACTORY_TAG(myEmployee)  //*****  needed for advanced serialization 
 
   public:
     int age;
@@ -94,6 +94,10 @@ class myEmployee {
         age(m_age), 
         wages(m_wages),
         body(m_body){};
+
+    myEmployee (const myEmployee& other) {
+        GetLog()<< "------------------copy an employee \n";
+    }
 
     // MEMBER FUNCTIONS FOR BINARY I/O
     // NOTE!!!In order to allow serialization with Chrono approach,
@@ -124,25 +128,30 @@ class myEmployee {
 };
 
 
-// Somewhere in your cpp code (not in .h headers!) you should put the
-// 'class factory' registration of your class, assuming it has the CH_RTTI_..,
-// if you want to use the AbstractReadCreate() feature, to deserialize
-// objects whose exact class is not known in advance.
+// Somewhere in your .cpp code (not in .h headers!) you should put the
+// 'class factory' registration of your class, assuming you marked a class 
+// with the CH_FACTORY_TAG macro, if you want to deserialize
+// objects whose exact class is not known in advance:
 
-chrono::ChClassRegister<myEmployee> a_registration1;  //***** for _advanced_ Chrono serialization
-
+CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
 
 
 // Ok, now let's do something even more difficult: an inherited class.
-// Note the CH_RTTI macro. 
+// Note the CH_FACTORY_TAG macro. 
 
 class myEmployeeBoss : public myEmployee {
-    CH_RTTI(myEmployeeBoss, myEmployee)  //***** for _advanced_ Chrono serialization
+    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
+    // if you want to deserialize objects whose exact class is not known in advance:
+
+    CH_FACTORY_TAG(myEmployeeBoss) //*****  needed for advanced serialization
 
   public:
     bool is_dumb;
     myEmployee slave;
 
+    myEmployeeBoss (const myEmployeeBoss& other) {
+        GetLog()<< "------------------copy a boss \n";
+    }
 
     myEmployeeBoss(int m_age = 38, double m_wages = 9000.4, bool m_is_dumb = true)
         : myEmployee(m_age, m_wages), 
@@ -178,8 +187,8 @@ class myEmployeeBoss : public myEmployee {
 
 };
 
-chrono::ChClassRegister<myEmployeeBoss> a_registration2;  //***** for _advanced_ Chrono serialization
 
+CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
 
 
 //
@@ -244,8 +253,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         // class abstraction (class factory) mechanism, so that it
         // can be loaded later even if we do not know if it was an object of
         // class 'myEmployee' or specialized class 'myEmployeeBoss'...
-        // In order to use this feature, the classes must implement 
-        // CH_RTTI_ROOT or CH_RTTI functions and ArchiveIN and ArchiveOUT
+        // In order to use this feature, the classes must use CH_FACTORY_TAG 
+        // and CH_FACTORY_REGISTER macros, and must implement ArchiveIN() and ArchiveOUT().
         myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
         a_boss->slave.age = 24;
         marchive << CHNVP(a_boss);  //  object was referenced by pointer.
@@ -258,8 +267,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(a_boss2);  //  object was referenced by pointer.
 
         // Also store c++ objects referenced by shared pointers.
-        // If pointed objects objects have CH_RTTI, the class abstraction
-        // vill be automatically used.
+        // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
+        // will be automatically used.
         auto s_boss = std::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
@@ -327,7 +336,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
 
         // Also store c++ objects referenced by shared pointers.
-        // If pointed objects objects have CH_RTTI, the class abstraction
+        // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
         std::shared_ptr<myEmployeeBoss> s_boss(0);
         marchive >> CHNVP(s_boss);
@@ -339,7 +348,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
         // Just for safety, log some of the restored data:
 
-        GetLog() << "\n\nResult of deserialization I/O: \n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
+        GetLog() << "\n\nSome results of deserialization I/O: \n\n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
         GetLog() << m_matr;
         GetLog() << m_vect;
         GetLog() << m_quat;
@@ -350,34 +359,31 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
-            GetLog() << *a_boss;
+            GetLog() << a_boss;
 
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
-            GetLog() << *a_boss2;
+            GetLog() << a_boss2;
         }
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
-            GetLog() << *(s_boss);
+            GetLog() << s_boss;
         }
         if (!null_boss) {
             GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
         }
 
-            // By the way, now show some feaures of Chrono run-time-type-identifier
-            // methods, since class had CH_RTTI enabled.
-            // Note that Chrono RTTI is _not_ the standard C++ RTTI! Also, it
-            // does not need RTTI to be enabled in compilation. It is platform-
-            // and compiler-independent.
-            // The only drawback of Chrono RTTI is that it is a bit slower than
-            // standard C++ RTTI, and it introduces a virtual method in the class (not a
-            // big problem however, since also C++ RTTI eats some memory...)
+            // By the way, now show how the CH_FACTORY_TAG macro has added
+            // a static function  FactoryClassNameTag() and a virtual function
+            // FactoryNameTag() that can be used to retrieve the class name 
+            // of an object in run time, as a string. Differently from the default
+            // C++ approach of typeid(myobject).name(), this is not depending on the
+            // compiler/platform.
 
             GetLog() << "\n";
-            GetLog() << "loaded object is a myEmployee?     :" << ChIsExactlyClass(myEmployee, a_boss) << "\n";
-            GetLog() << "loaded object is a myEmployeeBoss? :" << ChIsExactlyClass(myEmployeeBoss, a_boss) << "\n";
-            GetLog() << "loaded object derives myEmployee?  :" << ChIsDerivedFromClass(myEmployee, a_boss) << "\n";
-            GetLog() << "Obvious! we loaded an object of class: " << a_boss->GetRTTI()->GetName() << "\n";
+            GetLog() << "loaded object is a myEmployee?     :" << (myEmployee::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
+            GetLog() << "loaded object is a myEmployeeBoss? :" << (myEmployeeBoss::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
+            GetLog() << "Ok! we loaded an object with compiler-independent class name: " << a_boss->FactoryNameTag() << "\n";
             delete a_boss;
         }
 }

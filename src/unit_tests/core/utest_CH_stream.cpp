@@ -16,8 +16,6 @@
 //     - streams,
 //     - serialization, with versioning and dynamic
 //       creation (class factory)
-//     - class runtime type identification, without
-//       enabling the RTTI compiler feature
 //
 //	 CHRONO
 //   ------
@@ -33,7 +31,7 @@
 #include "core/ChLog.h"
 #include "core/ChMatrix.h"
 #include "core/ChVector.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 #include "core/ChException.h"
 #include <sstream>
 
@@ -41,28 +39,12 @@ using namespace chrono;
 
 //
 // Define some example classes just for showing how CHRONO serialization
-// system works, even with inheritance and versioning...
-//
-// The statements marked with //##### are mandatory if you want to
-// take advantage of basic Chrono streaming and serialization mechanisms,
-// that is if you want to save/load the object to&from a stream.
-//
-// The statements marked with //***** are needed only if you want to
-// take advantage of Chrono advanced serialization mechanism, that is the
-// AbstractWrite() and AbstractReadCreate() methods which can load an
-// object from stream even if the object class is not known in advance.
-// This more advanced feature requires a 'class factory' registration
-// of your object type by means of the ChClassRegister<> statement (in
-// its turn, it requires that your object has also the Chrono simulation
-// of run-time-type information enabled, that is the CH_RTTI_.. macros).
-//
+// system works, even with inheritance and versioning.
 
 class myEmployee {
-    // Remember to enable the Chrono RTTI features with the CH_RTTI_.. macro
-    // if you want to use the AbstractReadCreate() feature, to deserialize
-    // objects whose exact class is not known in advance!
 
-    CH_RTTI_ROOT(myEmployee)  //***** for _advanced_ Chrono serialization
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(myEmployee)  //***** for _advanced_ Chrono serialization
 
   public:
     int age;
@@ -100,17 +82,12 @@ class myEmployee {
     }
 };
 
-// Somewhere in your cpp code (not in .h headers!) you should put the
-// 'class factory' registration of your class, assuming it has the CH_RTTI_..,
-// if you want to use the AbstractReadCreate() feature, to deserialize
-// objects whose exact class is not known in advance.
-
-chrono::ChClassRegister<myEmployee> a_registration1;  //***** for _advanced_ Chrono serialization
+CH_FACTORY_REGISTER(myEmployee)  //***** for _advanced_ Chrono serialization
 
 // ............ ok, more difficult! an inherited class ............
 
 class myEmployeeBoss : public myEmployee {
-    CH_RTTI(myEmployeeBoss, myEmployee)  //***** for _advanced_ Chrono serialization
+    CH_FACTORY_TAG(myEmployeeBoss)  //***** for _advanced_ Chrono serialization
 
   public:
     bool is_dumb;
@@ -154,7 +131,7 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-chrono::ChClassRegister<myEmployeeBoss> a_registration2;  //***** for _advanced_ Chrono serialization
+CH_FACTORY_REGISTER(myEmployeeBoss) //***** for _advanced_ Chrono serialization
 
 int main(int argc, char* argv[]) {
     // To write something to the console, use the chrono::GetLog()
@@ -306,20 +283,6 @@ int main(int argc, char* argv[]) {
             GetLog() << "\n\n We used AbstractReadCreate() to load an obj inherited from myEmployee class:\n";
             GetLog() << *a_boss;
 
-            // By the way, now show some feaures of Chrono run-time-type-identifier
-            // methods, since class had CH_RTTI enabled.
-            // Note that Chrono RTTI is _not_ the standard C++ RTTI! Also, it
-            // does not need RTTI to be enabled in compilation. It is platform-
-            // and compiler-independent.
-            // The only drawback of Chrono RTTI is that it is a bit slower than
-            // standard C++ RTTI, and it introduces a virtual method in the class (not a
-            // big problem however, since also C++ RTTI eats some memory...)
-
-            GetLog() << "\n";
-            GetLog() << "loaded object is a myEmployee?     :" << ChIsExactlyClass(myEmployee, a_boss) << "\n";
-            GetLog() << "loaded object is a myEmployeeBoss? :" << ChIsExactlyClass(myEmployeeBoss, a_boss) << "\n";
-            GetLog() << "loaded object derives myEmployee?  :" << ChIsDerivedFromClass(myEmployee, a_boss) << "\n";
-            GetLog() << "Obvious! we loaded an object of class: " << a_boss->GetRTTI()->GetName() << "\n";
             delete a_boss;
         }
     } catch (ChException myex) {

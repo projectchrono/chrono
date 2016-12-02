@@ -22,7 +22,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChContactContainerDVI> a_registration_ChContactContainerDVI;
+CH_FACTORY_REGISTER(ChContactContainerDVI)
 
 ChContactContainerDVI::ChContactContainerDVI()
     : n_added_6_6(0), n_added_6_3(0), n_added_3_3(0), n_added_6_6_rolling(0) {}

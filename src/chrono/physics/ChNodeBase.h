@@ -15,7 +15,6 @@
 #ifndef CHNODEBASE_H
 #define CHNODEBASE_H
 
-#include "chrono/core/ChRunTimeType.h"
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 
@@ -28,8 +27,9 @@ namespace chrono {
 /// of these ChNodeBase.
 
 class ChApi ChNodeBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChMaterialSurfaceBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMaterialSurfaceBase)
 
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)

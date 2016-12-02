@@ -31,8 +31,8 @@ namespace chrono {
 
 class  ChLoadBodyMesh : public ChLoadBase {
 
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLoadBodyMesh, ChLoadBase);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLoadBodyMesh)
 
 
   public:

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Oscilloscope> a_registration_oscilloscope;
+CH_FACTORY_REGISTER(ChFunction_Oscilloscope)
 
 ChFunction_Oscilloscope::ChFunction_Oscilloscope(const ChFunction_Oscilloscope& other) {
     values = other.values;

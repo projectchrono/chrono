@@ -28,7 +28,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChAssembly> a_registration_ChAssembly;
+CH_FACTORY_REGISTER(ChAssembly)
 
 ChAssembly::ChAssembly()
     : nbodies(0),

@@ -44,8 +44,9 @@ CH_ENUM_MAPPER_END(eChCamType);
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.
 
 class ChApi ChLineCam : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLineCam, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLineCam)
 
   private:
     eChCamType type;                  ///< type of cam

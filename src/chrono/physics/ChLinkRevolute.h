@@ -28,7 +28,9 @@ namespace chrono {
 /// are always parallel.
 
 class ChApi ChLinkRevolute : public ChLink {
-    CH_RTTI(ChLinkRevolute, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkRevolute)
 
   public:
     ChLinkRevolute();

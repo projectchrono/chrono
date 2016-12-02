@@ -25,8 +25,9 @@ namespace chrono {
 /// This helps to keep things simple: derived classes just have to implement ComputeTorque().
 
 class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsTorqueBase, ChShaftsCouple);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsTorqueBase)
 
   protected:
     double torque;  ///< store actual value of torque

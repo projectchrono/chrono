@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChVariablesBodyOwnMass> a_registration_ChVariablesBodyOwnMass;
+CH_FACTORY_REGISTER(ChVariablesBodyOwnMass)
 
 ChVariablesBodyOwnMass::ChVariablesBodyOwnMass() : mass(1), inv_mass(1) {
     inertia.Set33Identity();

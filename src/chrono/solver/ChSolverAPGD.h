@@ -28,8 +28,9 @@ namespace chrono {
 /// or similar CCP problem.
 
 class ChApi ChSolverAPGD : public ChIterativeSolver {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChSolverAPGD, ChIterativeSolver);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSolverAPGD);
 
   protected:
     double residual;

@@ -29,8 +29,9 @@ namespace chrono {
 /// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBodyAuxRef : public ChBody {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChBodyAuxRef, ChBody);
+    
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChBodyAuxRef)
 
   private:
     ChFrameMoving<> auxref_to_cog;  ///< auxiliary REF location, relative to COG

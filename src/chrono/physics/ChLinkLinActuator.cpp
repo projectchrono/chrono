@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkLinActuator> a_registration_ChLinkLinActuator;
+CH_FACTORY_REGISTER(ChLinkLinActuator)
 
 ChLinkLinActuator::ChLinkLinActuator()
     : learn(false),

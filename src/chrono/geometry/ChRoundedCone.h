@@ -23,8 +23,9 @@ namespace geometry {
 /// A rounded cone (sphere-swept cone) geometric object for collisions and visualization.
 
 class ChApi ChRoundedCone : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChRoundedCone, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChRoundedCone)
 
   public:
     ChRoundedCone() : center(VNULL), rad(0) {}

@@ -13,8 +13,9 @@
 #define CHCOLOR_H
 
 #include "core/ChStream.h"
-#include "core/ChRunTimeType.h"
+#include "core/ChClassFactory.h"
 #include "serialization/ChArchive.h"
+
 
 
 
@@ -23,8 +24,8 @@ namespace chrono {
 /// Class for setting a color (used by ChVisualization)
 
 class ChApi ChColor {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChColor);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChColor)
 
   public:
     float R;  /// red channel (0,1)

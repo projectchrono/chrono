@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkWheel> a_registration_ChLinkWheel;
+CH_FACTORY_REGISTER(ChLinkWheel)
 
 ChLinkWheel::ChLinkWheel()
     : angle(0),

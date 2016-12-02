@@ -61,7 +61,9 @@ class ChApi ChReportProximityCallback {
 /// This is only the basic interface with the features that are in common.
 
 class ChApi ChProximityContainerBase : public ChPhysicsItem {
-    CH_RTTI(ChProximityContainerBase, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChProximityContainerBase)
 
   protected:
     ChAddProximityCallback* add_proximity_callback;

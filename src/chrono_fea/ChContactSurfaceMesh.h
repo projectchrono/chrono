@@ -27,8 +27,8 @@ namespace fea {
 /// This can be used to 'tesselate' a generic surface like the
 /// outer of tetrahedral meshes
 class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3,3,3>, public ChLoadableUV {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactTriangleXYZ);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactTriangleXYZ)
 
   public:
     ChContactTriangleXYZ();
@@ -317,8 +317,8 @@ private:
 /// This can be used to 'tesselate' a generic surface like the
 /// outer of tetrahedral meshes
 class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6,6,6>, public ChLoadableUV {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactTriangleXYZROT);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactTriangleXYZROT)
 
   public:
     ChContactTriangleXYZROT();
@@ -611,8 +611,8 @@ private:
 /// Differently from ChContactSurfaceNodeCloud, this also captures the FEAnodes-vs-FEAfaces
 /// and FEAedge-vs-FEAedges cases, but it has a higher computational overhead
 class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChContactSurfaceMesh, ChContactSurface);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactSurfaceMesh)
 
   public:
     ChContactSurfaceMesh(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh) {}

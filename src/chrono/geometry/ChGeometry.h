@@ -30,8 +30,9 @@ namespace geometry {
 
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChGeometry)
 
   public:
     /// Enumeration of geometric objects

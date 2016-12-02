@@ -32,7 +32,9 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
-    CH_RTTI(ChConstraintThreeGeneric, ChConstraintThree)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConstraintThreeGeneric)
 
   protected:
     ChMatrixDynamic<double>* Cq_a;  ///< The [Cq_a] jacobian of the constraint

@@ -20,7 +20,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChBodyAuxRef> a_registration_ChBodyAuxRef;
+CH_FACTORY_REGISTER(ChBodyAuxRef)
 
 ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
     auxref_to_cog = other.auxref_to_cog;

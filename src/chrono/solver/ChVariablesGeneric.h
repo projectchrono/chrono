@@ -34,7 +34,9 @@ namespace chrono {
 /// of rigid bodies), so use the ChVariablesBody in this case..
 
 class ChApi ChVariablesGeneric : public ChVariables {
-    CH_RTTI(ChVariablesGeneric, ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesGeneric)
 
   private:
     ChMatrixDynamic<>* Mmass;

@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTriangleMeshSoup> a_registration_ChTriangleMeshSoup;
+CH_FACTORY_REGISTER(ChTriangleMeshSoup)
 
 ChTriangleMeshSoup::ChTriangleMeshSoup(const ChTriangleMeshSoup& source) {
     m_triangles = source.m_triangles;

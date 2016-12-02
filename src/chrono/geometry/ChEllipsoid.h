@@ -23,8 +23,9 @@ namespace geometry {
 /// An ellipsoid geometric object for collisions and such.
 
 class ChApi ChEllipsoid : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChEllipsoid, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChEllipsoid)
 
   public:
     ChVector<> center;  ///< ellipsoid center

@@ -23,8 +23,9 @@ namespace geometry {
 /// A spherical geometric object for collisions and visualization.
 
 class ChApi ChSphere : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChSphere, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSphere)
 
   public:
     ChVector<> center;  ///< sphere center

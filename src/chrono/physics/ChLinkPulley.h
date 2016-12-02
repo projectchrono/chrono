@@ -25,7 +25,9 @@ namespace chrono {
 /// this link constraints only the rotation.
 
 class ChApi ChLinkPulley : public ChLinkLock {
-    CH_RTTI(ChLinkPulley, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPulley)
 
   protected:
     double tau;       ///< transmission coeff.
