@@ -230,7 +230,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -459,7 +459,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
+      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
@@ -482,14 +482,14 @@ class  ChArchiveInJSON : public ChArchiveIn {
              
             if (!is_reference) {
                 // 2) Dynamically create using class factory
-                bVal.value().CallNewAbstract(*this, cls_name.c_str()); 
+                bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
 
                 if (bVal.value().CallGetRawPtr(*this)) {
                     objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
-                    throw(ChExceptionArchive("Archive cannot create abstract object of class '" + cls_name + "'"));
+                    throw(ChExceptionArchive("Archive cannot create polimorphic object of class '" + cls_name + "'"));
             }
 
             } else {

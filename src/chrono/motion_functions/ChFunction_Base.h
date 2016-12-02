@@ -44,8 +44,8 @@ namespace chrono {
 /// Get_y() method, in order to represent more complex functions.
 
 class ChApi ChFunction {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(myEmployee)
+
+    CH_FACTORY_TAG(ChFunction)
 
   public:
     /// Enumeration of function types.

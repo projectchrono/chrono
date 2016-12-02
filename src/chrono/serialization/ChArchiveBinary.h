@@ -82,7 +82,7 @@ class  ChArchiveOutBinary : public ChArchiveOut {
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
@@ -181,21 +181,21 @@ class  ChArchiveInBinary : public ChArchiveIn {
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
+      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
           std::string cls_name;
           (*istream) >> cls_name;
 
           if (!(cls_name == "POS")) {
             // 2) Dynamically create using class factory
-            bVal.value().CallNewAbstract(*this, cls_name.c_str()); 
+            bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
 
             if (bVal.value().CallGetRawPtr(*this)) {
                 objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
-                throw(ChExceptionArchive("Archive cannot create abstract object \'" + cls_name + "\' " ));
+                throw(ChExceptionArchive("Archive cannot create polimorphic object \'" + cls_name + "\' " ));
             }
 
           } else {
