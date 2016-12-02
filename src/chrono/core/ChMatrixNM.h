@@ -28,9 +28,9 @@
 ///////////////////////////////////////////////////
 
 #include "core/ChCoordsys.h"
-#include "core/ChStream.h"
 #include "core/ChException.h"
 #include "core/ChMatrix.h"
+
 namespace chrono {
 
 #define SetZero(els)                  \

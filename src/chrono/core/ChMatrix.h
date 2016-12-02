@@ -28,9 +28,10 @@
 ///////////////////////////////////////////////////
 
 #include "core/ChCoordsys.h"
-#include "core/ChStream.h"
 #include "core/ChException.h"
 #include "chrono/ChConfig.h"
+#include "serialization/ChArchive.h"
+#include "serialization/ChArchiveAsciiDump.h"
 #include <immintrin.h>
 
 namespace chrono {

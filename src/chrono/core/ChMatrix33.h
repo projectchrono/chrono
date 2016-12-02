@@ -27,10 +27,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "core/ChCoordsys.h"
-#include "core/ChStream.h"
-#include "core/ChException.h"
+
 #include "core/ChMatrixNM.h"
+
 namespace chrono {
 
 ///
