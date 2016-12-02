@@ -33,7 +33,7 @@
 #include <iomanip>
 
 #include "core/ChMathematics.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 #include "serialization/ChArchive.h"
 
 namespace chrono {

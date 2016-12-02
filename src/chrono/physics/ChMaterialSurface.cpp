@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChClassRegister.h"
+#include "chrono/core/ChClassFactory.h"
 #include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {

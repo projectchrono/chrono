@@ -16,7 +16,7 @@
 #define CHCONSTRAINT_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChClassRegister.h"
+#include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChSparseMatrix.h"
 

@@ -11,7 +11,7 @@
 
 
 #include "assets/ChColor.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 
 namespace chrono {
 

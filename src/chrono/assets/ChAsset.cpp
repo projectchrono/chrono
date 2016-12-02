@@ -19,7 +19,7 @@
 ///////////////////////////////////////////////////
 
 #include "assets/ChAsset.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 
 namespace chrono {
 

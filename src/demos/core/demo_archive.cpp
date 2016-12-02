@@ -348,7 +348,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
         // Just for safety, log some of the restored data:
 
-        GetLog() << "\n\nSome results of deserialization I/O: \n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
+        GetLog() << "\n\nSome results of deserialization I/O: \n\n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
         GetLog() << m_matr;
         GetLog() << m_vect;
         GetLog() << m_quat;

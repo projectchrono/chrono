@@ -15,7 +15,6 @@
 #ifndef CHNODEBASE_H
 #define CHNODEBASE_H
 
-#include "chrono/core/ChRunTimeType.h"
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 

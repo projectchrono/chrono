@@ -10,7 +10,7 @@
 //
 
 
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 #include "assets/ChTexture.h"
 
 namespace chrono {

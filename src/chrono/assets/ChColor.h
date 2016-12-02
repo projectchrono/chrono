@@ -13,7 +13,7 @@
 #define CHCOLOR_H
 
 #include "core/ChStream.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 #include "serialization/ChArchive.h"
 
 

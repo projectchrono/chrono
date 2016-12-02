@@ -31,7 +31,7 @@
 #include "core/ChLog.h"
 #include "core/ChMatrix.h"
 #include "core/ChVector.h"
-#include "core/ChClassRegister.h"
+#include "core/ChClassFactory.h"
 #include "core/ChException.h"
 #include <sstream>
 
