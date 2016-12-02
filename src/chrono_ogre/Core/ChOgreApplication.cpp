@@ -290,6 +290,11 @@ namespace ChOgre {
 	void ChOgreApplication::drawFrame() {
 		m_pScene->update();
 
+		if (m_pInputManager->wasWindowResized()) {
+			m_pRenderWindow->resize(m_pInputManager->newSize().x, m_pInputManager->newSize().y);
+			m_pViewport->setDimensions(0, 0, 1, 1);
+		}
+
 		m_pViewport->update();
 
 		m_pRenderWindow->update(true);
@@ -297,9 +302,7 @@ namespace ChOgre {
 
 		m_pRoot->renderOneFrame();
 
-		m_pCamera->setAspectRatio((((float)(m_pViewport->getActualWidth())) / ((float)(m_pViewport->getActualHeight()))));
-
-		Ogre::WindowEventUtilities::messagePump();
+		m_pViewport->getCamera()->setAspectRatio((((float)(m_pViewport->getActualWidth())) / ((float)(m_pViewport->getActualHeight()))));
 	}
 
 	void ChOgreApplication::pollInput() {

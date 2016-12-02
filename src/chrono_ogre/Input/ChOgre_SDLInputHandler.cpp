@@ -112,6 +112,12 @@ ChOgre_SDLInputHandler::ChOgre_SDLInputHandler(SDL_Window* renderWindow) {
 
     AxisThreshold = INPUT_DEADZONE;
     m_windowClose = false;
+	m_windowResized = false;
+
+	int w, h;
+	SDL_GetWindowSize(m_pSDLWindow, &w, &h);
+
+	m_initialSize = ChVector2<unsigned int>(w, h);
 }
 
 ChOgre_SDLInputHandler::~ChOgre_SDLInputHandler() {
@@ -123,6 +129,7 @@ void ChOgre_SDLInputHandler::update() {
 
 
       m_windowClose = false;
+	  m_windowResized = false;
 
     SDL_Event _event;
     while (SDL_PollEvent(&_event)) {
@@ -726,7 +733,9 @@ void ChOgre_SDLInputHandler::update() {
         } else if (_event.type == SDL_WINDOWEVENT) {
             if (_event.window.event == SDL_WINDOWEVENT_CLOSE) {
                 m_windowClose = true;
-            }
+			} else if (_event.window.event == SDL_WINDOWEVENT_RESIZED) {
+				m_windowResized = true;
+			}
         }
     }
   }
@@ -852,6 +861,15 @@ void ChOgre_SDLInputHandler::m_CallWindowCallbacks() {
 
 bool ChOgre_SDLInputHandler::isWindowToClose() {
   return m_windowClose;
+}
+bool ChOgre_SDLInputHandler::wasWindowResized() {
+	return m_windowResized;
+}
+ChVector2<unsigned int> ChOgre_SDLInputHandler::newSize() {
+	int w, h;
+	SDL_GetWindowSize(m_pSDLWindow, &w, &h);
+
+	return ChVector2<unsigned int>(w, h);
 }
 }
 }

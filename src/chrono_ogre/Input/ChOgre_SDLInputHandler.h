@@ -12,6 +12,7 @@ An input manager based on SDL, as opposed to OIS. Will handle keyboard, mouse, a
 #include <SDL.h>
 #include <vector>
 #include <map>
+#include <chrono/core/ChVector2.h>
 
 #include "chrono_ogre/ChOgreApi.h"
 #include "ChOgreInputDataStructures.h"
@@ -62,11 +63,16 @@ class CHOGRE_DLL_TAG ChOgre_SDLInputHandler {
     double AxisThreshold;
 
     bool isWindowToClose();
+	bool wasWindowResized();
+	ChVector2<unsigned int> newSize();
 
   protected:
     SDL_Window* m_pSDLWindow;
 
     bool m_windowClose;
+	bool m_windowResized;
+
+	ChVector2<unsigned int> m_initialSize;
 
     bool m_disabled;
 

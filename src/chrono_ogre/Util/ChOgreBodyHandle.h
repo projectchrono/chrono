@@ -24,7 +24,7 @@ class CHOGRE_DLL_TAG ChOgreBodyHandle {
     ChOgreBody& body();
     void setBodyPtr(ChOgreBodySharedPtr& BodyPtr);
 
-  //private:
+  private:
     ChOgreBodySharedPtr m_pBody;
 };
 }

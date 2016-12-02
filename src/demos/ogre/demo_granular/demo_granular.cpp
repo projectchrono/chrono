@@ -39,19 +39,19 @@ int main(int argc, char** args) {
 
 	ChOgreApplication::ChOgreLoopCallFunc Loop = ChOgreFunc(void) {
 
-		double variance = (double)(spheresLeft % 8);
-		variance -= 3.0;
-
-		float colorR = (float)(spheresLeft % 7);
-		colorR /= 7.f;
-
-		float colorG = (float)(spheresLeft % 9);
-		colorG /= 9.f;
-
-		float colorB = (float)(spheresLeft % 11);
-		colorB /= 11.f;
-
 		if (spheresLeft > 0) {
+			double variance = (double)(spheresLeft % 8);
+			variance -= 3.0;
+
+			float colorR = (float)(spheresLeft % 11);
+			colorR /= 11.f;
+
+			float colorG = (float)(spheresLeft % 9);
+			colorG /= 9.f;
+
+			float colorB = (float)(spheresLeft % 13);
+			colorB /= 13.f;
+
 			spheresLeft--;
 
 			ChOgreBodyHandle Ball = app.getScene()->spawnSphere("Sphere", 1, chrono::ChVector<>(7, 20, 7), 0.5, false);
@@ -60,7 +60,7 @@ int main(int argc, char** args) {
 				((2.0 / 5.0)*Ball->GetMass() * 0.5 * 0.5),
 				((2.0 / 5.0)*Ball->GetMass() * 0.5 * 0.5)));
 
-			Ball.m_pBody->setColor(colorR, colorG, colorB);
+			Ball.body().setColor(colorR, colorG, colorB);
 
 			Ball->SetPos_dt(chrono::ChVector<>(-7.0 + variance, -7.0, -7.0));
 		}
