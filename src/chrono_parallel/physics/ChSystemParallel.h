@@ -49,7 +49,7 @@ class settings_container;
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG((ChSystemParallel)
+    CH_FACTORY_TAG(ChSystemParallel)
 
   public:
     ChSystemParallel(unsigned int max_objects);
