@@ -14,7 +14,7 @@
 #define CHARCHIVEASCIIDUMP_H
 
 
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 
 namespace chrono {
