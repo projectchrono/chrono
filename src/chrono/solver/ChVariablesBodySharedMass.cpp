@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChVariablesBodySharedMass> a_registration_ChVariablesBodySharedMass;
+CH_FACTORY_REGISTER(ChVariablesBodySharedMass)
 
 ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariablesBodySharedMass& other) {
     if (&other == this)

@@ -26,8 +26,9 @@ namespace chrono {
 /// Must be inherited and implemented by user.
 
 class ChApi ChControls : public ChObj {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChControls, ChObj);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChControls)
 
   public:
     ChControls() {}

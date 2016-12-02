@@ -27,7 +27,9 @@ namespace chrono {
 /// has continuous motion in X direction. No cylindrical rounding is used at the ends.
 
 class ChApi ChConveyor : public ChPhysicsItem {
-    CH_RTTI(ChConveyor, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConveyor)
 
   private:
     double conveyor_speed;          ///< speed of conveyor, along the X direction of the box.

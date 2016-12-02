@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConstraintTwoBodies> a_registration_ChConstraintTwoBodies;
+CH_FACTORY_REGISTER(ChConstraintTwoBodies)
 
 ChConstraintTwoBodies::ChConstraintTwoBodies(ChVariablesBody* mvariables_a, ChVariablesBody* mvariables_b) {
     SetVariables(mvariables_a, mvariables_b);

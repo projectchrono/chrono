@@ -83,7 +83,9 @@ namespace chrono {
 /// _nothing_ unless it is specialized by some child class).
 
 class ChApi ChLinkBase : public ChPhysicsItem {
-    CH_RTTI(ChLinkBase, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkBase)
 
   protected:
     bool disabled;  ///< all constraints of link disabled because of user needs

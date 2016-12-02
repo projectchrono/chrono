@@ -23,7 +23,8 @@ namespace chrono {
 /// y = y0 + x * speed
 
 class ChApi ChFunction_Ramp : public ChFunction {
-    CH_RTTI(ChFunction_Ramp, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Ramp)
 
   private:
     double y0;

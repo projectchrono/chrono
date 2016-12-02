@@ -40,7 +40,7 @@
 #include <ios>
 #include "ChException.h"
 #include "core/ChApiCE.h"
-//#include "core/ChClassRegister.h"	///this didn't help the "create not found problem..."
+
 namespace chrono {
 /// Ugly hack added by hammad to get code to compile on osx.
 /// Compiler had trouble finding the create function,

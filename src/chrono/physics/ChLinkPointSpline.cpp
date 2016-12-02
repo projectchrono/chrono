@@ -21,7 +21,7 @@ namespace chrono {
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPointSpline> a_registration_ChLinkPointSpline;
+CH_FACTORY_REGISTER(ChLinkPointSpline)
 
 ChLinkPointSpline::ChLinkPointSpline() {
     type = LNK_POINTSPLINE;  // initializes type

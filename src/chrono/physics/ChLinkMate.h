@@ -34,7 +34,9 @@ namespace chrono {
 /// this is could be an unnecessary complication in most cases.
 
 class ChApi ChLinkMate : public ChLink {
-    CH_RTTI(ChLinkMate, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMate)
 
   public:
     ChLinkMate() {}
@@ -59,7 +61,9 @@ class ChApi ChLinkMate : public ChLink {
 /// between two frames attached to the two bodies.
 
 class ChApi ChLinkMateGeneric : public ChLinkMate {
-    CH_RTTI(ChLinkMateGeneric, ChLinkMate);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateGeneric)
 
   protected:
     ChFrame<> frame1;
@@ -228,7 +232,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 /// The planes are defined by the Y and Z axes of the two frames.
 
 class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMatePlane, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMatePlane)
 
   protected:
     bool flipped;
@@ -283,7 +289,9 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 /// The two coaxial axes are the X axes of the two frames.
 
 class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateCoaxial, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateCoaxial)
 
   protected:
     bool flipped;
@@ -327,7 +335,9 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 /// typical point-on-point or spherical joint mating used in 3D CAD assemblies.
 
 class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateSpherical, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateSpherical)
 
   public:
     ChLinkMateSpherical() : ChLinkMateGeneric(true, true, true, false, false, false) {}
@@ -355,7 +365,9 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
 /// Mate constraining distance of origin of frame B respect to X axis of frame A.
 
 class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateXdistance, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateXdistance)
 
   protected:
     double distance;
@@ -404,7 +416,9 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
 /// the two X axes of the two frames.
 
 class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateParallel, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateParallel)
 
   protected:
     bool flipped;
@@ -450,7 +464,9 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 /// are aligned to the cross product of the two directions.
 
 class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateOrthogonal, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateOrthogonal)
 
   protected:
     ChVector<> reldir1;
@@ -496,7 +512,9 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 /// respect to the other frame.
 
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkMateFix, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMateFix)
 
   public:
     ChLinkMateFix() : ChLinkMateGeneric(true, true, true, true, true, true) {}

@@ -32,7 +32,9 @@ namespace chrono {
 /// for '6dof vs 6dof' contactables.
 /// This is the default contact container used in most cases.
 class ChApi ChContactContainerDVI : public ChContactContainerBase {
-    CH_RTTI(ChContactContainerDVI, ChContactContainerBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactContainerDVI)
 
   public:
     typedef ChContactDVI<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;

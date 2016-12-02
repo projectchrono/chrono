@@ -24,7 +24,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChAssetLevel> a_registration_ChAssetLevel;
+CH_FACTORY_REGISTER(ChAssetLevel)
 
 
 void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {

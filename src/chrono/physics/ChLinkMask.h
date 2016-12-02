@@ -26,7 +26,9 @@ namespace chrono {
 /// Mask structure for N scalar constraint equations between two bodies.
 
 class ChApi ChLinkMask {
-    CH_RTTI_ROOT(ChLinkMask);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMask)
 
   protected:
     std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraint states
@@ -119,7 +121,9 @@ class ChApi ChLinkMask {
 /// the ChLinkLock link.
 
 class ChApi ChLinkMaskLF : public ChLinkMask {
-    CH_RTTI(ChLinkMaskLF, ChLinkMask);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMaskLF)
 
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of

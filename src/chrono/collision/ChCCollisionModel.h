@@ -56,8 +56,8 @@ enum ShapeType {
 
 class ChApi ChCollisionModel {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionModel);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCollisionModel)
 
   public:
     ChCollisionModel();

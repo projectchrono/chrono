@@ -26,7 +26,9 @@ namespace chrono {
 /// All positions of rigid bodies, FEA nodes, etc. are assumed respect to the absolute position.
 
 class ChApi ChAssembly : public ChPhysicsItem {
-    CH_RTTI(ChAssembly, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChAssembly)
 
   public:
     ChAssembly();

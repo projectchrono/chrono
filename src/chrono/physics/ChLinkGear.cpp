@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkGear> a_registration_ChLinkGear;
+CH_FACTORY_REGISTER(ChLinkGear)
 
 ChLinkGear::ChLinkGear()
     : tau(1),

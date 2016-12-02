@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChConstraintTwo> a_registration_ChConstraintTwo;
+//CH_FACTORY_REGISTER(ChConstraintTwo)  // NO! Abstract class
 
 ChConstraintTwo::ChConstraintTwo(const ChConstraintTwo& other) : ChConstraint(other) {
     variables_a = other.variables_a;

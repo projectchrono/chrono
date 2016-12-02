@@ -20,7 +20,7 @@ namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPointPoint> a_registration_ChLinkPointPoint;
+CH_FACTORY_REGISTER(ChLinkPointPoint)
 
 ChLinkPointPoint::ChLinkPointPoint() : react(VNULL) {}
 

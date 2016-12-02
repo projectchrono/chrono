@@ -29,7 +29,9 @@ namespace chrono {
 /// to be set between the two connected markers.
 
 class ChApi ChLinkMarkers : public ChLink {
-    CH_RTTI(ChLinkMarkers, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMarkers)
 
   protected:
     ChMarker* marker1;  ///< slave coordsys

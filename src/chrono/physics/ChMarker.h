@@ -36,8 +36,9 @@ class ChBody;
 /// to parent ChBody, if needed to represent imposed trajectories etc.
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMarker, ChObj);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMarker)
 
   public:
     enum eChMarkerMotion {

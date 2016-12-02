@@ -26,8 +26,9 @@ namespace chrono {
 /// is the botor block, that receives the negative torque.
 
 class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsThermalEngine, ChShaftsTorqueBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsThermalEngine)
 
   private:
     std::shared_ptr<ChFunction> Tw;  ///< torque as function of angular vel.

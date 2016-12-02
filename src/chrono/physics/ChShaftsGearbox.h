@@ -35,8 +35,9 @@ class ChBodyFrame;
 /// the carrier shaft to a fixed body via a ChShaftsBody constraint.
 
 class ChApi ChShaftsGearbox : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsGearbox, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsGearbox)
 
   private:
     double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0

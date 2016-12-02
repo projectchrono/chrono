@@ -16,6 +16,6 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChCapsuleShape> a_registration_ChCapsuleShape;
+CH_FACTORY_REGISTER(ChCapsuleShape)
 
 }  // END_OF_NAMESPACE____

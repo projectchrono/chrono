@@ -26,7 +26,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverAPGD> a_registration_ChSolverAPGD;
+CH_FACTORY_REGISTER(ChSolverAPGD)
 
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?

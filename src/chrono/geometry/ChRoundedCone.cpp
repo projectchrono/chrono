@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChRoundedCone> a_registration_ChRoundedCone;
+CH_FACTORY_REGISTER(ChRoundedCone)
 
 ChRoundedCone::ChRoundedCone(const ChRoundedCone& source) {
     center = source.center;

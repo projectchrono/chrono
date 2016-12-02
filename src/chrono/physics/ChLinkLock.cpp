@@ -18,7 +18,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
-ChClassRegister<ChLinkLock> a_registration_ChLinkLock;
+CH_FACTORY_REGISTER(ChLinkLock)
 
 ChLinkLock::ChLinkLock()
     : type(LNK_SPHERICAL),
@@ -2068,19 +2068,19 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
 
-ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
-ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;
-ChClassRegister<ChLinkLockSpherical> a_registration_ChLinkLockSpherical;
-ChClassRegister<ChLinkLockCylindrical> a_registration_ChLinkLockCylindrical;
-ChClassRegister<ChLinkLockPrismatic> a_registration_ChLinkLockPrismatic;
-ChClassRegister<ChLinkLockPointPlane> a_registration_ChLinkLockPointPlane;
-ChClassRegister<ChLinkLockPointLine> a_registration_ChLinkLockPointLine;
-ChClassRegister<ChLinkLockPlanePlane> a_registration_ChLinkLockPlanePlane;
-ChClassRegister<ChLinkLockOldham> a_registration_ChLinkLockOldham;
-ChClassRegister<ChLinkLockFree> a_registration_ChLinkLockFree;
-ChClassRegister<ChLinkLockAlign> a_registration_ChLinkLockAlign;
-ChClassRegister<ChLinkLockParallel> a_registration_ChLinkLockParallel;
-ChClassRegister<ChLinkLockPerpend> a_registration_ChLinkLockPerpend;
-ChClassRegister<ChLinkLockRevolutePrismatic> a_registration_ChLinkLockRevolutePrismatic;
+CH_FACTORY_REGISTER(ChLinkLockRevolute)
+CH_FACTORY_REGISTER(ChLinkLockLock)
+CH_FACTORY_REGISTER(ChLinkLockSpherical)
+CH_FACTORY_REGISTER(ChLinkLockCylindrical)
+CH_FACTORY_REGISTER(ChLinkLockPrismatic)
+CH_FACTORY_REGISTER(ChLinkLockPointPlane)
+CH_FACTORY_REGISTER(ChLinkLockPointLine)
+CH_FACTORY_REGISTER(ChLinkLockPlanePlane)
+CH_FACTORY_REGISTER(ChLinkLockOldham)
+CH_FACTORY_REGISTER(ChLinkLockFree)
+CH_FACTORY_REGISTER(ChLinkLockAlign)
+CH_FACTORY_REGISTER(ChLinkLockParallel)
+CH_FACTORY_REGISTER(ChLinkLockPerpend)
+CH_FACTORY_REGISTER(ChLinkLockRevolutePrismatic)
 
 }  // end namespace chrono

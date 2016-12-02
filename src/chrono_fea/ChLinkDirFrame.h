@@ -33,9 +33,11 @@ namespace fea {
 /// of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
 /// The D direction of the ChNodeFEAxyzD is enforced to stay parallel
 /// to a given direction associated to the ChBodyFrame.
+
 class ChApiFea ChLinkDirFrame : public ChLinkBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkDirFrame, ChLinkBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkDirFrame)
 
   private:
     ChVector<> m_react;

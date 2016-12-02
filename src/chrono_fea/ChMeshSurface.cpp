@@ -30,7 +30,7 @@ namespace fea {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChMeshSurface> a_registration_ChMeshSurface;
+CH_FACTORY_REGISTER(ChMeshSurface)
 
 void ChMeshSurface::AddFacesFromNodeSet( std::vector<std::shared_ptr<ChNodeFEAbase> >& node_set ) {
 

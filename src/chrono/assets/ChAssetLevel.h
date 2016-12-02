@@ -40,8 +40,8 @@ namespace chrono {
 /// its parent level.
 
 class ChApi ChAssetLevel : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChAssetLevel, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChAssetLevel)
 
   protected:
     //

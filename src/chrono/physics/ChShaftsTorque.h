@@ -31,8 +31,9 @@ namespace chrono {
 /// but in such case is an 'absolute' torque does not create a reaction.
 
 class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsTorque, ChShaftsTorqueBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsTorque)
 
   public:
     ChShaftsTorque() {}

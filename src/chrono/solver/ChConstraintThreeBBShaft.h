@@ -24,7 +24,9 @@ namespace chrono {
 /// two bodies (2x6dof in space) and a 1D dof (a shaft)
 
 class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
-    CH_RTTI(ChConstraintThreeBBShaft, ChConstraintThree)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConstraintThreeBBShaft)
 
   protected:
     ChMatrixNM<double, 1, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint

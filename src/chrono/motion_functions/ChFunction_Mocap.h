@@ -23,7 +23,8 @@ namespace chrono {
 /// y = (linear interpolated array of samples)
 
 class ChApi ChFunction_Mocap : public ChFunction {
-    CH_RTTI(ChFunction_Mocap, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Mocap)
 
   private:
     ChMatrix<>* array_y;

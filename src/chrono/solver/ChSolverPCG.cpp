@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverPCG> a_registration_ChSolverPCG;
+CH_FACTORY_REGISTER(ChSolverPCG)
 
 double ChSolverPCG::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                           ) {

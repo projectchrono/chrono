@@ -25,8 +25,9 @@ namespace chrono {
 /// classes of textures with more properties.
 
 class ChApi ChTexture : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChTexture, ChAsset);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTexture)
 
   protected:
     //

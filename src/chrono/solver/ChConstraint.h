@@ -59,7 +59,9 @@ enum eChConstraintMode {
 /// to implement these methods, and to add further features..
 
 class ChApi ChConstraint {
-    CH_RTTI_ROOT(ChConstraint)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConstraint)
 
   protected:
     double c_i;  ///< The 'c_i' residual of the constraint (if satisfied, c must be

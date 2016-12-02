@@ -22,7 +22,8 @@ namespace chrono {
 /// Constant function:  y = C
 
 class ChApi ChFunction_Const : public ChFunction {
-    CH_RTTI(ChFunction_Const, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Const)
 
   private:
     double C;

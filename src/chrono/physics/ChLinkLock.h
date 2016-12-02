@@ -29,7 +29,9 @@ namespace chrono {
 /// thank to the ChLinkLimit objects.
 
 class ChApi ChLinkLock : public ChLinkMasked {
-    CH_RTTI(ChLinkLock, ChLinkMasked);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLock)
 
   protected:
     Coordsys relC;       ///< relative costraint position: relC = (relM-deltaC)
@@ -275,7 +277,9 @@ class ChApi ChLinkLock : public ChLinkMasked {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockRevolute : public ChLinkLock {
-    CH_RTTI(ChLinkLockRevolute, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockRevolute)
 
   public:
     ChLinkLockRevolute() { ChangeLinkType(LNK_REVOLUTE); }
@@ -288,7 +292,9 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockLock : public ChLinkLock {
-    CH_RTTI(ChLinkLockLock, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockLock)
 
   public:
     ChLinkLockLock() { ChangeLinkType(LNK_LOCK); }
@@ -301,7 +307,9 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockSpherical : public ChLinkLock {
-    CH_RTTI(ChLinkLockSpherical, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockSpherical)
 
   public:
     ChLinkLockSpherical() { ChangeLinkType(LNK_SPHERICAL); }
@@ -314,7 +322,9 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
-    CH_RTTI(ChLinkLockCylindrical, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockCylindrical)
 
   public:
     ChLinkLockCylindrical() { ChangeLinkType(LNK_CYLINDRICAL); }
@@ -327,7 +337,9 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 /// Default axis along +z
 
 class ChApi ChLinkLockPrismatic : public ChLinkLock {
-    CH_RTTI(ChLinkLockPrismatic, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockPrismatic)
 
   public:
     ChLinkLockPrismatic() { ChangeLinkType(LNK_PRISMATIC); }
@@ -340,7 +352,9 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
-    CH_RTTI(ChLinkLockPointPlane, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockPointPlane)
 
   public:
     ChLinkLockPointPlane() { ChangeLinkType(LNK_POINTPLANE); }
@@ -353,7 +367,9 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointLine : public ChLinkLock {
-    CH_RTTI(ChLinkLockPointLine, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockPointLine)
 
   public:
     ChLinkLockPointLine() { ChangeLinkType(LNK_POINTLINE); }
@@ -366,7 +382,9 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPlanePlane : public ChLinkLock {
-    CH_RTTI(ChLinkLockPlanePlane, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockPlanePlane)
 
   public:
     ChLinkLockPlanePlane() { ChangeLinkType(LNK_PLANEPLANE); }
@@ -379,7 +397,9 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockOldham : public ChLinkLock {
-    CH_RTTI(ChLinkLockOldham, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockOldham)
 
   public:
     ChLinkLockOldham() { ChangeLinkType(LNK_OLDHAM); }
@@ -392,7 +412,9 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockFree : public ChLinkLock {
-    CH_RTTI(ChLinkLockFree, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockFree)
 
   public:
     ChLinkLockFree() { ChangeLinkType(LNK_FREE); }
@@ -405,7 +427,9 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockAlign : public ChLinkLock {
-    CH_RTTI(ChLinkLockAlign, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockAlign)
 
   public:
     ChLinkLockAlign() { ChangeLinkType(LNK_ALIGN); }
@@ -418,7 +442,9 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockParallel : public ChLinkLock {
-    CH_RTTI(ChLinkLockParallel, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockParallel)
 
   public:
     ChLinkLockParallel() { ChangeLinkType(LNK_PARALLEL); }
@@ -431,7 +457,9 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPerpend : public ChLinkLock {
-    CH_RTTI(ChLinkLockPerpend, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockPerpend)
 
   public:
     ChLinkLockPerpend() { ChangeLinkType(LNK_PERPEND); }
@@ -443,7 +471,9 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 /// RevolutePrismatic joint , with the 'ChLinkLock' formulation.
 /// Translates along x-dir, rotates about z-axis
 class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
-    CH_RTTI(ChLinkLockRevolutePrismatic, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLockRevolutePrismatic)
 
   public:
     ChLinkLockRevolutePrismatic() { ChangeLinkType(LNK_REVOLUTEPRISMATIC); }

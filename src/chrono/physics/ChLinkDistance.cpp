@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkDistance> a_registration_ChLinkDistance;
+CH_FACTORY_REGISTER(ChLinkDistance)
 
 ChLinkDistance::ChLinkDistance() : pos1(VNULL), pos2(VNULL), distance(0), curr_dist(0) {}
 

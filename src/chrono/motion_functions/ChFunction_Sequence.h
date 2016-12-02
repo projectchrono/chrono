@@ -94,7 +94,8 @@ class ChApi ChFseqNode {
 /// laws can be created by sequencing many basic ChFunctions.
 
 class ChApi ChFunction_Sequence : public ChFunction {
-    CH_RTTI(ChFunction_Sequence, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Sequence)
 
   private:
     std::list<ChFseqNode> functions;  ///< the list of sub functions

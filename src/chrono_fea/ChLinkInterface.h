@@ -27,9 +27,11 @@ namespace fea {
 /// Class for grouping all those constraints that can interface FEA elements
 /// of different types.
 /// Concrete classes will be inherited from this class.
+
 class ChApiFea ChLinkInterface : public ChLinkBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkInterface, ChLinkBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkInterface)
 
   private:
 

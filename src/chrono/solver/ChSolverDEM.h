@@ -32,8 +32,9 @@ namespace chrono {
 /// * case CCP: Y_i are friction cones
 
 class ChApi ChSolverDEM : public ChIterativeSolver {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChSolverDEM, ChIterativeSolver);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSolverDEM)
 
   public:
     ChSolverDEM(int mmax_iters = 50,       ///< max.number of iterations

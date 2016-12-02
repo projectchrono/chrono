@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkScrew> a_registration_ChLinkScrew;
+CH_FACTORY_REGISTER(ChLinkScrew)
 
 ChLinkScrew::ChLinkScrew() {
     // initializes type

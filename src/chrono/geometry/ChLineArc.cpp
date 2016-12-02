@@ -18,7 +18,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLineArc> a_registration_ChLineArc;
+CH_FACTORY_REGISTER(ChLineArc)
 
 ChLineArc::ChLineArc(const ChCoordsys<> morigin,
                      const double mradius,

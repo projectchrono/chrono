@@ -27,7 +27,9 @@ namespace chrono {
 /// inertia matrix and the mass value are enough.
 
 class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
-    CH_RTTI(ChVariablesBodyOwnMass, ChVariablesBody)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesBodyOwnMass)
 
   private:
     ChMatrix33<double> inertia;      ///< 3x3 inertia matrix

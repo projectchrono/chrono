@@ -24,7 +24,9 @@ namespace chrono {
 /// bearing at the origin of the two markers.
 
 class ChApi ChLinkLinActuator : public ChLinkLock {
-    CH_RTTI(ChLinkLinActuator, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkLinActuator)
 
   protected:
     std::shared_ptr<ChFunction> dist_funct;  ///< distance function

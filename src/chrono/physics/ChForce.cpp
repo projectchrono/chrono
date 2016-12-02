@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChForce> a_registration_ChForce;
+CH_FACTORY_REGISTER(ChForce)
 
 ChForce::ChForce()
     : Body(NULL),

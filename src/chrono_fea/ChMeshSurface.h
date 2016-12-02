@@ -26,8 +26,9 @@ class ChMesh;
 /// The contact surface is a collection of pointers to  ChLoadableUV objects, those can 
 /// be shells in the mesh, or proxies to faces of solid elements such as ChFaceTetra_4.
 class ChApiFea ChMeshSurface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChMeshSurface);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMeshSurface)
 
   public:
     ChMeshSurface(ChMesh* parentmesh = 0) { mmesh = parentmesh; }

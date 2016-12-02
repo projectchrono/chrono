@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLink> a_registration_ChLink;
+//CH_FACTORY_REGISTER(ChLink)   // NO! abstract class!
 
 ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
     Body1 = NULL;

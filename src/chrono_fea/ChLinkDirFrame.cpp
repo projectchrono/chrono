@@ -20,7 +20,7 @@ namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkDirFrame> a_registration_ChLinkDirFrame;
+CH_FACTORY_REGISTER(ChLinkDirFrame)
 
 ChLinkDirFrame::ChLinkDirFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
 

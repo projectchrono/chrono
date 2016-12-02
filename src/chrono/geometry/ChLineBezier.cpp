@@ -25,7 +25,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLineBezier> a_registration_ChLineBezier;
+CH_FACTORY_REGISTER(ChLineBezier)
 
 ChLineBezier::ChLineBezier(ChBezierCurve* path) : m_own_data(false), m_path(path) {
     complexityU = static_cast<int>(m_path->getNumPoints());

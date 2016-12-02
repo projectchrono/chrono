@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLinkMarkers> a_registration_ChLinkMarkers;
+//CH_FACTORY_REGISTER(ChLinkMarkers)    // NO! Abstract class!
 
 ChLinkMarkers::ChLinkMarkers()
     : marker1(NULL),

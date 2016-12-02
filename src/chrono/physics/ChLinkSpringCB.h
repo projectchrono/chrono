@@ -35,7 +35,9 @@ class ChSpringForceCallback {
 /// callback object.
 
 class ChApi ChLinkSpringCB : public ChLinkMarkers {
-    CH_RTTI(ChLinkSpringCB, ChLinkMarkers);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkSpringCB)
 
   protected:
     ChSpringForceCallback* m_force_fun;  ///< functor for force calculation

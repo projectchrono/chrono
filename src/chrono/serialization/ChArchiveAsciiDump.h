@@ -206,7 +206,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// This is used to stream out in 'readable' form on a ChStreamOutAscii 
 /// stream whatever C++ object that implements the archive serialization, i.e. 
 /// objects that have ArchiveOUT implemented.
-/// For example:  GetLog() < mymatrix;
+/// For example:  GetLog() << mymatrix;
 
 template <class T>
 ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {

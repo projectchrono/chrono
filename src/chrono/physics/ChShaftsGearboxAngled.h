@@ -39,8 +39,9 @@ class ChBodyFrame;
 ///  to a truss body.
 
 class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsGearboxAngled, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsGearboxAngled)
 
   private:
     double t0;

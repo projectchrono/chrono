@@ -27,8 +27,9 @@ namespace chrono {
 /// Note: it can work only in a given direction.
 
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsTorqueConverter, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsTorqueConverter)
 
   private:
     ChShaft* shaft1;

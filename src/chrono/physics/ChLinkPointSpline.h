@@ -25,7 +25,9 @@ namespace chrono {
 /// It can be used also to simulate curvilinear glyphs, etc.
 
 class ChApi ChLinkPointSpline : public ChLinkLock {
-    CH_RTTI(ChLinkPointSpline, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPointSpline)
 
   protected:
     std::shared_ptr<geometry::ChLine> trajectory_line;  ///< The line for the trajectory.

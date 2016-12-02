@@ -28,9 +28,11 @@ namespace fea {
 /// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadXYZnode> >, but
 /// the class itself could bypass all methods of ChLoadXYZnode and directly implement
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
+
 class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLoadContactSurfaceMesh, ChLoadBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLoadContactSurfaceMesh)
 
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh) { contactmesh = cmesh; }

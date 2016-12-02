@@ -28,8 +28,9 @@ namespace chrono {
 /// carrier shaft, or the ChShaftGearbox.
 
 class ChApi ChShaftsGear : public ChShaftsCouple {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsGear, ChShaftsCouple);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsGear)
 
   private:
     double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1

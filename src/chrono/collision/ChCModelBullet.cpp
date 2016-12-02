@@ -35,7 +35,7 @@ namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChModelBullet> a_registration_ChModelBullet;
+CH_FACTORY_REGISTER(ChModelBullet)
 
 
 ChModelBullet::ChModelBullet() {

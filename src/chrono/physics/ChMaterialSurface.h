@@ -25,8 +25,9 @@ namespace chrono {
 /// that is used to make contacts.
 
 class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMaterialSurface, ChMaterialSurfaceBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMaterialSurface)
 
   public:
     float static_friction;

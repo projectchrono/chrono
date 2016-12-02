@@ -28,7 +28,9 @@ namespace chrono {
 
 /// Class for a physical system in which contact is modeled using a Penalty Method.
 class ChApi ChSystemDEM : public ChSystem {
-    CH_RTTI(ChSystemDEM, ChSystem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSystemDEM)
 
   public:
     /// Enum for DEM contact type.

@@ -17,7 +17,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChColor> a_registration_ChColor;
+CH_FACTORY_REGISTER(ChColor)
 
 
 

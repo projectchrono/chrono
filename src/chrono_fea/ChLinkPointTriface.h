@@ -48,9 +48,11 @@ public:
 /// and a triangular face given by three xyz FEA nodes, with linear
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
+
 class ChApiFea ChLinkPointTriface : public ChLinkInterface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkPointTriface, ChLinkInterface);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPointTriface)
 
   private:
     ChVector<> react;
@@ -209,8 +211,9 @@ public:
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkPointTrifaceRot, ChLinkInterface);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPointTrifaceRot)
 
   private:
     ChVector<> react;

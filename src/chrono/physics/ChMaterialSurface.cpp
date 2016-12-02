@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChMaterialSurface> a_registration_ChMaterialSurface;
+CH_FACTORY_REGISTER(ChMaterialSurface)
 
 ChMaterialSurface::ChMaterialSurface()
     : static_friction(0.6f),

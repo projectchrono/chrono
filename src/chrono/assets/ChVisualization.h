@@ -23,8 +23,9 @@ namespace chrono {
 /// It contains basic information about position, color, and visibility.
 
 class ChApi ChVisualization : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChVisualization, ChAsset);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVisualization)
 
   public:
     virtual ~ChVisualization() {}

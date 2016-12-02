@@ -26,7 +26,8 @@ namespace chrono {
 /// Mirrors a function about a vertical axis.
 
 class ChApi ChFunction_Mirror : public ChFunction {
-    CH_RTTI(ChFunction_Mirror, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Mirror)
 
   private:
     std::shared_ptr<ChFunction> fa;

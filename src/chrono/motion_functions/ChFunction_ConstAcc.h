@@ -27,7 +27,8 @@ namespace chrono {
 ///   aw  = fraction of 2nd acceleration start (0..1) , with aw>av;
 
 class ChApi ChFunction_ConstAcc : public ChFunction {
-    CH_RTTI(ChFunction_ConstAcc, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_ConstAcc)
 
   private:
     double h;

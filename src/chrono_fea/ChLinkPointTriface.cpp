@@ -21,7 +21,7 @@ namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPointTriface> a_registration_ChLinkPointTriface;
+CH_FACTORY_REGISTER(ChLinkPointTriface)
 
 ChLinkPointTriface::ChLinkPointTriface() : react(VNULL), s2(0),s3(0),d(0) {}
 
@@ -375,7 +375,7 @@ void ChLinkPointTriface::ArchiveIN(ChArchiveIn& marchive) {
 
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPointTrifaceRot> a_registration_ChLinkPointTrifaceRot;
+CH_FACTORY_REGISTER(ChLinkPointTrifaceRot)
 
 ChLinkPointTrifaceRot::ChLinkPointTrifaceRot() : react(VNULL), s2(0),s3(0),d(0) {}
 

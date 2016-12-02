@@ -24,7 +24,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChObj> a_registration_ChObj;
+//CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
 
 ChObj::ChObj() : ChTime(0) {
     identifier = GetUniqueIntID();

@@ -22,7 +22,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChSystemDEM> a_registration_ChSystemDEM;
+CH_FACTORY_REGISTER(ChSystemDEM)
 
 ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects, double scene_size)
     : ChSystem(max_objects, scene_size, false),

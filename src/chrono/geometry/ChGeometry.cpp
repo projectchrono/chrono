@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChGeometry> a_registration_ChGeometry;
+//CH_FACTORY_REGISTER(ChGeometry)  // NO! Abstract class!
 
 void ChGeometry::InflateBoundingBox(double& xmin,
                                     double& xmax,

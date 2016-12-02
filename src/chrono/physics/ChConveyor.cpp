@@ -26,7 +26,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConveyor> a_registration_ChConveyor;
+CH_FACTORY_REGISTER(ChConveyor)
 
 ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_speed(1) {
     conveyor_truss = new ChBody;

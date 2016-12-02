@@ -85,8 +85,8 @@ class ChApi ChBroadPhaseCallback {
 
 class ChApi ChCollisionSystem {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionSystem);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCollisionSystem)
 
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {

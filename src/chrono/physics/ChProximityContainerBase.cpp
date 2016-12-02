@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChProximityContainerBase> a_registration_ChProximityContainerBase;
+//CH_FACTORY_REGISTER(ChProximityContainerBase)  // NO! Abstract class
 
 ChProximityContainerBase::ChProximityContainerBase(const ChProximityContainerBase& other) : ChPhysicsItem(other) {
     add_proximity_callback = other.add_proximity_callback;

@@ -22,8 +22,9 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChRoundedCylinderShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChRoundedCylinderShape, ChVisualization);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChRoundedCylinderShape)
 
   protected:
     //

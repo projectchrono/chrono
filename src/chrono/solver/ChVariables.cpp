@@ -16,6 +16,10 @@
 
 namespace chrono {
 
+// Register into the object factory, to enable run-time
+// dynamic creation and persistence
+//CH_FACTORY_REGISTER(ChVariables)
+
 ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
     if (Get_ndof() > 0) {
         qb = new ChMatrixDynamic<>(Get_ndof(), 1);
@@ -60,8 +64,6 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
     return *this;
 }
 
-// Register into the object factory, to enable run-time
-// dynamic creation and persistence
-// ChClassRegister<ChVariables> a_registration_ChVariables;
+
 
 }  // end namespace chrono

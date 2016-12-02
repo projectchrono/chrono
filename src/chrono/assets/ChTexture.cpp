@@ -17,6 +17,6 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChTexture> a_registration_ChTexture;
+CH_FACTORY_REGISTER(ChTexture)
 
 }  // END_OF_NAMESPACE____

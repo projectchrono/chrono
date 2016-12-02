@@ -25,8 +25,9 @@ namespace geometry {
 /// Geometric object representing a segment in 3D space with two end points.
 
 class ChApi ChLineSegment : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLineSegment, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLineSegment)
 
   public:
     ChVector<> pA;  ///< first segment endpoint

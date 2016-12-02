@@ -49,7 +49,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTriangleMeshConnected> a_registration_ChTriangleMeshConnected;
+CH_FACTORY_REGISTER(ChTriangleMeshConnected)
 
 #ifdef _WIN32
 #define strcasecmp _stricmp

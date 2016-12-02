@@ -23,7 +23,9 @@ namespace chrono {
 /// distance of two markers
 
 class ChApi ChLinkSpring : public ChLinkMarkers {
-    CH_RTTI(ChLinkSpring, ChLinkMarkers);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkSpring)
 
   protected:
     double spr_restlength;                    ///< spring rest (undeformed) length

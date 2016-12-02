@@ -26,7 +26,9 @@ namespace chrono {
 /// orthogonal directions on the second body (the translational side),
 /// and a distance.
 class ChApi ChLinkRevoluteTranslational : public ChLink {
-    CH_RTTI(ChLinkRevoluteTranslational, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkRevoluteTranslational)
 
   public:
     ChLinkRevoluteTranslational();

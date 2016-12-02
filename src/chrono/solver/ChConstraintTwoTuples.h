@@ -28,7 +28,6 @@ namespace chrono {
 
 template <class Ta, class Tb>
 class ChConstraintTwoTuples : public ChConstraint {
-    // CH_RTTI(ChConstraintTwoTuples, ChConstraint)
 
     typedef typename Ta::type_constraint_tuple type_constraint_tuple_a;
     typedef typename Tb::type_constraint_tuple type_constraint_tuple_b;

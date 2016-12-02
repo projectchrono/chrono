@@ -27,8 +27,8 @@ namespace fea {
 /// The contact surface has a material of ChMaterialSurfaceBase type (DVI material
 /// by default, but it can be also switched to a DEM material, etc, using Set).
 class ChApiFea ChContactSurface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactSurface);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactSurface)
 
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {

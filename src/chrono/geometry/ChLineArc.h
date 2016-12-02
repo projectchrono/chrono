@@ -26,8 +26,9 @@ namespace geometry {
 /// By default it is evaluated clockwise from angle1 to angle2.
 
 class ChApi ChLineArc : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLineArc, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLineArc)
 
   public:
     ChCoordsys<> origin;    ///< center position and plane of the arc: xy used for plane, z for axis.

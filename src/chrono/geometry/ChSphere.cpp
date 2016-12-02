@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSphere> a_registration_ChSphere;
+CH_FACTORY_REGISTER(ChSphere)
 
 ChSphere::ChSphere(const ChSphere& source) {
     center = source.center;

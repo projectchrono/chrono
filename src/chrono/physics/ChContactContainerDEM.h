@@ -29,7 +29,9 @@ namespace chrono {
 /// This is implemented as a typical linked list of ChContactDEM objects
 /// (that is, contacts between two ChContactable objects).
 class ChApi ChContactContainerDEM : public ChContactContainerBase {
-    CH_RTTI(ChContactContainerDEM, ChContactContainerBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactContainerDEM)
 
   public:
     typedef ChContactDEM<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;

@@ -22,7 +22,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMasked> a_registration_ChLinkMasked;
+CH_FACTORY_REGISTER(ChLinkMasked)
 
 ChLinkMasked::ChLinkMasked() {
     force_D = new ChLinkForce;  // defeault no forces in link dof

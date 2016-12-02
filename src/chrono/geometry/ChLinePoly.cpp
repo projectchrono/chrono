@@ -18,7 +18,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinePoly> a_registration_ChLinePoly;
+CH_FACTORY_REGISTER(ChLinePoly)
 
 ChLinePoly::ChLinePoly(int mnumpoints) : degree(1) {
     points.resize(mnumpoints);

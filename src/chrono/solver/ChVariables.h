@@ -49,7 +49,10 @@ namespace chrono {
 /// store entire mass submatrices, if possible, in sake of efficiency.
 
 class ChApi ChVariables {
-    CH_RTTI_ROOT(ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariables)
+
   private:
     ChMatrix<>* qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
     ChMatrix<>* fb;  ///< known vector (forces, or impulses, etc. depending on the problem)

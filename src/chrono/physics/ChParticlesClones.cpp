@@ -225,7 +225,7 @@ void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
+CH_FACTORY_REGISTER(ChParticlesClones)
 
 ChParticlesClones::ChParticlesClones()
     : do_collide(false),

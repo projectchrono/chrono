@@ -186,7 +186,7 @@ class IteratorAllPhysics {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSystem> a_registration_ChSystem;
+CH_FACTORY_REGISTER(ChSystem)
 
 ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
     : ChAssembly(),

@@ -44,8 +44,8 @@ namespace chrono {
 /// Get_y() method, in order to represent more complex functions.
 
 class ChApi ChFunction {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChFunction_base);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(myEmployee)
 
   public:
     /// Enumeration of function types.

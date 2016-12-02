@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChContactContainerBase> a_registration_ChContactContainerBase;
+//CH_FACTORY_REGISTER(ChContactContainerBase) // NO, abstract class!
 
 ChContactContainerBase::ChContactContainerBase(const ChContactContainerBase& other) : ChPhysicsItem(other) {
     add_contact_callback = other.add_contact_callback;

@@ -23,7 +23,8 @@ namespace chrono {
 /// y = multi-octave noise with cubic interpolation
 
 class ChApi ChFunction_Noise : public ChFunction {
-    CH_RTTI(ChFunction_Noise, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Noise)
 
   private:
     double amp;

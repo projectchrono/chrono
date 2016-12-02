@@ -25,8 +25,9 @@ namespace geometry {
 /// A box geometric object for collisions and visualization.
 
 class ChApi ChBox : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChBox, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChBox)
 
   public:
     ChMatrix33<> Rot;  ///< box rotation

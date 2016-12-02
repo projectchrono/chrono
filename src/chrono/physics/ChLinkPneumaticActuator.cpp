@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPneumaticActuator> a_registration_ChLinkPneumaticActuator;
+CH_FACTORY_REGISTER(ChLinkPneumaticActuator)
 
 ChLinkPneumaticActuator::ChLinkPneumaticActuator() {
     type = LNK_PNEUMATIC;  // initializes type

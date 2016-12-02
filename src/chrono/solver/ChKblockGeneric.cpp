@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChKblockGeneric> a_registration_ChKblockGeneric;
+CH_FACTORY_REGISTER(ChKblockGeneric)
 
 ChKblockGeneric::ChKblockGeneric(std::vector<ChVariables*> mvariables) : K(NULL) {
     SetVariables(mvariables);
