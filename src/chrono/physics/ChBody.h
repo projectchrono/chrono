@@ -160,14 +160,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetShowCollisionMesh(bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll); }
     bool GetShowCollisionMesh() { return BFlagGet(BF_SHOW_COLLMESH); }
 
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
+    /// Set the maximum linear speed (beyond this limit it will be clamped).
+    /// This is useful in virtual reality and real-time simulations, because
+    /// it reduces the risk of bad collision detection.
     /// The realism is limited, but the simulation is more stable.
     void SetLimitSpeed(bool mlimit) { BFlagSet(BF_LIMITSPEED, mlimit); }
     bool GetLimitSpeed() { return BFlagGet(BF_LIMITSPEED); }
 
-    /// Trick. Deactivate the gyroscopic torque (quadratic term).
+    /// Deactivate the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time
     /// simulations, where objects that spin too fast with non-uniform inertia
     /// tensors (ex thin cylinders) might cause the integration to diverge quickly.
@@ -175,8 +175,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetNoGyroTorque(bool mnogyro) { BFlagSet(BF_NOGYROTORQUE, mnogyro); }
     bool GetNoGyroTorque() { return BFlagGet(BF_NOGYROTORQUE); }
 
-    /// Trick. If use sleeping= true, bodies which stay in same place
-    /// for too long time will be deactivated, for optimization.
+    /// Enable/disable option for setting bodies to "sleep".
+    /// If use sleeping= true, bodies which stay in same place
+    /// for long enough time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
     void SetUseSleeping(bool ms) { BFlagSet(BF_USESLEEPING, ms); }
     bool GetUseSleeping() { return BFlagGet(BF_USESLEEPING); }
@@ -442,42 +443,71 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     }
     double GetMass() { return variables.GetBodyMass(); }
 
-    /// Set the inertia tensor of the body
+    /// Set the inertia tensor of the body.
+    /// The provided 3x3 matrix should be symmetric and contain the inertia
+    /// tensor, epxressed in the local coordinate system:
+    /// <pre>
+    ///               [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
+    ///               [                                int{x^2+y^2}dm ]
+    /// </pre>
     void SetInertia(const ChMatrix33<>& newXInertia);
-    /// Get a reference to the inertia tensor, as a 3x3 matrix,
-    /// expressed in local coordinate system.
+    /// Get a reference to the inertia tensor, expressed in local coordinate system.
+    /// The return 3xe3 symmetric matrix contains the following values:
+    /// <pre>
+    ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    ///  [                  int{x^2+z^2}   -int{yz}dm    ]
+    ///  [                                int{x^2+y^2}dm ]
+    /// </pre>
     const ChMatrix33<>& GetInertia() { return variables.GetBodyInertia(); }
-    /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
+    /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
+    /// The provided 3x1 vector should contain the moments of inertia,
+    /// expressed in the local coordinate frame:
+    /// <pre>
+    /// iner = [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// </pre>
     void SetInertiaXX(const ChVector<>& iner);
-    /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values)
+    /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
+    /// The return 3x1 vector contains the following values:
+    /// <pre>
+    /// [  int{x^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// </pre>   
     ChVector<> GetInertiaXX();
-    /// Set the extradiagonal part of the inertia tensor
-    /// (Ixy, Iyz, Izx values, the rest is symmetric)
+    /// Set the off-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; etc.]
+    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
+    /// The provided 3x1 vector should contain the products of inertia,
+    /// expressed in the local coordinate frame:
+    /// <pre>
+    /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
+    /// </pre>
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extradiagonal part of the inertia tensor
-    /// (Ixy, Iyz, Izx values, the rest is symmetric)
+    /// Get the extradiagonal part of the inertia tensor (Ixy, Ixz, Iyz values)
     /// Warning about sign: in some books they write the inertia tensor as
-    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; etc.]
+    /// I=[Ixx, -Ixy, -Ixz; etc.] but here is I=[Ixx, Ixy, Ixz; ...].
+    /// The return 3x1 vector contains the following values:
+    /// <pre>
+    /// [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
+    /// </pre>  
     ChVector<> GetInertiaXY();
 
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
+    /// Set the maximum linear speed (beyond this limit it will be clamped).
+    /// This is useful in virtual reality and real-time simulations, because
+    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
     float GetMaxSpeed() const { return max_speed; }
 
-    /// Trick. Set the maximum angualar speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
+    /// Set the maximum angualar speed (beyond this limit it will be clamped).
+    /// This is useful in virtual reality and real-time simulations, because
+    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
     float GetMaxWvel() const { return max_wvel; }
 
+    /// Clamp the body speed to the provided limits.
     /// When this function is called, the speed of the body is clamped
-    /// into limits posed by max_speed and max_wvel  - but remember to
+    /// to the range specified by max_speed and max_wvel. Remember to
     /// put the body in the SetLimitSpeed(true) mode.
     void ClampSpeed();
 
@@ -494,7 +524,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
     float GetSleepMinWvel() const { return sleep_minwvel; }
 
-    /// Computes the 4x4 inertia tensor in quaternion space, if needed
+    /// Computes the 4x4 inertia tensor in quaternion space, if needed.
     void ComputeQInertia(ChMatrixNM<double, 4, 4>* mQInertia);
 
     /// Computes the gyroscopic torque. In fact, in sake of highest
