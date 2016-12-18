@@ -54,6 +54,7 @@
 #include "chrono_fea/ChElementGeneric.h"
 #include "chrono_fea/ChElementBeam.h"
 #include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementTetra_10.h"
 #include "chrono_fea/ChElementHexa_8.h"
@@ -182,7 +183,7 @@ using namespace chrono::fea;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-
+%import "../chrono/core/ChClassFactory.h"
 %import  "ChObject.i"
 %import  "ChFrame.i"
 %import  "ChFrameMoving.i"

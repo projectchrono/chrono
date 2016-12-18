@@ -120,7 +120,7 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-
+%import "../chrono/core/ChClassFactory.h"
 %import  "ChSystem.i"
 %import  "ChAsset.i"
 
