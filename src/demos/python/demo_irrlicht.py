@@ -78,7 +78,7 @@ mysystem.Add(mlink)
 #  Create an Irrlicht application to visualize the system
 #
 
-myapplication = chronoirr.ChIrrApp(mysystem)
+myapplication = chronoirr.ChIrrApp(mysystem, 'Test', chronoirr.dimension2du(1024,768))
 
 myapplication.AddTypicalSky('../../../data/skybox/')
 myapplication.AddTypicalCamera(chronoirr.vector3df(0.6,0.6,0.8))

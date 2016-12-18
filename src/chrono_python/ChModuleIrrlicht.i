@@ -75,6 +75,7 @@ using namespace gui;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "wchar.i"
+%include "python/cwstring.i"
 
 // This is to enable references to double,int,etc. types in function parameters
 %pointer_class(int,int_ptr);
@@ -138,6 +139,7 @@ using namespace gui;
 %include "ISceneManager.h"
 %include "IGUIEnvironment.h"
 %include "dimension2d.h"
+%template(dimension2du) irr::core::dimension2d<irr::u32>;
 
 %include "ChIrrAppInterface.i"
 %include "ChIrrAssetConverter.i"
