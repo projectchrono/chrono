@@ -241,7 +241,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     // Interface to ChElementBeam base class
     // --------------------------------------
 
-    void EvaluateSectionPoint(const double u, const ChMatrix<>& displ, ChVector<>& point);
+    // void EvaluateSectionPoint(const double u, const ChMatrix<>& displ, ChVector<>& point); // Not needed?
 
     // Dummy method definitions.
     virtual void EvaluateSectionStrain(const double,
