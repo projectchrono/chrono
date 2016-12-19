@@ -74,6 +74,14 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set33Element(2, 2, val);
     }
 
+    /// Construct a 3x3 matrix with the specifid vector as its diagonal.
+    template <class RealB>
+    ChMatrix33(const ChVector<RealB>& vec) : ChMatrixNM<Real, 3, 3>() {
+        this->Set33Element(0, 0, vec.x);
+        this->Set33Element(1, 1, vec.y);
+        this->Set33Element(2, 2, vec.z);
+    }
+
     /// The constructor which builds a 3x3 matrix given a quaternion representing rotation.
     template <class RealB>
     ChMatrix33(const ChQuaternion<RealB>& mq) {
