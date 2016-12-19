@@ -6,6 +6,7 @@ SET(TESTS
     utest_CH_double_pend
     utest_CH_compute_contact
     utest_CH_assembly
+    utest_CH_composite_inertia
 )
 
 MESSAGE(STATUS "Unit test programs for PHYSICS module...")
