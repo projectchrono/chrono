@@ -31,8 +31,8 @@ class Articulated_Chassis : public chrono::vehicle::ChChassis {
     /// Return the mass of the chassis body.
     virtual double GetMass() const override { return m_mass; }
 
-    /// Return the moments of inertia of the chassis body.
-    virtual const chrono::ChVector<>& GetInertia() const override { return m_inertia; }
+    /// Return the inertia tensor of the chassis body.
+    virtual const chrono::ChMatrix33<>& GetInertia() const override { return m_inertia; }
 
     /// Get the location of the center of mass in the chassis frame.
     virtual const chrono::ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
@@ -45,8 +45,11 @@ class Articulated_Chassis : public chrono::vehicle::ChChassis {
     virtual void AddVisualizationAssets(chrono::vehicle::VisualizationType vis) override;
 
   protected:
+    chrono::ChMatrix33<> m_inertia;
+
     static const double m_mass;
-    static const chrono::ChVector<> m_inertia;
+    static const chrono::ChVector<> m_inertiaXX;
+    static const chrono::ChVector<> m_inertiaXY;
     static const chrono::ChVector<> m_COM_loc;
     static const chrono::ChCoordsys<> m_driverCsys;
 };

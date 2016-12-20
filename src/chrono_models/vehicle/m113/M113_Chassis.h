@@ -38,8 +38,8 @@ class CH_MODELS_API M113_Chassis : public ChChassis {
     /// Return the mass of the chassis body.
     virtual double GetMass() const override { return m_mass; }
 
-    /// Return the moments of inertia of the chassis body.
-    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    /// Return the inertia tensor of the chassis body.
+    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
 
     /// Get the location of the center of mass in the chassis frame.
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
@@ -52,8 +52,11 @@ class CH_MODELS_API M113_Chassis : public ChChassis {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   protected:
+    ChMatrix33<> m_inertia;
+
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector<> m_inertiaXX;
+    static const ChVector<> m_inertiaXY;
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 

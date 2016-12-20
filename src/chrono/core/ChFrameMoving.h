@@ -488,7 +488,7 @@ class ChFrameMoving : public ChFrame<Real> {
         tmp.TransformParentToLocal(unit, *this);
     }
 
-    ChFrameMoving<Real> GetInverse() {
+    ChFrameMoving<Real> GetInverse() const {
         ChFrameMoving<Real> tmp(*this);
         tmp.Invert();
         return tmp;

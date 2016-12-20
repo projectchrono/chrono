@@ -5,7 +5,7 @@
 
   "Chassis":
   {
-    "Input File":               "MAN_5t/chassis/MAN_5t_Chassis"
+    "Input File":               "MAN_5t/chassis/MAN_5t_Chassis.json"
   },
 
   "Axles":
@@ -43,12 +43,6 @@
   {
     "Input File":           "MAN_5t/driveline/MAN_5t_Driveline4WD.json",
     "Suspension Indexes":   [0, 1]
-  },
-
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
   },
 
   "Visualization":

@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChTriangleMeshShape.h"
+#include "chrono/utils/ChCompositeInertia.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
 
@@ -74,10 +75,37 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
-    // Read inertia properties
-    m_mass = d["Mass"].GetDouble();
-    m_inertia = loadVector(d["Inertia"]);
-    m_COM_loc = loadVector(d["COM"]);
+    // Read inertia properties for all sub-somponents
+    // and calculate composite inertia properties
+    assert(d.HasMember("Components"));
+    assert(d["Components"].IsArray());
+    int num_comp = d["Components"].Size();
+
+    utils::CompositeInertia composite;
+
+    for (int i = 0; i < num_comp; i++) {
+        const Value& comp = d["Components"][i];
+        ChVector<> loc = loadVector(comp["Centroidal Frame"]["Location"]);
+        ChQuaternion<> rot = loadQuaternion(comp["Centroidal Frame"]["Orientation"]);
+        double mass = comp["Mass"].GetDouble();
+        ChVector<> inertiaXX = loadVector(comp["Moments of Inertia"]);
+        ChVector<> inertiaXY = loadVector(comp["Products of Inertia"]);
+        bool is_void = comp["Void"].GetBool();
+
+        ChMatrix33<> inertia(inertiaXX);
+        inertia.SetElement(0, 1, inertiaXY.x);
+        inertia.SetElement(0, 2, inertiaXY.y);
+        inertia.SetElement(1, 2, inertiaXY.z);
+        inertia.SetElement(1, 0, inertiaXY.x);
+        inertia.SetElement(2, 0, inertiaXY.y);
+        inertia.SetElement(2, 1, inertiaXY.z);
+
+        composite.AddComponent(ChFrame<>(loc, rot), mass, inertia, is_void);
+    }
+
+    m_mass = composite.GetMass();
+    m_inertia = composite.GetInertia();
+    m_COM_loc = composite.GetCOM();
 
     // Extract driver position
     m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);

@@ -55,7 +55,7 @@
     "Mass":                         1.633,
     "Inertia":                      [0.252, 0.001, 0.252],
     "Location Knuckle":             [-0.075, 0.68, -0.065],
-	"Radius":                       0.003
+	  "Radius":                       0.003
   },
   
   "Draglink":
@@ -64,7 +64,7 @@
     "Inertia":                      [0.005, 0.005, 0.001],
     "Location Chassis":             [0.385, 0.45, -0.02],
     "Location Bell Crank":          [0, 0.425, -0.05],
-	"Radius":                       0.003
+	  "Radius":                       0.003
   },
   
   "Bell Crank":
@@ -73,7 +73,7 @@
     "Inertia":                      [0.001, 0.001, 0.001],
     "Location Tierod":              [-0.075, 0.325, -0.065],
     "Location Axle":                [0, 0.325, -0.05],
-	"Radius":                       0.003
+	  "Radius":                       0.003
   },
 
   "Spring":

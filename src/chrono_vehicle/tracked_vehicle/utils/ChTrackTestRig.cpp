@@ -50,24 +50,30 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 class ChTrackTestRigChassis : public ChChassis {
   public:
-    ChTrackTestRigChassis() : ChChassis("Ground") {}
+    ChTrackTestRigChassis();
     virtual double GetMass() const override { return m_mass; }
-    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-private:
+  private:
+    ChMatrix33<> m_inertia;
+
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector<> m_inertiaXX;
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 
 const double ChTrackTestRigChassis::m_mass = 1;
-const ChVector<> ChTrackTestRigChassis::m_inertia(1, 1, 1);
+const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
 const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
 const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+
+ChTrackTestRigChassis::ChTrackTestRigChassis() : ChChassis("Ground") {
+    m_inertia = ChMatrix33<>(m_inertiaXX);
+}
 
 void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
     auto box = std::make_shared<ChBoxShape>();

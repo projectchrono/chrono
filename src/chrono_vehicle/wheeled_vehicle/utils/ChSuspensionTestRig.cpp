@@ -54,23 +54,29 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 class ChSuspensionTestRigChassis : public ChChassis {
   public:
-    ChSuspensionTestRigChassis() : ChChassis("Ground") {}
+    ChSuspensionTestRigChassis();
     virtual double GetMass() const override { return m_mass; }
-    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
   private:
+    ChMatrix33<> m_inertia;
+
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector<> m_inertiaXX;
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 };
 
 const double ChSuspensionTestRigChassis::m_mass = 1;
-const ChVector<> ChSuspensionTestRigChassis::m_inertia(1, 1, 1);
+const ChVector<> ChSuspensionTestRigChassis::m_inertiaXX(1, 1, 1);
 const ChVector<> ChSuspensionTestRigChassis::m_COM_loc(0, 0, 0);
 const ChCoordsys<> ChSuspensionTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+
+ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChChassis("Ground") {
+    m_inertia = ChMatrix33<>(m_inertiaXX);
+}
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,

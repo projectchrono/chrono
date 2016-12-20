@@ -44,8 +44,16 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Get the chassis mass.
     virtual double GetMass() const = 0;
 
-    /// Get the moments of inertia of the chassis body.
-    virtual const ChVector<>& GetInertia() const = 0;
+    /// Get the inertia tensor of the chassis body.
+    /// The return 3x3 symmetric matrix contains the following values:
+    /// <pre>
+    ///  [ int{x^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
+    ///  [                  int{x^2+z^2}   -int{yz}dm    ]
+    ///  [                                int{x^2+y^2}dm ]
+    /// </pre>
+    /// and represents the inertia tensor with respect to a centroidal frame
+    /// aligned with the chassis reference frame.
+    virtual const ChMatrix33<>& GetInertia() const = 0;
 
     /// Get the location of the center of mass in the chassis frame.
     virtual const ChVector<>& GetLocalPosCOM() const = 0;

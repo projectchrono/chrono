@@ -115,7 +115,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChBody(const ChBody& other);
 
     /// Destructor
-    ~ChBody();
+    virtual ~ChBody();
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBody* Clone() const override { return new ChBody(*this); }
