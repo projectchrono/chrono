@@ -31,7 +31,8 @@ namespace hmmwv {
 // Static variables
 // -----------------------------------------------------------------------------
 const double HMMWV_Chassis::m_mass = 2086.52;
-const ChVector<> HMMWV_Chassis::m_inertia(1078.52, 2955.66, 3570.20);
+const ChVector<> HMMWV_Chassis::m_inertiaXX(1078.52, 2955.66, 3570.20);
+const ChVector<> HMMWV_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> HMMWV_Chassis::m_COM_loc(0.056, 0, 0.523);
 const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, -0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
@@ -40,7 +41,18 @@ const std::string HMMWV_Chassis::m_meshFile = "hmmwv/hmmwv_chassis.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {}
+HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {
+    m_inertia.SetElement(0, 0, m_inertiaXX.x);
+    m_inertia.SetElement(1, 1, m_inertiaXX.y);
+    m_inertia.SetElement(2, 2, m_inertiaXX.z);
+
+    m_inertia.SetElement(0, 1, m_inertiaXY.x);
+    m_inertia.SetElement(0, 2, m_inertiaXY.y);
+    m_inertia.SetElement(1, 2, m_inertiaXY.z);
+    m_inertia.SetElement(1, 0, m_inertiaXY.x);
+    m_inertia.SetElement(2, 0, m_inertiaXY.y);
+    m_inertia.SetElement(2, 1, m_inertiaXY.z);
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

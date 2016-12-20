@@ -76,8 +76,20 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     // Read inertia properties
     m_mass = d["Mass"].GetDouble();
-    m_inertia = loadVector(d["Inertia"]);
     m_COM_loc = loadVector(d["COM"]);
+    ChVector<> inertiaXX = loadVector(d["Inertia"]);
+    ChVector<> inertiaXY(0);
+
+    m_inertia.SetElement(0, 0, inertiaXX.x);
+    m_inertia.SetElement(1, 1, inertiaXX.y);
+    m_inertia.SetElement(2, 2, inertiaXX.z);
+
+    m_inertia.SetElement(0, 1, inertiaXY.x);
+    m_inertia.SetElement(0, 2, inertiaXY.y);
+    m_inertia.SetElement(1, 2, inertiaXY.z);
+    m_inertia.SetElement(1, 0, inertiaXY.x);
+    m_inertia.SetElement(2, 0, inertiaXY.y);
+    m_inertia.SetElement(2, 1, inertiaXY.z);
 
     // Extract driver position
     m_driverCsys.pos = loadVector(d["Driver Position"]["Location"]);

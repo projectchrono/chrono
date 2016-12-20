@@ -40,8 +40,8 @@ class CH_VEHICLE_API RigidChassis : public ChChassis {
     /// Return the mass of the chassis body.
     virtual double GetMass() const override { return m_mass; }
     
-    /// Return the moments of inertia of the chassis body.
-    virtual const ChVector<>& GetInertia() const override { return m_inertia; }
+    /// Return the inertia tensor of the chassis body.
+    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
     
     /// Get the location of the center of mass in the chassis frame.
     virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
@@ -67,11 +67,11 @@ class CH_VEHICLE_API RigidChassis : public ChChassis {
   private:
     void Create(const rapidjson::Document& d);
 
-    double m_mass;         // chassis mass
-    ChVector<> m_inertia;  // moments of inertia of the chassis
-    ChVector<> m_COM_loc;  // location of the chassis COM in the chassis reference frame
+    double m_mass;           ///< chassis mass
+    ChMatrix33<> m_inertia;  ///< chassis inertia tensor, w.r.t. centroidal frame
+    ChVector<> m_COM_loc;    ///< location of the chassis COM in the chassis reference frame
 
-    ChCoordsys<> m_driverCsys;  // driver position and orientation relative to chassis
+    ChCoordsys<> m_driverCsys;  ///< driver position and orientation relative to chassis
 
     bool m_has_mesh;
     std::string m_meshName;
