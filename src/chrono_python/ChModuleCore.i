@@ -102,6 +102,26 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChTexture)
 %shared_ptr(chrono::ChCamera) 
 
+%shared_ptr(chrono::ChFunction)  
+%shared_ptr(chrono::ChFunction_Const)
+%shared_ptr(chrono::ChFunction_ConstAcc)
+%shared_ptr(chrono::ChFunction_Derive)
+%shared_ptr(chrono::ChFunction_Fillet3)
+%shared_ptr(chrono::ChFunction_Integrate)
+%shared_ptr(chrono::ChFunction_Mirror)
+%shared_ptr(chrono::ChFunction_Mocap)
+%shared_ptr(chrono::ChFunction_Noise)
+%shared_ptr(chrono::ChFunction_Operation)
+%shared_ptr(chrono::ChFunction_Oscilloscope)
+%shared_ptr(chrono::ChFunction_Poly)
+%shared_ptr(chrono::ChFunction_Poly345)
+%shared_ptr(chrono::ChFunction_Ramp)
+%shared_ptr(chrono::ChFunction_Recorder)
+%shared_ptr(chrono::ChFunction_Repeat)
+%shared_ptr(chrono::ChFunction_Sequence)
+%shared_ptr(chrono::ChFunction_Sigma)
+%shared_ptr(chrono::ChFunction_Sine)
+
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChMaterialSurface)
@@ -235,9 +255,6 @@ using namespace chrono::geometry;
 %include "ChTexture.i"
 %include "ChCamera.i"
 
-  // enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
-%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
-
 // physics/  classes
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
@@ -307,6 +324,9 @@ using namespace chrono::geometry;
 //  myvis = chrono.CastToChVisualizationShared(myasset)
 //  print ('Could be cast to visualization object?', !myvis.IsNull())
 
+// enable _automatic_ downcasting from ChAsset to derived classes (shared pointers versions)
+%downcast_output_sharedptr(chrono::ChAsset, chrono::ChVisualization, chrono::ChObjShapeFile, chrono::ChBoxShape, chrono::ChSphereShape, chrono::ChCylinderShape, chrono::ChTexture, chrono::ChAssetLevel, chrono::ChCamera, chrono::ChColorAsset)
+
 %DefChSharedPtrDynamicDowncast(ChAsset,ChVisualization)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChObjShapeFile)
 %DefChSharedPtrDynamicDowncast(ChAsset,ChBoxShape)
@@ -356,6 +376,25 @@ using namespace chrono::geometry;
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkPulley)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkScrew)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChLinkSpring)
+
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Const)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_ConstAcc)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Derive)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Fillet3)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Integrate)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Mirror)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Mocap)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Noise)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Operation)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Oscilloscope)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Poly)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Poly345)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Ramp)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Recorder)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Repeat)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sequence)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sigma)
+%DefChSharedPtrDynamicDowncast(ChFunction, ChFunction_Sine)
 
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaft)
 %DefChSharedPtrDynamicDowncast(ChPhysicsItem, ChShaftsBody)
