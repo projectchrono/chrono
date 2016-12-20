@@ -30,7 +30,7 @@ ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
 }
 
 double ChFunction_Repeat::Get_y(double x) const {
-    return fa->Get_y(this->window_start + fmod(x, this->window_length));
+    return fa->Get_y(this->window_start + fmod(x + this->window_phase, this->window_length));
 }
 
 void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) const {

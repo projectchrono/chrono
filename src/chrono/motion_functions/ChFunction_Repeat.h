@@ -24,6 +24,12 @@ namespace chrono {
 ///     y = __/__/__/
 ///
 /// Repeats a 'window' of a function, periodically.
+/// Evalutates a fa(t) function as:
+///
+///   fa(t) = fa(window_start + mod(t + window_phase, window_length))
+///
+/// Note: for infinite window_length and zero window_start, you can use 
+/// window_phase to simply 'translate' the function on absyssa.
 
 class ChApi ChFunction_Repeat : public ChFunction {
 
@@ -32,6 +38,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
   private:
     double window_start;   ///< window begin position
     double window_length;  ///< window length
+    double window_phase;   ///< window phase
     std::shared_ptr<ChFunction> fa;
 
   public:
@@ -52,6 +59,9 @@ class ChApi ChFunction_Repeat : public ChFunction {
     void Set_window_length(double m_v) { window_length = m_v; }
     double Get_window_length() const { return window_length; }
 
+    void Set_window_phase(double m_v) { window_phase = m_v; }
+    double Get_window_phase() const { return window_phase; }
+
     void Set_fa(std::shared_ptr<ChFunction> m_fa) { fa = m_fa; }
     std::shared_ptr<ChFunction> Get_fa() { return fa; }
 
@@ -67,6 +77,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
         marchive << CHNVP(fa);
         marchive << CHNVP(window_start);
         marchive << CHNVP(window_length);
+        marchive << CHNVP(window_phase);
     }
 
     /// Method to allow deserialization of transient data from archives.
@@ -79,6 +90,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
         marchive >> CHNVP(fa);
         marchive >> CHNVP(window_start);
         marchive >> CHNVP(window_length);
+        marchive >> CHNVP(window_phase);
     }
 };
 
