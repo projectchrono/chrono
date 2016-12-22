@@ -11,7 +11,11 @@ In deail, one performs the following steps:
 - export it as a .pyfile using the Chrono::SolidWorks add-in; ex. use the name **spider\_robot.py**
 - create a Python program, ex. use the name **demo\_spider.py**, using the functions of [Chrono::PyEngine](@ref introduction_chrono_pyengine) to load and simulate spider\_robot.py.
 
-Fro your convenience, the CAD model, the converted **spider\_robot.py** model, and the **demo\_spider.py** program are all available in the [following archive](http://projectchrono.org/assets/downloads/spider_robot.zip).
+For your convenience, the CAD model, the converted **spider\_robot.py** model, and the **demo\_spider.py** program are all available in the following archive:
+
+
+[spider_robot.zip](http://projectchrono.org/assets/downloads/spider_robot.zip).
+
 
 The following is the complete listing of **demo\_spider.py**  (it must stay in the same directory where you exported your CAD model with the name **spider\_robot.py**)
 
