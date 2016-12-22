@@ -13,7 +13,7 @@
 #include "ModifyPath.iss"
 
 #define MyAppName "PyChronoEngine"
-#define MyAppVersion "v2.0.0"
+#define MyAppVersion "v2.0.7"
 #define MyAppPublisher "Alessandro Tasora"
 #define MyAppURL "http://www.chronoengine.info"
 #define MyWin64PythonDir  "C:\Python33"

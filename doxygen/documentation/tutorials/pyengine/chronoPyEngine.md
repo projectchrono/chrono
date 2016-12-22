@@ -54,3 +54,12 @@ If you want to learn how to parse and execute Python programs
     - generate POVray scripts for rendering a 3D animation 
 	
 
+-   @subpage tutorial_chrono_pyengine_demo_spider_robot
+
+    Import a SolidWorks model of a crawling robot into your Chrono::PyEngine program, and simulate it.
+
+    - use the Chrono::SolidWorks Add-In for exporting a mechanical system
+    - load the system in Chrono::PyEngine 
+	- add actuators and additional items not modeled in CAD
+    - show the simulation in an Irrlicht 3D view
+	
