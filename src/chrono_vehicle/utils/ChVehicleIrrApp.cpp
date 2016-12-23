@@ -107,7 +107,6 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_HUD_y(20),
       m_renderGrid(false),
       m_renderLinks(true),
-      m_renderSprings(true),
       m_renderStats(true),
       m_gridHeight(0.02),
       m_steering(0),
@@ -252,8 +251,6 @@ void ChVehicleIrrApp::DrawAll() {
 
     ChIrrAppInterface::DrawAll();
 
-    if (m_renderSprings)
-        renderSprings();
     if (m_renderLinks)
         renderLinks();
     if (m_renderStats)
@@ -263,21 +260,7 @@ void ChVehicleIrrApp::DrawAll() {
     renderOtherGraphics();
 }
 
-// Render springs in the vehicle model.
-void ChVehicleIrrApp::renderSprings() {
-    auto ilink = GetSystem()->Get_linklist()->begin();
-    for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                             video::SColor(255, 150, 20, 20), 80, 15, true);
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                             video::SColor(255, 150, 20, 20), 80, 15, true);
-        }
-    }
-}
-
-// render specialized joints in the vehicle model.
+// Render specialized joints in the vehicle model.
 void ChVehicleIrrApp::renderLinks() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {

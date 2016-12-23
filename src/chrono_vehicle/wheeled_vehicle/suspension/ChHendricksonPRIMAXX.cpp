@@ -26,6 +26,7 @@
 // =============================================================================
 
 #include "assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
@@ -403,6 +404,13 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
                               m_pointsL[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
     AddVisualizationLowerBeam(m_lowerbeam[RIGHT], m_pointsR[LOWERBEAM_C], m_pointsR[LOWERBEAM_AH],
                               m_pointsR[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
+
+    // Add visualization for the springs and shocks
+    m_shockLB[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockLB[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    m_shockAH[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockAH[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
 }
 
 void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {

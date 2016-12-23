@@ -26,6 +26,7 @@
 // =============================================================================
 
 #include "assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChMultiLink.h"
@@ -400,6 +401,13 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
                                  getTrailingLinkRadius());
     AddVisualizationTrailingLink(m_trailingLink[RIGHT], m_pointsR[TL_C], m_pointsR[SPRING_L], m_pointsR[TL_U],
                                  getTrailingLinkRadius());
+
+    // Add visualization for the springs and shocks
+    m_spring[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
 }
 
 void ChMultiLink::RemoveVisualizationAssets() {

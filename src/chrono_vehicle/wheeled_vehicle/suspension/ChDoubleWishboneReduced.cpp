@@ -26,6 +26,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChDoubleWishboneReduced.h"
@@ -168,6 +169,10 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
                             m_pointsL[LCA_U], m_pointsL[TIEROD_U], getUprightRadius());
     AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[UCA_U],
                             m_pointsR[LCA_U], m_pointsR[TIEROD_U], getUprightRadius());
+
+    // Add visualization for the spring-dampers
+    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
 }
 
 void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
