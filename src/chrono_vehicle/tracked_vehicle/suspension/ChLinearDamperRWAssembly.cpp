@@ -50,9 +50,10 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
+    ChVector<> y_dir = susp_to_abs.GetA().Get_A_Yaxis();
     ChVector<> u = susp_to_abs.GetPos() - points[ARM_CHASSIS];
     u.Normalize();
-    ChVector<> w = Vcross(u, susp_to_abs.GetA().Get_A_Yaxis());
+    ChVector<> w = Vcross(u, y_dir);
     w.Normalize();
     ChVector<> v = Vcross(w, u);
     ChMatrix33<> rot;
@@ -66,12 +67,13 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_arm->SetInertiaXX(GetArmInertia());
     chassis->GetSystem()->AddBody(m_arm);
 
-    // Cache points for arm visualization (expressed in the arm frame)
+    // Cache points and directions for arm visualization (expressed in the arm frame)
     m_pO = m_arm->TransformPointParentToLocal(susp_to_abs.GetPos());
     m_pA = m_arm->TransformPointParentToLocal(points[ARM]);
     m_pAW = m_arm->TransformPointParentToLocal(points[ARM_WHEEL]);
     m_pAC = m_arm->TransformPointParentToLocal(points[ARM_CHASSIS]);
     m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
+    m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
@@ -136,6 +138,16 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
         m_arm->AddAsset(cyl);
     }
 
+    // Revolute joint (arm-chassis)
+    {
+        auto cyl = std::make_shared<ChCylinderShape>();
+        cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
+        cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
+        cyl->GetCylinderGeometry().rad = 1.5 * radius;
+        m_arm->AddAsset(cyl);
+    }
+
+    // Revolute joint (arm-wheel)
     if ((m_pO - m_pAW).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
         double len = (m_pO - m_pAW).Length();

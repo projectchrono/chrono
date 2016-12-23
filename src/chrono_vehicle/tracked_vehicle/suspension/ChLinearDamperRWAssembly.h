@@ -116,6 +116,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     ChVector<> m_pAC;
     ChVector<> m_pAW;
     ChVector<> m_pAS;
+    ChVector<> m_dY;
 };
 
 /// @} vehicle_tracked_suspension
