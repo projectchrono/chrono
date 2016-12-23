@@ -109,6 +109,12 @@ void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vi
     }
 }
 
+void ChTrackAssembly::SetRoadWheelVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->GetRoadWheel()->SetVisualizationType(vis);
+    }
+}
+
 void ChTrackAssembly::SetRollerVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < m_rollers.size(); ++i) {
         m_rollers[i]->SetVisualizationType(vis);

@@ -373,7 +373,8 @@ int main(int argc, char* argv[]) {
     vehicle.SetChassisVisualizationType(VisualizationType::NONE);
     vehicle.SetSprocketVisualizationType(VisualizationType::MESH);
     vehicle.SetIdlerVisualizationType(VisualizationType::MESH);
-    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::MESH);
+    vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetRoadWheelVisualizationType(VisualizationType::MESH);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
     ////vehicle.SetCollide(TrackCollide::NONE);

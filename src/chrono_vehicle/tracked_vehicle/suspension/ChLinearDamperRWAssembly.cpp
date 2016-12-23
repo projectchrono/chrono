@@ -105,8 +105,6 @@ double ChLinearDamperRWAssembly::GetMass() const {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
-    m_road_wheel->AddVisualizationAssets(vis);
-
     if (vis == VisualizationType::NONE)
         return;
 
@@ -152,8 +150,6 @@ void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
 }
 
 void ChLinearDamperRWAssembly::RemoveVisualizationAssets() {
-    m_road_wheel->RemoveVisualizationAssets();
-
     m_arm->GetAssets().clear();
 }
 

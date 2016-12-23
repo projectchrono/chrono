@@ -89,6 +89,11 @@ void ChTrackedVehicle::SetRoadWheelAssemblyVisualizationType(VisualizationType v
     m_tracks[1]->SetRoadWheelAssemblyVisualizationType(vis);
 }
 
+void ChTrackedVehicle::SetRoadWheelVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetRoadWheelVisualizationType(vis);
+    m_tracks[1]->SetRoadWheelVisualizationType(vis);
+}
+
 void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
     m_tracks[0]->SetTrackShoeVisualizationType(vis);
     m_tracks[1]->SetTrackShoeVisualizationType(vis);

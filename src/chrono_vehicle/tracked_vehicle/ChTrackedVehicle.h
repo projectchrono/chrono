@@ -118,6 +118,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set visualization type for the suspension subsystems.
     void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
 
+    /// Set visualization type for the road-wheel subsystems.
+    void SetRoadWheelVisualizationType(VisualizationType vis);
+
     /// Set visualization type for the track shoe subsystems.
     void SetTrackShoeVisualizationType(VisualizationType vis);
 

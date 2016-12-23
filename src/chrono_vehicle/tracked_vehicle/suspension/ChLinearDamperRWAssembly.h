@@ -60,10 +60,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
 
-    /// Add visualization assets for the idler subsystem.
+    /// Add visualization assets for the suspension subsystem.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
-    /// Remove visualization assets for the idler subsystem.
+    /// Remove visualization assets for the suspension subsystem.
     virtual void RemoveVisualizationAssets() override final;
 
     /// Log current constraint violations.

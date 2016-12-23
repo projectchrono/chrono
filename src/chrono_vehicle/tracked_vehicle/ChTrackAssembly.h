@@ -154,6 +154,9 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Set visualization type for the suspension subsystems.
     void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
 
+    /// Set visualization type for the road-wheel subsystems.
+    void SetRoadWheelVisualizationType(VisualizationType vis);
+
     /// Set visualization type for the roller subsystems.
     void SetRollerVisualizationType(VisualizationType vis);
 

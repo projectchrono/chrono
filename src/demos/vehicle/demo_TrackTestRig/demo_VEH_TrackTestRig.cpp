@@ -103,6 +103,7 @@ int main(int argc, char* argv[]) {
     rig->GetTrackAssembly()->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     ////rig->SetCollide(TrackCollide::NONE);
