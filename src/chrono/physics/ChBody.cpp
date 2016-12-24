@@ -609,7 +609,7 @@ void ChBody::UpdateForces(double mytime) {
     Xforce = Force_acc;
 
     // 1b- force caused by accumulation of torques in body's accumulator Force_acc
-    if (Vnotnull(&Torque_acc)) {
+    if (Vnotnull(Torque_acc)) {
         Xtorque = Dir_World2Body(Torque_acc);
     } else {
         Xtorque = VNULL;
@@ -631,7 +631,7 @@ void ChBody::UpdateForces(double mytime) {
     // 3 - accumulation of script forces
     Xforce += Scr_force;
 
-    if (Vnotnull(&Scr_torque)) {
+    if (Vnotnull(Scr_torque)) {
         Xtorque += Dir_World2Body(Scr_torque);
     }
 

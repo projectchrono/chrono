@@ -1,32 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHVECTOR_H
 #define CHVECTOR_H
-
-//////////////////////////////////////////////////
-//
-//   ChVector.h
-//
-//   Math functions for:
-//      - VECTORS
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
 #include <iostream>
@@ -40,7 +27,6 @@ namespace chrono {
 
 // CONSTANTS
 
-// Added this here as code was not compiling (under linux at least)- Hammad
 #define VNULL ChVector<double>(0., 0., 0.)
 #define VECT_X ChVector<double>(1., 0., 0.)
 #define VECT_Y ChVector<double>(0., 1., 0.)
@@ -454,15 +440,15 @@ ChVector<Real> operator*(const Real s, const ChVector<Real>& V) {
 // the ChVector class instead-.
 
 template <class RealA, class RealB>
-RealA Vdot(const ChVector<RealA> va, const ChVector<RealB> vb) {
+RealA Vdot(const ChVector<RealA>& va, const ChVector<RealB>& vb) {
     return (RealA)((va.x * vb.x) + (va.y * vb.y) + (va.z * vb.z));
 }
 
 template <class RealA>
-void Vset(ChVector<RealA>* v, RealA mx, RealA my, RealA mz) {
-    v->x = mx;
-    v->y = my;
-    v->z = mz;
+void Vset(ChVector<RealA>& v, RealA mx, RealA my, RealA mz) {
+    v.x = mx;
+    v.y = my;
+    v.z = mz;
 }
 
 template <class RealA, class RealB>
@@ -519,36 +505,30 @@ bool Vequal(const ChVector<RealA>& va, const ChVector<RealB>& vb) {
 }
 
 template <class RealA>
-bool Vnotnull(ChVector<RealA>* va) {
-    if (va->x)
-        return true;
-    if (va->y)
-        return true;
-    if (va->z)
-        return true;
-    return false;
+bool Vnotnull(const ChVector<RealA>& va) {
+    return (va.x != 0 || va.y != 0 || va.z != 0);
 }
 
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
-double VangleYZplane(ChVector<RealA>* va) {
-    return asin(Vdot(*va, VECT_X));
+double VangleYZplane(const ChVector<RealA>& va) {
+    return asin(Vdot(va, VECT_X));
 }
 
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
-double VangleYZplaneNorm(ChVector<RealA>* va) {
-    return acos(Vdot(*va, VECT_X));
+double VangleYZplaneNorm(const ChVector<RealA>& va) {
+    return acos(Vdot(va, VECT_X));
 }
 
 // Gets the angle of the projection on the YZ plane respect to
 // the Y vector, as spinning about X.
 template <class RealA>
-double VangleRX(ChVector<RealA>* va) {
+double VangleRX(const ChVector<RealA>& va) {
     Vector vproj;
     vproj.x = 0;
-    vproj.y = va->y;
-    vproj.z = va->z;
+    vproj.y = va.y;
+    vproj.z = va.z;
     vproj = Vnorm(vproj);
     if (vproj.x == 1)
         return 0;
@@ -571,48 +551,44 @@ ChVector<RealA> VfromPolar(double norm_angle, double pol_angle) {
     return res;
 }
 
-// From non normalized x direction, to versors DxDyDz.
-// mVsingular (optional) sets normal to plane on which Dz must lie.
+// From non-normalized x direction, to versors DxDyDz.
+// Vsingular sets the normal to the plane on which Dz must lie.
 template <class RealA>
-void XdirToDxDyDz(ChVector<RealA>* mVxdir,
-                  ChVector<RealA>* mVsingular,
-                  ChVector<RealA>* Vx,
-                  ChVector<RealA>* Vy,
-                  ChVector<RealA>* Vz) {
-    ChVector<RealA> mdefVsingular;
+void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
+                  const ChVector<RealA>& Vsingular,
+                  ChVector<RealA>& Vx,
+                  ChVector<RealA>& Vy,
+                  ChVector<RealA>& Vz) {
     ChVector<RealA> mVnull = VNULL;
     double mzlen;
 
-    mdefVsingular = VECT_Y;
-
-    if (Vequal(*mVxdir, mVnull))
-        *Vx = VECT_X;
+    if (Vequal(Vxdir, mVnull))
+        Vx = VECT_X;
     else
-        *Vx = Vnorm(*mVxdir);
+        Vx = Vnorm(Vxdir);
 
-    if (!mVsingular)
-        mVsingular = &mdefVsingular;
+    Vz = Vcross(Vx, Vsingular);
+    mzlen = Vlength(Vz);
 
-    *Vz = Vcross(*Vx, *mVsingular);
-    mzlen = Vlength(*Vz);
-
-    if (mzlen < 0.0001)  // was near singularity? change singularity reference vector!
-    {
-        if (fabs(mVsingular->z) < 0.9)
-            *mVsingular = VECT_Z;
-        if (fabs(mVsingular->y) < 0.9)
-            *mVsingular = VECT_Y;
-        if (fabs(mVsingular->x) < 0.9)
-            *mVsingular = VECT_X;
-        *Vz = Vcross(*Vx, *mVsingular);
-        mzlen = Vlength(*Vz);  // now should be nonzero length.
+    // If close to singularity, change reference vector
+    if (mzlen < 0.0001) {
+        ChVector<> mVsingular;
+        if (fabs(Vsingular.z) < 0.9)
+            mVsingular = VECT_Z;
+        if (fabs(Vsingular.y) < 0.9)
+            mVsingular = VECT_Y;
+        if (fabs(Vsingular.x) < 0.9)
+            mVsingular = VECT_X;
+        Vz = Vcross(Vx, mVsingular);
+        mzlen = Vlength(Vz);  // now should be nonzero length.
     }
+
     // normalize Vz
-    *Vz = Vmul(*Vz, 1.0 / mzlen);
+    Vz = Vmul(Vz, 1.0 / mzlen);
     // compute Vy
-    *Vy = Vcross(*Vz, *Vx);
+    Vy = Vcross(Vz, Vx);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChVector.h
+#endif

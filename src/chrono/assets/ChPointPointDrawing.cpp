@@ -46,8 +46,7 @@ void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const C
 	ChVector<> Vx, Vy, Vz;
 	double length = dist.Length();
 	ChVector<> dir = dist.GetNormalized();
-	ChVector<> singul = VECT_Y;
-	XdirToDxDyDz(&dir, &singul, &Vx, &Vy, &Vz);
+    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
 
 	ChMatrix33<> rel_matrix;
 	rel_matrix.Set_A_axis(Vx, Vy, Vz);

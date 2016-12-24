@@ -1,32 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
-
-//////////////////////////////////////////////////
-//
-//   ChQuaternion.h
-//
-//   Math functions for :
-//      - QUATERNIONS
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "core/ChVector.h"
 #include "ChApiCE.h"
@@ -78,7 +65,7 @@ class ChQuaternion {
     ChQuaternion(const Real ne0, const Real ne1, const Real ne2, const Real ne3) : e0(ne0), e1(ne1), e2(ne2), e3(ne3) {}
 
     /// Constructor from real part, and vector with i,j,k imaginary part.
-    ChQuaternion(const Real ns, const ChVector<Real> nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
+    ChQuaternion(const Real ns, const ChVector<Real>& nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
 
     /// Copy constructor
     ChQuaternion(const ChQuaternion<Real>& other) : e0(other.e0), e1(other.e1), e2(other.e2), e3(other.e3) {}
@@ -317,7 +304,7 @@ class ChQuaternion {
 
     /// The quaternion becomes the sum of the two quaternions A and B:
     /// this=A+B
-    void Add(const ChQuaternion<Real> A, const ChQuaternion<Real> B) {
+    void Add(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
         e0 = A.e0 + B.e0;
         e1 = A.e1 + B.e1;
         e2 = A.e2 + B.e2;
@@ -326,7 +313,7 @@ class ChQuaternion {
 
     /// The quaternion becomes the difference of the two quaternions A and B:
     /// this=A-B
-    void Sub(const ChQuaternion<Real> A, const ChQuaternion<Real> B) {
+    void Sub(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
         e0 = A.e0 - B.e0;
         e1 = A.e1 - B.e1;
         e2 = A.e2 - B.e2;
@@ -336,7 +323,7 @@ class ChQuaternion {
     /// The quaternion becomes the quaternion product of the two quaternions A and B:
     /// following the classic Hamilton rule:  this=AxB
     /// This is the true, typical quaternion product. It is NOT commutative.
-    void Cross(const ChQuaternion<Real> qa, const ChQuaternion<Real> qb) {
+    void Cross(const ChQuaternion<Real>& qa, const ChQuaternion<Real>& qb) {
         this->e0 = qa.e0 * qb.e0 - qa.e1 * qb.e1 - qa.e2 * qb.e2 - qa.e3 * qb.e3;
         this->e1 = qa.e0 * qb.e1 + qa.e1 * qb.e0 - qa.e3 * qb.e2 + qa.e2 * qb.e3;
         this->e2 = qa.e0 * qb.e2 + qa.e2 * qb.e0 + qa.e3 * qb.e1 - qa.e1 * qb.e3;
@@ -345,13 +332,13 @@ class ChQuaternion {
 
     /// The result is dot product of the two quaternion A and B:
     /// result=A*B. This kind of product is not used a lot, anyway...
-    Real Dot(const ChQuaternion<Real> A, const ChQuaternion<Real> B) const {
+    Real Dot(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) const {
         return (A.e0 * B.e0) + (A.e1 * B.e1) + (A.e2 * B.e2) + (A.e3 * B.e3);
     };
 
     /// The quaternion becomes the product of a quaternion A and a scalar v:
     /// this=A*v
-    void Mul(const ChQuaternion<Real> A, const Real v) {
+    void Mul(const ChQuaternion<Real>& A, const Real v) {
         e0 = A.e0 * v;
         e1 = A.e1 * v;
         e2 = A.e2 * v;
@@ -428,7 +415,7 @@ class ChQuaternion {
 
     /// Rotates the vector A on the basis of this quaternion: res=p*[0,A]*p'
     /// (speed-optimized version). Endomorphism assumes p is already normalized.
-    ChVector<Real> Rotate(const ChVector<Real> A) const {
+    ChVector<Real> Rotate(const ChVector<Real>& A) const {
         Real e0e0 = e0 * e0;
         Real e1e1 = e1 * e1;
         Real e2e2 = e2 * e2;
@@ -446,7 +433,7 @@ class ChQuaternion {
 
     /// Rotates the vector A on the basis of conjugate of this quaternion: res=p'*[0,A]*p
     /// (speed-optimized version).  Endomorphism assumes p is already normalized.
-    ChVector<Real> RotateBack(const ChVector<Real> A) const {
+    ChVector<Real> RotateBack(const ChVector<Real>& A) const {
         Real e0e0 = e0 * e0;
         Real e1e1 = e1 * e1;
         Real e2e2 = e2 * e2;
@@ -821,6 +808,6 @@ ChApi ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>&
 ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChQuaternion.h
+#endif

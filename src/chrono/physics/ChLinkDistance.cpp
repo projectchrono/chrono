@@ -74,9 +74,8 @@ ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
     ChVector<> D2temp = (Vnorm(Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2)));
     ChVector<> D2rel = Body2->TransformDirectionParentToLocal(D2temp);
     ChVector<> Vx, Vy, Vz;
-    ChVector<> Vsingul(VECT_Y);
     ChMatrix33<> rel_matrix;
-    XdirToDxDyDz(&D2rel, &Vsingul, &Vx, &Vy, &Vz);
+    XdirToDxDyDz(D2rel, VECT_Y, Vx, Vy, Vz);
     rel_matrix.Set_A_axis(Vx, Vy, Vz);
 
     Quaternion Ql2 = rel_matrix.Get_A_quaternion();

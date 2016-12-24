@@ -688,8 +688,7 @@ void ChIrrTools::drawSpring(irr::video::IVideoDriver* driver,
     ChVector<> Vx, Vy, Vz;
     double length = dist.Length();
     ChVector<> dir = Vnorm(dist);
-    ChVector<> singul(VECT_Y);
-    XdirToDxDyDz(&dir, &singul, &Vx, &Vy, &Vz);
+    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
     rel_matrix.Set_A_axis(Vx, Vy, Vz);
     ChQuaternion<> Q12 = rel_matrix.Get_A_quaternion();
     ChCoordsys<> mpos(start, Q12);

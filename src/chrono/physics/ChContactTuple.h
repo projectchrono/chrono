@@ -92,8 +92,7 @@ class ChContactTuple {
 
         // Contact plane
         ChVector<> Vx, Vy, Vz;
-        ChVector<double> singul(VECT_Y);
-        XdirToDxDyDz(&normal, &singul, &Vx, &Vy, &Vz);
+        XdirToDxDyDz(normal, VECT_Y, Vx, Vy, Vz);
         contact_plane.Set_A_axis(Vx, Vy, Vz);
     }
 

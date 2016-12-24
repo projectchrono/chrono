@@ -885,25 +885,16 @@ void ChLinkLock::UpdateForces(double mytime) {
         m_torque.z = limit_Rz->GetForce(relRotaxis.z, relWvel.z);
     }
     if (limit_Rp->Get_active()) {
+        ChVector<> arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
+        double zenith = VangleYZplaneNorm(arm_xaxis);     // the angle of m1 Xaxis about normal to YZ plane
+        double polar = VangleRX(arm_xaxis);               // the polar angle of m1 Xaxis spinning about m2 Xaxis
+
+        ChVector<> projected_arm(0, arm_xaxis.y, arm_xaxis.z);
         ChVector<> torq_axis;
-        ChVector<> arm_xaxis;
-        ChVector<> projected_arm;
-        double zenithspeed;
-        double zenith;
-        double polar;
-
-        arm_xaxis = VaxisXfromQuat(relM.rot);    // the X axis of the marker1, respect to m2.
-        zenith = VangleYZplaneNorm(&arm_xaxis);  // the angle of m1 Xaxis about normal to YZ plane
-        polar = VangleRX(&arm_xaxis);            // the polar angle of m1 Xaxis spinning about m2 Xaxis
-
-        projected_arm.x = 0;
-        projected_arm.y = arm_xaxis.y;
-        projected_arm.z = arm_xaxis.z;
-        ChVector<> vx = VECT_X;
-        torq_axis = Vcross(vx, projected_arm);
+        torq_axis = Vcross(VECT_X, projected_arm);
         torq_axis = Vnorm(torq_axis);  // the axis of torque, laying on YZ plane.
 
-        zenithspeed = Vdot(torq_axis, relWvel);  // the speed of zenith rotation toward cone.
+        double zenithspeed = Vdot(torq_axis, relWvel);  // the speed of zenith rotation toward cone.
 
         m_torque = Vadd(m_torque, Vmul(torq_axis, limit_Rp->GetPolarForce(zenith, zenithspeed, polar)));
     }
