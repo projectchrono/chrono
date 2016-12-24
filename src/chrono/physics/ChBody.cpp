@@ -405,7 +405,7 @@ void ChBody::SetInertiaXX(const ChVector<>& iner) {
     variables.GetBodyInertia().SetElement(0, 0, iner.x);
     variables.GetBodyInertia().SetElement(1, 1, iner.y);
     variables.GetBodyInertia().SetElement(2, 2, iner.z);
-    variables.GetBodyInertia().FastInvert(&variables.GetBodyInvInertia());
+    variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInertia().SetElement(0, 1, iner.x);
@@ -414,7 +414,7 @@ void ChBody::SetInertiaXY(const ChVector<>& iner) {
     variables.GetBodyInertia().SetElement(1, 0, iner.x);
     variables.GetBodyInertia().SetElement(2, 0, iner.y);
     variables.GetBodyInertia().SetElement(2, 1, iner.z);
-    variables.GetBodyInertia().FastInvert(&variables.GetBodyInvInertia());
+    variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 
 ChVector<> ChBody::GetInertiaXX() {

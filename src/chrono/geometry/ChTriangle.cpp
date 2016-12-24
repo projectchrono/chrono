@@ -147,7 +147,7 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,
     mA.Set_A_axis(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (fabs(mA.FastInvert(&mAi)) < 0.000001)
+    if (fabs(mA.FastInvert(mAi)) < 0.000001)
         return mdistance;
 
     T1 = mAi.Matr_x_Vect(Vsub(B, A1));

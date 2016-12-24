@@ -355,7 +355,7 @@ void ChMatterMeshless::IntLoadResidual_F(
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(&mnode->Amoment);
+        double det = M_tmp.FastInvert(mnode->Amoment);
         if (fabs(det) < 0.00003) {
             mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
             mnode->e_strain.FillElem(0.0);  // detach
@@ -516,7 +516,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(&mnode->Amoment);
+        double det = M_tmp.FastInvert(mnode->Amoment);
         if (fabs(det) < 0.00003) {
             mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
             mnode->e_strain.FillElem(0.0);  // detach

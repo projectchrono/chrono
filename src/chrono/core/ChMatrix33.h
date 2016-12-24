@@ -1,34 +1,21 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMATRIX33_H
 #define CHMATRIX33_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatrix33.h
-//
-//   Math functions for:
-//      - 3x3 MATRICES
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-
-#include "core/ChMatrixNM.h"
+#include "chrono/core/ChMatrixNM.h"
 
 namespace chrono {
 
@@ -239,7 +226,7 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
     /// Fast inversion of small matrices. Result will be in 'matra'.
     /// \return Returns the determinant.
     template <class RealB>
-    Real FastInvert(ChMatrix33<RealB>* matra) {
+    Real FastInvert(ChMatrix33<RealB>& matra) {
         Real det;
         Real sdet0, sdet1, sdet2;
 
@@ -252,27 +239,27 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
 
         det = sdet0 * this->Get33Element(0, 0) + sdet1 * this->Get33Element(0, 1) + sdet2 * this->Get33Element(0, 2);
 
-        matra->Set33Element(0, 0, sdet0 / det);
-        matra->Set33Element(1, 0, sdet1 / det);
-        matra->Set33Element(2, 0, sdet2 / det);
-        matra->Set33Element(0, 1, (-(this->Get33Element(0, 1) * this->Get33Element(2, 2)) +
-                                   (this->Get33Element(2, 1) * this->Get33Element(0, 2))) /
-                                      det);
-        matra->Set33Element(1, 1, (+(this->Get33Element(0, 0) * this->Get33Element(2, 2)) -
-                                   (this->Get33Element(2, 0) * this->Get33Element(0, 2))) /
-                                      det);
-        matra->Set33Element(2, 1, (-(this->Get33Element(0, 0) * this->Get33Element(2, 1)) +
-                                   (this->Get33Element(2, 0) * this->Get33Element(0, 1))) /
-                                      det);
-        matra->Set33Element(0, 2, (+(this->Get33Element(0, 1) * this->Get33Element(1, 2)) -
-                                   (this->Get33Element(1, 1) * this->Get33Element(0, 2))) /
-                                      det);
-        matra->Set33Element(1, 2, (-(this->Get33Element(0, 0) * this->Get33Element(1, 2)) +
-                                   (this->Get33Element(1, 0) * this->Get33Element(0, 2))) /
-                                      det);
-        matra->Set33Element(2, 2, (+(this->Get33Element(0, 0) * this->Get33Element(1, 1)) -
-                                   (this->Get33Element(1, 0) * this->Get33Element(0, 1))) /
-                                      det);
+        matra.Set33Element(0, 0, sdet0 / det);
+        matra.Set33Element(1, 0, sdet1 / det);
+        matra.Set33Element(2, 0, sdet2 / det);
+        matra.Set33Element(0, 1, (-(this->Get33Element(0, 1) * this->Get33Element(2, 2)) +
+                                  (this->Get33Element(2, 1) * this->Get33Element(0, 2))) /
+                                     det);
+        matra.Set33Element(1, 1, (+(this->Get33Element(0, 0) * this->Get33Element(2, 2)) -
+                                  (this->Get33Element(2, 0) * this->Get33Element(0, 2))) /
+                                     det);
+        matra.Set33Element(2, 1, (-(this->Get33Element(0, 0) * this->Get33Element(2, 1)) +
+                                  (this->Get33Element(2, 0) * this->Get33Element(0, 1))) /
+                                     det);
+        matra.Set33Element(0, 2, (+(this->Get33Element(0, 1) * this->Get33Element(1, 2)) -
+                                  (this->Get33Element(1, 1) * this->Get33Element(0, 2))) /
+                                     det);
+        matra.Set33Element(1, 2, (-(this->Get33Element(0, 0) * this->Get33Element(1, 2)) +
+                                  (this->Get33Element(1, 0) * this->Get33Element(0, 2))) /
+                                     det);
+        matra.Set33Element(2, 2, (+(this->Get33Element(0, 0) * this->Get33Element(1, 1)) -
+                                  (this->Get33Element(1, 0) * this->Get33Element(0, 1))) /
+                                     det);
 
         return det;
     }
@@ -893,6 +880,6 @@ ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& v
 }
 
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif

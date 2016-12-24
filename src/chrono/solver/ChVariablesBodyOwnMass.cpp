@@ -44,7 +44,7 @@ ChVariablesBodyOwnMass& ChVariablesBodyOwnMass::operator=(const ChVariablesBodyO
 // Set the inertia matrix
 void ChVariablesBodyOwnMass::SetBodyInertia(const ChMatrix33<>& minertia) {
     inertia.CopyFromMatrix(minertia);
-    inertia.FastInvert(&inv_inertia);
+    inertia.FastInvert(inv_inertia);
 }
 
 // Set the mass associated with translation of body
