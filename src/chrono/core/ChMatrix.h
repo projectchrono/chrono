@@ -649,11 +649,11 @@ class ChMatrix {
     /// Computes dot product between two column-matrices (vectors) with
     /// same size. Returns a scalar value.
     template <class RealB, class RealC>
-    static Real MatrDot(const ChMatrix<RealB>* ma, const ChMatrix<RealC>* mb) {
-        assert(ma->GetColumns() == mb->GetColumns() && ma->GetRows() == mb->GetRows());
+    static Real MatrDot(const ChMatrix<RealB>& ma, const ChMatrix<RealC>& mb) {
+        assert(ma.GetColumns() == mb.GetColumns() && ma.GetRows() == mb.GetRows());
         Real tot = 0;
-        for (int i = 0; i < ma->GetRows(); ++i)
-            tot += (Real)(ma->ElementN(i) * mb->ElementN(i));
+        for (int i = 0; i < ma.GetRows(); ++i)
+            tot += (Real)(ma.ElementN(i) * mb.ElementN(i));
         return tot;
     }
 

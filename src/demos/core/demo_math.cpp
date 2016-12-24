@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     chrono::ChMatrixDynamic<> mmv2(5, 1);
     mmv1.FillRandom(1, 3);
     mmv2.FillRandom(2, 4);
-    double mdot = chrono::ChMatrix<>::MatrDot(&mmv1, &mmv2);
+    double mdot = chrono::ChMatrix<>::MatrDot(mmv1, mmv2);
 
     // The comparison
     chrono::ChMatrixDynamic<> mmv3(mmv2);

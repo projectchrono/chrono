@@ -147,7 +147,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
     rtilde.CopyFromMatrix(r0);  // copy(r0, rtilde);
 
     // 8. rho=dot(rtilde,r)
-    double rho = ChMatrix<>::MatrDot(&rtilde, &r0);  //= dot(rtilde, r0);
+    double rho = ChMatrix<>::MatrDot(rtilde, r0);  //= dot(rtilde, r0);
     double rho0 = rho;
     ChMatrixDynamic<> y0(N, 1);
     for (;;) {
@@ -155,7 +155,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
         // sigma=dot(rtilde,v)
         // alpha=rho/sigma
         // y2k=y(2k-1)-alpha*v
-        sigma = ChMatrix<>::MatrDot(&rtilde, &v);
+        sigma = ChMatrix<>::MatrDot(rtilde, v);
 
         if (sigma == 0.) {
             error_code = 5; /*iter.fail(5, "tfqmr breakdown: sigma=0");*/
@@ -320,7 +320,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
         // 23. beta=rho/rho0                     //need check breakdown
 
         rho0 = rho;
-        rho = ChMatrix<>::MatrDot(&rtilde, &w);
+        rho = ChMatrix<>::MatrDot(rtilde, w);
         if (rho0 == 0.) {
             error_code = 4; /*iter.fail(4, "tfqmr breakdown: beta=0");*/
             break;
