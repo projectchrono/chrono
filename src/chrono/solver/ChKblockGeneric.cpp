@@ -144,9 +144,9 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 
                 if (this->GetVariableN(jv)->IsActive()) {
                     if (add)
-                        storage.PasteSumClippedMatrix(this->K, kio, kjo, in, jn, io, jo);
+                        storage.PasteSumClippedMatrix(*K, kio, kjo, in, jn, io, jo);
                     else
-                        storage.PasteClippedMatrix(this->K, kio, kjo, in, jn, io, jo);
+                        storage.PasteClippedMatrix(*K, kio, kjo, in, jn, io, jo);
                 }
 
                 kjo += jn;

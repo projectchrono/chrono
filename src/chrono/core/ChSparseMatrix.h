@@ -75,7 +75,6 @@ public:
     /// Suggested for matrix with dimension >1e5
     virtual void LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner){}
 
-
     virtual void SetElement(int insrow, int inscol, double insval, bool overwrite = true) = 0;
     virtual double GetElement(int row, int col) const = 0;
 
@@ -89,27 +88,27 @@ public:
     virtual bool Compress() { return false; }
 
     /// Paste the specified matrix into this sparse matrix at (insrow,inscol).
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
-        auto maxrows = matra->GetRows();
-        auto maxcols = matra->GetColumns();
+    virtual void PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite = true, bool transp = false) {
+        auto maxrows = matra.GetRows();
+        auto maxcols = matra.GetColumns();
 
         if (transp) {
             for (auto i = 0; i < maxcols; i++) {
                 for (auto j = 0; j < maxrows; j++) {
-                    this->SetElement(insrow + i, inscol + j, (*matra)(j, i), overwrite);
+                    this->SetElement(insrow + i, inscol + j, matra(j, i), overwrite);
                 }
             }
         } else {
             for (auto i = 0; i < maxrows; i++) {
                 for (auto j = 0; j < maxcols; j++) {
-                    this->SetElement(insrow + i, inscol + j, (*matra)(i, j), overwrite);
+                    this->SetElement(insrow + i, inscol + j, matra(i, j), overwrite);
                 }
             }
         }
     }
 
     /// Paste a clipped portion of the specified matrix into this sparse matrix at (insrow,inscol).
-    virtual void PasteClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteClippedMatrix(const ChMatrix<>& matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
@@ -119,7 +118,7 @@ public:
                                     bool overwrite = true) {
         for (auto i = 0; i < nrows; ++i)
             for (auto j = 0; j < ncolumns; ++j)
-                this->SetElement(insrow + i, inscol + j, matra->GetElement(i + cliprow, j + clipcol), overwrite);
+                this->SetElement(insrow + i, inscol + j, matra.GetElement(i + cliprow, j + clipcol), overwrite);
     }
 
     /// Return the row index array in the CSR representation of this matrix.
@@ -133,16 +132,16 @@ public:
 
     // Wrapper functions
 
-    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+    virtual void PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
         PasteMatrix(matra, insrow, inscol, true, true);
     }
-    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+    virtual void PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
         PasteMatrix(matra, insrow, inscol, false, false);
     }
-    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) {
+    virtual void PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) {
         PasteMatrix(matra, insrow, inscol, false, true);
     }
-    virtual void PasteSumClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteSumClippedMatrix(const ChMatrix<>& matra,
                                        int cliprow,
                                        int clipcol,
                                        int nrows,

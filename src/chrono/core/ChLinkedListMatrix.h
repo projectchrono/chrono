@@ -108,9 +108,9 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
 
     // Customized functions, speed-optimized for sparse matrices:
 
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
-    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite, bool transp) override;
+    virtual void PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
+    virtual void PasteClippedMatrix(const ChMatrix<>& matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
@@ -118,20 +118,20 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
                                     int insrow,
                                     int inscol,
                                     bool overwrite) override;
-    virtual void PasteSumClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteSumClippedMatrix(const ChMatrix<>& matra,
                                        int cliprow,
                                        int clipcol,
                                        int nrows,
                                        int ncolumns,
                                        int insrow,
                                        int inscol) override;
-    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
+    virtual void PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
 
     // Specialized functions
 
-    void PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
-    void PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
+    void PasteMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol);
+    void PasteTranspMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol);
 
     // Matrix operations
 
