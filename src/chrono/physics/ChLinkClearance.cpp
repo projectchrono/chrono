@@ -66,8 +66,7 @@ double ChLinkClearance::Get_axis_phase() {
         return 0;
     double mangle;
     Vector maxis;
-    Quaternion temp = this->GetMarker2()->GetCoord().rot;
-    Q_to_AngAxis(&temp, &mangle, &maxis);
+    Q_to_AngAxis(this->GetMarker2()->GetCoord().rot, mangle, maxis);
     if (maxis.z < 0.0) {
         maxis = Vmul(maxis, -1.0);
         mangle = (2.0 * CH_C_PI) - mangle;

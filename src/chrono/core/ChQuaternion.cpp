@@ -221,23 +221,21 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     return mnasa;
 }
 
-void Q_to_AngAxis(ChQuaternion<double>* quat, double* a_angle, ChVector<double>* a_axis) {
-    double arg, invsine;
-    ChVector<double> vtemp;
-
-    if (quat->e0 < 0.99999999) {
-        arg = acos(quat->e0);
-        *a_angle = 2 * arg;
-        invsine = 1 / (sin(arg));
-        vtemp.x = invsine * quat->e1;
-        vtemp.y = invsine * quat->e2;
-        vtemp.z = invsine * quat->e3;
-        *a_axis = Vnorm(vtemp);
+void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
+    if (quat.e0 < 0.99999999) {
+        double arg = acos(quat.e0);
+        double invsine = 1 / (sin(arg));
+        ChVector<double> vtemp;
+        vtemp.x = invsine * quat.e1;
+        vtemp.y = invsine * quat.e2;
+        vtemp.z = invsine * quat.e3;
+        angle = 2 * arg;
+        axis = Vnorm(vtemp);
     } else {
-        a_axis->x = 1;
-        a_axis->y = 0;
-        a_axis->z = 0;
-        *a_angle = 0;
+        axis.x = 1;
+        axis.y = 0;
+        axis.z = 0;
+        angle = 0;
     }
 }
 
@@ -327,32 +325,34 @@ bool Qnotnull(const ChQuaternion<double>& qa) {
 // entire quaternion q = {e0, e1, e2, e3}. Also for q_dt and q_dtdt
 // Note: singularities may happen!
 
-ChQuaternion<double> ImmQ_complete(ChVector<double>* qimm) {
+ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
     ChQuaternion<double> mq;
-    mq.e1 = qimm->x;
-    mq.e2 = qimm->y;
-    mq.e3 = qimm->z;
+    mq.e1 = qimm.x;
+    mq.e2 = qimm.y;
+    mq.e3 = qimm.z;
     mq.e0 = sqrt(1 - mq.e1 * mq.e1 - mq.e2 * mq.e2 - mq.e3 * mq.e3);
     return (mq);
 }
 
-ChQuaternion<double> ImmQ_dt_complete(ChQuaternion<double>* mq, ChVector<double>* qimm_dt) {
+ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt) {
     ChQuaternion<double> mqdt;
-    mqdt.e1 = qimm_dt->x;
-    mqdt.e2 = qimm_dt->y;
-    mqdt.e3 = qimm_dt->z;
-    mqdt.e0 = (-mq->e1 * mqdt.e1 - mq->e2 * mqdt.e2 - mq->e3 * mqdt.e3) / mq->e0;
+    mqdt.e1 = qimm_dt.x;
+    mqdt.e2 = qimm_dt.y;
+    mqdt.e3 = qimm_dt.z;
+    mqdt.e0 = (-mq.e1 * mqdt.e1 - mq.e2 * mqdt.e2 - mq.e3 * mqdt.e3) / mq.e0;
     return (mqdt);
 }
 
-ChQuaternion<double> ImmQ_dtdt_complete(ChQuaternion<double>* mq, ChQuaternion<double>* mqdt, ChVector<double>* qimm_dtdt) {
+ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
+                                        const ChQuaternion<double>& mqdt,
+                                        const ChVector<double>& qimm_dtdt) {
     ChQuaternion<double> mqdtdt;
-    mqdtdt.e1 = qimm_dtdt->x;
-    mqdtdt.e2 = qimm_dtdt->y;
-    mqdtdt.e3 = qimm_dtdt->z;
-    mqdtdt.e0 = (-mq->e1 * mqdtdt.e1 - mq->e2 * mqdtdt.e2 - mq->e3 * mqdtdt.e3 - mqdt->e0 * mqdt->e0 -
-                 mqdt->e1 * mqdt->e1 - mqdt->e2 * mqdt->e2 - mqdt->e3 * mqdt->e3) /
-                mq->e0;
+    mqdtdt.e1 = qimm_dtdt.x;
+    mqdtdt.e2 = qimm_dtdt.y;
+    mqdtdt.e3 = qimm_dtdt.z;
+    mqdtdt.e0 = (-mq.e1 * mqdtdt.e1 - mq.e2 * mqdtdt.e2 - mq.e3 * mqdtdt.e3 - mqdt.e0 * mqdt.e0 - mqdt.e1 * mqdt.e1 -
+                 mqdt.e2 * mqdt.e2 - mqdt.e3 * mqdt.e3) /
+                mq.e0;
     return (mqdtdt);
 }
 

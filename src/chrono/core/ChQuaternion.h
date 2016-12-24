@@ -770,7 +770,7 @@ ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
 ChApi ChQuaternion<double> Q_from_AngX(double angleX);
 ChApi ChQuaternion<double> Q_from_AngY(double angleY);
-ChApi void Q_to_AngAxis(ChQuaternion<double>* quat, double* a_angle, ChVector<double>* a_axis);
+ChApi void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis);
 ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const Quaternion& q);
 ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const Quaternion& q);
 ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis);
@@ -781,9 +781,9 @@ ChApi ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q);
 ChApi ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
 ChApi bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
 ChApi bool Qnotnull(const ChQuaternion<double>& qa);
-ChApi ChQuaternion<double> ImmQ_complete(ChVector<double>* qimm);
-ChApi ChQuaternion<double> ImmQ_dt_complete(ChQuaternion<double>* mq, ChVector<double>* qimm_dt);
-ChApi ChQuaternion<double> ImmQ_dtdt_complete(ChQuaternion<double>* mq, ChQuaternion<double>* mqdt, ChVector<double>* qimm_dtdt);
+ChApi ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm);
+ChApi ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt);
+ChApi ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq, const ChQuaternion<double>& mqdt, const ChVector<double>& qimm_dtdt);
 
 ChApi ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat);
 

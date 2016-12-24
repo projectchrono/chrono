@@ -535,7 +535,7 @@ void ChLinkLock::UpdateRelMarkerCoords() {
     // ... and also "user-friendly" relative coordinates:
 
     // relAngle and relAxis
-    Q_to_AngAxis(&relM.rot, &relAngle, &relAxis);
+    Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
     if (relAxis.z < 0) {
         relAxis = Vmul(relAxis, -1);
