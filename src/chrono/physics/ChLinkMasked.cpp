@@ -234,7 +234,7 @@ void ChLinkMasked::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
 
 void ChLinkMasked::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     if (react)
-        L.PasteMatrix(react, off_L, 0);
+        L.PasteMatrix(*react, off_L, 0);
 }
 
 void ChLinkMasked::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
@@ -242,7 +242,7 @@ void ChLinkMasked::IntStateScatterReactions(const unsigned int off_L, const ChVe
     react_torque = VNULL;  // Child classes implementations should compute them.
 
     if (react)
-        react->PasteClippedMatrix(&L, off_L, 0, react->GetRows(), 1, 0, 0);
+        react->PasteClippedMatrix(L, off_L, 0, react->GetRows(), 1, 0, 0);
 }
 
 void ChLinkMasked::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -386,8 +386,8 @@ void ChLinkMasked::ConstraintsLoadJacobians() {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
         if (mask->Constr_N(i).IsActive()) {
-            mask->Constr_N(i).Get_Cq_a()->PasteClippedMatrix(this->Cqw1, cnt, 0, 1, this->Cqw1->GetColumns(), 0, 0);
-            mask->Constr_N(i).Get_Cq_b()->PasteClippedMatrix(this->Cqw2, cnt, 0, 1, this->Cqw2->GetColumns(), 0, 0);
+            mask->Constr_N(i).Get_Cq_a()->PasteClippedMatrix(*Cqw1, cnt, 0, 1, this->Cqw1->GetColumns(), 0, 0);
+            mask->Constr_N(i).Get_Cq_b()->PasteClippedMatrix(*Cqw2, cnt, 0, 1, this->Cqw2->GetColumns(), 0, 0);
             cnt++;
 
             // sets also the CFM term
@@ -421,7 +421,7 @@ void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody
         return;
 
     // traslational part - not changed
-    mCqw->PasteClippedMatrix(mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
+    mCqw->PasteClippedMatrix(*mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
     int col, row, colres;

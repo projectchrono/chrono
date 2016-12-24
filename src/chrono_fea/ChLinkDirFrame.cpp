@@ -229,11 +229,11 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Jra;
     Jra.CopyFromMatrixT(Arw);
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(&Jra, 1, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(&Jra, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a()->PasteClippedMatrix(Jra, 1, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_a()->PasteClippedMatrix(Jra, 2, 0, 1, 3, 0, 0);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jrb, 1, 0, 1, 3, 0, 3);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jrb, 2, 0, 1, 3, 0, 3);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
 }
 
 void ChLinkDirFrame::ConstraintsFetch_react(double factor) {

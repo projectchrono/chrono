@@ -239,7 +239,7 @@ public:
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -249,7 +249,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 
@@ -350,7 +350,7 @@ public:
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -360,7 +360,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 
@@ -506,7 +506,7 @@ public:
             Q1 = this->load_Q;
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -516,7 +516,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 

@@ -129,7 +129,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         for (int i= 0; i<forces.size(); ++i) {
             ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_x());
             forces[i]->LoadGetStateBlock_x(mDi);
-            mD.PasteMatrix(&mDi,ndoftot,0);
+            mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_x();
         }
     }
@@ -138,7 +138,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         for (int i= 0; i<forces.size(); ++i) {
             ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_w());
             forces[i]->LoadGetStateBlock_w(mDi);
-            mD.PasteMatrix(&mDi,ndoftot,0);
+            mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_w();
         }
     }

@@ -637,30 +637,30 @@ void ChLinkLock::UpdateState() {
     mtemp1.CopyFromMatrixT(marker2->GetA());
     CqxT.MatrMultiplyT(mtemp1, Body2->GetA());  // [CqxT]=[Aq]'[Ao2]'
 
-    Cq1_temp->PasteMatrix(&CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq1_temp->PasteMatrix(CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
 
     CqxT.MatrNeg();
-    Cq2_temp->PasteMatrix(&CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    Cq2_temp->PasteMatrix(CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
 
     mtemp1.MatrMultiply(CqxT, Body1->GetA());
     mtemp2.MatrMultiply(mtemp1, P1star);
 
     CqxR.MatrMultiply(mtemp2, body1Gl);
 
-    Cq1_temp->PasteMatrix(&CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
+    Cq1_temp->PasteMatrix(CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
 
     CqxT.MatrNeg();
     mtemp1.MatrMultiply(CqxT, Body2->GetA());
     mtemp2.MatrMultiply(mtemp1, Q2star);
     CqxR.MatrMultiply(mtemp2, body2Gl);
-    Cq2_temp->PasteMatrix(&CqxR, 0, 3);
+    Cq2_temp->PasteMatrix(CqxR, 0, 3);
 
     mtemp1.CopyFromMatrixT(marker2->GetA());
     mtemp2.Set_X_matrix(Body2->GetA().MatrT_x_Vect(PQw));
     mtemp3.MatrMultiply(mtemp1, mtemp2);
     CqxR.MatrMultiply(mtemp3, body2Gl);
 
-    Cq2_temp->PasteSumMatrix(&CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
+    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
 
     mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
     CqrR.Set_Xq_matrix(marker1->GetCoord().rot);
@@ -669,7 +669,7 @@ void ChLinkLock::UpdateState() {
     mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
     CqrR.MatrMultiply(mtempQ1, mtempQ2);
 
-    Cq1_temp->PasteMatrix(&CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
+    Cq1_temp->PasteMatrix(CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
 
     mtempQ1.Set_Xq_matrix(Qconjugate(marker2->GetCoord().rot));
     CqrR.Set_Xq_matrix(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
@@ -679,7 +679,7 @@ void ChLinkLock::UpdateState() {
     mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
     CqrR.MatrMultiply(mtempQ1, mtempQ2);
 
-    Cq2_temp->PasteMatrix(&CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
+    Cq2_temp->PasteMatrix(CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
 
     //--------- COMPLETE Qc VECTOR
 
@@ -735,8 +735,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_X().IsActive())  // for X costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 0, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 0, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 0, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 0, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(0, 0));
 
@@ -751,8 +751,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_Y().IsActive())  // for Y costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 1, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 1, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 1, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 1, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(1, 0));
 
@@ -767,8 +767,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_Z().IsActive())  // for Z costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 2, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 2, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(2, 0));
 
@@ -783,8 +783,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E0().IsActive())  // for E0 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 3, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 3, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(3, 0));
 
@@ -799,8 +799,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E1().IsActive())  // for E1 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 4, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 4, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 4, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 4, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(4, 0));
 
@@ -815,8 +815,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E2().IsActive())  // for E2 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 5, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 5, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 5, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 5, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(5, 0));
 
@@ -831,8 +831,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E3().IsActive())  // for E3 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 6, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 6, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(6, 0));
 
@@ -1719,7 +1719,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
 
 void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
     // traslational part - not changed
-    mCqw->PasteClippedMatrix(mCq, qrow, 0, 1, 3, qwrow, 0);
+    mCqw->PasteClippedMatrix(*mCq, qrow, 0, 1, 3, qwrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
     int col, colres;

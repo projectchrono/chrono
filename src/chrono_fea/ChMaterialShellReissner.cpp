@@ -72,7 +72,7 @@ void ChMaterialShellReissner::ComputeTangentC(ChMatrix<>& mC,
         stress_1.PasteVector(mv,9,0);
         ChMatrixNM<double, 12, 1> stress_d = stress_1 - stress_0;
         stress_d *= (1./delta);
-        mC.PasteMatrix(&stress_d,0,i);
+        mC.PasteMatrix(stress_d,0,i);
         strain_0(i,0) -= delta;
     }
 }

@@ -92,11 +92,11 @@ class ChApiFea ChElementBar : public ChElementGeneric {
         // note that stiffness and damping matrices are the same, so join stuff here
         double commonfactor = Kstiffness * Kfactor + Rdamping * Rfactor;
         submatr.MatrScale(commonfactor);
-        H.PasteMatrix(&submatr, 0, 0);
-        H.PasteMatrix(&submatr, 3, 3);
+        H.PasteMatrix(submatr, 0, 0);
+        H.PasteMatrix(submatr, 3, 3);
         submatr.MatrNeg();
-        H.PasteMatrix(&submatr, 0, 3);
-        H.PasteMatrix(&submatr, 3, 0);
+        H.PasteMatrix(submatr, 0, 3);
+        H.PasteMatrix(submatr, 3, 0);
 
         // For M mass matrix, do mass lumping:
         H(0, 0) += Mfactor * mass * 0.5;  // node A x,y,z

@@ -158,7 +158,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
             if (H)
                 mvariables[iv]->Build_M(*H, s_q, s_q, this->c_a);  // .. fills  H  (often H=M , the mass)
             if (Fvector)
-                Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
+                Fvector->PasteMatrix(vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
             s_q += mvariables[iv]->Get_ndof();
         }
     }
@@ -263,7 +263,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs)
 		for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
 			if (mvariables[iv]->IsActive()) {
 				// Forces in upper section of rhs
-				rhs->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
+				rhs->PasteMatrix(vvariables[iv]->Get_fb(), s_q, 0);
 				s_q += mvariables[iv]->Get_ndof();
 			}
 		}
@@ -355,7 +355,7 @@ int ChSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which wil
 // Fills the 'f' vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
+            Fvector.PasteMatrix(vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
         }
     }
     return this->n_q;
@@ -385,7 +385,7 @@ int ChSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
 // Fills the 'f' vector part
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
+            Dvector.PasteMatrix(vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the '-b' vector (with flipped sign!)
@@ -438,7 +438,7 @@ int ChSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resize_v
 // Fill the vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
+            mvector.PasteMatrix(vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 
@@ -452,7 +452,7 @@ int ChSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
 // fetch from the vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
+            vvariables[iv]->Get_qb().PasteClippedMatrix(mvector, vvariables[iv]->GetOffset(), 0,
                                                         vvariables[iv]->Get_ndof(), 1, 0, 0);
         }
     }
@@ -505,7 +505,7 @@ int ChSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize_ve
 // Fill the first part of vector, x.q ,with variables q
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
+            mvector.PasteMatrix(vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
@@ -528,7 +528,7 @@ int ChSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
 // fetch from the first part of vector (x.q = q)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
+            vvariables[iv]->Get_qb().PasteClippedMatrix(mvector, vvariables[iv]->GetOffset(), 0,
                                                         vvariables[iv]->Get_ndof(), 1, 0, 0);
         }
     }

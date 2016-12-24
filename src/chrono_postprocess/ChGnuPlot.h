@@ -117,8 +117,8 @@ class ChGnuPlot {
 
         ChGnuPlotDataplot mdataplot;
         mdataplot.data.Resize(mx.GetRows(), 2);
-        mdataplot.data.PasteMatrix(&mx, 0, 0);
-        mdataplot.data.PasteMatrix(&my, 0, 1);
+        mdataplot.data.PasteMatrix(mx, 0, 0);
+        mdataplot.data.PasteMatrix(my, 0, 1);
 
         mdataplot.command += " \"-\" using 1:2 ";
         mdataplot.command += customsettings;
@@ -134,8 +134,8 @@ class ChGnuPlot {
     void Plot(ChMatrix<>& mdata, int colX, int colY, const char* title, const char* customsettings = " with lines ") {
         ChVectorDynamic<> mx(mdata.GetRows());
         ChVectorDynamic<> my(mdata.GetRows());
-        mx.PasteClippedMatrix(&mdata, 0, colX, mdata.GetRows(), 1, 0, 0);
-        my.PasteClippedMatrix(&mdata, 0, colY, mdata.GetRows(), 1, 0, 0);
+        mx.PasteClippedMatrix(mdata, 0, colX, mdata.GetRows(), 1, 0, 0);
+        my.PasteClippedMatrix(mdata, 0, colY, mdata.GetRows(), 1, 0, 0);
         Plot(mx, my, title, customsettings);
     }
 

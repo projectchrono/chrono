@@ -48,7 +48,7 @@ class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
     //            if (M)
     //                mvariables[iv]->Build_M(*M, s_q, s_q, this->c_a);
     //            if (Fvector)
-    //                Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
+    //                Fvector->PasteMatrix(vvariables[iv]->Get_fb(), s_q, 0);
 
     //            s_q += mvariables[iv]->Get_ndof();
     //        }

@@ -183,27 +183,27 @@ void MyMassBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, 
     ChMatrixNM<double, 3, 33> S;
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
+    S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
+    S.PasteMatrix(Si, 0, 3);
     Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
+    S.PasteMatrix(Si, 0, 6);
     Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
+    S.PasteMatrix(Si, 0, 9);
     Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
+    S.PasteMatrix(Si, 0, 12);
     Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
+    S.PasteMatrix(Si, 0, 15);
     Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
+    S.PasteMatrix(Si, 0, 18);
     Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
+    S.PasteMatrix(Si, 0, 21);
     Si.FillDiag(N(8));
-    S.PasteMatrix(&Si, 0, 24);
+    S.PasteMatrix(Si, 0, 24);
     Si.FillDiag(N(9));
-    S.PasteMatrix(&Si, 0, 27);
+    S.PasteMatrix(Si, 0, 27);
     Si.FillDiag(N(10));
-    S.PasteMatrix(&Si, 0, 30);
+    S.PasteMatrix(Si, 0, 30);
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
@@ -408,21 +408,21 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 0, 0);
             tempB3.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 1, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 2, 0);
 
             tempB3.MatrMultiply(Nz, m_element->m_d);
             for (int i = 0; i < 11; i++) {
@@ -430,21 +430,21 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 3, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 4, 0);
             tempB31.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 5, 0);
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
@@ -1391,21 +1391,21 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 0, 0);
             tempB3.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 1, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 2, 0);
 
             tempB3.MatrMultiply(Nz, m_element->m_d);
             for (int i = 0; i < 11; i++) {
@@ -1413,21 +1413,21 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 3, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 4, 0);
             tempB31.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 5, 0);
 
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)

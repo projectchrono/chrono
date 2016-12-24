@@ -181,13 +181,13 @@ void ChLinkPointPoint::ConstraintsLoadJacobians() {
     ChMatrix33<> Jxb;
     Jxb.FillDiag(-1.0);
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxa, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_a()->PasteClippedMatrix(&Jxa, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a()->PasteClippedMatrix(Jxa, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_a()->PasteClippedMatrix(Jxa, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_a()->PasteClippedMatrix(Jxa, 2, 0, 1, 3, 0, 0);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
 }
 
 void ChLinkPointPoint::ConstraintsFetch_react(double factor) {

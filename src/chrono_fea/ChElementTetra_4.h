@@ -247,10 +247,10 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         // ***TEST***
         ChMatrixDynamic<> testCKCt(12,12);
         ChMatrixDynamic<> mC(12,12);
-        mC.PasteMatrix(&this->A,0,0);
-        mC.PasteMatrix(&this->A,3,3);
-        mC.PasteMatrix(&this->A,6,6);
-        mC.PasteMatrix(&this->A,9,9);
+        mC.PasteMatrix(this->A,0,0);
+        mC.PasteMatrix(this->A,3,3);
+        mC.PasteMatrix(this->A,6,6);
+        mC.PasteMatrix(this->A,9,9);
         CK.MatrMultiply(mC,StiffnessMatrix);
         testCKCt.MatrMultiplyT(CK,mC);
         ChMatrixDynamic<> mdiff = testCKCt - CKCt;
@@ -305,10 +305,10 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         // DEBUG
         /*
         ChMatrixDynamic<> Ctest(12,12);
-        Ctest.PasteMatrix(&A,0,0);
-        Ctest.PasteMatrix(&A,3,3);
-        Ctest.PasteMatrix(&A,6,6);
-        Ctest.PasteMatrix(&A,9,9);
+        Ctest.PasteMatrix(A,0,0);
+        Ctest.PasteMatrix(A,3,3);
+        Ctest.PasteMatrix(A,6,6);
+        Ctest.PasteMatrix(A,9,9);
         ChMatrixDynamic<> CKtest(12,12);
         CKtest.MatrMultiply(Ctest,StiffnessMatrix);
         ChMatrixDynamic<> CKCttest(12,12);
@@ -322,7 +322,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
 
         CKCt.MatrScale(mkfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);
+        H.PasteMatrix(CKCt, 0, 0);
 
         // For M mass matrix:
         if (Mfactor) {
@@ -672,7 +672,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
         ChMatrixDynamic<> mK(this->StiffnessMatrix);  // local copy of stiffness
         mK.MatrScale(Kfactor);
 
-        H.PasteMatrix(&mK, 0, 0);
+        H.PasteMatrix(mK, 0, 0);
 
         // For R  matrix: (jacobian d/d\dot(T) of  c dT/dt + div [C] grad T = f )
         if (Rfactor)

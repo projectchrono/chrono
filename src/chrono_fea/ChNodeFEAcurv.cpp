@@ -160,12 +160,12 @@ void ChNodeFEAcurv::NodeIntLoadResidual_Mv(const unsigned int off,
 }
 
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    m_variables->Get_qb().PasteClippedMatrix(&v, off_v, 0, 9, 1, 0, 0);
-    m_variables->Get_fb().PasteClippedMatrix(&R, off_v, 0, 9, 1, 0, 0);
+    m_variables->Get_qb().PasteClippedMatrix(v, off_v, 0, 9, 1, 0, 0);
+    m_variables->Get_fb().PasteClippedMatrix(R, off_v, 0, 9, 1, 0, 0);
 }
 
 void ChNodeFEAcurv::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.PasteMatrix(&m_variables->Get_qb(), off_v, 0);
+    v.PasteMatrix(m_variables->Get_qb(), off_v, 0);
 }
 
 // -----------------------------------------------------------------------------

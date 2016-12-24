@@ -224,16 +224,16 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Jrb;
     Jrb.MatrTMultiply(Aro, atilde);
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxn, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxn, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_a()->PasteClippedMatrix(&Jxn, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a()->PasteClippedMatrix(Jxn, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_a()->PasteClippedMatrix(Jxn, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_a()->PasteClippedMatrix(Jxn, 2, 0, 1, 3, 0, 0);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2, 0, 1, 3, 0, 0);
-    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jrb, 0, 0, 1, 3, 0, 3);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jrb, 1, 0, 1, 3, 0, 3);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(&Jrb, 2, 0, 1, 3, 0, 3);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(Jrb, 0, 0, 1, 3, 0, 3);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(Jrb, 1, 0, 1, 3, 0, 3);
+    constraint3.Get_Cq_b()->PasteClippedMatrix(Jrb, 2, 0, 1, 3, 0, 3);
 }
 
 void ChLinkPointFrame::ConstraintsFetch_react(double factor) {

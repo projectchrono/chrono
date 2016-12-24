@@ -193,42 +193,42 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
                 pos[inode].x -= diff;
 
                 pos[inode].y += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
                 pos[inode].y -= diff;
 
                 pos[inode].z += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
                 pos[inode].z -= diff;
 
                 D[inode].x += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
                 D[inode].x -= diff;
 
                 D[inode].y += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
                 D[inode].y -= diff;
 
                 D[inode].z += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
-                this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+                this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
                 D[inode].z -= diff;
             }
 
@@ -239,42 +239,42 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
                     pos_dt[inode].x -= diff;
 
                     pos_dt[inode].y += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
                     pos_dt[inode].y -= diff;
 
                     pos_dt[inode].z += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
                     pos_dt[inode].z -= diff;
 
                     D_dt[inode].x += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
                     D_dt[inode].x -= diff;
 
                     D_dt[inode].y += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
                     D_dt[inode].y -= diff;
 
                     D_dt[inode].z += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
-                    this->m_JacobianMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
+                    this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
                     D_dt[inode].z -= diff;
                 }
             }
@@ -332,13 +332,13 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                     // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                     ChMatrix33<> Sdi;
                     Sdi.FillDiag(Nd(0));
-                    Sd.PasteMatrix(&Sdi, 0, 0);
+                    Sd.PasteMatrix(Sdi, 0, 0);
                     Sdi.FillDiag(Nd(1));
-                    Sd.PasteMatrix(&Sdi, 0, 3);
+                    Sd.PasteMatrix(Sdi, 0, 3);
                     Sdi.FillDiag(Nd(2));
-                    Sd.PasteMatrix(&Sdi, 0, 6);
+                    Sd.PasteMatrix(Sdi, 0, 6);
                     Sdi.FillDiag(Nd(3));
-                    Sd.PasteMatrix(&Sdi, 0, 9);
+                    Sd.PasteMatrix(Sdi, 0, 9);
 
                     Nd_d = Nd * (*d);
 
@@ -404,22 +404,22 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                     // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
                     ChMatrix33<> Sdi;
                     Sdi.FillDiag(Nd(0));
-                    Sd.PasteMatrix(&Sdi, 0, 0);
+                    Sd.PasteMatrix(Sdi, 0, 0);
                     Sdi.FillDiag(Nd(1));
-                    Sd.PasteMatrix(&Sdi, 0, 3);
+                    Sd.PasteMatrix(Sdi, 0, 3);
                     Sdi.FillDiag(Nd(2));
-                    Sd.PasteMatrix(&Sdi, 0, 6);
+                    Sd.PasteMatrix(Sdi, 0, 6);
                     Sdi.FillDiag(Nd(3));
-                    Sd.PasteMatrix(&Sdi, 0, 9);
+                    Sd.PasteMatrix(Sdi, 0, 9);
 
                     Sdi.FillDiag(Ndd(0));
-                    Sdd.PasteMatrix(&Sdi, 0, 0);
+                    Sdd.PasteMatrix(Sdi, 0, 0);
                     Sdi.FillDiag(Ndd(1));
-                    Sdd.PasteMatrix(&Sdi, 0, 3);
+                    Sdd.PasteMatrix(Sdi, 0, 3);
                     Sdi.FillDiag(Ndd(2));
-                    Sdd.PasteMatrix(&Sdi, 0, 6);
+                    Sdd.PasteMatrix(Sdi, 0, 6);
                     Sdi.FillDiag(Ndd(3));
-                    Sdd.PasteMatrix(&Sdi, 0, 9);
+                    Sdd.PasteMatrix(Sdi, 0, 9);
 
                     r_x.MatrMultiply(Nd, *d);    // r_x=d'*Nd';  (transposed)
                     r_xx.MatrMultiply(Ndd, *d);  // r_xx=d'*Ndd';  (transposed)
@@ -511,13 +511,13 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)]
                 ChMatrix33<> Si;
                 Si.FillDiag(N(0));
-                S.PasteMatrix(&Si, 0, 0);
+                S.PasteMatrix(Si, 0, 0);
                 Si.FillDiag(N(1));
-                S.PasteMatrix(&Si, 0, 3);
+                S.PasteMatrix(Si, 0, 3);
                 Si.FillDiag(N(2));
-                S.PasteMatrix(&Si, 0, 6);
+                S.PasteMatrix(Si, 0, 6);
                 Si.FillDiag(N(3));
-                S.PasteMatrix(&Si, 0, 9);
+                S.PasteMatrix(Si, 0, 9);
                 // perform  r = S'*S
                 result.MatrTMultiply(S, S);
             }
@@ -658,13 +658,13 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 // Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
                 ChMatrix33<> Sdi;
                 Sdi.FillDiag(Nd(0));
-                Sd.PasteMatrix(&Sdi, 0, 0);
+                Sd.PasteMatrix(Sdi, 0, 0);
                 Sdi.FillDiag(Nd(1));
-                Sd.PasteMatrix(&Sdi, 0, 3);
+                Sd.PasteMatrix(Sdi, 0, 3);
                 Sdi.FillDiag(Nd(2));
-                Sd.PasteMatrix(&Sdi, 0, 6);
+                Sd.PasteMatrix(Sdi, 0, 6);
                 Sdi.FillDiag(Nd(3));
-                Sd.PasteMatrix(&Sdi, 0, 9);
+                Sd.PasteMatrix(Sdi, 0, 9);
 
                 Nd_d = Nd * (*d);
 
@@ -729,22 +729,22 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
                 // Sdd=[Ndd1*eye(3) Ndd2*eye(3) Ndd3*eye(3) Ndd4*eye(3)]
                 ChMatrix33<> Sdi;
                 Sdi.FillDiag(Nd(0));
-                Sd.PasteMatrix(&Sdi, 0, 0);
+                Sd.PasteMatrix(Sdi, 0, 0);
                 Sdi.FillDiag(Nd(1));
-                Sd.PasteMatrix(&Sdi, 0, 3);
+                Sd.PasteMatrix(Sdi, 0, 3);
                 Sdi.FillDiag(Nd(2));
-                Sd.PasteMatrix(&Sdi, 0, 6);
+                Sd.PasteMatrix(Sdi, 0, 6);
                 Sdi.FillDiag(Nd(3));
-                Sd.PasteMatrix(&Sdi, 0, 9);
+                Sd.PasteMatrix(Sdi, 0, 9);
 
                 Sdi.FillDiag(Ndd(0));
-                Sdd.PasteMatrix(&Sdi, 0, 0);
+                Sdd.PasteMatrix(Sdi, 0, 0);
                 Sdi.FillDiag(Ndd(1));
-                Sdd.PasteMatrix(&Sdi, 0, 3);
+                Sdd.PasteMatrix(Sdi, 0, 3);
                 Sdi.FillDiag(Ndd(2));
-                Sdd.PasteMatrix(&Sdi, 0, 6);
+                Sdd.PasteMatrix(Sdi, 0, 6);
                 Sdi.FillDiag(Ndd(3));
-                Sdd.PasteMatrix(&Sdi, 0, 9);
+                Sdd.PasteMatrix(Sdi, 0, 9);
 
                 r_x.MatrMultiply(Nd, (*d));    // r_x=d'*Nd';  (transposed)
                 r_xx.MatrMultiply(Ndd, (*d));  // r_xx=d'*Ndd';  (transposed)
@@ -931,22 +931,22 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
         this->GetStateBlock(mD);
         Sdi.FillDiag(Nd(0));
-        Sd.PasteMatrix(&Sdi, 0, 0);
+        Sd.PasteMatrix(Sdi, 0, 0);
         Sdi.FillDiag(Nd(1));
-        Sd.PasteMatrix(&Sdi, 0, 3);
+        Sd.PasteMatrix(Sdi, 0, 3);
         Sdi.FillDiag(Nd(2));
-        Sd.PasteMatrix(&Sdi, 0, 6);
+        Sd.PasteMatrix(Sdi, 0, 6);
         Sdi.FillDiag(Nd(3));
-        Sd.PasteMatrix(&Sdi, 0, 9);
+        Sd.PasteMatrix(Sdi, 0, 9);
         Sdi.Reset();
         Sdi.FillDiag(Ndd(0));
-        Sdd.PasteMatrix(&Sdi, 0, 0);
+        Sdd.PasteMatrix(Sdi, 0, 0);
         Sdi.FillDiag(Ndd(1));
-        Sdd.PasteMatrix(&Sdi, 0, 3);
+        Sdd.PasteMatrix(Sdi, 0, 3);
         Sdi.FillDiag(Ndd(2));
-        Sdd.PasteMatrix(&Sdi, 0, 6);
+        Sdd.PasteMatrix(Sdi, 0, 6);
         Sdi.FillDiag(Ndd(3));
-        Sdd.PasteMatrix(&Sdi, 0, 9);
+        Sdd.PasteMatrix(Sdi, 0, 9);
 
         r_x.MatrMultiply(Sd, mD);  // r_x=d'*Nd';  (transposed)
         r_xx.MatrMultiply(Sdd, mD);

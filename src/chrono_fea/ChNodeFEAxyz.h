@@ -133,12 +133,12 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChV
     virtual void NodeIntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R) override {
-        variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 3, 1, 0, 0);
-        variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 3, 1, 0, 0);
+        variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 3, 1, 0, 0);
+        variables.Get_fb().PasteClippedMatrix(R, off_v, 0, 3, 1, 0, 0);
     }
 
     virtual void NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) override {
-        v.PasteMatrix(&variables.Get_qb(), off_v, 0);
+        v.PasteMatrix(variables.Get_qb(), off_v, 0);
     }
 
     //

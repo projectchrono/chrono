@@ -205,50 +205,50 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
         if (c_x) {
             this->C->ElementN(nc) = aframe.GetPos().x;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 0, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 0, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_y) {
             this->C->ElementN(nc) = aframe.GetPos().y;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 1, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 1, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_z) {
             this->C->ElementN(nc) = aframe.GetPos().z;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 2, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_rx) {
             this->C->ElementN(nc) = aframe.GetRot().e1;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 0, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_ry) {
             this->C->ElementN(nc) = aframe.GetRot().e2;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 1, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_rz) {
             this->C->ElementN(nc) = aframe.GetRot().e3;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
         /*

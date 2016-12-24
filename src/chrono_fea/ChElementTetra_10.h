@@ -621,7 +621,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
 
         CKCt.MatrScale(mkfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);
+        H.PasteMatrix(CKCt, 0, 0);
 
         // For M mass matrix:
         if (Mfactor) {

@@ -519,10 +519,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
             mX_b.Set_X_matrix(-vX_b_loc);
 
             ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-            mS.PasteMatrix(&mX_a, 0, 0);
-            mS.PasteMatrix(&mI, 3, 0);
-            mS.PasteMatrix(&mX_b, 6, 0);
-            mS.PasteMatrix(&mI, 9, 0);
+            mS.PasteMatrix(mX_a, 0, 0);
+            mS.PasteMatrix(mI, 3, 0);
+            mS.PasteMatrix(mX_b, 6, 0);
+            mS.PasteMatrix(mI, 9, 0);
 
             ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
             mG(2, 1) = -1. / Lel;
@@ -556,24 +556,24 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
             if (!force_symmetric_stiffness) {
                 skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-                mFnm.PasteMatrix(&skew_f, 0, 0);
-                mFn.PasteMatrix(&skew_f, 0, 0);
+                mFnm.PasteMatrix(skew_f, 0, 0);
+                mFn.PasteMatrix(skew_f, 0, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(3, 0));
-                mFnm.PasteMatrix(&skew_f, 3, 0);
+                mFnm.PasteMatrix(skew_f, 3, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-                mFnm.PasteMatrix(&skew_f, 6, 0);
-                mFn.PasteMatrix(&skew_f, 6, 0);
+                mFnm.PasteMatrix(skew_f, 6, 0);
+                mFn.PasteMatrix(skew_f, 6, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(9, 0));
-                mFnm.PasteMatrix(&skew_f, 9, 0);
+                mFnm.PasteMatrix(skew_f, 9, 0);
             } else {
                 skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-                mFnm.PasteMatrix(&skew_f, 0, 0);
+                mFnm.PasteMatrix(skew_f, 0, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(3, 0) * 0.5);
-                mFnm.PasteMatrix(&skew_f, 3, 0);
+                mFnm.PasteMatrix(skew_f, 3, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-                mFnm.PasteMatrix(&skew_f, 6, 0);
+                mFnm.PasteMatrix(skew_f, 6, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(9, 0) * 0.5);
-                mFnm.PasteMatrix(&skew_f, 9, 0);
+                mFnm.PasteMatrix(skew_f, 9, 0);
                 mFn = mFnm;
             }
 
@@ -641,7 +641,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
         CKCt.MatrScale(mkrfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
+        H.PasteMatrix(CKCt, 0, 0);  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
 
         // For M mass matrix, do mass lumping:
 
@@ -681,10 +681,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         ChMatrixCorotation<>::ComputeCK(Mloc, R, 4, CK);
         ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
 
-        H.PasteSumMatrix(&CKCt,0,0);
+        H.PasteSumMatrix(CKCt,0,0);
         */
         // ..rather do this because lumped mass matrix does not need rotation transf.
-        H.PasteSumMatrix(&Mloc, 0, 0);
+        H.PasteSumMatrix(Mloc, 0, 0);
 
         //***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
         // materials.
@@ -763,10 +763,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
             mX_b.Set_X_matrix(-vX_b_loc);
 
             ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-            mS.PasteMatrix(&mX_a, 0, 0);
-            mS.PasteMatrix(&mI, 3, 0);
-            mS.PasteMatrix(&mX_b, 6, 0);
-            mS.PasteMatrix(&mI, 9, 0);
+            mS.PasteMatrix(mX_a, 0, 0);
+            mS.PasteMatrix(mI, 3, 0);
+            mS.PasteMatrix(mX_b, 6, 0);
+            mS.PasteMatrix(mI, 9, 0);
 
             ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
             mG(2, 1) = -1. / Lel;

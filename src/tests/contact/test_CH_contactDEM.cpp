@@ -65,8 +65,8 @@ public:
 
                 ChMatrixNM<double, 6, 6> Kball;
                 ChMatrixNM<double, 6, 6> Rball;
-                Kball.PasteClippedMatrix(K, iball * 6, iball * 6, 6, 6, 0, 0);
-                Rball.PasteClippedMatrix(R, iball * 6, iball * 6, 6, 6, 0, 0);
+                Kball.PasteClippedMatrix(*K, iball * 6, iball * 6, 6, 6, 0, 0);
+                Rball.PasteClippedMatrix(*R, iball * 6, iball * 6, 6, 6, 0, 0);
 
                 GetLog() << "Kball = " << Kball << "\n";
                 GetLog() << "Rball = " << Rball << "\n";

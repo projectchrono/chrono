@@ -380,7 +380,7 @@ class ChApiFea ChElementHexa_8 : public ChElementHexahedron, public ChLoadableUV
 
         CKCt.MatrScale(mkfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);
+        H.PasteMatrix(CKCt, 0, 0);
 
         // For M mass matrix:
         if (Mfactor) {

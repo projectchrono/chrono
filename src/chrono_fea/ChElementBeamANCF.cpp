@@ -138,23 +138,23 @@ void MyMassBeam::Evaluate(ChMatrixNM<double, 27, 27>& result, const double x, co
     ChMatrixNM<double, 3, 27> S;
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
+    S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
+    S.PasteMatrix(Si, 0, 3);
     Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
+    S.PasteMatrix(Si, 0, 6);
     Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
+    S.PasteMatrix(Si, 0, 9);
     Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
+    S.PasteMatrix(Si, 0, 12);
     Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
+    S.PasteMatrix(Si, 0, 15);
     Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
+    S.PasteMatrix(Si, 0, 18);
     Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
+    S.PasteMatrix(Si, 0, 21);
     Si.FillDiag(N(8));
-    S.PasteMatrix(&Si, 0, 24);
+    S.PasteMatrix(Si, 0, 24);
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
@@ -408,20 +408,20 @@ void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, co
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 0, 0);  // xx
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 0, 0);  // xx
     tempB31.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 1, 0);  // strainD for yy
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 1, 0);  // strainD for yy
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(0, i) + tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
 
     tempB32.MatrMultiply(Nz, m_element->m_d);
     for (int i = 0; i < 9; i++) {
@@ -429,21 +429,21 @@ void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, co
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nz(0, i) + tempB32(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 27> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -507,7 +507,7 @@ void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, co
     ChMatrixNM<double, 27, 1> Fint = (tempC * strain) * (detJ0 * m_element->m_GaussScaling);
 
     // Total result vector
-    result.PasteClippedMatrix(&Fint, 0, 0, 27, 1, 0, 0);
+    result.PasteClippedMatrix(Fint, 0, 0, 27, 1, 0, 0);
 }
 
 // The class MyForceBeam provides the integrand for the calculation of the internal forces
@@ -677,20 +677,20 @@ void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x)
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 0, 0);
     tempB31.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(0, i) + tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
 
     tempB32.MatrMultiply(Nz, m_element->m_d);
     for (int i = 0; i < 9; i++) {
@@ -698,21 +698,21 @@ void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x)
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nz(0, i) + tempB32(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 27> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -767,7 +767,7 @@ void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x)
     ChMatrixNM<double, 27, 1> Fint = (tempC * strain) * (detJ0 * m_element->GetLengthX() / 2);
 
     // Total result vector
-    result.PasteClippedMatrix(&Fint, 0, 0, 27, 1, 0, 0);
+    result.PasteClippedMatrix(Fint, 0, 0, 27, 1, 0, 0);
 }
 
 void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
@@ -791,7 +791,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                                                           );
 
     // Extract vectors and matrices from result of integration
-    Finternal0.PasteClippedMatrix(&result, 0, 0, 27, 1, 0, 0);
+    Finternal0.PasteClippedMatrix(result, 0, 0, 27, 1, 0, 0);
 
     // Accumulate internal force
     Fi -= Finternal0;
@@ -809,7 +809,7 @@ void ChElementBeamANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
 
         // Extract vectors and matrices from result of integration
         result.MatrScale(GetThicknessY() * GetThicknessZ());
-        Finternal0.PasteClippedMatrix(&result, 0, 0, 27, 1, 0, 0);
+        Finternal0.PasteClippedMatrix(result, 0, 0, 27, 1, 0, 0);
 
         // Accumulate internal force
         Fi -= Finternal0;
@@ -995,20 +995,20 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 0, 0);
     tempB31.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(0, i) + tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
 
     tempB32.MatrMultiply(Nz, m_element->m_d);
     for (int i = 0; i < 9; i++) {
@@ -1016,21 +1016,21 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nz(0, i) + tempB32(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 27> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -1164,7 +1164,7 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
     KTE *= detJ0 * m_element->m_GaussScaling;
 
     // Load result vector (integrand)
-    result.PasteClippedMatrixToVector(&KTE, 0, 0, 27, 27, 0);
+    result.PasteClippedMatrixToVector(KTE, 0, 0, 27, 27, 0);
 }
 
 class MyJacobianBeam_Nu : public ChIntegrable1D<ChMatrixNM<double, 729, 1> > {
@@ -1335,20 +1335,20 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 0, 0);
     tempB31.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 1, 0);  // strainD for yz
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nx(0, i) + tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 2, 0);  // strainD for xy
 
     tempB32.MatrMultiply(Nz, m_element->m_d);
     for (int i = 0; i < 9; i++) {
@@ -1356,21 +1356,21 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
             tempB(0, i * 3 + j) = tempB32(0, j) * Nz(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 3, 0);  // strainD for zz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i) + tempB32(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 4, 0);  // strainD for xz
 
     for (int i = 0; i < 9; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB31(0, j) * Nz(0, i) + tempB32(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 27, 5, 0);  // strainD for yz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 27> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -1500,7 +1500,7 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
     KTE *= detJ0 * m_element->GetLengthX() / 2;
 
     // Load result vector (integrand)
-    result.PasteClippedMatrixToVector(&KTE, 0, 0, 27, 27, 0);
+    result.PasteClippedMatrixToVector(KTE, 0, 0, 27, 27, 0);
 }
 
 void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor) {
@@ -1524,7 +1524,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
 
     // Extract matrices from result of integration
     ChMatrixNM<double, 27, 27> KTE;
-    KTE.PasteClippedVectorToMatrix(&result, 0, 0, 27, 27, 0);
+    KTE.PasteClippedVectorToMatrix(result, 0, 0, 27, 27, 0);
 
     // Jacobian from diagonal terms Dv (one-dimensional)
     result.Reset();
@@ -1541,7 +1541,7 @@ void ChElementBeamANCF::ComputeInternalJacobians(double Kfactor, double Rfactor)
         result.MatrScale(GetThicknessY() * GetThicknessZ());
     }
     ChMatrixNM<double, 27, 27> KTE_Nu;
-    KTE_Nu.PasteClippedVectorToMatrix(&result, 0, 0, 27, 27, 0);
+    KTE_Nu.PasteClippedVectorToMatrix(result, 0, 0, 27, 27, 0);
 
     // Accumulate Jacobian
     m_JacobianMatrix = KTE + KTE_Nu;
