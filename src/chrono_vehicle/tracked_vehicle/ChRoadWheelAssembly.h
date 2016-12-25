@@ -66,8 +66,8 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     /// Get a handle to the road wheel body.
     std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
 
-    /// Get a handle to the revolute joint.
-    std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_road_wheel->GetRevolute(); }
+    /// Get a handle to the revolute joint of the road-wheel.
+    std::shared_ptr<ChLinkLockRevolute> GetWheelRevolute() const { return m_road_wheel->GetRevolute(); }
 
     /// Get the radius of the road wheel.
     double GetWheelRadius() const { return m_road_wheel->GetWheelRadius(); }

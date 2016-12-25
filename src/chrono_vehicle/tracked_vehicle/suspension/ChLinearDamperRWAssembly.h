@@ -43,8 +43,11 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     virtual ~ChLinearDamperRWAssembly() {}
 
-    /// Return a handle to the carrier body.
+    /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
+
+    /// Get a handle to the revolute joint of the arm.
+    std::shared_ptr<ChLinkLockRevolute> GetArmRevolute() const { return m_revolute; }
 
     /// Get the total mass of the roadwheel assembly.
     /// This includes the mass of the roadwheel and of the suspension mechanism.
