@@ -23,7 +23,6 @@
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
