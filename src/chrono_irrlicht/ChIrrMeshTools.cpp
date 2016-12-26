@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono_irrlicht/ChIrrMeshTools.h"
 
@@ -170,7 +170,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
             // calculate points position
 
             irr::core::vector3df pos((f32)(radiusH * cos(axz) * sinay), (f32)(radiusV * cosay),
-                                (f32)(radiusH * sin(axz) * sinay));
+                                     (f32)(radiusH * sin(axz) * sinay));
             // for spheres the normal is the position
             irr::core::vector3df normal(pos);
             normal.normalize();
@@ -191,7 +191,7 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
                 tu = buffer->Vertices[i - polyCountXPitch].TCoords.X;
 
             buffer->Vertices[i] = irr::video::S3DVertex(pos.X, pos.Y, pos.Z, normal.X, normal.Y, normal.Z, clr, tu,
-                                                   (f32)(ay * irr::core::RECIPROCAL_PI64));
+                                                        (f32)(ay * irr::core::RECIPROCAL_PI64));
             ++i;
 
             axz += AngleX;
@@ -525,14 +525,14 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
         chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
         chrono::ChVector<> pos;
         pos = chTrimesh->getTriangle(i).p1;
-        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
+                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p2;
-        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
+                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p3;
-        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x, (f32)normal.y,
-                                                       (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
+                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
         buffer->Indices[i * 3 + 0] = i * 3 + 0;
         buffer->Indices[i * 3 + 1] = i * 3 + 1;
         buffer->Indices[i * 3 + 2] = i * 3 + 2;

@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRASSETCONVERTER_H
 #define CHIRRASSETCONVERTER_H
@@ -104,7 +105,7 @@ class ChApiIrr ChIrrAssetConverter {
     void CleanIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
 
   private:
-      void PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
+    void PopulateIrrlicht(std::shared_ptr<ChPhysicsItem> mitem);
 
     void mflipSurfacesOnX(irr::scene::IMesh* mesh) const;
 
@@ -112,8 +113,8 @@ class ChApiIrr ChIrrAssetConverter {
                                   ChFrame<> parentframe,
                                   irr::scene::ISceneNode* mnode);
 
-	void BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
-	void UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
+    void BindAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
+    void UpdateAllContentsOfAssembly(ChAssembly* massy, std::unordered_set<ChAssembly*>& mtrace);
 };
 
 /// @} irrlicht_module

@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/core/ChStream.h"
@@ -52,53 +52,51 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
     // Process keyboard events.
     if (event.EventType == irr::EET_KEY_INPUT_EVENT && !event.KeyInput.PressedDown) {
         switch (event.KeyInput.Key) {
-        case irr::KEY_KEY_I:
+            case irr::KEY_KEY_I:
                 app->SetShowInfos(!app->GetShowInfos());
                 return true;
-        case irr::KEY_SPACE:
+            case irr::KEY_SPACE:
                 app->pause_step = !app->pause_step;
                 return true;
-        case irr::KEY_KEY_P:
+            case irr::KEY_KEY_P:
                 app->pause_step = true;
                 app->do_single_step = true;
                 return true;
-        case irr::KEY_F11:
+            case irr::KEY_F11:
                 GetLog() << "---Computing linear static solution---\n";
                 app->GetSystem()->DoStaticLinear();
                 return true;
-        case irr::KEY_F10:
+            case irr::KEY_F10:
                 GetLog() << "---Computing NONlinear static solution, 20 steps---\n";
                 app->GetSystem()->DoStaticNonlinear(20);
                 return true;
-        case irr::KEY_F8:
-            {
+            case irr::KEY_F8: {
                 GetLog() << "Saving system in JSON format to dump.json file \n";
                 ChStreamOutAsciiFile mfileo("dump.json");
                 ChArchiveOutJSON marchiveout(mfileo);
                 marchiveout.SetUseVersions(false);
-                marchiveout << CHNVP(app->GetSystem(),"System");
+                marchiveout << CHNVP(app->GetSystem(), "System");
 
                 GetLog() << "Saving system in ASCII format to dump.txt file \n";
                 ChStreamOutAsciiFile mfileo2("dump.txt");
                 ChArchiveAsciiDump marchiveout2(mfileo2);
                 marchiveout2.SetUseVersions(false);
-                marchiveout2 << CHNVP(app->GetSystem(),"System");
+                marchiveout2 << CHNVP(app->GetSystem(), "System");
             }
-        case irr::KEY_F6:
+            case irr::KEY_F6:
                 GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
                 app->DumpSystemMatrices();
                 return true;
-        case irr::KEY_F7:
+            case irr::KEY_F7:
                 if (!app->system->GetDumpSolverMatrices()) {
                     GetLog() << "Start saving system vector and matrices to dump_xxxx_yy.dat files...\n";
                     app->system->SetDumpSolverMatrices(true);
-                }
-                else {
+                } else {
                     GetLog() << "Stop saving system vector and matrices to dump_xxxx_yy.dat files.\n";
                     app->system->SetDumpSolverMatrices(false);
                 }
                 return true;
-        case irr::KEY_SNAPSHOT:
+            case irr::KEY_SNAPSHOT:
                 if (app->videoframe_save == false) {
                     app->videoframe_save = true;
                     GetLog() << "Start saving frames in /video_capture/snapshotnnnnn.bmp pictures...\n";
@@ -107,22 +105,22 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     GetLog() << "Stop saving frames in /video_capture directory.\n";
                 }
                 return true;
-        case irr::KEY_F4:
-                if (app->camera_auto_rotate_speed <=0)
+            case irr::KEY_F4:
+                if (app->camera_auto_rotate_speed <= 0)
                     app->camera_auto_rotate_speed = 0.02;
-                else 
+                else
                     app->camera_auto_rotate_speed *= 1.5;
                 return true;
-        case irr::KEY_F3:
-                app->camera_auto_rotate_speed =0;
+            case irr::KEY_F3:
+                app->camera_auto_rotate_speed = 0;
                 return true;
-        case irr::KEY_F2:
-                if (app->camera_auto_rotate_speed >=0)
+            case irr::KEY_F2:
+                if (app->camera_auto_rotate_speed >= 0)
                     app->camera_auto_rotate_speed = -0.02;
-                else 
+                else
                     app->camera_auto_rotate_speed *= 1.5;
                 return true;
-        case irr::KEY_ESCAPE:
+            case irr::KEY_ESCAPE:
                 app->GetDevice()->closeDevice();
                 return true;
         }
@@ -133,7 +131,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
     // Process mouse events.
     if (event.EventType == irr::EET_MOUSE_INPUT_EVENT) {
         switch (event.MouseInput.Event) {
-        case irr::EMIE_MMOUSE_PRESSED_DOWN: {
+            case irr::EMIE_MMOUSE_PRESSED_DOWN: {
                 irr::core::line3d<irr::f32> mline =
                     app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
                         app->GetDevice()->getCursorControl()->getPosition());
@@ -142,8 +140,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 collision::ChCollisionSystem::ChRayhitResult mresult;
                 app->GetSystem()->GetCollisionSystem()->RayHit(mfrom, mto, mresult);
                 if (mresult.hit) {
-                    if (ChBody* mbo =
-                            dynamic_cast<ChBody*>(mresult.hitModel->GetContactable())) {
+                    if (ChBody* mbo = dynamic_cast<ChBody*>(mresult.hitModel->GetContactable())) {
                         app->selectedmover = new std::shared_ptr<ChBody>(mbo);
                         app->selectedpoint = (*(app->selectedmover))->Point_World2Body(mresult.abs_hitPoint);
                         app->selecteddist = (mfrom - mresult.abs_hitPoint).Length();
@@ -159,7 +156,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                 }
                 break;
             }
-        case irr::EMIE_MMOUSE_LEFT_UP:
+            case irr::EMIE_MMOUSE_LEFT_UP:
                 if (app->selectedtruss) {
                     app->GetSystem()->RemoveBody((*(app->selectedtruss)));
                     app->GetSystem()->RemoveLink((*(app->selectedspring)));
@@ -169,7 +166,7 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     app->selectedspring = 0;
                 }
                 break;
-        case irr::EMIE_MOUSE_MOVED:
+            case irr::EMIE_MOUSE_MOVED:
                 if (app->selectedtruss) {
                     irr::core::line3d<irr::f32> mline =
                         app->GetSceneManager()->getSceneCollisionManager()->getRayFromScreenCoordinates(
@@ -217,8 +214,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                             (3.0 / 50.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                     case 9912:
-                        app->GetSystem()->SetMinBounceSpeed((1.0 / 200.0) *
-                                                            ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
+                        app->GetSystem()->SetMinBounceSpeed(
+                            (1.0 / 200.0) * ((irr::gui::IGUIScrollBar*)event.GUIEvent.Caller)->getPos());
                         break;
                 }
                 break;
@@ -255,7 +252,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                             app->GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
                             break;
                         case 9:
-                            GetLog() << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
+                            GetLog()
+                                << "WARNING.\nYou cannot change to a custom solver using the GUI. Use C++ instead.\n";
                             break;
                     }
                     break;
@@ -304,7 +302,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                             app->GetSystem()->SetIntegrationType(ChSystem::INT_NEWMARK);
                             break;
                         case 13:
-                            GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ instead.\n";
+                            GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ "
+                                        "instead.\n";
                             break;
                     }
                     break;
@@ -338,7 +337,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
 
                 if (id == 9921) {
                     double scale = 0.01;
-                    scale = atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
+                    scale =
+                        atof(irr::core::stringc(((irr::gui::IGUIEditBox*)event.GUIEvent.Caller)->getText()).c_str());
                     app->SetSymbolscale(scale);
                     break;
                 }
@@ -373,7 +373,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
       selectedtruss(0),
       selectedspring(0),
       selectedmover(0) {
-
     irr::SIrrlichtCreationParameters params = irr::SIrrlichtCreationParameters();
     params.AntiAlias = do_antialias;
     params.Bits = 32;
@@ -396,11 +395,11 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     // Xeffects for shadow maps!
     if (do_antialias)
-        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize()*2, true, false, true);
+        effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize() * 2, true, false, true);
     else
         effect = new EffectHandler(device, device->getVideoDriver()->getScreenSize(), true, false, true);
-      // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects 
-      // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2  
+    // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects
+    // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
     use_effects = false;  // will be true as sson as a lightwith shadow is added.
 
@@ -417,16 +416,18 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     skin->setColor(irr::gui::EGDC_HIGH_LIGHT, irr::video::SColor(255, 40, 70, 250));
     skin->setColor(irr::gui::EGDC_FOCUSED_EDITABLE, irr::video::SColor(255, 0, 255, 255));
     skin->setColor(irr::gui::EGDC_3D_HIGH_LIGHT, irr::video::SColor(200, 210, 210, 210));
-  
+
     gad_tabbed = GetIGUIEnvironment()->addTabControl(irr::core::rect<irr::s32>(2, 70, 220, 496), 0, true, true);
     gad_tab1 = gad_tabbed->addTab(L"Stats");
     gad_tab2 = gad_tabbed->addTab(L"System");
     gad_tab3 = gad_tabbed->addTab(L"Help");
 
     // create GUI gadgets
-    gad_textFPS = GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, gad_tab1);
+    gad_textFPS =
+        GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 230), true, true, gad_tab1);
 
-    gad_labelcontacts = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), gad_tab1, 9901);
+    gad_labelcontacts =
+        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 240, 200, 240 + 20), gad_tab1, 9901);
     gad_labelcontacts->addItem(L"Contact distances");
     gad_labelcontacts->addItem(L"Contact force modulus");
     gad_labelcontacts->addItem(L"Contact force (normal)");
@@ -437,7 +438,8 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_labelcontacts->addItem(L"Don't print contact values");
     gad_labelcontacts->setSelected(7);
 
-    gad_drawcontacts = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), gad_tab1, 9901);
+    gad_drawcontacts =
+        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 260, 200, 260 + 20), gad_tab1, 9901);
     gad_drawcontacts->addItem(L"Contact normals");
     gad_drawcontacts->addItem(L"Contact distances");
     gad_drawcontacts->addItem(L"Contact N forces");
@@ -445,7 +447,8 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_drawcontacts->addItem(L"Don't draw contacts");
     gad_drawcontacts->setSelected(4);
 
-    gad_labellinks = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), gad_tab1, 9923);
+    gad_labellinks =
+        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 280, 200, 280 + 20), gad_tab1, 9923);
     gad_labellinks->addItem(L"Link react.force modulus");
     gad_labellinks->addItem(L"Link react.force X");
     gad_labellinks->addItem(L"Link react.force Y");
@@ -457,20 +460,21 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_labellinks->addItem(L"Don't print link values");
     gad_labellinks->setSelected(8);
 
-    gad_drawlinks = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), gad_tab1, 9924);
+    gad_drawlinks =
+        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 300, 200, 300 + 20), gad_tab1, 9924);
     gad_drawlinks->addItem(L"Link reaction forces");
     gad_drawlinks->addItem(L"Link reaction torques");
     gad_drawlinks->addItem(L"Don't draw link vectors");
     gad_drawlinks->setSelected(2);
 
-    gad_plot_aabb =
-        GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15), gad_tab1, 9914, L"Draw AABB");
+    gad_plot_aabb = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 330, 200, 330 + 15),
+                                                      gad_tab1, 9914, L"Draw AABB");
 
-    gad_plot_cogs =
-        GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15), gad_tab1, 9915, L"Draw COGs");
+    gad_plot_cogs = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 345, 200, 345 + 15),
+                                                      gad_tab1, 9915, L"Draw COGs");
 
-    gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15), gad_tab1,
-                                                            9920, L"Draw link frames");
+    gad_plot_linkframes = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 360, 200, 360 + 15),
+                                                            gad_tab1, 9920, L"Draw link frames");
 
     gad_symbolscale =
         GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(170, 330, 200, 330 + 15), true, gad_tab1, 9921);
@@ -478,30 +482,31 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
         L"Symbols scale", irr::core::rect<irr::s32>(110, 330, 170, 330 + 15), false, false, gad_tab1);
     SetSymbolscale(symbolscale);
 
-    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15), gad_tab1,
-                                                             9902, L"Plot convergence");
+    gad_plot_convergence = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 375, 200, 375 + 15),
+                                                             gad_tab1, 9902, L"Plot convergence");
 
     // --
 
     gad_speed_iternumber =
         GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 10, 150, 10 + 20), gad_tab2, 9904);
     gad_speed_iternumber->setMax(120);
-    gad_speed_iternumber_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
+    gad_speed_iternumber_info = GetIGUIEnvironment()->addStaticText(
+        L"", irr::core::rect<irr::s32>(155, 10, 220, 10 + 20), false, false, gad_tab2);
 
     gad_pos_iternumber =
         GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 40, 150, 40 + 20), gad_tab2, 9905);
     gad_pos_iternumber->setMax(120);
-    gad_pos_iternumber_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 40, 220, 40 + 20), false, false, gad_tab2);
+    gad_pos_iternumber_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 40, 220, 40 + 20),
+                                                                  false, false, gad_tab2);
 
-    gad_warmstart = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2, 9906,
-                                                      L"Warm starting");
+    gad_warmstart = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 70, 200, 70 + 20), gad_tab2,
+                                                      9906, L"Warm starting");
 
-    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2, 9913,
-                                                     L"Enable sleeping");
+    gad_usesleep = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 100, 200, 100 + 20), gad_tab2,
+                                                     9913, L"Enable sleeping");
 
-    gad_ccpsolver = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 130, 200, 130 + 20), gad_tab2, 9907);
+    gad_ccpsolver =
+        GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 130, 200, 130 + 20), gad_tab2, 9907);
     gad_ccpsolver->addItem(L"Projected SOR");
     gad_ccpsolver->addItem(L"Projected SSOR");
     gad_ccpsolver->addItem(L"Projected Jacobi");
@@ -532,37 +537,42 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
 
     gad_stepper->setSelected(0);
 
-    gad_omega = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
+    gad_omega =
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 190, 150, 190 + 20), gad_tab2, 9909);
     gad_omega->setMax(100);
-    gad_omega_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 20), false, false, gad_tab2);
+    gad_omega_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 190, 220, 190 + 20), false,
+                                                         false, gad_tab2);
 
-    gad_lambda = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
+    gad_lambda =
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 220, 150, 220 + 20), gad_tab2, 9910);
     gad_lambda->setMax(100);
-    gad_lambda_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 220, 220, 220 + 20), false, false, gad_tab2);
+    gad_lambda_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 220, 220, 220 + 20),
+                                                          false, false, gad_tab2);
 
-    gad_clamping = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
+    gad_clamping =
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 250, 150, 250 + 20), gad_tab2, 9911);
     gad_clamping->setMax(100);
-    gad_clamping_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 250, 220, 250 + 20), false, false, gad_tab2);
+    gad_clamping_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 250, 220, 250 + 20),
+                                                            false, false, gad_tab2);
 
-    gad_minbounce = GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 280, 150, 280 + 20), gad_tab2, 9912);
+    gad_minbounce =
+        GetIGUIEnvironment()->addScrollBar(true, irr::core::rect<irr::s32>(10, 280, 150, 280 + 20), gad_tab2, 9912);
     gad_minbounce->setMax(100);
-    gad_minbounce_info =
-        GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 280, 220, 280 + 20), false, false, gad_tab2);
+    gad_minbounce_info = GetIGUIEnvironment()->addStaticText(L"", irr::core::rect<irr::s32>(155, 280, 220, 280 + 20),
+                                                             false, false, gad_tab2);
 
     gad_timestep =
         GetIGUIEnvironment()->addEditBox(L"", irr::core::rect<irr::s32>(140, 320, 200, 320 + 15), true, gad_tab2, 9918);
-    gad_timestep_info = GetIGUIEnvironment()->addStaticText(L"Time step", irr::core::rect<irr::s32>(10, 320, 130, 320 + 15),
-                                                            false, false, gad_tab2);
+    gad_timestep_info = GetIGUIEnvironment()->addStaticText(
+        L"Time step", irr::core::rect<irr::s32>(10, 320, 130, 320 + 15), false, false, gad_tab2);
 
-    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 340, 200, 340 + 15), gad_tab2, 9916,
-                                                         L"Realtime step");
-    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 355, 200, 355 + 15), gad_tab2, 9917,
-                                                       L"Pause physics");
+    gad_try_realtime = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 340, 200, 340 + 15),
+                                                         gad_tab2, 9916, L"Realtime step");
+    gad_pause_step = GetIGUIEnvironment()->addCheckBox(false, irr::core::rect<irr::s32>(10, 355, 200, 355 + 15),
+                                                       gad_tab2, 9917, L"Pause physics");
 
-    gad_textHelp = GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 350), true, true, gad_tab3);
+    gad_textHelp =
+        GetIGUIEnvironment()->addStaticText(L"FPS", irr::core::rect<irr::s32>(10, 10, 200, 350), true, true, gad_tab3);
     irr::core::stringw hstr = "Instructions for interface.\n\n";
     hstr += "MOUSE \n\n";
     hstr += " left button: camera rotation \n";
@@ -634,7 +644,7 @@ void ChIrrAppInterface::BeginScene(bool backBuffer, bool zBuffer, irr::video::SC
     GetVideoDriver()->beginScene(backBuffer, zBuffer, color);
 
     if (camera_auto_rotate_speed) {
-        irr::core::vector3df pos   = GetSceneManager()->getActiveCamera()->getPosition();
+        irr::core::vector3df pos = GetSceneManager()->getActiveCamera()->getPosition();
         irr::core::vector3df target = GetSceneManager()->getActiveCamera()->getTarget();
         pos.rotateXZBy(camera_auto_rotate_speed, target);
         GetSceneManager()->getActiveCamera()->setPosition(pos);
@@ -660,7 +670,7 @@ void ChIrrAppInterface::DoStep() {
     }
 
     if (videoframe_save) {
-        if (videoframe_num % videoframe_each == 0) {          
+        if (videoframe_num % videoframe_each == 0) {
             ChFileutils::MakeDirectory("video_capture");
             irr::video::IImage* image = GetVideoDriver()->createScreenShot();
             char filename[100];
@@ -678,10 +688,9 @@ void ChIrrAppInterface::DoStep() {
     else
         dt = timestep;
 
-    try{
+    try {
         system->DoStepDynamics(dt);
-    } 
-    catch(ChException my_exception) {
+    } catch (ChException my_exception) {
         GetLog() << my_exception.what() << "\n";
     }
 }
@@ -886,7 +895,6 @@ void ChIrrAppInterface::DumpSystemMatrices() {
     } catch (ChException myexc) {
         GetLog() << myexc.what();
     }
-
 }
 
 }  // end namespace irrlicht

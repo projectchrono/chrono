@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRMESHTOOLS_H
 #define CHIRRMESHTOOLS_H
@@ -25,8 +25,13 @@ namespace irrlicht {
 /// @{
 
 /// Some functions to allow easy creation of meshes for Irrlicht visualization
-ChApiIrr irr::scene::IAnimatedMesh*
-createEllipticalMesh(irr::f32 radiusH, irr::f32 radiusV, irr::f32 Ylow, irr::f32 Yhigh, irr::f32 offset, irr::u32 polyCountX, irr::u32 polyCountY);
+ChApiIrr irr::scene::IAnimatedMesh* createEllipticalMesh(irr::f32 radiusH,
+                                                         irr::f32 radiusV,
+                                                         irr::f32 Ylow,
+                                                         irr::f32 Yhigh,
+                                                         irr::f32 offset,
+                                                         irr::u32 polyCountX,
+                                                         irr::u32 polyCountY);
 
 /// Same as irr::CGeomentryCreator::createCubeMesh(), but with no shared normals
 /// between faces.

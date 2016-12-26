@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRTOOLS_H
 #define CHIRRTOOLS_H
@@ -209,12 +209,13 @@ class ChApiIrr ChIrrTools {
                          bool use_Zbuffer = false);
 
     /// Easy-to-use function to draw color bar with a color map and 2D legend
-    static void drawColorbar(double vmin, double vmax, 
+    static void drawColorbar(double vmin,
+                             double vmax,
                              const std::string& label,
                              irr::IrrlichtDevice* mdevice,
                              int mx = 740,
-                             int my =  20,
-                             int sx =  30,
+                             int my = 20,
+                             int sx = 30,
                              int sy = 300);
 
     /// --

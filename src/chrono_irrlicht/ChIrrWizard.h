@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #ifndef CHIRRWIZARD_H
 #define CHIRRWIZARD_H
@@ -33,9 +34,8 @@ class ChApiIrr ChIrrWizard {
     /// A very basic and simple function which is just a shortcut to avoid lot of
     /// typing when someone wants to add a logo in a 3D scene, using Irrlicht.
 
-    static void add_typical_Logo(
-        irr::IrrlichtDevice* device,
-        const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
+    static void add_typical_Logo(irr::IrrlichtDevice* device,
+                                 const std::string& mlogofilename = GetChronoDataFile("logo_chronoengine_alpha.png"));
 
     /// A very basic and simple function which is just a shortcut to avoid lot of
     /// typing when someone wants to add two lights in a 3D scene, using Irrlicht.
