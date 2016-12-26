@@ -285,6 +285,7 @@ SET(ChronoEngine_Parallel_COLLISION
     collision/ChNarrowphaseRUtils.h
     collision/ChNarrowphaseR.h
     collision/ChNarrowphaseR.cpp
+    collision/ChCollision.h
     collision/ChCollisionModelParallel.h
     collision/ChCollisionModelParallel.cpp
     collision/ChCollisionSystemParallel.h

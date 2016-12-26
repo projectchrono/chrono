@@ -175,6 +175,7 @@ SET(CE_OpenGL_SHAPES_FILES
   shapes/ChOpenGLBars.cpp
   shapes/ChOpenGLOBJ.cpp
   shapes/obj/ChOpenGLOBJLoader.cpp
+  shapes/ChOpenGLMesh.h
   shapes/ChOpenGLCloud.h
   shapes/ChOpenGLWires.h
   shapes/ChOpenGLText.h
