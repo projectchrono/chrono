@@ -35,7 +35,6 @@ namespace fea {
 /// to a given direction associated to the ChBodyFrame.
 
 class ChApiFea ChLinkDirFrame : public ChLinkBase {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkDirFrame)
 

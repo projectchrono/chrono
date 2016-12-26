@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora
 // =============================================================================
 
 #ifndef CHLINKINTERFACE_H
@@ -18,7 +18,6 @@
 #include "chrono/physics/ChLinkBase.h"
 
 namespace chrono {
-
 namespace fea {
 
 /// @addtogroup fea_constraints
@@ -29,16 +28,13 @@ namespace fea {
 /// Concrete classes will be inherited from this class.
 
 class ChApiFea ChLinkInterface : public ChLinkBase {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkInterface)
 
   private:
-
   public:
-    ChLinkInterface() {};
-    ~ChLinkInterface() {};
-
+    ChLinkInterface(){};
+    ~ChLinkInterface(){};
 };
 
 /// @} fea_constraints

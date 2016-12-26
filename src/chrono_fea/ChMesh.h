@@ -38,19 +38,18 @@ namespace fea {
 /// between nodes of class  ChFnode.
 
 class ChApiFea ChMesh : public ChIndexedNodes {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChMesh)
 
   private:
-    std::vector<std::shared_ptr<ChNodeFEAbase> > vnodes;     ///<  nodes
-    std::vector<std::shared_ptr<ChElementBase> > velements;  ///<  elements
+    std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes
+    std::vector<std::shared_ptr<ChElementBase>> velements;  ///<  elements
 
     unsigned int n_dofs;    ///< total degrees of freedom
     unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 
-    std::vector<std::shared_ptr<ChContactSurface> > vcontactsurfaces;  ///<  contact surfaces
-    std::vector<std::shared_ptr<ChMeshSurface> > vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
+    std::vector<std::shared_ptr<ChContactSurface>> vcontactsurfaces;  ///<  contact surfaces
+    std::vector<std::shared_ptr<ChMeshSurface>> vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
 
     bool automatic_gravity_load;
     int num_points_gravity;

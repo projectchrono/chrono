@@ -21,8 +21,10 @@
 namespace chrono {
 namespace fea {
 
-/// Class for a generic 3D finite element node, with x,y,z displacement, direction, and one curvature vector OR additional direction.
-/// The variable DD represents the derivative of a gradient vector or an additional gradient, to be used in ANCF elements.
+/// Class for a generic 3D finite element node, with x,y,z displacement, direction, and one curvature vector OR
+/// additional direction.
+/// The variable DD represents the derivative of a gradient vector or an additional gradient, to be used in ANCF
+/// elements.
 
 class ChApiFea ChNodeFEAxyzDD : public ChNodeFEAxyzD {
   public:
@@ -53,9 +55,7 @@ class ChApiFea ChNodeFEAxyzDD : public ChNodeFEAxyzD {
     virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get mass of the node (for DD variables).
-    virtual ChVectorDynamic<>& GetMassDiagonalDD() {
-        return variables_DD->GetMassDiagonal();
-    }
+    virtual ChVectorDynamic<>& GetMassDiagonalDD() { return variables_DD->GetMassDiagonal(); }
     /// Sets the 'fixed' state of the node. If true, it does not move
     /// respect to the absolute world, despite constraints, forces, etc.
     virtual void SetFixed(bool mev) override;

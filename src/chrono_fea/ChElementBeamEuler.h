@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
@@ -30,11 +32,11 @@ namespace fea {
 /// For this 'basic' implementation, constant section and constant
 /// material are assumed.
 ///
-/// Further information in the 
+/// Further information in the
 /// [white paper PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
 ///
 /// Note that there are also ChElementCableANCF if no torsional effects
-/// are needed, as in cables. 
+/// are needed, as in cables.
 
 class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableU,
@@ -1073,7 +1075,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         mvars.push_back(&this->nodes[0]->Variables());
         mvars.push_back(&this->nodes[1]->Variables());
     };
@@ -1132,7 +1134,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

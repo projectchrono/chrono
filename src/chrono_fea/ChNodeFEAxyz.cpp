@@ -27,7 +27,7 @@ ChNodeFEAxyz::ChNodeFEAxyz(const ChNodeFEAxyz& other) : ChNodeFEAbase(other), Ch
     variables = other.variables;
 }
 
-ChNodeFEAxyz& ChNodeFEAxyz::operator = (const ChNodeFEAxyz& other) {
+ChNodeFEAxyz& ChNodeFEAxyz::operator=(const ChNodeFEAxyz& other) {
     if (&other == this)
         return *this;
 

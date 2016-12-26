@@ -25,7 +25,7 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
-class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6>  {
+class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6> {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
     ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other);
@@ -91,7 +91,7 @@ class ChApiFea ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, publi
     //
     // INTERFACE to ChVariableTupleCarrier_1vars
     //
-    virtual ChVariables* GetVariables1()  {return &Variables();}
+    virtual ChVariables* GetVariables1() { return &Variables(); }
 
     //
     // Functions for interfacing to the state bookkeeping

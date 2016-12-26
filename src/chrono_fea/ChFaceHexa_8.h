@@ -14,7 +14,6 @@
 // Face of a 8-node hexahedron brick element
 // =============================================================================
 
-
 #ifndef CHFACEHEXA8_H
 #define CHFACEHEXA8_H
 
@@ -26,7 +25,7 @@ namespace fea {
 /// Face of a linear ChElementHexa_8 hexahedron.
 /// This is a proxy to the hexahedron. It can be used to apply pressure loads.
 /// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
-/// 
+///
 ///         v
 ///         ^
 /// 3 o-----+-----o 2
@@ -41,9 +40,9 @@ class ChApiFea ChFaceHexa_8 : public ChLoadableUV {
     std::shared_ptr<ChElementHexa_8> melement;
 
   public:
-      ChFaceHexa_8(std::shared_ptr<ChElementHexa_8> mel, char mid) : melement(mel), face_id(mid) {}
+    ChFaceHexa_8(std::shared_ptr<ChElementHexa_8> mel, char mid) : melement(mel), face_id(mid) {}
 
-      virtual ~ChFaceHexa_8() {}
+    virtual ~ChFaceHexa_8() {}
 
     // Get the node 'i' of face , with i=0,1,2,...,5
     std::shared_ptr<ChNodeFEAxyz> GetNodeN(int i) {
@@ -84,13 +83,13 @@ class ChApiFea ChFaceHexa_8 : public ChLoadableUV {
     // Functions for ChLoadable interface
     //
 
-            /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() {return 4*3;}
-        
-        /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() {return 4*3;}
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 4 * 3; }
 
-        /// Gets all the DOFs packed in a single vector (position part)
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 4 * 3; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->GetNodeN(0)->GetPos(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos(), block_offset + 3, 0);
@@ -98,7 +97,7 @@ class ChApiFea ChFaceHexa_8 : public ChLoadableUV {
         mD.PasteVector(this->GetNodeN(3)->GetPos(), block_offset + 9, 0);
     }
 
-        /// Gets all the DOFs packed in a single vector (speed part)
+    /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
         mD.PasteVector(this->GetNodeN(0)->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos_dt(), block_offset + 3, 0);
@@ -106,69 +105,71 @@ class ChApiFea ChFaceHexa_8 : public ChLoadableUV {
         mD.PasteVector(this->GetNodeN(3)->GetPos_dt(), block_offset + 9, 0);
     }
 
-        /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() {return 3;}
-           
-        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() {return 4;}
+    /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
+    virtual int Get_field_ncoords() { return 3; }
 
-        /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetNodeN(nblock)->NodeGetOffset_w();}
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 4; }
 
-        /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return this->GetNodeN(nblock)->NodeGetOffset_w(); }
 
-        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-        for (int i=0; i<4; ++i)
+        for (int i = 0; i < 4; ++i)
             mvars.push_back(&this->GetNodeN(i)->Variables());
     };
 
-        /// Evaluate N'*F , where N is some type of shape function
-        /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
-        /// F is a load, N'*F is the resulting generalized load
-        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-     virtual void ComputeNF(const double U,   ///< parametric coordinate in surface
-                     const double V,             ///< parametric coordinate in surface
-                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
-                     double& detJ,               ///< Return det[J] here
-                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
-                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                     ) {
-         ChMatrixNM<double, 1, 11> N;
-         ShapeFunctions(N, U, V);
-         
-         //***TODO*** exact det of jacobian at u,v
-         detJ = ((this->GetNodeN(0)->GetPos()-this->GetNodeN(1)->GetPos()) - (this->GetNodeN(2)->GetPos()-this->GetNodeN(3)->GetPos())).Length() *
-                ((this->GetNodeN(1)->GetPos()-this->GetNodeN(2)->GetPos()) - (this->GetNodeN(3)->GetPos()-this->GetNodeN(0)->GetPos())).Length();
-         // (approximate detJ, ok only for rectangular face)
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U,V coordinates of the surface, each ranging in -1..+1
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
+                           const double V,              ///< parametric coordinate in surface
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        ChMatrixNM<double, 1, 11> N;
+        ShapeFunctions(N, U, V);
 
-         ChVector<> Fv = F.ClipVector(0, 0);
-         for (int i = 0; i < 4; i++) {
-             Qi.PasteVector(N(i) * Fv, 3 * i, 0);
-         }
-     }
+        //***TODO*** exact det of jacobian at u,v
+        detJ = ((this->GetNodeN(0)->GetPos() - this->GetNodeN(1)->GetPos()) -
+                (this->GetNodeN(2)->GetPos() - this->GetNodeN(3)->GetPos()))
+                   .Length() *
+               ((this->GetNodeN(1)->GetPos() - this->GetNodeN(2)->GetPos()) -
+                (this->GetNodeN(3)->GetPos() - this->GetNodeN(0)->GetPos()))
+                   .Length();
+        // (approximate detJ, ok only for rectangular face)
 
-            /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
-           /// Regular quadrature used for this element
-     virtual bool IsTriangleIntegrationNeeded() {return false;}
+        ChVector<> Fv = F.ClipVector(0, 0);
+        for (int i = 0; i < 4; i++) {
+            Qi.PasteVector(N(i) * Fv, 3 * i, 0);
+        }
+    }
 
-            /// Gets the normal to the surface at the parametric coordinate u,v.
-            /// Note: the average normal is returned if the face is twisted.
-            /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-     virtual ChVector<> ComputeNormal(const double U, const double V) {
-         //***TODO*** use shape derivatives and cross product
-         ChVector<> p0 = GetNodeN(0)->GetPos();
-         ChVector<> p1 = GetNodeN(1)->GetPos();
-         ChVector<> p2 = GetNodeN(2)->GetPos();
-         return Vcross(p1-p0, p2-p0).GetNormalized();
-     }
+    /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords
+    /// Regular quadrature used for this element
+    virtual bool IsTriangleIntegrationNeeded() { return false; }
 
+    /// Gets the normal to the surface at the parametric coordinate u,v.
+    /// Note: the average normal is returned if the face is twisted.
+    /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
+    virtual ChVector<> ComputeNormal(const double U, const double V) {
+        //***TODO*** use shape derivatives and cross product
+        ChVector<> p0 = GetNodeN(0)->GetPos();
+        ChVector<> p1 = GetNodeN(1)->GetPos();
+        ChVector<> p2 = GetNodeN(2)->GetPos();
+        return Vcross(p1 - p0, p2 - p0).GetNormalized();
+    }
 };
 
-
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

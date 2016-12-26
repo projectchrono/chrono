@@ -28,9 +28,7 @@ ChLinkPointPoint::ChLinkPointPoint(const ChLinkPointPoint& other) : ChLinkBase(o
     react = other.react;
 }
 
-int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                                 std::shared_ptr<ChNodeFEAxyz> anodeB
-                                 ) {
+int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA, std::shared_ptr<ChNodeFEAxyz> anodeB) {
     assert(anodeA && anodeB);
 
     mnodeA = anodeA;

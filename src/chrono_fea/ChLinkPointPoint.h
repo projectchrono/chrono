@@ -34,7 +34,6 @@ namespace fea {
 /// primitives, such as ChMatterSPH or finite elements.
 
 class ChApiFea ChLinkPointPoint : public ChLinkBase {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkPointPoint)
 

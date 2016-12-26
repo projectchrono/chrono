@@ -9,13 +9,14 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora
 // =============================================================================
 
 #ifndef CHLINKPOINTTRIFACE_H
 #define CHLINKPOINTTRIFACE_H
 
 #include <array>
+
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChNodeFEAxyzrot.h"
@@ -30,19 +31,17 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3,3,3> {
-public:
+class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> {
+  public:
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB2;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB3;
 
-    virtual ChVariables* GetVariables1() {return &mnodeB1->Variables();};
-    virtual ChVariables* GetVariables2() {return &mnodeB2->Variables();};
-    virtual ChVariables* GetVariables3() {return &mnodeB3->Variables();};
+    virtual ChVariables* GetVariables1() { return &mnodeB1->Variables(); };
+    virtual ChVariables* GetVariables2() { return &mnodeB2->Variables(); };
+    virtual ChVariables* GetVariables3() { return &mnodeB3->Variables(); };
 };
-
 
 /// Class for creating a constraint between a xyz FEA node (point)
 /// and a triangular face given by three xyz FEA nodes, with linear
@@ -50,7 +49,6 @@ public:
 /// The node can be offset respect to the face.
 
 class ChApiFea ChLinkPointTriface : public ChLinkInterface {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkPointTriface)
 
@@ -58,14 +56,14 @@ class ChApiFea ChLinkPointTriface : public ChLinkInterface {
     ChVector<> react;
 
     // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes>  constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes>  constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes>  constraint3;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint3;
 
     std::shared_ptr<ChNodeFEAxyz> mnodeA;
     ChTriangleOfXYZnodes mtriangle;
 
-    double s2, s3; 
+    double s2, s3;
     double d;
 
   public:
@@ -130,39 +128,44 @@ class ChApiFea ChLinkPointTriface : public ChLinkInterface {
     /// the node and the triangle to join.
     /// The attachment position is the actual position of the node.
     /// Note, nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> anodeB1, ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyz> anodeB2, ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyz> anodeB3  ///< triangle: corner n.3
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,   ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyz> anodeB1,  ///< triangle: corner n.1
+                           std::shared_ptr<ChNodeFEAxyz> anodeB2,  ///< triangle: corner n.2
+                           std::shared_ptr<ChNodeFEAxyz> anodeB3   ///< triangle: corner n.3
                            );
 
-
     /// Set the area coordinates to specify where the point A is connected on triangle.
-    /// These are 0..1 values, one respect to point B2, the other respect to B3 
+    /// These are 0..1 values, one respect to point B2, the other respect to B3
     /// (the third area coord follows automatically as 1-s2-s3).
     /// The Initialize() function initialize this automatically.
-    virtual void SetAreaCoords(const double ms2, const double ms3) {s2 = ms2; s3 = ms3;}
+    virtual void SetAreaCoords(const double ms2, const double ms3) {
+        s2 = ms2;
+        s3 = ms3;
+    }
 
-    /// Get the area coordinates, as set respect to B2 and B3 
+    /// Get the area coordinates, as set respect to B2 and B3
     ///(the third area coord follows automatically as 1-s2-s3).
-    virtual void GetAreaCoords(double& ms2, double& ms3) const {ms2 = s2; ms3 = s3;}
+    virtual void GetAreaCoords(double& ms2, double& ms3) const {
+        ms2 = s2;
+        ms3 = s3;
+    }
 
-
-    /// Set an optional offset of point A respect to triangle, along triangle normal. 
-    /// Note that it is better to avoid large offsets. Better if offset is zero. 
+    /// Set an optional offset of point A respect to triangle, along triangle normal.
+    /// Note that it is better to avoid large offsets. Better if offset is zero.
     /// The Initialize() function initialize this automatically.
-    virtual void SetOffset(const double md) {d = md;}
+    virtual void SetOffset(const double md) { d = md; }
 
     /// Get the imposed offset of point A respect to triangle
-    virtual double GetOffset(double md) const  {return d;}
-
+    virtual double GetOffset(double md) const { return d; }
 
     /// Get the connected xyz node (point)
     std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
 
     /// Get the connected triangle
-    std::array<std::shared_ptr<fea::ChNodeFEAxyz>,3> GetConstrainedTriangle() const { 
-        return std::array<std::shared_ptr<fea::ChNodeFEAxyz>,3>{{this->mtriangle.mnodeB1,this->mtriangle.mnodeB2,this->mtriangle.mnodeB3}}; }
+    std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3> GetConstrainedTriangle() const {
+        return std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3>{
+            {this->mtriangle.mnodeB1, this->mtriangle.mnodeB2, this->mtriangle.mnodeB3}};
+    }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
     ChVector<> GetReactionOnNode() const { return -react; }
@@ -185,33 +188,28 @@ class ChApiFea ChLinkPointTriface : public ChLinkInterface {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////
 
 // The following classes might be removed if ChNodeFEAxyzrot were inherited from ChNodeFEAxys.
 // Planned for future
 
-
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApiFea ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6,6,6> {
-public:
+class ChApiFea ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 6> {
+  public:
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB1;
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB2;
     std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB3;
 
-    virtual ChVariables* GetVariables1() {return &mnodeB1->Variables();};
-    virtual ChVariables* GetVariables2() {return &mnodeB2->Variables();};
-    virtual ChVariables* GetVariables3() {return &mnodeB3->Variables();};
+    virtual ChVariables* GetVariables1() { return &mnodeB1->Variables(); };
+    virtual ChVariables* GetVariables2() { return &mnodeB2->Variables(); };
+    virtual ChVariables* GetVariables3() { return &mnodeB3->Variables(); };
 };
-
 
 /// Class for creating a constraint between a xyz FEA node (point)
 /// and a triangular face given by three xyzrot FEA nodes, with linear
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkPointTrifaceRot)
 
@@ -219,14 +217,14 @@ class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
     ChVector<> react;
 
     // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes>  constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes>  constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes>  constraint3;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint3;
 
     std::shared_ptr<ChNodeFEAxyz> mnodeA;
     ChTriangleOfXYZROTnodes mtriangle;
 
-    double s2, s3; 
+    double s2, s3;
     double d;
 
   public:
@@ -291,39 +289,44 @@ class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
     /// the node and the triangle to join.
     /// The attachment position is the actual position of the node.
     /// Note, nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB1, ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB2, ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB3  ///< triangle: corner n.3
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,      ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyzrot> anodeB1,  ///< triangle: corner n.1
+                           std::shared_ptr<ChNodeFEAxyzrot> anodeB2,  ///< triangle: corner n.2
+                           std::shared_ptr<ChNodeFEAxyzrot> anodeB3   ///< triangle: corner n.3
                            );
 
-
     /// Set the area coordinates to specify where the point A is connected on triangle.
-    /// These are 0..1 values, one respect to point B2, the other respect to B3 
+    /// These are 0..1 values, one respect to point B2, the other respect to B3
     /// (the third area coord follows automatically as 1-s2-s3).
     /// The Initialize() function initialize this automatically.
-    virtual void SetAreaCoords(const double ms2, const double ms3) {s2 = ms2; s3 = ms3;}
+    virtual void SetAreaCoords(const double ms2, const double ms3) {
+        s2 = ms2;
+        s3 = ms3;
+    }
 
-    /// Get the area coordinates, as set respect to B2 and B3 
+    /// Get the area coordinates, as set respect to B2 and B3
     ///(the third area coord follows automatically as 1-s2-s3).
-    virtual void GetAreaCoords(double& ms2, double& ms3) const {ms2 = s2; ms3 = s3;}
+    virtual void GetAreaCoords(double& ms2, double& ms3) const {
+        ms2 = s2;
+        ms3 = s3;
+    }
 
-
-    /// Set an optional offset of point A respect to triangle, along triangle normal. 
-    /// Note that it is better to avoid large offsets. Better if offset is zero. 
+    /// Set an optional offset of point A respect to triangle, along triangle normal.
+    /// Note that it is better to avoid large offsets. Better if offset is zero.
     /// The Initialize() function initialize this automatically.
-    virtual void SetOffset(const double md) {d = md;}
+    virtual void SetOffset(const double md) { d = md; }
 
     /// Get the imposed offset of point A respect to triangle
-    virtual double GetOffset(double md) const  {return d;}
-
+    virtual double GetOffset(double md) const { return d; }
 
     /// Get the connected xyz node (point)
     std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
 
     /// Get the connected triangle
-    std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>,3> GetConstrainedTriangle() const { 
-        return std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>,3>{{this->mtriangle.mnodeB1,this->mtriangle.mnodeB2,this->mtriangle.mnodeB3}}; }
+    std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3> GetConstrainedTriangle() const {
+        return std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3>{
+            {this->mtriangle.mnodeB1, this->mtriangle.mnodeB2, this->mtriangle.mnodeB3}};
+    }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
     ChVector<> GetReactionOnNode() const { return -react; }
@@ -345,11 +348,6 @@ class ChApiFea ChLinkPointTrifaceRot : public ChLinkInterface {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
-
-
-
-
-
 
 /// @} fea_constraints
 

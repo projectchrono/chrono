@@ -1072,7 +1072,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

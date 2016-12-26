@@ -629,7 +629,6 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         // Very useful information to store: 1/4 of area of neighbouring elements contribute to each node's average area
         node_ave_area[nodes_offset + inode] = Normals[inode].Length() / 4;
 
-
         if (num_Normals[inode] <= 2)
             Boundary_nodes.push_back(nodes_offset + inode);
         node_normal.Normalize();

@@ -287,18 +287,18 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// Set EAS internal parameters (stored values).
     void
     SetStockAlpha(double a1, double a2, double a3, double a4, double a5, double a6, double a7, double a8, double a9);
-    
+
     /// Set EAS Jacobian matrix.
     void SetStockJac(const ChMatrixNM<double, 24, 24>& a) { m_stock_jac_EAS = a; }
- 
+
     /// Set Analytical Jacobian.
     void SetStockKTE(const ChMatrixNM<double, 24, 24>& a) { m_stock_KTE = a; }
- 
+
     /// Set some element parameters (dimensions).
     void SetInertFlexVec(const ChMatrixNM<double, 3, 1>& a) { m_InertFlexVec = a; }
 
     int GetElemNum() const { return m_elementnumber; }
-    
+
     /// Get initial position of the element in matrix form
     const ChMatrixNM<double, 8, 3>& GetInitialPos() const { return m_d0; }
 
@@ -498,7 +498,10 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     virtual void ComputeMmatrixGlobal(ChMatrix<>& M) override { M = m_MassMatrix; }
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override;
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H,
+                                          double Kfactor,
+                                          double Rfactor = 0,
+                                          double Mfactor = 0) override;
 
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values

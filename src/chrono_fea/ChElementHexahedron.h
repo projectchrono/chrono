@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Andrea Favali, Alessandro Tasora
+// =============================================================================
+// Authors: Andrea Favali, Alessandro Tasora
+// =============================================================================
 
 #ifndef CHELEMENTHEXAHEDRON_H
 #define CHELEMENTHEXAHEDRON_H
 
-#include "ChElement3D.h"
-#include "ChElementCorotational.h"
+#include "chrono_fea/ChElement3D.h"
+#include "chrono_fea/ChElementCorotational.h"
 
 namespace chrono {
 namespace fea {
@@ -24,8 +26,8 @@ namespace fea {
 ///
 class ChApiFea ChElementHexahedron : public ChElement3D,
                                      public ChElementCorotational
-                                     //		    __ __ __ __				//
-                                     {    //		  /			  /|			//
+//		    __ __ __ __				//
+{                                         //		  /			  /|			//
   protected:                              //		 /_|__ __ __ / |			//
     ChGaussIntegrationRule* ir;           //		|			|  |			//
     std::vector<ChGaussPoint*> GpVector;  //		|  |		|  |			//
@@ -43,7 +45,7 @@ class ChApiFea ChElementHexahedron : public ChElement3D,
     };
 };
 
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

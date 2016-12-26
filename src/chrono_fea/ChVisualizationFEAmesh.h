@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A. Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHVISUALIZATIONFEAMESH_H
 #define CHVISUALIZATIONFEAMESH_H
@@ -16,6 +18,7 @@
 #include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChNodeFEAxyz.h"
 #include "chrono_fea/ChNodeFEAxyzP.h"
@@ -156,7 +159,7 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     void SetBeamResolution(int mres) { this->beam_resolution = mres; }
     int GetBeamResolution() { return this->beam_resolution; }
 
-    /// Set the resolution of beam triangulated drawing, along the section 
+    /// Set the resolution of beam triangulated drawing, along the section
     /// (i.e. for circular section= number of points along the circle)
     void SetBeamResolutionSection(int mres) { this->beam_resolution_section = mres; }
     int GetBeamResolutionSection() { return this->beam_resolution_section; }
@@ -197,10 +200,12 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
     virtual void Update(ChPhysicsItem* updater, const ChCoordsys<>& coords);
 
   private:
-    double
-    ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
-    double
-    ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode, int nodeID, std::shared_ptr<ChElementBase> melement);
+    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz> mnode,
+                               int nodeID,
+                               std::shared_ptr<ChElementBase> melement);
+    double ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnode,
+                               int nodeID,
+                               std::shared_ptr<ChElementBase> melement);
     ChVector<float> ComputeFalseColor(double in);
     ChColor ComputeFalseColor2(double in);
     void UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
@@ -211,7 +216,7 @@ class ChApiFea ChVisualizationFEAmesh : public ChAssetLevel {
                            unsigned int& i_triindex);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

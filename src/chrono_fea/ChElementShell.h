@@ -1,21 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHELEMENTSHELL_H
 #define CHELEMENTSHELL_H
 
-#include "ChApiFEA.h"
-#include "ChElementGeneric.h"
-
+#include "chrono_fea/ChApiFEA.h"
+#include "chrono_fea/ChElementGeneric.h"
 
 namespace chrono {
 namespace fea {
@@ -64,32 +65,28 @@ class ChApiFea ChElementShell : public ChElementGeneric {
     /// Note, u=-1..+1 , v= -1..+1.
     /// Note, 'displ' is the displ.state of nodes, ex. get it as GetStateBlock()
     /// Results are corotated.
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      const ChMatrix<>& displ,
-                                      ChVector<>& point) = 0;
+    virtual void EvaluateSectionPoint(const double u, const double v, const ChMatrix<>& displ, ChVector<>& point) = 0;
 
-	/// Virtual method to plot velocity field distribution
-	virtual void EvaluateSectionVelNorm(double U, double V, ChVector<> &Result) = 0;
+    /// Virtual method to plot velocity field distribution
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) = 0;
 
-/*
-    /// TODO?????
-    /// Gets the tensional state at a point on the shell
-    /// at parametric coordinates 'u' and 'v'.
-    /// Note, u=-1..+1 , v= -1..+1.
-    /// Note, 'displ' is the displ.state of  nodes, ex. get it as GetStateBlock().
-    /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta,
-                                            const ChMatrix<>& displ,
-                                            ChVector<>& Fforce,
-                                            ChVector<>& Mtorque) = 0;
-*/
-
+    /*
+        /// TODO?????
+        /// Gets the tensional state at a point on the shell
+        /// at parametric coordinates 'u' and 'v'.
+        /// Note, u=-1..+1 , v= -1..+1.
+        /// Note, 'displ' is the displ.state of  nodes, ex. get it as GetStateBlock().
+        /// Results are not corotated, and are expressed in the reference system of beam.
+        virtual void EvaluateSectionForceTorque(const double eta,
+                                                const ChMatrix<>& displ,
+                                                ChVector<>& Fforce,
+                                                ChVector<>& Mtorque) = 0;
+    */
 };
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif
