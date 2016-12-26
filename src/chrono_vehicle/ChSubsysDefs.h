@@ -24,6 +24,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -116,11 +117,11 @@ struct TrackShoeForce {
 /// Vector of tire force structures.
 typedef std::vector<TrackShoeForce> TrackShoeForces;
 
-/// Utility class for specifying a linear spring force.
+/// Utility class for specifying a linear translational spring force.
 class LinearSpringForce : public ChSpringForceCallback {
   public:
     LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_k * (length - rest_length);
     }
 
@@ -128,21 +129,23 @@ class LinearSpringForce : public ChSpringForceCallback {
     double m_k;
 };
 
-/// Utility class for specifying a linear damper force.
+/// Utility class for specifying a linear translational damper force.
 class LinearDamperForce : public ChSpringForceCallback {
   public:
     LinearDamperForce(double c) : m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_c * vel; }
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return -m_c * vel;
+    }
 
   private:
     double m_c;
 };
 
-/// Utility class for specifying a linear spring-damper force.
+/// Utility class for specifying a linear translational spring-damper force.
 class LinearSpringDamperForce : public ChSpringForceCallback {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -151,11 +154,11 @@ class LinearSpringDamperForce : public ChSpringForceCallback {
     double m_c;
 };
 
-/// Utility class for specifying a linear spring-damper force with pre-tension.
+/// Utility class for specifying a linear translational spring-damper force with pre-tension.
 class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return m_f - m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -165,7 +168,7 @@ class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
     double m_f;
 };
 
-/// Utility class for specifying a map spring force.
+/// Utility class for specifying a map translational spring force.
 class MapSpringForce : public ChSpringForceCallback {
   public:
     MapSpringForce() {}
@@ -175,7 +178,7 @@ class MapSpringForce : public ChSpringForceCallback {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -183,7 +186,7 @@ class MapSpringForce : public ChSpringForceCallback {
     ChFunction_Recorder m_map;
 };
 
-/// Utility class for specifying a map damper force.
+/// Utility class for specifying a map translational damper force.
 class MapDamperForce : public ChSpringForceCallback {
   public:
     MapDamperForce() {}
@@ -193,13 +196,15 @@ class MapDamperForce : public ChSpringForceCallback {
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_map.Get_y(vel); }
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return -m_map.Get_y(vel);
+    }
 
   private:
     ChFunction_Recorder m_map;
 };
 
-/// Utility class for specifying a map spring-damper force with pre-tension.
+/// Utility class for specifying a map translational spring-damper force with pre-tension.
 class MapSpringDamperActuatorForce : public ChSpringForceCallback {
   public:
     MapSpringDamperActuatorForce() {}
@@ -216,7 +221,7 @@ class MapSpringDamperActuatorForce : public ChSpringForceCallback {
     void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
     void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
     void set_f(double f) { m_f = f; }
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
     }
 
@@ -224,6 +229,62 @@ class MapSpringDamperActuatorForce : public ChSpringForceCallback {
     ChFunction_Recorder m_mapK;
     ChFunction_Recorder m_mapC;
     double m_f;
+};
+
+/// Utility class for specifying a linear rotational spring torque.
+class LinearSpringTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(0) {}
+    virtual double operator()(double time, double angle, double vel) override { return -m_k * (angle - m_rest_angle); }
+
+  private:
+    double m_k;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a linear rotational damper force.
+class LinearDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearDamperTorque(double c) : m_c(c) {}
+    virtual double operator()(double time, double angle, double vel) override { return -m_c * vel; }
+
+  private:
+    double m_c;
+};
+
+/// Utility class for specifying a map rotational spring force.
+class MapSpringTorque : public ChRotSpringTorqueCallback {
+  public:
+    MapSpringTorque() {}
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0) : m_rest_angle(rest_angle) {
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time, double angle, double vel) override {
+        return -m_map.Get_y(angle - m_rest_angle);
+    }
+
+private:
+    ChFunction_Recorder m_map;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a map rotational damper force.
+class MapDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    MapDamperTorque() {}
+    MapDamperTorque(const std::vector<std::pair<double, double>>& data) {
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time, double angle, double vel) override { return -m_map.Get_y(vel); }
+
+  private:
+    ChFunction_Recorder m_map;
 };
 
 /// Enum for visualization types.
