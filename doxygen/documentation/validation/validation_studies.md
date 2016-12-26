@@ -7,14 +7,17 @@ Validation Studies {#validation_studies_root}
 
 
 #### Granular Material
-- Cratering experiment
+- Cone penetration test [(pdf)](http://sbel.wisc.edu/documents/TR-2016-16.pdf)
+- Shear test, using Particle Image Velocimetry  [(pdf)](http://sbel.wisc.edu/documents/TR-2016-17.pdf)
+- Cratering experiment [(pdf)](http://sbel.wisc.edu/documents/TobyHeynThesis_PhDfinal.pdf)
 - Shear test [(doc)](https://computationalnonlinear.asmedigitalcollection.asme.org/article.aspx?articleID=2423820)
-- Triaxial test 
-- Rate of flow
+- Triaxial test [(pdf)](http://sbel.wisc.edu/documents/TR-2016-18.pdf) 
+- Rate of flow [(pdf)](http://sbel.wisc.edu/documents/TobyHeynThesis_PhDfinal.pdf)
 <br><br>
 
 
 #### Chrono::Vehicle
+- Comparison against ADAMS/Car&copy; [(pdf)](http://sbel.wisc.edu/documents/TR-2016-15.pdf)
 - Tire validation against ADAMS&copy;
 	- Fiala tire model [(pdf)](http://sbel.wisc.edu/documents/TR-2015-13.pdf)
 <br><br>
