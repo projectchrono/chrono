@@ -26,7 +26,6 @@ namespace chrono {
 /// Class for using Matlab from Chrono programs.
 
 class ChApiMatlab ChSolverMatlab : public ChSolver {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSolverMatlab)
 

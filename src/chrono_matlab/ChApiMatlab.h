@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHAPIMATLAB_H
 #define CHAPIMATLAB_H
@@ -34,9 +37,9 @@
 
 /**
     @defgroup matlab_module MATLAB module
-    @brief Interoperation with Matlab(TM) 
+    @brief Interoperation with Matlab(TM)
 
-    Using this module, you can provide interoperation between 
+    Using this module, you can provide interoperation between
     Chrono::Engine and the Matlab(TM) software.
 
     For additional information, see:
@@ -44,4 +47,4 @@
     - the [tutorials](@ref tutorial_root)
 */
 
-#endif  // END of header
+#endif

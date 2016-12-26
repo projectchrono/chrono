@@ -1,35 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHMATLABENGINE_H
 #define CHMATLABENGINE_H
 
-///////////////////////////////////////////////////
-//
-//   ChMatlabEngine.h
-//
-//   Use this header if you want to exploit Matlab
-//   from Chrono::Engine programs.
-//
-//   HEADER file for CHRONO,
-//  Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_matlab/ChApiMatlab.h"
-#include "core/ChMath.h"
-#include "core/ChLinkedListMatrix.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/core/ChLinkedListMatrix.h"
 
 // Following namespace trick is a fix for VS2010+ and Matlab: avoid error with typedef in matrix.h
 namespace matlabengine {
@@ -40,7 +28,6 @@ namespace chrono {
 
 /// @addtogroup matlab_module
 /// @{
-
 
 /// Class for accessing the Matlab engine with a C++ wrapper.
 /// When a ChMatlabEngine object is instanced, a Matlab engine
@@ -94,26 +81,24 @@ class ChApiMatlab ChMatlabEngine {
     /// it might undergo resizing.
     bool GetVariable(ChMatrixDynamic<double>& mmatr, std::string varname);
 
-
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
-    {
+    virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
         marchive.VersionWrite(1);
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
-    {
+    virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
         int version = marchive.VersionRead();
     }
 };
 
 /// @} matlab_module
-}  // END_OF_NAMESPACE____
+
+}  // end namespace chrono
 
 #endif
