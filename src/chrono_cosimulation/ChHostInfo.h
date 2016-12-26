@@ -1,19 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
 #ifndef CHHOSTINFO_H
 #define CHHOSTINFO_H
 
-//////////////////////////////////////////////////
-//
-//   ChHostInfo.h
-//
-//   Custom exception class, for sockets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-///////////////////////////////////////////////////
-
 /*
-
   Liyang Yu, Jan 9th, 2004, version 0.0
 
   this is to implement the domain and IP address resolution.
@@ -32,10 +34,10 @@
 
   3. nothing is given. in other words, we don't know the host name or the IP address.
      in this case, the standard host name for the current processor is used
-
 */
 
 #include <string>
+
 #include "chrono_cosimulation/ChApiCosimulation.h"
 
 // This version is for both Windows and UNIX, the following statements
@@ -60,7 +62,6 @@
 
 namespace chrono {
 namespace cosimul {
-
 
 enum hostType { NAME, ADDRESS };
 const int HOST_NAME_LENGTH = 64;
@@ -117,7 +118,7 @@ class ChApiCosimulation ChHostInfo {
 #endif
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace cosimul
+}  // end namespace chrono
 
-#endif  // END of header
+#endif
