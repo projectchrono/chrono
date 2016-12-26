@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {

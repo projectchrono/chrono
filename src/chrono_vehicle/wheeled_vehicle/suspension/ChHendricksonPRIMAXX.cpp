@@ -25,9 +25,9 @@
 //
 // =============================================================================
 
-#include "assets/ChCylinderShape.h"
+#include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChPointPointDrawing.h"
-#include "assets/ChColorAsset.h"
+#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
