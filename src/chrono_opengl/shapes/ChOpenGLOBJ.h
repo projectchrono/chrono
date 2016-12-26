@@ -51,8 +51,7 @@ class CH_OPENGL_API ChOpenGLOBJ : public ChOpenGLBase {
 };
 
 /// @} opengl
-
 }
 }
 
-#endif  // END of CHOPENGLOBJ_H
+#endif

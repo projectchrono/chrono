@@ -142,21 +142,20 @@ bool ChOpenGLViewer::Initialize() {
     fea_element_data.push_back(glm::vec3(0, 0, 0));
     mpm_grid_data.push_back(glm::vec3(0, 0, 0));
     mpm_node_data.push_back(glm::vec3(0, 0, 0));
-	line_path_data.push_back(glm::vec3(0, 0, 0));
+    line_path_data.push_back(glm::vec3(0, 0, 0));
 
     cloud.Initialize(cloud_data, white, &cloud_shader);
     fluid.Initialize(cloud_data, white, &sphere_shader);
     grid.Initialize(grid_data, white, &cloud_shader);
     mpm_grid.Initialize(grid_data, white, &cloud_shader);
     mpm_node.Initialize(cloud_data, white, &cloud_shader);
-	line_path.Initialize(line_path_data, red, &cloud_shader);
+    line_path.Initialize(line_path_data, red, &cloud_shader);
 
     fea_nodes.Initialize(fea_node_data, fea_color, &dot_shader);
     fea_elements.Initialize(fea_element_data, fea_color, &cloud_shader);
 
     contact_renderer.Initialize(contact_color, &dot_shader);
     graph_renderer.Initialize(white, &cloud_shader);
-
 
     // glEnable(GL_MULTISAMPLE);
     glEnable(GL_POINT_SPRITE);
@@ -184,7 +183,7 @@ void ChOpenGLViewer::Render() {
 
     timer_render.start();
     if (pause_vis == false) {
-    	timer_geometry.start();
+        timer_geometry.start();
         render_camera.aspect = window_aspect;
         render_camera.window_width = window_size.x;
         render_camera.window_height = window_size.y;
@@ -208,7 +207,7 @@ void ChOpenGLViewer::Render() {
             model_cone.clear();
             model_cylinder.clear();
             model_obj.clear();
-			line_path_data.clear();
+            line_path_data.clear();
             for (int i = 0; i < physics_system->Get_bodylist()->size(); i++) {
                 auto abody = physics_system->Get_bodylist()->at(i);
                 DrawObject(abody);
@@ -236,10 +235,10 @@ void ChOpenGLViewer::Render() {
                     (*iter).second.Draw(projection, view);
                 }
             }
-			if (line_path_data.size() > 0) {
-				line_path.Update(line_path_data);
-				line_path.Draw(projection, view);
-			}
+            if (line_path_data.size() > 0) {
+                line_path.Update(line_path_data);
+                line_path.Draw(projection, view);
+            }
 
         } else {
             cloud_data.resize(physics_system->Get_bodylist()->size());
@@ -454,35 +453,35 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             } else {
                 model_obj[trimesh_shape->GetName()].push_back(model);
             }
-        }else if (ChPathShape* path_shape = dynamic_cast<ChPathShape*>(asset.get())) {
-			//std::shared_ptr<geometry::ChLine> mline;
-			//mline = path_shape->GetPathGeometry();
-		}else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
-			std::shared_ptr<geometry::ChLine> mline;
-			mline = line_shape->GetLineGeometry();
+        } else if (ChPathShape* path_shape = dynamic_cast<ChPathShape*>(asset.get())) {
+            // std::shared_ptr<geometry::ChLine> mline;
+            // mline = path_shape->GetPathGeometry();
+        } else if (ChLineShape* line_shape = dynamic_cast<ChLineShape*>(asset.get())) {
+            std::shared_ptr<geometry::ChLine> mline;
+            mline = line_shape->GetLineGeometry();
 
-			Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
-			lrot = rot % lrot;
-			lrot.Q_to_AngAxis(angle, axis);
+            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+            lrot = rot % lrot;
+            lrot.Q_to_AngAxis(angle, axis);
 
-			double maxU = 1;
-			if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
-			maxU = mline_path->GetPathDuration();
-			ChVector<> pos_final = pos + center;
+            double maxU = 1;
+            if (auto mline_path = std::dynamic_pointer_cast<geometry::ChLinePath>(mline))
+                maxU = mline_path->GetPathDuration();
+            ChVector<> pos_final = pos + center;
 
-			for (unsigned int ig = 0; ig < 200; ig++) {
-				double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
-				ChVector<> t2;
-				mline->Evaluate(t2, mU, 0, 0);
-				t2 = pos_final + lrot.Rotate(t2);
-				line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+            for (unsigned int ig = 0; ig < 200; ig++) {
+                double mU = maxU * ((double)ig / (double)(200 - 1));  // abscyssa
+                ChVector<> t2;
+                mline->Evaluate(t2, mU, 0, 0);
+                t2 = pos_final + lrot.Rotate(t2);
+                line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
 
-				 mU = maxU * ((double)(ig+1) / (double)(200 - 1));  // abscyssa
-				 mline->Evaluate(t2, mU, 0, 0);
-				 t2 = pos_final + lrot.Rotate(t2);
-				 line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
-			}
-		}
+                mU = maxU * ((double)(ig + 1) / (double)(200 - 1));  // abscyssa
+                mline->Evaluate(t2, mU, 0, 0);
+                t2 = pos_final + lrot.Rotate(t2);
+                line_path_data.push_back(glm::vec3(t2.x, t2.y, t2.z));
+            }
+        }
     }
 }
 
@@ -580,7 +579,7 @@ void ChOpenGLViewer::RenderFluid() {
 
 void ChOpenGLViewer::RenderFEA() {
 #ifdef CHRONO_PARALLEL
-	fea_element_data.clear();
+    fea_element_data.clear();
     if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
         if (parallel_system->data_manager->num_fea_nodes <= 0) {
             return;
@@ -654,63 +653,63 @@ void ChOpenGLViewer::RenderGrid() {
     glm::mat4 model(1);
     grid.Draw(projection, view * model);
 
-    ///======
+///======
 #ifdef CHRONO_PARALLEL
-        /*mpm_grid_data.clear();
-        mpm_node_data.clear();
-        if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
-            vec3 bins_per_axis;
-            real3 bin_size_vec;
-            real3 min_pt;
-            real3 max_pt;
-            real3 center;
-            real bin_edge;
-            uint num_mpm_nodes;
-    
-    
-            mpm_node_data.resize(num_mpm_nodes);
-            for (int i = 0; i < num_mpm_nodes; i++) {
-                vec3 g = GridDecode(i, bins_per_axis);
-                real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_pt);
-                mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y,
-                current_node_location.z);
-            }
-            mpm_node.SetPointSize(.002);
-            mpm_node.Update(mpm_node_data);
-            mpm_node.Draw(projection, view * model);
-            glm::vec3 offset = glm::vec3(.5 * bin_size_vec.x, .5 * bin_size_vec.x, .5 * bin_size_vec.x);
-            for (int i = 0; i <= bins_per_axis.x; i++) {
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.z; i++) {
-                mpm_grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
-            }
-    
-            for (int i = 0; i <= bins_per_axis.y; i++) {
-                mpm_grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.y; i++) {
-                mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z) - offset);
-            }
-    
-            for (int i = 0; i <= bins_per_axis.x; i++) {
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z) - offset);
-            }
-            for (int i = 0; i <= bins_per_axis.z; i++) {
-                mpm_grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
-                mpm_grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
-            }
-    
-            mpm_grid.Update(mpm_grid_data);
-            glm::mat4 model(1);
-    
-            mpm_grid.Draw(projection, view * model);
-        }*/
+/*mpm_grid_data.clear();
+mpm_node_data.clear();
+if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    vec3 bins_per_axis;
+    real3 bin_size_vec;
+    real3 min_pt;
+    real3 max_pt;
+    real3 center;
+    real bin_edge;
+    uint num_mpm_nodes;
+
+
+    mpm_node_data.resize(num_mpm_nodes);
+    for (int i = 0; i < num_mpm_nodes; i++) {
+        vec3 g = GridDecode(i, bins_per_axis);
+        real3 current_node_location = NodeLocation(g.x, g.y, g.z, bin_edge, min_pt);
+        mpm_node_data[i] = glm::vec3(current_node_location.x, current_node_location.y,
+        current_node_location.z);
+    }
+    mpm_node.SetPointSize(.002);
+    mpm_node.Update(mpm_node_data);
+    mpm_node.Draw(projection, view * model);
+    glm::vec3 offset = glm::vec3(.5 * bin_size_vec.x, .5 * bin_size_vec.x, .5 * bin_size_vec.x);
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+        mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, min_pt.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, center.y, max_pt.z) - offset);
+    }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+        mpm_grid_data.push_back(glm::vec3(min_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(max_pt.x, center.y, i * bin_size_vec.z + min_pt.z) - offset);
+    }
+
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+        mpm_grid_data.push_back(glm::vec3(min_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(max_pt.x, i * bin_size_vec.y + min_pt.y, center.z) - offset);
+    }
+    for (int i = 0; i <= bins_per_axis.y; i++) {
+        mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, min_pt.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(center.x, i * bin_size_vec.y + min_pt.y, max_pt.z) - offset);
+    }
+
+    for (int i = 0; i <= bins_per_axis.x; i++) {
+        mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, min_pt.y, center.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(i * bin_size_vec.x + min_pt.x, max_pt.y, center.z) - offset);
+    }
+    for (int i = 0; i <= bins_per_axis.z; i++) {
+        mpm_grid_data.push_back(glm::vec3(center.x, min_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
+        mpm_grid_data.push_back(glm::vec3(center.x, max_pt.y, i * bin_size_vec.z + min_pt.z) - offset);
+    }
+
+    mpm_grid.Update(mpm_grid_data);
+    glm::mat4 model(1);
+
+    mpm_grid.Draw(projection, view * model);
+}*/
 #endif
 }
 

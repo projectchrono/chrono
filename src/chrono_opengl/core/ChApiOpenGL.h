@@ -13,6 +13,7 @@
 // =============================================================================
 // Header for OpenGL API export
 // =============================================================================
+
 #ifndef CHAPIGL_H
 #define CHAPIGL_H
 
@@ -22,7 +23,7 @@
     @defgroup opengl_module OPENGL module
     @brief Runtime visualization with OpenGL
 
-    This module provides support for showing Chrono 
+    This module provides support for showing Chrono
     animations in a real time 3D window using OpenGL.
     Differently from the IRRLICHT module, this system
     provides a lower-level access to the rendering system,
@@ -44,5 +45,4 @@
 #define CH_OPENGL_API ChApiIMPORT
 #endif
 
-
-#endif  // END of header
+#endif

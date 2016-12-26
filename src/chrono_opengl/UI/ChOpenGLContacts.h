@@ -16,9 +16,12 @@
 
 #ifndef CHOPENGLCONTACTS_H
 #define CHOPENGLCONTACTS_H
+
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/shapes/ChOpenGLCloud.h"
-#include "physics/ChSystem.h"
+
+#include "chrono/physics/ChSystem.h"
+
 namespace chrono {
 class ChSystemParallel;
 namespace opengl {
@@ -47,4 +50,4 @@ class CH_OPENGL_API ChOpenGLContacts : public ChOpenGLBase {
 /// @} opengl
 }
 }
-#endif  // END of CHOPENGLCONTACTS_H
+#endif

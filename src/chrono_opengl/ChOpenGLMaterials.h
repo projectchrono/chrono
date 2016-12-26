@@ -13,9 +13,12 @@
 // =============================================================================
 // Shared materials used in the OpenGL viewer
 // =============================================================================
+
 #ifndef CHOPENGLMATERIALS_H
 #define CHOPENGLMATERIALS_H
+
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
+
 namespace chrono {
 namespace opengl {
 
@@ -52,4 +55,4 @@ static ChOpenGLMaterial text_mat(glm::vec3(0, 0, 0), glm::vec3(100.0f, 145.0f, 1
 /// @} opengl
 }
 }
-#endif  // END of CHOPENGLMATERIALS_H
+#endif

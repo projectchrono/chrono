@@ -27,8 +27,9 @@
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/UI/ChOpenGLHUD.h"
 #include "chrono_opengl/UI/ChOpenGLGraphs.h"
-#include "physics/ChSystem.h"
-#include "core/ChTimer.h"
+
+#include "chrono/physics/ChSystem.h"
+#include "chrono/core/ChTimer.h"
 
 //#include "chrono_parallel/physics/ChSystemParallel.h"
 #include <glfw3.h>
@@ -90,7 +91,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     ChOpenGLCloud fea_nodes;
     ChOpenGLWires fea_elements;
 
-	ChOpenGLWires line_path;
+    ChOpenGLWires line_path;
 
     ChOpenGLContacts contact_renderer;
     ChOpenGLHUD HUD_renderer;
@@ -103,7 +104,7 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> grid_data;
     std::vector<glm::vec3> mpm_grid_data;
     std::vector<glm::vec3> mpm_node_data;
-	std::vector<glm::vec3> line_path_data;
+    std::vector<glm::vec3> line_path_data;
 
     int simulation_frame;   // The current frame number
     float simulation_h;     // The simulation step size

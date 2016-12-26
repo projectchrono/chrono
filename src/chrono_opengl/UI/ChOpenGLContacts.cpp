@@ -15,12 +15,15 @@
 // =============================================================================
 
 #include <iostream>
+
 #include "chrono_opengl/UI/ChOpenGLContacts.h"
 #include "chrono_opengl/ChOpenGLMaterials.h"
+
 #ifdef CHRONO_PARALLEL
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChDataManager.h"
 #endif
+
 namespace chrono {
 using namespace collision;
 namespace opengl {
@@ -133,9 +136,9 @@ void ChOpenGLContacts::Update(ChSystem* physics_system) {
 #ifdef CHRONO_PARALLEL
     if (ChSystemParallel* system_parallel = dynamic_cast<ChSystemParallel*>(physics_system)) {
         UpdateChronoParallel(system_parallel);
-    } else 
+    } else
 #endif
-	{
+    {
         UpdateChrono(physics_system);
     }
 

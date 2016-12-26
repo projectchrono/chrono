@@ -25,6 +25,7 @@
 
 #include "chrono/physics/ChSystem.h"
 //#include "chrono_parallel/physics/ChSystemParallel.h"
+
 namespace chrono {
 namespace opengl {
 
@@ -73,4 +74,4 @@ class CH_OPENGL_API ChOpenGLHUD : public ChOpenGLBase {
 /// @} opengl
 }
 }
-#endif  // END of CHOPENGLHUD_H
+#endif

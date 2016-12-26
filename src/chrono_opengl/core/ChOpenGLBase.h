@@ -117,4 +117,4 @@ class CH_OPENGL_API ChOpenGLBase {
 }
 }
 
-#endif  // END of CHOPENGLBASE_H
+#endif

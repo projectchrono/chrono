@@ -20,7 +20,8 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
 #include "chrono_opengl/shapes/ChOpenGLWires.h"
-#include "physics/ChSystem.h"
+
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace opengl {
@@ -43,7 +44,6 @@ class CH_OPENGL_API ChOpenGLGraphs {
 };
 
 /// @} opengl
-
 }
 }
-#endif  // END of CHOPENGLGRAPHS_H
+#endif
