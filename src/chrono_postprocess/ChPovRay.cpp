@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono/assets/ChAssetLevel.h"
 #include "chrono/assets/ChBoxShape.h"
@@ -22,12 +24,14 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChParticlesClones.h"
+
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
 
-using namespace chrono;
-using namespace postprocess;
+namespace chrono {
+namespace postprocess {
+
 using namespace geometry;
 
 ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
@@ -420,12 +424,14 @@ void ChPovRay::ExportScript(const std::string& filename) {
     this->ExportAssets();
 }
 
-void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file) {
+void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist,
+                                    ChStreamOutAsciiFile& assets_file) {
     // Scan assets
     for (unsigned int k = 0; k < assetlist.size(); k++) {
         std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcached = pov_assets.find((size_t)k_asset.get());
+        std::unordered_map<size_t, std::shared_ptr<ChAsset> >::iterator mcached =
+            pov_assets.find((size_t)k_asset.get());
         if (mcached == pov_assets.end()) {
             // Ok, add the asset in POV file, it was not already saved.
             // Otherwise it was a shared asset.
@@ -632,11 +638,15 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 5,
                                                                    1) == ".")
                     assets_file << (myobjtextureasset->GetTextureFilename().substr(
-                                        myobjtextureasset->GetTextureFilename().length() - 4, 4)).c_str() << " ";
+                                        myobjtextureasset->GetTextureFilename().length() - 4, 4))
+                                       .c_str()
+                                << " ";
                 if (myobjtextureasset->GetTextureFilename().substr(myobjtextureasset->GetTextureFilename().length() - 4,
                                                                    1) == ".")
                     assets_file << (myobjtextureasset->GetTextureFilename().substr(
-                                        myobjtextureasset->GetTextureFilename().length() - 3, 3)).c_str() << " ";
+                                        myobjtextureasset->GetTextureFilename().length() - 3, 3))
+                                       .c_str()
+                                << " ";
                 assets_file << "\"" << myobjtextureasset->GetTextureFilename().c_str() << "\"";
                 assets_file << " }}}\n";
 
@@ -695,10 +705,8 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
         // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
         if (std::dynamic_pointer_cast<ChObjShapeFile>(k_asset) ||
             std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChSphereShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChBoxShape>(k_asset)
-            ) {
+            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
             mfilepov << "sh_" << (size_t)k_asset.get() << "()\n";
         }
 
@@ -728,14 +736,11 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
     for (unsigned int k = 0; k < assetlist.size(); k++) {
         std::shared_ptr<ChAsset> k_asset = assetlist[k];
 
-        if (std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset) ||
-            std::dynamic_pointer_cast<ChTexture>(k_asset) ||
-            std::dynamic_pointer_cast<ChColorAsset>(k_asset)
-            ) {
+        if (std::dynamic_pointer_cast<ChPovRayAssetCustom>(k_asset) || std::dynamic_pointer_cast<ChTexture>(k_asset) ||
+            std::dynamic_pointer_cast<ChColorAsset>(k_asset)) {
             mfilepov << "cm_" << (size_t)k_asset.get() << "()\n";
         }
     }
-
 
     // write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {
@@ -880,48 +885,48 @@ void ChPovRay::ExportData(const std::string& filename) {
 
         // #) saving contacts ?
         if (this->contacts_show) {
-          /*
-            char pathcontacts[200];
-            sprintf(pathcontacts, "%s.contacts", filename.c_str());
-            ChStreamOutAsciiFile data_contacts(pathcontacts);
+            /*
+              char pathcontacts[200];
+              sprintf(pathcontacts, "%s.contacts", filename.c_str());
+              ChStreamOutAsciiFile data_contacts(pathcontacts);
 
-            class _reporter_class : public chrono::ChReportContactCallback {
-              public:
-                virtual bool ReportContactCallback(const ChVector<>& pA,
-                                                   const ChVector<>& pB,
-                                                   const ChMatrix33<>& plane_coord,
-                                                   const double& distance,
-                                                   const float& mfriction,
-                                                   const ChVector<>& react_forces,
-                                                   const ChVector<>& react_torques,
-                                                   ChContactable* contactobjA,
-                                                   ChContactable* contactobjB) {
-                    if (fabs(react_forces.x) > 1e-8 || fabs(react_forces.y) > 1e-8 || fabs(react_forces.z) > 1e-8) {
-                        ChMatrix33<> localmatr(plane_coord);
-                        ChVector<> n1 = localmatr.Get_A_Xaxis();
-                        ChVector<> absreac = localmatr * react_forces;
-                        (*mfile) << pA.x << ", ";
-                        (*mfile) << pA.y << ", ";
-                        (*mfile) << pA.z << ", ";
-                        (*mfile) << n1.x << ", ";
-                        (*mfile) << n1.y << ", ";
-                        (*mfile) << n1.z << ", ";
-                        (*mfile) << absreac.x << ", ";
-                        (*mfile) << absreac.y << ", ";
-                        (*mfile) << absreac.z << ", \n";
-                    }
-                    return true;  // to continue scanning contacts
-                }
-                // Data
-                ChStreamOutAsciiFile* mfile;
-            };
+              class _reporter_class : public chrono::ChReportContactCallback {
+                public:
+                  virtual bool ReportContactCallback(const ChVector<>& pA,
+                                                     const ChVector<>& pB,
+                                                     const ChMatrix33<>& plane_coord,
+                                                     const double& distance,
+                                                     const float& mfriction,
+                                                     const ChVector<>& react_forces,
+                                                     const ChVector<>& react_torques,
+                                                     ChContactable* contactobjA,
+                                                     ChContactable* contactobjB) {
+                      if (fabs(react_forces.x) > 1e-8 || fabs(react_forces.y) > 1e-8 || fabs(react_forces.z) > 1e-8) {
+                          ChMatrix33<> localmatr(plane_coord);
+                          ChVector<> n1 = localmatr.Get_A_Xaxis();
+                          ChVector<> absreac = localmatr * react_forces;
+                          (*mfile) << pA.x << ", ";
+                          (*mfile) << pA.y << ", ";
+                          (*mfile) << pA.z << ", ";
+                          (*mfile) << n1.x << ", ";
+                          (*mfile) << n1.y << ", ";
+                          (*mfile) << n1.z << ", ";
+                          (*mfile) << absreac.x << ", ";
+                          (*mfile) << absreac.y << ", ";
+                          (*mfile) << absreac.z << ", \n";
+                      }
+                      return true;  // to continue scanning contacts
+                  }
+                  // Data
+                  ChStreamOutAsciiFile* mfile;
+              };
 
-            _reporter_class my_contact_reporter;
-            my_contact_reporter.mfile = &data_contacts;
+              _reporter_class my_contact_reporter;
+              my_contact_reporter.mfile = &data_contacts;
 
-            // scan all contacts
-            this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
-            */
+              // scan all contacts
+              this->mSystem->GetContactContainer()->ReportAllContacts(&my_contact_reporter);
+              */
         }
 
         // If a camera have been found in assets, create it and override the default one
@@ -957,3 +962,6 @@ void ChPovRay::ExportData(const std::string& filename) {
     // Increment the number of the frame.
     this->framenumber++;
 }
+
+}  // end namespace postprocess
+}  // end namespace chrono
