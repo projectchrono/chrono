@@ -16,7 +16,6 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-
 namespace chrono {
 
 
@@ -204,7 +203,6 @@ class  ChLoadBodyMesh : public ChLoadBase {
     std::vector<std::shared_ptr<ChLoadBodyForce> > forces;
 };
 
-}  // END_OF_NAMESPACE____
-
+}  // end namespace chrono
 
 #endif

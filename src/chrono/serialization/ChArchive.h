@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -864,6 +863,6 @@ class  ChArchiveIn : public ChArchive {
 
 /// @} chrono_serialization
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

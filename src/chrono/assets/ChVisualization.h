@@ -12,9 +12,9 @@
 #ifndef CHVISUALIZATION_H
 #define CHVISUALIZATION_H
 
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
-#include "core/ChMath.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -93,6 +93,6 @@ class ChApi ChVisualization : public ChAsset {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -13,6 +13,7 @@
 // =============================================================================
 
 #include <stdio.h>
+
 #include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
 #include "chrono/solver/ChConstraintTwoTuplesRollingN.h"

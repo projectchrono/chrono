@@ -10,7 +10,7 @@
 //
 
 
-#include "assets/ChSphereShape.h"
+#include "chrono/assets/ChSphereShape.h"
 
 namespace chrono {
 
@@ -18,4 +18,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSphereShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

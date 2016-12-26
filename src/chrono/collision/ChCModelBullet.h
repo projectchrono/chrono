@@ -294,7 +294,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     void onFamilyChange();
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

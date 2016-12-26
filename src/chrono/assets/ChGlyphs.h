@@ -12,9 +12,9 @@
 #ifndef CHGLYPHS_H
 #define CHGLYPHS_H
 
-#include "assets/ChVisualization.h"
-#include "assets/ChColor.h"
-#include "core/ChMatrix.h"
+#include "chrono/assets/ChVisualization.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -154,9 +154,6 @@ class ChApi ChGlyphs : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -10,19 +10,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChFileutils.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
-#include "core/ChFileutils.h"
+
+#include "chrono/core/ChFileutils.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #include <direct.h>
@@ -114,4 +106,4 @@ int ChFileutils::MakeDirectory(const char* dirname) {
     return (errno == EEXIST) ? 1 : -1;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

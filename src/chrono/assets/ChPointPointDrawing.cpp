@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkDistance.h"
 
@@ -72,4 +72,4 @@ void ChPointPointSpring::UpdateLineGeometry(const ChVector<>& endpoint1, const C
 	this->SetLineGeometry(std::static_pointer_cast<geometry::ChLine>(linepath));
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

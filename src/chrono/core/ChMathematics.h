@@ -12,19 +12,11 @@
 #ifndef CHMATHEMATICS_H
 #define CHMATHEMATICS_H
 
-//////////////////////////////////////////////////
-//
-//   ChMathematics.h
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <float.h>
 #include <assert.h>
-#include "ChApiCE.h"
+
+#include "chrono/core/ChApiCE.h"
 
 //
 // CONSTANTS
@@ -143,6 +135,6 @@ int ChSignum(T x) {
 /// (using 0..1 modulus if closed, otherwise clamping in 0..1 range)
 ChApi void ChPeriodicPar(double& u, int closed);
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMathematics.h
+#endif

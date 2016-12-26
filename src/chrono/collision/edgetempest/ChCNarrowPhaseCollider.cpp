@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2003, 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,20 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCNarrowPhaseCollider.cpp
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <string.h>
 
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCNarrowPhaseCollider.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
 
 namespace chrono {
 namespace collision {
@@ -102,5 +94,5 @@ ChNarrowPhaseCollider::eCollSuccess ChNarrowPhaseCollider::ComputeCollisions(ChM
     return ChC_RESULT_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

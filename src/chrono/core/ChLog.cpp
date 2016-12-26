@@ -9,21 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChLog.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <iostream>
 #include <string.h>
 #include <stdarg.h>
 
-#include "ChLog.h"
+#include "chrono/core/ChLog.h"
 
 // This check is here, but could be in any other C::E cpp source.
 #ifndef CH_API_COMPILE
@@ -87,4 +78,4 @@ void ChLog::PrintCurTime()
 }
 */
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

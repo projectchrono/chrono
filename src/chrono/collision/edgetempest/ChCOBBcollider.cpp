@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,24 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCOBBcollider.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <string.h>
 
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCOBBcollider.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCOBBcollider.h"
+#include "chrono/collision/edgetempest/ChCGeometryCollider.h"
 
-#include "ChCGeometryCollider.h"
-#include "core/ChTransform.h"
+#include "chrono/core/ChTransform.h"
 
 namespace chrono {
 namespace collision {
@@ -179,5 +170,5 @@ ChNarrowPhaseCollider::eCollSuccess CHOBBcollider::ComputeCollisions(ChMatrix33<
     return ChC_RESULT_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

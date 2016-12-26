@@ -879,7 +879,6 @@ ChMatrix33<Real> TensorProduct(const ChVector<Real>& vA, const ChVector<Real>& v
     return T;
 }
 
-
 }  // end namespace chrono
 
 #endif

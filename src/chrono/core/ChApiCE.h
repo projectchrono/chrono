@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,24 +12,10 @@
 #ifndef CHAPICE_H
 #define CHAPICE_H
 
-//////////////////////////////////////////////////
-//
-//   ChApiCE.h
-//
-//   Base header for all headers that have symbols
-//   that can be exported.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <cstddef>
 #include <stddef.h>
-#include "core/ChPlatform.h"
+
+#include "chrono/core/ChPlatform.h"
 
 // Chrono::Engine version
 //
@@ -49,4 +35,4 @@
 #define ChApi ChApiIMPORT
 #endif
 
-#endif  // END of header
+#endif

@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,22 +9,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChClassRegister.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChClassFactory.h"
+#include "chrono/core/ChClassFactory.h"
 
 namespace chrono {
 
-
-
-/// Access the unique class factory here. It is unique even 
+/// Access the unique class factory here. It is unique even
 /// between dll boundaries. It is allocated the 1st time it is called, if null.
 
 ChClassFactory* ChClassFactory::GetGlobalClassFactory() {
@@ -39,4 +28,4 @@ void ChClassFactory::DisposeGlobalClassFactory() {
     delete ChClassFactory::GetGlobalClassFactory();
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

@@ -12,24 +12,9 @@
 #ifndef CHC_COLLISIONSYSTEMBULLET_H
 #define CHC_COLLISIONSYSTEMBULLET_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemBullet.h
-//
-//   Header for class for collision engine based on
-//   the 'Bullet' library.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChApiCE.h"
-#include "collision/ChCCollisionSystem.h"
-#include "collision/bullet/btBulletCollisionCommon.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/bullet/btBulletCollisionCommon.h"
 
 namespace chrono {
 namespace collision {
@@ -105,7 +90,7 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     btCollisionWorld* bt_collision_world;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

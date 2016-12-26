@@ -9,24 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChCoordsys.cpp
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-//   Math functions for:
-//
-//	 - COORDINATES
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
+#include "chrono/core/ChCoordsys.h"
 
 namespace chrono {
 
@@ -42,4 +25,4 @@ Coordsys Force2Dcsys(Coordsys* cs) {
     return (res);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

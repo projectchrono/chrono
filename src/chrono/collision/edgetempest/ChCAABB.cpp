@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,20 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCAABB.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <math.h>
-#include "ChCAABB.h"
-#include "ChCMatVec.h"
-#include "collision/ChCCollisionPair.h"
+
+#include "chrono/collision/edgetempest/ChCAABB.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/ChCCollisionPair.h"
 
 namespace chrono {
 namespace collision {
@@ -225,5 +217,5 @@ bool CHAABB::AABB_Overlap(ChMatrix33<>& B, ChMatrix33<>& Bf, Vector T, CHAABB* b
     return true;  // no separation: BV collide
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

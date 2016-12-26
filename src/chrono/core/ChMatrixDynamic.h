@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,24 +12,10 @@
 #ifndef CHMATRIXDYNAMIC_H
 #define CHMATRIXDYNAMIC_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatrixDynamic.h
-//
-//   Math functions for:
-//      - Dynamicly sized MATRICES
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "core/ChStream.h"
-#include "core/ChException.h"
-#include "core/ChMatrix.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -189,6 +174,6 @@ class ChMatrixDynamic : public ChMatrix<Real> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif

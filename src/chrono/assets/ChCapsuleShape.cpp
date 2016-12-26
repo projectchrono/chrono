@@ -9,8 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-#include "assets/ChCapsuleShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
 
 namespace chrono {
 
@@ -18,4 +17,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCapsuleShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

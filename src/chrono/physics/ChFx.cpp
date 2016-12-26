@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,17 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChFx.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/physics/ChFx.h"
 
-#include "physics/ChFx.h"
+namespace chrono {}
 
-namespace chrono {}  // END_OF_NAMESPACE____
-
-// eof

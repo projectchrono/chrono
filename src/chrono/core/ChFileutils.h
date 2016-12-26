@@ -13,17 +13,7 @@
 #ifndef CHFILEUTILS_H
 #define CHFILEUTILS_H
 
-//////////////////////////////////////////////////
-//
-//   ChFileutils.h
-//
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -53,6 +43,6 @@ class ChApi ChFileutils {
     static int MakeDirectory(const char* dirname);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

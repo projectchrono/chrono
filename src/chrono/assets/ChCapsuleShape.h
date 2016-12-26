@@ -12,7 +12,6 @@
 #ifndef CHCAPSULESHAPE_H
 #define CHCAPSULESHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChCapsule.h"
 
@@ -75,9 +74,6 @@ class ChApi ChCapsuleShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

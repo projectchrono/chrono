@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,10 +13,10 @@
 #ifndef CHDISTRIBUTION_H
 #define CHDISTRIBUTION_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChMatrixDynamic.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 namespace chrono {
 
@@ -340,6 +340,6 @@ class ChDiscreteDistribution : public ChDistribution {
     ChMatrix<>* cdf_y;
 };
 
-}  // end of namespace
+}  // end namespace chrono
 
 #endif

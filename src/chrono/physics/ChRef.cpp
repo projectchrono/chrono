@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -10,6 +10,7 @@
 //
 
 #include <math.h>
+
 #include "chrono/physics/ChRef.h"
 
 namespace chrono {
@@ -101,6 +102,4 @@ int ChRefFunctionHandle::SetHandleId(int m_hid) {
     return TRUE;
 }
 
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

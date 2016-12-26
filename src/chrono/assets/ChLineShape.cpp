@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChLineShape.h"
+#include "chrono/assets/ChLineShape.h"
 
 namespace chrono {
 
@@ -17,4 +17,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

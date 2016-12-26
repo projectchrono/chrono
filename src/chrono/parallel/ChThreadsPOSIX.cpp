@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,25 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChThreadsPOSIX.cpp
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #if (defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__))
 
 #define DWORD unsigned int
 
 #include <stdio.h>
-#include "parallel/ChThreadsPOSIX.h"
+#include "chrono/parallel/ChThreadsPOSIX.h"
 
 #define checkPThreadFunction(returnValue)                                                       \
     if (0 != returnValue) {                                                                     \
@@ -177,6 +164,6 @@ void ChThreadsPOSIX::stopSPU() {
     m_activeSpuStatus.clear();
 }
 
-}  // end namespace
+}  // end namespace chrono
 
-#endif  // end POSIX  platform-specific code
+#endif

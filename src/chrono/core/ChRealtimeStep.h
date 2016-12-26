@@ -12,25 +12,8 @@
 #ifndef CHREALTIMESTEP_H
 #define CHREALTIMESTEP_H
 
-//////////////////////////////////////////////////
-//
-//   ChRealtimeStep.h
-//
-//   Class for a timer which measure the time spent
-//   in VR or game-like simulation loops, and suggests
-//   a dt integration step for the physical simulation
-//   for the next step.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChTimer.h"
-#include "ChMath.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -80,6 +63,6 @@ class ChRealtimeStepTimer : public ChTimer<double> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChTimer.h
+#endif

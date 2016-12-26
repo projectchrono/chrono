@@ -393,7 +393,7 @@ class ChApi ChCollisionModel {
     short int family_mask;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

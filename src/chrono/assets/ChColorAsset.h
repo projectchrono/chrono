@@ -12,8 +12,8 @@
 #ifndef CHCOLORASSET_H
 #define CHCOLORASSET_H
 
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
@@ -77,6 +77,6 @@ class ChApi ChColorAsset : public ChAsset {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

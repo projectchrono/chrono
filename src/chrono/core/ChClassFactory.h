@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -37,12 +37,12 @@
 //
 //
 
-
 #include <stdio.h>
 #include <string>
 #include <typeinfo>
-#include "core/ChLog.h"
 #include <unordered_map>
+
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
 
@@ -246,7 +246,6 @@ namespace class_factory {                                                       
     static ChClassRegistration< classname > classname ## _factory_registration; \
 }                                                                               \
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

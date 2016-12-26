@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,22 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCOBBTree.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <string.h>
 
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCOBBTree.h"
-#include "core/ChTransform.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCOBBTree.h"
+#include "chrono/core/ChTransform.h"
 
 namespace chrono {
 namespace collision {
@@ -362,5 +353,5 @@ int CHOBBTree::build_model(double envelope) {
     return ChC_OK;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

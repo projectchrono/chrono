@@ -9,15 +9,6 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChVisualization.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/assets/ChVisualization.h"
 
-#include "assets/ChVisualization.h"
-
-namespace chrono {}  // END_OF_NAMESPACE____
+namespace chrono {} 

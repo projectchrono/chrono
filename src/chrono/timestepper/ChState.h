@@ -13,8 +13,9 @@
 #define CHSTATE_H
 
 #include <stdlib.h>
-#include "core/ChApiCE.h"
-#include "core/ChVectorDynamic.h"
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVectorDynamic.h"
 
 namespace chrono {
 
@@ -199,6 +200,6 @@ class ChStateDelta : public ChVectorDynamic<double> {
     ChIntegrable* integrable;
 };
 
-}  // End of namespace
+}  // end namespace chrono
 
 #endif

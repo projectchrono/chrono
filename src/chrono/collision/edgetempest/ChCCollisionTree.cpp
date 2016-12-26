@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,22 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionTree.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdio.h>
 #include <string.h>
 
-#include "ChCMatVec.h"
-#include "ChCGetTime.h"
-#include "ChCCollisionTree.h"
-#include "physics/ChBody.h"
+#include "chrono/collision/edgetempest/ChCMatVec.h"
+#include "chrono/collision/edgetempest/ChCGetTime.h"
+#include "chrono/collision/edgetempest/ChCCollisionTree.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
@@ -125,5 +116,5 @@ void ChCollisionTree::UpdateAbsoluteAABB(double envelope) {
     m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

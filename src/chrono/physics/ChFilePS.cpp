@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,25 +9,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChFilePS.cpp
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-//
-//   Class for file input-output of Chrono objects.
-//   Defines some functions for ASCII parsing of the
-//   textual file format of Chrono.
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
-#include "physics/ChFilePS.h"
+
+#include "chrono/physics/ChFilePS.h"
 
 namespace chrono {
 
@@ -636,6 +620,4 @@ ChPageVect pv_set(Vector mv) {
     return mpv;
 }
 
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

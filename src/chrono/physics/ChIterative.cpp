@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,16 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-// ChIterative.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChIterative.h"
+#include "chrono/physics/ChIterative.h"
 
 namespace chrono {
 
@@ -385,6 +376,4 @@ int ch_iterative_TFQMR_easy(ChMatrix<>& A, ChMatrix<>& x, ChMatrix<>& b, double 
     return ch_iterative_TFQMR(x, b, __easy_prodeval, NULL, NULL, mkappa, max_iterations, miters, merr, &A);
 }
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

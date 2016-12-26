@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,10 +13,10 @@
 #ifndef CHRANDOMPARTICLEALIGNMENT_H
 #define CHRANDOMPARTICLEALIGNMENT_H
 
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
 
 namespace chrono {
 namespace particlefactory {

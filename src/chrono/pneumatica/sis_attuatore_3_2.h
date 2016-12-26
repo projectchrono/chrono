@@ -18,8 +18,8 @@
 #define NULL 0
 #endif
 
-#include "pistone_3_2.h"
-#include "sistema.h"
+#include "chrono/pneumatica/pistone_3_2.h"
+#include "chrono/pneumatica/sistema.h"
 
 namespace chrono {
 namespace pneumatics {

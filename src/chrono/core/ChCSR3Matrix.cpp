@@ -13,12 +13,12 @@
 // =============================================================================
 
 #include <algorithm>
+
 #include "chrono/core/ChCSR3Matrix.h"
 #include "chrono/core/ChMapMatrix.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
-
-namespace chrono{
+namespace chrono {
 
 	ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, bool row_major_format_on, int nonzeros):
 		ChSparseMatrix(nrows,ncols), row_major_format(row_major_format_on)
@@ -667,10 +667,7 @@ namespace chrono{
 			trailIndex_dest[trail_i_dest] = trailIndex_src[trail_i_src];
 			initialized_element_dest[trail_i_dest] = initialized_element_src[trail_i_src];
 			values_dest[trail_i_dest] = values_src[trail_i_src];
-
 		}
-
-
 	}
 
 }  // end namespace chrono

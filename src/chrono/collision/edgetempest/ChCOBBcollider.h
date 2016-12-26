@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,25 +12,11 @@
 #ifndef CHC_OBBCOLLIDER
 #define CHC_OBBCOLLIDER
 
-//////////////////////////////////////////////////
-//
-//   ChCOBBcollider.h
-//
-//   Detects collisions between a pair of models
-//   based on OBBs
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/collision/ChCCollisionPair.h"
 
-#include "ChCCompile.h"
-#include "collision/ChCCollisionPair.h"
-#include "ChCOBBTree.h"
-#include "ChCNarrowPhaseCollider.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
+#include "chrono/collision/edgetempest/ChCOBBTree.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
 
 namespace chrono {
 namespace collision {
@@ -64,7 +50,7 @@ class CHOBBcollider : public ChNarrowPhaseCollider {
     void CollideRecurse(ChMatrix33<>& R, Vector& T, CHOBBTree* o1, int b1, CHOBBTree* o2, int b2, eCollMode flag);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

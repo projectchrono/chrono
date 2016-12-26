@@ -15,12 +15,13 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
+#include <immintrin.h>
+
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/core/ChException.h"
 #include "chrono/ChConfig.h"
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/serialization/ChArchiveAsciiDump.h"
-#include <immintrin.h>
 
 namespace chrono {
 

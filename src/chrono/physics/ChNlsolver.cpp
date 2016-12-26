@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,19 +9,10 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChNlsolver.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "physics/ChNlsolver.h"
-#include "core/ChLinearAlgebra.h"
+#include "chrono/physics/ChNlsolver.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -101,6 +92,4 @@ double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChMatrix<>* mx, ChMatrix<
     return residual;
 }
 
-}  // END_OF_NAMESPACE____
-
-////////
+}  // end namespace chrono

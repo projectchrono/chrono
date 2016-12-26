@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,22 +12,8 @@
 #ifndef CHCCOLLISIONINFO_H
 #define CHCCOLLISIONINFO_H
 
-///////////////////////////////////////////////////
-//
-//   ChCCollisionInfo.h
-//
-//   Class for passing basic data about contacts
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChVector.h"
-#include "collision/ChCCollisionModel.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 namespace chrono {
 namespace collision {
@@ -94,7 +79,7 @@ class ChCollisionInfo {
 
 /// @} chrono_collision
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

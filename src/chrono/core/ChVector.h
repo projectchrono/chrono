@@ -19,9 +19,9 @@
 #include <iostream>
 #include <iomanip>
 
-#include "core/ChMathematics.h"
-#include "core/ChClassFactory.h"
-#include "serialization/ChArchive.h"
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChClassFactory.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 

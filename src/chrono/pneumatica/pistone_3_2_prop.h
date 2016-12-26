@@ -17,8 +17,8 @@
 #define NULL 0
 #endif
 
-#include "pistone.h"
-#include "valvola_3_2_prop.h"
+#include "chrono/pneumatica/pistone.h"
+#include "chrono/pneumatica/valvola_3_2_prop.h"
 
 namespace chrono {
 namespace pneumatics {

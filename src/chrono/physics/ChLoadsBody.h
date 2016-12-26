@@ -13,8 +13,8 @@
 #ifndef CHLOADSBODY_H
 #define CHLOADSBODY_H
 
-#include "physics/ChLoad.h"
-#include "physics/ChBody.h"
+#include "chrono/physics/ChLoad.h"
+#include "chrono/physics/ChBody.h"
 
 
 namespace chrono {
@@ -249,9 +249,6 @@ public:
 
 */
 
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

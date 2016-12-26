@@ -39,11 +39,10 @@
 #include <sstream>
 #include <fstream>
 
-#include "core/ChApiCE.h"
-#include "core/ChBezierCurve.h"
-#include "physics/ChSystem.h"
-
-#include "utils/ChUtilsCreators.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChBezierCurve.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 namespace chrono {
 namespace utils {

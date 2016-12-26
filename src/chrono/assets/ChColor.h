@@ -12,12 +12,9 @@
 #ifndef CHCOLOR_H
 #define CHCOLOR_H
 
-#include "core/ChStream.h"
-#include "core/ChClassFactory.h"
-#include "serialization/ChArchive.h"
-
-
-
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChClassFactory.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -87,6 +84,6 @@ class ChApi ChColor {
 
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

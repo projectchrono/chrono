@@ -1,8 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,22 +12,9 @@
 #ifndef CHEVENTS_H
 #define CHEVENTS_H
 
-//////////////////////////////////////////////////
-//
-//   ChEvents.h
-//
-//   Class for simple event recorder (cyclic buffer)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <string>
-#include "core/ChApiCE.h"
+
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -86,6 +72,6 @@ class ChApi ChEvents {
 
 #define CHEVENTS_TOTAL 12  // ***TO UPDATE all times a new event type is added above.
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChEvents.h
+#endif

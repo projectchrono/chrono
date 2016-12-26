@@ -10,7 +10,7 @@
 //
 
 
-#include "assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 namespace chrono {
 
@@ -18,4 +18,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-// Credits: The Clock class was inspired by the Timer classes in 
-// Ogre (www.ogre3d.org).
+// Credits: The Clock class was inspired by the Timer classes in  Ogre (www.ogre3d.org).
 
 
 /*

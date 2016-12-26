@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,13 +12,10 @@
 #ifndef CHLOADABLE_H
 #define CHLOADABLE_H
 
-
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
-
-
 
 /// Interface for objects that can be subject to loads (forces)
 /// Forces can be distributed on UV surfaces, or lines, etc.,so

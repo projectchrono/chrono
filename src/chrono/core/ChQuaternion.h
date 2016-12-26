@@ -15,8 +15,8 @@
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
-#include "core/ChVector.h"
-#include "ChApiCE.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 

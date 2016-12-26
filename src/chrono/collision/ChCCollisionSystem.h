@@ -12,25 +12,9 @@
 #ifndef CHC_COLLISIONSYSTEM_H
 #define CHC_COLLISIONSYSTEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystem.h
-//
-//   Header for base class for generic collision
-//   engine.
-//   Class must be specialized by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCCollisionInfo.h"
-#include "core/ChFrame.h"
-#include "core/ChApiCE.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -184,7 +168,7 @@ class ChApi ChCollisionSystem {
     ChNarrowPhaseCallback* narrow_callback;  // user callback for each contact
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

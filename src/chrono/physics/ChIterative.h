@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,23 +12,10 @@
 #ifndef CHITERATIVE_H
 #define CHITERATIVE_H
 
-//////////////////////////////////////////////////
-//
-//   ChIterative.h
-//
-//   Iterative methods for linear algebra.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
-#include "core/ChApiCE.h"
-#include "core/ChMath.h"
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -80,6 +67,6 @@ ChApi int ch_iterative_TFQMR(ChMatrix<>& x,
 
 ChApi int ch_iterative_TFQMR_easy(ChMatrix<>& A, ChMatrix<>& x, ChMatrix<>& b, double mkappa, int iterations);
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

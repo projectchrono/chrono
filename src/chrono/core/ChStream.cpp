@@ -10,29 +10,17 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChStream.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <stdarg.h>
 #include <errno.h>
 #include <iterator>
 
-#include "core/ChStream.h"
-#include "core/ChException.h"
-#include "core/ChLog.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
 
-////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////
-//
 // ChStreamOutAscii
 
 ChStreamOutAscii& ChStreamOutAscii::operator<<(bool bVal) {
@@ -824,6 +812,4 @@ ChStreamInAsciiFile::ChStreamInAsciiFile(const char* filename) : ChStreamFile(fi
 ChStreamInAsciiFile::~ChStreamInAsciiFile() {
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

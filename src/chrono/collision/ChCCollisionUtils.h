@@ -64,7 +64,7 @@ class ChApi ChConvexHullLibraryWrapper {
     void ComputeHull(std::vector<ChVector<> >& points, geometry::ChTriangleMeshConnected& vshape);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

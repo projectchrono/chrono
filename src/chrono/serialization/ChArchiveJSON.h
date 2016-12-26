@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,10 +12,10 @@
 #ifndef CHARCHIVEJSON_H
 #define CHARCHIVEJSON_H
 
-
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMathematics.h"
+
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/prettywriter.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -28,8 +27,6 @@
 #include <sstream>
 
 namespace chrono {
-
-
 
 /// ASCII 'LOG' ARCHIVES (only output, for debugging etc.)
 
@@ -560,10 +557,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
       bool tolerate_missing_tokens;   
 };
 
-
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

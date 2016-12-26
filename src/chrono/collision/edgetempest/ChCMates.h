@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,23 +11,6 @@
 
 #ifndef CHC_MATES_H
 #define CHC_MATES_H
-
-//////////////////////////////////////////////////
-//
-//   ChCMates.h
-//
-//   Header for items representing a couple of colliding
-//   models.
-//   Mostly used by broadphase colliders, like in
-//   sweep and prune.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 namespace chrono {
 namespace collision {
@@ -81,7 +64,7 @@ class ChMates {
     model_type* GetModelB() { return m_B; }
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

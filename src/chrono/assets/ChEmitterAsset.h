@@ -14,9 +14,9 @@
 #define CHEMITTERASSET_H
 
 
-#include "assets/ChAsset.h"
-#include "core/ChFrame.h"
-#include "particlefactory/ChParticleEmitter.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/particlefactory/ChParticleEmitter.h"
 
 namespace chrono {
 
@@ -85,9 +85,6 @@ class ChApi ChEmitterAsset : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

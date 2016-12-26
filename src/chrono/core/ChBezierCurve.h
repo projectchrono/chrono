@@ -42,7 +42,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 

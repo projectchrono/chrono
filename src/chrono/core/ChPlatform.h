@@ -12,20 +12,6 @@
 #ifndef CHPLATFORM_H
 #define CHPLATFORM_H
 
-//////////////////////////////////////////////////
-//
-//   ChPlatform.h
-//
-//   platform-specific stuff
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 // Functionality for API import/export symbols,
 // in a platform independent way.
 //
@@ -54,4 +40,4 @@
 
 #pragma warning(disable : 4251)
 
-#endif  // END of header
+#endif

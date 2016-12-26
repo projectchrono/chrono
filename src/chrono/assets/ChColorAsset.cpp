@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChColorAsset.h"
+#include "chrono/assets/ChColorAsset.h"
 
 namespace chrono {
 
@@ -17,5 +17,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChColorAsset)
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

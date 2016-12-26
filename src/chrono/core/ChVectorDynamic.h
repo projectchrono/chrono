@@ -16,10 +16,10 @@
 
 #include <cmath>
 
-#include "core/ChCoordsys.h"
-#include "core/ChStream.h"
-#include "core/ChException.h"
-#include "core/ChMatrix.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -201,6 +201,6 @@ class ChVectorDynamic : public ChMatrix<Real> {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif

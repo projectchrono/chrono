@@ -12,23 +12,8 @@
 #ifndef CHASSET_H
 #define CHASSET_H
 
-///////////////////////////////////////////////////
-//
-//   ChAsset.h
-//
-//   Classes for adding user data (such as rendering
-//   shapes, reference to files) to physical items
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "serialization/ChArchive.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -90,6 +75,6 @@ class ChApi ChAsset {
 
 /// @} chrono_assets
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

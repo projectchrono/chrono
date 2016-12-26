@@ -221,7 +221,5 @@ void ChConvexHullLibraryWrapper::ComputeHull(std::vector<ChVector<> >& points,
     hl.ReleaseResult(hresult);
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace collision
+}  // end namespace chrono

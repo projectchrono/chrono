@@ -9,9 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-#include "assets/ChEmitterAsset.h"
-#include "physics/ChBody.h"
+#include "chrono/assets/ChEmitterAsset.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 
@@ -58,5 +57,4 @@ void ChEmitterAsset::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) 
     this->memitter.EmitParticles(*msys, dt, mframe);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

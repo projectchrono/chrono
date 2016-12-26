@@ -10,7 +10,7 @@
 //
 
 
-#include "assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
 
 namespace chrono {
 
@@ -18,4 +18,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChEllipsoidShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

@@ -12,22 +12,8 @@
 #ifndef CHLINEARALGEBRA_H
 #define CHLINEARALGEBRA_H
 
-//////////////////////////////////////////////////
-//
-//   ChLinearAlgebra.h
-//
-//   Math functions for :
-//      - LINEAR ALGEBRA
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChMatrix.h"
-#include "core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 #define PIVOT_ACCEPT_TRESHOLD 0.8
 #define ACCEPT_PIVOT 0.001
@@ -894,6 +880,6 @@ class ChLinearAlgebra {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif

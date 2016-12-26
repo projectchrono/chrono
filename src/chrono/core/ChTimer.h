@@ -28,9 +28,6 @@
 #endif
 
 
-
-
-
 namespace chrono {
 
 
@@ -197,7 +194,6 @@ class ChTimer {
 
 #endif
 
+}  // end namespace chrono
 
-}  // END_OF_NAMESPACE____
-
-#endif  // END of ChTimer.h
+#endif

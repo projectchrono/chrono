@@ -14,8 +14,8 @@
 
 #include <math.h>
 
-#include "core/ChQuaternion.h"
-#include "core/ChMatrix33.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 
@@ -491,6 +491,4 @@ ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat) {
     return res;
 }
 
-}  // END_OF_NAMESPACE____
-
-////////
+}  // end namespace chrono

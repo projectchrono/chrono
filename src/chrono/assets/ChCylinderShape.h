@@ -12,7 +12,6 @@
 #ifndef CHCYLINDERSHAPE_H
 #define CHCYLINDERSHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChCylinder.h"
 
@@ -75,9 +74,6 @@ class ChApi ChCylinderShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

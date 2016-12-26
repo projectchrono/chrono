@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChGlyphs.h"
+#include "chrono/assets/ChGlyphs.h"
 
 namespace chrono {
 
@@ -78,4 +78,4 @@ void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
     rotations[id] = mcoord.rot;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

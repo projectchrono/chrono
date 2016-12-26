@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,7 +12,7 @@
 #ifndef CHLOADERUVW_H
 #define CHLOADERUVW_H
 
-#include "physics/ChLoader.h"
+#include "chrono/physics/ChLoader.h"
 
 namespace chrono {
 
@@ -203,6 +202,6 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
     virtual int GetIntegrationPointsW() { return num_int_points; }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

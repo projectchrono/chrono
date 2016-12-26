@@ -12,24 +12,10 @@
 #ifndef CHTRANSFORM_H
 #define CHTRANSFORM_H
 
-//////////////////////////////////////////////////
-//
-//   ChTransform.h
-//
-//   Math functions for coordinate transformations
-//   (translation and rotation).
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChVector.h"
-#include "core/ChQuaternion.h"
-#include "core/ChMatrix.h"
-#include "core/ChMatrix33.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrix33.h"
 
 namespace chrono {
 
@@ -171,6 +157,6 @@ class ChTransform {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChTransform.h
+#endif

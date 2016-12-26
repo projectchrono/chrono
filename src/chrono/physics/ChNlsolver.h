@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,25 +12,10 @@
 #ifndef CHNLSOLVER_H
 #define CHNLSOLVER_H
 
-//////////////////////////////////////////////////
-//
-//   ChNlsolver.h
-//
-//   Math functions for :
-//      - SOLVER FOR NON-LINEAR EQUATIONS (Newton-Raphson)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 
-#include "core/ChApiCE.h"
-#include "core/ChMatrix.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -82,6 +67,6 @@ class ChApi ChNonlinearSolver {
                                 double tolerance);
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChNlsolver.h
+#endif

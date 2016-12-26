@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,7 +13,7 @@
 #define CHGLOBAL_H
 
 #include <string>
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -35,6 +35,6 @@ ChApi const std::string& GetChronoDataPath();
 /// Chrono data directory (thread safe)
 ChApi std::string GetChronoDataFile(const std::string& filename);
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

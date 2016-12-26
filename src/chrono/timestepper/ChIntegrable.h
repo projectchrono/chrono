@@ -16,6 +16,7 @@
 #define CHINTEGRABLE_H
 
 #include <stdlib.h>
+
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChVectorDynamic.h"

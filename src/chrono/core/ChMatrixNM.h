@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,23 +12,9 @@
 #ifndef CHMATRIXNM_H
 #define CHMATRIXNM_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatrixNM.h
-//
-//   Math functions for:
-//      - NXM MATRICES
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "core/ChException.h"
-#include "core/ChMatrix.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -174,6 +159,6 @@ class ChMatrixNM : public ChMatrix<Real> {
     virtual inline void Resize(int nrows, int ncols) { assert((nrows == this->rows) && (ncols == this->columns)); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChMatrix.h
+#endif

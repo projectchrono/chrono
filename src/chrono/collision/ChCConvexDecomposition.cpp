@@ -9,22 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCConvexDecomposition.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCConvexDecomposition.h"
-#include "collision/convexdecomposition/HACDv2/wavefront.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/convexdecomposition/HACDv2/wavefront.h"
 
 namespace chrono {
 namespace collision {
 
-////////////////////////////////////////////////////////////////////////////
 
 //
 // Utility functions to process bad topology in meshes with repeated vertices
@@ -644,8 +634,5 @@ void ChConvexDecompositionHACDv2::WriteConvexHullsAsWavefrontObj(ChStreamOutAsci
     delete[] baseVertex;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

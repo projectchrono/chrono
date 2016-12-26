@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,23 +12,8 @@
 #ifndef CHC_AABBTREE_H
 #define CHC_AABBTREE_H
 
-//////////////////////////////////////////////////
-//
-//   ChCAABBTree.h
-//
-//   Class for the binary space partitioning tree
-//   (aka BSP) based on AABB bounding volumes
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCollisionTree.h"
-#include "ChCAABB.h"
+#include "chrono/collision/edgetempest/ChCCollisionTree.h"
+#include "chrono/collision/edgetempest/ChCAABB.h"
 
 namespace chrono {
 namespace collision {
@@ -74,7 +59,7 @@ class CHAABBTree : public ChCollisionTree {
     int build_model(double envelope);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

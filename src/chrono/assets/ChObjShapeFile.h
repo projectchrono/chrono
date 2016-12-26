@@ -13,7 +13,7 @@
 #define CHOBJSHAPEFILE_H
 
 
-#include "assets/ChVisualization.h"
+#include "chrono/assets/ChVisualization.h"
 
 namespace chrono {
 
@@ -76,9 +76,6 @@ class ChApi ChObjShapeFile : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -13,11 +13,12 @@
 #define CHSTATICANALYSIS_H
 
 #include <stdlib.h>
-#include "core/ChApiCE.h"
-#include "core/ChMath.h"
-#include "core/ChVectorDynamic.h"
-#include "timestepper/ChState.h"
-#include "timestepper/ChIntegrable.h"
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/core/ChVectorDynamic.h"
+#include "chrono/timestepper/ChState.h"
+#include "chrono/timestepper/ChIntegrable.h"
 
 namespace chrono {
 
@@ -240,5 +241,6 @@ class ChStaticNonLinearAnalysis : public ChStaticAnalysis {
     double GetTolerance() { return tolerance; }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
+
 #endif

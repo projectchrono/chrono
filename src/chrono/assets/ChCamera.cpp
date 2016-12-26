@@ -9,8 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-#include "assets/ChCamera.h"
+#include "chrono/assets/ChCamera.h"
 
 namespace chrono {
 
@@ -18,4 +17,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCamera)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

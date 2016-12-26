@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,24 +12,10 @@
 #ifndef CHC_MATVEC_H
 #define CHC_MATVEC_H
 
-//////////////////////////////////////////////////
-//
-//   ChCMatVec.h
-//
-//   Just for backward compatibility with the old
-//   collision detection engine, based on PQP!
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <math.h>
 #include <stdio.h>
-#include "ChCCompile.h"
+
+#include "chrono/collision/edgetempest/ChCCompile.h"
 
 namespace chrono {
 namespace collision {
@@ -626,7 +612,7 @@ void inline Meigen(PQP_REAL vout[3][3], PQP_REAL dout[3], PQP_REAL a[3][3]) {
 
 #endif  // end if meigen
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

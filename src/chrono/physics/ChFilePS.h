@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010, 2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,24 +12,8 @@
 #ifndef CHFILEPS_H
 #define CHFILEPS_H
 
-//////////////////////////////////////////////////
-//
-//   ChFilePS.h
-//
-//   Defines special file class ChFile_ps for EPS
-//   or PS output, i.e. Encapsulated PostScript or
-//   PostScript (TM).
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChStream.h"
-#include "core/ChMatrix.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChMatrix.h"
 
 namespace chrono {
 
@@ -322,6 +306,6 @@ extern ChApi ChPageVect pv_set(Vector mv);
 #define PS_SCALE_CENTIMETERS 28.3476
 #define PS_SCALE_INCHES 72
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

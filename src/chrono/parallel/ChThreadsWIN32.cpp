@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,26 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChThreadsWIN32.cpp
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #if defined _WIN32
 
 #include <stdio.h>
-#include "parallel/ChThreadsWIN32.h"
 #include <Windows.h>
-#include "core/ChLog.h"
+
+#include "chrono/parallel/ChThreadsWIN32.h"
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
 
@@ -174,6 +161,6 @@ void ChThreadsWIN32::startSPU() {
 void ChThreadsWIN32::stopSPU() {
 }
 
-}  // end namespace
+}  // end namespace chrono
 
-#endif  // end Windows platform
+#endif

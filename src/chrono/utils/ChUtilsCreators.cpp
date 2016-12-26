@@ -14,8 +14,8 @@
 //
 // =============================================================================
 
-#include "collision/ChCConvexDecomposition.h"
-#include "utils/ChUtilsCreators.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 namespace chrono {
 using namespace geometry;

@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,18 +11,6 @@
 
 #ifndef CHC_COMPILE_H
 #define CHC_COMPILE_H
-
-//////////////////////////////////////////////////
-//
-//   ChCCompile.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <math.h>
 
@@ -50,7 +38,7 @@ inline float fabs(float x) { return (float)fabs((double)x); }
 
 typedef double PQP_REAL;
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

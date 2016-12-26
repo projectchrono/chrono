@@ -10,8 +10,8 @@
 //
 
 
-#include "core/ChClassFactory.h"
-#include "assets/ChTexture.h"
+#include "chrono/core/ChClassFactory.h"
+#include "chrono/assets/ChTexture.h"
 
 namespace chrono {
 
@@ -19,4 +19,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTexture)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

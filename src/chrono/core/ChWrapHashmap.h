@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,8 +13,6 @@
 #define CHWRAPHASHMAP_H
 
 //////////////////////////////////////////////////
-//
-//   ChWrapHashmap.h
 //
 //   This header can be used to include the STL
 //   hash_map implementation, in a compiler-independent

@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,7 +11,7 @@
 
 #include <string.h>
 
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include "Windows.h"
@@ -93,4 +93,4 @@ std::string GetChronoDataFile(const std::string& filename) {
     return chrono_data_path + filename;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

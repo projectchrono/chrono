@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,18 +11,6 @@
 
 #ifndef PQP_GETTIME_H
 #define PQP_GETTIME_H
-
-//////////////////////////////////////////////////
-//
-//   ChCGetTime.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #if (defined _WIN32)  
 #include <time.h>

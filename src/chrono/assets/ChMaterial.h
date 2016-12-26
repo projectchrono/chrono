@@ -1,22 +1,24 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+
 #ifndef CHMATERIAL_H
 #define CHMATERIAL_H
 
-///////////////////////////////////////////////////
-//
-//   ChMaterial.h
-//
-//   Class for storing a material
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-///////////////////////////////////////////////////
-
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
 #include <string>
 #include <vector>
-#include "serialization/ChArchive.h"
+
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -134,6 +136,7 @@ class ChApi ChMaterial {
     }
 
 };
-}
+
+}  // end namespace chrono
 
 #endif

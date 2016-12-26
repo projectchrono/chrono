@@ -13,7 +13,7 @@
 #define CHTEXTURE_H
 
 
-#include "assets/ChAsset.h"
+#include "chrono/assets/ChAsset.h"
 
 namespace chrono {
 
@@ -88,9 +88,6 @@ class ChApi ChTexture : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

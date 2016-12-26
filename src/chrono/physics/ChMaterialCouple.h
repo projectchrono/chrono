@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,18 +11,6 @@
 
 #ifndef CHMATERIALCOUPLE_H
 #define CHMATERIALCOUPLE_H
-
-///////////////////////////////////////////////////
-//
-//   ChMaterialCouple.h
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 namespace chrono {
 
@@ -59,6 +47,6 @@ class ChApi ChMaterialCouple {
           complianceSpin(0){};
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

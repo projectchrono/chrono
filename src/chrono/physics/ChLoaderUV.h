@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -14,13 +13,9 @@
 #define CHLOADERUV_H
 
 
-#include "physics/ChLoader.h"
-
+#include "chrono/physics/ChLoader.h"
 
 namespace chrono {
-
-
-
 
 /// Class of loaders for ChLoadableUV objects (which support 
 /// surface loads).
@@ -227,13 +222,6 @@ public:
     virtual bool IsStiff() override { return is_stiff; }
 };
 
-
-
-
-
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif  

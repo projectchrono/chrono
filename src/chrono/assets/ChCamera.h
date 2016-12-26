@@ -12,9 +12,8 @@
 #ifndef CHCAMERA_H
 #define CHCAMERA_H
 
-
-#include "assets/ChAsset.h"
-#include "core/ChVector.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
@@ -143,9 +142,6 @@ class ChApi ChCamera : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

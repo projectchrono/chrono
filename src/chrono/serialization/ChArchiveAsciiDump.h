@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,9 +12,7 @@
 #ifndef CHARCHIVEASCIIDUMP_H
 #define CHARCHIVEASCIIDUMP_H
 
-
-#include "serialization/ChArchive.h"
-
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -221,7 +218,6 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     return mstream << mystring;
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -46,8 +46,6 @@ enum class eChUpdateFlags : unsigned int
 
 CH_ENABLE_BITMASK_OPERATORS(eChUpdateFlags)
 
-
-
 }  // end namespace chrono
 
 #endif

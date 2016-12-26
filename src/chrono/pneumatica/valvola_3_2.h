@@ -19,7 +19,8 @@
 #endif
 
 #include <math.h>
-#include "ugello.h"
+
+#include "chrono/pneumatica/ugello.h"
 
 namespace chrono {
 namespace pneumatics {

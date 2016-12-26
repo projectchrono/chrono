@@ -12,7 +12,6 @@
 #ifndef CHOBJELLIPSOIDSHAPE_H
 #define CHOBJELLIPSOIDSHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChEllipsoid.h"
 
@@ -75,9 +74,6 @@ class ChApi ChEllipsoidShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

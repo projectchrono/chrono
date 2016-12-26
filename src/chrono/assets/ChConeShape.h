@@ -12,8 +12,6 @@
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChCone.h"
 
@@ -76,9 +74,6 @@ class ChApi ChConeShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

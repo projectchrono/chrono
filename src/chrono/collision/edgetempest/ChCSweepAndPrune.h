@@ -340,7 +340,7 @@ class ChSweepAndPrune : public ChBroadPhaseCollider<model_type> {
 
 };  // end of s&p class
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

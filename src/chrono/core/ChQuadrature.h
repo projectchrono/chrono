@@ -15,7 +15,8 @@
 #define CHQUADRATURE
 
 #include <vector>
-#include "core/ChMath.h"
+
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -336,6 +337,7 @@ class ChApi ChQuadrature {
     /// with 5 precomputed tables. Use Dunavant theory.
     static ChQuadratureTablesTetrahedron* GetStaticTablesTetrahedron();
 };
-}
+
+}  // end namespace chrono
 
 #endif

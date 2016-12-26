@@ -12,30 +12,13 @@
 #ifndef CHLOG_H
 #define CHLOG_H
 
-//////////////////////////////////////////////////
-//
-//   ChLog.h
-//
-//   Console output for debugging/logging purposes,
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <assert.h>
-#include "ChStream.h"
-#include "ChApiCE.h"
 
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
-//////////////////////////////////////////////////////////////////
-//  LOG
-//
 /// Base class for output of errors, messages, warnings, etc.
 /// (logging class). Must be specialized for specific output,
 /// for example output to console, to windows, etc. by inheriting
@@ -129,6 +112,6 @@ ChApi void SetLog(ChLog& new_logobject);
 /// Global function to set the default ChLogConsole output to std::output.
 ChApi void SetLogDefault();
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of header
+#endif

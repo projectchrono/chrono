@@ -9,17 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChAsset.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "assets/ChAsset.h"
-#include "core/ChClassFactory.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChClassFactory.h"
 
 namespace chrono {
 
@@ -27,4 +18,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChAsset)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

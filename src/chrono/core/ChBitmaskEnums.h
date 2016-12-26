@@ -150,6 +150,6 @@ operator^=(E& lhs,E rhs){
     return lhs;
 }
 
-} // end namespace
+}  // end namespace chrono
 
 #endif

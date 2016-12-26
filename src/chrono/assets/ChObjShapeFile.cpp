@@ -10,7 +10,7 @@
 //
 
 
-#include "assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjShapeFile.h"
 
 namespace chrono {
 
@@ -18,4 +18,4 @@ namespace chrono {
 // dynamic creation and persistence
 CH_FACTORY_REGISTER(ChObjShapeFile)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

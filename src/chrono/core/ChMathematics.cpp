@@ -9,16 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChMathematics.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChMathematics.h"
+#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -120,6 +111,4 @@ double ChNoise(double x, double amp, double freq, int octaves, double amp_ratio)
     return ret;
 }
 
-}  // END_OF_NAMESPACE____
-
-////////
+}  // end namespace chrono

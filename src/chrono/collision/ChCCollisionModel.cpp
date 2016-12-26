@@ -9,17 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionModel.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCollisionModel.h"
-#include "physics/ChBody.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
@@ -155,9 +146,5 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
     return true;
 }
 
-
-
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

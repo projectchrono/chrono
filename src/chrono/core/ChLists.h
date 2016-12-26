@@ -12,23 +12,6 @@
 #ifndef CHLISTS_H
 #define CHLISTS_H
 
-//////////////////////////////////////////////////
-//
-//   ChLists.h
-//
-//   Base class for Chrono lists of pointers to
-//   objects. This has a different meaning from STL
-//   lists (which are lists of objects), because ours
-//   can manage the deletion of all pointed objects.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <stdlib.h>
 #include <memory.h>
 
@@ -301,6 +284,6 @@ ChNode<dt>* ChList<dt>::GetNum(int num) {
     return NULL;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

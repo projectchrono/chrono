@@ -85,6 +85,6 @@ private:
 	size_t resolution;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

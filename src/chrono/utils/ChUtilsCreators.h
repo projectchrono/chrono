@@ -24,31 +24,31 @@
 #include <string>
 #include <vector>
 
-#include "core/ChApiCE.h"
-#include "core/ChQuaternion.h"
-#include "core/ChVector.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 
-#include "physics/ChBody.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChMaterialSurfaceDEM.h"
-#include "physics/ChSystem.h"
-#include "physics/ChSystemDEM.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
 
-#include "assets/ChBoxShape.h"
-#include "assets/ChCapsuleShape.h"
-#include "assets/ChColorAsset.h"
-#include "assets/ChConeShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChEllipsoidShape.h"
-#include "assets/ChLineShape.h"
-#include "assets/ChRoundedBoxShape.h"
-#include "assets/ChRoundedConeShape.h"
-#include "assets/ChRoundedCylinderShape.h"
-#include "assets/ChSphereShape.h"
-#include "assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChRoundedBoxShape.h"
+#include "chrono/assets/ChRoundedConeShape.h"
+#include "chrono/assets/ChRoundedCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "collision/ChCConvexDecomposition.h"
-#include "collision/ChCModelBullet.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChCModelBullet.h"
 
 namespace chrono {
 namespace utils {

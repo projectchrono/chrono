@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,14 +12,10 @@
 #ifndef CHARCHIVEBINARY_H
 #define CHARCHIVEBINARY_H
 
-
-#include "serialization/ChArchive.h"
-#include "core/ChLog.h"
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
-
-
-
 
 ///
 /// This is a class for serializing to binary archives
@@ -237,9 +232,6 @@ class  ChArchiveInBinary : public ChArchiveIn {
       ChStreamInBinary* istream;
 };
 
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
