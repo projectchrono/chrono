@@ -1,8 +1,22 @@
-#include "../ChTestConfig.h"
-#include "physics/ChSystem.h"
+//
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2013 Project Chrono
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file at the top level of the distribution
+// and at http://projectchrono.org/license-chrono.txt.
+//
+
 #include <iostream>
+
+#include "../ChTestConfig.h"
+#include "chrono/physics/ChSystem.h"
+
 using namespace chrono;
 using namespace std;
+
 #define TIME(X, Y)                                \
     timer.start();                                \
     for (int i = 0; i < body_list->size(); i++) { \

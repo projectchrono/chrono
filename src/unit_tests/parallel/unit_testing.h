@@ -20,14 +20,17 @@
 #include <cmath>
 #include <iostream>
 #include <float.h>
-#include <core/ChVector.h>
-#include <core/ChQuaternion.h>
-#include <core/ChMatrix.h>
-#include <core/ChMatrixDynamic.h>
-#include <core/ChMatrix33.h>
+
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrix33.h"
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/other_types.h"
+
 using namespace chrono;
+
 real3 ToReal3(const ChVector<real>& a) {
     return real3(a.x, a.y, a.z);
 }

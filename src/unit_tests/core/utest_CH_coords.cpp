@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -9,30 +8,19 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
-//   Demo on how to use Chrono coordinate
-//   transformations
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// -----------------------------------------------------------------------
+// Demo on how to use Chrono coordinate transformations
+// -----------------------------------------------------------------------
 
 #include <math.h>
 
-#include "core/ChLog.h"
-#include "core/ChTransform.h"
-#include "core/ChFrame.h"
-#include "core/ChFrameMoving.h"
-#include "core/ChTimer.h"
-#include "physics/ChMarker.h"
-#include "physics/ChBody.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/core/ChTimer.h"
+#include "chrono/physics/ChMarker.h"
+#include "chrono/physics/ChBody.h"
 
 using namespace chrono;
 
