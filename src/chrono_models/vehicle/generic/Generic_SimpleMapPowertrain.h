@@ -24,7 +24,7 @@
 
 #include "chrono_vehicle/ChVehicle.h"
 #include "chrono_vehicle/ChPowertrain.h"
-#include "core/ChCubicSpline.h"
+#include "chrono/core/ChCubicSpline.h"
 
 #include "chrono_models/ChApiModels.h"
 

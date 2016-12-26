@@ -22,9 +22,10 @@
 //
 // =============================================================================
 
-#include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
-#include "core/ChCubicSpline.h"
 #include <vector>
+
+#include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
+#include "chrono/core/ChCubicSpline.h"
 
 namespace chrono {
 namespace vehicle {
