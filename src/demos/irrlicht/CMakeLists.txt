@@ -30,6 +30,7 @@ SET(DEMOS
   demo_rev_sph
   demo_rev_trans
   demo_rev_limits
+  demo_rot_spring
   demo_spring
   demo_ujoint
   demo_earthquake
