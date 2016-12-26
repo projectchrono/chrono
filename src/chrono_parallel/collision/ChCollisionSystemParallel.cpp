@@ -1,13 +1,3 @@
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemGPU->cpp
-//
-// ------------------------------------------------
-//       Copyright:Alessandro Tasora / DeltaKnowledge
-//             www.deltaknowledge.com
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollision.h"
 
@@ -197,5 +187,5 @@ std::vector<vec2> ChCollisionSystemParallel::GetOverlappingPairs() {
     return pairs;
 }
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

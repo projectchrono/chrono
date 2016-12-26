@@ -13,7 +13,6 @@
 using namespace chrono;
 
 void ChConstraintBilateral::Build_b() {
-
     std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
 
 #pragma omp parallel for
@@ -76,7 +75,6 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_SHAFT: {
-
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
@@ -90,7 +88,6 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_BODY: {
-
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
@@ -111,7 +108,6 @@ void ChConstraintBilateral::Build_D() {
             } break;
 
             case SHAFT_SHAFT_SHAFT: {
-
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();
@@ -177,7 +173,6 @@ void ChConstraintBilateral::GenerateSparsity() {
 
         switch (type) {
             case BODY_BODY: {
-
                 ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
 
                 int idA = ((ChBody*)((ChVariablesBody*)(mbilateral->GetVariables_a()))->GetUserData())->GetId();
@@ -207,7 +202,6 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT: {
-
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
@@ -226,7 +220,6 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_BODY: {
-
                 ChConstraintTwoGeneric* mbilateral = (ChConstraintTwoGeneric*)(mconstraints[cntr]);
 
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
@@ -246,7 +239,6 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT_SHAFT: {
-
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 std::vector<int> ids(3);
                 ids[0] = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
@@ -264,7 +256,6 @@ void ChConstraintBilateral::GenerateSparsity() {
             } break;
 
             case SHAFT_SHAFT_BODY: {
-
                 ChConstraintThreeGeneric* mbilateral = (ChConstraintThreeGeneric*)(mconstraints[cntr]);
                 int idA = ((ChVariablesShaft*)(mbilateral->GetVariables_a()))->GetShaft()->GetId();
                 int idB = ((ChVariablesShaft*)(mbilateral->GetVariables_b()))->GetShaft()->GetId();

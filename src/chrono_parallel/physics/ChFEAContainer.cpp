@@ -1,10 +1,11 @@
-
 #include <stdlib.h>
 #include <algorithm>
 #include <math.h>
-#include "chrono_parallel/physics/ChSystemParallel.h"
-#include <chrono_parallel/physics/Ch3DOFContainer.h>
+
 #include <thrust/fill.h>
+
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 
 #include "chrono_parallel/math/other_types.h"  // for uint, vec2, vec3
@@ -1418,6 +1419,4 @@ void ChFEAContainer::FindSurface() {
     num_boundary_elements = boundary_element_fea.size();
 }
 
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

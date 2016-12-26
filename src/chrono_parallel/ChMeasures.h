@@ -20,12 +20,13 @@
 #pragma once
 
 #include "chrono_parallel/ChParallelDefines.h"
-#include "parallel/ChOpenMP.h"
+#include "chrono/parallel/ChOpenMP.h"
 #include "chrono_parallel/math/other_types.h"  // for uint, vec2, vec3
 #include "chrono_parallel/math/real.h"         // for real
 #include "chrono_parallel/math/real2.h"        // for real2
 #include "chrono_parallel/math/real3.h"        // for real3
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
+
 namespace chrono {
 // collision_measures, like the name implies is the structure that contains all
 // measures associated with the collision detection step of chrono parallel

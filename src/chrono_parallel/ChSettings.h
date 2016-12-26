@@ -24,11 +24,11 @@
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/other_types.h"
+
 namespace chrono {
 
 /// @addtogroup parallel_module
 /// @{
-
 
 // collision_settings, like the name implies is the structure that contains all
 // settings associated with the collision detection step of chrono parallel
@@ -259,5 +259,4 @@ class settings_container {
 };
 
 /// @} parallel_module
-
 }

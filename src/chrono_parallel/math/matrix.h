@@ -21,72 +21,72 @@
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"
+
 namespace chrono {
 
-	class CH_PARALLEL_API Mat33 {
+class CH_PARALLEL_API Mat33 {
   public:
     // Zero constructor
     CUDA_HOST_DEVICE Mat33() {
-		array[0] = 0;
-		array[1] = 0;
-		array[2] = 0;
-		array[3] = 0;// not used
-		array[4] = 0;
-		array[5] = 0;
-		array[6] = 0;
-		array[7] = 0;// not used
-		array[8] = 0;
-		array[9] = 0;
-		array[10] = 0;
-		array[11] = 0;// not used
-	}
+        array[0] = 0;
+        array[1] = 0;
+        array[2] = 0;
+        array[3] = 0;  // not used
+        array[4] = 0;
+        array[5] = 0;
+        array[6] = 0;
+        array[7] = 0;  // not used
+        array[8] = 0;
+        array[9] = 0;
+        array[10] = 0;
+        array[11] = 0;  // not used
+    }
     // Diagonal matrix constructor
     CUDA_HOST_DEVICE Mat33(real v) {
-		array[0] = v;
-		array[1] = 0;
-		array[2] = 0;
-		array[3] = 0;
-		array[4] = 0;
-		array[5] = v;
-		array[6] = 0;
-		array[7] = 0;
-		array[8] = 0;
-		array[9] = 0;
-		array[10] = v;
-		array[11] = 0;
-	
-	}
+        array[0] = v;
+        array[1] = 0;
+        array[2] = 0;
+        array[3] = 0;
+        array[4] = 0;
+        array[5] = v;
+        array[6] = 0;
+        array[7] = 0;
+        array[8] = 0;
+        array[9] = 0;
+        array[10] = v;
+        array[11] = 0;
+    }
     // Diagonal matrix constructor
     CUDA_HOST_DEVICE Mat33(real3 v) {
-		array[0] = v.x;
-		array[1] = 0;
-		array[2] = 0;
-		array[3] = 0;
-		array[4] = 0;
-		array[5] = v.y;
-		array[6] = 0;
-		array[7] = 0;
-		array[8] = 0;
-		array[9] = 0;
-		array[10] = v.z;
-		array[11] = 0;
-	}
+        array[0] = v.x;
+        array[1] = 0;
+        array[2] = 0;
+        array[3] = 0;
+        array[4] = 0;
+        array[5] = v.y;
+        array[6] = 0;
+        array[7] = 0;
+        array[8] = 0;
+        array[9] = 0;
+        array[10] = v.z;
+        array[11] = 0;
+    }
 
     // Constructor that takes three columns of the matrix
     CUDA_HOST_DEVICE Mat33(const real3& col1, const real3& col2, const real3& col3) {
-		array[0] = col1.x;
-		array[1] = col1.y;
-		array[2] = col1.z;
-		array[3] = 0;
-		array[4] = col2.x;
-		array[5] = col2.y;
-		array[6] = col2.z;
-		array[7] = 0;
-		array[8] = col3.x;
-		array[9] = col3.y;
-		array[10] = col3.z;
-		array[11] = 0;
-	}
+        array[0] = col1.x;
+        array[1] = col1.y;
+        array[2] = col1.z;
+        array[3] = 0;
+        array[4] = col2.x;
+        array[5] = col2.y;
+        array[6] = col2.z;
+        array[7] = 0;
+        array[8] = col3.x;
+        array[9] = col3.y;
+        array[10] = col3.z;
+        array[11] = 0;
+    }
 
     // Constructor that takes individial elements
     CUDA_HOST_DEVICE Mat33(const real& v11,
@@ -98,19 +98,19 @@ namespace chrono {
                            const real& v13,
                            const real& v23,
                            const real& v33) {
-		array[0] = v11;
-		array[1] = v21;
-		array[2] = v31;
-		array[3] = 0;
-		array[4] = v12;
-		array[5] = v22;
-		array[6] = v32;
-		array[7] = 0;
-		array[8] = v13;
-		array[9] = v23;
-		array[10] = v33;
-		array[11] = 0;
-	}
+        array[0] = v11;
+        array[1] = v21;
+        array[2] = v31;
+        array[3] = 0;
+        array[4] = v12;
+        array[5] = v22;
+        array[6] = v32;
+        array[7] = 0;
+        array[8] = v13;
+        array[9] = v23;
+        array[10] = v33;
+        array[11] = 0;
+    }
     // Copy constructor
     CUDA_HOST_DEVICE Mat33(const Mat33& M) { memcpy(array, M.array, 12 * sizeof(real)); }
 
@@ -164,12 +164,12 @@ CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator*(const Mat33& M, const Mat33& N)
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator+(const Mat33& M, const Mat33& N);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator-(const Mat33& M, const Mat33& N);
 
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(*, real, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(*, real, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API
+    OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API
+    OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)
 
-CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator-(const Mat33& M);
+        CUDA_HOST_DEVICE CH_PARALLEL_API Mat33
+        operator-(const Mat33& M);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator*(const real s, const Mat33& a);
 
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 SkewSymmetric(const real3& r);
@@ -181,13 +181,14 @@ CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 Transpose(const Mat33& a);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 MultTranspose(const Mat33& M, const Mat33& N);  // M * N^T
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 TransposeMult(const Mat33& M, const Mat33& N);  // M^T * N
 CUDA_HOST_DEVICE CH_PARALLEL_API real Trace(const Mat33& m);
-CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 OuterProduct(const real3& a, const real3& b);  // Multiply a 3x1 by a 1x3 to get a 3x3
+CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 OuterProduct(const real3& a,
+                                                    const real3& b);  // Multiply a 3x1 by a 1x3 to get a 3x3
 CUDA_HOST_DEVICE CH_PARALLEL_API real InnerProduct(const Mat33& A, const Mat33& B);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 Adjoint(const Mat33& A);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 AdjointTranspose(const Mat33& A);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 Inverse(const Mat33& A);
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 InverseTranspose(const Mat33& A);
-CUDA_HOST_DEVICE CH_PARALLEL_API real Norm(const Mat33& A);  // normalized double dot product of a matrix
+CUDA_HOST_DEVICE CH_PARALLEL_API real Norm(const Mat33& A);    // normalized double dot product of a matrix
 CUDA_HOST_DEVICE CH_PARALLEL_API real NormSq(const Mat33& A);  // normalized double dot product of a matrix
 CUDA_HOST_DEVICE CH_PARALLEL_API real DoubleDot(const Mat33& A, const Mat33& B);
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 LargestColumnNormalized(const Mat33& A);
@@ -244,15 +245,15 @@ CUDA_HOST_DEVICE CH_PARALLEL_API SymMat33 operator-(const SymMat33& M, const rea
 struct CH_PARALLEL_API Mat32 {
     CUDA_HOST_DEVICE Mat32() {}
     CUDA_HOST_DEVICE Mat32(const real3 col1, const real3 col2) {
-		array[0] = col1.x;
-		array[1] = col1.y;
-		array[2] = col1.z;
-		array[3] = 0;
-		array[4] = col2.x;
-		array[5] = col2.y;
-		array[6] = col2.z;
-		array[7] = 0;
-	}
+        array[0] = col1.x;
+        array[1] = col1.y;
+        array[2] = col1.z;
+        array[3] = 0;
+        array[4] = col2.x;
+        array[5] = col2.y;
+        array[6] = col2.z;
+        array[7] = 0;
+    }
     CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
     real array[8];
@@ -267,16 +268,16 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(const Mat32& M, const real2& v)
 
 struct CH_PARALLEL_API Mat23 {
     CUDA_HOST_DEVICE Mat23() {}
-    CUDA_HOST_DEVICE Mat23(const real3 row1, const real3 row2){
-		array[0] = row1.x;
-		array[1] = row1.y;
-		array[2] = row1.z;
-		array[3] = 0;
-		array[4] = row2.x;
-		array[5] = row2.y;
-		array[6] = row2.z;
-		array[7] = 0;
-	}
+    CUDA_HOST_DEVICE Mat23(const real3 row1, const real3 row2) {
+        array[0] = row1.x;
+        array[1] = row1.y;
+        array[2] = row1.z;
+        array[3] = 0;
+        array[4] = row2.x;
+        array[5] = row2.y;
+        array[6] = row2.z;
+        array[7] = 0;
+    }
     real array[8];
     // 0 1 2 3
     // 4 5 6 7

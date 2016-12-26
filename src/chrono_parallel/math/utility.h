@@ -17,10 +17,12 @@
 
 #pragma once
 
-#include "real.h"
-#include "real3.h"
-#include "real4.h"
+#include "chrono_parallel/math/real.h"
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/real4.h"
+
 namespace chrono {
+
 // Computes the nearest power of two to the given value and returns it
 static inline uint nearest_pow(const uint& num) {
     uint n = num > 0 ? num - 1 : 0;

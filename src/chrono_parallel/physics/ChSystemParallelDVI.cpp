@@ -3,6 +3,7 @@
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemBulletParallel.h"
+
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {

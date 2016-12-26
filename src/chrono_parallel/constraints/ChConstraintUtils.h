@@ -207,22 +207,22 @@ void Orthogonalize(real3& Vx, real3& Vy, real3& Vz);
 
 CH_PARALLEL_API
 void Compute_Jacobian(const quaternion& quat,
-const real3& U,
-const real3& V,
-const real3& W,
-const real3& point,
-real3& T1,
-real3& T2,
-real3& T3);
+                      const real3& U,
+                      const real3& V,
+                      const real3& W,
+                      const real3& point,
+                      real3& T1,
+                      real3& T2,
+                      real3& T3);
 
 CH_PARALLEL_API
 void Compute_Jacobian_Rolling(const quaternion& quat,
-const real3& U,
-const real3& V,
-const real3& W,
-real3& T1,
-real3& T2,
-real3& T3);
+                              const real3& U,
+                              const real3& V,
+                              const real3& W,
+                              real3& T1,
+                              real3& T2,
+                              real3& T3);
 
 #define Loop_Over_Rigid_Neighbors(X)                    \
     for (int p = 0; p < num_fluid_bodies; p++) {        \
@@ -256,39 +256,39 @@ bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const r
 
 CH_PARALLEL_API
 void AppendRigidFluidBoundary(const real contact_mu,
-	const uint num_fluid_bodies,
-	const uint body_offset,
-	const uint start_boundary,
-	ChParallelDataManager* data_manager);
+                              const uint num_fluid_bodies,
+                              const uint body_offset,
+                              const uint start_boundary,
+                              ChParallelDataManager* data_manager);
 
 CH_PARALLEL_API
 void ProjectRigidFluidBoundary(const real contact_mu,
-	const real contact_cohesion,
-	const uint num_fluid_bodies,
-	const uint start_boundary,
-	real* gamma,
-	ChParallelDataManager* data_manager);
+                               const real contact_cohesion,
+                               const uint num_fluid_bodies,
+                               const uint start_boundary,
+                               real* gamma,
+                               ChParallelDataManager* data_manager);
 
 CH_PARALLEL_API
 void ComplianceRigidFluidBoundary(const real contact_mu,
-	 const real contact_compliance,
-	 const real alpha,
-	 const uint start_boundary,
-	 ChParallelDataManager* data_manager);
+                                  const real contact_compliance,
+                                  const real alpha,
+                                  const uint start_boundary,
+                                  ChParallelDataManager* data_manager);
 
 CH_PARALLEL_API
 void CorrectionRigidFluidBoundary(const real contact_mu,
-	const real contact_cohesion,
-	const real alpha,
-	const real contact_recovery_speed,
-	const uint num_fluid_bodies,
-	const uint start_boundary,
-	ChParallelDataManager* data_manager);
+                                  const real contact_cohesion,
+                                  const real alpha,
+                                  const real contact_recovery_speed,
+                                  const uint num_fluid_bodies,
+                                  const uint start_boundary,
+                                  ChParallelDataManager* data_manager);
 
 CH_PARALLEL_API
 void BuildRigidFluidBoundary(const real contact_mu,
-	const uint num_fluid_bodies,
-	const uint body_offset,
-	const uint start_boundary,
-	ChParallelDataManager* data_manager);
+                             const uint num_fluid_bodies,
+                             const uint body_offset,
+                             const uint start_boundary,
+                             ChParallelDataManager* data_manager);
 }

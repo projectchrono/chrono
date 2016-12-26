@@ -16,8 +16,11 @@
 // =============================================================================
 
 #pragma once
+
 #include "chrono_parallel/math/matrixf.cuh"
+
 namespace chrono {
+
 // Oliver K. Smith. 1961. Eigenvalues of a symmetric 3 × 3 matrix. Commun. ACM 4, 4 (April 1961), 168-.
 // DOI=http://dx.doi.org/10.1145/355578.366316
 CUDA_HOST_DEVICE static float3 Fast_Eigenvalues(const SymMat33f& A)  // 24 mults, 20 adds, 1 atan2, 1 sincos, 2 sqrts

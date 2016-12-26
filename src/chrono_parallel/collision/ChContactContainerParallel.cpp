@@ -1,9 +1,9 @@
 #include "chrono_parallel/collision/ChContactContainerParallel.h"
 
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "physics/ChParticlesClones.h"
-#include "collision/ChCModelBullet.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChParticlesClones.h"
+#include "chrono/collision/ChCModelBullet.h"
 
 namespace chrono {
 
@@ -88,4 +88,4 @@ void ChContactContainerParallel::AddContact(const collision::ChCollisionInfo& mc
     }
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

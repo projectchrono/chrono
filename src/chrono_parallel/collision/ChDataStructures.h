@@ -14,6 +14,7 @@
 //
 // Description: Data structures used by the narrowphase
 // =============================================================================
+
 #pragma once
 
 #include "chrono_parallel/ChDataManager.h"
@@ -105,9 +106,10 @@ class ConvexShapeTetradhedron : public ConvexBase {
 
 class ConvexShapeTriangle : public ConvexBase {
   public:
-    ConvexShapeTriangle(real3& t1, real3& t2, real3 t3) {tri[0] = t1;
-    tri[1] = t2;
-    tri[2] = t3;
+    ConvexShapeTriangle(real3& t1, real3& t2, real3 t3) {
+        tri[0] = t1;
+        tri[1] = t2;
+        tri[2] = t3;
     }
     virtual ~ConvexShapeTriangle() {}
     const inline int Type() const { return TRIANGLEMESH; }

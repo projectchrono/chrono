@@ -1,8 +1,8 @@
-
 #include <algorithm>
 #include <math.h>
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include <chrono_parallel/physics/Ch3DOFContainer.h>
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 #include "chrono_parallel/collision/ChCollision.h"
@@ -571,6 +571,4 @@ void Ch3DOFRigidContainer::GetFluidForce(custom_vector<real3>& forc) {
     }
 }
 
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

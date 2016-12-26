@@ -5,6 +5,7 @@
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
 //#include "chrono_parallel/math/quartic.h"
+
 #include <thrust/iterator/constant_iterator.h>
 
 using namespace chrono;
@@ -203,21 +204,21 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
     custom_vector<real3>& friction = data_manager->host_data.fric_rigid_rigid;
     custom_vector<real>& cohesion = data_manager->host_data.coh_rigid_rigid;
 
-    //host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
+    // host_Project_single(index, bids.data(), friction.data(), cohesion.data(), gamma);
 
-	switch (data_manager->settings.solver.local_solver_mode) {
-	case NORMAL: {
-		func_Project_normal(index, bids.data(), cohesion.data(), gamma);
-	} break;
-	case SLIDING: {
-		func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
-	} break;
+    switch (data_manager->settings.solver.local_solver_mode) {
+        case NORMAL: {
+            func_Project_normal(index, bids.data(), cohesion.data(), gamma);
+        } break;
+        case SLIDING: {
+            func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
+        } break;
 
-	case SPINNING: {
-		func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
-		func_Project_spinning(index, bids.data(), friction.data(), gamma);
-	} break;
-	}
+        case SPINNING: {
+            func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
+            func_Project_spinning(index, bids.data(), friction.data(), gamma);
+        } break;
+    }
 }
 
 void ChConstraintRigidRigid::Build_b() {
@@ -269,8 +270,8 @@ void ChConstraintRigidRigid::Build_s() {
     uint num_unilaterals = data_manager->num_unilaterals;
     uint num_bilaterals = data_manager->num_bilaterals;
 
-	ConstSubVectorType gamma_b = subvector(gamma, num_unilaterals, num_bilaterals);
-	ConstSubVectorType gamma_n = subvector(gamma, 0, num_contacts);
+    ConstSubVectorType gamma_b = subvector(gamma, num_unilaterals, num_bilaterals);
+    ConstSubVectorType gamma_n = subvector(gamma, 0, num_contacts);
 
     v_new = M_invk + M_invD * gamma;
 

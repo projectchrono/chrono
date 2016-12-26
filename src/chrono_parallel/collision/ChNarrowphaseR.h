@@ -173,13 +173,13 @@ int box_box(const real3& pos1,
 CH_PARALLEL_API
 bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                 const ConvexBase* shapeB,  ///< second candidate shape
-                real separation,            ///< maximum separation
-                real3* ct_norm,             ///< [output] contact normal (per contact pair)
-                real3* ct_pt1,              ///< [output] point on shape1 (per contact pair)
-                real3* ct_pt2,              ///< [output] point on shape2 (per contact pair)
-                real* ct_depth,             ///< [output] penetration depth (per contact pair)
-                real* ct_eff_rad,           ///< [output] effective contact radius (per contact pair)
-                int& nC);                   ///< [output] number of contacts found
+                real separation,           ///< maximum separation
+                real3* ct_norm,            ///< [output] contact normal (per contact pair)
+                real3* ct_pt1,             ///< [output] point on shape1 (per contact pair)
+                real3* ct_pt2,             ///< [output] point on shape2 (per contact pair)
+                real* ct_depth,            ///< [output] penetration depth (per contact pair)
+                real* ct_eff_rad,          ///< [output] effective contact radius (per contact pair)
+                int& nC);                  ///< [output] number of contacts found
 
 }  // end namespace collision
 }  // end namespace chrono

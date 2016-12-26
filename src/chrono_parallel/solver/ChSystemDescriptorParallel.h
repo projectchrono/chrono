@@ -15,7 +15,7 @@ class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
     ChSystemDescriptorParallel(ChParallelDataManager* dc) : data_manager(dc) {}
     ~ChSystemDescriptorParallel() {}
 
-    //void ConvertToMatrixForm(ChSparseMatrix* Cq,
+    // void ConvertToMatrixForm(ChSparseMatrix* Cq,
     //                         ChSparseMatrix* M,
     //                         ChSparseMatrix* E,
     //                         ChMatrix<>* Fvector,

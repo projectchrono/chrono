@@ -17,26 +17,26 @@
 
 #pragma once
 
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
-#include "physics/ChBody.h"
-#include "physics/ChProximityContainerBase.h"
-#include "physics/ChContactContainerBase.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChContactContainerBase.h"
 
-#include "collision/ChCCollisionSystem.h"
-#include "collision/ChCModelBullet.h"
-#include "collision/bullet/btBulletCollisionCommon.h"
-#include "collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/bullet/btBulletCollisionCommon.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 
-#include "LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
-
 
 namespace chrono {
 
 class ChSystemParallel;  // forward declaration
 class ChParallelDataManager;
+
 namespace collision {
 
 ///

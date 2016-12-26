@@ -68,11 +68,11 @@ CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real3, real3);
 CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real3, real3);
 
 CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v1, const real3& v2) {
-    //return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    // return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
     return simd::Dot3(v1, v2);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v) {
-    //return v.x * v.x + v.y * v.y + v.z * v.z;
+    // return v.x * v.x + v.y * v.y + v.z * v.z;
     return simd::Dot3(v);
 }
 
@@ -88,19 +88,16 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sqrt(const real3& v) {
     return simd::SquareRoot(v);
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 Cross(const real3& b, const real3& c) {
-
-
 #if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
     return simd::Cross3(b, c);
 #else
-	real3 result;
-	result[0] = (b[1] * c[2]) - (b[2] * c[1]);
-	result[1] = (b[2] * c[0]) - (b[0] * c[2]);
-	result[2] = (b[0] * c[1]) - (b[1] * c[0]);
-	result[3] = 0; // tests fail without this
-	return result;
+    real3 result;
+    result[0] = (b[1] * c[2]) - (b[2] * c[1]);
+    result[1] = (b[2] * c[0]) - (b[0] * c[2]);
+    result[2] = (b[0] * c[1]) - (b[1] * c[0]);
+    result[3] = 0;  // tests fail without this
+    return result;
 #endif
-
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 Abs(const real3& v) {
     return simd::Abs(v);

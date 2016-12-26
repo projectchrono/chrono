@@ -14,54 +14,55 @@
 namespace chrono {
 
 //========================================================
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 Set4(real x) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 Set4(real x) {
     return real4(x);
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 Set4(real x, real y, real z, real w) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 Set4(real x, real y, real z, real w) {
     return real4(x, y, z, w);
 }
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator+(const real4& a, const real4& b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator+(const real4& a, const real4& b) {
     return simd::Add(a, b);
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a, const real4& b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a, const real4& b) {
     return simd::Sub(a, b);
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator*(const real4& a, const real4& b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator*(const real4& a, const real4& b) {
     return simd::Mul(a, b);
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator/(const real4& a, const real4& b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator/(const real4& a, const real4& b) {
     return simd::Div(a, b);
 }
 //========================================================
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator+(const real4& a, real b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator+(const real4& a, real b) {
     return simd::Add(a, Set4(b));
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a, real b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a, real b) {
     return simd::Sub(a, Set4(b));
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator*(const real4& a, real b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator*(const real4& a, real b) {
     return simd::Mul(a, Set4(b));
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator/(const real4& a, real b) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator/(const real4& a, real b) {
     return simd::Div(a, Set4(b));
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a) {
     return simd::Negate(a);
 }
-	CUDA_HOST_DEVICE CH_PARALLEL_API real4 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4) {
+CUDA_HOST_DEVICE CH_PARALLEL_API real4
+Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4) {
     return simd::Dot4(v, v1, v2, v3, v4);
 }
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(*, real, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(/ , real, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(*, real, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(/, real, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real, real4);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(*, real4, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(/ , real4, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real4, real4);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real4, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(*, real4, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(/, real4, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(+, real4, real4);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_IMPL(-, real4, real4);
 
 //========================================================
 
@@ -102,14 +103,14 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const quaternion& v) {
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Mult(const quaternion& a, const quaternion& b) {
 #if defined(CHRONO_AVX_2_0)
-	return simd::QuatMult(a, b);
+    return simd::QuatMult(a, b);
 #else
-	quaternion temp;
-	temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
-	temp.x = a.w * b.x + a.x * b.w - a.z * b.y + a.y * b.z;
-	temp.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
-	temp.z = a.w * b.z + a.z * b.w - a.y * b.x + a.x * b.y;
-	return temp;
+    quaternion temp;
+    temp.w = a.w * b.w - a.x * b.x - a.y * b.y - a.z * b.z;
+    temp.x = a.w * b.x + a.x * b.w - a.z * b.y + a.y * b.z;
+    temp.y = a.w * b.y + a.y * b.w + a.z * b.x - a.x * b.z;
+    temp.z = a.w * b.z + a.z * b.w - a.y * b.x + a.x * b.y;
+    return temp;
 #endif
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Normalize(const quaternion& v) {

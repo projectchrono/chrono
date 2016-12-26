@@ -1,10 +1,13 @@
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/collision/ChCollision.h"
-#include "core/ChFileutils.h"
-#include "core/ChStream.h"
+
+#include "chrono/core/ChFileutils.h"
+#include "chrono/core/ChStream.h"
+
 using namespace chrono;
 using namespace chrono::collision;
+
 ChParallelDataManager::ChParallelDataManager()
     : num_rigid_contacts(0),
       num_rigid_fluid_contacts(0),

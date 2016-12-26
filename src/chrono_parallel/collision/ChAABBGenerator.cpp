@@ -3,6 +3,7 @@
 #include "chrono_parallel/collision/ChCollision.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
+
 using namespace chrono;
 using namespace chrono::collision;
 

@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"

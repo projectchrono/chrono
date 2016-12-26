@@ -3,10 +3,10 @@
 using namespace chrono;
 
 real ChSolverParallelAPGDREF::Res4(ChShurProduct& ShurProduct,
-                           ChProjectConstraints& Project,
-                           DynamicVector<real>& gamma,
-                           const DynamicVector<real>& r,
-                           DynamicVector<real>& tmp) {
+                                   ChProjectConstraints& Project,
+                                   DynamicVector<real>& gamma,
+                                   const DynamicVector<real>& r,
+                                   DynamicVector<real>& tmp) {
     real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
     ShurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -18,11 +18,11 @@ real ChSolverParallelAPGDREF::Res4(ChShurProduct& ShurProduct,
 }
 
 uint ChSolverParallelAPGDREF::Solve(ChShurProduct& ShurProduct,
-                            ChProjectConstraints& Project,
-                            const uint max_iter,
-                            const uint size,
-                            const DynamicVector<real>& r,
-                            DynamicVector<real>& gamma) {
+                                    ChProjectConstraints& Project,
+                                    const uint max_iter,
+                                    const uint size,
+                                    const DynamicVector<real>& r,
+                                    DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }

@@ -1,8 +1,8 @@
-#include "physics/ChShaftsCouple.h"
-#include "physics/ChShaftsGearbox.h"
-#include "physics/ChShaftsGearboxAngled.h"
-#include "physics/ChShaftsPlanetary.h"
-#include "physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftsCouple.h"
+#include "chrono/physics/ChShaftsGearbox.h"
+#include "chrono/physics/ChShaftsGearboxAngled.h"
+#include "chrono/physics/ChShaftsPlanetary.h"
+#include "chrono/physics/ChShaftsBody.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"

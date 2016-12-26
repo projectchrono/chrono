@@ -15,6 +15,7 @@
 // Description: This class handles bilateral constraints for the system and
 // computes jacobians etc
 // =============================================================================
+
 #pragma once
 
 #include "chrono_parallel/ChDataManager.h"

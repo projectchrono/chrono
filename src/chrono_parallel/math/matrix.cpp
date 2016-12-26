@@ -248,9 +248,9 @@ inline Mat33 MulM_TM(const real* M, const real* N) {
 
 inline real3 MulMV(const real* a, const real* b) {
     real3 r;
-    __m128 v1 = _mm_mul_ps(_mm_loadu_ps(&a[0]) , _mm_set1_ps(b[0]));
-    __m128 v2 = _mm_mul_ps(_mm_loadu_ps(&a[4]) , _mm_set1_ps(b[1]));
-    __m128 v3 = _mm_mul_ps(_mm_loadu_ps(&a[8]) , _mm_set1_ps(b[2]));
+    __m128 v1 = _mm_mul_ps(_mm_loadu_ps(&a[0]), _mm_set1_ps(b[0]));
+    __m128 v2 = _mm_mul_ps(_mm_loadu_ps(&a[4]), _mm_set1_ps(b[1]));
+    __m128 v3 = _mm_mul_ps(_mm_loadu_ps(&a[8]), _mm_set1_ps(b[2]));
     __m128 out = _mm_add_ps(_mm_add_ps(v1, v2), v3);
     _mm_storeu_ps(&r.array[0], out);
 
@@ -433,17 +433,17 @@ CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator-(const Mat33& M, const Mat33& N)
                  M[10] - N[10]);
 }
 
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(*, real, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(*, Mat33, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(+, Mat33, Mat33)
-CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(-, Mat33, Mat33)
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(*, real, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API
+    OPERATOR_EQUALSALT(*, Mat33, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API
+    OPERATOR_EQUALSALT(+, Mat33, Mat33) CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALSALT(-, Mat33, Mat33)
 
-CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator-(const Mat33& M) {
+        CUDA_HOST_DEVICE CH_PARALLEL_API Mat33
+        operator-(const Mat33& M) {
     return Mat33(-M[0], -M[1], -M[2], -M[4], -M[5], -M[6], -M[8], -M[9], -M[10]);
 }
 
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 operator*(const real s, const Mat33& a) {
-	return a * s;
+    return a * s;
 }
 CUDA_HOST_DEVICE CH_PARALLEL_API Mat33 Abs(const Mat33& m) {
     return MAbs(m.array);

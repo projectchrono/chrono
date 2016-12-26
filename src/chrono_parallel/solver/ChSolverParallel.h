@@ -16,7 +16,9 @@
 // All of the functions are defined here, with the implementation of each solver
 // in it's specific cpp file.
 // =============================================================================
+
 #pragma once
+
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
@@ -261,35 +263,34 @@ class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
 };
 
 class CH_PARALLEL_API ChSolverParallelJacobi : public ChSolverParallel {
-public:
-	ChSolverParallelJacobi() {}
-	~ChSolverParallelJacobi() {}
+  public:
+    ChSolverParallelJacobi() {}
+    ~ChSolverParallelJacobi() {}
 
-	// Solve using a more streamlined but harder to read version of the BB method
-	uint Solve(ChShurProduct& ShurProduct,
-		ChProjectConstraints& Project,
-		const uint max_iter,           // Maximum number of iterations
-		const uint size,               // Number of unknowns
-		const DynamicVector<real>& b,  // Rhs vector
-		DynamicVector<real>& x         // The vector of unknowns
-	);
-	DynamicVector<real> ml_old, ml;
+    // Solve using a more streamlined but harder to read version of the BB method
+    uint Solve(ChShurProduct& ShurProduct,
+               ChProjectConstraints& Project,
+               const uint max_iter,           // Maximum number of iterations
+               const uint size,               // Number of unknowns
+               const DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x         // The vector of unknowns
+               );
+    DynamicVector<real> ml_old, ml;
 };
 
 class CH_PARALLEL_API ChSolverParallelGS : public ChSolverParallel {
-public:
-	ChSolverParallelGS() {}
-	~ChSolverParallelGS() {}
+  public:
+    ChSolverParallelGS() {}
+    ~ChSolverParallelGS() {}
 
-	// Solve using a more streamlined but harder to read version of the BB method
-	uint Solve(ChShurProduct& ShurProduct,
-		ChProjectConstraints& Project,
-		const uint max_iter,           // Maximum number of iterations
-		const uint size,               // Number of unknowns
-		const DynamicVector<real>& b,  // Rhs vector
-		DynamicVector<real>& x         // The vector of unknowns
-		);
-	DynamicVector<real> ml_old, ml;
+    // Solve using a more streamlined but harder to read version of the BB method
+    uint Solve(ChShurProduct& ShurProduct,
+               ChProjectConstraints& Project,
+               const uint max_iter,           // Maximum number of iterations
+               const uint size,               // Number of unknowns
+               const DynamicVector<real>& b,  // Rhs vector
+               DynamicVector<real>& x         // The vector of unknowns
+               );
+    DynamicVector<real> ml_old, ml;
 };
-
 }

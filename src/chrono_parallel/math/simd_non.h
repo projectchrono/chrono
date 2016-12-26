@@ -148,7 +148,7 @@ CUDA_HOST_DEVICE inline real Dot3(const real3& a, const real3& b) {
 }
 
 CUDA_HOST_DEVICE inline real Dot3(const real3& a) {
-	return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
+    return a[0] * a[0] + a[1] * a[1] + a[2] * a[2];
 }
 CUDA_HOST_DEVICE inline real4 Dot4(const real3& v, const real3& a, const real3& b, const real3& c, const real3& d) {
     real4 result;

@@ -19,6 +19,7 @@
 
 namespace chrono {
 namespace collision {
+
 class ConvexBase;
 
 CH_PARALLEL_API

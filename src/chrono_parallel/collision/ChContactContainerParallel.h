@@ -2,8 +2,8 @@
 
 #include <list>
 
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChContactTuple.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactTuple.h"
 
 #include "chrono_parallel/ChApiParallel.h"
 #include "chrono_parallel/ChDataManager.h"

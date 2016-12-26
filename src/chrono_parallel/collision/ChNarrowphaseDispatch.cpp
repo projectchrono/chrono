@@ -1,9 +1,10 @@
 #include <algorithm>
 
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionModel.h"
+
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChCollision.h"
-#include <chrono_parallel/collision/ChNarrowphaseUtils.h>
+#include "chrono_parallel/collision/ChNarrowphaseUtils.h"
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
 #include "chrono_parallel/collision/ChNarrowphaseMPR.h"
 #include "chrono_parallel/collision/ChNarrowphaseR.h"
@@ -182,8 +183,8 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     custom_vector<real>& contactDepth = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& effective_radius = data_manager->host_data.erad_rigid_rigid;
 
-	ConvexShape shapeA;
-	ConvexShape shapeB;
+    ConvexShape shapeA;
+    ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
@@ -207,8 +208,8 @@ void ChCNarrowphaseDispatch::DispatchR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-	ConvexShape shapeA;
-	ConvexShape shapeB;
+    ConvexShape shapeA;
+    ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
@@ -232,9 +233,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     real* contactDepth = data_manager->host_data.dpth_rigid_rigid.data();
     real* effective_radius = data_manager->host_data.erad_rigid_rigid.data();
 
-
-	ConvexShape shapeA;
-	ConvexShape shapeB;
+    ConvexShape shapeA;
+    ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
     for (int index = 0; index < num_potential_rigid_contacts; index++) {
@@ -252,8 +252,8 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
             effective_radius[icoll] = edge_radius;
             Dispatch_Finalize(icoll, ID_A, ID_B, 1);
         }
-        //delete shapeA;
-        //delete shapeB;
+        // delete shapeA;
+        // delete shapeB;
     }
 }
 
@@ -265,7 +265,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     custom_vector<real>& dpth_data = data_manager->host_data.dpth_rigid_rigid;
     custom_vector<real>& erad_data = data_manager->host_data.erad_rigid_rigid;
     custom_vector<vec2>& bids_data = data_manager->host_data.bids_rigid_rigid;
-	custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
+    custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
     uint& num_rigid_contacts = data_manager->num_rigid_contacts;
     // Set maximum possible number of contacts for each potential collision
     // (depending on the narrowphase algorithm and on the types of shapes in
@@ -308,7 +308,8 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     // using zip iterators and removing all entries for which contact_active is 'false'.
     thrust::remove_if(
         thrust::make_zip_iterator(thrust::make_tuple(norm_data.begin(), cpta_data.begin(), cptb_data.begin(),
-                                                     dpth_data.begin(), erad_data.begin(), bids_data.begin(), contact_pairs.begin())),
+                                                     dpth_data.begin(), erad_data.begin(), bids_data.begin(),
+                                                     contact_pairs.begin())),
         thrust::make_zip_iterator(thrust::make_tuple(norm_data.end(), cpta_data.end(), cptb_data.end(), dpth_data.end(),
                                                      erad_data.end(), bids_data.end(), contact_pairs.end())),
         contact_rigid_active.begin(), thrust::logical_not<bool>());
@@ -320,7 +321,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     dpth_data.resize(num_rigid_contacts);
     erad_data.resize(num_rigid_contacts);
     bids_data.resize(num_rigid_contacts);
-	contact_pairs.resize(num_rigid_contacts);
+    contact_pairs.resize(num_rigid_contacts);
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigid() E " << num_rigid_contacts;
 }
 

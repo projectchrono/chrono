@@ -189,5 +189,6 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
     // mcontactcontainer->EndAddContact();
     data_manager->system_timer.stop("collision_narrow");
 }
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+
+}  // end namespace collision
+}  // end namespace chrono

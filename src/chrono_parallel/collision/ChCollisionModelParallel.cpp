@@ -14,10 +14,12 @@
 //
 // Description: class for a parallel collision model
 // =============================================================================
+
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "physics/ChBody.h"
-#include "physics/ChBodyAuxRef.h"
-#include "physics/ChSystem.h"
+
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace collision {

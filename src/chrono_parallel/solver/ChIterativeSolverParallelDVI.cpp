@@ -1,13 +1,16 @@
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 using namespace chrono;
+
 #define xstr(s) str(s)
 #define str(s) #s
 
 #define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)                                             \
     {                                                                                        \
         uint current = M.capacity();                                                         \
-        if(current > 0) {clear(M);}                                                          \
+        if (current > 0) {                                                                   \
+            clear(M);                                                                        \
+        }                                                                                    \
         if (current < nnz) {                                                                 \
             M.reserve(nnz * 1.1);                                                            \
             LOG(INFO) << "Increase Capacity of: " << str(M) << " " << current << " " << nnz; \
@@ -240,7 +243,7 @@ void ChIterativeSolverParallelDVI::ComputeD() {
     data_manager->node_container->GenerateSparsity();
     data_manager->fea_container->GenerateSparsity();
 
-    //Move b code here so that it can be computed along side D
+    // Move b code here so that it can be computed along side D
     DynamicVector<real>& b = data_manager->host_data.b;
     b.resize(data_manager->num_constraints);
     reset(b);
@@ -416,11 +419,11 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
         case SPGQP:
             solver = new ChSolverParallelSPGQP();
             break;
-		case JACOBI:
-			solver = new ChSolverParallelJacobi();
-			break;
-		case GAUSS_SEIDEL:
-			solver = new ChSolverParallelGS();
-			break;
+        case JACOBI:
+            solver = new ChSolverParallelJacobi();
+            break;
+        case GAUSS_SEIDEL:
+            solver = new ChSolverParallelGS();
+            break;
     }
 }

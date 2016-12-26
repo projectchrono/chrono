@@ -18,10 +18,10 @@
 
 #pragma once
 
-#include "physics/ChProximityContainerBase.h"
-#include "physics/ChBody.h"
+#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChBody.h"
 
-#include "collision/ChCCollisionSystem.h"
+#include "chrono/collision/ChCCollisionSystem.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/solver/ChSystemDescriptorParallel.h"
@@ -33,8 +33,6 @@ namespace chrono {
 class ChSystemParallel;  // forward declaration
 
 namespace collision {
-
-
 
 ///
 /// Class for collision engine based on the spatial subdivision method.

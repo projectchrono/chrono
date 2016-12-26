@@ -2,8 +2,9 @@
 #include <stdlib.h>
 #include <algorithm>
 #include <math.h>
+
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include <chrono_parallel/physics/Ch3DOFContainer.h>
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/ChDataManager.h"
 
 namespace chrono {
@@ -85,6 +86,4 @@ void Ch3DOFContainer::SetFamily(short mfamily, short mask_no_collision) {
     family.x = (1 << mfamily);
     family.y &= ~(1 << mask_no_collision);
 }
-}  // END_OF_NAMESPACE____
-
-/////////////////////
+}  // end namespace chrono

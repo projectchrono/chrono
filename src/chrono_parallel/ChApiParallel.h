@@ -43,7 +43,7 @@
 
 /**
     @defgroup parallel_module PARALLEL module
-    @brief Module that enables parallel computation in Chrono 
+    @brief Module that enables parallel computation in Chrono
 
     This module implements parallel computing algorithms that can be
     used as a faster alternative to the default simulation algorithms

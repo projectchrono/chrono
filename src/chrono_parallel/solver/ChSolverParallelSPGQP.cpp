@@ -26,11 +26,11 @@ void ChSolverParallelSPGQP::UpdateR() {
 }
 
 uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
-                          ChProjectConstraints& Project,
-                          const uint max_iter,
-                          const uint size,
-                          const DynamicVector<real>& r,
-                          DynamicVector<real>& gamma) {
+                                  ChProjectConstraints& Project,
+                                  const uint max_iter,
+                                  const uint size,
+                                  const DynamicVector<real>& r,
+                                  DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }

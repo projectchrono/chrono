@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/collision/ChNarrowphaseMPR.h"

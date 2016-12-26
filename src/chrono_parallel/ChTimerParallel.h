@@ -21,7 +21,7 @@
 #include <iostream>
 #include <string>
 
-#include "core/ChTimer.h"
+#include "chrono/core/ChTimer.h"
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"

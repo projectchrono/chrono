@@ -19,7 +19,7 @@
 namespace chrono {
 
 CH_PARALLEL_API
- void Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
+void Orthogonalize(real3& Vx, real3& Vy, real3& Vz) {
     real3 mVsingular = real3(0, 1, 0);
     Vz = Cross(Vx, mVsingular);
     real mzlen = Length(Vz);
@@ -35,13 +35,13 @@ CH_PARALLEL_API
 
 CH_PARALLEL_API
 void Compute_Jacobian(const quaternion& quat,
-                             const real3& U,
-                             const real3& V,
-                             const real3& W,
-                             const real3& point,
-                             real3& T1,
-                             real3& T2,
-                             real3& T3) {
+                      const real3& U,
+                      const real3& V,
+                      const real3& W,
+                      const real3& point,
+                      real3& T1,
+                      real3& T2,
+                      real3& T3) {
     quaternion quaternion_conjugate = ~quat;
     real3 sbar = Rotate(point, quaternion_conjugate);
 
@@ -51,12 +51,12 @@ void Compute_Jacobian(const quaternion& quat,
 }
 CH_PARALLEL_API
 void Compute_Jacobian_Rolling(const quaternion& quat,
-                                     const real3& U,
-                                     const real3& V,
-                                     const real3& W,
-                                     real3& T1,
-                                     real3& T2,
-                                     real3& T3) {
+                              const real3& U,
+                              const real3& V,
+                              const real3& W,
+                              real3& T1,
+                              real3& T2,
+                              real3& T3) {
     quaternion quaternion_conjugate = ~quat;
 
     T1 = Rotate(U, quaternion_conjugate);
@@ -90,11 +90,11 @@ bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const r
     return true;
 }
 CH_PARALLEL_API
- void AppendRigidFluidBoundary(const real contact_mu,
-                                     const uint num_fluid_bodies,
-                                     const uint body_offset,
-                                     const uint start_boundary,
-                                     ChParallelDataManager* data_manager) {
+void AppendRigidFluidBoundary(const real contact_mu,
+                              const uint num_fluid_bodies,
+                              const uint body_offset,
+                              const uint start_boundary,
+                              ChParallelDataManager* data_manager) {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_rigid_fluid_contacts > 0) {
@@ -123,12 +123,12 @@ CH_PARALLEL_API
     }
 }
 CH_PARALLEL_API
- void ProjectRigidFluidBoundary(const real contact_mu,
-                                      const real contact_cohesion,
-                                      const uint num_fluid_bodies,
-                                      const uint start_boundary,
-                                      real* gamma,
-                                      ChParallelDataManager* data_manager) {
+void ProjectRigidFluidBoundary(const real contact_mu,
+                               const real contact_cohesion,
+                               const uint num_fluid_bodies,
+                               const uint start_boundary,
+                               real* gamma,
+                               ChParallelDataManager* data_manager) {
     custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
     custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
@@ -176,11 +176,11 @@ CH_PARALLEL_API
     }
 }
 CH_PARALLEL_API
- void ComplianceRigidFluidBoundary(const real contact_mu,
-                                         const real contact_compliance,
-                                         const real alpha,
-                                         const uint start_boundary,
-                                         ChParallelDataManager* data_manager) {
+void ComplianceRigidFluidBoundary(const real contact_mu,
+                                  const real contact_compliance,
+                                  const real alpha,
+                                  const uint start_boundary,
+                                  ChParallelDataManager* data_manager) {
     DynamicVector<real>& E = data_manager->host_data.E;
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     real inv_h = 1.0 / data_manager->settings.step_size;
@@ -207,13 +207,13 @@ CH_PARALLEL_API
     }
 }
 CH_PARALLEL_API
- void CorrectionRigidFluidBoundary(const real contact_mu,
-                                         const real contact_cohesion,
-                                         const real alpha,
-                                         const real contact_recovery_speed,
-                                         const uint num_fluid_bodies,
-                                         const uint start_boundary,
-                                         ChParallelDataManager* data_manager) {
+void CorrectionRigidFluidBoundary(const real contact_mu,
+                                  const real contact_cohesion,
+                                  const real alpha,
+                                  const real contact_recovery_speed,
+                                  const uint num_fluid_bodies,
+                                  const uint start_boundary,
+                                  ChParallelDataManager* data_manager) {
     real inv_h = 1 / data_manager->settings.step_size;
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
     real inv_hhpa = inv_h * inv_hpa;
@@ -252,11 +252,11 @@ CH_PARALLEL_API
     }
 }
 CH_PARALLEL_API
- void BuildRigidFluidBoundary(const real contact_mu,
-                                    const uint num_fluid_bodies,
-                                    const uint body_offset,
-                                    const uint start_boundary,
-                                    ChParallelDataManager* data_manager) {
+void BuildRigidFluidBoundary(const real contact_mu,
+                             const uint num_fluid_bodies,
+                             const uint body_offset,
+                             const uint start_boundary,
+                             ChParallelDataManager* data_manager) {
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_rigid_fluid_contacts > 0) {
         CompressedMatrix<real>& D_T = data_manager->host_data.D_T;

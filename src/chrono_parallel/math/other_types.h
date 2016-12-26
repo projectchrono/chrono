@@ -16,8 +16,10 @@
 // =============================================================================
 
 #pragma once
+
 #include "chrono_parallel/ChCudaDefines.h"
 #include "chrono_parallel/math/real3.h"  // for real3
+
 #include <iostream>
 
 #if !defined(__CUDACC__)
@@ -78,7 +80,7 @@ class vec3 {
     CUDA_HOST_DEVICE inline vec3(const real3& v) : x(v.x), y(v.y), z(v.z), w(0) {}
     CUDA_HOST_DEVICE inline int operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline int& operator[](unsigned int i) { return array[i]; }
-#if defined(USE_SSE) ||defined(USE_AVX)
+#if defined(USE_SSE) || defined(USE_AVX)
     inline vec3(__m128i m) { _mm_storeu_si128((__m128i*)&array[0], m); }
     inline operator __m128i() const { return _mm_loadu_si128((__m128i*)&array[0]); }
     inline vec3& operator=(const __m128i& rhs) {

@@ -63,13 +63,14 @@ static std::ostream null_stream(&null_buffer);
 #define THRUST_PAR
 #endif
 
-#define Thrust_Inclusive_Scan_Sum(x, y)                    \
+#define Thrust_Inclusive_Scan_Sum(x, y)                               \
     thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin()); \
     y = x.back();
 #define Thrust_Sort_By_Key(x, y) thrust::sort_by_key(THRUST_PAR x.begin(), x.end(), y.begin())
 
-#define Run_Length_Encode(y, z, w)                                                                                 \
-    (thrust::reduce_by_key(THRUST_PAR y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()).second) - \
+#define Run_Length_Encode(y, z, w)                                                                                  \
+    (thrust::reduce_by_key(THRUST_PAR y.begin(), y.end(), thrust::constant_iterator<uint>(1), z.begin(), w.begin()) \
+         .second) -                                                                                                 \
         w.begin()
 
 #define Thrust_Inclusive_Scan(x) thrust::inclusive_scan(THRUST_PAR x.begin(), x.end(), x.begin())

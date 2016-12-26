@@ -24,11 +24,11 @@
 #include <memory.h>
 #include <algorithm>
 
-#include "physics/ChSystem.h"
-#include "physics/ChBody.h"
-#include "physics/ChBodyAuxRef.h"
-#include "physics/ChContactDEM.h"
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -47,7 +47,6 @@ class ChParallelDataManager;
 class settings_container;
 
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallel)
 
@@ -142,7 +141,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallelDVI)
 
@@ -176,7 +174,6 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 };
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallelDEM)
 

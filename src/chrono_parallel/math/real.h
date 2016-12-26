@@ -28,9 +28,9 @@
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
 #if defined(CHRONO_PARALLEL_USE_DOUBLE)
-#include "real_double.h"
+#include "chrono_parallel/math/real_double.h"
 #else
-#include "real_single.h"
+#include "chrono_parallel/math/real_single.h"
 #endif
 
 namespace chrono {
@@ -152,23 +152,23 @@ CUDA_HOST_DEVICE inline real ClampMax(real x, real high) {
 }
 }
 //=========MACROS
-#define OPERATOR_EQUALS(op, tin, tout)         \
-	inline tout& operator op## = (tin scale) { \
-	*this = *this op scale;                    \
-	return *this;                              \
-	}
-#define OPERATOR_EQUALSALT_PROTO(op, tin, tout)  tout& operator op## = (tout & a, const tin& scale);
+#define OPERATOR_EQUALS(op, tin, tout)       \
+    inline tout& operator op##=(tin scale) { \
+        *this = *this op scale;              \
+        return *this;                        \
+    }
+#define OPERATOR_EQUALSALT_PROTO(op, tin, tout) tout& operator op##=(tout& a, const tin& scale);
 
-#define OPERATOR_EQUALSALT(op, tin, tout)                \
-	tout& operator op## = (tout & a, const tin& scale) { \
-	a = a op scale;                                      \
-	return a;                                            \
-	}
+#define OPERATOR_EQUALSALT(op, tin, tout)             \
+    tout& operator op##=(tout& a, const tin& scale) { \
+        a = a op scale;                               \
+        return a;                                     \
+    }
 
-#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout & a, const tin& scale);
+#define OPERATOR_EQUALS_PROTO(op, tin, tout) tout& operator op##=(tout& a, const tin& scale);
 
-#define OPERATOR_EQUALS_IMPL(op, tin, tout)            \
-    tout& operator op##=(tout & a, const tin& scale) { \
-        a = a op scale;                                \
-        return a;                                      \
+#define OPERATOR_EQUALS_IMPL(op, tin, tout)           \
+    tout& operator op##=(tout& a, const tin& scale) { \
+        a = a op scale;                               \
+        return a;                                     \
     }

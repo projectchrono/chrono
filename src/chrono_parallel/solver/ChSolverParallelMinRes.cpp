@@ -3,11 +3,11 @@
 using namespace chrono;
 
 uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
-                           ChProjectConstraints& Project,
-                           const uint max_iter,
-                           const uint size,
-                           const DynamicVector<real>& mb,
-                           DynamicVector<real>& x) {
+                                   ChProjectConstraints& Project,
+                                   const uint max_iter,
+                                   const uint size,
+                                   const DynamicVector<real>& mb,
+                                   DynamicVector<real>& x) {
     if (size == 0) {
         return 0;
     }

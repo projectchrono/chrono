@@ -28,7 +28,7 @@ inline __m256d Div(__m256d a, __m256d b) {
     return _mm256_div_pd(a, b);
 }
 inline __m256d Div3(__m256d a, __m256d b) {
-	return _mm256_and_pd(_mm256_div_pd(a, b), REAL3MASK);
+    return _mm256_and_pd(_mm256_div_pd(a, b), REAL3MASK);
 }
 inline __m256d Negate(__m256d a) {
     return _mm256_xor_pd(a, NEGATEMASK);
@@ -61,7 +61,7 @@ inline real Dot4(__m256d a, __m256d b) {
     __m256d xy = _mm256_mul_pd(a, b);
     return HorizontalAdd(xy);
 }
-//inline __m256d Cross(__m256d a, __m256d b) {
+// inline __m256d Cross(__m256d a, __m256d b) {
 //    __m256d a1 = permute4d<1, 2, 0, -256>(a);
 //    __m256d b1 = permute4d<1, 2, 0, -256>(b);
 //    __m256d a2 = permute4d<2, 0, 1, -256>(a);
@@ -101,22 +101,22 @@ inline real Min(__m256d x) {
     return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
 inline real Max3(__m256d a) {
-	__m256d x = _mm256_permute_pd(a, 1);		  // copy over 4th value
-	__m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
-	__m256d m1 = _mm256_max_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), etc.
-	__m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
-	__m256d m = _mm256_max_pd(m1, m2);            // all m[0] ... m[3] contain the horiz max(x[0], x[1], x[2], x[3])
-	__m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
-	return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+    __m256d x = _mm256_permute_pd(a, 1);          // copy over 4th value
+    __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+    __m256d m1 = _mm256_max_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = max(x[1], x[3]), etc.
+    __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+    __m256d m = _mm256_max_pd(m1, m2);            // all m[0] ... m[3] contain the horiz max(x[0], x[1], x[2], x[3])
+    __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+    return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
 inline real Min3(__m256d a) {
-	__m256d x = _mm256_permute_pd(a, 1);		  // copy over 4th value
-	__m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
-	__m256d m1 = _mm256_min_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = min(x[1], x[3]), etc.
-	__m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
-	__m256d m = _mm256_min_pd(m1, m2);            // all m[0] ... m[3] contain the horiz min(x[0], x[1], x[2], x[3])
-	__m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
-	return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
+    __m256d x = _mm256_permute_pd(a, 1);          // copy over 4th value
+    __m256d y = _mm256_permute2f128_pd(x, x, 1);  // permute 128-bit values
+    __m256d m1 = _mm256_min_pd(x, y);             // m1[0] = max(x[0], x[2]), m1[1] = min(x[1], x[3]), etc.
+    __m256d m2 = _mm256_permute_pd(m1, 5);        // set m2[0] = m1[1], m2[1] = m1[0], etc.
+    __m256d m = _mm256_min_pd(m1, m2);            // all m[0] ... m[3] contain the horiz min(x[0], x[1], x[2], x[3])
+    __m128d lo128 = _mm256_extractf128_pd(m, 0);  // get low bits
+    return _mm_cvtsd_f64(lo128);                  // get a single double from low bits
 }
 
 inline __m256d Round(__m256d a) {
@@ -145,7 +145,7 @@ static __m256d change_sign(__m256d a) {
 //    return _mm256_and_pd(c, REAL3MASK);
 //}
 
-inline __m256d Cross3( __m256d a012, __m256d b012) {
+inline __m256d Cross3(__m256d a012, __m256d b012) {
 #if defined(CHRONO_AVX_2_0) && defined(CHRONO_HAS_FMA)
     // https://www.nersc.gov/assets/Uploads/Language-Impact-on-Vectorization-Vector-Programming-in-C++.pdf
     __m256d a201 = _mm256_permute4x64_pd(a012, _MM_SHUFFLE(3, 1, 0, 2));
@@ -153,7 +153,7 @@ inline __m256d Cross3( __m256d a012, __m256d b012) {
     __m256d tmp = _mm256_fmsub_pd(b012, a201, _mm256_mul_pd(a012, b201));
     tmp = _mm256_permute4x64_pd(tmp, _MM_SHUFFLE(3, 1, 0, 2));
     tmp = _mm256_blend_pd(_mm256_setzero_pd(), tmp, 0x7);  // put zero on 4th position
-	return tmp;
+    return tmp;
 #endif
 }
 
@@ -256,24 +256,23 @@ inline __m256d Dot4(__m256d v, __m256d a, __m256d b, __m256d c, __m256d d) {
     return dotproduct;
 }
 
-
 inline __m256d QuatMult(__m256d a, __m256d b) {
 #if defined(CHRONO_AVX_2_0)
-	__m256d a1123 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(3,2,1,1));
-	__m256d a2231 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(1,3,2,2));
-	__m256d b1000 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(0,0,0,1));
-	__m256d b2312 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(2,1,3,2));
-    __m256d t1 = _mm256_mul_pd(a1123 , b1000);
-    __m256d t2 = _mm256_mul_pd(a2231 , b2312);
-    __m256d t12 = _mm256_add_pd(t1 , t2);
+    __m256d a1123 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(3, 2, 1, 1));
+    __m256d a2231 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(1, 3, 2, 2));
+    __m256d b1000 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(0, 0, 0, 1));
+    __m256d b2312 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(2, 1, 3, 2));
+    __m256d t1 = _mm256_mul_pd(a1123, b1000);
+    __m256d t2 = _mm256_mul_pd(a2231, b2312);
+    __m256d t12 = _mm256_add_pd(t1, t2);
     __m256d t12m = change_sign<1, 0, 0, 0>(t12);
-	__m256d a3312 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(2,1,3,3));
-	__m256d b3231 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(1,3,2,3));
-	__m256d a0000 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(0,0,0,0));
-    __m256d t3 = _mm256_mul_pd(a3312 , b3231);
-    __m256d t0 = _mm256_mul_pd(a0000 , b);
-    __m256d t03 = _mm256_sub_pd(t0 , t3);
-    return _mm256_add_pd(t03 , t12m);
+    __m256d a3312 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(2, 1, 3, 3));
+    __m256d b3231 = _mm256_permute4x64_pd(b, _MM_SHUFFLE(1, 3, 2, 3));
+    __m256d a0000 = _mm256_permute4x64_pd(a, _MM_SHUFFLE(0, 0, 0, 0));
+    __m256d t3 = _mm256_mul_pd(a3312, b3231);
+    __m256d t0 = _mm256_mul_pd(a0000, b);
+    __m256d t03 = _mm256_sub_pd(t0, t3);
+    return _mm256_add_pd(t03, t12m);
 #endif
 }
 

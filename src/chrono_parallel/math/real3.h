@@ -26,27 +26,27 @@
 
 namespace chrono {
 
-	class CH_PARALLEL_API real3 {
+class CH_PARALLEL_API real3 {
   public:
     CUDA_HOST_DEVICE inline real3() {}
-	CUDA_HOST_DEVICE inline explicit real3(real a){ 
-		array[0] = a;
-		array[1] = a;
-		array[2] = a;
-		array[3] = 0;
-	}
-    CUDA_HOST_DEVICE inline real3(real a, real b, real c){
-		array[0] = a;
-		array[1] = b;
-		array[2] = c;
-		array[3] = 0;
-	}
-    CUDA_HOST_DEVICE inline real3(const real3& v){
-		array[0] = v.x;
-		array[1] = v.y;
-		array[2] = v.z;
-		array[3] = 0;
-	}
+    CUDA_HOST_DEVICE inline explicit real3(real a) {
+        array[0] = a;
+        array[1] = a;
+        array[2] = a;
+        array[3] = 0;
+    }
+    CUDA_HOST_DEVICE inline real3(real a, real b, real c) {
+        array[0] = a;
+        array[1] = b;
+        array[2] = c;
+        array[3] = 0;
+    }
+    CUDA_HOST_DEVICE inline real3(const real3& v) {
+        array[0] = v.x;
+        array[1] = v.y;
+        array[2] = v.z;
+        array[3] = 0;
+    }
     CUDA_HOST_DEVICE inline real operator[](unsigned int i) const { return array[i]; }
     CUDA_HOST_DEVICE inline real& operator[](unsigned int i) { return array[i]; }
     CUDA_HOST_DEVICE inline real3& operator=(const real3& rhs) {
@@ -89,60 +89,60 @@ namespace chrono {
     };
 };
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Set3(real x);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Set3(real x, real y, real z);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Set3(real x);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Set3(real x, real y, real z);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator+(const real3& a, real b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a, real b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(const real3& a, real b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(const real3& a, real b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator+(const real3& a, real b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a, real b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(const real3& a, real b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(const real3& a, real b);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator+(const real3& a, const real3& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a, const real3& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(const real3& a, const real3& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator+(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(const real3& a, const real3& b);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(*, real, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(/ , real, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(+, real, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(-, real, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(*, real, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(/, real, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(+, real, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(-, real, real3);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(*, real3, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(/ , real3, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(+, real3, real3);
-	CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(-, real3, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(*, real3, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(/, real3, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(+, real3, real3);
+CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(-, real3, real3);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(real lhs, const real3& rhs);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(real lhs, const real3& rhs);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator-(const real3& a);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator*(real lhs, const real3& rhs);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 operator/(real lhs, const real3& rhs);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API bool operator<(const real3& lhs, const real3& rhs);
-	CUDA_HOST_DEVICE CH_PARALLEL_API bool operator>(const real3& lhs, const real3& rhs);
-	CUDA_HOST_DEVICE CH_PARALLEL_API bool operator==(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE CH_PARALLEL_API bool operator<(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE CH_PARALLEL_API bool operator>(const real3& lhs, const real3& rhs);
+CUDA_HOST_DEVICE CH_PARALLEL_API bool operator==(const real3& lhs, const real3& rhs);
 
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Cross(const real3& b, const real3& c);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v1, const real3& v2);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Normalize(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sqrt(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Round(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Length(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Length2(const real3& v1);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real SafeLength(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 SafeNormalize(const real3& v, const real3& safe = real3(0));
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Max(const real3& a);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real Min(const real3& a);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Max(const real3& a, const real3& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Min(const real3& a, const real3& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Max(const real3& a, const real& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Min(const real3& a, const real& b);
-	CUDA_HOST_DEVICE CH_PARALLEL_API bool IsZero(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Abs(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sign(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Clamp(const real3& v, real max_length);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 OrthogonalVector(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API real3 UnitOrthogonalVector(const real3& v);
-	CUDA_HOST_DEVICE CH_PARALLEL_API void Sort(real& a, real& b, real& c);
-	CUDA_HOST_DEVICE CH_PARALLEL_API void Print(real3 v, const char* name);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Cross(const real3& b, const real3& c);
+CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v1, const real3& v2);
+CUDA_HOST_DEVICE CH_PARALLEL_API real Dot(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Normalize(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sqrt(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Round(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real Length(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real Length2(const real3& v1);
+CUDA_HOST_DEVICE CH_PARALLEL_API real SafeLength(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 SafeNormalize(const real3& v, const real3& safe = real3(0));
+CUDA_HOST_DEVICE CH_PARALLEL_API real Max(const real3& a);
+CUDA_HOST_DEVICE CH_PARALLEL_API real Min(const real3& a);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Max(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Min(const real3& a, const real3& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Max(const real3& a, const real& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Min(const real3& a, const real& b);
+CUDA_HOST_DEVICE CH_PARALLEL_API bool IsZero(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Abs(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Sign(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Clamp(const real3& v, real max_length);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 Clamp(const real3& a, const real3& clamp_min, const real3& clamp_max);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 OrthogonalVector(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API real3 UnitOrthogonalVector(const real3& v);
+CUDA_HOST_DEVICE CH_PARALLEL_API void Sort(real& a, real& b, real& c);
+CUDA_HOST_DEVICE CH_PARALLEL_API void Print(real3 v, const char* name);
 }
