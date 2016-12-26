@@ -37,6 +37,5 @@
 #include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChLinkUniversal.h"
-#include "chrono/physics/ChLinkWheel.h"
 
 #endif
