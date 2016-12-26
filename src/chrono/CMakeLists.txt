@@ -35,7 +35,7 @@ set(ChronoEngine_core_SOURCES
     core/ChQuaternion.cpp
     core/ChCoordsys.cpp
     core/ChLinkedListMatrix.cpp
-	core/ChCSR3Matrix.cpp
+    core/ChCSR3Matrix.cpp
     core/ChMapMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
@@ -70,11 +70,10 @@ set(ChronoEngine_core_HEADERS
     core/ChVector.h
     core/ChVector2.h
     core/ChSparseMatrix.h
-	core/ChCSR3Matrix.h
-	core/ChAlignedAllocator.h
+    core/ChCSR3Matrix.h
+    core/ChAlignedAllocator.h
     core/ChLinkedListMatrix.h
     core/ChMapMatrix.h
-    core/ChWrapHashmap.h
     core/ChDistribution.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
@@ -281,16 +280,16 @@ set(ChronoEngine_physics_HEADERS
     physics/ChInertiaUtils.h
     physics/ChContactable.h
     physics/ChContactTuple.h
-	  physics/ChLoadable.h
-	  physics/ChLoader.h
-	  physics/ChLoaderU.h
-	  physics/ChLoaderUV.h
-	  physics/ChLoaderUVW.h
-	  physics/ChLoad.h
-	  physics/ChLoadsXYZnode.h
-	  physics/ChLoadsBody.h
-	  physics/ChLoadBodyMesh.h
-	  physics/ChLoadContainer.h
+    physics/ChLoadable.h
+    physics/ChLoader.h
+    physics/ChLoaderU.h
+    physics/ChLoaderUV.h
+    physics/ChLoaderUVW.h
+    physics/ChLoad.h
+    physics/ChLoadsXYZnode.h
+    physics/ChLoadsBody.h
+    physics/ChLoadBodyMesh.h
+    physics/ChLoadContainer.h
     )
 
 source_group(physics FILES
