@@ -37,7 +37,7 @@ class CH_VEHICLE_API LinearDamperRWAssembly : public ChLinearDamperRWAssembly {
   public:
     LinearDamperRWAssembly(const std::string& filename, bool has_shock);
     LinearDamperRWAssembly(const rapidjson::Document& d, bool has_shock);
-    ~LinearDamperRWAssembly() {}
+    ~LinearDamperRWAssembly();
 
     /// Return the mass of the arm body.
     virtual double GetArmMass() const override { return m_arm_mass; }

@@ -76,7 +76,7 @@ void LinearDamperRWAssembly::LoadRoadWheel(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename, bool has_shock)
-    : ChLinearDamperRWAssembly("", has_shock) {
+    : ChLinearDamperRWAssembly("", has_shock), m_torsion_force(nullptr), m_shock_forceCB(nullptr) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -93,8 +93,13 @@ LinearDamperRWAssembly::LinearDamperRWAssembly(const std::string& filename, bool
 }
 
 LinearDamperRWAssembly::LinearDamperRWAssembly(const rapidjson::Document& d, bool has_shock)
-    : ChLinearDamperRWAssembly("", has_shock) {
+    : ChLinearDamperRWAssembly("", has_shock), m_torsion_force(nullptr), m_shock_forceCB(nullptr) {
     Create(d);
+}
+
+LinearDamperRWAssembly::~LinearDamperRWAssembly() {
+    delete m_shock_forceCB;
+    //// NOTE: Do not delete m_torsion_force here (it is deleted in the destructor for the revolute joint)
 }
 
 void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
@@ -120,7 +125,6 @@ void LinearDamperRWAssembly::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Torsional Spring"));
     assert(d["Torsional Spring"].IsObject());
 
-    ////double torsion_a0 = d["Torsional Spring"]["Free Angle"].GetDouble();
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
