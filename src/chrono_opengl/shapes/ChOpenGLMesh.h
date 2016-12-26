@@ -26,7 +26,7 @@
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLVertexAttributes.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
-#include "assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
 namespace chrono {
 namespace opengl {
