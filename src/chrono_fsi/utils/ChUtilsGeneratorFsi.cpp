@@ -15,9 +15,9 @@
 // Utility class for generating BCE markers.//
 // =============================================================================
 
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsGenerators.h"
-#include "utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGenerators.h"
+#include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono_fsi/ChDeviceUtils.cuh"
 #include "chrono_fsi/ChFsiTypeConvert.h"
