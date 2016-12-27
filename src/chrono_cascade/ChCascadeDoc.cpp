@@ -20,7 +20,7 @@
 
 #include "chrono_cascade/ChCascadeDoc.h"
 
-#include "core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
 //#include "chrono_cascade/ChIrrCascadeMeshTools.h"
 
