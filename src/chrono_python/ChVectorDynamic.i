@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChVectorDynamic.h"
+#include "chrono/core/ChVectorDynamic.h"
 
 using namespace chrono;
 

@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChFrameMoving.h"
+#include "chrono/core/ChFrameMoving.h"
 
 using namespace chrono;
 

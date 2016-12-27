@@ -1,10 +1,10 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChMatrix.h"
-#include "core/ChMatrixDynamic.h"
-#include "core/ChMatrixNM.h"
-#include "core/ChMatrix33.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChMatrixNM.h"
+#include "chrono/core/ChMatrix33.h"
 
 using namespace chrono;
 

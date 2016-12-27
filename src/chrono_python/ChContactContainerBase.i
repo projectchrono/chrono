@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainerBase.h"
 
 using namespace collision;
 

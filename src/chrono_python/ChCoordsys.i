@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChCoordsys.h"
+#include "chrono/core/ChCoordsys.h"
 
 %}
  

@@ -61,7 +61,7 @@
 #include "chrono_fea/ChElementHexa_20.h"
 #include "chrono_fea/ChBuilderBeam.h"
 #include "chrono_fea/ChMesh.h"
-#include "physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono_fea/ChContinuumElectrostatics.h"
 #include "chrono_fea/ChContinuumThermal.h"
 #include "chrono_fea/ChContactSurface.h"

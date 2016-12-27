@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 using namespace chrono;
 

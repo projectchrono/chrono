@@ -47,8 +47,8 @@
 %{
 #include <cstddef>
 #include <stddef.h>
-#include "core/ChApiCE.h"
-#include "physics/ChBody.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/physics/ChBody.h"
 
 using namespace chrono;
 using namespace chrono::collision;

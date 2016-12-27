@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChRealtimeStep.h"
+#include "chrono/core/ChRealtimeStep.h"
 
 using namespace chrono;
 

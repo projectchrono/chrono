@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChLog.h"
+#include "chrono/core/ChLog.h"
 
 using namespace chrono;
 

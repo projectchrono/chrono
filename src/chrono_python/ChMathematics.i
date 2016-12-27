@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChMathematics.h"
+#include "chrono/core/ChMathematics.h"
 
 using namespace chrono;
 

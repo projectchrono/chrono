@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChLinkRevoluteSpherical.h"
+#include "chrono/physics/ChLinkRevoluteSpherical.h"
 
 %}
  

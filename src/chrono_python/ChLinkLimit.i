@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChLimit.h"
+#include "chrono/physics/ChLimit.h"
 
 %}
  

@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChShaftsGear.h"
+#include "chrono/physics/ChShaftsGear.h"
 
 %}
  

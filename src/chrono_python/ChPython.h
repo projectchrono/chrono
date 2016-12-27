@@ -26,8 +26,8 @@
 ///////////////////////////////////////////////////
 
 #include "chrono_python/ChApiPyParser.h"
-#include "core/ChLog.h"
-#include "physics/ChSystem.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/physics/ChSystem.h"
 
 
 namespace chrono 

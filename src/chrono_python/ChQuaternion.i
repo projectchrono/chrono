@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChQuaternion.h"
+#include "chrono/core/ChQuaternion.h"
 
 %}
  
