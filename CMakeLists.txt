@@ -192,9 +192,11 @@ set(CPACK_SOURCE_STRIP_FILES "")
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     set(CH_INSTALL_DATA "data")
     set(CH_INSTALL_DEMO "bin")
+    set(CH_INSTALL_PYTHON "bin")
 else()
     set(CH_INSTALL_DATA "share/chrono/data")
     set(CH_INSTALL_DEMO "share/chrono/bin")
+    set(CH_INSTALL_PYTHON "share/chrono/python")
 endif()
 
 #------------------------------------------------------------
