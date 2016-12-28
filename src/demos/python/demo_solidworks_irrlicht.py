@@ -19,8 +19,8 @@ if __name__ == '__main__':
 
 import os
 import math
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_irrlicht as chronoirr
+import ChronoEngine_python_core as chrono
+import ChronoEngine_python_irrlicht as chronoirr
 
 
 # ---------------------------------------------------------------------

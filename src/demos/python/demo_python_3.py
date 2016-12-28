@@ -21,8 +21,8 @@ if __name__ == '__main__':
 
 
 # Load the Chrono::Engine unit and the postprocessing unit!!!
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
+import ChronoEngine_python_core as chrono
+import ChronoEngine_python_postprocess as postprocess
 
 # We will create two directories for saving some files, we need this:
 import os
