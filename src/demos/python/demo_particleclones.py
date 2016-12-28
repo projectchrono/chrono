@@ -132,7 +132,7 @@ pov_exporter.SetOutputDataFilebase("output/my_state")
 pov_exporter.SetPictureFilebase("anim/picture")
 
 pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), 1)
+pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1.1,1.2,1.2), True)
 pov_exporter.SetPictureSize(640,480)
 pov_exporter.SetAmbientLight(chrono.ChColor(2,2,2))
 
@@ -147,12 +147,12 @@ Grid(0.05,0.04, rgb<0.7,0.7,0.7>, rgbt<1,1,1,1>)
 pov_exporter.AddAll()
 
  # Tell that you want to render the contacts
-pov_exporter.SetShowContacts(1,
+pov_exporter.SetShowContacts(True,
                             postprocess.ChPovRay.SYMBOL_VECTOR_SCALELENGTH,
                             0.2,    # scale
                             0.0007, # width
                             0.1,    # max size
-                            1,0,0.5 ) # colormap on, blue at 0, red at 0.5
+                            True,0,0.5 ) # colormap on, blue at 0, red at 0.5
 
  # 1) Create the two .pov and .ini files for POV-Ray (this must be done
  #    only once at the beginning of the simulation).
