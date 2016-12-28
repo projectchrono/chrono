@@ -65,15 +65,15 @@ namespace ChOgre {
 
 		{
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/ogre/", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/programs", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/scripts", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/materials/textures", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/ogre/materials/textures", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/fonts/minecraftia", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/materials/textures/nvidia", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/models", "FileSystem");
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/unit_OGRE/skyboxes/sky", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/ogre/models", "FileSystem");
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(chrono::GetChronoDataPath() + "/ogre/skyboxes/sky", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/heightmaps", "FileSystem");
 			Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/MyGUI_Media", "FileSystem");
 			//Ogre::ResourceGroupManager::getSingleton().addResourceLocation("assets/particle", "FileSystem");
