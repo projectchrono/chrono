@@ -17,7 +17,7 @@ SET_TARGET_PROPERTIES(demo_pyparser PROPERTIES
 	LINK_FLAGS "${CH_LINKERFLAG_EXE}")
 TARGET_LINK_LIBRARIES(demo_pyparser ChronoEngine ChronoEngine_pyparser)
 ADD_DEPENDENCIES(demo_pyparser ChronoEngine ChronoEngine_pyparser)
-install(TARGETS demo_pyparser DESTINATION bin)
+install(TARGETS demo_pyparser DESTINATION ${CH_INSTALL_DEMO})
 
 
 IF (ENABLE_MODULE_IRRLICHT)
