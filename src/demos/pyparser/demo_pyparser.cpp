@@ -41,26 +41,37 @@ int main(int argc, char* argv[]) {
     GetLog() << " Test the execution of Python statements, formulas, programs.\n No graphical user interface.\n\n";
 
     // Use a ChPythonEngine object.
-    // Note: currently no multiple ChPythonEngine at a single time can be used.
+    // Note: currently no multiple ChPythonEngine objects can be used simultaneously.
     // Note: if you want to reset the Python environment and restart from scratch,
     //  simply use new .. delete... etc. to allocate ChPythonEngine objs on heap
 
     ChPythonEngine my_python;
 
-    //
-    // TEST 1   -   execute simple instructions
-    //
+	//
+	// TEST 1   -   figure out what version of Python is run under the hood
+	//
 
-    my_python.Run("a =8.6");
+	GetLog() << " Chrono::PyEngine Test 1.\n";
+	my_python.Run("import sys");
+	GetLog() << "Python version run by Chrono:\n";
+	my_python.Run("print (sys.version)");
+
+	//
+	// TEST 2   -   execute simple instructions
+	//
+
+	GetLog() << "\n\n Chrono::PyEngine Test 2.\n";
+	my_python.Run("a =8.6");
     my_python.Run("b =4");
     my_python.Run("c ='blabla' ");
     my_python.Run("print('In:Python - A computation:', a/2)");
 
     //
-    // TEST 2   -   fetch a value from a python variable (in __main__ namespace)
+    // TEST 3   -   fetch a value from a python variable (in __main__ namespace)
     //
 
-    double mfval;
+	GetLog() << "\n\n Chrono::PyEngine Test 3.\n";
+	double mfval;
     my_python.GetFloat("a", mfval);
     GetLog() << "In:C++    - Passed float variable 'a' from Python, a=" << mfval << "\n";
     int mival;
@@ -72,32 +83,34 @@ int main(int argc, char* argv[]) {
     GetLog() << "In:C++    - Passed string variable 'c' from Python, c=" << msval << "\n";
 
     //
-    // TEST 3   -   set a value into a python variable (in __main__ namespace)
+    // TEST 4   -   set a value into a python variable (in __main__ namespace)
     //
 
-    my_python.SetFloat("d", 123.5);
+	GetLog() << "\n\n Chrono::PyEngine Test 4.\n";
+	my_python.SetFloat("d", 123.5);
     my_python.Run("print('In:Python - Passed variable d from c++, d=', d)");
 
     //
-    // TEST 4   -   errors and exceptions
+    // TEST 5   -   errors and exceptions
     //
 
-    // In previous examples we were sure that no syntax errors could happen,
-    // but in general errors could happen in Python parsing and execution, so
-    // it is wise to enclose Python stuff in a try-catch block because errors
-    // are handled with exceptions:
+    // In the previous examples we didn't have any syntax errors.
+    // In general, it is wise to enclose Python commands in a try-catch block 
+    // because errors are handled with exceptions:
 
-    try {
+	GetLog() << "\n\n Chrono::PyEngine Test 5.\n";
+	try {
         my_python.Run("a= this_itGoInG_TO_giVe_ErroRs!()");
     } catch (ChException myerror) {
-        GetLog() << "Ok, Python parsing error catched as expected!\n";
+        GetLog() << "Ok, Python parsing error caught as expected.\n";
     }
 
     //
-    // TEST 5   -   load mechanical system, previously saved to disk from SolidWorks add-in
+    // TEST 6   -   load mechanical system, previously saved to disk from SolidWorks add-in
     //
 
-    ChSystem my_system;
+	GetLog() << "\n\n Chrono::PyEngine Test 6.";
+	ChSystem my_system;
 
     try {
         // This is the instruction that loads the .py (as saved from SolidWorks) and
