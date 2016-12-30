@@ -337,7 +337,7 @@ myapplication.AddShadowAll();
 
 mysystem.SetMaxItersSolverSpeed(600);
 mysystem.SetSolverWarmStarting(True);
-mysystem.SetSolverType(chrono.ChSystem.SOLVERSOLVER_BARZILAIBORWEIN);
+mysystem.SetSolverType(chrono.ChSystem.SOLVER_BARZILAIBORWEIN);
 myapplication.SetTimestep(0.002):
 
 
