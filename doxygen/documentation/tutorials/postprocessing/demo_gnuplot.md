@@ -1,4 +1,4 @@
-GNUplot example (demo_gnuplot.cpp)  {#tutorial_demo_gnuplot}
+GNUplot example (demo_POST_gnuplot.cpp)  {#tutorial_demo_gnuplot}
 ==========================
 
 Tutorial that teaches how to use the 

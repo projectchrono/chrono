@@ -1,4 +1,4 @@
-Export POVray animations (demo_postprocess.cpp)  {#tutorial_demo_postprocess}
+Export POVray animations (demo_POST_povray.cpp)  {#tutorial_demo_postprocess}
 ==========================
 
 
