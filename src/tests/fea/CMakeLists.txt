@@ -2,12 +2,19 @@
 set(FEA_TESTS
     test_FEA_shellANCF
     test_FEA_4HumveeTires
-    test_FEA_4HumveeTires_LuGre
     test_FEA_tireCorotational
     test_FEA_tireANCF
     test_FEA_tireANCF_LuGre
     test_FEA_constraints
 )
+
+set(FEA_TESTS_MKL_IRR
+    test_FEA_4HumveeTires_LuGre
+    )
+
+if(ENABLE_MODULE_MKL AND ENABLE_MODULE_IRRLICHT)
+    list(APPEND FEA_TESTS ${FEA_TESTS_MKL_IRR})
+endif()
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
@@ -28,7 +35,7 @@ if(ENABLE_MODULE_IRRLICHT)
 endif()
 
 if(ENABLE_MODULE_POSTPROCESS)
-	set(APPEND LIBS "ChronoEngine_postprocess")
+    set(APPEND LIBS "ChronoEngine_postprocess")
 endif()
 
 message(STATUS "Additional test programs for FEA module...")
