@@ -1,32 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
 //   Demo code about
-//
 //     - using the ChParticleEmitter to create flows
-//       of random shapes
+//     - use a ChParticleRemover to remove particles outside a volume
+//     - use a ChParticleProcessor to compute mass flow etc.
 //     - use Irrlicht to display objects.
 //
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
@@ -55,13 +47,14 @@ int main(int argc, char* argv[]) {
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
-    ChIrrApp application(&mphysicalSystem, L"Particle emitter", core::dimension2d<u32>(800, 600), false);
+    ChIrrApp application(&mphysicalSystem, L"Particle emitter, remover, processor", core::dimension2d<u32>(800, 600),
+                         false);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene:
     ChIrrWizard::add_typical_Logo(application.GetDevice());
     ChIrrWizard::add_typical_Sky(application.GetDevice());
     ChIrrWizard::add_typical_Lights(application.GetDevice());
-    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(5, 7, -10));
+    ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 7, -10));
 
     //
     // CREATE THE SYSTEM OBJECTS
@@ -86,21 +79,12 @@ int main(int argc, char* argv[]) {
     // Ok, that object will take care of generating particle flows for you.
     // It accepts a lot of settings, for creating many different types of particle
     // flows, like fountains, outlets of various shapes etc.
+    // For instance, set the flow rate, etc:
 
-    // Set the flow rate [particles/s]:
     emitter.ParticlesPerSecond() = 20;
 
-    // Alternative: flow defined by mass, [kg/s]:
-    emitter.SetFlowControlMode(ChParticleEmitter::FLOW_MASSPERSECOND);
-    emitter.MassPerSecond() = 1000;
-
-    // Optional: limit the total n. of particles that can be generated
     emitter.SetUseParticleReservoir(true);
     emitter.ParticleReservoirAmount() = 200;
-
-    // Optional: limit the total mass that can be generated
-    emitter.SetUseMassReservoir(true);
-    emitter.MassReservoirAmount() = 5000;
 
     // Our ChParticleEmitter object, among the main settings, it requires
     // that you give him four 'randomizer' objects: one is in charge of
@@ -116,12 +100,10 @@ int main(int argc, char* argv[]) {
         ChCoordsys<>(ChVector<>(0, 3, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
-
     emitter.SetParticlePositioner(emitter_positions);
 
     // ---Initialize the randomizer for alignments
     auto emitter_rotations = std::make_shared<ChRandomParticleAlignmentUniform>();
-
     emitter.SetParticleAligner(emitter_rotations);
 
     // ---Initialize the randomizer for velocities, with statistical distribution
@@ -134,15 +116,15 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for creations, with statistical distribution
 
     // Create a ChRandomShapeCreator object (ex. here for box particles)
-    auto mcreator_boxes = std::make_shared<ChRandomShapeCreatorBoxes>();
-    mcreator_boxes->SetXsizeDistribution(
+    auto mcreator_plastic = std::make_shared<ChRandomShapeCreatorBoxes>();
+    mcreator_plastic->SetXsizeDistribution(
         std::make_shared<ChZhangDistribution>(0.5, 0.2));  // Zhang parameters: average val, min val.
-    mcreator_boxes->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
-    mcreator_boxes->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
-    mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
+    mcreator_plastic->SetSizeRatioZDistribution(std::make_shared<ChMinMaxDistribution>(0.2, 1.0));
+    mcreator_plastic->SetSizeRatioYZDistribution(std::make_shared<ChMinMaxDistribution>(0.4, 1.0));
+    mcreator_plastic->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
-    class MyCreator_boxes : public ChCallbackPostCreation {
+    class MyCreator_plastic : public ChCallbackPostCreation {
         // Here do custom stuff on the just-created particle:
       public:
         virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
@@ -152,11 +134,12 @@ int main(int argc, char* argv[]) {
             mbody->AddAsset(mvisual);
         }
     };
-    MyCreator_boxes* callback_boxes = new MyCreator_boxes;
-    mcreator_boxes->SetCallbackPostCreation(callback_boxes);
+    MyCreator_plastic* callback_plastic = new MyCreator_plastic;
+    mcreator_plastic->SetCallbackPostCreation(callback_plastic);
 
-    // Finally, tell to the emitter that it must use the 'mixer' above:
-    emitter.SetParticleCreator(mcreator_boxes);
+    // Finally, tell to the emitter that it must use the creator above:
+    emitter.SetParticleCreator(mcreator_plastic);
+
 
     // --- Optional: what to do by default on ALL newly created particles?
     //     A callback executed at each particle creation can be attached to the emitter.
@@ -181,6 +164,31 @@ int main(int argc, char* argv[]) {
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
     emitter.SetCallbackPostCreation(mcreation_callback);
+
+    // Create the remover, i.e. an object that takes care
+    // of removing particles that are inside or outside some volume.
+    // The fact that particles are handled with shared pointers means that,
+    // after they are removed from the ChSystem, they are also automatically
+    // deleted if no one else is referencing them.
+
+    ChParticleRemoverBox remover;
+    remover.SetRemoveOutside(true);
+    remover.GetBox().Pos = ChVector<>(0, 0, 0);
+    remover.GetBox().SetLengths(ChVector<>(5, 20, 5));
+
+    // Test also a ChParticleProcessor configured as a
+    // counter of particles that flow into a rectangle:
+    //  -create the trigger:
+    auto rectangleflow = std::make_shared<ChParticleEventFlowInRectangle>(8, 8);
+    rectangleflow->rectangle_csys =
+        ChCoordsys<>(ChVector<>(0, 2, 0), Q_from_AngAxis(-CH_C_PI_2, VECT_X));  // center and alignment of rectangle
+    rectangleflow->margin = 1;
+    //  -create the counter:
+    auto counter = std::make_shared<ChParticleProcessEventCount>();
+    //  -create the processor and plug in the trigger and the counter:
+    ChParticleProcessor processor_flowcount;
+    processor_flowcount.SetEventTrigger(rectangleflow);
+    processor_flowcount.SetParticleEventProcessor(counter);
 
     // Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
     // Otherwise use application.AssetBind(myitem); on a per-item basis.
@@ -207,6 +215,13 @@ int main(int argc, char* argv[]) {
 
         // Continuosly create particle flow:
         emitter.EmitParticles(mphysicalSystem, application.GetTimestep());
+
+        // Continuosly check if some particle must be removed:
+        remover.ProcessParticles(mphysicalSystem);
+
+        // Use the processor to count particle flow in the rectangle section:
+        processor_flowcount.ProcessParticles(mphysicalSystem);
+        GetLog() << "Particles being flown across rectangle:" << counter->counter << "\n";
 
         application.DoStep();
 

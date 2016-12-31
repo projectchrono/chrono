@@ -1,25 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
+// Demo code about
+// - modeling a complex mechanism (a quarter car model)
+// - using the ChLinkSpring to make spring-damper system
+// - using the ChLinkDistance class to reperesent long and thin massless rods,
+//   whose mass is negligible for dynamical analysis (as often happens in
+//   mechanisms) so they can be modeled as 'distance' constraints instead of
+//   making a thin body with small mass and two spherical joints at the end
+//   (wihch would be much less efficient from the computational point of view).
 //
-//     - modeling a complex mechanism (a quarter car model)
-//     - using the ChLinkSpring to make spring-damper system
-//     - using the ChLinkDistance class to reperesent
-//       long and thin massless rods, whose mass is negligible
-//       for dynamical analysis (as often happens in mechanisms)
-//       so they can be modeled as 'distance' constraints
-//       instead of making a thin body with small mass and two
-//       spherical joints at the end (wihch would be much less
-//       efficient from the computational point of view).
+// =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"

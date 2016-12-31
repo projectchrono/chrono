@@ -1,35 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
+// Demo code about
+// - collisions and contacts
+// - using the 'barrel' shape to create rollers for building omnidirectional
+//   wheels in a mobile robot.
 //
-//     - collisions and contacts
-//     - using the 'barrel' shape to create rollers
-//       for building omnidirectional wheels in a mobile
-//       robot.
-//
-//       (This is just a possible method of integration
-//       of Chrono::Engine + Irrlicht: many others
-//       are possible.)
-//
-//	 CHRONO
-//   ------
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/physics/ChSystem.h"

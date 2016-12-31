@@ -1,4 +1,4 @@
-Basic suspensions example (demo_suspension.cpp)  {#tutorial_demo_suspension}
+Basic suspensions example (demo_IRR_suspension.cpp)  {#tutorial_demo_suspension}
 ==========================
 
 Simulate a simplified vehicle with double-wishbone 
@@ -12,5 +12,5 @@ This tutorial shows how to:
 - use the Irrlicht interface system to interact with a model.
 - use ChLinkSpring to make spring-dampers   
  
-\include demo_suspension.cpp
+\include demo_IRR_suspension.cpp
 

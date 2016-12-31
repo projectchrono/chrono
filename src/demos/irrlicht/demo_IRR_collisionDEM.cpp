@@ -1,25 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Radu Serban
+// =============================================================================
 //
-//   Demo code about
+//  Demo code about collisions and contacts using a penalty (DEM) method
 //
-//     - collisions and contacts  with DEM
-//
-//   CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChContactContainerDEM.h"
@@ -91,7 +86,10 @@ void AddFallingItems(ChIrrApp& application) {
     }
 }
 
-void AddContainerWall(std::shared_ptr<ChBody> body, const ChVector<>& pos, const ChVector<>& size, bool visible = true) {
+void AddContainerWall(std::shared_ptr<ChBody> body,
+                      const ChVector<>& pos,
+                      const ChVector<>& size,
+                      bool visible = true) {
     ChVector<> hsize = 0.5 * size;
 
     body->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z, pos);
@@ -150,8 +148,7 @@ void AddContainer(ChIrrApp& application) {
     // An engine between the two
     auto my_motor = std::make_shared<ChLinkEngine>();
 
-    my_motor->Initialize(rotatingBody, fixedBody,
-                         ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
+    my_motor->Initialize(rotatingBody, fixedBody, ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
     my_motor->Set_eng_mode(ChLinkEngine::ENG_MODE_SPEED);
     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_motor->Get_spe_funct()))
         mfun->Set_yconst(CH_C_PI / 2);  // speed w=90°/s

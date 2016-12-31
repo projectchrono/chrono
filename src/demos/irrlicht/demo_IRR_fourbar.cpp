@@ -1,32 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
+// Demo code about
+// - using IRRLICHT as a realtime 3D viewer of a four-bar mechanism 
+// - using the IRRLICHT graphical user interface (GUI) to handle user-input
+//   via mouse.
 //
-//     - using IRRLICHT as a realtime 3D viewer
-//       of a four-bar mechanism simulated with
-//       Chrono::Engine.
-//     - Using the IRRLICHT graphical user interface (GUI)
-//       to handle user-input via mouse.
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 

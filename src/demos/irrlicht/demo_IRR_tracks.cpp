@@ -1,33 +1,26 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
+// Demo code about
+// - modeling tracks with articulated shoes (as an example of complex model with
+//   collisions and constraints)
+// - using different meshes for collision and visualization
+// - using clones of collision shapes
+// - using SetFamilyMaskNoCollisionWithFamily, SetFamily etc. to avoid
+//   collisions between different families of bodies.
 //
-//     - modeling tracks with articulated shoes (as an example
-//       of complex model with collisions and constraints)
-//     - using different meshes for collision and visualization
-//     - using clones of collision shapes
-//     - using SetFamilyMaskNoCollisionWithFamily, SetFamily etc.
-//       to avoid collisions between different families of bodies.
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyEasy.h"

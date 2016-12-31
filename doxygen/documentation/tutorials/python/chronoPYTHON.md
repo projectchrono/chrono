@@ -16,3 +16,8 @@ Chrono **from the Python side** see also
 - @subpage  tutorial_demo_pyparser
 
   How to load and execute Python commands or programs **from the C++ side.**
+
+- @subpage  tutorial_demo_import_solidworks
+
+  Load a mechanism that you exported from SolidWorks
+  
