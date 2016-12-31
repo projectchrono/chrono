@@ -4,12 +4,12 @@ set(FEA_TESTS
     test_FEA_4HumveeTires
     test_FEA_tireCorotational
     test_FEA_tireANCF
-    test_FEA_tireANCF_LuGre
     test_FEA_constraints
 )
 
 set(FEA_TESTS_MKL_IRR
     test_FEA_4HumveeTires_LuGre
+    test_FEA_tireANCF_LuGre
     )
 
 if(ENABLE_MODULE_MKL AND ENABLE_MODULE_IRRLICHT)
