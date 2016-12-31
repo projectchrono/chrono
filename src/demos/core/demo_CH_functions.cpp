@@ -9,9 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
+//
 // Demo code for using the ChFunction objects for specifying functions y=f(t)
+//
 // =============================================================================
 
 #include "chrono/ChVersion.h"
