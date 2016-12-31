@@ -205,8 +205,10 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // CreateCylindricalContainerFromBoxes
 // InitializeObject
 // FinalizeObject
-// LoadConvex
-// AddConvex
+// LoadConvexMesh
+// LoadConvexHulls
+// AddConvexCollisionModel
+// AddConvexCollisionModel
 //
 // Utility functions for creating objects
 // -----------------------------------------------------------------------------
@@ -256,6 +258,14 @@ ChApi void LoadConvexMesh(const std::string& file_name,
                           float hacd_smallclusterthreshold = 0.0f,
                           float hacd_fusetolerance = 1e-6f);
 
+// Given a path to an obj file, loads the obj assuming that the individual
+// objects in the obj are convex hulls, usefull when loading a precomputed
+// set of convex hulls.
+// The output of this function is used with AddConvexCollisionModel
+ChApi void LoadConvexHulls(const std::string& file_name,
+						   geometry::ChTriangleMeshConnected& convex_mesh,
+						   std::vector<std::vector<ChVector<double> > >& convex_hulls);
+
 // Given a convex mesh and it's decomposition add it to a ChBody
 // use_original_asset can be used to specify if the mesh or the convex decomp
 // should be used for visualization
@@ -267,7 +277,7 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    bool use_original_asset = true);
 // Add a convex mesh to an object based on a set of points,
 // unlike the previous version, this version will use the
-// triangle mesh to set the visualization deometry
+// triangle mesh to set the visualization geometry
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    geometry::ChTriangleMeshConnected& convex_mesh,
                                    std::vector<std::vector<ChVector<double> > >& convex_hulls,

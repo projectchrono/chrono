@@ -940,6 +940,17 @@ source_group(utils FILES
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS})
 
+# TinyObj Group
+
+set(ChronoEngine_tiny_obj_FILES
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
+  )
+
+source_group(utils\\tiny_obj FILES
+    ${ChronoEngine_utils_SOURCES}
+    ${ChronoEngine_utils_HEADERS})
+
 # Collect all source and header files for the ChronoEngine library
 
 set(ChronoEngine_FILES
@@ -979,6 +990,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_collision_gimpact_HEADERS}
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS}
+	${ChronoEngine_tiny_obj_FILES}
     )
 
 # Add the ChronoEngine library to the project
