@@ -2,8 +2,10 @@
 set(FEA_TESTS
     test_FEA_shellANCF
     test_FEA_4HumveeTires
-    test_FEA_CorotationalTire
-    test_FEA_ANCFHumveeTire
+    test_FEA_4HumveeTires_LuGre
+    test_FEA_tireCorotational
+    test_FEA_tireANCF
+    test_FEA_tireANCF_LuGre
     test_FEA_constraints
 )
 

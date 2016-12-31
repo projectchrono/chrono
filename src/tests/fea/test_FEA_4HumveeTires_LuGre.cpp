@@ -12,7 +12,7 @@
 // Authors: Antonio Recuero
 // =============================================================================
 //
-// This demo creates four wheels objects using the function makeANCFwheel. The 4
+// This test creates four wheels objects using the function makeANCFwheel. The 4
 // wheels are constrained to the rim, which in turn is linked to the chassis
 // through a ChLinkRevoluteTranslational joint. Values for the spring and damping
 // coefficients of the secondary suspension may be selected in the parameter
