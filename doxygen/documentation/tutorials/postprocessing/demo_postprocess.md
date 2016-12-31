@@ -15,7 +15,7 @@ later to do high-quality rendering of simulations.
 
 Note: the same assets can be used to render animations 
 in real-time in the interactive 3D view of Irrlicht, 
-as explained in demo_irr_assets.cpp
+as explained in demo_IRR_assets.cpp
 
 
 # Example 1
@@ -185,7 +185,7 @@ single "sample" 3D shape. This will be shown N times in POV or Irrlicht.
 # The POV exporter
 
 The following part is very important because this is what makes 
-this demo different from the demo_irr_assets, that used Irrlicht. 
+this demo different from the demo_IRR_assets, that used Irrlicht. 
 We need to create a postprocessor of type @ref ChPovRay and tell him that 
 we are going to export our visualization assets:
 
@@ -280,7 +280,7 @@ actually this is the instruction that creates the many .dat and .pov files in th
 
 Once you created your program, compile it, then:
 
-- execute the `demo_postprocess.exe`
+- execute the `demo_POST_povray.exe`
 - on the console you will see a time counter showing that the system is load and it is being simulated
 - when the program ends, you must open POVray and open the `rendering_frames.pov.ini` 
   file, using the Open menu or button, or drag&drop (you can find this .ini file and 
@@ -311,5 +311,5 @@ we suggest to use the VirtualDub tool:
 
 In the following we report the entire source code for reference.
 
-\include demo_postprocess.cpp
+\include demo_POST_povray.cpp
 
