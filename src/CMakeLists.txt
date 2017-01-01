@@ -156,7 +156,7 @@ if(FMA_FOUND)
 	message(STATUS "  FMA found")
 	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
 else()
-  message("  No FMA support")
+  message(STATUS "  No FMA support")
 endif()  
 
 #-----------------------------------------------------------------------------

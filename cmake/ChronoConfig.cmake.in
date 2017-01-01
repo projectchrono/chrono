@@ -36,6 +36,13 @@
 # is set to true (ON) or false (OFF):
 # CHRONO_[COMPONENT]_FOUND
 # 
+# Other variables:
+# CHRONO_SSE_FOUND
+#       set to true is SSE support is available
+#       CHRONO_CXX_FLAGS includes all required flags
+# CHRONO_AVX_FOUND
+#       set to true is AVX support is available
+#       CHRONO_CXX_FLAGS includes all required flags
 #===============================================================================
 
 if (CHRONO_CONFIG_INCLUDED)
@@ -67,6 +74,9 @@ list(APPEND CHRONO_DLL_NAMES "ChronoEngine.dll")
 set(CHRONO_DATA_DIR "@CH_DATA_DIR@")
 set(CHRONO_VEHICLE_DATA_DIR "@CH_DATA_DIR@vehicle/")
 set(CHRONO_FSI_DATA_DIR "@CH_DATA_DIR@fsi/")
+
+set(CHRONO_SSE_FOUND "@SSE_FOUND@")
+set(CHRONO_AVX_FOUND "@AVX_FOUND@")
 
 #-------------------------------------------------------------------------------
 # Local variables specifying which Chrono modules are enabled
@@ -274,7 +284,7 @@ message(STATUS "   CHRONO_DLL_NAMES         (Chrono DLL names): ${CHRONO_DLL_NAM
 message(STATUS "   CHRONO_DLLS              (Chrono DLLs): ${CHRONO_DLLS}")
 message(STATUS "   CHRONO_DATA_DIR          (Path to Chrono data folder): ${CHRONO_DATA_DIR}")
 message(STATUS "   CHRONO_VEHICLE_DATA_DIR  (Path to Chrono::Vehicle data folder): ${CHRONO_VEHICLE_DATA_DIR}")
-message(STATUS "   CHRONO_FSI_DATA_DIR  	  (Path to Chrono::fsi data folder): ${CHRONO_FSI_DATA_DIR}")
+message(STATUS "   CHRONO_FSI_DATA_DIR      (Path to Chrono::fsi data folder): ${CHRONO_FSI_DATA_DIR}")
 
 #===============================================================================
 # Provide a CMake function which adds a custom command (COPY_DLLS), invoked
