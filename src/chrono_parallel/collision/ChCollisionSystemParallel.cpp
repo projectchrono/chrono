@@ -97,6 +97,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
 
 
 void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
+#if 0
 	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
 	int body_id = pmodel->GetBody()->GetId();
 	//loop over the models we nned to remove
@@ -175,6 +176,7 @@ void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
 		}
 
 	}
+#endif
 }
 #undef ERASE_MACRO
 #undef ERASE_MACRO_LEN
