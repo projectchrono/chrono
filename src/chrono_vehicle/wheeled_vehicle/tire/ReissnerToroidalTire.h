@@ -9,33 +9,35 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Antonio Recuero
+// Authors: Alessandro Tasora, Radu Serban, Antonio Recuero
 // =============================================================================
 //
-// Sample ANCF toroidal tire.
-// This is a customizable ANCF tire class which uses a toroidal tire mesh
-// composed of single-layer ANCF shell elements.
+// Toroidal tire based on Reissner shell elements
+// This is a customizable Reissner tire class which uses a toroidal tire mesh
+// composed of single-layer Reissner shell elements.
 //
 // =============================================================================
 
-#ifndef ANCF_TOROIDAL_TIRE_H
-#define ANCF_TOROIDAL_TIRE_H
+#ifndef REISSNER_TOROIDAL_TIRE_H
+#define REISSNER_TOROIDAL_TIRE_H
 
-#include "chrono_vehicle/wheeled_vehicle/tire/ChANCFTire.h"
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
+#include "chrono_fea/ChElementShellReissner4.h"
 
+namespace chrono {
+namespace vehicle {
 
-class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
+class CH_VEHICLE_API ReissnerToroidalTire : public ChReissnerTire {
   public:
-    ANCFToroidalTire(const std::string& name);
-    ~ANCFToroidalTire() {}
+    ReissnerToroidalTire(const std::string& name);
+    ~ReissnerToroidalTire() {}
 
     virtual double GetRadius() const override { return m_rim_radius + m_height; }
     virtual double GetRimRadius() const override { return m_rim_radius; }
     virtual double GetWidth() const override { return 2 * m_height; }
     virtual double GetDefaultPressure() const override { return m_default_pressure; }
-    virtual std::vector<std::shared_ptr<chrono::fea::ChNodeFEAbase>> GetConnectedNodes() const override;
+    virtual std::vector<std::shared_ptr<fea::ChNodeFEAbase>> GetConnectedNodes() const override;
 
     void SetRimRadius(double rimRadius_) { m_rim_radius = rimRadius_; }
     void SetHeight(double height_) { m_height = height_; }
@@ -46,7 +48,7 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
 
     void SetPressure(double pressure_) { m_default_pressure = pressure_; }
     void SetAlpha(double alpha_) { m_alpha = alpha_; }
-    virtual void CreateMesh(const chrono::ChFrameMoving<>& wheel_frame, chrono::vehicle::VehicleSide side) override;
+    virtual void CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) override;
 
   private:
     double m_rim_radius;
@@ -59,5 +61,8 @@ class ANCFToroidalTire : public chrono::vehicle::ChANCFTire {
     double m_default_pressure;
     double m_alpha;
 };
+
+}  // end namespace vehicle
+}  // end namespace chrono
 
 #endif

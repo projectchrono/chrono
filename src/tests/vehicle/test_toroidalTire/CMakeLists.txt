@@ -15,14 +15,6 @@ SET(TESTS
     test_VEH_collisionToroidalTire
 )
 
-# Common model files
-SET(MODEL_FILES
-    ../ancfToroidalTire/ANCFToroidalTire.cpp
-    ../ancfToroidalTire/ANCFToroidalTire.h
-	../ancfToroidalTire/ReissnerToroidalTire.cpp
-    ../ancfToroidalTire/ReissnerToroidalTire.h
-)
-
 # ------------------------------------------------------
 # Set compiler and linker flags
 

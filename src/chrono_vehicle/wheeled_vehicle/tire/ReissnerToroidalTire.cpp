@@ -18,13 +18,12 @@
 //
 // =============================================================================
 
-#include "chrono_fea/ChElementShellReissner4.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ReissnerToroidalTire.h"
 
-#include "ReissnerToroidalTire.h"
-
-using namespace chrono;
-using namespace chrono::vehicle;
 using namespace chrono::fea;
+
+namespace chrono {
+namespace vehicle {
 
 ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
     : ChReissnerTire(name),
@@ -126,3 +125,6 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> ReissnerToroidalTire::GetConnectedNo
 
     return nodes;
 }
+
+}  // end namespace vehicle
+}  // end namespace chrono

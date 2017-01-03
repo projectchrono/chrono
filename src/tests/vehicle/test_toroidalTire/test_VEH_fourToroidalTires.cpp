@@ -28,12 +28,11 @@
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 
 #ifdef CHRONO_MKL
 #include "chrono_mkl/ChSolverMKL.h"
 #endif
-
-#include "../ancfToroidalTire/ANCFToroidalTire.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;

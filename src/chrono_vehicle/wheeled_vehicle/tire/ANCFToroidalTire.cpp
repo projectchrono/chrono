@@ -12,19 +12,18 @@
 // Authors: Radu Serban, Antonio Recuero
 // =============================================================================
 //
-// Sample ANCF toroidal tire.
+// ANCF toroidal tire.
 // This is a concrete ANCF tire class which uses a semi-toroidal tire mesh
 // composed of single-layer ANCF shell elements.
 //
 // =============================================================================
 
-#include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_vehicle/wheeled_vehicle/tire/ANCFToroidalTire.h"
 
-#include "ANCFToroidalTire.h"
-
-using namespace chrono;
-using namespace chrono::vehicle;
 using namespace chrono::fea;
+
+namespace chrono {
+namespace vehicle {
 
 ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
     : ChANCFTire(name),
@@ -129,3 +128,6 @@ std::vector<std::shared_ptr<ChNodeFEAbase>> ANCFToroidalTire::GetConnectedNodes(
 
     return nodes;
 }
+
+}  // end namespace vehicle
+}  // end namespace chrono

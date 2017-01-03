@@ -307,6 +307,10 @@ if(ENABLE_MODULE_FEA)
         wheeled_vehicle/tire/ANCFTire.cpp
         wheeled_vehicle/tire/FEATire.h
         wheeled_vehicle/tire/FEATire.cpp
+        wheeled_vehicle/tire/ANCFToroidalTire.h
+        wheeled_vehicle/tire/ANCFToroidalTire.cpp
+        wheeled_vehicle/tire/ReissnerToroidalTire.h
+        wheeled_vehicle/tire/ReissnerToroidalTire.cpp
     )
 else()
     set(CV_WV_FEATIRE_FILES "")
