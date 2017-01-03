@@ -1,19 +1,24 @@
-///////////////////////////////////////////////////
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-//   Advanced demo showing how to implement a cosimulation
-//   with Chrono and Simulink. The SimHydraulics toolbox
-//   of Simulink is used here to simulate an hydraulic
-//   circuit that interacts with a Chrono mechanism.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-//   This example needs test_cosim_hydraulics.mdl to be
-//   loaded and run in Simulink
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// Advanced demo showing how to implement a cosimulation with Chrono and
+// Simulink. The SimHydraulics toolbox of Simulink is used here to simulate a
+// hydraulic circuit that interacts with a Chrono mechanism.
+//
+// This example needs test_cosim_hydraulics.mdl to be loaded and run in Simulink
+//
+// =============================================================================
 
 #include "chrono/core/ChLog.h"
 #include "chrono/physics/ChSystem.h"

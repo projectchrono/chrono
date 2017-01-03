@@ -1,18 +1,23 @@
-///////////////////////////////////////////////////
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-//   Demo on how to implement a basic cosimulation
-//   framework where data is passed back-forth between
-//   C::E and Simulink.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-//   This example needs test_cosimulation.mdl to be
-//   load and run in Simulink!!!
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// Demo on how to implement a basic cosimulation framework where data is passed
+// back-forth between Chrono and Simulink.
+//
+// This example needs test_cosimulation.mdl to be load and run in Simulink.
+//
+// =============================================================================
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChMatrixDynamic.h"

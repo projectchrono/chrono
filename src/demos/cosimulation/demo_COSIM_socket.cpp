@@ -1,15 +1,21 @@
-///////////////////////////////////////////////////
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-//   Demo on how to use low level funcitons of
-//   TCP 'sockets' (these can be used to send messages
-//   between applications, for co-simulation)
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+//
+// Demo on how to use low level functions of TCP 'sockets' (these can be used to
+// send messages between applications, for co-simulation)
+//
+// =============================================================================
 
 #include "chrono/core/ChLog.h"
 

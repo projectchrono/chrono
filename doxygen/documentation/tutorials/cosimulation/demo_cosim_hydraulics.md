@@ -1,4 +1,4 @@
-Cosimulation with Simulink (demo_cosim_hydraulics.cpp)  {#tutorial_demo_cosim_hydraulics}
+Cosimulation with Simulink (demo_COSIM_hydraulics.cpp)  {#tutorial_demo_cosim_hydraulics}
 ==========================
 
 This tutorial explains how to use co-simulation to 
@@ -193,7 +193,7 @@ data/cosimulation/test_cosim_hydraulics.mdl
 
 Now let's develop the Chrono C++ program that will interact 
 with Simulink. You can find a ready-to-use example in 
-src/demos/cosimulation/demo_cosim_hydraulics.cpp
+src/demos/cosimulation/demo_COSIM_hydraulics.cpp
 
 - Use the 'try...catch' statements around socket communication operations 
   because errors in sockets might throw exceptions
@@ -404,5 +404,5 @@ Changing the Simulink integrator from variable time step to fixed time step migh
 
 # The entire code
 
-\include demo_cosim_hydraulics.cpp
+\include demo_COSIM_hydraulics.cpp
 

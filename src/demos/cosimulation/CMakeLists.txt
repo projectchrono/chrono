@@ -2,9 +2,9 @@
 # Add executables
 
 SET(DEMOS
-  demo_socket
-  demo_cosimulation
-  demo_cosim_hydraulics
+  demo_COSIM_socket
+  demo_COSIM_data_exchange
+  demo_COSIM_hydraulics
 )
 
 MESSAGE(STATUS "Demo programs for COSIMULATION module...")
