@@ -46,7 +46,7 @@ RackPinion::RackPinion(const std::string& filename) : ChRackPinion("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

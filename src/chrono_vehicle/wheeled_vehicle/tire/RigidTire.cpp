@@ -39,7 +39,7 @@ RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

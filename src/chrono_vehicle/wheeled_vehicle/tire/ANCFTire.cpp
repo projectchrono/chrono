@@ -55,7 +55,7 @@ ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     ProcessJSON(d);
 

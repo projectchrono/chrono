@@ -48,7 +48,7 @@ SingleIdler::SingleIdler(const std::string& filename) :ChSingleIdler(""), m_has_
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

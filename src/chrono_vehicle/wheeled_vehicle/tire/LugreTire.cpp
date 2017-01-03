@@ -49,7 +49,7 @@ LugreTire::LugreTire(const std::string& filename) : ChLugreTire(""), m_discLocs(
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

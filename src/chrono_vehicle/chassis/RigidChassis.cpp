@@ -56,7 +56,7 @@ RigidChassis::RigidChassis(const std::string& filename) : ChChassis(""), m_has_m
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

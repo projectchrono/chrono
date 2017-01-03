@@ -67,7 +67,7 @@ void TrackedVehicle::LoadChassis(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a chassis specification file.
     assert(d.HasMember("Type"));
@@ -97,7 +97,7 @@ void TrackedVehicle::LoadTrackAssembly(const std::string& filename, VehicleSide 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -129,7 +129,7 @@ void TrackedVehicle::LoadDriveline(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a driveline specification file.
     assert(d.HasMember("Type"));
@@ -173,7 +173,7 @@ void TrackedVehicle::Create(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));

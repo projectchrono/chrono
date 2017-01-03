@@ -58,7 +58,7 @@ FEATire::FEATire(const std::string& filename) : ChFEATire("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     ProcessJSON(d);
 

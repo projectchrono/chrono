@@ -49,7 +49,7 @@ Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0)
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

@@ -83,7 +83,7 @@ TireNode::TireNode(const std::string& json_filename, WheelID wheel_id, int num_t
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));

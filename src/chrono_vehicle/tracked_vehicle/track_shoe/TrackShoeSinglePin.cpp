@@ -48,7 +48,7 @@ TrackShoeSinglePin::TrackShoeSinglePin(const std::string& filename) : ChTrackSho
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

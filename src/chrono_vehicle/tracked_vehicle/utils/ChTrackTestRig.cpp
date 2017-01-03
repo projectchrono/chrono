@@ -114,7 +114,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));

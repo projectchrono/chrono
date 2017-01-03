@@ -50,7 +50,7 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendrick
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

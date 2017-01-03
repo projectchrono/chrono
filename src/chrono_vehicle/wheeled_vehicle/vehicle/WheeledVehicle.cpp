@@ -83,7 +83,7 @@ void WheeledVehicle::LoadChassis(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a chassis specification file.
     assert(d.HasMember("Type"));
@@ -113,7 +113,7 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -145,7 +145,7 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a driveline specification file.
     assert(d.HasMember("Type"));
@@ -179,7 +179,7 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a suspension specification file.
     assert(d.HasMember("Type"));
@@ -217,7 +217,7 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is an antirollbar specification file.
     assert(d.HasMember("Type"));
@@ -246,7 +246,7 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a wheel specification file.
     assert(d.HasMember("Type"));
@@ -276,7 +276,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a brake specification file.
     assert(d.HasMember("Type"));
@@ -320,7 +320,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));

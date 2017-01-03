@@ -105,7 +105,7 @@ void ChSuspensionTestRig::LoadSteering(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -136,7 +136,7 @@ void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a suspension specification file.
     assert(d.HasMember("Type"));
@@ -170,7 +170,7 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a wheel specification file.
     assert(d.HasMember("Type"));
@@ -208,7 +208,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -269,7 +269,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));

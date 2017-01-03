@@ -36,7 +36,7 @@ BrakeSimple::BrakeSimple(const std::string& filename) : ChBrakeSimple("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

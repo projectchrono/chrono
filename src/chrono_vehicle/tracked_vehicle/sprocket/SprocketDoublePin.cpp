@@ -49,7 +49,7 @@ SprocketDoublePin::SprocketDoublePin(const std::string& filename) : ChSprocketDo
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

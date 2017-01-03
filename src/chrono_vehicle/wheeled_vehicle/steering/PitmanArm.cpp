@@ -46,7 +46,7 @@ PitmanArm::PitmanArm(const std::string& filename) : ChPitmanArm("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 
