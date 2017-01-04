@@ -15,7 +15,7 @@
 #ifndef CHVECTOR_H
 #define CHVECTOR_H
 
-#include <math.h>
+#include <cmath>
 #include <iostream>
 #include <iomanip>
 

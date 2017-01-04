@@ -15,7 +15,7 @@
 #ifndef CHC_TRIANGLEMESHSOUP_H
 #define CHC_TRIANGLEMESHSOUP_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChTriangleMesh.h"
 

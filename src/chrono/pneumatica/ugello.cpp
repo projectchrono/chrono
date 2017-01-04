@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "chrono/pneumatica/ugello.h"
-#include <math.h>
+#include <cmath>
 
 namespace chrono {
 namespace pneumatics {

@@ -12,7 +12,7 @@
 #ifndef CHREF_H
 #define CHREF_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/motion_functions/ChFunction.h"
 

@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include <float.h>
-#include <math.h>
+#include <cmath>
 #include <memory.h>
 #include <stdlib.h>
 #include <string.h>

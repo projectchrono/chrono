@@ -18,7 +18,7 @@
 #define NULL 0
 #endif
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/pneumatica/ugello.h"
 

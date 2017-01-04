@@ -26,7 +26,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 
 #include "core/ChLog.h"
 #include "core/ChMatrix.h"

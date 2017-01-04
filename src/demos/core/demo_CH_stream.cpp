@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 #include <sstream>
 
 #include "chrono/core/ChLog.h"

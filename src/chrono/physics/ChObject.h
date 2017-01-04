@@ -16,7 +16,7 @@
 #define CHOBJECT_H
 
 #include <float.h>
-#include <math.h>
+#include <cmath>
 #include <stdlib.h>
 #include <iostream>
 #include <memory>

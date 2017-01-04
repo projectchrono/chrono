@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"

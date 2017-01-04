@@ -12,7 +12,7 @@
 #ifndef CHC_COMPILE_H
 #define CHC_COMPILE_H
 
-#include <math.h>
+#include <cmath>
 
 namespace chrono {
 namespace collision {

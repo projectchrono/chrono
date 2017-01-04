@@ -12,7 +12,7 @@
 #ifndef CHC_MATVEC_H
 #define CHC_MATVEC_H
 
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 
 #include "chrono/collision/edgetempest/ChCCompile.h"

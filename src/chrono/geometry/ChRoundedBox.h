@@ -15,7 +15,7 @@
 #ifndef CHC_ROUNDEDBOX_H
 #define CHC_ROUNDEDBOX_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 

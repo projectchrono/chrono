@@ -12,7 +12,7 @@
 #ifndef CHITERATIVE_H
 #define CHITERATIVE_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"

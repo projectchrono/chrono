@@ -3,7 +3,7 @@
 //******************************************************************************
 #include "assepneumatico.h"
 
-#include <math.h>
+#include <cmath>
 #include <fstream>
 #include <stdlib.h>
 

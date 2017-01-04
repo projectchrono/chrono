@@ -12,7 +12,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "chrono/pneumatica/sistema.h"
-#include <math.h>
+#include <cmath>
 
 namespace chrono {
 namespace pneumatics {

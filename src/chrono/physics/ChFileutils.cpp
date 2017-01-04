@@ -18,7 +18,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include <math.h>
+#include <cmath>
 #include <string.h>
 #include <stdio.h>
 #include "core/ChFileutils.h"
