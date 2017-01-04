@@ -1,4 +1,4 @@
-#include <math.h>
+#include <cmath>
 #include <stdio.h>
 
 #include "chrono/ChConfig.h"

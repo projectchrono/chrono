@@ -10,7 +10,7 @@
 //
 
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 #include "chrono/collision/edgetempest/ChCAABB.h"
 #include "chrono/collision/edgetempest/ChCMatVec.h"

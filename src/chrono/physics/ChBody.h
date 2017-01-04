@@ -15,7 +15,7 @@
 #ifndef CHBODY_H
 #define CHBODY_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChContactable.h"

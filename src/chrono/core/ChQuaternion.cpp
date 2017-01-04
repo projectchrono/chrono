@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"

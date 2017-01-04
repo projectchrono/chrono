@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChLinearAlgebra.h"

@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChGenericConstraint.h"
 

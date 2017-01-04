@@ -10,7 +10,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <math.h>
+#include <cmath>
 #include <stdarg.h>
 #include <errno.h>
 #include <iterator>

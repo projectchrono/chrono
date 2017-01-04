@@ -19,7 +19,7 @@
 #ifndef CHC_LINE_BEZIER_H
 #define CHC_LINE_BEZIER_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChBezierCurve.h"
 #include "chrono/geometry/ChLine.h"

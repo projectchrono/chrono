@@ -4,7 +4,7 @@
 #include <cuda_runtime.h> // for __host__ __device__ flags
 #include "chrono_fsi/ChConfigFSI.h"
 #ifndef __CUDACC__
-#include <math.h>
+#include <cmath>
 #endif
 
 namespace chrono {

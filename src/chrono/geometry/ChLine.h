@@ -15,7 +15,7 @@
 #ifndef CHC_LINE_H
 #define CHC_LINE_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChFilePS.h"

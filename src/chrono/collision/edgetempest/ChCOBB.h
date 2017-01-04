@@ -12,7 +12,7 @@
 #ifndef CHC_OBB_H
 #define CHC_OBB_H
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "chrono/geometry/ChGeometry.h"

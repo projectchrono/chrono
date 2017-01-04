@@ -15,7 +15,7 @@
 #ifndef CHC_LINECAM_H
 #define CHC_LINECAM_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 #include "chrono/motion_functions/ChFunction.h"

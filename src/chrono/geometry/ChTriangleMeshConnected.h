@@ -15,7 +15,7 @@
 #ifndef CHC_TRIANGLEMESHCONNECTED_H
 #define CHC_TRIANGLEMESHCONNECTED_H
 
-#include <math.h>
+#include <cmath>
 #include <array>
 #include <map>
 

@@ -12,7 +12,7 @@
 // File author: Alessandro Tasora
 
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 #include <float.h>
 
 #include "chrono/core/ChQuadrature.h"

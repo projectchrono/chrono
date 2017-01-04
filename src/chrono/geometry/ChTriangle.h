@@ -15,7 +15,7 @@
 #ifndef CHC_TRI_H
 #define CHC_TRI_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 

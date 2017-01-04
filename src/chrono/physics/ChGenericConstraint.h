@@ -12,7 +12,7 @@
 #ifndef CHGENERICCONSTRAINT_H
 #define CHGENERICCONSTRAINT_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChRef.h"

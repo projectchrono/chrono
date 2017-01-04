@@ -15,7 +15,7 @@
 #ifndef CHC_BOX_H
 #define CHC_BOX_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 

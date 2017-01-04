@@ -12,7 +12,7 @@
 #ifndef CHMATHEMATICS_H
 #define CHMATHEMATICS_H
 
-#include <math.h>
+#include <cmath>
 #include <float.h>
 #include <assert.h>
 

@@ -15,7 +15,7 @@
 #ifndef CHC_LINEPOLY_H
 #define CHC_LINEPOLY_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 
