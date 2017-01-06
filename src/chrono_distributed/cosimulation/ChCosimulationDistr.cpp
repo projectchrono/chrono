@@ -12,14 +12,16 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#include "chrono_distributed/physics/ChBodyDistr.h"
+#include "chrono_distributed/cosimulation/ChCosimulationDistr.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
-ChBodyDistr::ChBodyDistr()
-: global_id(0)
-{}
+ChCosimulationDistr::ChCosimulationDistr(ChSystemDistr *my_sys) {
+	this->my_sys = my_sys;
+}
 
-ChBodyDistr::~ChBodyDistr() {}
+ChCosimulationDistr::~ChCosimulationDistr() {
+}
 
 } /* namespace chrono */

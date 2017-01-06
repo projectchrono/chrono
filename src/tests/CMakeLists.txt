@@ -57,6 +57,13 @@ if(ENABLE_MODULE_PARALLEL)
   	endif()
 endif()
 
+if(ENABLE_MODULE_DISTRIBUTED)
+	option(BUILD_ADDITIONAL_TESTS_DISTRIBUTED "Build additional test programs for Distributed module" TRUE)
+	mark_as_advanced(FORCE BUILD_ADDITIONAL_TEST_DISTRIBUTED)
+	if(BUILD_ADDITIONAL_TESTS_DISTRIBUTED)
+		add_subdirectory(distributed)
+	endif()
+endif()
 
 #if(ENABLE_MODULE_FSI)
 # 	option(BUILD_ADDITIONAL_TESTS_FSI "Build additional test programs for FSI module" TRUE)

@@ -11,15 +11,17 @@
 // =============================================================================
 // Authors: Nic Olsen
 // =============================================================================
+//
+// Chrono-Distributed configuration header file
+//
+// Automatically created during CMake configuration.
+//
+// =============================================================================
 
-#include "chrono_distributed/physics/ChBodyDistr.h"
+#ifndef CH_CONFIG_DISTR_H
+#define CH_CONFIG_DISTR_H
 
-namespace chrono {
+// Include main Chrono configuration header
+#include "chrono/ChConfig.h"
 
-ChBodyDistr::ChBodyDistr()
-: global_id(0)
-{}
-
-ChBodyDistr::~ChBodyDistr() {}
-
-} /* namespace chrono */
+#endif

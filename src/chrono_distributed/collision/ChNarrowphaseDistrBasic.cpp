@@ -12,14 +12,18 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#include "chrono_distributed/physics/ChBodyDistr.h"
+#include "chrono_distributed/collision/ChNarrowphaseDistrBasic.h"
+#include "chrono_distributed/collision/ChNarrowphaseDistr.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
-ChBodyDistr::ChBodyDistr()
-: global_id(0)
-{}
+ChNarrowphaseDistrBasic::ChNarrowphaseDistrBasic(ChSystemDistr *my_sys) : ChNarrowphaseDistr(my_sys)
+{
+}
 
-ChBodyDistr::~ChBodyDistr() {}
+ChNarrowphaseDistrBasic::~ChNarrowphaseDistrBasic()
+{
+}
 
 } /* namespace chrono */

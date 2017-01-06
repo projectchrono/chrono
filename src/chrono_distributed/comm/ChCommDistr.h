@@ -1,9 +1,16 @@
-/*
- * ChCommDistr.h
- *
- *  Created on: Dec 29, 2016
- *      Author: nic
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
 
 #ifndef CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
 #define CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
@@ -13,9 +20,11 @@
 
 namespace chrono {
 
+class ChSystemDistr;
+
 class ChCommDistr {
 public:
-	ChCommDistr(ChSystemDistr * my_sys);
+	ChCommDistr(ChSystemDistr *my_sys);
 	virtual ~ChCommDistr();
 
 	// Locate each body that has left the subdomain,
@@ -39,7 +48,17 @@ public:
 
 
 protected:
-	ChSystemDistr *my_sys;
+	ChSystemDistr *my_sys;\
+	double *send_buf;
+	int num_send;
+
+	double *recv_buf;
+	int num_recv;
+
+	int doubles_per_body;
+
+private:
+	void SendAll(double *buf, int size);
 };
 
 } /* namespace chrono */

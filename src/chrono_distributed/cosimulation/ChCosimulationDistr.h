@@ -12,31 +12,23 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_
-#define CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_
+#ifndef CHRONO_DISTRIBUTED_COSIMULATION_CHCOSIMULATIONDISTR_H_
+#define CHRONO_DISTRIBUTED_COSIMULATION_CHCOSIMULATIONDISTR_H_
+
+#include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
-class ChBodyDistr {
+class ChCosimulationDistr {
 public:
-	ChBodyDistr();
-	virtual ~ChBodyDistr();
-	void SetGlobalId(int id) { if (id >= 0) global_id = id; }
-	int GetGloablId() {return global_id;}
-	int GetPos(int dim) {return pos[dim];}
-	int GetVel(int dim) {return vel[dim];}
-	void SetPos(double p, int dim) { pos[dim] = p; }
-	void SetVel(double v, int dim) { vel[dim] = v; }
+	ChCosimulationDistr(ChSystemDistr *my_sys);
+	virtual ~ChCosimulationDistr();
 
 protected:
-	double pos[3];
-	double vel[3];
-	double force[3];
-	//TODO: Member variables for sphere, but general enough for others
-	
-	int global_id;
+	ChSystemDistr *my_sys;
+
 };
 
 } /* namespace chrono */
 
-#endif /* CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_ */
+#endif /* CHRONO_DISTRIBUTED_COSIMULATION_CHCOSIMULATIONDISTR_H_ */

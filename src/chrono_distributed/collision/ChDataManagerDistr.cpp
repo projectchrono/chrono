@@ -12,14 +12,21 @@
 // Authors: Nic Olsen
 // =============================================================================
 
+#include "chrono_distributed/collision/ChDataManagerDistr.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
 #include "chrono_distributed/physics/ChBodyDistr.h"
 
 namespace chrono {
 
-ChBodyDistr::ChBodyDistr()
-: global_id(0)
-{}
+ChDataManagerDistr::ChDataManagerDistr(ChSystemDistr *my_sys) {
+	this->my_sys = my_sys;
 
-ChBodyDistr::~ChBodyDistr() {}
+	// The bodies lists are initialized to null
+	local_bodylist = new ChBodyDistr* [my_sys->GetMaxLocal()]();
+	shared_bodylist = new ChBodyDistr* [my_sys->GetMaxShared()]();
+	ghost_bodylist = new ChBodyDistr* [my_sys->GetMaxGhost()]();
+}
+
+ChDataManagerDistr::~ChDataManagerDistr() {}
 
 } /* namespace chrono */

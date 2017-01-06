@@ -12,31 +12,30 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_
-#define CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_
+#ifndef CHRONO_DISTRIBUTED_COLLISION_CHDATAMANAGERDISTR_H_
+#define CHRONO_DISTRIBUTED_COLLISION_CHDATAMANAGERDISTR_H_
+
+#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/physics/ChBodyDistr.h"
 
 namespace chrono {
 
-class ChBodyDistr {
+class ChDataManagerDistr {
 public:
-	ChBodyDistr();
-	virtual ~ChBodyDistr();
-	void SetGlobalId(int id) { if (id >= 0) global_id = id; }
-	int GetGloablId() {return global_id;}
-	int GetPos(int dim) {return pos[dim];}
-	int GetVel(int dim) {return vel[dim];}
-	void SetPos(double p, int dim) { pos[dim] = p; }
-	void SetVel(double v, int dim) { vel[dim] = v; }
+	ChDataManagerDistr(ChSystemDistr *my_sys);
+	virtual ~ChDataManagerDistr();
 
 protected:
-	double pos[3];
-	double vel[3];
-	double force[3];
-	//TODO: Member variables for sphere, but general enough for others
-	
-	int global_id;
+	ChSystemDistr *my_sys;
+
+	// TODO: DS
+	ChBodyDistr **local_bodylist;
+	ChBodyDistr **shared_bodylist;
+	ChBodyDistr **ghost_bodylist;
+
+	//TODO: Outline interface
 };
 
 } /* namespace chrono */
 
-#endif /* CHRONO_DISTRIBUTED_PHYSICS_CHBODYDISTR_H_ */
+#endif /* CHRONO_DISTRIBUTED_COLLISION_CHDATAMANAGERDISTR_H_ */
