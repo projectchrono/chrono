@@ -98,13 +98,14 @@ class gpu_vector {
     }
     // Copy data from device memory to host stl vector. Resize memory as needed
     void copyDeviceToHost() {
-        if (size() == 0) {
+		size_t new_size = size();
+        if (new_size == 0) {
             return;
         }
-        if (data_h.size() < size()) {
-            data_h.resize(size());
+        if (data_h.size() < new_size) {
+            data_h.resize(new_size);
         }
-        size_t count = size() * sizeof(T);
+        size_t count = new_size * sizeof(T);
         cudaMemcpy((void*)data_h.data(), data_d, count, cudaMemcpyDeviceToHost);
     }
     void operator=(const gpu_vector& rhs) {
