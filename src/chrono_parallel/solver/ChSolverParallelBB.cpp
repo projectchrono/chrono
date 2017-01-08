@@ -182,9 +182,18 @@ uint ChSolverParallelBB::Solve(ChShurProduct& ShurProduct,
         }
 
         AtIterationEnd(lastgoodres, objective_value);
-        if (lastgoodres < data_manager->settings.solver.tol_speed) {
-            break;
-        }
+
+		if (data_manager->settings.solver.test_objective) {
+			if (objective_value <= data_manager->settings.solver.tolerance_objective) {
+				break;
+			}
+		}
+		else {
+			if (lastgoodres < data_manager->settings.solver.tol_speed) {
+				break;
+			}
+		}
+
 
         // t4.stop();
     }
