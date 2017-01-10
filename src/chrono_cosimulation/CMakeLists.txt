@@ -71,9 +71,24 @@ ADD_LIBRARY(ChronoEngine_cosimulation SHARED
 			${ChronoEngine_COSIMULATION_SOURCES}
 			${ChronoEngine_COSIMULATION_HEADERS})
 
+include(CheckTypeSize)
+
+# Set additional headers where socklen_t might be found (semicolon-separated)
+set(CMAKE_EXTRA_INCLUDE_FILES sys/socket.h)
+CHECK_TYPE_SIZE("socklen_t" SOCKLEN_T)
+
+if(SOCKLEN_T)
+  set(HAVE_SOCKLEN_T "HAVE_SOCKLEN_T")
+else()
+  set(HAVE_SOCKLEN_T "")
+endif()
+
+# Pop extra includes
+set(CMAKE_EXTRA_INCLUDE_FILES)
+
 SET_TARGET_PROPERTIES(ChronoEngine_cosimulation PROPERTIES 
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
-                      COMPILE_DEFINITIONS "CH_API_COMPILE_COSIMULATION")
+                      COMPILE_DEFINITIONS "CH_API_COMPILE_COSIMULATION;${HAVE_SOCKLEN_T}")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_cosimulation 
                       ChronoEngine
