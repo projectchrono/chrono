@@ -7,6 +7,7 @@ SET(TESTS
     utest_CH_math
     utest_CH_sparse_matrix
 	utest_CH_ChCSR3Matrix
+    utest_CH_ChFunction_Lambda
     #utest_CH_stream
 )
 

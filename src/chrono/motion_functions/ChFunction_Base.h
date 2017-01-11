@@ -69,7 +69,8 @@ class ChApi ChFunction {
         FUNCT_REPEAT,
         FUNCT_SEQUENCE,
         FUNCT_SIGMA,
-        FUNCT_SINE
+        FUNCT_SINE,
+        FUNCT_LAMBDA
     };
 
   public:
