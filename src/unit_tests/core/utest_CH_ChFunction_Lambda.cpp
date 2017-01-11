@@ -51,5 +51,5 @@ int main() {
     if(!passed)
         std::cerr << "ChFunction_Lambda Error: All tests not passed\n";
 
-    return passed;
+    return !passed;
 }
