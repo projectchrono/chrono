@@ -22,7 +22,8 @@ set(CH_CXX_FLAGS "")
 #-----------------------------------------------------------------------------
 
 find_package(ModernCXX)
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+#set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
 
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
