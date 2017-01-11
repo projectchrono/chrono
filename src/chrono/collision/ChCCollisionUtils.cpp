@@ -9,10 +9,10 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 #include <memory.h>
 
 #include "chrono/collision/ChCCollisionUtils.h"

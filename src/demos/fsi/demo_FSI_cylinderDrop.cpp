@@ -19,12 +19,12 @@
 // =============================================================================
 
 // General Includes
-#include <assert.h>
+#include <cassert>
 #include <ctime>
 #include <fstream>
 #include <iostream>
-#include <limits.h>
-#include <stdlib.h> // system
+#include <climits>
+#include <cstdlib> // system
 #include <string>
 #include <vector>
 

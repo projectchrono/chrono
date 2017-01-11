@@ -23,7 +23,7 @@
 #include <iostream>
 
 #ifndef _MSC_VER
-#include <fenv.h>
+#include <cfenv>
 #endif
 
 #include "chrono_parallel/ChApiParallel.h"

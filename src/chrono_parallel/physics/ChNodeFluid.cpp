@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono_parallel/physics/ChNodeFluid.h"

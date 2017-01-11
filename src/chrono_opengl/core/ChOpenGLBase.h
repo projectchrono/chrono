@@ -27,7 +27,7 @@
 #define GLM_FORCE_RADIANS
 #define _CRT_SECURE_NO_WARNINGS
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <string>
 //#include <string>

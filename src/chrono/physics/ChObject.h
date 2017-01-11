@@ -15,9 +15,9 @@
 #ifndef CHOBJECT_H
 #define CHOBJECT_H
 
-#include <float.h>
+#include <cfloat>
 #include <cmath>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>

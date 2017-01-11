@@ -46,7 +46,6 @@
 
 %{
 #include <cstddef>
-#include <stddef.h>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 

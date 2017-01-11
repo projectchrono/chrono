@@ -12,7 +12,7 @@
 #ifndef CHLOG_H
 #define CHLOG_H
 
-#include <assert.h>
+#include <cassert>
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChApiCE.h"

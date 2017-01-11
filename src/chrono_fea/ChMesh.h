@@ -15,7 +15,7 @@
 #ifndef CHMESH_H
 #define CHMESH_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 
 #include "chrono/core/ChTimer.h"

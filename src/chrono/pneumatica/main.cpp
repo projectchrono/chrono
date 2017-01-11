@@ -5,7 +5,7 @@
 
 #include <cmath>
 #include <fstream>
-#include <stdlib.h>
+#include <cstdlib>
 
 //******************************************************************************
 

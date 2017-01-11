@@ -307,7 +307,7 @@ float ChProfileManager::Get_Time_Since_Reset( void )
 	return (float)time / Profile_Get_Tick_Rate();
 }
 
-#include <stdio.h>
+#include <cstdio>
 
 void	ChProfileManager::dumpRecursive(ChProfileIterator* profileIterator, int spacing)
 {

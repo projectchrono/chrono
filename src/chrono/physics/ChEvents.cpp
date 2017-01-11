@@ -9,11 +9,11 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 #include <memory.h>
 
 #include "chrono/physics/ChEvents.h"

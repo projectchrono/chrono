@@ -21,7 +21,7 @@
 // #include "chrono_fsi/custom_math.h"
 // #include <ctime>
 
-// #include <stdio.h>
+// #include <cstdio>
 
 namespace chrono {
 namespace fsi {

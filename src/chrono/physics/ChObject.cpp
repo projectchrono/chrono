@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <float.h>
+#include <cfloat>
 #include <cmath>
 #include <memory.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 
 #include "chrono/physics/ChGlobal.h"

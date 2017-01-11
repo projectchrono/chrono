@@ -15,7 +15,7 @@
 #ifndef CHSYSTEM_H
 #define CHSYSTEM_H
 
-#include <float.h>
+#include <cfloat>
 #include <memory.h>
 #include <cstdlib>
 #include <cmath>

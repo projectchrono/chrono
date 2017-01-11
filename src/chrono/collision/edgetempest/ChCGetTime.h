@@ -13,7 +13,7 @@
 #define PQP_GETTIME_H
 
 #if (defined _WIN32)  
-#include <time.h>
+#include <ctime>
 #include <sys/timeb.h>
 inline double GetTime() {
     struct _timeb thistime;

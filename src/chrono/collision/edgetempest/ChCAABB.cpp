@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 
 #include "chrono/collision/edgetempest/ChCAABB.h"

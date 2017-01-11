@@ -15,7 +15,7 @@
 // ChronoParallel unit test for real class
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 

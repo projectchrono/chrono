@@ -11,7 +11,7 @@
 
 #if defined _WIN32
 
-#include <stdio.h>
+#include <cstdio>
 #include <Windows.h>
 
 #include "chrono/parallel/ChThreadsWIN32.h"

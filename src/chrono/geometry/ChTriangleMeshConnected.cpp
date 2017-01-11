@@ -38,7 +38,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <map>
 #include <unordered_map>
 

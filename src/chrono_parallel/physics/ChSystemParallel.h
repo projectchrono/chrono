@@ -19,8 +19,8 @@
 
 #pragma once
 
-#include <stdlib.h>
-#include <float.h>
+#include <cstdlib>
+#include <cfloat>
 #include <memory.h>
 #include <algorithm>
 

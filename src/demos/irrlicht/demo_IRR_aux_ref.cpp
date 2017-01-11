@@ -37,7 +37,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"

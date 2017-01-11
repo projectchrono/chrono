@@ -12,7 +12,7 @@
 #ifndef CHLISTS_H
 #define CHLISTS_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <memory.h>
 
 namespace chrono {

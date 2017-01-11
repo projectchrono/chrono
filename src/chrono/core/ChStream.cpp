@@ -11,8 +11,8 @@
 //
 
 #include <cmath>
-#include <stdarg.h>
-#include <errno.h>
+#include <cstdarg>
+#include <cerrno>
 #include <iterator>
 
 #include "chrono/core/ChStream.h"

@@ -18,7 +18,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <time.h>
+#include <ctime>
 
 #include "chrono/core/ChException.h"
 #include "chrono/core/ChLog.h"

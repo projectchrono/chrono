@@ -15,7 +15,7 @@
 // ChronoParallel unit test for Blaze
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 #include <random>

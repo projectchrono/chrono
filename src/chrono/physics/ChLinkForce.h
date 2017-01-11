@@ -15,7 +15,7 @@
 #ifndef CHLINKFORCE_H
 #define CHLINKFORCE_H
 
-#include <float.h>
+#include <cfloat>
 #include <cmath>
 
 #include "chrono/core/ChMath.h"

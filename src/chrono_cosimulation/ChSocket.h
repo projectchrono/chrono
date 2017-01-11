@@ -24,13 +24,13 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
 #include <sys/types.h>
 //#include <stropts.h>
 #include <sys/ioctl.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <sys/filio.h>
 #else
 #include <winsock2.h>

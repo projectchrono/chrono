@@ -13,8 +13,8 @@
 #define CHMATHEMATICS_H
 
 #include <cmath>
-#include <float.h>
-#include <assert.h>
+#include <cfloat>
+#include <cassert>
 
 #include "chrono/core/ChApiCE.h"
 
