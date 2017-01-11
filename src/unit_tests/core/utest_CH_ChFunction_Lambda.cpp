@@ -12,7 +12,7 @@
 // Authors: Tyler Olsen
 // =============================================================================
 //
-// Unit test for MatrMultiplyAVX and MatrMultiplyTAVX.
+// Unit test for ChFunction_Lambda
 //
 // =============================================================================
 
