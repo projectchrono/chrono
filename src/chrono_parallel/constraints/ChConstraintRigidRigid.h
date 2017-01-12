@@ -58,8 +58,9 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
                 contact_active_pairs[i] =
                     bool2(data_manager->host_data.active_rigid[b1], data_manager->host_data.active_rigid[b2]);
 
-                real coh = Max(
-                    (data_manager->host_data.cohesion_data[b1] + data_manager->host_data.cohesion_data[b2]) * .5, 0.0);
+                ////real coh = Max(
+                ////    (data_manager->host_data.cohesion_data[b1] + data_manager->host_data.cohesion_data[b2]) * .5, 0.0);
+                real coh = Min(data_manager->host_data.cohesion_data[b1], data_manager->host_data.cohesion_data[b2]);
                 data_manager->host_data.coh_rigid_rigid[i] = coh;
 
                 real3 f_a = data_manager->host_data.fric_data[b1];

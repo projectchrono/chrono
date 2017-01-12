@@ -19,7 +19,7 @@
 #include "chrono_parallel/ChCudaDefines.h"
 
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 
 namespace chrono {
 

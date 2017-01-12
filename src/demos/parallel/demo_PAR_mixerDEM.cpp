@@ -24,7 +24,7 @@
 // generated for post-processing with POV-Ray.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 

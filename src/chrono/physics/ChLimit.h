@@ -16,7 +16,7 @@
 #define CHLINKLIMIT_H
 
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 
 #include "chrono/core/ChMath.h"
 #include "chrono/motion_functions/ChFunction.h"

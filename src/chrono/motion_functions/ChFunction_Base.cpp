@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <float.h>
+#include <cfloat>
 #include <cmath>
 #include <memory.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #include "chrono/motion_functions/ChFunction_Base.h"

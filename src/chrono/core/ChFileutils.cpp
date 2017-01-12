@@ -11,14 +11,14 @@
 //
 
 #include <cmath>
-#include <string.h>
-#include <stdio.h>
+#include <cstring>
+#include <cstdio>
 
 #include "chrono/core/ChFileutils.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #include <direct.h>
-#include <errno.h>
+#include <cerrno>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>

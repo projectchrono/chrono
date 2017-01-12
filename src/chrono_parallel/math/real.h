@@ -23,7 +23,7 @@
 #include "chrono_parallel/ChCudaDefines.h"
 
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.

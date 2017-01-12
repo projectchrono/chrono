@@ -15,7 +15,7 @@
 #ifndef CHFORCE_H
 #define CHFORCE_H
 
-#include <float.h>
+#include <cfloat>
 #include <memory.h>
 #include <cmath>
 #include <cstdlib>

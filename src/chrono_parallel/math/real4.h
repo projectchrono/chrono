@@ -16,7 +16,7 @@
 // =============================================================================
 
 #pragma once
-#include <string.h>
+#include <cstring>
 #include "chrono_parallel/math/real2.h"
 #include "chrono_parallel/math/real3.h"
 

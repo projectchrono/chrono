@@ -15,7 +15,7 @@
 #ifndef CHTIMESTEPPER_H
 #define CHTIMESTEPPER_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
 #include "chrono/core/ChVectorDynamic.h"

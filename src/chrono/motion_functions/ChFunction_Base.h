@@ -15,10 +15,10 @@
 #ifndef CHFUNCT_BASE_H
 #define CHFUNCT_BASE_H
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <cmath>
-#include <float.h>
+#include <cfloat>
 #include <memory.h>
 #include <list>
 

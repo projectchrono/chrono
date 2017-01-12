@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/assets/ChPointPointDrawing.h"
 

@@ -19,7 +19,7 @@
 #endif
 
 #include "chrono/pneumatica/volume.h"
-#include <string.h>
+#include <cstring>
 
 namespace chrono {
 namespace pneumatics {

@@ -1,7 +1,7 @@
 #if defined(__CUDA_ARCH__)
 #include "chrono_parallel/math/simd_non.h"
 #include "chrono_parallel/math/real4.h"
-#include <stdio.h>
+#include <cstdio>
 
 namespace chrono {
 

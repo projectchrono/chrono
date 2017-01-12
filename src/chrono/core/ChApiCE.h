@@ -13,7 +13,6 @@
 #define CHAPICE_H
 
 #include <cstddef>
-#include <stddef.h>
 
 #include "chrono/core/ChPlatform.h"
 

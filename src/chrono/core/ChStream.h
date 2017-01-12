@@ -13,10 +13,10 @@
 #ifndef CHSTREAM_H
 #define CHSTREAM_H
 
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <vector>

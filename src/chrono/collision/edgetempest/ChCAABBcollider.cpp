@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "chrono/collision/edgetempest/ChCMatVec.h"
 #include "chrono/collision/edgetempest/ChCGetTime.h"

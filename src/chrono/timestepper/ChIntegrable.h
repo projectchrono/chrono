@@ -15,7 +15,7 @@
 #ifndef CHINTEGRABLE_H
 #define CHINTEGRABLE_H
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"

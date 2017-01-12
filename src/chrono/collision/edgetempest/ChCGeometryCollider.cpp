@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 #include "chrono/collision/edgetempest/ChCGeometryCollider.h"
