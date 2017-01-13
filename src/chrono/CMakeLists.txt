@@ -601,8 +601,12 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Repeat.h
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h
-        motion_functions/ChFunction_Lambda.h)
+    motion_functions/ChFunction_Sine.h)
+
+if(CH_CXX14)
+  set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
+      motion_functions/ChFunction_Lambda.h)
+endif()
 
 source_group(motion_functions FILES
     ${ChronoEngine_motion_functions_SOURCES}
