@@ -602,7 +602,7 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
     motion_functions/ChFunction_Sine.h
-    )
+        motion_functions/ChFunction_Lambda.h)
 
 source_group(motion_functions FILES
     ${ChronoEngine_motion_functions_SOURCES}
