@@ -39,7 +39,7 @@ class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
     virtual ~ChSimpleDriveline() {}
 
     /// Return the number of driven axles.
-    virtual int GetNumDrivenAxles() const override { return 2; }
+    virtual int GetNumDrivenAxles() const final override { return 2; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the axles of the

@@ -38,7 +38,7 @@ class CH_VEHICLE_API TrackShoeDoublePin : public ChTrackShoeDoublePin {
     TrackShoeDoublePin(const rapidjson::Document& d);
     ~TrackShoeDoublePin() {}
 
-    virtual GuidePinType GetType() const override { return GuidePinType::CENTRAL_PIN; }
+    virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
     /// Return the height of the track shoe.
     virtual double GetHeight() const override { return m_shoe_height; }

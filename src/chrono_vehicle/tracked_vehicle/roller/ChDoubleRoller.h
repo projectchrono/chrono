@@ -40,7 +40,7 @@ class CH_VEHICLE_API ChDoubleRoller : public ChRoller {
     virtual ~ChDoubleRoller() {}
 
     /// Return the type of track shoe consistent with this roller.
-    virtual GuidePinType GetType() const override { return GuidePinType::CENTRAL_PIN; }
+    virtual GuidePinType GetType() const final override { return GuidePinType::CENTRAL_PIN; }
 
     /// Initialize this roller subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
