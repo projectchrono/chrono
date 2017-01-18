@@ -213,7 +213,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       solvecount(0),
       setupcount(0),
       dump_matrices(false),
-      last_err(0),
+      last_err(false),
       scriptEngine(NULL),
       scriptForStart(NULL),
       scriptForUpdate(NULL),
@@ -1697,10 +1697,8 @@ int ChSystem::DoStepDynamics(double m_step) {
 //  PERFORM INTEGRATION STEP  using pluggable timestepper
 // -----------------------------------------------------------------------------
 
-int ChSystem::Integrate_Y() {
+bool ChSystem::Integrate_Y() {
     ResetTimers();
-
-    int ret_code = TRUE;
 
     timer_step.start();
 
@@ -1756,7 +1754,7 @@ int ChSystem::Integrate_Y() {
     // Time elapsed for step..
     timer_step.stop();
 
-    return (ret_code);
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1766,7 +1764,7 @@ int ChSystem::Integrate_Y() {
 // **** ALSO AUXILIARY MATRICES).
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoAssembly(int action) {
+bool ChSystem::DoAssembly(int action) {
     solvecount = 0;
     setupcount = 0;
 
@@ -1796,14 +1794,14 @@ int ChSystem::DoAssembly(int action) {
     SetStep(old_step);
     SetTolForce(old_tol);
 
-    return 0;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
 // **** PERFORM THE LINEAR STATIC ANALYSIS
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoStaticLinear() {
+bool ChSystem::DoStaticLinear() {
     solvecount = 0;
     setupcount = 0;
 
@@ -1844,14 +1842,14 @@ int ChSystem::DoStaticLinear() {
         GetLog() << (mZx - md).NormInf() << "\n";
     }
 
-    return 0;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
 // **** PERFORM THE NONLINEAR STATIC ANALYSIS
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoStaticNonlinear(int nsteps) {
+bool ChSystem::DoStaticNonlinear(int nsteps) {
     solvecount = 0;
     setupcount = 0;
 
@@ -1872,7 +1870,7 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 
     SetMaxItersSolverSpeed(old_maxsteps);
 
-    return 0;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1880,12 +1878,12 @@ int ChSystem::DoStaticNonlinear(int nsteps) {
 // **** EQUILIBRIUM OF THE SYSTEM, WITH ITERATIVE SOLUTION
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoStaticRelaxing(int nsteps) {
+bool ChSystem::DoStaticRelaxing(int nsteps) {
     solvecount = 0;
     setupcount = 0;
 
     int err = 0;
-    int reached_tolerance = FALSE;
+    bool reached_tolerance = false;
 
     if ((ncoords > 0) && (ndof >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
@@ -1913,7 +1911,7 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
     }
 
     if (err) {
-        last_err = TRUE;
+        last_err = true;
         GetLog() << "WARNING: some costraints may be redundant, but couldn't be eliminated \n";
     }
     return last_err;
@@ -1925,7 +1923,7 @@ int ChSystem::DoStaticRelaxing(int nsteps) {
 // **** REACHED, STARTING FROM THE CURRENT TIME.
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoEntireKinematics() {
+bool ChSystem::DoEntireKinematics() {
     Setup();
 
     int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
@@ -1939,13 +1937,13 @@ int ChSystem::DoEntireKinematics() {
         DoAssembly(action);
 
         if (last_err)
-            return FALSE;
+            return false;
 
         // Update time and repeat.
         ChTime += step;
     }
 
-    return TRUE;
+    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -1955,7 +1953,7 @@ int ChSystem::DoEntireKinematics() {
 // **** END_TIME IS REACHED.
 // -----------------------------------------------------------------------------
 
-int ChSystem::DoEntireDynamics() {
+bool ChSystem::DoEntireDynamics() {
     Setup();
 
     // the system may have wrong layout, or too large
@@ -1973,12 +1971,12 @@ int ChSystem::DoEntireDynamics() {
             break;  // >>> 1- single integration step,
                     //        updating Y, from t to t+dt.
         if (last_err)
-            return FALSE;
+            return false;
     }
 
     if (last_err)
-        return FALSE;
-    return TRUE;
+        return false;
+    return true;
 }
 
 // Perform the dynamical integration, from current ChTime to
@@ -1990,11 +1988,11 @@ int ChSystem::DoEntireDynamics() {
 // Also note that if the time step is higher than the time increment
 // requested to reach m_endtime, the step is lowered.
 
-int ChSystem::DoFrameDynamics(double m_endtime) {
+bool ChSystem::DoFrameDynamics(double m_endtime) {
     double frame_step;
     double old_step;
     double left_time;
-    int restore_oldstep = FALSE;
+    bool restore_oldstep = false;
     int counter = 0;
     double fixed_step_undo;
 
@@ -2002,7 +2000,7 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
     fixed_step_undo = step;
 
     while (ChTime < m_endtime) {
-        restore_oldstep = FALSE;
+        restore_oldstep = false;
         counter++;
 
         left_time = m_endtime - ChTime;
@@ -2014,7 +2012,7 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
         {
             old_step = step;
             step = left_time;
-            restore_oldstep = TRUE;
+            restore_oldstep = true;
         }
 
         if (!Integrate_Y())
@@ -2031,8 +2029,8 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
                           // time-varying schemes)
 
     if (last_err)
-        return FALSE;
-    return TRUE;
+        return false;
+    return true;
 }
 
 // Performs the dynamical simulation, but using "frame integration"
@@ -2043,7 +2041,7 @@ int ChSystem::DoFrameDynamics(double m_endtime) {
 // "frame_step" value (steps are performed anyway, like in normal "DoEntireDynamics"
 // command).
 
-int ChSystem::DoEntireUniformDynamics(double frame_step) {
+bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     // the initial system may have wrong layout, or too large
     // clearances in constraints.
     Setup();
@@ -2052,15 +2050,15 @@ int ChSystem::DoEntireUniformDynamics(double frame_step) {
     while (ChTime < end_time) {
         double goto_time = (ChTime + frame_step);
         if (!DoFrameDynamics(goto_time))
-            return FALSE;  // ###### Perform "frame integration
+            return false;
     }
 
-    return TRUE;
+    return true;
 }
 
 // Like DoFrameDynamics, but performs kinematics instead of dinamics
 
-int ChSystem::DoFrameKinematics(double m_endtime) {
+bool ChSystem::DoFrameKinematics(double m_endtime) {
     double frame_step;
     double old_step;
     double left_time;
@@ -2072,7 +2070,7 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
     double fixed_step_undo = step;
 
     while (ChTime < m_endtime) {
-        restore_oldstep = FALSE;
+        restore_oldstep = false;
         counter++;
 
         left_time = m_endtime - ChTime;
@@ -2084,14 +2082,14 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
         {
             old_step = step;
             step = left_time;
-            restore_oldstep = TRUE;
+            restore_oldstep = true;
         }
 
         // Newton Raphson kinematic equations solver
         DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
         if (last_err)
-            return FALSE;
+            return false;
 
         ChTime += step;
 
@@ -2099,10 +2097,10 @@ int ChSystem::DoFrameKinematics(double m_endtime) {
             step = old_step;  // if timestep was changed to meet the end of frametime
     }
 
-    return TRUE;
+    return true;
 }
 
-int ChSystem::DoStepKinematics(double m_step) {
+bool ChSystem::DoStepKinematics(double m_step) {
     ChTime += m_step;
 
     Update();
@@ -2111,13 +2109,13 @@ int ChSystem::DoStepKinematics(double m_step) {
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     if (last_err)
-        return FALSE;
+        return false;
 
-    return TRUE;
+    return true;
 }
 
 // Full assembly -computes also forces-
-int ChSystem::DoFullAssembly() {
+bool ChSystem::DoFullAssembly() {
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     return last_err;

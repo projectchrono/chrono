@@ -31,7 +31,7 @@ class ChApi ChCollisionUtils {
     /// two lines P1P2 and P3P4. Calculate also the values of mua and mub where
     ///    Pa = P1 + mua (P2 - P1)
     ///    Pb = P3 + mub (P4 - P3)
-    /// Return FALSE if no solution exists.
+    /// Return false if no solution exists.
 
     static bool
     LineLineIntersect(Vector p1, Vector p2, Vector p3, Vector p4, Vector* pa, Vector* pb, double* mua, double* mub);

@@ -35,7 +35,7 @@ ChLine::ChLine(const ChLine& source) {
 bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
     double mu;
     int points = 20;
-    int closed = FALSE;
+    bool closed = false;
     double bestU = 0;
     double bestdist = 9999999;
     double dist, d1, d2;

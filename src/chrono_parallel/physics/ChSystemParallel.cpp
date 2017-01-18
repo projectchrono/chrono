@@ -71,7 +71,7 @@ ChSystemParallel::~ChSystemParallel() {
     delete data_manager;
 }
 
-int ChSystemParallel::Integrate_Y() {
+bool ChSystemParallel::Integrate_Y() {
     LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->system_descriptor = this->descriptor;
@@ -176,7 +176,7 @@ int ChSystemParallel::Integrate_Y() {
         RecomputeThreads();
     }
 
-    return 1;
+    return true;
 }
 
 //

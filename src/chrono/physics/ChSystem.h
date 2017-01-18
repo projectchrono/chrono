@@ -730,7 +730,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Performs a single dynamical simulation step, according to
     /// current values of:  Y, time, step  (and other minor settings)
     /// Depending on the integration type, it switches to one of the following:
-    virtual int Integrate_Y();
+    virtual bool Integrate_Y();
 
   public:
     // ---- DYNAMICS
@@ -750,18 +750,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// simulations (3d modeling software etc.) wihch needs updates
     /// of the screen at a fixed rate (ex.30th of second)  while
     /// the integration must use more steps.
-    int DoFrameDynamics(double m_endtime);
+    bool DoFrameDynamics(double m_endtime);
 
     /// Given the current state, the sw simulates the
     /// dynamical behaviour of the system, until the end
     /// time is reached, repeating many steps (maybe the step size
     /// will be automatically changed if the integrator method supports
     /// step size adaption).
-    int DoEntireDynamics();
+    bool DoEntireDynamics();
 
     /// Like "DoEntireDynamics", but results are provided at uniform
     /// steps "frame_step", using the DoFrameDynamics() many times.
-    int DoEntireUniformDynamics(double frame_step);
+    bool DoEntireUniformDynamics(double frame_step);
 
     /// Return the total number of time steps taken so far.
     size_t GetStepcount() const { return stepcount; }
@@ -832,18 +832,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Advances the kinematic simulation for a single step, of
     /// length m_step. You can call this function many
     /// times in order to simulate up to a desired end time.
-    int DoStepKinematics(double m_step);
+    bool DoStepKinematics(double m_step);
 
     /// Performs kinematics until the m_endtime is exactly
     /// reached, but current time step may be automatically "retouched" to
     /// meet exactly the m_endtime after n steps.
-    int DoFrameKinematics(double m_endtime);
+    bool DoFrameKinematics(double m_endtime);
 
     /// Given the current state, this kinematic simulation
     /// satisfies all the costraints with the "DoStepKinematics"
     /// procedure for each time step, from the current time
     /// to the end time.
-    int DoEntireKinematics();
+    bool DoEntireKinematics();
 
     // ---- CONSTRAINT ASSEMBLATION
 
@@ -851,11 +851,11 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// a Newton-Raphson iteration loop. Used iteratively in inverse kinematics.
     /// Action can be one of AssemblyLevel::POSITION, AssemblyLevel::VELOCITY, or 
     /// AssemblyLevel::ACCELERATION (or a combination of these)
-    /// Returns 0 if no errors, returns TRUE if error happened (impossible assemblation?)
-    int DoAssembly(int action);
+    /// Returns true if no errors and false if an error occured (impossible assembly?)
+    bool DoAssembly(int action);
 
     /// Shortcut for full position/velocity/acceleration assembly.
-    int DoFullAssembly();
+    bool DoFullAssembly();
 
     // ---- STATICS
 
@@ -863,20 +863,20 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// reactions). This is a one-step only approach that solves
     /// the _linear_ equilibrium. To be used mostly for FEM
     /// problems with small deformations.
-    int DoStaticLinear();
+    bool DoStaticLinear();
 
     /// Solve the position of static equilibrium (and the
     /// reactions). This tries to solve the equilibrium for the nonlinear
     /// problem (large displacements). The larger nsteps, the more the CPU time
     /// but the less likely the divergence.
-    int DoStaticNonlinear(int nsteps = 10);
+    bool DoStaticNonlinear(int nsteps = 10);
 
     /// Finds the position of static equilibrium (and the
     /// reactions) starting from the current position.
     /// Since a truncated iterative metod is used, you may need
     /// to call this method multiple times in case of large nonlienarities
     /// before coming to the precise static solution.
-    int DoStaticRelaxing(int nsteps = 10);
+    bool DoStaticRelaxing(int nsteps = 10);
 
     //
     // SERIALIZATION
@@ -951,7 +951,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChCustomCollisionPointCallback* collisionpoint_callback;
 
   private:
-    int last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
+    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
 
     ChEvents* events;  ///< the cyclic buffer which records event IDs
 

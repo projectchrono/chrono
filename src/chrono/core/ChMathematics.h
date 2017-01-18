@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHMATHEMATICS_H
 #define CHMATHEMATICS_H
@@ -18,18 +19,8 @@
 
 #include "chrono/core/ChApiCE.h"
 
-//
-// CONSTANTS
-//
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-#ifndef FALSE
-#define FALSE 0
-#endif
-
 namespace chrono {
+// CONSTANTS
 
 static const double CH_C_PI = 3.141592653589793238462643383279;
 static const double CH_C_PI_2 = 1.570796326794896619231321691639;
@@ -60,16 +51,12 @@ static const double BDF_STEP_LOW = 0.0000001;
 static const double BDF_STEP_VERYLOW = 1.e-10;
 static const double BDF_STEP_TOOLOW = 1.e-20;
 
-//
 // ANGLE CONVERSIONS
-//
 
 /// Computes the atan2, returning angle given cosine and sine.
 ChApi double ChAtan2(double mcos, double msin);
 
-//
 // OTHER
-//
 
 /// Returns random value in (0..1) interval with Park-Miller method
 ChApi double ChRandom();

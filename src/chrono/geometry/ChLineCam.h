@@ -63,8 +63,8 @@ class ChApi ChLineCam : public ChLine {
     double e;  ///< eccentricity of sliding follower
     double s;  ///< distance of sliding follower
 
-    int negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
-    int internal;  ///< follower roller is inside the cam
+    bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
+    bool internal;  ///< follower roller is inside the cam
 
     ChVector<> center;  ///< center of cam in space (def.alignment on xy plane)
 

@@ -33,8 +33,8 @@ ChLineCam::ChLineCam() {
     e = 0;
     s = Rb;
     law = std::make_shared<ChFunction_Const>(0);  // default law = no follower motion
-    negative = FALSE;
-    internal = FALSE;
+    negative = false;
+    internal = false;
 }
 
 ChLineCam::ChLineCam(const ChLineCam& source) : ChLine(source) {

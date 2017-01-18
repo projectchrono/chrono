@@ -25,7 +25,7 @@ ChFseqNode::ChFseqNode() {
     t_start = 0;
     t_end = t_start + duration;
     Iy = Iydt = Iydtdt = 0.0;
-    y_cont = ydt_cont = ydtdt_cont = FALSE;
+    y_cont = ydt_cont = ydtdt_cont = false;
 }
 
 ChFseqNode::ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur) {
@@ -35,7 +35,7 @@ ChFseqNode::ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur) {
     t_start = 0;
     t_end = t_start + duration;
     Iy = Iydt = Iydtdt = 0.0;
-    y_cont = ydt_cont = ydtdt_cont = FALSE;
+    y_cont = ydt_cont = ydtdt_cont = false;
 }
 
 ChFseqNode::ChFseqNode(const ChFseqNode& other) {
