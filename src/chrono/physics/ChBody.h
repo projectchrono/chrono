@@ -320,7 +320,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Update the optimization structures (OOBB, ABB, etc.)
     /// of the collision model, from the associated geometry in some external object (es.CAD).
-    int RecomputeCollisionModel();
+    bool RecomputeCollisionModel();
 
     /// Gets the last position when the collision detection was
     /// performed last time (i.e. last time SynchronizeLastCollPos() was used)
@@ -535,12 +535,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Transform and adds a cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
     /// The carthesian force must be passed as vector and application point, and vcan be either in local
-    /// (local = TRUE) or absolute reference (local = FALSE)
+    /// (local = true) or absolute reference (local = false)
     void Add_as_lagrangian_force(const ChVector<>& force,
                                  const ChVector<>& appl_point,
-                                 int local,
+                                 bool local,
                                  ChMatrixNM<double, 7, 1>* mQf);
-    void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf);
+    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChMatrixNM<double, 7, 1>* mQf);
 
     //
     // UTILITIES FOR FORCES/TORQUES:
@@ -552,8 +552,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// integration step. Useful to apply forces to bodies without needing to
     /// add ChForce() objects. If local=true, force,appl.point or torque are considered
     /// expressed in body coordinates, otherwise are considered in absolute coordinates.
-    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
-    void Accumulate_torque(const ChVector<>& torque, int local);
+    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
+    void Accumulate_torque(const ChVector<>& torque, bool local);
     void Empty_forces_accumulators() {
         Force_acc = VNULL;
         Torque_acc = VNULL;
@@ -568,8 +568,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
     void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
     void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
-    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
-    void Accumulate_script_torque(const ChVector<>& torque, int local);
+    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
+    void Accumulate_script_torque(const ChVector<>& torque, bool local);
 
     /// Return the gyroscopic torque.
     const ChVector<>& Get_gyro() const { return gyro; }

@@ -35,7 +35,7 @@ ChLinkPneumaticActuator::ChLinkPneumaticActuator() {
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, false, false, false);
 
     // set upper lower limits, active
-    limit_X->Set_active(TRUE);
+    limit_X->Set_active(true);
     limit_X->Set_min(offset);  // 0.0);
     limit_X->Set_max(pneuma->Get_L() + offset);
     limit_X->Set_maxElastic(0.0);

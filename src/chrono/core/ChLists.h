@@ -17,9 +17,6 @@
 
 namespace chrono {
 
-#define TRUE 1
-#define FALSE 0
-
 //////////////////////////////////////////////////////////////////
 //
 // GENERIC LISTS AND NODES
@@ -99,35 +96,35 @@ class ChList {
     ChNode<dt>* GetNum(int num);
 
     /// Insert data at the head of the list
-    int AddHead(dt* mdata);
+    void AddHead(dt* mdata);
 
     /// Insert data at the tail of the list
-    int AddTail(dt* mdata);
+    void AddTail(dt* mdata);
 
     /// Removes the head of list.
-    int RemHead();
+    bool RemHead();
 
     /// Removes the tail of list.
-    int RemTail();
+    bool RemTail();
 
-    int InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode);
-    int InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode);
-    int InsertAfter(ChNode<dt>* mnode, dt* mdata);
-    int InsertBefore(ChNode<dt>* mnode, dt* mdata);
+    void InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode);
+    void InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode);
+    void InsertAfter(ChNode<dt>* mnode, dt* mdata);
+    void InsertBefore(ChNode<dt>* mnode, dt* mdata);
 
     /// Removes a node.
     /// Note the Remove() command delete just the Ch_node, not the pointed 'data' object
-    int Remove(ChNode<dt>* mnode);
+    void Remove(ChNode<dt>* mnode);
 
     /// Removes all nodes.
-    int RemoveAll();
+    void RemoveAll();
 
     /// Removes a node and deletes its data.
     /// Note the Kill() commands remove and also use delete(data) to free the objects pointed by nodes!,
-    int Kill(ChNode<dt>* mnode);
+    void Kill(ChNode<dt>* mnode);
 
     /// Kills all nodes.
-    int KillAll();
+    void KillAll();
 
     /// Returns number of elements in list.
     int Count();
@@ -143,7 +140,7 @@ ChList<dt>::~ChList() {
 }
 
 template <class dt>
-int ChList<dt>::AddHead(dt* mdata) {
+void ChList<dt>::AddHead(dt* mdata) {
     ChNode<dt>* nnode = new ChNode<dt>;
     nnode->data = mdata;
     nnode->prev = NULL;
@@ -156,11 +153,10 @@ int ChList<dt>::AddHead(dt* mdata) {
         head->prev = nnode;
         head = nnode;
     }
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::AddTail(dt* mdata) {
+void ChList<dt>::AddTail(dt* mdata) {
     ChNode<dt>* nnode = new ChNode<dt>;
     nnode->data = mdata;
     nnode->prev = tail;
@@ -173,25 +169,26 @@ int ChList<dt>::AddTail(dt* mdata) {
         tail->next = nnode;
         tail = nnode;
     }
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::RemHead() {
+bool ChList<dt>::RemHead() {
     if (head == NULL)
-        return FALSE;
-    return Remove(head);
+        return false;
+    Remove(head);
+    return true;
 }
 
 template <class dt>
-int ChList<dt>::RemTail() {
+bool ChList<dt>::RemTail() {
     if (tail == NULL)
-        return FALSE;
-    return Remove(tail);
+        return false;
+    Remove(tail);
+    return true;
 }
 
 template <class dt>
-int ChList<dt>::InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode) {
+void ChList<dt>::InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode) {
     newnode->next = mnode->next;
     newnode->prev = mnode;
     if (mnode->next)
@@ -199,11 +196,10 @@ int ChList<dt>::InsertAfter(ChNode<dt>* mnode, ChNode<dt>* newnode) {
     else
         tail = newnode;
     mnode->next = newnode;
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode) {
+void ChList<dt>::InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode) {
     newnode->next = mnode;
     newnode->prev = mnode->prev;
     if (mnode->prev)
@@ -211,22 +207,22 @@ int ChList<dt>::InsertBefore(ChNode<dt>* mnode, ChNode<dt>* newnode) {
     else
         head = newnode;
     mnode->prev = newnode;
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::InsertAfter(ChNode<dt>* mnode, dt* mdata) {
+void ChList<dt>::InsertAfter(ChNode<dt>* mnode, dt* mdata) {
     ChNode<dt>* nenode = new ChNode<dt>(mdata);
-    return InsertAfter(mnode, nenode);
-}
-template <class dt>
-int ChList<dt>::InsertBefore(ChNode<dt>* mnode, dt* mdata) {
-    ChNode<dt>* nenode = new ChNode<dt>(mdata);
-    return InsertBefore(mnode, nenode);
+    InsertAfter(mnode, nenode);
 }
 
 template <class dt>
-int ChList<dt>::Remove(ChNode<dt>* mnode) {
+void ChList<dt>::InsertBefore(ChNode<dt>* mnode, dt* mdata) {
+    ChNode<dt>* nenode = new ChNode<dt>(mdata);
+    InsertBefore(mnode, nenode);
+}
+
+template <class dt>
+void ChList<dt>::Remove(ChNode<dt>* mnode) {
     if (mnode == head)
         head = mnode->next;
     if (mnode == tail)
@@ -236,32 +232,28 @@ int ChList<dt>::Remove(ChNode<dt>* mnode) {
     if (mnode->prev)
         mnode->prev->next = mnode->next;
     delete mnode;
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::RemoveAll() {
+void ChList<dt>::RemoveAll() {
     for (ChNode<dt>* mnode = head; mnode != NULL; mnode = head)
         Remove(mnode);
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::Kill(ChNode<dt>* mnode) {
+void ChList<dt>::Kill(ChNode<dt>* mnode) {
     if (mnode->data)
-        delete (mnode->data);
+        delete mnode->data;
     Remove(mnode);
-    return TRUE;
 }
 
 template <class dt>
-int ChList<dt>::KillAll() {
+void ChList<dt>::KillAll() {
     for (ChNode<dt>* mnode = head; mnode != NULL; mnode = head) {
         if (mnode->data)
-            delete (mnode->data);
+            delete mnode->data;
         Remove(mnode);
     }
-    return TRUE;
 }
 
 template <class dt>

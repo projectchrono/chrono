@@ -149,14 +149,14 @@ void ChFunction_Mocap::Set_array_y_dtdt(ChMatrix<>* m_array_y_dtdt) {
 
 // Parsing of external files, to create mocap streams
 // from the output of mocap devices
-int ChFunction_Mocap::Parse_array_AOA() {
+bool ChFunction_Mocap::Parse_array_AOA() {
     // *** TO DO **** //
-    return TRUE;
+    return true;
 }
 
-int ChFunction_Mocap::Parse_array_Elite() {
+bool ChFunction_Mocap::Parse_array_Elite() {
     // *** TO DO **** //
-    return TRUE;
+    return true;
 }
 
 // Return the value of the evaluated function, using

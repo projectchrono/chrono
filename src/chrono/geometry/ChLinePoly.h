@@ -56,7 +56,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
 
     /// Gets the number of control points
     size_t Get_numpoints() const;
@@ -69,7 +69,7 @@ class ChApi ChLinePoly : public ChLine {
     ChVector<> Get_point(size_t mnum) const;
 
     /// Set the n-th control point
-    int Set_point(int mnum, ChVector<> mpoint);
+    bool Set_point(int mnum, ChVector<> mpoint);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {

@@ -62,7 +62,7 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
 
     double Get_end() { return end; }
 
-    int SetupCoefficients();
+    void SetupCoefficients();
 
     void Set_y1(double my1) {
         y1 = my1;

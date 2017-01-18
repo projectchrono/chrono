@@ -32,7 +32,7 @@ ChLinkClearance::ChLinkClearance() {
     contact_F_abs = VNULL;
     contact_V_abs = VNULL;
 
-    this->limit_X->Set_active(TRUE);
+    this->limit_X->Set_active(true);
     this->limit_X->Set_max(clearance);
     this->limit_X->Set_maxElastic(c_restitution);
     this->limit_X->Set_min(-1000.0);

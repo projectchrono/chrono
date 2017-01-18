@@ -50,7 +50,7 @@ ChLinkLock::ChLinkLock()
     limit_Rz = new ChLinkLimit;
     limit_D = new ChLinkLimit;
     limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(TRUE);
+    limit_Rp->Set_polar(true);
 
     if (mask)
         delete mask;            // delete the class mask created by base constructor, and,
@@ -191,7 +191,7 @@ void ChLinkLock::BuildLinkType(int link_type) {
     if (type == LNK_REVOLUTEPRISMATIC)
         m_mask.SetLockMask(false, true, true, false, true, true, false);
 
-    BuildLink(&m_mask);  // , TRUE);
+    BuildLink(&m_mask);
 }
 
 void ChLinkLock::ChangeLinkType(int new_link_type) {
@@ -248,7 +248,7 @@ void ChLinkLock::ChangeLinkType(int new_link_type) {
     limit_Rz = new ChLinkLimit;
     limit_D = new ChLinkLimit;
     limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(TRUE);
+    limit_Rp->Set_polar(true);
 }
 
 // setup the functions when user changes them.

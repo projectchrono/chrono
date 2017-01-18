@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cmath>
 
@@ -267,7 +268,7 @@ void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, int space) {
     GrRestore();
 }
 
-void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, int filled) {
+void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, bool filled) {
     ChPageVect mp1, mp2, mp3;
     mp1.x = mfrom.x + mwh.x;
     mp1.y = mfrom.y;
@@ -482,7 +483,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
     // draw enclosing frame
     SetGray(0.0);
-    DrawRectangle(G_p, Gs_p, PS_SPACE_PAGE, 0);
+    DrawRectangle(G_p, Gs_p, PS_SPACE_PAGE, false);
 
     // draw title
     if (msetting->title)
@@ -586,7 +587,7 @@ void ChFile_ps::DrawGraphLabel(double dx,
     if (background) {
         GrSave();
         SetRGB(bkgndcolor);
-        DrawRectangle(mpa, mpb, PS_SPACE_PAGE, TRUE);
+        DrawRectangle(mpa, mpb, PS_SPACE_PAGE, true);
         GrRestore();
     }
     if (dolinesample) {

@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHFILEPS_H
 #define CHFILEPS_H
@@ -257,7 +258,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     /// Draws line from point to point,
     void DrawLine(ChPageVect mfrom, ChPageVect mto, int space);
     /// Draws rectangle from point to point
-    void DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, int filled);
+    void DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, bool filled);
     /// Sets clip rectangle draw region, from point to point (remember GrSave() and GrRestore() before and later..)
     void ClipRectangle(ChPageVect mfrom, ChPageVect mwh, int space);
     /// Sets clip rectangle as graph region (remember GrSave() and GrRestore() before and later..)

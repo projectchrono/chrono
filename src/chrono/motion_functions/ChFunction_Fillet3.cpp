@@ -65,7 +65,7 @@ double ChFunction_Fillet3::Get_y_dxdx(double x) const {
     return ret;
 }
 
-int ChFunction_Fillet3::SetupCoefficients() {
+void ChFunction_Fillet3::SetupCoefficients() {
     ChMatrixDynamic<> ma(4, 4);
     ChMatrixDynamic<> mb(4, 1);
     ChMatrixDynamic<> mx(4, 1);
@@ -94,8 +94,6 @@ int ChFunction_Fillet3::SetupCoefficients() {
     c2 = mx(1, 0);
     c3 = mx(2, 0);
     c4 = mx(3, 0);
-
-    return TRUE;
 }
 
 }  // end namespace chrono

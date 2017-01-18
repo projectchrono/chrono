@@ -65,8 +65,8 @@ class ChApi ChFunction_Mocap : public ChFunction {
     void Set_array_y_dt(ChMatrix<>* m_array_y_dt);      // *** TO DO
     void Set_array_y_dtdt(ChMatrix<>* m_array_y_dtdt);  // *** TO DO
 
-    int Parse_array_AOA();    // *** TO DO
-    int Parse_array_Elite();  // *** TO DO
+    bool Parse_array_AOA();    // *** TO DO
+    bool Parse_array_Elite();  // *** TO DO
 
     void Compute_array_dt(ChMatrix<>* array_A, ChMatrix<>* array_A_dt);
     double LinInterp(ChMatrix<>* m_array, double x, double x_max) const;

@@ -449,7 +449,7 @@ void ChBody::ComputeQInertia(ChMatrixNM<double, 4, 4>* mQInertia) {
 
 void ChBody::Add_as_lagrangian_force(const ChVector<>& force,
                                      const ChVector<>& appl_point,
-                                     int local,
+                                     bool local,
                                      ChMatrixNM<double, 7, 1>* mQf) {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
@@ -458,7 +458,7 @@ void ChBody::Add_as_lagrangian_force(const ChVector<>& force,
     mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
 }
 
-void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf) {
+void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChMatrixNM<double, 7, 1>* mQf) {
     ChVector<> mabstorque;
     To_abs_torque(torque, local, mabstorque);
     mQf->PasteSumQuaternion(ChFrame<>::GlT_x_Vect(coord.rot, Dir_World2Body(mabstorque)), 3, 0);
@@ -466,7 +466,7 @@ void ChBody::Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMat
 
 //////
 
-void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local) {
+void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
     To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
@@ -475,13 +475,13 @@ void ChBody::Accumulate_force(const ChVector<>& force, const ChVector<>& appl_po
     Torque_acc += mabstorque;
 }
 
-void ChBody::Accumulate_torque(const ChVector<>& torque, int local) {
+void ChBody::Accumulate_torque(const ChVector<>& torque, bool local) {
     ChVector<> mabstorque;
     To_abs_torque(torque, local, mabstorque);
     Torque_acc += mabstorque;
 }
 
-void ChBody::Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, int local) {
+void ChBody::Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local) {
     ChVector<> mabsforce;
     ChVector<> mabstorque;
     To_abs_forcetorque(force, appl_point, local, mabsforce, mabstorque);
@@ -490,7 +490,7 @@ void ChBody::Accumulate_script_force(const ChVector<>& force, const ChVector<>& 
     Scr_torque += mabstorque;
 }
 
-void ChBody::Accumulate_script_torque(const ChVector<>& torque, int local) {
+void ChBody::Accumulate_script_torque(const ChVector<>& torque, bool local) {
     ChVector<> mabstorque;
     To_abs_torque(torque, local, mabstorque);
 
@@ -710,9 +710,9 @@ void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
     collision_model->SetContactable(this);
 }
 
-int ChBody::RecomputeCollisionModel() {
+bool ChBody::RecomputeCollisionModel() {
     if (!GetCollide())
-        return FALSE;  // do nothing unless collision enabled
+        return false;  // do nothing unless collision enabled
 
     collision_model->ClearModel();  // ++++ start geometry definition
 
@@ -720,7 +720,7 @@ int ChBody::RecomputeCollisionModel() {
 
     collision_model->BuildModel();  // ++++ complete geometry definition
 
-    return TRUE;
+    return true;
 }
 
 void ChBody::SyncCollisionModels() {

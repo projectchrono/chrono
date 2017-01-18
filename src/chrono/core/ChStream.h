@@ -259,7 +259,7 @@ class ChApi ChBinaryArchive {
 
     virtual ~ChBinaryArchive();
 
-    /// Returns TRUE if the machine where the code runs
+    /// Returns true if the machine where the code runs
     /// has big endian byte ordering, returns FALSE otherwise.
     bool IsBigEndianMachine();
 

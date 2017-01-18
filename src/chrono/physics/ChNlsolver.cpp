@@ -65,7 +65,7 @@ double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChMatrix<>* mx, ChMatrix<
 
     int iters = 0;
 
-    while (TRUE) {
+    while (true) {
         if (iters >= maxiters)
             break;
 

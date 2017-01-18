@@ -151,7 +151,7 @@ class ChApi ChFunction {
 
     /// Get the x and y position of handle, given identifier.
     /// If set mode, x and y values are stored. Return false if handle not found.
-    virtual int HandleAccess(int handle_id, double mx, double my, bool set_mode) { return TRUE; }
+    virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) { return true; }
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOUT(ChArchiveOut& marchive);

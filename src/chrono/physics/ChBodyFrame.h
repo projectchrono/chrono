@@ -42,13 +42,13 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// coordinates, if =0, in absolute.
     void To_abs_forcetorque(const ChVector<>& force,
                             const ChVector<>& appl_point,
-                            int local,
+                            bool local,
                             ChVector<>& resultforce,
                             ChVector<>& resulttorque);
 
     /// Transform generic cartesian torque into absolute torque applied to body COG.
     /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-    void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
+    void To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

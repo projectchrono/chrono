@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChLineCam)
 
 ChLineCam::ChLineCam() {
     Set_complexity(10);
-    this->closed = TRUE;
+    this->closed = true;
     type = CAM_TYPE_SLIDEFOLLOWER;
     Rb = 1.0;
     Rr = 0.0;

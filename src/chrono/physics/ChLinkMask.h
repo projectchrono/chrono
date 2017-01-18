@@ -72,8 +72,8 @@ class ChApi ChLinkMask {
     /// be automatically deleted when the mask will be deleted)
     void AddConstraint(ChConstraintTwoBodies* aconstr);
 
-    /// To compare two masks, return TRUE if equal
-    int IsEqual(ChLinkMask& mask2);
+    /// To compare two masks, return true if equal
+    bool IsEqual(ChLinkMask& mask2);
 
     /// Tells if i-th equation is a unilateral constraint
     bool IsUnilateral(int i);

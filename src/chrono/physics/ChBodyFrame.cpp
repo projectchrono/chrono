@@ -18,7 +18,7 @@ namespace chrono {
 
 void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
                                      const ChVector<>& appl_point,
-                                     int local,
+                                     bool local,
                                      ChVector<>& resultforce,
                                      ChVector<>& resulttorque) {
     if (local) {
@@ -33,7 +33,7 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
     }
 }
 
-void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque) {
+void ChBodyFrame::To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque) {
     if (local) {
         // local space
         resulttorque = this->TransformDirectionLocalToParent(torque);

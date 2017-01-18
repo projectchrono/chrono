@@ -1370,7 +1370,7 @@ void SoilBin() {
 	application.SetPaused(true);
 	while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
 		Plate->Empty_forces_accumulators();
-		Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0*sin(my_system.GetChTime()*CH_C_PI)), Plate->GetPos(), 0);
+		Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0*sin(my_system.GetChTime()*CH_C_PI)), Plate->GetPos(), false);
 		Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
 		application.BeginScene();
