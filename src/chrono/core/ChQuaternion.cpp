@@ -52,16 +52,15 @@ ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaternion<dou
     result.e3 = qa.e3 - qb.e3;
     return result;
 }
-// returns the norm two of the quaternion. Eulero's parameters have norm = 1
 
+// Return the norm two of the quaternion. Euler's parameters have norm = 1
 ChQuaternion<double> Qnorm(const ChQuaternion<double>& q) {
     double invlength;
     invlength = 1 / (Qlength(q));
     return Qscale(q, invlength);
 }
 
-// The conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
-
+// Return the conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
 ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q) {
     ChQuaternion<double> res;
     res.e0 = q.e0;
@@ -71,9 +70,7 @@ ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q) {
     return (res);
 }
 
-// Returns the product of two quaternions. It is NONcommutative! (like cross
-// product in vectors.
-
+// Return the product of two quaternions. It is non-commutative (like cross product in vectors).
 ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
     ChQuaternion<double> res;
     res.e0 = qa.e0 * qb.e0 - qa.e1 * qb.e1 - qa.e2 * qb.e2 - qa.e3 * qb.e3;
@@ -83,10 +80,9 @@ ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<d
     return (res);
 }
 
-// Gets the quaternion from an agle of rotation and an axis,
-// defined in _abs_ coords. The axis is supposed to be fixed, i.e.
-// it is constant during rotation! And must be normalized!
-
+// Get the quaternion from an agle of rotation and an axis, defined in _abs_ coords.
+// The axis is supposed to be fixed, i.e. it is constant during rotation.
+// The 'axis' vector must be normalized.
 ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) {
     ChQuaternion<double> quat;
     double halfang;
@@ -107,14 +103,13 @@ ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) 
 static ChVector<double> getOrthogonalVector(const ChVector<double>& vect);
 static int maxComponent(const ChVector<double>& vect);
 
-// Gets the quaternion from a source vector and a destination vector
-// which specifies the rotation from one to the other.  The vectors
-// do not need to be normalized.
+// Get the quaternion from a source vector and a destination vector which specifies
+// the rotation from one to the other.  The vectors do not need to be normalized.
 ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect) {
-	const double ANGLE_TOLERANCE = 1e-6;
-	ChQuaternion<double> quat;
-	double halfang;
-	double sinhalf;
+    const double ANGLE_TOLERANCE = 1e-6;
+    ChQuaternion<double> quat;
+    double halfang;
+    double sinhalf;
 	ChVector<double> axis;
 
 	double lenXlen = fr_vect.Length() * to_vect.Length();
@@ -154,7 +149,7 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
 }
 
 
-// Returns the maximum component of a vector.
+// Return the maximum component of a vector.
 static int maxComponent(const ChVector<double>& vect) {
 	int idx = 0;
 	double max = abs(vect(0));
@@ -206,6 +201,7 @@ ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& mang) {
     mq.e3 = s1 * c2 * c3 - c1 * s2 * s3;
     return mq;
 }
+
 ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     ChVector<double> mnasa;
     double sqw = q1.e0 * q1.e0;
@@ -239,9 +235,7 @@ void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<doub
     }
 }
 
-//	Gets the four quaternion dq/dt from the vector of angular speed,
-// with w specified in _absolute_ coords.
-
+// Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
 ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion<double>& q) {
     ChQuaternion<double> qw;
     double half = 0.5;
@@ -254,9 +248,7 @@ ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion
     return Qscale(Qcross(qw, q), half);  // {q_dt} = 1/2 {0,w}*{q}
 }
 
-//	Gets the four quaternion dq/dt from the vector of angular speed,
-// with w specified in _local_ coords.
-
+// Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
 ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion<double>& q) {
     ChQuaternion<double> qw;
     double half = 0.5;
@@ -269,80 +261,79 @@ ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion
     return Qscale(Qcross(q, qw), half);  // {q_dt} = 1/2 {q}*{0,w_rel}
 }
 
-//	Gets the quaternion ddq/dtdt from the vector of angular acceleration
-//  with a specified in _absolute_ coords.
-
-ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
+// Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
+ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a,
+                                     const ChQuaternion<double>& q,
+                                     const ChQuaternion<double>& q_dt) {
     ChQuaternion<double> ret;
     ret.Qdtdt_from_Aabs(a, q, q_dt);
     return ret;
 }
 
-//	Gets the quaternion ddq/dtdt from the vector of angular acceleration
-//  with a specified in _relative_ coords.
-
-ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
+///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
+ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a,
+                                     const ChQuaternion<double>& q,
+                                     const ChQuaternion<double>& q_dt) {
     ChQuaternion<double> ret;
     ret.Qdtdt_from_Arel(a, q, q_dt);
     return ret;
 }
 
-// Gets the dquaternion/dt from a quaternion, a speed of
-// rotation and an axis, defined in _abs_ coords.
-
+// Get the time derivative from a quaternion, a speed of rotation and an axis, defined in _abs_ coords.
 ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis) {
     ChVector<double> W;
 
     W = Vmul(axis, angle_dt);
 
-    return (chrono::Qdt_from_Wabs(W, quat));
+    return Qdt_from_Wabs(W, quat);
 }
 
-// Gets the ddquaternion/dtdt from a quaternion, an angular
-// acceleration and an axis, defined in _abs_ coords.
-
+// Get the second time derivative from a quaternion, an angular acceleration and an axis, defined in _abs_ coords.
 ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt, const ChVector<double>& axis, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt) {
     ChVector<double> Acc;
 
     Acc = Vmul(axis, angle_dtdt);
 
-    return (chrono::Qdtdt_from_Aabs(Acc, q, q_dt));
+    return Qdtdt_from_Aabs(Acc, q, q_dt);
 }
 
-// Returns TRUE if two quaternions are equal
-
+// Check if two quaternions are equal
 bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb) {
     return qa == qb;
 }
 
-// Returns TRUE if quaternion is not null;
-
+// Check if quaternion is not null
 bool Qnotnull(const ChQuaternion<double>& qa) {
     return (qa.e0 != 0) || (qa.e1 != 0) || (qa.e2 != 0) || (qa.e3 != 0);
 }
 
-// Given the immaginary (vectorial) {e1 e2 e3} part of a quaternion, tries to find the
-// entire quaternion q = {e0, e1, e2, e3}. Also for q_dt and q_dtdt
-// Note: singularities may happen!
-
+// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
+// find the entire quaternion q = {e0, e1, e2, e3}.
+// Note: singularities are possible.
 ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
     ChQuaternion<double> mq;
     mq.e1 = qimm.x;
     mq.e2 = qimm.y;
     mq.e3 = qimm.z;
     mq.e0 = sqrt(1 - mq.e1 * mq.e1 - mq.e2 * mq.e2 - mq.e3 * mq.e3);
-    return (mq);
+    return mq;
 }
 
+// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
+// find the entire quaternion q = {e0, e1, e2, e3}.
+// Note: singularities are possible.
 ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt) {
     ChQuaternion<double> mqdt;
     mqdt.e1 = qimm_dt.x;
     mqdt.e2 = qimm_dt.y;
     mqdt.e3 = qimm_dt.z;
     mqdt.e0 = (-mq.e1 * mqdt.e1 - mq.e2 * mqdt.e2 - mq.e3 * mqdt.e3) / mq.e0;
-    return (mqdt);
+    return mqdt;
 }
 
+// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
+// find the entire quaternion q = {e0, e1, e2, e3}.
+// Note: singularities are possible.
 ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
                                         const ChQuaternion<double>& mqdt,
                                         const ChVector<double>& qimm_dtdt) {
@@ -353,7 +344,7 @@ ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
     mqdtdt.e0 = (-mq.e1 * mqdtdt.e1 - mq.e2 * mqdtdt.e2 - mq.e3 * mqdtdt.e3 - mqdt.e0 * mqdt.e0 - mqdt.e1 * mqdt.e1 -
                  mqdt.e2 * mqdt.e2 - mqdt.e3 * mqdt.e3) /
                 mq.e0;
-    return (mqdtdt);
+    return mqdtdt;
 }
 
 ////////////////////////////////////////////////////////////
