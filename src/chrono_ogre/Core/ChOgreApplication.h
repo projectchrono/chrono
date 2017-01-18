@@ -40,16 +40,17 @@ class CHOGRE_DLL_TAG ChOgreApplication {
 
     typedef std::function<int()> ChOgreLoopCallFunc;
 
-    virtual int startLoop(ChOgreLoopCallFunc PerFrame);
-    virtual Ogre::RenderWindow* createWindow(const std::string& Title,
-                                             uint32_t Width,
-                                             uint32_t Height,
-                                             uint8_t FSAA_Level,
-                                             bool VSync = false,
-                                             bool Fullscreen = false);
-	virtual void loadResourcePath(const std::string&, const std::string& Title = "FileSystem");
-    virtual void setCamera(ChOgreCamera* Camera);
-    virtual void setVSync(bool VSync);
+    int startLoop(ChOgreLoopCallFunc PerFrame);
+    Ogre::RenderWindow* createWindow(const std::string& Title,
+                                     uint32_t Width,
+                                     uint32_t Height,
+                                     uint8_t FSAA_Level,
+                                     bool VSync = false,
+                                     bool Fullscreen = false);
+	void initializeFromSystem(ChSystem& System);
+	void loadResourcePath(const std::string&, const std::string& Title = "FileSystem");
+    void setCamera(ChOgreCamera* Camera);
+    void setVSync(bool VSync);
 
 	void drawFrame();
 	void pollInput();
@@ -91,6 +92,7 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     Ogre::Camera* m_pCamera;
 
     chrono::ChSystem* m_pChSystem;
+	bool m_isSystemForeign;
 
     std::thread m_ChronoThread;
 

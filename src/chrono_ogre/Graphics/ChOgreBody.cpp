@@ -23,6 +23,18 @@ ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* Syste
     deletable = true;
 }
 
+ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System, std::shared_ptr<ChBody> SourceBody) {
+	m_pSceneManager = SceneManager;
+	m_pChSystem = System;
+
+	m_pBody = SourceBody;
+
+	refresh();
+
+	name = "";
+	deletable = true;
+}
+
 ChOgreBody::~ChOgreBody() {
     // for (int i = 0; i < m_Models.size(); i++) {
     //	m_pSceneManager->getRootSceneNode()->removeChild(m_Models[i].getSceneNode().lock().get());

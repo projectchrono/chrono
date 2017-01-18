@@ -50,6 +50,7 @@ class CHOGRE_DLL_TAG ChOgreScene {
     ////////
 
     ChOgreBodyHandle createBody(const std::string& Name = "");
+	ChOgreBodyHandle createBody(const std::string& Name, ChOgreBody* Body);
 
     ChOgreBodyHandle getBody(const std::string& Name);
 

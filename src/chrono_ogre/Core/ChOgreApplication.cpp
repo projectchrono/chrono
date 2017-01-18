@@ -76,6 +76,7 @@ namespace ChOgre {
 			m_pSceneManager = m_pRoot->createSceneManager(Ogre::ST_GENERIC, "MainSceneManager");
 
 			m_pChSystem = new chrono::ChSystem;
+			m_isSystemForeign = false;
 			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
 		}
 
@@ -121,7 +122,9 @@ namespace ChOgre {
 	ChOgreApplication::~ChOgreApplication() {
 		delete m_pCameraManager;
 		delete m_pScene;
-		delete m_pChSystem;
+		if (m_isSystemForeign == false) {
+			delete m_pChSystem;
+		}
 		closeWindow();
 	}
 
@@ -270,6 +273,17 @@ namespace ChOgre {
 		m_pRenderWindow->setActive(true);
 
 		return m_pRenderWindow;
+	}
+
+	void ChOgreApplication::initializeFromSystem(ChSystem& System) {
+		m_pChSystem = &System;
+		m_isSystemForeign = true;
+
+		m_pChSystem->Get_bodylist();
+
+		for (int i = 0; i < m_pChSystem->Get_bodylist()->size(); i++) {
+			m_pScene->createBody("", new ChOgreBody(m_pSceneManager, m_pChSystem, m_pChSystem->Get_bodylist()->at(i)));
+		}
 	}
 
 	void ChOgreApplication::loadResourcePath(const std::string& Path, const std::string& Title) {

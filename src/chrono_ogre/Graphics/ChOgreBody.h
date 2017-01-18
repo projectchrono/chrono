@@ -36,6 +36,7 @@ namespace ChOgre {
 class CHOGRE_DLL_TAG ChOgreBody {
   public:
     ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System);
+	ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* System, std::shared_ptr<ChBody> SourceBody);
     ~ChOgreBody();
 
     virtual void update();

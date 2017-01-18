@@ -175,6 +175,15 @@ ChOgreBodyHandle ChOgreScene::createBody(const std::string& Name) {
     return _ret;
 }
 
+ChOgreBodyHandle ChOgreScene::createBody(const std::string& Name, ChOgreBody* Body) {
+	ChOgreBodySharedPtr _body(Body);
+	ChOgreBodyHandle _ret(_body);
+	_body->name = Name;
+	m_ChOgreBodies.push_back(_body);
+
+	return _ret;
+}
+
 ChOgreBodyHandle ChOgreScene::getBody(const std::string& Name) {
     ChOgreBodyHandle _ret;
     for (unsigned int i = 0; i < m_ChOgreBodies.size(); i++) {
