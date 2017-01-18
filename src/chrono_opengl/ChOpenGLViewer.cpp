@@ -544,62 +544,60 @@ void ChOpenGLViewer::RenderAABB() {
 }
 void ChOpenGLViewer::RenderFluid() {
 #ifdef CHRONO_PARALLEL
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        if (parallel_system->data_manager->num_fluid_bodies <= 0) {
-            return;
-        }
-
-        if (render_mode != POINTS) {
-            fluid.AttachShader(&sphere_shader);
-        } else {
-            fluid.AttachShader(&dot_shader);
-        }
-
-        fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
-#pragma omp parallel for
-        for (int i = 0; i < parallel_system->data_manager->num_fluid_bodies; i++) {
-            real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
-            fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
-        }
-
-        if (ChFluidContainer* fluid_container =
-                dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(fluid_container->kernel_radius * .75);
-        }
-        if (Ch3DOFRigidContainer* rigid_container =
-                dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
-            fluid.SetPointSize(rigid_container->kernel_radius * .75);
-        }
-        fluid.Update(fluid_data);
-        glm::mat4 model(1);
-        fluid.Draw(projection, view * model);
+    ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system);
+    if (!parallel_system || parallel_system->data_manager->num_fluid_bodies <= 0) {
+        return;
     }
+
+    if (render_mode != POINTS) {
+        fluid.AttachShader(&sphere_shader);
+    } else {
+        fluid.AttachShader(&dot_shader);
+    }
+
+    fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
+#pragma omp parallel for
+    for (int i = 0; i < parallel_system->data_manager->num_fluid_bodies; i++) {
+        real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
+        fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
+    }
+
+    if (ChFluidContainer* fluid_container =
+            dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
+        fluid.SetPointSize(fluid_container->kernel_radius * .75);
+    }
+    if (Ch3DOFRigidContainer* rigid_container =
+            dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
+        fluid.SetPointSize(rigid_container->kernel_radius * .75);
+    }
+    fluid.Update(fluid_data);
+    glm::mat4 model(1);
+    fluid.Draw(projection, view * model);
 #endif
 }
 
 void ChOpenGLViewer::RenderFEA() {
 #ifdef CHRONO_PARALLEL
+    ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system);
+    if (!parallel_system || parallel_system->data_manager->num_fea_nodes <= 0) {
+        return;
+    }
+
     fea_element_data.clear();
-    if (ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system)) {
-        if (parallel_system->data_manager->num_fea_nodes <= 0) {
-            return;
-        }
+    for (int i = 0; i < parallel_system->data_manager->host_data.boundary_triangles_fea.size(); i++) {
+        uvec4 ind = parallel_system->data_manager->host_data.boundary_triangles_fea[i];
+        real3 pos1 = parallel_system->data_manager->host_data.pos_node_fea[ind.x];
+        real3 pos2 = parallel_system->data_manager->host_data.pos_node_fea[ind.y];
+        real3 pos3 = parallel_system->data_manager->host_data.pos_node_fea[ind.z];
 
-        for (int i = 0; i < parallel_system->data_manager->host_data.boundary_triangles_fea.size(); i++) {
-            uvec4 ind = parallel_system->data_manager->host_data.boundary_triangles_fea[i];
-            real3 pos1 = parallel_system->data_manager->host_data.pos_node_fea[ind.x];
-            real3 pos2 = parallel_system->data_manager->host_data.pos_node_fea[ind.y];
-            real3 pos3 = parallel_system->data_manager->host_data.pos_node_fea[ind.z];
+        fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
+        fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
 
-            fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
-            fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
+        fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
+        fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
 
-            fea_element_data.push_back(glm::vec3(pos1.x, pos1.y, pos1.z));
-            fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
-
-            fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
-            fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
-        }
+        fea_element_data.push_back(glm::vec3(pos2.x, pos2.y, pos2.z));
+        fea_element_data.push_back(glm::vec3(pos3.x, pos3.y, pos3.z));
     }
     fea_elements.Update(fea_element_data);
     glm::mat4 model(1);
