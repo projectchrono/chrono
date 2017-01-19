@@ -424,6 +424,12 @@ void ChMultiLink::RemoveVisualizationAssets() {
 
     m_trailingLink[LEFT]->GetAssets().clear();
     m_trailingLink[RIGHT]->GetAssets().clear();
+
+    m_spring[LEFT]->GetAssets().clear();
+    m_spring[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

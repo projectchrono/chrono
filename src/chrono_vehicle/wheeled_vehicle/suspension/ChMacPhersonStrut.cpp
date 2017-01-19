@@ -357,6 +357,12 @@ void ChMacPhersonStrut::RemoveVisualizationAssets() {
 
     m_LCA[LEFT]->GetAssets().clear();
     m_LCA[RIGHT]->GetAssets().clear();
+
+    m_spring[LEFT]->GetAssets().clear();
+    m_spring[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

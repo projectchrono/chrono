@@ -180,6 +180,9 @@ void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
 
     m_upright[LEFT]->GetAssets().clear();
     m_upright[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

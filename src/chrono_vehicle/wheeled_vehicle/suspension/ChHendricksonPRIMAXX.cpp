@@ -427,6 +427,12 @@ void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
 
     m_lowerbeam[LEFT]->GetAssets().clear();
     m_lowerbeam[RIGHT]->GetAssets().clear();
+
+    m_shockLB[LEFT]->GetAssets().clear();
+    m_shockLB[RIGHT]->GetAssets().clear();
+
+    m_shockAH[LEFT]->GetAssets().clear();
+    m_shockAH[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

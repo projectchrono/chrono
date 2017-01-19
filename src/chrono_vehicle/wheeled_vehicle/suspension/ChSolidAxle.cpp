@@ -531,6 +531,12 @@ void ChSolidAxle::RemoveVisualizationAssets() {
 
     m_lowerLink[LEFT]->GetAssets().clear();
     m_lowerLink[RIGHT]->GetAssets().clear();
+
+    m_spring[LEFT]->GetAssets().clear();
+    m_spring[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
