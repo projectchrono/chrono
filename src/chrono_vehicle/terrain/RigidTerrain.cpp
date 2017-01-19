@@ -75,7 +75,7 @@ static ChColor loadColor(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
 
-    return ChColor(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChColor(a[0u].GetFloat(), a[1u].GetFloat(), a[2u].GetFloat());
 }
 
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
@@ -120,22 +120,22 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     // Read contact material data
     assert(d.HasMember("Contact Material"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
+    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
+    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
 
     SetContactFrictionCoefficient(mu);
     SetContactRestitutionCoefficient(cr);
 
     if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
+        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
+        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
         SetContactMaterialProperties(ym, pr);
     }
     if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
+        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
+        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
+        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
+        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
         SetContactMaterialCoefficients(kn, gn, kt, gt);
     }
 
@@ -148,11 +148,11 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
 
         if (d["Visualization"].HasMember("Texture File")) {
             std::string tex_file = d["Visualization"]["Texture File"].GetString();
-            double sx = 1;
-            double sy = 1;
+            float sx = 1;
+            float sy = 1;
             if (d["Visualization"].HasMember("Texture Scaling")) {
-                sx = d["Visualization"]["Texture Scaling"][0u].GetDouble();
-                sy = d["Visualization"]["Texture Scaling"][1u].GetDouble();
+                sx = d["Visualization"]["Texture Scaling"][0u].GetFloat();
+                sy = d["Visualization"]["Texture Scaling"][1u].GetFloat();
             }
             SetTexture(vehicle::GetDataFile(tex_file), sx, sy);
         }

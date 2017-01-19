@@ -85,22 +85,22 @@ void SprocketSinglePin::Create(const rapidjson::Document& d) {
     // Read contact material data
     assert(d.HasMember("Contact Material"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
+    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
+    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
 
     SetContactFrictionCoefficient(mu);
     SetContactRestitutionCoefficient(cr);
 
     if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
+        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
+        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
         SetContactMaterialProperties(ym, pr);
     }
     if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
+        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
+        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
+        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
+        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
         SetContactMaterialCoefficients(kn, gn, kt, gt);
     }
 

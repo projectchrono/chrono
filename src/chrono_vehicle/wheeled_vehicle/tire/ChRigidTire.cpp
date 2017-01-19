@@ -171,12 +171,12 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
 // -----------------------------------------------------------------------------
 unsigned int ChRigidTire::GetNumVertices() const {
     assert(m_use_contact_mesh);
-    return m_trimesh->getCoordsVertices().size();
+    return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
 }
 
 unsigned int ChRigidTire::GetNumTriangles() const {
     assert(m_use_contact_mesh);
-    return m_trimesh->getIndicesVertexes().size();
+    return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
 }
 
 const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {

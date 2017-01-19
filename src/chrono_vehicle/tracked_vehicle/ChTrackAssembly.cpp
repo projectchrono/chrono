@@ -68,12 +68,12 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // hand
 
     // Initialize the suspension subsystems
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
-        m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(i));
+        m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)));
     }
 
     // Initialize the roller subsystems
     for (size_t i = 0; i < m_rollers.size(); ++i) {
-        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(i));
+        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)));
     }
 
     // Assemble the track. This positions all track shoes around the sprocket,
