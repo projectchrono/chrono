@@ -35,10 +35,12 @@ namespace ChOgre {
 
 class CHOGRE_DLL_TAG ChOgreApplication {
   public:
+
+	typedef std::function<int()> ChOgreLoopCallFunc;
+
     ChOgreApplication();
     ~ChOgreApplication();
 
-    typedef std::function<int()> ChOgreLoopCallFunc;
 
     int startLoop(ChOgreLoopCallFunc PerFrame);
     Ogre::RenderWindow* createWindow(const std::string& Title,
@@ -52,6 +54,7 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     void setCamera(ChOgreCamera* Camera);
     void setVSync(bool VSync);
 
+	void doStep(double StepSize);
 	void drawFrame();
 	void pollInput();
 
@@ -67,6 +70,8 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     Ogre::SceneManager* getSceneManager();
     chrono::ChSystem* getChSystem();
 
+	bool isRunning();
+
     static void logMessage(const std::string& Message,
                            Ogre::LogMessageLevel lml = Ogre::LML_NORMAL,
                            bool maskDebug = false);
@@ -76,8 +81,6 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     double timestep;
 
     bool isRealTime;
-
-    bool isRunning;
 
     bool WriteToFile;
     std::string OutputImageFolder;
@@ -93,6 +96,9 @@ class CHOGRE_DLL_TAG ChOgreApplication {
 
     chrono::ChSystem* m_pChSystem;
 	bool m_isSystemForeign;
+	double m_currentTime;
+
+	bool m_isRunning;
 
     std::thread m_ChronoThread;
 

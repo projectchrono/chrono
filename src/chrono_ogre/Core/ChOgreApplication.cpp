@@ -78,6 +78,8 @@ namespace ChOgre {
 			m_pChSystem = new chrono::ChSystem;
 			m_isSystemForeign = false;
 			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
+
+			m_currentTime = 0.0;
 		}
 
 
@@ -115,7 +117,7 @@ namespace ChOgre {
 		timestep_min = 0.001;
 		timestep = 0;
 		isRealTime = false;
-		isRunning = false;
+		m_isRunning = false;
 		WriteToFile = false;
 	}
 
@@ -128,10 +130,10 @@ namespace ChOgre {
 		closeWindow();
 	}
 
-	int ChOgreApplication::startLoop(std::function<int()> _func) {
+	int ChOgreApplication::startLoop(ChOgreLoopCallFunc _func) {
 		int l_run = 0;
 
-		isRunning = true;
+		m_isRunning = true;
 
 		double l_systemTimeIncriment = 0.0;
 
@@ -202,17 +204,9 @@ namespace ChOgre {
 			drawFrame();
 
 		}
-		isRunning = false;
+		m_isRunning = false;
 
 		return l_run;
-	}
-
-
-	void ChOgreApplication::chronoThread() {
-
-		while (isRunning) {
-
-		}
 	}
 
 	Ogre::RenderWindow* ChOgreApplication::createWindow(const std::string& Title, uint32_t Width, uint32_t Height, uint8_t FSAA_Level, bool VSync, bool Fullscreen) {
@@ -272,6 +266,8 @@ namespace ChOgre {
 
 		m_pRenderWindow->setActive(true);
 
+		m_isRunning = true;
+
 		return m_pRenderWindow;
 	}
 
@@ -279,10 +275,9 @@ namespace ChOgre {
 		m_pChSystem = &System;
 		m_isSystemForeign = true;
 
-		m_pChSystem->Get_bodylist();
-
-		for (int i = 0; i < m_pChSystem->Get_bodylist()->size(); i++) {
-			m_pScene->createBody("", new ChOgreBody(m_pSceneManager, m_pChSystem, m_pChSystem->Get_bodylist()->at(i)));
+		for (auto ChBody : *m_pChSystem->Get_bodylist()) {
+			auto body = m_pScene->createBody("", new ChOgreBody(m_pSceneManager, m_pChSystem, ChBody));
+			body.body().refresh();
 		}
 	}
 
@@ -299,6 +294,17 @@ namespace ChOgre {
 		isVSyncEnabled = VSync;
 		m_pRenderWindow->setVSyncEnabled(isVSyncEnabled);
 		m_pRenderWindow->setVSyncInterval(60);
+	}
+
+	void ChOgreApplication::doStep(double StepSize) {
+		try {
+			m_pChSystem->DoFrameDynamics(m_currentTime);
+		}
+		catch (...) {
+
+		}
+
+		m_currentTime += StepSize;
 	}
 
 	void ChOgreApplication::drawFrame() {
@@ -321,6 +327,14 @@ namespace ChOgre {
 
 	void ChOgreApplication::pollInput() {
 		m_pInputManager->update();
+	}
+
+
+	void ChOgreApplication::chronoThread() {
+
+		while (isRunning()) {
+
+		}
 	}
 
 	void ChOgreApplication::closeWindow() {
@@ -365,6 +379,15 @@ namespace ChOgre {
 
 	chrono::ChSystem* ChOgreApplication::getChSystem() {
 		return m_pChSystem;
+	}
+
+	bool ChOgreApplication::isRunning() {
+		if (m_pInputManager->isWindowToClose() || m_isRunning == false) {
+			return false;
+		}
+		else {
+			return true;
+		}
 	}
 
 	void ChOgreApplication::logMessage(const std::string& Message, Ogre::LogMessageLevel lml, bool maskDebug) {

@@ -29,8 +29,6 @@ ChOgreBody::ChOgreBody(Ogre::SceneManager* SceneManager, chrono::ChSystem* Syste
 
 	m_pBody = SourceBody;
 
-	refresh();
-
 	name = "";
 	deletable = true;
 }
@@ -97,21 +95,24 @@ void ChOgreBody::refresh() {
     //		m_SceneNodes.clear();
     //	}
     //}
+
+	auto BoxRTTI = chrono::ChBoxShape::GetClassRTTI();
+	auto CapsuleRTTI = chrono::ChCapsuleShape::GetClassRTTI();
+	auto ConeRTTI = chrono::ChConeShape::GetClassRTTI();
+	auto CylinderRTTI = chrono::ChCylinderShape::GetClassRTTI();
+	auto EllipsoidRTTI = chrono::ChEllipsoidShape::GetClassRTTI();
+	auto SphereRTTI = chrono::ChSphereShape::GetClassRTTI();
+	auto TriangleMeshRTTI = chrono::ChTriangleMeshShape::GetClassRTTI();
+	auto TextureRTTI = chrono::ChTexture::GetClassRTTI();
+
     m_Models.clear();
+
     for (int i = 0; i < m_pBody->GetAssets().size(); i++) {
         std::shared_ptr<chrono::ChAsset> temp_asset = m_pBody->GetAssets().at(i);
 
 		auto RTTI = temp_asset->GetRTTI();
 		auto RTTI_Name = std::string(RTTI->GetName());
 
-		auto BoxRTTI = chrono::ChBoxShape::GetClassRTTI();
-		auto CapsuleRTTI = chrono::ChCapsuleShape::GetClassRTTI();
-		auto ConeRTTI = chrono::ChConeShape::GetClassRTTI();
-		auto CylinderRTTI = chrono::ChCylinderShape::GetClassRTTI();
-		auto EllipsoidRTTI = chrono::ChEllipsoidShape::GetClassRTTI();
-		auto SphereRTTI = chrono::ChSphereShape::GetClassRTTI();
-		auto TriangleMeshRTTI = chrono::ChTriangleMeshShape::GetClassRTTI();
-		auto TextureRTTI = chrono::ChTexture::GetClassRTTI();
 
         // Ogre::SceneNode* l_pNode = m_pSceneManager->getRootSceneNode()->createChildSceneNode();
         // Ogre::Entity* l_pEntity = nullptr;
@@ -228,7 +229,9 @@ void ChOgreBody::refresh() {
 		}
 
         // l_pNode->attachObject(l_pEntity);
-        m_Models.push_back(std::move(l_Model));
+		if (RTTI_Name != std::string(TextureRTTI->GetName())) {
+			m_Models.push_back(std::move(l_Model));
+		}
     }
     isStaticMesh = false;
 }

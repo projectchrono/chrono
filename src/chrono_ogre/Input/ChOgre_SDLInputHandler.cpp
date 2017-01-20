@@ -862,9 +862,11 @@ void ChOgre_SDLInputHandler::m_CallWindowCallbacks() {
 bool ChOgre_SDLInputHandler::isWindowToClose() {
   return m_windowClose;
 }
+
 bool ChOgre_SDLInputHandler::wasWindowResized() {
 	return m_windowResized;
 }
+
 ChVector2<unsigned int> ChOgre_SDLInputHandler::newSize() {
 	int w, h;
 	SDL_GetWindowSize(m_pSDLWindow, &w, &h);
