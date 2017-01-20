@@ -101,6 +101,10 @@ namespace ChOgre {
                     chrono::GetChronoDataPath() + "/ogre/materials/textures",
                     "FileSystem",
                     Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/materials/scripts",
+				"FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
             Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
                     chrono::GetChronoDataPath() + "/ogre/models", "FileSystem",
                     Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
