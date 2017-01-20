@@ -31,7 +31,9 @@ class ChSystem;
 /// such as rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
-    CH_RTTI(ChPhysicsItem, ChObj);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChPhysicsItem)
 
     friend class ChSystem;
 
@@ -216,7 +218,10 @@ class ChApi ChPhysicsItem : public ChObj {
                                  const unsigned int off_v,  ///< offset in v state vector
                                  const ChStateDelta& v,     ///< state vector, speed part
                                  const double T             ///< time
-                                 ) {}
+                                 ) {
+        // Default behavior: even if no state is used, at least call Update()
+        Update(T); 
+    }
 
     /// From item's state acceleration to global acceleration vector
     virtual void IntStateGatherAcceleration(const unsigned int off_a,  ///< offset in a accel. vector

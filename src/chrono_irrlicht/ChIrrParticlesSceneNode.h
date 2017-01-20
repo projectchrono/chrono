@@ -1,12 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #ifndef CHIRRPARTICLESSCENENODE_H
 #define CHIRRPARTICLESSCENENODE_H
@@ -36,7 +38,7 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
     /// To delete a ChParticlesClonesScene node from an Irrlicht scene, use the
     /// remove() function only! (it will also be removed from the Chrono::Engine)
     ChIrrParticlesSceneNode(
-        ChSystem* msystem,         ///< pointer to the Chrono::Engine physical simulation system
+        ChSystem* msystem,                 ///< pointer to the Chrono::Engine physical simulation system
         irr::scene::IAnimatedMesh* mesh,   ///< a sample 3D mesh for representing the shape of each particle
         irr::core::vector3df mmesh_scale,  ///< scale of the sample mesh
         ISceneNode* parent,                ///< the parent node in Irrlicht hierarchy
@@ -67,9 +69,9 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
     void OnAnimate(irr::u32 timeMs);
 
     virtual irr::scene::IShadowVolumeSceneNode* addShadowVolumeSceneNode(const irr::scene::IMesh* shadowMesh = 0,
-                                                             irr::s32 id = -1,
-                                                             bool zfailmethod = true,
-                                                             irr::f32 infinity = 10000.0f);
+                                                                         irr::s32 id = -1,
+                                                                         bool zfailmethod = true,
+                                                                         irr::f32 infinity = 10000.0f);
 
     virtual irr::scene::ESCENE_NODE_TYPE getType() const { return (irr::scene::ESCENE_NODE_TYPE)ESNT_CHPARTICLES; }
 
@@ -114,25 +116,25 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
 /// Easy-to-use function which creates a ChIrrParticlesSceneNode and inserts it
 /// into the Irrlicht scene.
 ChApiIrr irr::scene::ISceneNode* addChParticlesSceneNode(ChSystem* asystem,
-                                             irr::scene::ISceneManager* amanager,
-                                             irr::scene::IAnimatedMesh* amesh,
-                                             irr::core::vector3df amesh_scale,
-                                             double mmass = 1.0,
-                                             irr::scene::ISceneNode* aparent = 0,
-                                             irr::s32 mid = -1);
+                                                         irr::scene::ISceneManager* amanager,
+                                                         irr::scene::IAnimatedMesh* amesh,
+                                                         irr::core::vector3df amesh_scale,
+                                                         double mmass = 1.0,
+                                                         irr::scene::ISceneNode* aparent = 0,
+                                                         irr::s32 mid = -1);
 
 /// Easy-to-use function which creates a ChIrrParticlesSceneNode representing a
 /// cluster of particles, ready to use for collisions (otherwise you could use
 /// addChBodySceneNode() and add collision geometry by hand, but the following
 /// is easier). The returned object has collision detection turned ON by default.
 ChApiIrr irr::scene::ISceneNode* addChParticlesSceneNode_easySpheres(ChSystem* asystem,
-                                                         irr::scene::ISceneManager* amanager,
-                                                         double mmass = 1.0,
-                                                         double mradius = 1.0,
-                                                         int Hslices = 12,
-                                                         int Vslices = 6,
-                                                         irr::scene::ISceneNode* aparent = 0,
-                                                         irr::s32 mid = -1);
+                                                                     irr::scene::ISceneManager* amanager,
+                                                                     double mmass = 1.0,
+                                                                     double mradius = 1.0,
+                                                                     int Hslices = 12,
+                                                                     int Vslices = 6,
+                                                                     irr::scene::ISceneNode* aparent = 0,
+                                                                     irr::s32 mid = -1);
 
 /// @} irrlicht_module
 

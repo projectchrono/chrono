@@ -16,7 +16,7 @@
 // in order to validate the collision detection in Chrono.
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 
 #include <algorithm>
 #include <functional>

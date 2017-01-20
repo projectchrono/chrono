@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChShaftsTorqueConverter> a_registration_ChShaftsTorqueConverter;
+CH_FACTORY_REGISTER(ChShaftsTorqueConverter)
 
 ChShaftsTorqueConverter::ChShaftsTorqueConverter()
     : shaft1(NULL),

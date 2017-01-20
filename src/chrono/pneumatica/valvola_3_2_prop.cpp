@@ -12,9 +12,10 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include <iostream>
-#include "valvola_3_2_prop.h"
-#include "ugello_controllato_PA.h"
-#include "ugello_controllato_RA.h"
+
+#include "chrono/pneumatica/valvola_3_2_prop.h"
+#include "chrono/pneumatica/ugello_controllato_PA.h"
+#include "chrono/pneumatica/ugello_controllato_RA.h"
 
 namespace chrono {
 namespace pneumatics {

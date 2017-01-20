@@ -13,9 +13,8 @@
 #ifndef CHLOADSXYZNODE_H
 #define CHLOADSXYZNODE_H
 
-#include "physics/ChLoad.h"
-#include "physics/ChNodeXYZ.h"
-
+#include "chrono/physics/ChLoad.h"
+#include "chrono/physics/ChNodeXYZ.h"
 
 namespace chrono {
 
@@ -66,6 +65,6 @@ class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
     ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> mloadable) : ChLoad<ChLoaderXYZnode>(mloadable) {}
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

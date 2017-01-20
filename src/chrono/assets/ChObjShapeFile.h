@@ -13,7 +13,7 @@
 #define CHOBJSHAPEFILE_H
 
 
-#include "assets/ChVisualization.h"
+#include "chrono/assets/ChVisualization.h"
 
 namespace chrono {
 
@@ -24,8 +24,8 @@ namespace chrono {
 /// is simply a reference to the resource on the disk.
 
 class ChApi ChObjShapeFile : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChObjShapeFile, ChVisualization);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChObjShapeFile)
 
   protected:
     //
@@ -76,9 +76,6 @@ class ChApi ChObjShapeFile : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -12,12 +12,12 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#include "physics/ChLinkUniversal.h"
+#include "chrono/physics/ChLinkUniversal.h"
 
 namespace chrono {
 
 // Register into the object factory.
-ChClassRegister<ChLinkUniversal> a_registration_ChLinkUniversal;
+CH_FACTORY_REGISTER(ChLinkUniversal)
 
 // -----------------------------------------------------------------------------
 // Constructor and destructor

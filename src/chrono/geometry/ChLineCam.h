@@ -15,7 +15,7 @@
 #ifndef CHC_LINECAM_H
 #define CHC_LINECAM_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -44,8 +44,9 @@ CH_ENUM_MAPPER_END(eChCamType);
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.
 
 class ChApi ChLineCam : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLineCam, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLineCam)
 
   private:
     eChCamType type;                  ///< type of cam
@@ -62,8 +63,8 @@ class ChApi ChLineCam : public ChLine {
     double e;  ///< eccentricity of sliding follower
     double s;  ///< distance of sliding follower
 
-    int negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
-    int internal;  ///< follower roller is inside the cam
+    bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
+    bool internal;  ///< follower roller is inside the cam
 
     ChVector<> center;  ///< center of cam in space (def.alignment on xy plane)
 

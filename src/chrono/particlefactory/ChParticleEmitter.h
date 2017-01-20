@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,15 +13,16 @@
 #ifndef CHPARTICLEEMITTER_H
 #define CHPARTICLEEMITTER_H
 
-#include "ChRandomShapeCreator.h"
-#include "ChRandomParticlePosition.h"
-#include "ChRandomParticleAlignment.h"
-#include "ChRandomParticleVelocity.h"
-#include "core/ChMathematics.h"
-#include "core/ChVector.h"
-#include "core/ChMatrix.h"
-#include "core/ChDistribution.h"
-#include "physics/ChSystem.h"
+#include "chrono/particlefactory/ChRandomShapeCreator.h"
+#include "chrono/particlefactory/ChRandomParticlePosition.h"
+#include "chrono/particlefactory/ChRandomParticleAlignment.h"
+#include "chrono/particlefactory/ChRandomParticleVelocity.h"
+
+#include "chrono/core/ChMathematics.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChDistribution.h"
+#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 

@@ -59,10 +59,10 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual ~ChDoubleWishboneReduced() {}
 
     /// Specify whether or not this suspension can be steered.
-    virtual bool IsSteerable() const override { return true; }
+    virtual bool IsSteerable() const final override { return true; }
 
     /// Specify whether or not this is an independent suspension.
-    virtual bool IsIndependent() const override { return true; }
+    virtual bool IsIndependent() const final override { return true; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified
@@ -74,8 +74,17 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) override;
+
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
@@ -126,10 +135,6 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
 
-    /// Return the radius of the spindle body (visualization only).
-    virtual double getSpindleRadius() const = 0;
-    /// Return the width of the spindle body (visualization only).
-    virtual double getSpindleWidth() const = 0;
     /// Return the radius of the upright body (visualization only).
     virtual double getUprightRadius() const = 0;
 
@@ -149,10 +154,15 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     std::shared_ptr<ChLinkSpringCB> m_shock[2];  ///< handles to the spring-damper force elements (left/right)
 
   private:
+    // Hardpoint absolute locations
+    std::vector<ChVector<>> m_pointsL;
+    std::vector<ChVector<>> m_pointsR;
+
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChBodyAuxRef> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector<> >& points);
+                        const std::vector<ChVector<>>& points,
+                        double ang_vel);
 
     static void AddVisualizationUpright(std::shared_ptr<ChBody> upright,
                                         const ChVector<> pt_C,
@@ -160,7 +170,6 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
                                         const ChVector<> pt_L,
                                         const ChVector<> pt_T,
                                         double radius);
-    static void AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width);
 };
 
 /// @} vehicle_wheeled_suspension

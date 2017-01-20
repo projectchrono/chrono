@@ -36,7 +36,9 @@ class ChSystem;
 /// _nothing_ unless it is specialized by some child class).
 
 class ChApi ChLink : public ChLinkBase {
-    CH_RTTI(ChLink, ChLinkBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLink)
 
   protected:
     ChBodyFrame* Body1;       ///< first connected body

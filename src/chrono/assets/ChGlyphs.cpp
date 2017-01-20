@@ -9,13 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChGlyphs.h"
+#include "chrono/assets/ChGlyphs.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChGlyphs> a_registration_ChGlyphs;
+CH_FACTORY_REGISTER(ChGlyphs)
 
 void ChGlyphs::Reserve(unsigned int n_glyphs) {
     colors.resize(n_glyphs);
@@ -78,4 +78,4 @@ void ChGlyphs::SetGlyphCoordsys(unsigned int id, ChCoordsys<> mcoord) {
     rotations[id] = mcoord.rot;
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

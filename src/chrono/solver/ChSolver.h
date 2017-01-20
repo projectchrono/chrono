@@ -39,9 +39,11 @@ namespace chrono {
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
+
 class ChApi ChSolver {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChSolver);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSolver)
 
   public:
     ChSolver() : verbose(false) {}

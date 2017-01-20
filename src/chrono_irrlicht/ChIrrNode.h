@@ -1,12 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
 
 #ifndef CHIRRNODE_H
 #define CHIRRNODE_H
@@ -51,11 +53,11 @@ class ChApiIrr ChIrrNode : public irr::scene::ISceneNode {
     /// scene, use the remove() function from the Irrlicht side (it won't delete
     /// the C::E body, though), or better delete the corresponding ChIrrlichtObj
     /// asset from the C::E side, or delete the full C::E body.
-      ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,    ///< pointer to the Chrono::Engine item (es. rigid body)
-          irr::scene::ISceneNode* parent,                     ///< the parent node in Irrlicht hierarchy
-          irr::scene::ISceneManager* mgr,                     ///< the Irrlicht scene manager
-          irr::s32 id                                         ///< the Irrlicht identifier
-          );
+    ChIrrNode(std::weak_ptr<ChPhysicsItem> mphysicsitem,  ///< pointer to the Chrono::Engine item (es. rigid body)
+              irr::scene::ISceneNode* parent,             ///< the parent node in Irrlicht hierarchy
+              irr::scene::ISceneManager* mgr,             ///< the Irrlicht scene manager
+              irr::s32 id                                 ///< the Irrlicht identifier
+              );
 
     /// Destructor.
     ~ChIrrNode() {}

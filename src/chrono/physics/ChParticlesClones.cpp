@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono/collision/ChCModelBullet.h"
@@ -159,12 +159,12 @@ void ChAparticle::ComputeJacobianForContactPart(
     if (second)
         Jr1.MatrNeg();
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
 }
 
 void ChAparticle::ComputeJacobianForRollingContactPart(
@@ -180,12 +180,12 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     if (!second)
         Jr1.MatrNeg();
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
 }
 
 ChPhysicsItem* ChAparticle::GetPhysicsItem() {
@@ -225,7 +225,7 @@ void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChParticlesClones> a_registration_ChParticlesClones;
+CH_FACTORY_REGISTER(ChParticlesClones)
 
 ChParticlesClones::ChParticlesClones()
     : do_collide(false),
@@ -438,8 +438,8 @@ void ChParticlesClones::IntToDescriptor(const unsigned int off_v,  // offset in 
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 6 * j, 0, 6, 1, 0, 0);
-        particles[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 6 * j, 0, 6, 1, 0, 0);
+        particles[j]->variables.Get_qb().PasteClippedMatrix(v, off_v + 6 * j, 0, 6, 1, 0, 0);
+        particles[j]->variables.Get_fb().PasteClippedMatrix(R, off_v + 6 * j, 0, 6, 1, 0, 0);
     }
 }
 
@@ -448,7 +448,7 @@ void ChParticlesClones::IntFromDescriptor(const unsigned int off_v,  // offset i
                                           const unsigned int off_L,  // offset in L
                                           ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        v.PasteMatrix(&particles[j]->variables.Get_qb(), off_v + 6 * j, 0);
+        v.PasteMatrix(particles[j]->variables.Get_qb(), off_v + 6 * j, 0);
     }
 }
 
@@ -573,7 +573,7 @@ void ChParticlesClones::SetInertiaXX(const ChVector<>& iner) {
     particle_mass.GetBodyInertia().SetElement(0, 0, iner.x);
     particle_mass.GetBodyInertia().SetElement(1, 1, iner.y);
     particle_mass.GetBodyInertia().SetElement(2, 2, iner.z);
-    particle_mass.GetBodyInertia().FastInvert(&particle_mass.GetBodyInvInertia());
+    particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInertia().SetElement(0, 1, iner.x);
@@ -582,7 +582,7 @@ void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
     particle_mass.GetBodyInertia().SetElement(1, 0, iner.x);
     particle_mass.GetBodyInertia().SetElement(2, 0, iner.y);
     particle_mass.GetBodyInertia().SetElement(2, 1, iner.z);
-    particle_mass.GetBodyInertia().FastInvert(&particle_mass.GetBodyInvInertia());
+    particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 
 ChVector<> ChParticlesClones::GetInertiaXX() const {

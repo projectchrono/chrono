@@ -9,15 +9,15 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Antonio Recuero, Radu Serban, Conlain Kelly
+// Author: Antonio Recuero
 // =============================================================================
 //
 // Unit test for ComputeContactForces utility: NodeCloud, Mesh Vs Body Contact.
 // Method system->GetContactContainer()->ComputeContactForces() iterates over
 // all bodies/meshes into contact and stores resultant contact force in an unordered map.
 // Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
-// of all (!) contact forces acting on the body from the NodeCloud DEM-P contact.
-// In this unit test, the overall contact force applied to a box (from mesh) is compared
+// of all (!) contact forces acting on the body from the NodeCloud DEM-P contact. 
+// In this unit test, the overall contact force applied to a box (from mesh) is compared 
 // to the total weight of the ANCF shell mesh.
 //
 // =============================================================================
@@ -35,18 +35,15 @@
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChMesh.h"
 
-#include "../BaseTest.h"
-
 using namespace chrono;
 using namespace chrono::fea;
-
 // ====================================================================================
 
 // ---------------------
 // Simulation parameters
 // ---------------------
 
-double end_time = 0.05;    // total simulation time
+double end_time = 0.05;     // total simulation time
 double start_time = 0.04;  // start check after this period
 double time_step = 2e-4;   // integration step size
 double gravity = -9.81;    // gravitational acceleration
@@ -93,51 +90,15 @@ double bin_width = 10;
 double bin_length = 10;
 double bin_thickness = 0.1;
 
-// ====================================================================================
-
-// Test class
-class MeshContactTest : public BaseTest {
-  public:
-    MeshContactTest(const std::string& testName,
-                    const std::string& testProjectName,
-                    ChMaterialSurfaceBase::ContactMethod method)
-        : BaseTest(testName, testProjectName), m_method(method), m_execTime(0) {}
-
-    ~MeshContactTest() {}
-
-    // Override corresponding functions in BaseTest
-    virtual bool execute() override;
-    virtual double getExecutionTime() const override { return m_execTime; }
-
-  private:
-    ChMaterialSurfaceBase::ContactMethod m_method;
-    double m_execTime;
-};
+// Forward declaration
+bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
     bool passed = true;
-
-    MeshContactTest testDEM("utest_FEA_compute_contact_mesh_DEM", "Chrono::FEA", ChMaterialSurfaceBase::DEM);
-    MeshContactTest testDVI("utest_FEA_compute_contact_mesh_DVI", "Chrono::FEA", ChMaterialSurfaceBase::DVI);
-
-    if (argc > 1) {
-        // Generate metrics JSON output files
-        testDEM.setOutDir(argv[1]);
-        testDEM.setVerbose(true);
-        passed &= testDEM.run();
-        testDEM.print();
-
-        // testDVI.setOutDir(argv[1]);
-        // testDVI.setVerbose(true);
-        // passed &= testDVI.run();
-        // testDVI.print();
-    } else {
-        // Run in unit test mode
-        passed &= testDEM.execute();
-        // passed &= testDVI.execute();
-    }
+    passed &= test_computecontact(ChMaterialSurfaceBase::DEM);
+    // passed &= test_computecontact(ChMaterialSurfaceBase::DVI);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -145,12 +106,12 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool MeshContactTest::execute() {
+bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
     // Create system and contact material.
     ChSystem* system;
     std::shared_ptr<ChMaterialSurfaceBase> material;
 
-    switch (m_method) {
+    switch (method) {
         case ChMaterialSurfaceBase::DEM: {
             GetLog() << "Using PENALTY method.\n";
 
@@ -194,9 +155,9 @@ bool MeshContactTest::execute() {
 
     auto my_mesh = std::make_shared<ChMesh>();
     // Geometry of the plate
-    double plate_length_x = 0.5;
-    double plate_length_y = 0.05;
-    double plate_length_z = 0.5;  // small thickness
+    double plate_lenght_x = 0.5;
+    double plate_lenght_y = 0.05;
+    double plate_lenght_z = 0.5;  // small thickness
     // Specification of the mesh
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
@@ -206,9 +167,9 @@ bool MeshContactTest::execute() {
     //(1+1) is the number of nodes in the z direction
     int TotalNumNodes = (numDiv_x + 1) * (numDiv_z + 1);  // Or *(numDiv_y+1) for multilayer
     // Element dimensions (uniform grid)
-    double dx = plate_length_x / numDiv_x;
-    double dy = plate_length_y / numDiv_y;
-    double dz = plate_length_z / numDiv_z;
+    double dx = plate_lenght_x / numDiv_x;
+    double dy = plate_lenght_y / numDiv_y;
+    double dz = plate_lenght_z / numDiv_z;
 
     // Create and add the nodes
 
@@ -244,11 +205,11 @@ bool MeshContactTest::execute() {
         int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
         int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
 
-        /*GetLog() << std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0))->GetPos() << "\t" <<
-         std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1))->GetPos() << "\t" <<
-         std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2))->GetPos() << "\t" <<
-         std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3))->GetPos() << "\t";
-         getchar();*/
+        /*GetLog() << std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node0))->GetPos() << "\t" << 
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node1))->GetPos() << "\t" <<
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node2))->GetPos() << "\t" <<
+            std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh->GetNode(node3))->GetPos() << "\t";
+        getchar();*/
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();
@@ -262,7 +223,7 @@ bool MeshContactTest::execute() {
         // Single layer
         element->AddLayer(dy, 0.0, mat);  // Thickness: dy;  Ply angle: 0.
         // Set other element properties
-        element->SetAlphaDamp(0.05);  // Structural damping for this
+        element->SetAlphaDamp(0.05);   // Structural damping for this
         element->SetGravityOn(true);  // element calculates its own gravitational load
         // Add element to mesh
         my_mesh->AddElement(element);
@@ -293,9 +254,9 @@ bool MeshContactTest::execute() {
     system->SetupInitial();
 
     // Create container box
-    auto ground = utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy),
-                                            bin_thickness, ChVector<>(0, -1.5 * m_contact_node_radius, 0),
-                                            ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
+    auto ground =
+        utils::CreateBoxContainer(system, binId, material, ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,
+        ChVector<>(0, -1.5*m_contact_node_radius, 0), ChQuaternion<>(1, 0, 0, 0), true, true, false, false);
 
     // -------------------
     // Setup linear solver
@@ -323,7 +284,7 @@ bool MeshContactTest::execute() {
     // Setup integrator
     // ----------------
 
-    if (m_method == ChMaterialSurfaceBase::DEM) {
+    if (method == ChMaterialSurfaceBase::DEM) {
         GetLog() << "Using HHT integrator.\n";
         system->SetIntegrationType(ChSystem::INT_HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
@@ -335,26 +296,22 @@ bool MeshContactTest::execute() {
         GetLog() << "Using default integrator.\n";
     }
 
-    double total_weight = rho * plate_length_x * plate_length_y * plate_length_z * std::abs(gravity);
-    GetLog() << "Total Weight of Shell: " << total_weight << "\n";
-
     // ---------------
     // Simulation loop
     // ---------------
-    ChTimer<> timer;
-    int num_steps = 0;
-    bool passed = true;
-    while (system->GetChTime() < end_time) {
-        timer.start();
-        system->DoStepDynamics(time_step);
-        system->GetContactContainer()->ComputeContactForces();
-        timer.stop();
 
-        num_steps++;
+    bool passed = true;
+    double total_weight = rho*plate_lenght_x*plate_lenght_y*plate_lenght_z*std::abs(gravity);
+    while (system->GetChTime() < end_time) {
+        system->DoStepDynamics(time_step);
+
+        system->GetContactContainer()->ComputeContactForces();
         ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system->GetChTime()
-                 << "  num contacts = " << system->GetContactContainer()->GetNcontacts()
-                 << "  force =  " << contact_force.y << "  node y displacement = " << nodeRef->GetPos().y << "\n";
+        GetLog() << "t = " << system->GetChTime() << " num contacts = " <<
+        system->GetContactContainer()->GetNcontacts()
+                 << "  force =  " << contact_force.y << "\n";
+        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y << "\n";
+        GetLog() << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system->GetChTime() > start_time) {
             if (std::abs(1 - std::abs(contact_force.y) / total_weight) > rtol) {
@@ -364,10 +321,6 @@ bool MeshContactTest::execute() {
             }
         }
     }
-
-    m_execTime = timer.GetTimeSeconds();
-    addMetric("num_steps", num_steps);
-    addMetric("avg_time_per_step", m_execTime / num_steps);
 
     GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 

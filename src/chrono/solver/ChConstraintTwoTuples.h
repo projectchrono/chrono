@@ -27,8 +27,7 @@ namespace chrono {
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
 
 template <class Ta, class Tb>
-class ChApi ChConstraintTwoTuples : public ChConstraint {
-    // CH_RTTI(ChConstraintTwoTuples, ChConstraint)
+class ChConstraintTwoTuples : public ChConstraint {
 
     typedef typename Ta::type_constraint_tuple type_constraint_tuple_a;
     typedef typename Tb::type_constraint_tuple type_constraint_tuple_b;
@@ -53,6 +52,7 @@ class ChApi ChConstraintTwoTuples : public ChConstraint {
     ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other) {
         tuple_a = other.tuple_a;
         tuple_b = other.tuple_b;
+        return *this;
     }
 
     /// Access tuple a

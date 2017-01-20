@@ -9,17 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-
-#include "assets/ChColor.h"
-#include "core/ChClassRegister.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/core/ChClassFactory.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChColor> a_registration_ChColor;
-
-
+CH_FACTORY_REGISTER(ChColor)
 
 ChColor ChColor::ComputeFalseColor(double v,double vmin,double vmax, bool out_of_range_as_bw)
 {
@@ -56,5 +53,4 @@ ChColor ChColor::ComputeFalseColor(double v,double vmin,double vmax, bool out_of
    return(c);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

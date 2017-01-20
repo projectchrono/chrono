@@ -15,7 +15,7 @@
 #ifndef CHC_TRIANGLEMESHSOUP_H
 #define CHC_TRIANGLEMESHSOUP_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChTriangleMesh.h"
 
@@ -25,8 +25,9 @@ namespace geometry {
 /// A basic triangle mesh: just a list of triangles (no edge connectivity info).
 
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTriangleMeshSoup, ChTriangleMesh);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTriangleMeshSoup)
 
     std::vector<ChTriangle> m_triangles;  ///< triangle list
 

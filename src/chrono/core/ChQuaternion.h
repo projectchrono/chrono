@@ -1,35 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHQUATERNION_H
 #define CHQUATERNION_H
 
-//////////////////////////////////////////////////
-//
-//   ChQuaternion.h
-//
-//   Math functions for :
-//      - QUATERNIONS
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChVector.h"
-#include "ChApiCE.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -78,7 +65,7 @@ class ChQuaternion {
     ChQuaternion(const Real ne0, const Real ne1, const Real ne2, const Real ne3) : e0(ne0), e1(ne1), e2(ne2), e3(ne3) {}
 
     /// Constructor from real part, and vector with i,j,k imaginary part.
-    ChQuaternion(const Real ns, const ChVector<Real> nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
+    ChQuaternion(const Real ns, const ChVector<Real>& nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
 
     /// Copy constructor
     ChQuaternion(const ChQuaternion<Real>& other) : e0(other.e0), e1(other.e1), e2(other.e2), e3(other.e3) {}
@@ -317,7 +304,7 @@ class ChQuaternion {
 
     /// The quaternion becomes the sum of the two quaternions A and B:
     /// this=A+B
-    void Add(const ChQuaternion<Real> A, const ChQuaternion<Real> B) {
+    void Add(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
         e0 = A.e0 + B.e0;
         e1 = A.e1 + B.e1;
         e2 = A.e2 + B.e2;
@@ -326,7 +313,7 @@ class ChQuaternion {
 
     /// The quaternion becomes the difference of the two quaternions A and B:
     /// this=A-B
-    void Sub(const ChQuaternion<Real> A, const ChQuaternion<Real> B) {
+    void Sub(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) {
         e0 = A.e0 - B.e0;
         e1 = A.e1 - B.e1;
         e2 = A.e2 - B.e2;
@@ -336,7 +323,7 @@ class ChQuaternion {
     /// The quaternion becomes the quaternion product of the two quaternions A and B:
     /// following the classic Hamilton rule:  this=AxB
     /// This is the true, typical quaternion product. It is NOT commutative.
-    void Cross(const ChQuaternion<Real> qa, const ChQuaternion<Real> qb) {
+    void Cross(const ChQuaternion<Real>& qa, const ChQuaternion<Real>& qb) {
         this->e0 = qa.e0 * qb.e0 - qa.e1 * qb.e1 - qa.e2 * qb.e2 - qa.e3 * qb.e3;
         this->e1 = qa.e0 * qb.e1 + qa.e1 * qb.e0 - qa.e3 * qb.e2 + qa.e2 * qb.e3;
         this->e2 = qa.e0 * qb.e2 + qa.e2 * qb.e0 + qa.e3 * qb.e1 - qa.e1 * qb.e3;
@@ -345,13 +332,13 @@ class ChQuaternion {
 
     /// The result is dot product of the two quaternion A and B:
     /// result=A*B. This kind of product is not used a lot, anyway...
-    Real Dot(const ChQuaternion<Real> A, const ChQuaternion<Real> B) const {
+    Real Dot(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) const {
         return (A.e0 * B.e0) + (A.e1 * B.e1) + (A.e2 * B.e2) + (A.e3 * B.e3);
     };
 
     /// The quaternion becomes the product of a quaternion A and a scalar v:
     /// this=A*v
-    void Mul(const ChQuaternion<Real> A, const Real v) {
+    void Mul(const ChQuaternion<Real>& A, const Real v) {
         e0 = A.e0 * v;
         e1 = A.e1 * v;
         e2 = A.e2 * v;
@@ -428,7 +415,7 @@ class ChQuaternion {
 
     /// Rotates the vector A on the basis of this quaternion: res=p*[0,A]*p'
     /// (speed-optimized version). Endomorphism assumes p is already normalized.
-    ChVector<Real> Rotate(const ChVector<Real> A) const {
+    ChVector<Real> Rotate(const ChVector<Real>& A) const {
         Real e0e0 = e0 * e0;
         Real e1e1 = e1 * e1;
         Real e2e2 = e2 * e2;
@@ -446,7 +433,7 @@ class ChQuaternion {
 
     /// Rotates the vector A on the basis of conjugate of this quaternion: res=p'*[0,A]*p
     /// (speed-optimized version).  Endomorphism assumes p is already normalized.
-    ChVector<Real> RotateBack(const ChVector<Real> A) const {
+    ChVector<Real> RotateBack(const ChVector<Real>& A) const {
         Real e0e0 = e0 * e0;
         Real e1e1 = e1 * e1;
         Real e2e2 = e2 * e2;
@@ -526,7 +513,7 @@ class ChQuaternion {
         this->e3 = axis.z * sinhalf;
     }
 
-    /// Sets the quaternion from an agle of rotation about X axis
+	/// Sets the quaternion from an agle of rotation about X axis
     void Q_from_AngX(const Real angleX) { Q_from_AngAxis(angleX, ChVector<Real>(1, 0, 0)); }
 
     /// Sets the quaternion from an agle of rotation about Y axis
@@ -745,7 +732,6 @@ class ChQuaternion {
         marchive >> CHNVP(e2);
         marchive >> CHNVP(e3);
     }
-
 };
 
 /// Shortcut for faster use of typical double-precision quaternion.
@@ -773,30 +759,81 @@ typedef ChQuaternion<float> QuaternionF;
 // the ChQuaternion class instead!
 
 ChApi double Qlength(const ChQuaternion<double>& q);
+
 ChApi ChQuaternion<double> Qadd(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+
 ChApi ChQuaternion<double> Qsub(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+
 ChApi ChQuaternion<double> Qscale(const ChQuaternion<double>& q, double fact);
+
+/// Return the norm two of the quaternion. Euler's parameters have norm = 1
 ChApi ChQuaternion<double> Qnorm(const ChQuaternion<double>& q);
+
+/// Get the quaternion from an agle of rotation and an axis, defined in _abs_ coords.
+/// The axis is supposed to be fixed, i.e. it is constant during rotation.
+/// The 'axis' vector must be normalized.
 ChApi ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis);
+
+/// Get the quaternion from a source vector and a destination vector which specifies
+/// the rotation from one to the other.  The vectors do not need to be normalized.
+ChApi ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const ChVector<double>& to_vect);
+
 ChApi ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& RxRyRz);
+
 ChApi ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& mq);
+
 ChApi ChQuaternion<double> Q_from_AngZ(double angleZ);
+
 ChApi ChQuaternion<double> Q_from_AngX(double angleX);
+
 ChApi ChQuaternion<double> Q_from_AngY(double angleY);
-ChApi void Q_to_AngAxis(ChQuaternion<double>* quat, double* a_angle, ChVector<double>* a_axis);
+
+ChApi void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis);
+
+/// Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
 ChApi ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const Quaternion& q);
+
+/// Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
 ChApi ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const Quaternion& q);
+
+/// Get the time derivative from a quaternion, a speed of rotation and an axis, defined in _abs_ coords.
 ChApi ChQuaternion<double> Qdt_from_AngAxis(const ChQuaternion<double>& quat, double angle_dt, const ChVector<double>& axis);
+
+/// Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
 ChApi ChQuaternion<double> Qdtdt_from_Aabs(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+
+///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
 ChApi ChQuaternion<double> Qdtdt_from_Arel(const ChVector<double>& a, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+
+/// Get the second time derivative from a quaternion, an angular acceleration and an axis, defined in _abs_ coords.
 ChApi ChQuaternion<double> Qdtdt_from_AngAxis(double angle_dtdt, const ChVector<double>& axis, const ChQuaternion<double>& q, const ChQuaternion<double>& q_dt);
+
+/// Return the conjugate of the quaternion [s,v1,v2,v3] is [s,-v1,-v2,-v3]
 ChApi ChQuaternion<double> Qconjugate(const ChQuaternion<double>& q);
+
+/// Return the product of two quaternions. It is non-commutative (like cross product in vectors).
 ChApi ChQuaternion<double> Qcross(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+
+/// Check if two quaternions are equal.
 ChApi bool Qequal(const ChQuaternion<double>& qa, const ChQuaternion<double>& qb);
+
+/// Check if quaternion is not null.
 ChApi bool Qnotnull(const ChQuaternion<double>& qa);
-ChApi ChQuaternion<double> ImmQ_complete(ChVector<double>* qimm);
-ChApi ChQuaternion<double> ImmQ_dt_complete(ChQuaternion<double>* mq, ChVector<double>* qimm_dt);
-ChApi ChQuaternion<double> ImmQ_dtdt_complete(ChQuaternion<double>* mq, ChQuaternion<double>* mqdt, ChVector<double>* qimm_dtdt);
+
+/// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
+/// find the entire quaternion q = {e0, e1, e2, e3}.
+/// Note: singularities are possible.
+ChApi ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm);
+
+/// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
+/// find the entire quaternion q = {e0, e1, e2, e3}.
+/// Note: singularities are possible.
+ChApi ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt);
+
+/// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
+/// find the entire quaternion q = {e0, e1, e2, e3}.
+/// Note: singularities are possible.
+ChApi ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq, const ChQuaternion<double>& mqdt, const ChVector<double>& qimm_dtdt);
 
 ChApi ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat);
 
@@ -821,6 +858,6 @@ ChApi ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>&
 ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChQuaternion.h
+#endif

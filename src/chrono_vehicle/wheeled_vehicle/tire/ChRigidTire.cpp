@@ -16,6 +16,10 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
+#include "chrono/physics/ChGlobal.h"
+
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
 namespace chrono {
@@ -25,7 +29,9 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 ChRigidTire::ChRigidTire(const std::string& name)
     : ChTire(name),
-      m_friction(0.6f),
+      m_use_contact_mesh(false),
+      m_trimesh(nullptr),
+      m_friction(0.7f),
       m_restitution(0.1f),
       m_young_modulus(2e5f),
       m_poisson_ratio(0.3f),
@@ -34,20 +40,26 @@ ChRigidTire::ChRigidTire(const std::string& name)
       m_kt(2e5f),
       m_gt(20) {}
 
+ChRigidTire::~ChRigidTire() {
+    delete m_trimesh;
+}
+
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::SetContactMaterial(float friction_coefficient,
-                                     float restitution_coefficient,
-                                     float young_modulus,
-                                     float poisson_ratio,
-                                     float kn,
-                                     float gn,
-                                     float kt,
-                                     float gt) {
-    m_friction = friction_coefficient;
-    m_restitution = restitution_coefficient;
+void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sphere_radius) {
+    m_use_contact_mesh = true;
+    m_contact_meshFile = mesh_file;
+    m_sweep_sphere_radius = sweep_sphere_radius;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidTire::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
     m_young_modulus = young_modulus;
     m_poisson_ratio = poisson_ratio;
+}
+
+void ChRigidTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
     m_kn = kn;
     m_gn = gn;
     m_kt = kt;
@@ -61,9 +73,21 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     wheel->SetCollide(true);
 
-    wheel->GetCollisionModel()->ClearModel();
-    wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
-    wheel->GetCollisionModel()->BuildModel();
+    if (m_use_contact_mesh) {
+        // Mesh contact
+        m_trimesh = new geometry::ChTriangleMeshConnected;
+        m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
+
+        wheel->GetCollisionModel()->ClearModel();
+        wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
+                                                    m_sweep_sphere_radius);
+        wheel->GetCollisionModel()->BuildModel();
+    } else {
+        // Cylinder contact
+        wheel->GetCollisionModel()->ClearModel();
+        wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
+        wheel->GetCollisionModel()->BuildModel();
+    }
 
     switch (wheel->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
@@ -80,6 +104,39 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
             wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
             wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
             break;
+    }
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidTire::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);
+    m_wheel->AddAsset(m_cyl_shape);
+
+    m_texture = std::make_shared<ChTexture>();
+    m_texture->SetTextureFilename(GetChronoDataFile("greenwhite.png"));
+    m_wheel->AddAsset(m_texture);
+}
+
+void ChRigidTire::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChRigidTire::AddVisualizationAssets.
+    // This is important for the ChTire object because a wheel may add its own assets
+    // to the same body (the spindle/wheel).
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_cyl_shape);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
+    }
+    {
+        auto it = std::find(m_wheel->GetAssets().begin(), m_wheel->GetAssets().end(), m_texture);
+        if (it != m_wheel->GetAssets().end())
+            m_wheel->GetAssets().erase(it);
     }
 }
 
@@ -108,6 +165,43 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
     tire_force.moment = ChVector<>(0, 0, 0);
 
     return tire_force;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+unsigned int ChRigidTire::GetNumVertices() const {
+    assert(m_use_contact_mesh);
+    return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
+}
+
+unsigned int ChRigidTire::GetNumTriangles() const {
+    assert(m_use_contact_mesh);
+    return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
+}
+
+const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getIndicesVertexes();
+}
+
+const std::vector<ChVector<>>& ChRigidTire::GetMeshVertices() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getCoordsVertices();
+}
+
+const std::vector<ChVector<>>& ChRigidTire::GetMeshNormals() const {
+    assert(m_use_contact_mesh);
+    return m_trimesh->getCoordsNormals();
+}
+
+void ChRigidTire::GetMeshVertexStates(std::vector<ChVector<>>& pos, std::vector<ChVector<>>& vel) const {
+    assert(m_use_contact_mesh);
+    auto vertices = m_trimesh->getCoordsVertices();
+
+    for (size_t i = 0; i < vertices.size(); ++i) {
+        pos.push_back(m_wheel->TransformPointLocalToParent(vertices[i]));
+        vel.push_back(m_wheel->PointSpeedLocalToParent(vertices[i]));
+    }
 }
 
 }  // end namespace vehicle

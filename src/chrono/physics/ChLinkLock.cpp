@@ -18,7 +18,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
-ChClassRegister<ChLinkLock> a_registration_ChLinkLock;
+CH_FACTORY_REGISTER(ChLinkLock)
 
 ChLinkLock::ChLinkLock()
     : type(LNK_SPHERICAL),
@@ -50,7 +50,7 @@ ChLinkLock::ChLinkLock()
     limit_Rz = new ChLinkLimit;
     limit_D = new ChLinkLimit;
     limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(TRUE);
+    limit_Rp->Set_polar(true);
 
     if (mask)
         delete mask;            // delete the class mask created by base constructor, and,
@@ -191,7 +191,7 @@ void ChLinkLock::BuildLinkType(int link_type) {
     if (type == LNK_REVOLUTEPRISMATIC)
         m_mask.SetLockMask(false, true, true, false, true, true, false);
 
-    BuildLink(&m_mask);  // , TRUE);
+    BuildLink(&m_mask);
 }
 
 void ChLinkLock::ChangeLinkType(int new_link_type) {
@@ -248,7 +248,7 @@ void ChLinkLock::ChangeLinkType(int new_link_type) {
     limit_Rz = new ChLinkLimit;
     limit_D = new ChLinkLimit;
     limit_Rp = new ChLinkLimit;  // the polar limit;
-    limit_Rp->Set_polar(TRUE);
+    limit_Rp->Set_polar(true);
 }
 
 // setup the functions when user changes them.
@@ -535,7 +535,7 @@ void ChLinkLock::UpdateRelMarkerCoords() {
     // ... and also "user-friendly" relative coordinates:
 
     // relAngle and relAxis
-    Q_to_AngAxis(&relM.rot, &relAngle, &relAxis);
+    Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
     if (relAxis.z < 0) {
         relAxis = Vmul(relAxis, -1);
@@ -637,30 +637,30 @@ void ChLinkLock::UpdateState() {
     mtemp1.CopyFromMatrixT(marker2->GetA());
     CqxT.MatrMultiplyT(mtemp1, Body2->GetA());  // [CqxT]=[Aq]'[Ao2]'
 
-    Cq1_temp->PasteMatrix(&CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq1_temp->PasteMatrix(CqxT, 0, 0);  // *- -- Cq1_temp(1-3)  =[Aqo2]
 
     CqxT.MatrNeg();
-    Cq2_temp->PasteMatrix(&CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    Cq2_temp->PasteMatrix(CqxT, 0, 0);  // -- *- Cq2_temp(1-3)  =-[Aqo2]
 
     mtemp1.MatrMultiply(CqxT, Body1->GetA());
     mtemp2.MatrMultiply(mtemp1, P1star);
 
     CqxR.MatrMultiply(mtemp2, body1Gl);
 
-    Cq1_temp->PasteMatrix(&CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
+    Cq1_temp->PasteMatrix(CqxR, 0, 3);  // -* -- Cq1_temp(4-7)
 
     CqxT.MatrNeg();
     mtemp1.MatrMultiply(CqxT, Body2->GetA());
     mtemp2.MatrMultiply(mtemp1, Q2star);
     CqxR.MatrMultiply(mtemp2, body2Gl);
-    Cq2_temp->PasteMatrix(&CqxR, 0, 3);
+    Cq2_temp->PasteMatrix(CqxR, 0, 3);
 
     mtemp1.CopyFromMatrixT(marker2->GetA());
     mtemp2.Set_X_matrix(Body2->GetA().MatrT_x_Vect(PQw));
     mtemp3.MatrMultiply(mtemp1, mtemp2);
     CqxR.MatrMultiply(mtemp3, body2Gl);
 
-    Cq2_temp->PasteSumMatrix(&CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
+    Cq2_temp->PasteSumMatrix(CqxR, 0, 3);  // -- -* Cq1_temp(4-7)
 
     mtempQ1.Set_Xq_matrix(Qcross(Qconjugate(marker2->GetCoord().rot), Qconjugate(Body2->GetCoord().rot)));
     CqrR.Set_Xq_matrix(marker1->GetCoord().rot);
@@ -669,7 +669,7 @@ void ChLinkLock::UpdateState() {
     mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
     CqrR.MatrMultiply(mtempQ1, mtempQ2);
 
-    Cq1_temp->PasteMatrix(&CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
+    Cq1_temp->PasteMatrix(CqrR, 3, 3);  // =* == Cq1_temp(col 4-7, row 4-7)
 
     mtempQ1.Set_Xq_matrix(Qconjugate(marker2->GetCoord().rot));
     CqrR.Set_Xq_matrix(Qcross(Body1->GetCoord().rot, marker1->GetCoord().rot));
@@ -679,7 +679,7 @@ void ChLinkLock::UpdateState() {
     mtempQ1.Set_Xq_matrix(Qconjugate(deltaC.rot));
     CqrR.MatrMultiply(mtempQ1, mtempQ2);
 
-    Cq2_temp->PasteMatrix(&CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
+    Cq2_temp->PasteMatrix(CqrR, 3, 3);  // == =* Cq2_temp(col 4-7, row 4-7)
 
     //--------- COMPLETE Qc VECTOR
 
@@ -735,8 +735,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_X().IsActive())  // for X costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 0, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 0, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 0, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 0, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(0, 0));
 
@@ -751,8 +751,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_Y().IsActive())  // for Y costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 1, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 1, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 1, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 1, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(1, 0));
 
@@ -767,8 +767,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_Z().IsActive())  // for Z costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 2, 0, 1, 7, index, 0);
-        Cq2->PasteClippedMatrix(Cq2_temp, 2, 0, 1, 7, index, 0);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, index, 0);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, index, 0);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(2, 0));
 
@@ -783,8 +783,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E0().IsActive())  // for E0 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 3, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 3, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(3, 0));
 
@@ -799,8 +799,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E1().IsActive())  // for E1 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 4, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 4, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 4, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 4, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(4, 0));
 
@@ -815,8 +815,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E2().IsActive())  // for E2 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 5, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 5, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 5, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 5, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(5, 0));
 
@@ -831,8 +831,8 @@ void ChLinkLock::UpdateState() {
 
     if (mmask->Constr_E3().IsActive())  // for E3 costraint...
     {
-        Cq1->PasteClippedMatrix(Cq1_temp, 6, 3, 1, 4, index, 3);
-        Cq2->PasteClippedMatrix(Cq2_temp, 6, 3, 1, 4, index, 3);
+        Cq1->PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, index, 3);
+        Cq2->PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, index, 3);
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(6, 0));
 
@@ -885,25 +885,16 @@ void ChLinkLock::UpdateForces(double mytime) {
         m_torque.z = limit_Rz->GetForce(relRotaxis.z, relWvel.z);
     }
     if (limit_Rp->Get_active()) {
+        ChVector<> arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
+        double zenith = VangleYZplaneNorm(arm_xaxis);     // the angle of m1 Xaxis about normal to YZ plane
+        double polar = VangleRX(arm_xaxis);               // the polar angle of m1 Xaxis spinning about m2 Xaxis
+
+        ChVector<> projected_arm(0, arm_xaxis.y, arm_xaxis.z);
         ChVector<> torq_axis;
-        ChVector<> arm_xaxis;
-        ChVector<> projected_arm;
-        double zenithspeed;
-        double zenith;
-        double polar;
-
-        arm_xaxis = VaxisXfromQuat(relM.rot);    // the X axis of the marker1, respect to m2.
-        zenith = VangleYZplaneNorm(&arm_xaxis);  // the angle of m1 Xaxis about normal to YZ plane
-        polar = VangleRX(&arm_xaxis);            // the polar angle of m1 Xaxis spinning about m2 Xaxis
-
-        projected_arm.x = 0;
-        projected_arm.y = arm_xaxis.y;
-        projected_arm.z = arm_xaxis.z;
-        ChVector<> vx = VECT_X;
-        torq_axis = Vcross(vx, projected_arm);
+        torq_axis = Vcross(VECT_X, projected_arm);
         torq_axis = Vnorm(torq_axis);  // the axis of torque, laying on YZ plane.
 
-        zenithspeed = Vdot(torq_axis, relWvel);  // the speed of zenith rotation toward cone.
+        double zenithspeed = Vdot(torq_axis, relWvel);  // the speed of zenith rotation toward cone.
 
         m_torque = Vadd(m_torque, Vmul(torq_axis, limit_Rp->GetPolarForce(zenith, zenithspeed, polar)));
     }
@@ -1728,7 +1719,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
 
 void Transform_Cq_to_Cqw_row(ChMatrix<>* mCq, int qrow, ChMatrix<>* mCqw, int qwrow, ChBodyFrame* mbody) {
     // traslational part - not changed
-    mCqw->PasteClippedMatrix(mCq, qrow, 0, 1, 3, qwrow, 0);
+    mCqw->PasteClippedMatrix(*mCq, qrow, 0, 1, 3, qwrow, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
     int col, colres;
@@ -2068,19 +2059,19 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
 
-ChClassRegister<ChLinkLockRevolute> a_registration_ChLinkLockRevolute;
-ChClassRegister<ChLinkLockLock> a_registration_ChLinkLockLock;
-ChClassRegister<ChLinkLockSpherical> a_registration_ChLinkLockSpherical;
-ChClassRegister<ChLinkLockCylindrical> a_registration_ChLinkLockCylindrical;
-ChClassRegister<ChLinkLockPrismatic> a_registration_ChLinkLockPrismatic;
-ChClassRegister<ChLinkLockPointPlane> a_registration_ChLinkLockPointPlane;
-ChClassRegister<ChLinkLockPointLine> a_registration_ChLinkLockPointLine;
-ChClassRegister<ChLinkLockPlanePlane> a_registration_ChLinkLockPlanePlane;
-ChClassRegister<ChLinkLockOldham> a_registration_ChLinkLockOldham;
-ChClassRegister<ChLinkLockFree> a_registration_ChLinkLockFree;
-ChClassRegister<ChLinkLockAlign> a_registration_ChLinkLockAlign;
-ChClassRegister<ChLinkLockParallel> a_registration_ChLinkLockParallel;
-ChClassRegister<ChLinkLockPerpend> a_registration_ChLinkLockPerpend;
-ChClassRegister<ChLinkLockRevolutePrismatic> a_registration_ChLinkLockRevolutePrismatic;
+CH_FACTORY_REGISTER(ChLinkLockRevolute)
+CH_FACTORY_REGISTER(ChLinkLockLock)
+CH_FACTORY_REGISTER(ChLinkLockSpherical)
+CH_FACTORY_REGISTER(ChLinkLockCylindrical)
+CH_FACTORY_REGISTER(ChLinkLockPrismatic)
+CH_FACTORY_REGISTER(ChLinkLockPointPlane)
+CH_FACTORY_REGISTER(ChLinkLockPointLine)
+CH_FACTORY_REGISTER(ChLinkLockPlanePlane)
+CH_FACTORY_REGISTER(ChLinkLockOldham)
+CH_FACTORY_REGISTER(ChLinkLockFree)
+CH_FACTORY_REGISTER(ChLinkLockAlign)
+CH_FACTORY_REGISTER(ChLinkLockParallel)
+CH_FACTORY_REGISTER(ChLinkLockPerpend)
+CH_FACTORY_REGISTER(ChLinkLockRevolutePrismatic)
 
 }  // end namespace chrono

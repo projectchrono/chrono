@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -11,21 +11,6 @@
 
 #ifndef CHTHREADSFUNCT_H
 #define CHTHREADSFUNCT_H
-
-//////////////////////////////////////////////////
-//
-//   ChThreadsFunct.h
-//
-//   Stuff used by interface for multithreading (for multi-core
-//   processors) on the Window platform
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 namespace chrono {
 
@@ -52,6 +37,6 @@ struct ChThreadConstructionInfo {
     int m_threadStackSize;
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

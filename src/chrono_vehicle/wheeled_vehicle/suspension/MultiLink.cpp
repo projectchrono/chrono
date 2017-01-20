@@ -20,7 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -50,7 +50,7 @@ MultiLink::MultiLink(const std::string& filename) : ChMultiLink(""), m_springFor
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

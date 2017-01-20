@@ -6415,5 +6415,17 @@ tr.inherit_header td{
   padding: 1em 2em;
   margin: 0 0 0.5em 0.5em;
 }
+.btn {
+	border-radius: 5px;
+}
+#footer {
+  margin-top: 180px;
+  min-height: 120px;
+  background-color: #232323;
+  color: #eeeeee;
+  margin-bottom: 0px;
+  padding-top: 10px;
+}
+
 
 /* @end */

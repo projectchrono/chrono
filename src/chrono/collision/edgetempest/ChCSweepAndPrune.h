@@ -28,8 +28,15 @@
 #endif
 
 #include "chrono/collision/edgetempest/ChCBroadPhaseCollider.h"
-#include "chrono/core/ChWrapHashmap.h"
 #include "chrono/geometry/ChGeometry.h"
+
+#ifdef COMPILER_GCC
+#include <ext/hash_map>
+namespace chronohash = ::__gnu_cxx;
+#else
+#include <hash_map>
+namespace chronohash = ::stdext;  // NOTE: in Visual C++ Toolkit 2003 is ::std;
+#endif
 
 namespace chrono {
 namespace collision {
@@ -340,7 +347,7 @@ class ChSweepAndPrune : public ChBroadPhaseCollider<model_type> {
 
 };  // end of s&p class
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

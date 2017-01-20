@@ -32,9 +32,10 @@ namespace fea {
 /// That is, the two nodes will be joined, as overlapping.
 /// Nodes are 3-DOF points that are used in point-based
 /// primitives, such as ChMatterSPH or finite elements.
+
 class ChApiFea ChLinkPointPoint : public ChLinkBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinkPointPoint, ChLinkBase);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPointPoint)
 
   private:
     ChVector<> react;

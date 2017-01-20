@@ -23,8 +23,9 @@ namespace geometry {
 /// A cylindrical geometric object for collisions and visualization.
 
 class ChApi ChCylinder : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChCylinder, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCylinder)
 
   public:
     ChVector<> p1;  ///< center of first base

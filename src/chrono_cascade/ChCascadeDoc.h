@@ -29,9 +29,9 @@
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
-#include "core/ChStream.h"
-#include "core/ChFrameMoving.h"
-#include "physics/ChBodyAuxRef.h"
+#include "chrono/core/ChStream.h"
+#include "chrono/core/ChFrameMoving.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 class TopoDS_Face;
 class TopoDS_Shape;

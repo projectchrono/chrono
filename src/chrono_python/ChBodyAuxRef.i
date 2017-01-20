@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChBodyAuxRef.h"
+#include "chrono/physics/ChBodyAuxRef.h"
 
 using namespace chrono;
 

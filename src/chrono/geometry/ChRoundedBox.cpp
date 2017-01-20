@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChRoundedBox.h"
@@ -21,7 +21,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChRoundedBox> a_registration_ChRoundedBox;
+CH_FACTORY_REGISTER(ChRoundedBox)
 
 ChRoundedBox::ChRoundedBox(const ChRoundedBox& source) {
     Pos = source.Pos;

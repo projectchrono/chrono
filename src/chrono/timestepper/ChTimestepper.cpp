@@ -21,7 +21,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerExpl> a_registration_ChTimestepperEulerExpl;
+CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
 
 // Euler explicit timestepper.
 // This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
@@ -51,7 +51,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerExplIIorder> a_registration_ChTimestepperEulerExplIIorder;
+CH_FACTORY_REGISTER(ChTimestepperEulerExplIIorder)
 
 // Euler explicit timestepper customized for II order.
 // (It gives the same results of ChTimestepperEulerExpl,
@@ -92,7 +92,7 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerSemiImplicit> a_registration_ChTimestepperEulerSemiImplicit;
+CH_FACTORY_REGISTER(ChTimestepperEulerSemiImplicit)
 
 // Euler semi-implicit timestepper
 // This performs the typical
@@ -129,7 +129,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperRungeKuttaExpl> a_registration_ChTimestepperRungeKuttaExpl;
+CH_FACTORY_REGISTER(ChTimestepperRungeKuttaExpl)
 
 // Performs a step of a 4th order explicit Runge-Kutta integration scheme.
 void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
@@ -173,7 +173,7 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperHeun> a_registration_ChTimestepperHeun;
+CH_FACTORY_REGISTER(ChTimestepperHeun)
 
 // Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
 void ChTimestepperHeun::Advance(const double dt) {
@@ -209,7 +209,7 @@ void ChTimestepperHeun::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperLeapfrog> a_registration_ChTimestepperLeapfrog;
+CH_FACTORY_REGISTER(ChTimestepperLeapfrog)
 
 // Performs a step of a Leapfrog explicit integrator.
 // It is a symplectic method, with 2nd order accuracy,
@@ -252,7 +252,7 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerImplicit> a_registration_ChTimestepperEulerImplicit;
+CH_FACTORY_REGISTER(ChTimestepperEulerImplicit)
 
 // Performs a step of Euler implicit for II order systems
 void ChTimestepperEulerImplicit::Advance(const double dt) {
@@ -338,7 +338,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerImplicitLinearized> a_registration_ChTimestepperEulerImplicitLinearized;
+CH_FACTORY_REGISTER(ChTimestepperEulerImplicitLinearized)
 
 // Performs a step of Euler implicit for II order systems
 // using the Anitescu/Stewart/Trinkle single-iteration method,
@@ -404,7 +404,7 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperEulerImplicitProjected> a_registration_ChTimestepperEulerImplicitProjected;
+CH_FACTORY_REGISTER(ChTimestepperEulerImplicitProjected)
 
 // Performs a step of Euler implicit for II order systems
 // using a semi implicit Euler without constr.stabilization, followed by a projection,
@@ -495,7 +495,7 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperTrapezoidal> a_registration_ChTimestepperTrapezoidal;
+CH_FACTORY_REGISTER(ChTimestepperTrapezoidal)
 
 // Performs a step of trapezoidal implicit for II order systems
 // NOTE this is a modified version of the trapezoidal for DAE: the
@@ -594,7 +594,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperTrapezoidalLinearized> a_registration_ChTimestepperTrapezoidalLinearized;
+CH_FACTORY_REGISTER(ChTimestepperTrapezoidalLinearized)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
 void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
@@ -674,7 +674,7 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperTrapezoidalLinearized2> a_registration_ChTimestepperTrapezoidalLinearized2;
+CH_FACTORY_REGISTER(ChTimestepperTrapezoidalLinearized2)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
 //*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
@@ -745,7 +745,7 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTimestepperNewmark> a_registration_ChTimestepperNewmark;
+CH_FACTORY_REGISTER(ChTimestepperNewmark)
 
 // Performs a step of Newmark constrained implicit for II order DAE systems
 void ChTimestepperNewmark::Advance(const double dt) {

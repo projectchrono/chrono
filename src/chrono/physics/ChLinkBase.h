@@ -50,8 +50,8 @@ namespace chrono {
 #define LNK_REVOLUTESPHERICAL 23
 #define LNK_REVOLUTETRANSLATIONAL 24
 #define LNK_SPRING 25
-#define LNK_WHEEL 26
 #define LNK_LINACTUATOR 27
+#define LNK_ROT_SPRING_CALLBACK 28
 #define LNK_BASE 29
 #define LNK_SPRING_CALLBACK 30
 #define LNK_ENGINE 31
@@ -83,7 +83,9 @@ namespace chrono {
 /// _nothing_ unless it is specialized by some child class).
 
 class ChApi ChLinkBase : public ChPhysicsItem {
-    CH_RTTI(ChLinkBase, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkBase)
 
   protected:
     bool disabled;  ///< all constraints of link disabled because of user needs

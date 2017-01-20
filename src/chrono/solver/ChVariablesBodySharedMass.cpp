@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChVariablesBodySharedMass> a_registration_ChVariablesBodySharedMass;
+CH_FACTORY_REGISTER(ChVariablesBodySharedMass)
 
 ChVariablesBodySharedMass& ChVariablesBodySharedMass::operator=(const ChVariablesBodySharedMass& other) {
     if (&other == this)
@@ -135,7 +135,7 @@ void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int
     storage.SetElement(insrow + 1, inscol + 1, c_a * sharedmass->mass);
     storage.SetElement(insrow + 2, inscol + 2, c_a * sharedmass->mass);
     ChMatrix33<> scaledJ = sharedmass->inertia * c_a;
-    storage.PasteMatrix(&scaledJ, insrow + 3, inscol + 3);
+    storage.PasteMatrix(scaledJ, insrow + 3, inscol + 3);
 }
 
 }  // end namespace chrono

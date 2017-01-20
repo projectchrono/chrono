@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono/collision/ChCModelBullet.h"
@@ -26,7 +26,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConveyor> a_registration_ChConveyor;
+CH_FACTORY_REGISTER(ChConveyor)
 
 ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_speed(1) {
     conveyor_truss = new ChBody;
@@ -88,6 +88,7 @@ void ChConveyor::IntStateScatter(const unsigned int off_x,  // offset in x state
                                  ) {
     conveyor_truss->IntStateScatter(off_x, x, off_v, v, T);
     conveyor_plate->IntStateScatter(off_x + 7, x, off_v + 6, v, T);
+    this->Update(T);
 }
 
 void ChConveyor::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {

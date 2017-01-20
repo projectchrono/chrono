@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,8 +13,8 @@
 #ifndef CHPARTICLEPROCESSOR_H
 #define CHPARTICLEPROCESSOR_H
 
-#include "ChParticleEventTrigger.h"
-#include "ChParticleProcessEvent.h"
+#include "chrono/particlefactory/ChParticleEventTrigger.h"
+#include "chrono/particlefactory/ChParticleProcessEvent.h"
 
 namespace chrono {
 namespace particlefactory {

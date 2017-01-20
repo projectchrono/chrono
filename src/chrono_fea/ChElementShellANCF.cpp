@@ -34,7 +34,8 @@ const int ChElementShellANCF::m_maxIterationsEAS = 100;
 // Constructor
 // ------------------------------------------------------------------------------
 
-ChElementShellANCF::ChElementShellANCF() : m_gravity_on(false), m_numLayers(0), m_thickness(0) {
+ChElementShellANCF::ChElementShellANCF()
+    : m_gravity_on(false), m_numLayers(0), m_thickness(0), m_lenX(0), m_lenY(0), m_Alpha(0) {
     m_nodes.resize(4);
 }
 
@@ -174,21 +175,21 @@ void MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, const 
     ChMatrixNM<double, 3, 24> S;
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
+    S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
+    S.PasteMatrix(Si, 0, 3);
     Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
+    S.PasteMatrix(Si, 0, 6);
     Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
+    S.PasteMatrix(Si, 0, 9);
     Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
+    S.PasteMatrix(Si, 0, 12);
     Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
+    S.PasteMatrix(Si, 0, 15);
     Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
+    S.PasteMatrix(Si, 0, 18);
     Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
+    S.PasteMatrix(Si, 0, 21);
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
@@ -473,50 +474,50 @@ void MyForce::Evaluate(ChMatrixNM<double, 54, 1>& result, const double x, const 
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 0, 0);
     tempB3.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 1, 0);
     tempB31.MatrMultiply(Nx, m_element->m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 2, 0);
 
     tempBB.Reset();
     for (int i = 0; i < 4; i++) {
         int ij = i * 2;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, i, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, i, 0, 1, 24, 0, 0);
         tempB *= N(0, ij);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 3, 0);  // strainD for zz
     //
     tempBB.Reset();
     for (int i = 0; i < 2; i++) {
         int ij = i + 6;
         int ij1 = i + 2;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 4, 0);  // strainD for xz
     //
     tempBB.Reset();
     for (int i = 0; i < 2; i++) {
         int ij = i + 4;
         int ij1 = i;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
 
     // For orthotropic material
     ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -580,9 +581,9 @@ void MyForce::Evaluate(ChMatrixNM<double, 54, 1>& result, const double x, const 
     ChMatrixNM<double, 5, 5> KALPHA = (temp56 * G) * (detJ0 * m_element->m_GaussScaling);   // EAS Jacobian
 
     /// Total result vector
-    result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
-    result.PasteClippedMatrix(&HE, 0, 0, 5, 1, 24, 0);
-    result.PasteClippedMatrixToVector(&KALPHA, 0, 0, 5, 5, 29);
+    result.PasteClippedMatrix(Fint, 0, 0, 24, 1, 0, 0);
+    result.PasteClippedMatrix(HE, 0, 0, 5, 1, 24, 0);
+    result.PasteClippedMatrixToVector(KALPHA, 0, 0, 5, 5, 29);
 }
 
 void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
@@ -616,9 +617,9 @@ void ChElementShellANCF::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                                                                   );
 
             // Extract vectors and matrices from result of integration
-            Finternal.PasteClippedMatrix(&result, 0, 0, 24, 1, 0, 0);
-            HE.PasteClippedMatrix(&result, 24, 0, 5, 1, 0, 0);
-            KALPHA.PasteClippedVectorToMatrix(&result, 0, 0, 5, 5, 29);
+            Finternal.PasteClippedMatrix(result, 0, 0, 24, 1, 0, 0);
+            HE.PasteClippedMatrix(result, 24, 0, 5, 1, 0, 0);
+            KALPHA.PasteClippedVectorToMatrix(result, 0, 0, 5, 5, 29);
 
             // Check convergence (residual check)
             double norm_HE = HE.NormTwo();
@@ -853,50 +854,50 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 0, 0);
     tempB3.MatrMultiply(Ny, m_element->m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 1, 0);
     tempB31.MatrMultiply(Nx, m_element->m_d);
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 3; j++) {
             tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
         }
     }
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 2, 0);
 
     tempBB.Reset();
     for (int i = 0; i < 4; i++) {
         int ij = i * 2;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, i, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, i, 0, 1, 24, 0, 0);
         tempB *= N(0, ij);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 3, 0);  // strainD for zz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 3, 0);  // strainD for zz
     //
     tempBB.Reset();
     for (int i = 0; i < 2; i++) {
         int ij = i + 6;
         int ij1 = i + 2;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 4, 0);  // strainD for xz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 4, 0);  // strainD for xz
     //
     tempBB.Reset();
     for (int i = 0; i < 2; i++) {
         int ij = i + 4;
         int ij1 = i;
-        tempB.PasteClippedMatrix(&m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
+        tempB.PasteClippedMatrix(m_element->m_strainANS_D, ij, 0, 1, 24, 0, 0);
         tempB *= S_ANS(0, ij1);
         tempBB += tempB;
     }
-    strainD_til.PasteClippedMatrix(&tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
+    strainD_til.PasteClippedMatrix(tempBB, 0, 0, 1, 24, 5, 0);  // strainD for yz
 
     //// For orthotropic material
     ChMatrixNM<double, 6, 24> strainD;  // Derivative of the strains w.r.t. the coordinates. Includes orthotropy
@@ -1041,8 +1042,8 @@ void MyJacobian::Evaluate(ChMatrixNM<double, 696, 1>& result, const double x, co
 #endif
 
     // Load result vector (integrand)
-    result.PasteClippedMatrixToVector(&KTE, 0, 0, 24, 24, 0);
-    result.PasteClippedMatrixToVector(&GDEPSP, 0, 0, 5, 24, 576);
+    result.PasteClippedMatrixToVector(KTE, 0, 0, 24, 24, 0);
+    result.PasteClippedMatrixToVector(GDEPSP, 0, 0, 5, 24, 576);
 }
 
 void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor) {
@@ -1068,8 +1069,8 @@ void ChElementShellANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // Extract matrices from result of integration
         ChMatrixNM<double, 24, 24> KTE;
         ChMatrixNM<double, 5, 24> GDEPSP;
-        KTE.PasteClippedVectorToMatrix(&result, 0, 0, 24, 24, 0);
-        GDEPSP.PasteClippedVectorToMatrix(&result, 0, 0, 5, 24, 576);
+        KTE.PasteClippedVectorToMatrix(result, 0, 0, 24, 24, 0);
+        GDEPSP.PasteClippedVectorToMatrix(result, 0, 0, 5, 24, 576);
 
         // Include EAS contribution to the stiffness component (hence scaled by Kfactor)
         ChMatrixNM<double, 5, 5> KalphaEAS_inv;

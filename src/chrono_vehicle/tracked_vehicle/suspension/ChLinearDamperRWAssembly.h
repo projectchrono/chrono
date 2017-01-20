@@ -43,8 +43,11 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
 
     virtual ~ChLinearDamperRWAssembly() {}
 
-    /// Return a handle to the carrier body.
+    /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
+
+    /// Get a handle to the revolute joint of the arm.
+    std::shared_ptr<ChLinkLockRevolute> GetArmRevolute() const { return m_revolute; }
 
     /// Get the total mass of the roadwheel assembly.
     /// This includes the mass of the roadwheel and of the suspension mechanism.
@@ -59,6 +62,12 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location              ///< [in] location relative to the chassis frame
                             ) override;
+
+    /// Add visualization assets for the suspension subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override final;
 
     /// Log current constraint violations.
     void LogConstraintViolations() override;
@@ -103,6 +112,14 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
                              const ChVector<>& pt_AC,  ///< connection to chassis (in global frame)
                              const ChVector<>& pt_AS   ///< connection to shock absorber (in global frame)
                              );
+
+    // Points for arm visualization
+    ChVector<> m_pO;
+    ChVector<> m_pA;
+    ChVector<> m_pAC;
+    ChVector<> m_pAW;
+    ChVector<> m_pAS;
+    ChVector<> m_dY;
 };
 
 /// @} vehicle_tracked_suspension

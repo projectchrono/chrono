@@ -21,8 +21,8 @@ namespace chrono {
 /// in some way.
 
 class ChApi ChBoxShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChBoxShape, ChVisualization);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChBoxShape)
 
   protected:
     //
@@ -75,9 +75,6 @@ class ChApi ChBoxShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

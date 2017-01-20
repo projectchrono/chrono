@@ -18,7 +18,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinePoly> a_registration_ChLinePoly;
+CH_FACTORY_REGISTER(ChLinePoly)
 
 ChLinePoly::ChLinePoly(int mnumpoints) : degree(1) {
     points.resize(mnumpoints);
@@ -44,13 +44,13 @@ ChVector<> ChLinePoly::Get_point(size_t mnum) const {
     return points[mnum];
 }
 
-int ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
+bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
     if (mnum >= Get_numpoints())
-        return FALSE;
+        return false;
 
     this->points[mnum] = mpoint;
 
-    return TRUE;
+    return true;
 }
 
 //
@@ -93,7 +93,7 @@ double ChLinePoly::Length(int sampling) const {
 
 // Draw into the current graph viewport of a ChFile_ps file
 
-int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
+bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
     ChPageVect mp1;
     ChVector<> mv1;
 
@@ -119,7 +119,7 @@ int ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inter
     mfle->PaintStroke();  // draw it!
     mfle->GrRestore();    // restore old modes, with old clipping
 
-    return TRUE;
+    return true;
 }
 
 }  // end namespace geometry

@@ -1,18 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHREF_H
 #define CHREF_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/motion_functions/ChFunction.h"
 
@@ -115,7 +116,7 @@ class ChApi ChRefFunctionSegment : public ChRefFunction {
     ChFunction* GetRootFunction() { return ChRefFunction::GetFunction(); }
 
     /// Change the IDs for ravigating the tree
-    int SetTreeIDs(char* myIDs);
+    bool SetTreeIDs(char* myIDs);
 };
 
 /// A reference to an handle of a ChFunction, that is one of the points
@@ -141,10 +142,10 @@ class ChApi ChRefFunctionHandle : public ChRefFunction {
     int AccessHandle(double& mx, double& my, bool set_mode);
 
     /// Change the handle ID
-    int SetHandleId(int m_hid);
+    void SetHandleId(int m_hid);
     int GetHandleId() { return handle_id; };
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChRef.h
+#endif

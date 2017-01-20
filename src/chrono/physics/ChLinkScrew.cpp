@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkScrew> a_registration_ChLinkScrew;
+CH_FACTORY_REGISTER(ChLinkScrew)
 
 ChLinkScrew::ChLinkScrew() {
     // initializes type
@@ -74,8 +74,8 @@ void ChLinkScrew::UpdateState() {
         scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(3, 0) - relC_dt.rot.e0 * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();
-        scr_Cq1.PasteClippedMatrix(Cq1_temp, 3, 3, 1, 4, 0, 3);
-        scr_Cq2.PasteClippedMatrix(Cq2_temp, 3, 3, 1, 4, 0, 3);
+        scr_Cq1.PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, 0, 3);
+        scr_Cq2.PasteClippedMatrix(*Cq2_temp, 3, 3, 1, 4, 0, 3);
         scr_Cq1.MatrScale(coeffa);
         scr_Cq2.MatrScale(coeffa);
     } else {
@@ -104,16 +104,16 @@ void ChLinkScrew::UpdateState() {
         scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(6, 0) - relC_dt.rot.e3 * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();
-        scr_Cq1.PasteClippedMatrix(Cq1_temp, 6, 3, 1, 4, 0, 3);
-        scr_Cq2.PasteClippedMatrix(Cq2_temp, 6, 3, 1, 4, 0, 3);
+        scr_Cq1.PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, 0, 3);
+        scr_Cq2.PasteClippedMatrix(*Cq2_temp, 6, 3, 1, 4, 0, 3);
         scr_Cq1.MatrScale(coeffa);
         scr_Cq2.MatrScale(coeffa);
     }
 
-    Cq1->PasteClippedMatrix(Cq1_temp, 2, 0, 1, 7, 2, 0);
-    Cq2->PasteClippedMatrix(Cq2_temp, 2, 0, 1, 7, 2, 0);
-    Cq1->PasteSumMatrix(&scr_Cq1, 2, 0);
-    Cq2->PasteSumMatrix(&scr_Cq2, 2, 0);
+    Cq1->PasteClippedMatrix(*Cq1_temp, 2, 0, 1, 7, 2, 0);
+    Cq2->PasteClippedMatrix(*Cq2_temp, 2, 0, 1, 7, 2, 0);
+    Cq1->PasteSumMatrix(scr_Cq1, 2, 0);
+    Cq2->PasteSumMatrix(scr_Cq2, 2, 0);
     Qc->SetElement(2, 0, scr_Qc);
     C->SetElement(2, 0, scr_C);
     C_dt->SetElement(2, 0, scr_C_dt);

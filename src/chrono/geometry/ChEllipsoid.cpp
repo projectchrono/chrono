@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/geometry/ChEllipsoid.h"
 
@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChEllipsoid> a_registration_ChEllipsoid;
+CH_FACTORY_REGISTER(ChEllipsoid)
 
 ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
     center = source.center;

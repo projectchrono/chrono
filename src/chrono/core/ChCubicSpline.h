@@ -23,7 +23,7 @@
 #include <string>
 
 #include "chrono/core/ChApiCE.h"
-#include "serialization/ChArchive.h"
+//#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -67,6 +67,6 @@ class ChApi ChCubicSpline {
     std::vector<double> m_ypp;
 };
 
-}  // end of namespace chrono
+}  // end namespace chrono
 
 #endif

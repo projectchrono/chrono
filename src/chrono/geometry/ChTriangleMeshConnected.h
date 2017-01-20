@@ -15,7 +15,7 @@
 #ifndef CHC_TRIANGLEMESHCONNECTED_H
 #define CHC_TRIANGLEMESHCONNECTED_H
 
-#include <math.h>
+#include <cmath>
 #include <array>
 #include <map>
 
@@ -28,8 +28,9 @@ namespace geometry {
 /// shared between faces.
 
 class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTriangleMeshConnected, ChTriangleMesh);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTriangleMeshConnected)
 
     std::vector<ChVector<double>> m_vertices;
     std::vector<ChVector<double>> m_normals;

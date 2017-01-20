@@ -14,9 +14,9 @@
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-#include <math.h>
-#include "sis_attuatore_3_2.h"
-#include "sis_attuatore_3_2_prop.h"
+#include <cmath>
+#include "chrono/pneumatica/sis_attuatore_3_2.h"
+#include "chrono/pneumatica/sis_attuatore_3_2_prop.h"
 
 namespace chrono {
 /// Namespace with classes for the simulation of pneumatic devices

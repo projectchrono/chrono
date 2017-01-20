@@ -24,6 +24,7 @@
 #include "chrono/physics/ChLinkLock.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_tracked
@@ -39,9 +40,11 @@ namespace vehicle {
 /// @{
 
 /// Base class for a tracked vehicle brake subsystem.
-class CH_VEHICLE_API ChTrackBrake {
+class CH_VEHICLE_API ChTrackBrake : public ChPart {
   public:
-    ChTrackBrake();
+      ChTrackBrake(const std::string& name  ///< [in] name of the subsystem
+          );
+
     virtual ~ChTrackBrake() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.

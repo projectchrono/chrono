@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPulley> a_registration_ChLinkPulley;
+CH_FACTORY_REGISTER(ChLinkPulley)
 
 ChLinkPulley::ChLinkPulley()
     : a1(0),

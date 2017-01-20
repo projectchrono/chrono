@@ -42,7 +42,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChVector.h"
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -78,6 +78,11 @@ class ChApi ChBezierCurve {
 
     /// Destructor for ChBezierCurve.
     ~ChBezierCurve() {}
+
+    /// Set the nodes and control points
+    void setPoints(const std::vector<ChVector<> >& points,
+                   const std::vector<ChVector<> >& inCV,
+                   const std::vector<ChVector<> >& outCV);
 
     /// Return the number of knot points.
     size_t getNumPoints() const { return m_points.size(); }

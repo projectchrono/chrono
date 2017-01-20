@@ -23,7 +23,7 @@
 //
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChRealtimeStep.h"

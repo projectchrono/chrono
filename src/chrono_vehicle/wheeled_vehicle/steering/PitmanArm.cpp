@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -46,7 +46,7 @@ PitmanArm::PitmanArm(const std::string& filename) : ChPitmanArm("") {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

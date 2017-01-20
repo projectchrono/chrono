@@ -19,10 +19,13 @@
 #ifndef WHEEL_H
 #define WHEEL_H
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -37,8 +40,6 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     Wheel(const rapidjson::Document& d);
     ~Wheel() {}
 
-    virtual void Initialize(std::shared_ptr<ChBody> spindle) override;
-
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
     virtual double GetRadius() const override { return m_radius; }
@@ -47,24 +48,21 @@ class CH_VEHICLE_API Wheel : public ChWheel {
     void SetRadius(double rad) { m_radius = rad; }
     void SetWidth(double width) { m_width = width; }
 
-    bool UseVisualizationMesh() const { return m_vis == MESH; }
-    bool UseVisualizationPrimitives() const { return m_vis == PRIMITIVES; }
-    const std::string& GetMeshFilename() const { return m_meshFile; }
-    const std::string& GetMeshName() const { return m_meshName; }
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override;
 
   private:
-    enum VisMode { NONE, PRIMITIVES, MESH };
-
     void Create(const rapidjson::Document& d);
 
     double m_mass;
     ChVector<> m_inertia;
 
-    VisMode m_vis;
     double m_radius;
     double m_width;
+    bool m_has_mesh;
     std::string m_meshName;
     std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
 
 /// @} vehicle_wheeled_wheel

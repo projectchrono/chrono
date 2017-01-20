@@ -32,8 +32,9 @@ namespace chrono {
 ///  MOT_MODE_ROTATION or MOT_MODE_SPEED.
 
 class ChApi ChShaftsMotor : public ChShaftsCouple {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsMotor, ChShaftsCouple);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsMotor)
 
   private:
     double motor_torque;

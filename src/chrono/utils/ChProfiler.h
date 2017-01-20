@@ -12,8 +12,7 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-// Credits: The Clock class was inspired by the Timer classes in 
-// Ogre (www.ogre3d.org).
+// Credits: The Clock class was inspired by the Timer classes in  Ogre (www.ogre3d.org).
 
 
 /*
@@ -39,10 +38,10 @@ CODE MODIFIED FROM:
 
 #ifndef CH_NO_PROFILE
 
-#include <stdio.h>
+#include <cstdio>
 #include <new>
 #include <cfloat>
-#include <float.h>
+#include <cfloat>
 #include <ctime>
 #include <ratio>
 #include <chrono>

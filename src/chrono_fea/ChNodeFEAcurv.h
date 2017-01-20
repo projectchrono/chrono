@@ -94,7 +94,7 @@ class ChApiFea ChNodeFEAcurv : public ChNodeFEAbase {
 
     /// Get the number of degrees of freedom.
     virtual int Get_ndof_x() const override { return 9; }
-        
+
     /// Get the number of degrees of freedom, derivative.
     virtual int Get_ndof_w() const override { return 9; }
 

@@ -1,4 +1,4 @@
-Collision example (demo_collision.cpp)  {#tutorial_demo_collision}
+Collision example (demo_IRR_collision.cpp)  {#tutorial_demo_collision}
 ==========================
 
 An introductory tutorial about collisions.
@@ -16,5 +16,5 @@ Learn about:
 - create a motor between two parts.
 
 
-\include demo_collision.cpp
+\include demo_IRR_collision.cpp
 

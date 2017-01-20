@@ -18,6 +18,7 @@ MESSAGE(STATUS "==== Chrono FEA module ====")
 
 SET(ChronoEngine_FEA_SOURCES
     ChBuilderBeam.cpp
+    ChElementBeamANCF.cpp
     ChElementGeneric.cpp
     ChElementSpring.cpp  
     ChElementBar.cpp  
@@ -33,6 +34,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChNodeFEAxyzrot.cpp
     ChNodeFEAxyzP.cpp
     ChNodeFEAxyzD.cpp
+    ChNodeFEAxyzDD.cpp
     ChNodeFEAcurv.cpp
     ChGaussIntegrationRule.cpp
     ChGaussPoint.cpp
@@ -46,6 +48,7 @@ SET(ChronoEngine_FEA_SOURCES
     ChLinkPointFrame.cpp
     ChLinkDirFrame.cpp
     ChLinkPointPoint.cpp
+	ChLinkPointTriface.cpp
     ChContactSurface.cpp
 	  ChContactSurfaceNodeCloud.cpp
 	  ChContactSurfaceMesh.cpp
@@ -66,6 +69,7 @@ SET(ChronoEngine_FEA_HEADERS
     ChNodeFEAxyzrot.h
     ChNodeFEAxyzP.h 
     ChNodeFEAxyzD.h 
+    ChNodeFEAxyzDD.h
     ChNodeFEAcurv.h
     ChElementBase.h
     ChElementGeneric.h
@@ -73,8 +77,9 @@ SET(ChronoEngine_FEA_HEADERS
     ChElementSpring.h
     ChElementBar.h 
     ChElementBeam.h
-    ChElementBeamEuler.h
     ChElementBeamANCF.h
+    ChElementBeamEuler.h
+    ChElementCableANCF.h
     ChElementBrick.h 
     ChElementBrick_9.h
     ChElement3D.h
@@ -89,6 +94,7 @@ SET(ChronoEngine_FEA_HEADERS
 	ChElementShellReissner4.h
 	  ChFaceTetra_4.h
     ChFaceBrick_9.h
+	ChFaceHexa_8.h
 	  ChLoadsBeam.h
     ChGaussIntegrationRule.h
     ChGaussPoint.h
@@ -99,9 +105,11 @@ SET(ChronoEngine_FEA_HEADERS
     ChPolarDecomposition.h
     ChMatrixCorotation.h
     ChVisualizationFEAmesh.h
+	ChLinkInterface.h
     ChLinkPointFrame.h
     ChLinkDirFrame.h
     ChLinkPointPoint.h
+	ChLinkPointTriface.h
     ChContactSurface.h
 	  ChContactSurfaceNodeCloud.h
 	  ChContactSurfaceMesh.h
@@ -135,8 +143,8 @@ ADD_DEPENDENCIES(ChronoEngine_fea ChronoEngine)
 
 INSTALL(TARGETS ChronoEngine_fea
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 INSTALL(FILES ${ChronoEngine_FEA_HEADERS}
         DESTINATION include/chrono_fea)

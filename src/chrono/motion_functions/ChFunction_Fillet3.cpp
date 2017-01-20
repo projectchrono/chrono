@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Fillet3> a_registration_fillet3;
+CH_FACTORY_REGISTER(ChFunction_Fillet3)
 
 ChFunction_Fillet3::ChFunction_Fillet3(const ChFunction_Fillet3& other) {
     end = other.end;
@@ -65,7 +65,7 @@ double ChFunction_Fillet3::Get_y_dxdx(double x) const {
     return ret;
 }
 
-int ChFunction_Fillet3::SetupCoefficients() {
+void ChFunction_Fillet3::SetupCoefficients() {
     ChMatrixDynamic<> ma(4, 4);
     ChMatrixDynamic<> mb(4, 1);
     ChMatrixDynamic<> mx(4, 1);
@@ -94,8 +94,6 @@ int ChFunction_Fillet3::SetupCoefficients() {
     c2 = mx(1, 0);
     c3 = mx(2, 0);
     c4 = mx(3, 0);
-
-    return TRUE;
 }
 
 }  // end namespace chrono

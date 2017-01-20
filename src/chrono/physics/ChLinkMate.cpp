@@ -20,7 +20,7 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLinkMate> a_registration_ChLinkMate;
+CH_FACTORY_REGISTER(ChLinkMate)
 
 void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -46,7 +46,7 @@ void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateGeneric> a_registration_ChLinkMateGeneric;
+CH_FACTORY_REGISTER(ChLinkMateGeneric)
 
 ChLinkMateGeneric::ChLinkMateGeneric(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
     c_x = mc_x;
@@ -205,50 +205,50 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
         if (c_x) {
             this->C->ElementN(nc) = aframe.GetPos().x;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 0, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 0, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 0, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_y) {
             this->C->ElementN(nc) = aframe.GetPos().y;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 1, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 1, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 1, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_z) {
             this->C->ElementN(nc) = aframe.GetPos().z;
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jr1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jx2, 2, 0, 1, 3, 0, 0);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jr2, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 2, 0, 1, 3, 0, 0);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jr2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_rx) {
             this->C->ElementN(nc) = aframe.GetRot().e1;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 0, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 0, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_ry) {
             this->C->ElementN(nc) = aframe.GetRot().e2;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 1, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 1, 0, 1, 3, 0, 3);
             nc++;
         }
         if (c_rz) {
             this->C->ElementN(nc) = aframe.GetRot().e3;
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
-            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(&Jw1, 2, 0, 1, 3, 0, 3);
-            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(&Jw2, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);
+            this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jw2, 2, 0, 1, 3, 0, 3);
             nc++;
         }
         /*
@@ -631,7 +631,7 @@ void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMatePlane> a_registration_ChLinkMatePlane;
+CH_FACTORY_REGISTER(ChLinkMatePlane)
 
 ChLinkMatePlane::ChLinkMatePlane(const ChLinkMatePlane& other) : ChLinkMateGeneric(other) {
     flipped = other.flipped;
@@ -705,7 +705,7 @@ void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateCoaxial> a_registration_ChLinkMateCoaxial;
+CH_FACTORY_REGISTER(ChLinkMateCoaxial)
 
 ChLinkMateCoaxial::ChLinkMateCoaxial(const ChLinkMateCoaxial& other) : ChLinkMateGeneric(other) {
     flipped = other.flipped;
@@ -767,7 +767,7 @@ void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateSpherical> a_registration_ChLinkMateSpherical;
+CH_FACTORY_REGISTER(ChLinkMateSpherical)
 
 ChLinkMateSpherical::ChLinkMateSpherical(const ChLinkMateSpherical& other) : ChLinkMateGeneric(other) {}
 
@@ -782,7 +782,7 @@ void ChLinkMateSpherical::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateXdistance> a_registration_ChLinkMateXdistance;
+CH_FACTORY_REGISTER(ChLinkMateXdistance)
 
 ChLinkMateXdistance::ChLinkMateXdistance(const ChLinkMateXdistance& other) : ChLinkMateGeneric(other) {
     distance = other.distance;
@@ -831,7 +831,7 @@ void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateParallel> a_registration_ChLinkMateParallel;
+CH_FACTORY_REGISTER(ChLinkMateParallel)
 
 ChLinkMateParallel::ChLinkMateParallel(const ChLinkMateParallel& other) : ChLinkMateGeneric(other) {
     flipped = other.flipped;
@@ -893,7 +893,7 @@ void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateOrthogonal> a_registration_ChLinkMateOrthogonal;
+CH_FACTORY_REGISTER(ChLinkMateOrthogonal)
 
 ChLinkMateOrthogonal::ChLinkMateOrthogonal(const ChLinkMateOrthogonal& other) : ChLinkMateGeneric(other) {
     reldir1 = other.reldir1;
@@ -1015,7 +1015,7 @@ void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) {
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkMateFix> a_registration_ChLinkMateFix;
+CH_FACTORY_REGISTER(ChLinkMateFix)
 
 ChLinkMateFix::ChLinkMateFix(const ChLinkMateFix& other) : ChLinkMateGeneric(other) {}
 

@@ -24,7 +24,8 @@ namespace chrono {
 /// Matlab function: y = matlab evaluation of function y=f(x)
 
 class ChApi ChFunction_Matlab : public ChFunction {
-    CH_RTTI(ChFunction_Matlab, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Matlab)
 
   private:
     char mat_command[CHF_MATLAB_STRING_LEN];  ///< matlab command

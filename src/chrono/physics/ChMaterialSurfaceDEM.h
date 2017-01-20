@@ -35,8 +35,9 @@ struct ChCompositeMaterialDEM {
 
 /// Class for material surface data for DEM contact
 class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMaterialSurfaceDEM, ChMaterialSurfaceBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMaterialSurfaceDEM)
 
   public:
     float young_modulus;      ///< Young's modulus (elastic modulus)

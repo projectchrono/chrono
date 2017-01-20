@@ -31,7 +31,7 @@
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include "models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -48,10 +48,10 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0, 0, 0, 1);
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = SIMPLE;
+PowertrainModelType powertrain_model = PowertrainModelType::SIMPLE;
 
 // Type of tire model (RIGID, PACEJKA, LUGRE, or FIALA)
-TireModelType tire_model = RIGID;
+TireModelType tire_model = TireModelType::RIGID;
 
 // Rigid terrain dimensions
 double terrainHeight = 0;
@@ -84,18 +84,24 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Reduced my_hmmwv;
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(PRIMITIVES);
-    my_hmmwv.SetWheelVis(PRIMITIVES);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
-    my_hmmwv.SetDriveType(RWD);
+    my_hmmwv.SetDriveType(DrivelineType::RWD);
     my_hmmwv.SetTireType(tire_model);
     my_hmmwv.SetTireStepSize(tire_step_size);
     my_hmmwv.Initialize();
 
+    my_hmmwv.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    my_hmmwv.SetWheelVisualizationType(VisualizationType::NONE);
+    my_hmmwv.SetTireVisualizationType(VisualizationType::PRIMITIVES);
+
     // Create the terrain
     RigidTerrain terrain(my_hmmwv.GetSystem());
-    terrain.SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+    terrain.SetContactFrictionCoefficient(0.9f);
+    terrain.SetContactRestitutionCoefficient(0.01f);
+    terrain.SetContactMaterialProperties(2e7f, 0.3f);
     terrain.SetColor(ChColor(0.8f, 0.8f, 0.5f));
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
@@ -135,9 +141,6 @@ int main(int argc, char* argv[]) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
             return 1;
         }
-
-        // Export vehicle mesh to POV-Ray format
-        my_hmmwv.ExportMeshPovray(out_dir);
     }
 
     // ---------------

@@ -25,7 +25,8 @@ namespace chrono {
 /// y = a + bx + cx^2 + dx^3 + ...
 
 class ChApi ChFunction_Poly : public ChFunction {
-    CH_RTTI(ChFunction_Poly, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Poly)
 
   private:
     double coeff[POLY_COEFF_ARRAY];  ///< vector of coefficients

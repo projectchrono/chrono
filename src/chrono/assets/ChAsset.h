@@ -12,23 +12,8 @@
 #ifndef CHASSET_H
 #define CHASSET_H
 
-///////////////////////////////////////////////////
-//
-//   ChAsset.h
-//
-//   Classes for adding user data (such as rendering
-//   shapes, reference to files) to physical items
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "serialization/ChArchive.h"
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -44,8 +29,8 @@ class ChPhysicsItem;
 /// User can inherit his classes for custom assets from
 /// this class.
 class ChApi ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChAsset)
 
   protected:
     //
@@ -90,6 +75,6 @@ class ChApi ChAsset {
 
 /// @} chrono_assets
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

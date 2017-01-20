@@ -18,8 +18,11 @@
 
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChColorAsset.h"
 #include "chrono/assets/ChTexture.h"
 
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 
 namespace chrono {
@@ -52,6 +55,9 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Add contact geometry.
     m_shoe->SetCollide(true);
 
+    m_shoe->GetCollisionModel()->SetFamily(TrackCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackCollisionFamily::SHOES);
+
     switch (m_shoe->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
             m_shoe->GetMaterialSurface()->SetFriction(m_friction);
@@ -62,14 +68,15 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
             m_shoe->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
             m_shoe->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
             m_shoe->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            m_shoe->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            m_shoe->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            m_shoe->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            m_shoe->GetMaterialSurfaceDEM()->SetGt(m_gt);
             break;
     }
 
     AddShoeContact();
 
-    // Add visualization to the shoe body.
-    AddShoeVisualization();
-    
     // Create the connector bodies.
     m_connector_L = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_connector_L->SetNameString(m_name + "_connector_L");
@@ -87,9 +94,40 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_connector_R->SetInertiaXX(GetConnectorInertia());
     chassis->GetSystem()->AddBody(m_connector_R);
 
-    // Add visualization to the connector bodies.
-    AddConnectorVisualization(m_connector_L);
-    AddConnectorVisualization(m_connector_R);
+    // Set contact material properties.
+    switch (m_connector_L->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            m_connector_L->GetMaterialSurface()->SetFriction(m_friction);
+            m_connector_L->GetMaterialSurface()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            m_connector_L->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+            m_connector_L->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+            m_connector_L->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+            m_connector_L->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            m_connector_L->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            m_connector_L->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            m_connector_L->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            m_connector_L->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            break;
+    }
+
+    switch (m_connector_R->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            m_connector_R->GetMaterialSurface()->SetFriction(m_friction);
+            m_connector_R->GetMaterialSurface()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            m_connector_R->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+            m_connector_R->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+            m_connector_R->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+            m_connector_R->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            m_connector_R->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            m_connector_R->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            m_connector_R->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            m_connector_R->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            break;
+    }
 }
 
 void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
@@ -101,13 +139,15 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Initialize at origin.
     Initialize(chassis, VNULL, QUNIT);
 
-    // Overwrite body locations and orientations.
-    m_shoe->SetPos(loc_shoe);
-    m_shoe->SetRot(rot_shoe);
-    m_connector_L->SetPos(loc_connector_L);
-    m_connector_L->SetRot(rot_connector);
-    m_connector_R->SetPos(loc_connector_R);
-    m_connector_R->SetRot(rot_connector);
+    // Overwrite absolute body locations and orientations.
+    m_shoe->SetPos(chassis->TransformPointLocalToParent(loc_shoe));
+    m_shoe->SetRot(chassis->GetRot() * rot_shoe);
+
+    m_connector_L->SetPos(chassis->TransformPointLocalToParent(loc_connector_L));
+    m_connector_L->SetRot(chassis->GetRot() * rot_connector);
+
+    m_connector_R->SetPos(chassis->TransformPointLocalToParent(loc_connector_R));
+    m_connector_R->SetRot(chassis->GetRot() * rot_connector);
 }
 
 // -----------------------------------------------------------------------------
@@ -122,38 +162,172 @@ double ChTrackShoeDoublePin::GetPitch() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::AddShoeContact() {
+    double pitch = GetPitch();
+
+    const ChVector<>& pad_dims = GetPadBoxDimensions();
+    const ChVector<>& guide_dims = GetGuideBoxDimensions();
+
+    double p0y = 2.1 * (pad_dims.y / 2);
+    double p1y = 1.5 * (pad_dims.y / 2);
+
+    m_shoe->GetCollisionModel()->ClearModel();
+
+    m_shoe->GetCollisionModel()->AddBox(pad_dims.x / 2, pad_dims.y / 2, pad_dims.z / 2, GetPadBoxLocation());
+
+    m_shoe->GetCollisionModel()->AddBox(guide_dims.x / 2, guide_dims.y / 2, guide_dims.z / 2, GetGuideBoxLocation());
+
+    m_shoe->GetCollisionModel()->BuildModel();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackShoeDoublePin::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddShoeVisualization();
+    AddConnectorVisualization(m_connector_L);
+    AddConnectorVisualization(m_connector_R);
+}
+
+void ChTrackShoeDoublePin::RemoveVisualizationAssets() {
+    m_shoe->GetAssets().clear();
+    m_connector_L->GetAssets().clear();
+    m_connector_R->GetAssets().clear();
+}
+
+void ChTrackShoeDoublePin::AddShoeVisualization() {
+    const ChVector<>& pad_box_dims = GetPadBoxDimensions();
+    const ChVector<>& guide_box_dims = GetGuideBoxDimensions();
+    double s_width = GetShoeWidth();
+    double c_width = GetConnectorWidth();
+
+    double pin_radius = pad_box_dims.z / 6;
+    double pin_len = s_width + c_width + 2 * c_width;
+
+    auto rev_rear = std::make_shared<ChCylinderShape>();
+    rev_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * GetShoeLength(), -0.5 * pin_len, 0);
+    rev_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * GetShoeLength(), +0.5 * pin_len, 0);
+    rev_rear->GetCylinderGeometry().rad = pin_radius;
+    m_shoe->AddAsset(rev_rear);
+
+    auto rev_front = std::make_shared<ChCylinderShape>();
+    rev_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * GetShoeLength(), -0.5 * pin_len, 0);
+    rev_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * GetShoeLength(), +0.5 * pin_len, 0);
+    rev_front->GetCylinderGeometry().rad = pin_radius;
+    m_shoe->AddAsset(rev_front);
+
+    // Render the pad contact box
+    auto box_shoe = std::make_shared<ChBoxShape>();
+    box_shoe->GetBoxGeometry().SetLengths(pad_box_dims);
+    box_shoe->GetBoxGeometry().Pos = GetPadBoxLocation();
+    m_shoe->AddAsset(box_shoe);
+
+    // Render the guiding pin contact box
+    auto box_pin = std::make_shared<ChBoxShape>();
+    box_pin->GetBoxGeometry().SetLengths(guide_box_dims);
+    box_pin->GetBoxGeometry().Pos = GetGuideBoxLocation();
+    m_shoe->AddAsset(box_pin);
+
+    auto col = std::make_shared<ChColorAsset>();
+    if (m_index == 0)
+        col->SetColor(ChColor(0.6f, 0.3f, 0.3f));
+    else if (m_index % 2 == 0)
+        col->SetColor(ChColor(0.3f, 0.6f, 0.3f));
+    else
+        col->SetColor(ChColor(0.3f, 0.3f, 0.6f));
+    m_shoe->AddAsset(col);
+}
+
+void ChTrackShoeDoublePin::AddConnectorVisualization(std::shared_ptr<ChBody> connector) {
+    double c_length = GetConnectorLength();
+    double c_width = GetConnectorWidth();
+    double c_radius = GetConnectorRadius();
+
+    auto cyl_rear = std::make_shared<ChCylinderShape>();
+    cyl_rear->GetCylinderGeometry().p1 = ChVector<>(-0.5 * c_length, -0.5 * c_width, 0);
+    cyl_rear->GetCylinderGeometry().p2 = ChVector<>(-0.5 * c_length, +0.5 * c_width, 0);
+    cyl_rear->GetCylinderGeometry().rad = c_radius;
+    connector->AddAsset(cyl_rear);
+
+    auto cyl_front = std::make_shared<ChCylinderShape>();
+    cyl_front->GetCylinderGeometry().p1 = ChVector<>(0.5 * c_length, -0.5 * c_width, 0);
+    cyl_front->GetCylinderGeometry().p2 = ChVector<>(0.5 * c_length, +0.5 * c_width, 0);
+    cyl_front->GetCylinderGeometry().rad = c_radius;
+    connector->AddAsset(cyl_front);
+
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().SetLengths(ChVector<>(c_length, c_width, 2 * c_radius));
+    box->GetBoxGeometry().Pos = ChVector<>(0, 0, 0);
+    connector->AddAsset(box);
+
+    auto col = std::make_shared<ChColorAsset>();
+    if (m_index == 0)
+        col->SetColor(ChColor(0.7f, 0.4f, 0.4f));
+    else if (m_index % 2 == 0)
+        col->SetColor(ChColor(0.4f, 0.7f, 0.4f));
+    else
+        col->SetColor(ChColor(0.4f, 0.4f, 0.7f));
+    connector->AddAsset(col);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChTrackShoeDoublePin::Connect(std::shared_ptr<ChTrackShoe> next) {
+    ChSystem* system = m_shoe->GetSystem();
+
     // Create and initialize the revolute joints between shoe body and connector bodies.
     ChVector<> loc_L = m_shoe->TransformPointLocalToParent(ChVector<>(GetShoeLength() / 2, +GetShoeWidth() / 2, 0));
     ChVector<> loc_R = m_shoe->TransformPointLocalToParent(ChVector<>(GetShoeLength() / 2, -GetShoeWidth() / 2, 0));
     ChQuaternion<> rot = m_shoe->GetRot() * Q_from_AngX(CH_C_PI_2);
 
-    m_rev_this_L = std::make_shared<ChLinkLockRevolute>();
-    m_rev_this_L->SetNameString(m_name + "_rev_this_L");
-    m_rev_this_L->Initialize(m_shoe, m_connector_L, ChCoordsys<>(loc_L, rot));
-    m_shoe->GetSystem()->AddLink(m_rev_this_L);
+    auto rev_L = std::make_shared<ChLinkLockRevolute>();
+    rev_L->SetNameString(m_name + "_rev_this_L");
+    rev_L->Initialize(m_shoe, m_connector_L, ChCoordsys<>(loc_L, rot));
+    system->AddLink(rev_L);
 
-    m_rev_this_R = std::make_shared<ChLinkLockRevolute>();
-    m_rev_this_R->SetNameString(m_name + "_rev_this_R");
-    m_rev_this_R->Initialize(m_shoe, m_connector_R, ChCoordsys<>(loc_R, rot));
-    m_shoe->GetSystem()->AddLink(m_rev_this_R);
+    auto rev_R = std::make_shared<ChLinkLockRevolute>();
+    rev_R->SetNameString(m_name + "_rev_this_R");
+    rev_R->Initialize(m_shoe, m_connector_R, ChCoordsys<>(loc_R, rot));
+    system->AddLink(rev_R);
 
-    // Create and initialize the revolute joints between connector bodies and next shoe body.
-    loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
-    rot = m_connector_L->GetRot() * Q_from_AngX(CH_C_PI_2);
+    // Create connections between these connector bodies and the next shoe body
+    if (m_index == 0) {
+        // Create and initialize a point-line joint for left connector (sliding along X axis)
+        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        rot = m_connector_L->GetRot() * Q_from_AngZ(CH_C_PI_2);
 
-    m_rev_next_L = std::make_shared<ChLinkLockRevolute>();
-    m_rev_next_L->SetNameString(m_name + "_rev_next_L");
-    m_rev_next_L->Initialize(next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc_L, rot));
-    m_shoe->GetSystem()->AddLink(m_rev_next_L);
+        auto pointline_L = std::make_shared<ChLinkLockPointLine>();
+        pointline_L->SetNameString(m_name + "_pointline_next_L");
+        pointline_L->Initialize(next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc_L, rot));
+        system->AddLink(pointline_L);
 
-    loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
-    rot = m_connector_R->GetRot() * Q_from_AngX(CH_C_PI_2);
+        // Create and initialize a point-line joint for left connector (sliding along X axis)
+        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+        rot = m_connector_R->GetRot() * Q_from_AngZ(CH_C_PI_2);
 
-    m_rev_next_R = std::make_shared<ChLinkLockRevolute>();
-    m_rev_next_R->SetNameString(m_name + "_rev_next_R");
-    m_rev_next_R->Initialize(next->GetShoeBody(), m_connector_R, ChCoordsys<>(loc_R, rot));
-    m_shoe->GetSystem()->AddLink(m_rev_next_R);
+        auto pointline_R = std::make_shared<ChLinkLockPointLine>();
+        pointline_R->SetNameString(m_name + "_pointline_next_R");
+        pointline_R->Initialize(next->GetShoeBody(), m_connector_R, ChCoordsys<>(loc_R, rot));
+        system->AddLink(pointline_R);
+    } else {
+        // Create and initialize a spherical joint for left connector
+        loc_L = m_connector_L->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+
+        auto sph_L = std::make_shared<ChLinkLockSpherical>();
+        sph_L->SetNameString(m_name + "_sph_next_L");
+        sph_L->Initialize(next->GetShoeBody(), m_connector_L, ChCoordsys<>(loc_L));
+        system->AddLink(sph_L);
+
+        // Create and initialize a spherical joint for left connector
+        loc_R = m_connector_R->TransformPointLocalToParent(ChVector<>(GetConnectorLength() / 2, 0, 0));
+
+        auto sph_R = std::make_shared<ChLinkLockSpherical>();
+        sph_R->SetNameString(m_name + "_sph_next_R");
+        sph_R->Initialize(next->GetShoeBody(), m_connector_R, ChCoordsys<>(loc_R));
+        system->AddLink(sph_R);
+    }
 }
 
 }  // end namespace vehicle

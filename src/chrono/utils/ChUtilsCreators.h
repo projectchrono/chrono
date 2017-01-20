@@ -24,31 +24,31 @@
 #include <string>
 #include <vector>
 
-#include "core/ChApiCE.h"
-#include "core/ChQuaternion.h"
-#include "core/ChVector.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 
-#include "physics/ChBody.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChMaterialSurfaceDEM.h"
-#include "physics/ChSystem.h"
-#include "physics/ChSystemDEM.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
 
-#include "assets/ChBoxShape.h"
-#include "assets/ChCapsuleShape.h"
-#include "assets/ChColorAsset.h"
-#include "assets/ChConeShape.h"
-#include "assets/ChCylinderShape.h"
-#include "assets/ChEllipsoidShape.h"
-#include "assets/ChLineShape.h"
-#include "assets/ChRoundedBoxShape.h"
-#include "assets/ChRoundedConeShape.h"
-#include "assets/ChRoundedCylinderShape.h"
-#include "assets/ChSphereShape.h"
-#include "assets/ChTriangleMeshShape.h"
+#include "chrono/assets/ChBoxShape.h"
+#include "chrono/assets/ChCapsuleShape.h"
+#include "chrono/assets/ChColorAsset.h"
+#include "chrono/assets/ChConeShape.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
+#include "chrono/assets/ChLineShape.h"
+#include "chrono/assets/ChRoundedBoxShape.h"
+#include "chrono/assets/ChRoundedConeShape.h"
+#include "chrono/assets/ChRoundedCylinderShape.h"
+#include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 
-#include "collision/ChCConvexDecomposition.h"
-#include "collision/ChCModelBullet.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/collision/ChCModelBullet.h"
 
 namespace chrono {
 namespace utils {
@@ -205,8 +205,10 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // CreateCylindricalContainerFromBoxes
 // InitializeObject
 // FinalizeObject
-// LoadConvex
-// AddConvex
+// LoadConvexMesh
+// LoadConvexHulls
+// AddConvexCollisionModel
+// AddConvexCollisionModel
 //
 // Utility functions for creating objects
 // -----------------------------------------------------------------------------
@@ -256,6 +258,14 @@ ChApi void LoadConvexMesh(const std::string& file_name,
                           float hacd_smallclusterthreshold = 0.0f,
                           float hacd_fusetolerance = 1e-6f);
 
+// Given a path to an obj file, loads the obj assuming that the individual
+// objects in the obj are convex hulls, usefull when loading a precomputed
+// set of convex hulls.
+// The output of this function is used with AddConvexCollisionModel
+ChApi void LoadConvexHulls(const std::string& file_name,
+						   geometry::ChTriangleMeshConnected& convex_mesh,
+						   std::vector<std::vector<ChVector<double> > >& convex_hulls);
+
 // Given a convex mesh and it's decomposition add it to a ChBody
 // use_original_asset can be used to specify if the mesh or the convex decomp
 // should be used for visualization
@@ -267,7 +277,7 @@ ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    bool use_original_asset = true);
 // Add a convex mesh to an object based on a set of points,
 // unlike the previous version, this version will use the
-// triangle mesh to set the visualization deometry
+// triangle mesh to set the visualization geometry
 ChApi void AddConvexCollisionModel(std::shared_ptr<ChBody> body,
                                    geometry::ChTriangleMeshConnected& convex_mesh,
                                    std::vector<std::vector<ChVector<double> > >& convex_hulls,

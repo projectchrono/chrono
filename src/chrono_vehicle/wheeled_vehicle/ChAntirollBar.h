@@ -26,7 +26,7 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -42,18 +42,12 @@ namespace vehicle {
 /// @{
 
 /// Base class for an anti-roll bar subsystem.
-class CH_VEHICLE_API ChAntirollBar {
+class CH_VEHICLE_API ChAntirollBar : public ChPart {
   public:
     ChAntirollBar(const std::string& name  ///< [in] name of the subsystem
                   );
 
     virtual ~ChAntirollBar() {}
-
-    /// Get the name identifier for this suspension subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this suspension subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Initialize this anti-roll bar subsystem.
     /// The anti-roll bar subsystem is initialized by attaching it to the specified
@@ -74,9 +68,6 @@ class CH_VEHICLE_API ChAntirollBar {
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() {}
-
-  protected:
-    std::string m_name;  ///< name of the subsystem
 };
 
 /// Vector of handles to antirollbar subsystems.

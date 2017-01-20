@@ -25,7 +25,7 @@
 #include "chrono/physics/ChShaft.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
@@ -43,18 +43,12 @@ namespace vehicle {
 /// @{
 
 /// Base class for a tracked vehicle driveline.
-class CH_VEHICLE_API ChTrackDriveline {
+class CH_VEHICLE_API ChTrackDriveline : public ChPart {
   public:
     ChTrackDriveline(const std::string& name  ///< [in] name of the subsystem
                      );
 
     virtual ~ChTrackDriveline() {}
-
-    /// Get the name identifier for this driveline subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this driveline subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the driveshaft.
     /// Return a shared pointer to the shaft that connects this driveline to a
@@ -93,7 +87,6 @@ class CH_VEHICLE_API ChTrackDriveline {
     virtual void Synchronize(double steering, double torque) { m_driveshaft->SetAppliedTorque(torque); }
 
   protected:
-    std::string m_name;                     ///< name of the subsystem
     bool m_gyration_mode;                   ///< flag indicating if in gyration mode (turn in place)
     std::shared_ptr<ChShaft> m_driveshaft;  ///< handle to the shaft connection to the powertrain
 };

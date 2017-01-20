@@ -31,7 +31,8 @@ namespace chrono {
 /// use in many cases.
 
 class ChApi ChFunction_Oscilloscope : public ChFunction {
-    CH_RTTI(ChFunction_Oscilloscope, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Oscilloscope)
 
   private:
     std::list<double> values;
@@ -58,7 +59,7 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// No checks are done on the correctness of the dx spacing,
     /// except that if you enter a point whose mx is less than the
     /// mx of the one you previously entered, the array is cleared.
-    int AddLastPoint(double mx, double my);
+    void AddLastPoint(double mx, double my);
 
     /// Reset the array or recorded points.
     void Reset() {

@@ -1,6 +1,6 @@
 
 #include "../ChTestConfig.h"
-#include <core/ChVector.h>
+#include "chrono/core/ChVector.h"
 
 using namespace chrono;
 

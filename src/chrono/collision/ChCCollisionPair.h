@@ -165,7 +165,7 @@ class ChCollisionPair {
 
 #define CH_TRICOLL_SPHERE 15  // sphere (1st of triangle is center, 2nd.x is rad);
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

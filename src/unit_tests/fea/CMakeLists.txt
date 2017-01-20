@@ -4,6 +4,7 @@
 SET(LIBRARIES ChronoEngine ChronoEngine_fea)
 
 SET(TESTS
+    utest_FEA_ANCFCable
     utest_FEA_ANCFBeam
     utest_FEA_ANCFShell_Iso
     utest_FEA_ANCFShell_Ort
@@ -26,13 +27,6 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
   set(MY_WORKING_DIR "${EXECUTABLE_OUTPUT_PATH}/$<CONFIGURATION>")
 else()
   set(MY_WORKING_DIR ${EXECUTABLE_OUTPUT_PATH})
-endif()
-
-# Optional command line argument (output path for performance metrics)
-if (TEST_METRICS)
-  set(ARGS ${TEST_METRICS_PATH})
-else()
-  set(ARGS "")
 endif()
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
@@ -60,15 +54,10 @@ FOREACH(PROGRAM ${TESTS})
 
     TARGET_LINK_LIBRARIES(${PROGRAM} ChronoEngine ChronoEngine_fea ${LIBS})
  
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    #INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
-    #ADD_TEST(NAME ${PROGRAM}
-    #         COMMAND ${PROJECT_BINARY_DIR}/bin/${PROGRAM}
-    #         WORKING_DIRECTORY ${MY_WORKING_DIR})
+    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM})
 
-    ADD_TEST(${PROGRAM} ${PROJECT_BINARY_DIR}/bin/${PROGRAM} ${ARGS})
-
-    SET_TESTS_PROPERTIES (${PROGRAM} PROPERTIES 
-                          WORKING_DIRECTORY ${MY_WORKING_DIR})
-
+    SET_TESTS_PROPERTIES(${PROGRAM} PROPERTIES 
+                         WORKING_DIRECTORY ${MY_WORKING_DIR})
 ENDFOREACH()

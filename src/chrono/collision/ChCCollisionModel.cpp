@@ -9,24 +9,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionModel.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCollisionModel.h"
-#include "physics/ChBody.h"
+#include "chrono/collision/ChCCollisionModel.h"
+#include "chrono/physics/ChBody.h"
 
 namespace chrono {
 namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChCollisionModel> a_registration_ChCollisionModel;
+//CH_FACTORY_REGISTER(ChCollisionModel)  // NO! Abstract class!
 
 
 static double default_model_envelope = 0.03;
@@ -155,9 +146,5 @@ bool ChCollisionModel::AddConvexHullsFromFile(ChStreamInAscii& mstream,
     return true;
 }
 
-
-
-
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

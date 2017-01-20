@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -13,10 +13,11 @@
 #ifndef CHINERTIAUTILS_H
 #define CHINERTIAUTILS_H
 
-#include <stdlib.h>
-#include "core/ChApiCE.h"
-#include "core/ChMath.h"
-#include "core/ChLinearAlgebra.h"
+#include <cstdlib>
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChMath.h"
+#include "chrono/core/ChLinearAlgebra.h"
 
 namespace chrono {
 
@@ -110,5 +111,6 @@ class ChInertiaUtils {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
+
 #endif

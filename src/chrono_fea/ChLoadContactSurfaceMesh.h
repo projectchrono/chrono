@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHLOADCONTACTSURFACEMESH_H
 #define CHLOADCONTACTSURFACEMESH_H
@@ -16,29 +18,28 @@
 #include "chrono_fea/ChContactSurfaceMesh.h"
 #include "chrono/physics/ChLoadsXYZnode.h"
 
-
 namespace chrono {
 namespace fea {
 
 /// Class for applyings loads to a contact mesh as a cluster of forces
 /// operating on the nodes of the underlying finite elements.
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
-/// to an external software (ex. CFD) that in turn will perform collision detection 
+/// to an external software (ex. CFD) that in turn will perform collision detection
 /// with its entities, compute forces, send forces back to Chrono via this object.
 /// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadXYZnode> >, but
 /// the class itself could bypass all methods of ChLoadXYZnode and directly implement
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
+
 class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLoadContactSurfaceMesh, ChLoadBase);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLoadContactSurfaceMesh)
 
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh) { contactmesh = cmesh; }
 
     virtual ~ChLoadContactSurfaceMesh(){};
 
-
-    // 
+    //
     // FUNCTIONS
     //
 
@@ -61,32 +62,31 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
         size_t vertex_index = 0;
         auto trilist = this->contactmesh->GetTriangleList();
         // auxiliary map container to go from pointer-based mesh to index-based mesh:
-        std::map<ChNodeFEAxyz*,size_t> ptr_ind_map;         
-        for (size_t i = 0; i< trilist.size(); ++i) {
-            if (!ptr_ind_map.count(trilist[i]->GetNode1().get()) ) {
-                ptr_ind_map.insert( {trilist[i]->GetNode1().get(), vertex_index} );
+        std::map<ChNodeFEAxyz*, size_t> ptr_ind_map;
+        for (size_t i = 0; i < trilist.size(); ++i) {
+            if (!ptr_ind_map.count(trilist[i]->GetNode1().get())) {
+                ptr_ind_map.insert({trilist[i]->GetNode1().get(), vertex_index});
                 vert_pos.push_back(trilist[i]->GetNode1()->GetPos());
                 vert_vel.push_back(trilist[i]->GetNode1()->GetPos_dt());
                 ++vertex_index;
             }
-            if (!ptr_ind_map.count(trilist[i]->GetNode2().get()) ) {
-                ptr_ind_map.insert( {trilist[i]->GetNode2().get(), vertex_index} );
+            if (!ptr_ind_map.count(trilist[i]->GetNode2().get())) {
+                ptr_ind_map.insert({trilist[i]->GetNode2().get(), vertex_index});
                 vert_pos.push_back(trilist[i]->GetNode2()->GetPos());
                 vert_vel.push_back(trilist[i]->GetNode2()->GetPos_dt());
                 ++vertex_index;
             }
-            if (!ptr_ind_map.count(trilist[i]->GetNode3().get()) ) {
-                ptr_ind_map.insert( {trilist[i]->GetNode3().get(), vertex_index} );
+            if (!ptr_ind_map.count(trilist[i]->GetNode3().get())) {
+                ptr_ind_map.insert({trilist[i]->GetNode3().get(), vertex_index});
                 vert_pos.push_back(trilist[i]->GetNode3()->GetPos());
                 vert_vel.push_back(trilist[i]->GetNode3()->GetPos_dt());
                 ++vertex_index;
             }
         }
-        for (size_t i = 0; i< trilist.size(); ++i) {
-            triangles.push_back( ChVector<int> (
-                                ptr_ind_map.at(trilist[i]->GetNode1().get()),
-                                ptr_ind_map.at(trilist[i]->GetNode2().get()),
-                                ptr_ind_map.at(trilist[i]->GetNode3().get()) ) );
+        for (size_t i = 0; i < trilist.size(); ++i) {
+            triangles.push_back(ChVector<int>(ptr_ind_map.at(trilist[i]->GetNode1().get()),
+                                              ptr_ind_map.at(trilist[i]->GetNode2().get()),
+                                              ptr_ind_map.at(trilist[i]->GetNode3().get())));
         }
     }
 
@@ -97,7 +97,7 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
     /// NOTE! do not insert/remove nodes from the collision mesh
     ///       between the OutputSimpleMesh-InputSimpleForces pair!
     void InputSimpleForces(const std::vector<ChVector<>> vert_forces,  ///< array of forces (absolute xyz forces in [N])
-                           const std::vector<int> vert_ind             ///< array of indexes to vertexes to whom you apply forces
+                           const std::vector<int> vert_ind  ///< array of indexes to vertexes to whom you apply forces
                            ) {
         // check the vert_forces and vert_ind arrays must have same size:
         assert(vert_forces.size() == vert_ind.size());
@@ -235,7 +235,7 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
     std::vector<std::shared_ptr<ChLoadXYZnode>> forces;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

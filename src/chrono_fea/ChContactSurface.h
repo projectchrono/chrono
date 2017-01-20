@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCONTACTSURFACE_H
 #define CHCONTACTSURFACE_H
@@ -27,8 +29,8 @@ namespace fea {
 /// The contact surface has a material of ChMaterialSurfaceBase type (DVI material
 /// by default, but it can be also switched to a DEM material, etc, using Set).
 class ChApiFea ChContactSurface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContactSurface);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactSurface)
 
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {
@@ -66,7 +68,7 @@ class ChApiFea ChContactSurface {
     ChMesh* mmesh;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

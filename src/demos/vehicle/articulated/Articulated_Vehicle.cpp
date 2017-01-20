@@ -23,67 +23,44 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
+#include "articulated/Articulated_Chassis.h"
 #include "articulated/Articulated_Vehicle.h"
 
-#include "generic/Generic_SolidAxle.h"
-#include "generic/Generic_MultiLink.h"
-#include "generic/Generic_Wheel.h"
-#include "generic/Generic_RackPinion.h"
-#include "generic/Generic_Driveline2WD.h"
-#include "generic/Generic_BrakeSimple.h"
+#include "chrono_models/vehicle/generic/Generic_SolidAxle.h"
+#include "chrono_models/vehicle/generic/Generic_MultiLink.h"
+#include "chrono_models/vehicle/generic/Generic_Wheel.h"
+#include "chrono_models/vehicle/generic/Generic_RackPinion.h"
+#include "chrono_models/vehicle/generic/Generic_Driveline2WD.h"
+#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
-
-// -----------------------------------------------------------------------------
-// Static variables
-// -----------------------------------------------------------------------------
-
-const double Articulated_Vehicle::m_chassisMass = 3500;                       // chassis sprung mass
-const ChVector<> Articulated_Vehicle::m_chassisCOM(-0.2, 0, 0.8);             // COM location
-const ChVector<> Articulated_Vehicle::m_chassisInertia(125.8, 497.4, 531.4);  // chassis inertia (roll,pitch,yaw)
-
-const ChCoordsys<> Articulated_Vehicle::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
                                          SuspensionType suspType,
-                                         VisualizationType wheelVis,
                                          ChMaterialSurfaceBase::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
     // -------------------------------------------
-    // Create the chassis body
+    // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("chassis");
-    m_chassis->SetMass(m_chassisMass);
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(m_chassisCOM, ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetInertiaXX(m_chassisInertia);
-    m_chassis->SetBodyFixed(fixed);
-
-    auto sphere = std::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = m_chassisCOM;
-    m_chassis->AddAsset(sphere);
-
-    m_system->Add(m_chassis);
+    m_chassis = std::make_shared<Articulated_Chassis>("Chassis");
 
     // -------------------------------------------
     // Create the suspension subsystems
     // -------------------------------------------
     m_suspensions.resize(2);
 
-    assert(m_suspType == SOLID_AXLE || m_suspType == MULTI_LINK);
+    assert(m_suspType == SuspensionType::SOLID_AXLE || m_suspType == SuspensionType::MULTI_LINK);
 
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             m_suspensions[0] = std::make_shared<Generic_SolidAxle>("FrontSusp");
             m_suspensions[1] = std::make_shared<Generic_SolidAxle>("RearSusp");
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
             m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
             break;
@@ -99,48 +76,48 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
     // Create the wheels
     // -----------------
     m_wheels.resize(4);
-    m_wheels[0] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[1] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[2] = std::make_shared<Generic_Wheel>(wheelVis);
-    m_wheels[3] = std::make_shared<Generic_Wheel>(wheelVis);
+    m_wheels[0] = std::make_shared<Generic_Wheel>("Wheel_FL");
+    m_wheels[1] = std::make_shared<Generic_Wheel>("Wheel_FR");
+    m_wheels[2] = std::make_shared<Generic_Wheel>("Wheel_RL");
+    m_wheels[3] = std::make_shared<Generic_Wheel>("Wheel_RR");
 
     // --------------------
     // Create the driveline
     // --------------------
-    m_driveline = std::make_shared<Generic_Driveline2WD>();
+    m_driveline = std::make_shared<Generic_Driveline2WD>("driveline");
 
     // -----------------
     // Create the brakes
     // -----------------
     m_brakes.resize(4);
-    m_brakes[0] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[1] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[2] = std::make_shared<Generic_BrakeSimple>();
-    m_brakes[3] = std::make_shared<Generic_BrakeSimple>();
+    m_brakes[0] = std::make_shared<Generic_BrakeSimple>("Brake_FL");
+    m_brakes[1] = std::make_shared<Generic_BrakeSimple>("Brake_FR");
+    m_brakes[2] = std::make_shared<Generic_BrakeSimple>("Brake_RL");
+    m_brakes[3] = std::make_shared<Generic_BrakeSimple>("Brake_RR");
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
-    m_chassis->SetFrame_REF_to_abs(ChFrame<>(chassisPos));
+void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).
     ChVector<> offset;
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             offset = ChVector<>(1.60, 0, -0.07);
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             offset = ChVector<>(1.65, 0, -0.12);
             break;
     }
-    m_steerings[0]->Initialize(m_chassis, offset, ChQuaternion<>(1, 0, 0, 0));
+    m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
 
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis, ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
-    m_suspensions[1]->Initialize(m_chassis, ChVector<>(-1.6865, 0, 0), m_chassis);
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink());
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.6865, 0, 0), m_chassis->GetBody());
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));
@@ -150,7 +127,7 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 
     // Initialize the driveline subsystem (RWD)
     std::vector<int> driven_susp(1, 1);
-    m_driveline->Initialize(m_chassis, m_suspensions, driven_susp);
+    m_driveline->Initialize(m_chassis->GetBody(), m_suspensions, driven_susp);
 
     // Initialize the four brakes
     m_brakes[0]->Initialize(m_suspensions[0]->GetRevolute(LEFT));
@@ -163,9 +140,9 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos) {
 // -----------------------------------------------------------------------------
 double Articulated_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
         default:
             return -1;
@@ -174,9 +151,9 @@ double Articulated_Vehicle::GetSpringForce(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
         default:
             return -1;
@@ -185,9 +162,9 @@ double Articulated_Vehicle::GetSpringLength(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
         default:
             return -1;
@@ -198,9 +175,9 @@ double Articulated_Vehicle::GetSpringDeformation(const WheelID& wheel_id) const 
 // -----------------------------------------------------------------------------
 double Articulated_Vehicle::GetShockForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
         default:
             return -1;
@@ -209,9 +186,9 @@ double Articulated_Vehicle::GetShockForce(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetShockLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
         default:
             return -1;
@@ -220,9 +197,9 @@ double Articulated_Vehicle::GetShockLength(const WheelID& wheel_id) const {
 
 double Articulated_Vehicle::GetShockVelocity(const WheelID& wheel_id) const {
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
         default:
             return -1;
@@ -237,13 +214,13 @@ void Articulated_Vehicle::LogHardpointLocations() {
     GetLog().SetNumFormat("%7.3f");
 
     switch (m_suspType) {
-        case SOLID_AXLE:
+        case SuspensionType::SOLID_AXLE:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChSolidAxle>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChSolidAxle>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             break;
-        case MULTI_LINK:
+        case SuspensionType::MULTI_LINK:
             GetLog() << "\n---- FRONT suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";

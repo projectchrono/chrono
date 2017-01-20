@@ -9,7 +9,6 @@
 #-----------------------------------------------------------------------------
 
 option(BUILD_DEMOS "Build demo programs" ON)
-option(BUILD_ADDITIONAL_TESTS "Build additional test programs" OFF)
 
 #-----------------------------------------------------------------------------
 # Collect compiler flags required to build the Chrono libraries
@@ -19,12 +18,27 @@ set(CH_C_FLAGS "")
 set(CH_CXX_FLAGS "")
 
 #-----------------------------------------------------------------------------
-# Enable C++11 support
+# Enable C++11 support.  Check for C++14 support
 #-----------------------------------------------------------------------------
 
 find_package(ModernCXX)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
-set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+#set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
+set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX14_STANDARD_COMPILE_OPTION}")
+
+# This is a hack -- look for a more robust solution
+set(CH_CXX14 FALSE)
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION}")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+    set(CH_CXX14 TRUE)
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+  message(STATUS "Visual Studio version:  ${MSVC_VERSION}")
+  if(MSVC_VERSION GREATER 1800)
+    set(CH_CXX14 TRUE)
+  endif()
+endif()
+message(STATUS "Compiler supports C++14:  ${CH_CXX14}")
 
 #-----------------------------------------------------------------------------
 # Threads and OpenMP support
@@ -33,6 +47,7 @@ set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${CMAKE_CXX11_STANDARD_COMPILE_OPTION}")
 message(STATUS "Searching for Threads...")
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads)
+
 message(STATUS "  Thread library:      ${CMAKE_THREAD_LIBS_INIT}")
 message(STATUS "  Using Win32 threads? ${CMAKE_USE_WIN32_THREADS_INIT}")
 message(STATUS "  Using pthreads?      ${CMAKE_USE_PTHREADS_INIT}")
@@ -83,6 +98,7 @@ cmake_dependent_option(ENABLE_OPENMP "Enable OpenMP support in Chrono::Engine" O
                        "OPENMP_FOUND" OFF)
 
 if(ENABLE_OPENMP)
+
   message(STATUS "  OpenMP CXX flags: ${OpenMP_CXX_FLAGS}")
   message(STATUS "  OpenMP C flags:   ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -127,7 +143,7 @@ if(AVX_FOUND)
 else()
   message("  No AVX support")
 endif()
-  
+
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SSE_FLAGS} ${AVX_FLAGS}")
@@ -146,7 +162,18 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   # using Visual Studio C++
 endif()
- 
+
+message(STATUS "Searching for FMA...")
+find_package(FMA)
+
+# Set substitution variables for configuration file.
+if(FMA_FOUND)
+	message(STATUS "  FMA found")
+	set(CHRONO_HAS_FMA "#define CHRONO_HAS_FMA")
+else()
+  message(STATUS "  No FMA support")
+endif()  
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------
@@ -241,7 +268,7 @@ add_subdirectory(chrono_vehicle)
 add_subdirectory(chrono_fsi)
 
 # Add directories for model libraries
-add_subdirectory(models)
+add_subdirectory(chrono_models)
 
 # Add directories for demo programs, unit test programs, and additional test programs.
 if(BUILD_DEMOS)
@@ -250,15 +277,12 @@ endif()
 if(BUILD_TESTING)
   add_subdirectory(unit_tests)
 endif()
-if(BUILD_ADDITIONAL_TESTS)
-  add_subdirectory(tests)
-endif()
 
 #------------------------------------------------------------
-# Install headers form thirdparty folder
+# Install headers from chrono_thirdparty folder
 #------------------------------------------------------------
 
-install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
         FILES_MATCHING PATTERN "*.h")
 
@@ -404,7 +428,7 @@ set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/c
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/gimpact" )
 set(CH_INCLUDE_DIRS ${CH_INCLUDE_DIRS} "${CMAKE_INSTALL_PREFIX}/include/chrono/collision/convexdecomposition/HACD" )
 set(CH_BINARY_DIR ${CMAKE_INSTALL_PREFIX})
-set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/data/")
+set(CH_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CH_INSTALL_DATA}/")
 
 configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"

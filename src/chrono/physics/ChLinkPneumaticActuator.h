@@ -25,7 +25,9 @@ namespace chrono {
 /// bearing at the origin of the two markers.
 
 class ChApi ChLinkPneumaticActuator : public ChLinkLock {
-    CH_RTTI(ChLinkPneumaticActuator, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkPneumaticActuator)
 
   protected:
     pneumatics::AssePneumatico* pneuma;  ///< pointer to internal structure with all pneumatic variables

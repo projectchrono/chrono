@@ -26,8 +26,9 @@ namespace chrono {
 /// (POVray, Irrlich,etc.) these flags might not be supported.
 
 class ChApi ChTriangleMeshShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChTriangleMeshShape, ChVisualization);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTriangleMeshShape)
 
   protected:
     //
@@ -107,9 +108,6 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

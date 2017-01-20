@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHIRRAPPINTERFACE_H
 #define CHIRRAPPINTERFACE_H
@@ -25,9 +25,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 #include "chrono_irrlicht/ChIrrWizard.h"
 
-
 namespace chrono {
-
 namespace irrlicht {
 
 /// @addtogroup irrlicht_module
@@ -47,6 +45,7 @@ class ChApiIrr ChIrrAppInterface {
                       irr::core::dimension2d<irr::u32> dimens = irr::core::dimension2d<irr::u32>(640, 480),
                       bool do_fullscreen = false,
                       bool do_shadows = false,
+                      bool do_antialias = true,
                       irr::video::E_DRIVER_TYPE mydriver = irr::video::EDT_DIRECT3D9);
 
     /// Safely delete all Irrlicht items (including the Irrlicht scene nodes)
@@ -99,13 +98,13 @@ class ChApiIrr ChIrrAppInterface {
     int GetVideoframeSaveInterval() { return videoframe_each; }
 
     /// Set the label mode for contacts
-    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) {this->gad_labelcontacts->setSelected((int)mm);}
+    void SetContactsLabelMode(ChIrrTools::eCh_ContactsLabelMode mm) { this->gad_labelcontacts->setSelected((int)mm); }
     /// Set the draw mode for contacts
-    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) {this->gad_drawcontacts->setSelected((int)mm);}
+    void SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode mm) { this->gad_drawcontacts->setSelected((int)mm); }
     /// Set the label mode for links
-    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) {this->gad_labellinks->setSelected((int)mm);}
+    void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
-    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) {this->gad_drawlinks->setSelected((int)mm);}
+    void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
@@ -120,7 +119,9 @@ class ChApiIrr ChIrrAppInterface {
     void SetFonts(const std::string& mfontdir = GetChronoDataFile("fonts/arial8.xml"));
 
     /// Call this to clean the canvas at the beginning of each animation frame
-    virtual void BeginScene(bool backBuffer = true, bool zBuffer = true, irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
+    virtual void BeginScene(bool backBuffer = true,
+                            bool zBuffer = true,
+                            irr::video::SColor color = irr::video::SColor(255, 0, 0, 0));
 
     /// Call this important function inside a cycle like
     ///    while(application.GetDevice()->run()) {...}
@@ -144,7 +145,7 @@ class ChApiIrr ChIrrAppInterface {
     /// benchmarking etc. It saves M mass matrix, Cq jacobians, E compliance
     /// as Matlab sparse matrix format, and known vectors fb, bi as column Matlab
     /// matrices.
-    void DumpMatrices();
+    void DumpSystemMatrices();
 
     //
     // Some wizard functions for 'easy setup' of the application window:
@@ -174,9 +175,10 @@ class ChApiIrr ChIrrAppInterface {
 
     /// Add a point light to the scene
     irr::scene::ILightSceneNode* AddLight(irr::core::vector3df pos,
-                                     double radius,
-                                     irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f)) {
-        irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+                                          double radius,
+                                          irr::video::SColorf color = irr::video::SColorf(0.7f, 0.7f, 0.7f, 1.0f)) {
+        irr::scene::ILightSceneNode* mlight =
+            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
         return mlight;
     }
 
@@ -186,16 +188,17 @@ class ChApiIrr ChIrrAppInterface {
     /// NOTE: use myapplication.AddShadow(myitem) to enable shadow for an object!
     /// Otherwise, use myapplication.AddShadowAll().
     irr::scene::ILightSceneNode* AddLightWithShadow(irr::core::vector3df pos,
-                                               irr::core::vector3df aim,
-                                               double radius,
-                                               double mnear,
-                                               double mfar,
-                                               double angle,
-                                               irr::u32 resolution = 512,
-                                               irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
-                                               bool directional = false,
-                                               bool clipborder = true) {
-        irr::scene::ILightSceneNode* mlight = device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
+                                                    irr::core::vector3df aim,
+                                                    double radius,
+                                                    double mnear,
+                                                    double mfar,
+                                                    double angle,
+                                                    irr::u32 resolution = 512,
+                                                    irr::video::SColorf color = irr::video::SColorf(1.f, 1.f, 1.f, 1.f),
+                                                    bool directional = false,
+                                                    bool clipborder = true) {
+        irr::scene::ILightSceneNode* mlight =
+            device->getSceneManager()->addLightSceneNode(0, pos, color, (irr::f32)radius);
         effect->addShadowLight(SShadowLight(resolution, pos, aim, color, (irr::f32)mnear, (irr::f32)mfar,
                                             ((irr::f32)angle * irr::core::DEGTORAD), directional));
         if (clipborder == false) {

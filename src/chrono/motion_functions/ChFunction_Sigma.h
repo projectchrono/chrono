@@ -23,7 +23,8 @@ namespace chrono {
 ///   y = polynomial smooth ramp
 
 class ChApi ChFunction_Sigma : public ChFunction {
-    CH_RTTI(ChFunction_Sigma, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Sigma)
 
   private:
     double amp;

@@ -30,7 +30,9 @@ namespace chrono {
 /// the more advanced ChLinkLinActuator.
 
 class ChApi ChLinkDistance : public ChLink {
-    CH_RTTI(ChLinkDistance, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkDistance)
 
   protected:
     double distance;           ////< the imposed distance

@@ -15,12 +15,12 @@
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
-#include "chrono_parallel/math/mat33.h"
+#include "chrono_parallel/math/matrix.h"
 
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/core/ChMathematics.h"

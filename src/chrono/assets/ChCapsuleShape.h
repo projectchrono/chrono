@@ -12,7 +12,6 @@
 #ifndef CHCAPSULESHAPE_H
 #define CHCAPSULESHAPE_H
 
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChCapsule.h"
 
@@ -22,8 +21,8 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChCapsuleShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCapsuleShape, ChVisualization);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCapsuleShape)
 
   protected:
     //
@@ -75,9 +74,6 @@ class ChApi ChCapsuleShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

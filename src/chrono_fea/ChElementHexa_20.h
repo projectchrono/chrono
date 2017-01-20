@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Andrea Favali
+// =============================================================================
+// Authors: Andrea Favali
+// =============================================================================
 
 #ifndef CHELEMENTHEXA20_H
 #define CHELEMENTHEXA20_H
@@ -122,44 +124,44 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     //
 
     /// Fills the N shape function matrix with the
-	/// values of shape functions at r,s,t parametric coordinates, where
+    /// values of shape functions at r,s,t parametric coordinates, where
     /// each parameter is in [-1...+1] range.
-	/// It stores the Ni(r,s,t) values in a 1 row, 20 columns matrix N.
-	virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t) {
-          double rm = 1.0 - r;
-          double rp = 1.0 + r;
-          double sm = 1.0 - s;
-          double sp = 1.0 + s;
-          double tm = 1.0 - t;
-          double tp = 1.0 + t;
-          double r2 = 1.0 - r*r;
-          double s2 = 1.0 - s*s;
-          double t2 = 1.0 - t*t;
+    /// It stores the Ni(r,s,t) values in a 1 row, 20 columns matrix N.
+    virtual void ShapeFunctions(ChMatrix<>& N, double r, double s, double t) {
+        double rm = 1.0 - r;
+        double rp = 1.0 + r;
+        double sm = 1.0 - s;
+        double sp = 1.0 + s;
+        double tm = 1.0 - t;
+        double tp = 1.0 + t;
+        double r2 = 1.0 - r * r;
+        double s2 = 1.0 - s * s;
+        double t2 = 1.0 - t * t;
 
-          //The eight corner points
-          N(0) = 0.125 * rm * sm * tm * (-r - s - t - 2.0);
-          N(1) = 0.125 * rp * sm * tm * ( r - s - t - 2.0);
-          N(2) = 0.125 * rp * sp * tm * ( r + s - t - 2.0);
-          N(3) = 0.125 * rm * sp * tm * (-r + s - t - 2.0);
-          N(4) = 0.125 * rm * sm * tp * (-r - s + t - 2.0);
-          N(5) = 0.125 * rp * sm * tp * ( r - s + t - 2.0);
-          N(6) = 0.125 * rp * sp * tp * ( r + s + t - 2.0);
-          N(7) = 0.125 * rm * sp * tp * (-r + s + t - 2.0);
+        // The eight corner points
+        N(0) = 0.125 * rm * sm * tm * (-r - s - t - 2.0);
+        N(1) = 0.125 * rp * sm * tm * (r - s - t - 2.0);
+        N(2) = 0.125 * rp * sp * tm * (r + s - t - 2.0);
+        N(3) = 0.125 * rm * sp * tm * (-r + s - t - 2.0);
+        N(4) = 0.125 * rm * sm * tp * (-r - s + t - 2.0);
+        N(5) = 0.125 * rp * sm * tp * (r - s + t - 2.0);
+        N(6) = 0.125 * rp * sp * tp * (r + s + t - 2.0);
+        N(7) = 0.125 * rm * sp * tp * (-r + s + t - 2.0);
 
-          //The mid-edge nodes
-          N(8) =  0.25 * r2 * sm * tm;
-          N(9) =  0.25 * s2 * rp * tm;
-          N(19) = 0.25 * r2 * sp * tm;
-          N(11) = 0.25 * s2 * rm * tm;
-          N(12) = 0.25 * r2 * sm * tp;
-          N(13) = 0.25 * s2 * rp * tp;
-          N(14) = 0.25 * r2 * sp * tp;
-          N(15) = 0.25 * s2 * rm * tp;
-          N(16) = 0.25 * t2 * rm * sm;
-          N(17) = 0.25 * t2 * rp * sm;
-          N(18) = 0.25 * t2 * rp * sp;
-          N(19) = 0.25 * t2 * rm * sp;
-	};
+        // The mid-edge nodes
+        N(8) = 0.25 * r2 * sm * tm;
+        N(9) = 0.25 * s2 * rp * tm;
+        N(19) = 0.25 * r2 * sp * tm;
+        N(11) = 0.25 * s2 * rm * tm;
+        N(12) = 0.25 * r2 * sm * tp;
+        N(13) = 0.25 * s2 * rp * tp;
+        N(14) = 0.25 * r2 * sp * tp;
+        N(15) = 0.25 * s2 * rm * tp;
+        N(16) = 0.25 * t2 * rm * sm;
+        N(17) = 0.25 * t2 * rp * sm;
+        N(18) = 0.25 * t2 * rp * sp;
+        N(19) = 0.25 * t2 * rm * sp;
+    };
 
     /// Fills the D vector (displacement) column matrix with the current
     /// field values at the nodes of the element, with proper ordering.
@@ -731,7 +733,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
 
         CKCt.MatrScale(mkfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);
+        H.PasteMatrix(CKCt, 0, 0);
 
         // For M mass matrix:
         if (Mfactor) {
@@ -797,168 +799,168 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
 
     //
     // Functions for ChLoadable interface
-    //  
+    //
 
-            /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() {return 20*3;}
-        
-        /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() {return 20*3;}
+    /// Gets the number of DOFs affected by this element (position part)
+    virtual int LoadableGet_ndof_x() { return 20 * 3; }
 
-        /// Gets all the DOFs packed in a single vector (position part)
+    /// Gets the number of DOFs affected by this element (speed part)
+    virtual int LoadableGet_ndof_w() { return 20 * 3; }
+
+    /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
-        mD.PasteVector    (this->nodes[0]->GetPos(), block_offset,  0);
-        mD.PasteVector    (this->nodes[1]->GetPos(), block_offset+3,  0);
-        mD.PasteVector    (this->nodes[2]->GetPos(), block_offset+6,  0);
-        mD.PasteVector    (this->nodes[3]->GetPos(), block_offset+9,  0);
-        mD.PasteVector    (this->nodes[4]->GetPos(), block_offset+12,  0);
-        mD.PasteVector    (this->nodes[5]->GetPos(), block_offset+15,  0);
-        mD.PasteVector    (this->nodes[6]->GetPos(), block_offset+18,  0);
-        mD.PasteVector    (this->nodes[7]->GetPos(), block_offset+21,  0);
-        mD.PasteVector    (this->nodes[8]->GetPos(), block_offset+24,  0);
-        mD.PasteVector    (this->nodes[9]->GetPos(), block_offset+27,  0);
-        mD.PasteVector    (this->nodes[10]->GetPos(), block_offset+30,  0);
-        mD.PasteVector    (this->nodes[11]->GetPos(), block_offset+33,  0);
-        mD.PasteVector    (this->nodes[12]->GetPos(), block_offset+36,  0);
-        mD.PasteVector    (this->nodes[13]->GetPos(), block_offset+39,  0);
-        mD.PasteVector    (this->nodes[14]->GetPos(), block_offset+42,  0);
-        mD.PasteVector    (this->nodes[15]->GetPos(), block_offset+45,  0);
-        mD.PasteVector    (this->nodes[16]->GetPos(), block_offset+48,  0);
-        mD.PasteVector    (this->nodes[17]->GetPos(), block_offset+51,  0);
-        mD.PasteVector    (this->nodes[18]->GetPos(), block_offset+54,  0);
-        mD.PasteVector    (this->nodes[19]->GetPos(), block_offset+57,  0);
+        mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
+        mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
+        mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
+        mD.PasteVector(this->nodes[3]->GetPos(), block_offset + 9, 0);
+        mD.PasteVector(this->nodes[4]->GetPos(), block_offset + 12, 0);
+        mD.PasteVector(this->nodes[5]->GetPos(), block_offset + 15, 0);
+        mD.PasteVector(this->nodes[6]->GetPos(), block_offset + 18, 0);
+        mD.PasteVector(this->nodes[7]->GetPos(), block_offset + 21, 0);
+        mD.PasteVector(this->nodes[8]->GetPos(), block_offset + 24, 0);
+        mD.PasteVector(this->nodes[9]->GetPos(), block_offset + 27, 0);
+        mD.PasteVector(this->nodes[10]->GetPos(), block_offset + 30, 0);
+        mD.PasteVector(this->nodes[11]->GetPos(), block_offset + 33, 0);
+        mD.PasteVector(this->nodes[12]->GetPos(), block_offset + 36, 0);
+        mD.PasteVector(this->nodes[13]->GetPos(), block_offset + 39, 0);
+        mD.PasteVector(this->nodes[14]->GetPos(), block_offset + 42, 0);
+        mD.PasteVector(this->nodes[15]->GetPos(), block_offset + 45, 0);
+        mD.PasteVector(this->nodes[16]->GetPos(), block_offset + 48, 0);
+        mD.PasteVector(this->nodes[17]->GetPos(), block_offset + 51, 0);
+        mD.PasteVector(this->nodes[18]->GetPos(), block_offset + 54, 0);
+        mD.PasteVector(this->nodes[19]->GetPos(), block_offset + 57, 0);
     }
 
-        /// Gets all the DOFs packed in a single vector (speed part)
+    /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
-        mD.PasteVector(this->nodes[0]->GetPos_dt(),   block_offset,  0);
-        mD.PasteVector(this->nodes[1]->GetPos_dt(),   block_offset+3,  0);
-        mD.PasteVector(this->nodes[2]->GetPos_dt(),   block_offset+6,  0);
-        mD.PasteVector(this->nodes[3]->GetPos_dt(),   block_offset+9,  0);
-        mD.PasteVector(this->nodes[4]->GetPos_dt(),   block_offset+12,  0);
-        mD.PasteVector(this->nodes[5]->GetPos_dt(),   block_offset+15,  0);
-        mD.PasteVector(this->nodes[6]->GetPos_dt(),   block_offset+18,  0);
-        mD.PasteVector(this->nodes[7]->GetPos_dt(),   block_offset+21,  0);
-        mD.PasteVector(this->nodes[8]->GetPos_dt(),   block_offset+24,  0);
-        mD.PasteVector(this->nodes[9]->GetPos_dt(),   block_offset+27,  0);
-        mD.PasteVector(this->nodes[10]->GetPos_dt(),   block_offset+30,  0);
-        mD.PasteVector(this->nodes[11]->GetPos_dt(),   block_offset+33,  0);
-        mD.PasteVector(this->nodes[12]->GetPos_dt(),   block_offset+36,  0);
-        mD.PasteVector(this->nodes[13]->GetPos_dt(),   block_offset+39,  0);
-        mD.PasteVector(this->nodes[14]->GetPos_dt(),   block_offset+42,  0);
-        mD.PasteVector(this->nodes[15]->GetPos_dt(),   block_offset+45,  0);
-        mD.PasteVector(this->nodes[16]->GetPos_dt(),   block_offset+48,  0);
-        mD.PasteVector(this->nodes[17]->GetPos_dt(),   block_offset+51,  0);
-        mD.PasteVector(this->nodes[18]->GetPos_dt(),   block_offset+54,  0);
-        mD.PasteVector(this->nodes[19]->GetPos_dt(),   block_offset+57,  0);
+        mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
+        mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
+        mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
+        mD.PasteVector(this->nodes[3]->GetPos_dt(), block_offset + 9, 0);
+        mD.PasteVector(this->nodes[4]->GetPos_dt(), block_offset + 12, 0);
+        mD.PasteVector(this->nodes[5]->GetPos_dt(), block_offset + 15, 0);
+        mD.PasteVector(this->nodes[6]->GetPos_dt(), block_offset + 18, 0);
+        mD.PasteVector(this->nodes[7]->GetPos_dt(), block_offset + 21, 0);
+        mD.PasteVector(this->nodes[8]->GetPos_dt(), block_offset + 24, 0);
+        mD.PasteVector(this->nodes[9]->GetPos_dt(), block_offset + 27, 0);
+        mD.PasteVector(this->nodes[10]->GetPos_dt(), block_offset + 30, 0);
+        mD.PasteVector(this->nodes[11]->GetPos_dt(), block_offset + 33, 0);
+        mD.PasteVector(this->nodes[12]->GetPos_dt(), block_offset + 36, 0);
+        mD.PasteVector(this->nodes[13]->GetPos_dt(), block_offset + 39, 0);
+        mD.PasteVector(this->nodes[14]->GetPos_dt(), block_offset + 42, 0);
+        mD.PasteVector(this->nodes[15]->GetPos_dt(), block_offset + 45, 0);
+        mD.PasteVector(this->nodes[16]->GetPos_dt(), block_offset + 48, 0);
+        mD.PasteVector(this->nodes[17]->GetPos_dt(), block_offset + 51, 0);
+        mD.PasteVector(this->nodes[18]->GetPos_dt(), block_offset + 54, 0);
+        mD.PasteVector(this->nodes[19]->GetPos_dt(), block_offset + 57, 0);
     }
 
-        /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() {return 3;}
-           
-        /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() {return 20;}
+    /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
+    virtual int Get_field_ncoords() { return 3; }
 
-        /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w();}
+    /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
+    virtual int GetSubBlocks() { return 20; }
 
-        /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3;}
+    /// Get the offset of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w(); }
 
-        /// Get the pointers to the contained ChVariables, appending to the mvars vector.
+    /// Get the size of the i-th sub-block of DOFs in global vector
+    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+
+    /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
-        for (int i=0; i<nodes.size(); ++i)
+        for (int i = 0; i < nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };
 
-        /// Evaluate N'*F , where N is some type of shape function
-        /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
-        /// F is a load, N'*F is the resulting generalized load
-        /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
-     virtual void ComputeNF(const double U,   ///< parametric coordinate in volume
-                     const double V,             ///< parametric coordinate in volume
-                     const double W,             ///< parametric coordinate in volume 
-                     ChVectorDynamic<>& Qi,      ///< Return result of N'*F  here, maybe with offset block_offset
-                     double& detJ,               ///< Return det[J] here
-                     const ChVectorDynamic<>& F, ///< Input F vector, size is = n.field coords.
-                     ChVectorDynamic<>* state_x, ///< if != 0, update state (pos. part) to this, then evaluate Q
-                     ChVectorDynamic<>* state_w  ///< if != 0, update state (speed part) to this, then evaluate Q
-                     ) {
-         // evaluate shape functions (in compressed vector), btw. not dependant on state
-         ChMatrixNM<double, 1,20> N;
-         this->ShapeFunctions(N, U, V, W); // note: U,V,W in -1..1 range
-         
-         detJ = this->GetVolume() / 8.0;
+    /// Evaluate N'*F , where N is some type of shape function
+    /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
+    /// F is a load, N'*F is the resulting generalized load
+    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
+                           const double V,              ///< parametric coordinate in volume
+                           const double W,              ///< parametric coordinate in volume
+                           ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here, maybe with offset block_offset
+                           double& detJ,                ///< Return det[J] here
+                           const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
+                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
+                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
+                           ) {
+        // evaluate shape functions (in compressed vector), btw. not dependant on state
+        ChMatrixNM<double, 1, 20> N;
+        this->ShapeFunctions(N, U, V, W);  // note: U,V,W in -1..1 range
 
-         Qi(0) = N(0)*F(0);
-         Qi(1) = N(0)*F(1);
-         Qi(2) = N(0)*F(2);
-         Qi(3) = N(1)*F(0);
-         Qi(4) = N(1)*F(1);
-         Qi(5) = N(1)*F(2);
-         Qi(6) = N(2)*F(0);
-         Qi(7) = N(2)*F(1);
-         Qi(8) = N(2)*F(2);
-         Qi(9) = N(3)*F(0);
-         Qi(10)= N(3)*F(1);
-         Qi(11)= N(3)*F(2);
-         Qi(12)= N(4)*F(0);
-         Qi(13)= N(4)*F(1);
-         Qi(14)= N(4)*F(2);
-         Qi(15)= N(5)*F(0);
-         Qi(16)= N(5)*F(1);
-         Qi(17)= N(5)*F(2);
-         Qi(18)= N(6)*F(0);
-         Qi(19)= N(6)*F(1);
-         Qi(20)= N(6)*F(2);
-         Qi(21)= N(7)*F(0);
-         Qi(22)= N(7)*F(1);
-         Qi(23)= N(7)*F(2);
-         Qi(24)= N(8)*F(0);
-         Qi(25)= N(8)*F(1);
-         Qi(26)= N(8)*F(2);
-         Qi(27)= N(9)*F(0);
-         Qi(28)= N(9)*F(1);
-         Qi(29)= N(9)*F(2);
-         Qi(30)= N(10)*F(0);
-         Qi(31)= N(10)*F(1);
-         Qi(32)= N(10)*F(2);
-         Qi(33)= N(11)*F(0);
-         Qi(34)= N(11)*F(1);
-         Qi(35)= N(11)*F(2);
-         Qi(36)= N(12)*F(0);
-         Qi(37)= N(12)*F(1);
-         Qi(38)= N(12)*F(2);
-         Qi(39)= N(13)*F(0);
-         Qi(40)= N(13)*F(1);
-         Qi(41)= N(13)*F(2);
-         Qi(42)= N(14)*F(0);
-         Qi(43)= N(14)*F(1);
-         Qi(44)= N(14)*F(2);
-         Qi(45)= N(15)*F(0);
-         Qi(46)= N(15)*F(1);
-         Qi(47)= N(15)*F(2);
-         Qi(48)= N(16)*F(0);
-         Qi(49)= N(16)*F(1);
-         Qi(50)= N(16)*F(2);
-         Qi(51)= N(17)*F(0);
-         Qi(52)= N(17)*F(1);
-         Qi(53)= N(17)*F(2);
-         Qi(54)= N(18)*F(0);
-         Qi(55)= N(18)*F(1);
-         Qi(56)= N(18)*F(2);
-         Qi(57)= N(19)*F(0);
-         Qi(58)= N(19)*F(1);
-         Qi(59)= N(19)*F(2);
-     }
+        detJ = this->GetVolume() / 8.0;
 
-            /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-     virtual double GetDensity() { return this->Material->Get_density(); } 
+        Qi(0) = N(0) * F(0);
+        Qi(1) = N(0) * F(1);
+        Qi(2) = N(0) * F(2);
+        Qi(3) = N(1) * F(0);
+        Qi(4) = N(1) * F(1);
+        Qi(5) = N(1) * F(2);
+        Qi(6) = N(2) * F(0);
+        Qi(7) = N(2) * F(1);
+        Qi(8) = N(2) * F(2);
+        Qi(9) = N(3) * F(0);
+        Qi(10) = N(3) * F(1);
+        Qi(11) = N(3) * F(2);
+        Qi(12) = N(4) * F(0);
+        Qi(13) = N(4) * F(1);
+        Qi(14) = N(4) * F(2);
+        Qi(15) = N(5) * F(0);
+        Qi(16) = N(5) * F(1);
+        Qi(17) = N(5) * F(2);
+        Qi(18) = N(6) * F(0);
+        Qi(19) = N(6) * F(1);
+        Qi(20) = N(6) * F(2);
+        Qi(21) = N(7) * F(0);
+        Qi(22) = N(7) * F(1);
+        Qi(23) = N(7) * F(2);
+        Qi(24) = N(8) * F(0);
+        Qi(25) = N(8) * F(1);
+        Qi(26) = N(8) * F(2);
+        Qi(27) = N(9) * F(0);
+        Qi(28) = N(9) * F(1);
+        Qi(29) = N(9) * F(2);
+        Qi(30) = N(10) * F(0);
+        Qi(31) = N(10) * F(1);
+        Qi(32) = N(10) * F(2);
+        Qi(33) = N(11) * F(0);
+        Qi(34) = N(11) * F(1);
+        Qi(35) = N(11) * F(2);
+        Qi(36) = N(12) * F(0);
+        Qi(37) = N(12) * F(1);
+        Qi(38) = N(12) * F(2);
+        Qi(39) = N(13) * F(0);
+        Qi(40) = N(13) * F(1);
+        Qi(41) = N(13) * F(2);
+        Qi(42) = N(14) * F(0);
+        Qi(43) = N(14) * F(1);
+        Qi(44) = N(14) * F(2);
+        Qi(45) = N(15) * F(0);
+        Qi(46) = N(15) * F(1);
+        Qi(47) = N(15) * F(2);
+        Qi(48) = N(16) * F(0);
+        Qi(49) = N(16) * F(1);
+        Qi(50) = N(16) * F(2);
+        Qi(51) = N(17) * F(0);
+        Qi(52) = N(17) * F(1);
+        Qi(53) = N(17) * F(2);
+        Qi(54) = N(18) * F(0);
+        Qi(55) = N(18) * F(1);
+        Qi(56) = N(18) * F(2);
+        Qi(57) = N(19) * F(0);
+        Qi(58) = N(19) * F(1);
+        Qi(59) = N(19) * F(2);
+    }
+
+    /// This is needed so that it can be accessed by ChLoaderVolumeGravity
+    virtual double GetDensity() { return this->Material->Get_density(); }
 };
 
 /// @} fea_elements
 
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

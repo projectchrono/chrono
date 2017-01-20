@@ -68,7 +68,9 @@ class ChApi ChReportContactCallback {
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
 /// Struct to store resultant contact force/torque applied on rigid body
 class ChApi ChContactContainerBase : public ChPhysicsItem {
-    CH_RTTI(ChContactContainerBase, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContactContainerBase)
 
   public:
     ChContactContainerBase() : add_contact_callback(NULL), report_contact_callback(NULL) {}

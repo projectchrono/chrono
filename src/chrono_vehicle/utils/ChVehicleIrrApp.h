@@ -94,9 +94,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Turn on/off rendering of specialized joints in the vehicle model.
     void EnableLinks(bool val) { m_renderLinks = val; }
 
-    /// Turn on/off rendering of springs in the vehicle model.
-    void EnableSprings(bool val) { m_renderSprings = val; }
-
     /// Turn on/off rendering of stats (HUD).
     void EnableStats(bool val) { m_renderStats = val; }
 
@@ -148,7 +145,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
 
   private:
-    void renderSprings();
     void renderLinks();
     void renderGrid();
     void renderStats();
@@ -160,7 +156,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
 
     bool m_renderGrid;     ///< turn on/off rendering of grid
     bool m_renderLinks;    ///< turn on/off rendering of joints
-    bool m_renderSprings;  ///< turn on/off rendering of springs
     bool m_renderStats;    ///< turn on/off rendering of stats
 
     double m_gridHeight;  ///< height of grid

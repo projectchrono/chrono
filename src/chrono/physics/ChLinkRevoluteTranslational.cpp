@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory.
-ChClassRegister<ChLinkRevoluteTranslational> a_registration_ChLinkRevoluteTranslational;
+CH_FACTORY_REGISTER(ChLinkRevoluteTranslational)
 
 // -----------------------------------------------------------------------------
 // Constructor and destructor

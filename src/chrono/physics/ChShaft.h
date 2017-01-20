@@ -30,8 +30,9 @@ class ChSystem;
 ///  modeled with full 3D ChBody objects.
 
 class ChApi ChShaft : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaft, ChPhysicsItem);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaft)
 
   private:
     double torque;  ///< The torque acting on shaft (force, if used as linear DOF)

@@ -54,6 +54,27 @@ void ChWheeledVehicle::Synchronize(double time,
 }
 
 // -----------------------------------------------------------------------------
+// Set visualization type for the various subsystems
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::SetSuspensionVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->SetVisualizationType(vis);
+    }
+}
+
+void ChWheeledVehicle::SetSteeringVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_steerings.size(); ++i) {
+        m_steerings[i]->SetVisualizationType(vis);
+    }
+}
+
+void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_wheels.size(); ++i) {
+        m_wheels[i]->SetVisualizationType(vis);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Calculate and return the total vehicle mass
 // -----------------------------------------------------------------------------
 double ChWheeledVehicle::GetVehicleMass() const {

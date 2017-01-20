@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Oscilloscope> a_registration_oscilloscope;
+CH_FACTORY_REGISTER(ChFunction_Oscilloscope)
 
 ChFunction_Oscilloscope::ChFunction_Oscilloscope(const ChFunction_Oscilloscope& other) {
     values = other.values;
@@ -34,7 +34,7 @@ void ChFunction_Oscilloscope::Estimate_x_range(double& xmin, double& xmax) const
         xmax = xmin + 0.5;
 }
 
-int ChFunction_Oscilloscope::AddLastPoint(double mx, double my) {
+void ChFunction_Oscilloscope::AddLastPoint(double mx, double my) {
     if (mx < end_x)
         this->Reset();
     this->end_x = mx;
@@ -45,7 +45,6 @@ int ChFunction_Oscilloscope::AddLastPoint(double mx, double my) {
         this->values.pop_front();
 
     assert(this->values.size() == this->amount);
-    return TRUE;
 }
 
 double ChFunction_Oscilloscope::Get_y(double x) const {

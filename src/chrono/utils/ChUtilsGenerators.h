@@ -28,20 +28,20 @@
 #include <utility>
 #include <vector>
 
-#include "core/ChApiCE.h"
-#include "core/ChQuaternion.h"
-#include "core/ChVector.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
 
-#include "physics/ChBody.h"
-#include "physics/ChMaterialSurface.h"
-#include "physics/ChMaterialSurfaceDEM.h"
-#include "physics/ChSystem.h"
-#include "physics/ChSystemDEM.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemDEM.h"
 
-#include "utils/ChUtilsCreators.h"
-#include "utils/ChUtilsGeometry.h"
-#include "utils/ChUtilsInputOutput.h"
-#include "utils/ChUtilsSamplers.h"
+#include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtilsSamplers.h"
 
 namespace chrono {
 namespace utils {

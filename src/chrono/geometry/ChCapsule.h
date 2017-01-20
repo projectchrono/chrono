@@ -23,8 +23,9 @@ namespace geometry {
 /// A capsule geometric object for collision and visualization.
 
 class ChApi ChCapsule : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChCapsule, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCapsule)
 
   public:
     ChVector<> center;  ///< capsule center

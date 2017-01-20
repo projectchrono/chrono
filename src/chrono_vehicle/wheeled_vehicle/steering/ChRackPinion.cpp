@@ -36,8 +36,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {
-}
+ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -58,7 +57,6 @@ void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_link->SetRot(steering_to_abs.GetRot());
     m_link->SetMass(GetSteeringLinkMass());
     m_link->SetInertiaXX(GetSteeringLinkInertia());
-    AddVisualizationSteeringLink();
     chassis->GetSystem()->AddBody(m_link);
 
     // Create and initialize the prismatic joint between chassis and link.
@@ -104,7 +102,10 @@ double ChRackPinion::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRackPinion::AddVisualizationSteeringLink() {
+void ChRackPinion::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     double length = GetSteeringLinkLength();
 
     auto cyl = std::make_shared<ChCylinderShape>();
@@ -116,6 +117,10 @@ void ChRackPinion::AddVisualizationSteeringLink() {
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.8f, 0.8f, 0.2f));
     m_link->AddAsset(col);
+}
+
+void ChRackPinion::RemoveVisualizationAssets() {
+    m_link->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

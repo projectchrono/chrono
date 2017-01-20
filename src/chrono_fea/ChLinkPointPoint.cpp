@@ -20,7 +20,7 @@ namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkPointPoint> a_registration_ChLinkPointPoint;
+CH_FACTORY_REGISTER(ChLinkPointPoint)
 
 ChLinkPointPoint::ChLinkPointPoint() : react(VNULL) {}
 
@@ -28,9 +28,7 @@ ChLinkPointPoint::ChLinkPointPoint(const ChLinkPointPoint& other) : ChLinkBase(o
     react = other.react;
 }
 
-int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                                 std::shared_ptr<ChNodeFEAxyz> anodeB
-                                 ) {
+int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA, std::shared_ptr<ChNodeFEAxyz> anodeB) {
     assert(anodeA && anodeB);
 
     mnodeA = anodeA;
@@ -181,13 +179,13 @@ void ChLinkPointPoint::ConstraintsLoadJacobians() {
     ChMatrix33<> Jxb;
     Jxb.FillDiag(-1.0);
 
-    constraint1.Get_Cq_a()->PasteClippedMatrix(&Jxa, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_a()->PasteClippedMatrix(&Jxa, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_a()->PasteClippedMatrix(&Jxa, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_a()->PasteClippedMatrix(Jxa, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_a()->PasteClippedMatrix(Jxa, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_a()->PasteClippedMatrix(Jxa, 2, 0, 1, 3, 0, 0);
 
-    constraint1.Get_Cq_b()->PasteClippedMatrix(&Jxb, 0, 0, 1, 3, 0, 0);
-    constraint2.Get_Cq_b()->PasteClippedMatrix(&Jxb, 1, 0, 1, 3, 0, 0);
-    constraint3.Get_Cq_b()->PasteClippedMatrix(&Jxb, 2, 0, 1, 3, 0, 0);
+    constraint1.Get_Cq_b()->PasteClippedMatrix(Jxb, 0, 0, 1, 3, 0, 0);
+    constraint2.Get_Cq_b()->PasteClippedMatrix(Jxb, 1, 0, 1, 3, 0, 0);
+    constraint3.Get_Cq_b()->PasteClippedMatrix(Jxb, 2, 0, 1, 3, 0, 0);
 }
 
 void ChLinkPointPoint::ConstraintsFetch_react(double factor) {

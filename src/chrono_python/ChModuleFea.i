@@ -54,13 +54,14 @@
 #include "chrono_fea/ChElementGeneric.h"
 #include "chrono_fea/ChElementBeam.h"
 #include "chrono_fea/ChElementBeamEuler.h"
+#include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChElementTetra_4.h"
 #include "chrono_fea/ChElementTetra_10.h"
 #include "chrono_fea/ChElementHexa_8.h"
 #include "chrono_fea/ChElementHexa_20.h"
 #include "chrono_fea/ChBuilderBeam.h"
 #include "chrono_fea/ChMesh.h"
-#include "physics/ChContinuumMaterial.h"
+#include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono_fea/ChContinuumElectrostatics.h"
 #include "chrono_fea/ChContinuumThermal.h"
 #include "chrono_fea/ChContactSurface.h"
@@ -86,6 +87,8 @@ using namespace chrono::fea;
 // workaround for trouble
 %ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZ::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
 
 // Include other .i configuration files for SWIG. 
 // These are divided in many .i files, each per a
@@ -180,7 +183,7 @@ using namespace chrono::fea;
 //  mynamespace { class myclass; }
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
-
+%import "../chrono/core/ChClassFactory.h"
 %import  "ChObject.i"
 %import  "ChFrame.i"
 %import  "ChFrameMoving.i"

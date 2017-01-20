@@ -46,7 +46,6 @@ class CH_OPENGL_API ChOpenGLCloud : public ChOpenGLObject {
 };
 
 /// @} opengl
-
 }
 }
-#endif  // END of CHOPENGLCLOUD_H
+#endif

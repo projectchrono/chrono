@@ -1,13 +1,11 @@
 {
   "Name":     "MAN 5t",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {
-    "Mass":     5400.00,
-    "COM":      [2.0, 0, 1.0],
-    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
+    "Input File":               "MAN_5t/chassis/MAN_5t_Chassis.json"
   },
 
   "Axles":
@@ -45,12 +43,6 @@
   {
     "Input File":           "MAN_5t/driveline/MAN_5t_Driveline4WD.json",
     "Suspension Indexes":   [0, 1]
-  },
-
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
   },
 
   "Visualization":

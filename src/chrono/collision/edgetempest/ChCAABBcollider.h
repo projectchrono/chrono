@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,25 +12,10 @@
 #ifndef CHC_AABBCOLLIDER_H
 #define CHC_AABBCOLLIDER_H
 
-//////////////////////////////////////////////////
-//
-//   ChCAABBcollider.h
-//
-//   Detects collisions between a pair of collision
-//   models based on AABBs
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCompile.h"
-#include "collision/ChCCollisionPair.h"
-#include "ChCAABBTree.h"
-#include "ChCNarrowPhaseCollider.h"
+#include "chrono/collision/ChCCollisionPair.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
+#include "chrono/collision/edgetempest/ChCAABBTree.h"
+#include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
 
 namespace chrono {
 namespace collision {
@@ -69,7 +54,7 @@ class CHAABBcollider : public ChNarrowPhaseCollider {
     void CollideRecurse(CHAABBTree* o1, int b1, CHAABBTree* o2, int b2, eCollMode flag);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

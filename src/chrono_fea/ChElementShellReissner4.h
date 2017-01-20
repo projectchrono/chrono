@@ -27,20 +27,18 @@
 #include "chrono_fea/ChMaterialShellReissner.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
 
-
 namespace chrono {
 namespace fea {
 
 /// @addtogroup fea_elements
 /// @{
 
-
-/// Shell with geometrically exact kinematics, with 4 nodes. 
+/// Shell with geometrically exact kinematics, with 4 nodes.
 /// Uses ANS to avoid shear locking.
 /// Based on the paper:
 /// "Implementation and validation of a 4-node shell finite element"
 /// Marco Morandini, Pierangelo Masarati.  IDETC/CIE 2014.
-/// 
+///
 /// The node numbering is in ccw fashion as in the following scheme:
 ///         v
 ///         ^
@@ -70,8 +68,8 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
         Layer(ChElementShellReissner4* element,                  ///< containing element
-              double thickness,                              ///< layer thickness
-              double theta,                                  ///< fiber angle
+              double thickness,                                  ///< layer thickness
+              double theta,                                      ///< fiber angle
               std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
               );
 
@@ -80,8 +78,8 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
 
         ChElementShellReissner4* m_element;                   ///< containing shell element
         std::shared_ptr<ChMaterialShellReissner> m_material;  ///< layer material
-        double m_thickness;                               ///< layer thickness
-        double m_theta;                                   ///< fiber angle
+        double m_thickness;                                   ///< layer thickness
+        double m_theta;                                       ///< fiber angle
 
         friend class ChElementShellReissner4;
         friend class MyForce;
@@ -112,7 +110,6 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
                   std::shared_ptr<ChNodeFEAxyzrot> nodeC,
                   std::shared_ptr<ChNodeFEAxyzrot> nodeD);
 
-
     /// Access the n-th node of this element.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
 
@@ -128,15 +125,15 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Get a handle to the fourth node of this element.
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeD() const { return m_nodes[3]; }
 
-    /// Sets the neutral rotations of nodes A,B,C,D, at once, 
+    /// Sets the neutral rotations of nodes A,B,C,D, at once,
     /// assuming the current element position is for zero strain.
     void SetAsNeutral();
 
     /// Add a layer.
-    /// By default, when adding more than one layer, the reference z level of the 
+    /// By default, when adding more than one layer, the reference z level of the
     /// shell element is centered along the total thickness.
-    void AddLayer(double thickness,                              ///< layer thickness
-                  double theta,                                  ///< fiber angle (radians) 
+    void AddLayer(double thickness,                                  ///< layer thickness
+                  double theta,                                      ///< fiber angle (radians)
                   std::shared_ptr<ChMaterialShellReissner> material  ///< layer material
                   );
 
@@ -158,7 +155,7 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Set the structural damping: this is the Rayleigh "alpha" for the
     /// stiffness-proportional damping. This assumes damping forces as F=alpha*[Km]*v
     /// where [Km] is the stiffness matrix (material part, i.e.excluding geometric stiffness)
-    /// and v is a vector of node speeds. Usually, alpha in the range 0.0 - 0.1 
+    /// and v is a vector of node speeds. Usually, alpha in the range 0.0 - 0.1
     /// Note that the mass-proportional term of classical Rayleigh damping is not supported.
     void SetAlphaDamp(double a) { m_Alpha = a; }
 
@@ -169,7 +166,7 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
     double GetThickness() { return tot_thickness; }
 
-    ChQuaternion<> GetAvgRot() {return T_overline.Get_A_quaternion();}
+    ChQuaternion<> GetAvgRot() { return T_overline.Get_A_quaternion(); }
 
     // Shape functions
     // ---------------
@@ -183,212 +180,198 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Fills the Ny shape function derivative matrix with respect to Y.
     void ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double y);
 
-
-
-
     ChVector<> EvaluateGP(int igp);
     ChVector<> EvaluatePT(int ipt);
 
     /// Inner EAS dofs
-    virtual unsigned int iGetNumDof(void) const { 
-		return 7;
-	};
+    virtual unsigned int iGetNumDof(void) const { return 7; };
 
- private:
-	void UpdateNodalAndAveragePosAndOrientation();
-	void ComputeInitialNodeOrientation();
-	void InterpolateOrientation();
-	void ComputeIPCurvature();
+  private:
+    void UpdateNodalAndAveragePosAndOrientation();
+    void ComputeInitialNodeOrientation();
+    void InterpolateOrientation();
+    void ComputeIPCurvature();
 
-
-  //***TEST*** to make private
- public:
-
+    //***TEST*** to make private
+  public:
     //
     // DATA
     //
-    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;///< element nodes
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot> > m_nodes;  ///< element nodes
 
-    std::vector<Layer>  m_layers;                          ///< element layers
-    std::vector<double> m_layers_z;                        ///< layer separation z values (not scaled, default centered tot thickness)
+    std::vector<Layer> m_layers;     ///< element layers
+    std::vector<double> m_layers_z;  ///< layer separation z values (not scaled, default centered tot thickness)
 
-    double tot_thickness;                                  ///< total element thickness
-    double m_lenX;                                         ///< element length in X direction
-    double m_lenY;                                         ///< element length in Y direction
-    double m_Alpha;                                        ///< structural damping
-    ChMatrixNM<double, 24, 24> m_MassMatrix;               ///< mass matrix
-    ChMatrixNM<double, 24, 24> m_JacobianMatrix;           ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
+    double tot_thickness;                         ///< total element thickness
+    double m_lenX;                                ///< element length in X direction
+    double m_lenY;                                ///< element length in Y direction
+    double m_Alpha;                               ///< structural damping
+    ChMatrixNM<double, 24, 24> m_MassMatrix;      ///< mass matrix
+    ChMatrixNM<double, 24, 24> m_JacobianMatrix;  ///< Jacobian matrix (Kfactor*[K] + Rfactor*[R])
 
     //
-    // from original MBDyn 
+    // from original MBDyn
     //
-public:
-	// numbered according to
-	//
-	//         ^
-	// 4 o-----+-----o 3
-	//   | 1_2 | 2_2 |
-	// --+-----+-----+->
-	//   | 1_1 | 2_1 |
-	// 1 o-----+-----o 2
-	//
-	enum IntegrationPoint {
-		IP_1_1 = 0,
-		IP_1_2 = 1,
-		IP_1_3 = 2,
-		IP_2_1 = 3,
-		IP_2_2 = 4,
-		IP_2_3 = 5,
-		IP_3_1 = 6,
-		IP_3_2 = 7,
-		IP_3_3 = 8,
+  public:
+    // numbered according to
+    //
+    //         ^
+    // 4 o-----+-----o 3
+    //   | 1_2 | 2_2 |
+    // --+-----+-----+->
+    //   | 1_1 | 2_1 |
+    // 1 o-----+-----o 2
+    //
+    enum IntegrationPoint {
+        IP_1_1 = 0,
+        IP_1_2 = 1,
+        IP_1_3 = 2,
+        IP_2_1 = 3,
+        IP_2_2 = 4,
+        IP_2_3 = 5,
+        IP_3_1 = 6,
+        IP_3_2 = 7,
+        IP_3_3 = 8,
 
-		NUMIP = 4
-	};
-	
-	static double xi_i[NUMIP][2];
-	static double w_i[NUMIP];
+        NUMIP = 4
+    };
 
-	// numbered according to the side they are defined on
-	enum ShearStrainEvaluationPoint {
-		SSEP_1 = 0,
-		SSEP_2 = 1,
-		SSEP_3 = 2,
-		SSEP_4 = 3,
+    static double xi_i[NUMIP][2];
+    static double w_i[NUMIP];
 
-		NUMSSEP = 4
-	};
+    // numbered according to the side they are defined on
+    enum ShearStrainEvaluationPoint {
+        SSEP_1 = 0,
+        SSEP_2 = 1,
+        SSEP_3 = 2,
+        SSEP_4 = 3,
 
-	static double xi_A[NUMSSEP][2];
+        NUMSSEP = 4
+    };
 
-	enum NodeName {
-		NODE1 = 0,
-		NODE2 = 1,
-		NODE3 = 2,
-		NODE4 = 3,
+    static double xi_A[NUMSSEP][2];
 
-		NUMNODES = 4
-	};
+    enum NodeName {
+        NODE1 = 0,
+        NODE2 = 1,
+        NODE3 = 2,
+        NODE4 = 3,
 
-	static double xi_n[NUMNODES][2];
-	
-	static double xi_0[2];
+        NUMNODES = 4
+    };
 
-	enum Deformations {
-		STRAIN = 0,
-		CURVAT = 1,
+    static double xi_n[NUMNODES][2];
 
-		NUMDEFORM = 2
-	};
+    static double xi_0[2];
 
-    enum InnerEASdofs {
-		IDOFS = 7
-	};
+    enum Deformations {
+        STRAIN = 0,
+        CURVAT = 1,
+
+        NUMDEFORM = 2
+    };
+
+    enum InnerEASdofs { IDOFS = 7 };
     ChVariablesGenericDiagonalMass* mvariables;
 
-     //***TODO*** make protected
-public:
+    //***TODO*** make protected
+  public:
+    // nodal positions (0: initial; otherwise current)
+    ChVector<> xa_0[NUMNODES];
+    ChVector<> xa[NUMNODES];
+    // current nodal orientation
+    ChMatrix33<> iTa[NUMNODES];
+    ChMatrix33<> iTa_i[NUMIP];
+    ChMatrix33<> iTa_A[NUMSSEP];
+    // Euler vector of Ra
+    ChVector<> phi_tilde_n[NUMNODES];
 
-	// nodal positions (0: initial; otherwise current)
-	ChVector<> xa_0[NUMNODES];
-	ChVector<> xa[NUMNODES];
-	// current nodal orientation
-	ChMatrix33<> iTa[NUMNODES];
-	ChMatrix33<> iTa_i[NUMIP];
-	ChMatrix33<> iTa_A[NUMSSEP];
-	// Euler vector of Ra
-	ChVector<> phi_tilde_n[NUMNODES];
+    // Average orientation matrix
+    ChVector<> phi_tilde_i[NUMIP];
+    ChVector<> phi_tilde_A[NUMSSEP];
+    ChVector<> phi_tilde_0;
+    // Average orientation matrix
+    //    .. in reference configuration
+    ChMatrix33<> T0_overline;
+    //    .. in current configuration
+    ChMatrix33<> T_overline;
 
-	// Average orientation matrix
-	ChVector<> phi_tilde_i[NUMIP];
-	ChVector<> phi_tilde_A[NUMSSEP];
-	ChVector<> phi_tilde_0;
-	// Average orientation matrix 
-	//    .. in reference configuration
-	ChMatrix33<> T0_overline;
-	//    .. in current configuration
-	ChMatrix33<> T_overline;
-	
-	// Orientation matrix 
-	//    .. in reference configuration
-	ChMatrix33<> T_0_0;
-	ChMatrix33<> T_0_i[NUMIP];
-	ChMatrix33<> T_0_A[NUMSSEP];
-	//    .. in current configuration
-	ChMatrix33<> T_0;
-	ChMatrix33<> T_i[NUMIP];
-	ChMatrix33<> T_A[NUMSSEP];
+    // Orientation matrix
+    //    .. in reference configuration
+    ChMatrix33<> T_0_0;
+    ChMatrix33<> T_0_i[NUMIP];
+    ChMatrix33<> T_0_A[NUMSSEP];
+    //    .. in current configuration
+    ChMatrix33<> T_0;
+    ChMatrix33<> T_i[NUMIP];
+    ChMatrix33<> T_A[NUMSSEP];
 
-	ChMatrix33<> Phi_Delta_i[NUMIP][NUMNODES];
-	ChMatrix33<> Phi_Delta_A[NUMIP][NUMNODES];
-	ChMatrix33<> Kappa_delta_i_1[NUMIP][NUMNODES];
-	ChMatrix33<> Kappa_delta_i_2[NUMIP][NUMNODES];
+    ChMatrix33<> Phi_Delta_i[NUMIP][NUMNODES];
+    ChMatrix33<> Phi_Delta_A[NUMIP][NUMNODES];
+    ChMatrix33<> Kappa_delta_i_1[NUMIP][NUMNODES];
+    ChMatrix33<> Kappa_delta_i_2[NUMIP][NUMNODES];
 
+    // rotation tensors
+    ChMatrix33<> Q_i[NUMIP];
+    ChMatrix33<> Q_A[NUMSSEP];
 
-	// rotation tensors
-	ChMatrix33<> Q_i[NUMIP];
-	ChMatrix33<> Q_A[NUMSSEP];
+    // Orientation tensor derivative axial vector
+    ChVector<> k_1_i[NUMIP];
+    ChVector<> k_2_i[NUMIP];
 
-	// Orientation tensor derivative axial vector
-	ChVector<> k_1_i[NUMIP];
-	ChVector<> k_2_i[NUMIP];
+    // linear deformation vectors
+    //    .. in reference configuration
+    ChVector<> eps_tilde_1_0_i[NUMIP];
+    ChVector<> eps_tilde_2_0_i[NUMIP];
+    ChVector<> eps_tilde_1_0_A[NUMSSEP];
+    ChVector<> eps_tilde_2_0_A[NUMSSEP];
+    //    .. in current configuration
+    ChVector<> eps_tilde_1_i[NUMIP];
+    ChVector<> eps_tilde_2_i[NUMIP];
+    ChVector<> eps_tilde_1_A[NUMSSEP];
+    ChVector<> eps_tilde_2_A[NUMSSEP];
 
-	// linear deformation vectors
-	//    .. in reference configuration
-	ChVector<> eps_tilde_1_0_i[NUMIP];
-	ChVector<> eps_tilde_2_0_i[NUMIP];
-	ChVector<> eps_tilde_1_0_A[NUMSSEP];
-	ChVector<> eps_tilde_2_0_A[NUMSSEP];
-	//    .. in current configuration
-	ChVector<> eps_tilde_1_i[NUMIP];
-	ChVector<> eps_tilde_2_i[NUMIP];
-	ChVector<> eps_tilde_1_A[NUMSSEP];
-	ChVector<> eps_tilde_2_A[NUMSSEP];
+    // angular deformation vectors
+    //    .. in reference configuration
+    ChVector<> k_tilde_1_0_i[NUMIP];
+    ChVector<> k_tilde_2_0_i[NUMIP];
+    //    .. in current configuration
+    ChVector<> k_tilde_1_i[NUMIP];
+    ChVector<> k_tilde_2_i[NUMIP];
 
-	// angular deformation vectors
-	//    .. in reference configuration
-	ChVector<> k_tilde_1_0_i[NUMIP];
-	ChVector<> k_tilde_2_0_i[NUMIP];
-	//    .. in current configuration
-	ChVector<> k_tilde_1_i[NUMIP];
-	ChVector<> k_tilde_2_i[NUMIP];
+    ChMatrixNM<double, 2, 2> S_alpha_beta_0;
+    ChMatrixNM<double, 2, 2> S_alpha_beta_i[NUMIP];
+    ChMatrixNM<double, 2, 2> S_alpha_beta_A[NUMSSEP];
+    double alpha_0;
+    double alpha_i[NUMIP];
+    ChMatrixNM<double, 4, 2> L_alpha_beta_i[NUMIP];
+    ChMatrixNM<double, 4, 2> L_alpha_beta_A[NUMSSEP];
 
-	ChMatrixNM<double,2,2> S_alpha_beta_0;
-	ChMatrixNM<double,2,2> S_alpha_beta_i[NUMIP];
-	ChMatrixNM<double,2,2> S_alpha_beta_A[NUMSSEP];
-	double alpha_0;
-	double alpha_i[NUMIP];
-	ChMatrixNM<double,4,2> L_alpha_beta_i[NUMIP];
-	ChMatrixNM<double,4,2> L_alpha_beta_A[NUMSSEP];
+    ChMatrixNM<double, 12, 24> B_overline_i[NUMIP];
+    ChMatrixNM<double, 15, 24> D_overline_i[NUMIP];
+    ChMatrixNM<double, 15, 15> G_i[NUMIP];
 
-	ChMatrixNM<double,12,24> B_overline_i[NUMIP];
-	ChMatrixNM<double,15,24> D_overline_i[NUMIP];
-	ChMatrixNM<double,15,15> G_i[NUMIP];
+    ChMatrixNM<double, 12, IDOFS> P_i[NUMIP];
 
-	ChMatrixNM<double,12,IDOFS>  P_i[NUMIP];
-	
-	ChMatrixNM<double,IDOFS,IDOFS> K_beta_beta_i[NUMIP];
-	
-	ChVector<> y_i_1[NUMIP];
-	ChVector<> y_i_2[NUMIP];
-	
-	ChMatrixNM<double,IDOFS,1> beta;
-	ChMatrixNM<double,12,1> epsilon_hat;
-	ChMatrixNM<double,12,1> epsilon;
+    ChMatrixNM<double, IDOFS, IDOFS> K_beta_beta_i[NUMIP];
 
-	// Reference constitutive law tangent matrices
-	ChMatrixNM<double,12,12> DRef[NUMIP];
+    ChVector<> y_i_1[NUMIP];
+    ChVector<> y_i_2[NUMIP];
 
-	//stress
-	ChMatrixNM<double,12,1> stress_i[NUMIP];
+    ChMatrixNM<double, IDOFS, 1> beta;
+    ChMatrixNM<double, 12, 1> epsilon_hat;
+    ChMatrixNM<double, 12, 1> epsilon;
 
-	// Is first residual
-	bool bFirstRes;
-    
+    // Reference constitutive law tangent matrices
+    ChMatrixNM<double, 12, 12> DRef[NUMIP];
 
-public:
+    // stress
+    ChMatrixNM<double, 12, 1> stress_i[NUMIP];
 
+    // Is first residual
+    bool bFirstRes;
 
+  public:
     // Interface to ChElementBase base class
     // -------------------------------------
 
@@ -413,7 +396,6 @@ public:
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override;
-
 
     /// Initial setup.
     /// This is used mostly to precompute matrices that do not change during the simulation,
@@ -461,7 +443,6 @@ public:
 
     /// Compute the gravitational forces.
     void ComputeGravityForce(const ChVector<>& g_acc);
-
 
     // Functions for ChLoadable interface
     // ----------------------------------

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Ramp> a_registration_ramp;
+CH_FACTORY_REGISTER(ChFunction_Ramp)
 
 ChFunction_Ramp::ChFunction_Ramp(const ChFunction_Ramp& other) {
     y0 = other.y0;

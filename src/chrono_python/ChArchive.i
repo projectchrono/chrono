@@ -1,14 +1,14 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "serialization/ChArchive.h"
+#include "chrono/serialization/ChArchive.h"
 
 using namespace chrono;
 
 %}
 
 // Trick to disable a macro that stops SWIG
-#define CH_CREATE_MEMBER_DETECTOR(GetRTTI)
+#define CH_CREATE_MEMBER_DETECTOR(FactoryNameTag)
 
 /* Parse the header file to generate wrappers */
  %include "../chrono/serialization/ChArchive.h"    

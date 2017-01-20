@@ -32,7 +32,9 @@ class ChSystem;
 /// set inner spring-damper features for each degree of freedom.
 
 class ChApi ChLinkMasked : public ChLinkMarkers {
-    CH_RTTI(ChLinkMasked, ChLinkMarkers);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkMasked)
 
   protected:
     // The mask of the locked coords, with the status of the

@@ -22,7 +22,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {

@@ -13,7 +13,7 @@
 #define CHTEXTURE_H
 
 
-#include "assets/ChAsset.h"
+#include "chrono/assets/ChAsset.h"
 
 namespace chrono {
 
@@ -25,8 +25,9 @@ namespace chrono {
 /// classes of textures with more properties.
 
 class ChApi ChTexture : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChTexture, ChAsset);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTexture)
 
   protected:
     //
@@ -87,9 +88,6 @@ class ChApi ChTexture : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

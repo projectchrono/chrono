@@ -69,7 +69,7 @@ Release v.1.8.0 has issues with soft shadows.
 
 Start the CMake tool to configure the build. 
 
--  In the field "Where is the source code" set the path to your Chrono directory 
+-  In the field "Where is the source code" set the path to your Chrono directory. 
    This is the directory where you created your Git repository, in our example is <tt>C:/chrono_source</tt>. 
 -  In the field "Where to build the binaries" set the path to another directory on your system, 
    that must be empty. This is where the Visual C++ project will be created (or the makefiles, if on Linux). 

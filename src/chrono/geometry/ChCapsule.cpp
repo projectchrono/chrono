@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/geometry/ChCapsule.h"
 
@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChCapsule> a_registration_ChCapsule;
+CH_FACTORY_REGISTER(ChCapsule)
 
 ChCapsule::ChCapsule(const ChCapsule& source) {
     center = source.center;

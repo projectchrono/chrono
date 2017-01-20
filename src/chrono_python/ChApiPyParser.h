@@ -29,7 +29,7 @@
 
 //#pragma warning(disable: 4251)
 
-#include "core/ChPlatform.h"
+#include "chrono/core/ChPlatform.h"
 
 
 // Chrono::Engine unit PYTHON version

@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,25 +12,8 @@
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
 
-//////////////////////////////////////////////////
-//
-//   ChCoordsys.h
-//
-//   Basic math functions for 3d coordinates (position
-//   and rotation).
-//   For more advanced features, look into headers
-//   ChFrame.h or ChFrameMoving.h.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChVector.h"
-#include "core/ChQuaternion.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
 
 namespace chrono {
 
@@ -414,7 +396,7 @@ typedef ChCoordsys<float> CoordsysF;
 //
 
 /// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
-ChApi Coordsys Force2Dcsys(Coordsys* cs);
+ChApi Coordsys Force2Dcsys(const Coordsys& cs);
 
 //
 // CONSTANTS
@@ -423,6 +405,6 @@ ChApi Coordsys Force2Dcsys(Coordsys* cs);
 #define CSYSNULL ChCoordsys<double>(VNULL,QNULL)
 #define CSYSNORM ChCoordsys<double>(VNULL,QUNIT)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
-#endif  // END of ChCoordsys.h
+#endif

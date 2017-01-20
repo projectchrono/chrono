@@ -1,37 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2005, 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
-//////////////////////////////////////////////////
-//
-//   ChMatrix.h
-//
-//   Math functions for:
-//      - MATRICES
-//
-//   HEADER file for CHRONO,
-//   Multibody dynamics engine
-//
-// ------------------------------------------------
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
-#include "core/ChStream.h"
-#include "core/ChException.h"
-#include "chrono/ChConfig.h"
 #include <immintrin.h>
+
+#include "chrono/core/ChCoordsys.h"
+#include "chrono/core/ChException.h"
+#include "chrono/ChConfig.h"
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/serialization/ChArchiveAsciiDump.h"
 
 namespace chrono {
 
@@ -648,11 +638,11 @@ class ChMatrix {
     /// Computes dot product between two column-matrices (vectors) with
     /// same size. Returns a scalar value.
     template <class RealB, class RealC>
-    static Real MatrDot(const ChMatrix<RealB>* ma, const ChMatrix<RealC>* mb) {
-        assert(ma->GetColumns() == mb->GetColumns() && ma->GetRows() == mb->GetRows());
+    static Real MatrDot(const ChMatrix<RealB>& ma, const ChMatrix<RealC>& mb) {
+        assert(ma.GetColumns() == mb.GetColumns() && ma.GetRows() == mb.GetRows());
         Real tot = 0;
-        for (int i = 0; i < ma->GetRows(); ++i)
-            tot += (Real)(ma->ElementN(i) * mb->ElementN(i));
+        for (int i = 0; i < ma.GetRows(); ++i)
+            tot += (Real)(ma.ElementN(i) * mb.ElementN(i));
         return tot;
     }
 
@@ -1016,43 +1006,43 @@ class ChMatrix {
     /// Paste a matrix "matra" into "this", inserting at location insrow-inscol.
     /// Normal copy for insrow=inscol=0
     template <class RealB>
-    void PasteMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-        for (int i = 0; i < matra->GetRows(); ++i)
-            for (int j = 0; j < matra->GetColumns(); ++j)
-                Element(i + insrow, j + inscol) = (Real)matra->Element(i, j);
+    void PasteMatrix(const ChMatrix<RealB>& matra, int insrow, int inscol) {
+        for (int i = 0; i < matra.GetRows(); ++i)
+            for (int j = 0; j < matra.GetColumns(); ++j)
+                Element(i + insrow, j + inscol) = (Real)matra.Element(i, j);
     }
 
     /// Paste a matrix "matra" into "this", inserting at location insrow-inscol
     /// and performing a sum with the preexisting values.
     template <class RealB>
-    void PasteSumMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-        for (int i = 0; i < matra->GetRows(); ++i)
-            for (int j = 0; j < matra->GetColumns(); ++j)
-                Element(i + insrow, j + inscol) += (Real)matra->Element(i, j);
+    void PasteSumMatrix(const ChMatrix<RealB>& matra, int insrow, int inscol) {
+        for (int i = 0; i < matra.GetRows(); ++i)
+            for (int j = 0; j < matra.GetColumns(); ++j)
+                Element(i + insrow, j + inscol) += (Real)matra.Element(i, j);
     }
 
     /// Paste a matrix "matra", transposed, into "this", inserting at location insrow-inscol.
     /// Normal copy for insrow=inscol=0
     template <class RealB>
-    void PasteTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-        for (int i = 0; i < matra->GetRows(); ++i)
-            for (int j = 0; j < matra->GetColumns(); ++j)
-                Element(j + insrow, i + inscol) = (Real)matra->Element(i, j);
+    void PasteTranspMatrix(const ChMatrix<RealB>& matra, int insrow, int inscol) {
+        for (int i = 0; i < matra.GetRows(); ++i)
+            for (int j = 0; j < matra.GetColumns(); ++j)
+                Element(j + insrow, i + inscol) = (Real)matra.Element(i, j);
     }
 
     /// Paste a matrix "matra", transposed, into "this", inserting at location insrow-inscol
     /// and performing a sum with the preexisting values.
     template <class RealB>
-    void PasteSumTranspMatrix(const ChMatrix<RealB>* matra, int insrow, int inscol) {
-        for (int i = 0; i < matra->GetRows(); ++i)
-            for (int j = 0; j < matra->GetColumns(); ++j)
-                Element(j + insrow, i + inscol) += (Real)matra->Element(i, j);
+    void PasteSumTranspMatrix(const ChMatrix<RealB>& matra, int insrow, int inscol) {
+        for (int i = 0; i < matra.GetRows(); ++i)
+            for (int j = 0; j < matra.GetColumns(); ++j)
+                Element(j + insrow, i + inscol) += (Real)matra.Element(i, j);
     }
 
     /// Paste a clipped portion of the matrix "matra" into "this",
     /// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
     template <class RealB>
-    void PasteClippedMatrix(const ChMatrix<RealB>* matra,
+    void PasteClippedMatrix(const ChMatrix<RealB>& matra,
                             int cliprow,
                             int clipcol,
                             int nrows,
@@ -1061,13 +1051,13 @@ class ChMatrix {
                             int inscol) {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
-                Element(i + insrow, j + inscol) = (Real)matra->Element(i + cliprow, j + clipcol);
+                Element(i + insrow, j + inscol) = (Real)matra.Element(i + cliprow, j + clipcol);
     }
     /// Paste a clipped portion of the matrix "matra" into "this", where "this"
     /// is a vector (of ChMatrix type),
     /// inserting the clip (of size nrows, ncolumns) at the location insindex.
     template <class RealB>
-    void PasteClippedMatrixToVector(const ChMatrix<RealB>* matra,
+    void PasteClippedMatrixToVector(const ChMatrix<RealB>& matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
@@ -1075,14 +1065,14 @@ class ChMatrix {
                                     int insindex) {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
-                ElementN(insindex + i * ncolumns + j) = (Real)matra->Element(cliprow + i, clipcol + j);
+                ElementN(insindex + i * ncolumns + j) = (Real)matra.Element(cliprow + i, clipcol + j);
     }
 
     /// Paste a clipped portion of a vector into "this", where "this"
     /// is a matrix (of ChMatrix type),
     /// inserting the clip (of size nrows, ncolumns) at the location insindex.
     template <class RealB>
-    void PasteClippedVectorToMatrix(const ChMatrix<RealB>* matra,
+    void PasteClippedVectorToMatrix(const ChMatrix<RealB>& matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
@@ -1090,12 +1080,13 @@ class ChMatrix {
                                     int insindex) {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
-                Element(i + cliprow, j + clipcol) = (Real)matra->ElementN(insindex + i * ncolumns + j);
+                Element(i + cliprow, j + clipcol) = (Real)matra.ElementN(insindex + i * ncolumns + j);
     }
+
     /// Paste a clipped portion of the matrix "matra" into "this", performing a sum with preexisting values,
     /// inserting the clip (of size nrows, ncolumns) at the location insrow-inscol.
     template <class RealB>
-    void PasteSumClippedMatrix(const ChMatrix<RealB>* matra,
+    void PasteSumClippedMatrix(const ChMatrix<RealB>& matra,
                                int cliprow,
                                int clipcol,
                                int nrows,
@@ -1105,7 +1096,7 @@ class ChMatrix {
         for (int i = 0; i < nrows; ++i)
             for (int j = 0; j < ncolumns; ++j)
 #pragma omp atomic
-                Element(i + insrow, j + inscol) += (Real)matra->Element(i + cliprow, j + clipcol);
+                Element(i + insrow, j + inscol) += (Real)matra.Element(i + cliprow, j + clipcol);
     }
 
     /// Paste a vector "va" into the matrix.

@@ -14,8 +14,9 @@
 //
 // =============================================================================
 
-#include "collision/ChCConvexDecomposition.h"
-#include "utils/ChUtilsCreators.h"
+#include "chrono_thirdparty/tinyobjloader/tiny_obj_loader.h"
+#include "chrono/collision/ChCConvexDecomposition.h"
+#include "chrono/utils/ChUtilsCreators.h"
 
 namespace chrono {
 using namespace geometry;
@@ -726,6 +727,27 @@ void LoadConvexMesh(const std::string& file_name,
     convex_shape.ComputeConvexDecomposition();
 }
 
+// -----------------------------------------------------------------------------
+void LoadConvexHulls(const std::string& file_name,
+	geometry::ChTriangleMeshConnected& convex_mesh,
+	std::vector<std::vector<ChVector<double> > >& convex_hulls) {
+	convex_mesh.LoadWavefrontMesh(file_name, true, false);
+
+	std::vector<tinyobj::shape_t> shapes;
+	std::string err = tinyobj::LoadObj(shapes, file_name.c_str());
+
+	convex_hulls.resize(shapes.size());
+	for (int i = 0; i < shapes.size(); i++) {
+		convex_hulls[i].resize(shapes[i].mesh.input_pos.size() / 3);
+		for (int j = 0; j < shapes[i].mesh.input_pos.size() / 3; j++) {
+			ChVector<double> pos(
+				shapes[i].mesh.input_pos[j * 3 + 0], 
+				shapes[i].mesh.input_pos[j * 3 + 1],
+				shapes[i].mesh.input_pos[j * 3 + 2]);
+			convex_hulls[i][j] = pos;
+		}
+	}
+}
 // -----------------------------------------------------------------------------
 
 void AddConvexCollisionModel(std::shared_ptr<ChBody> body,

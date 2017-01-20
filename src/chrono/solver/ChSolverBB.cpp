@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverBB> a_registration_ChSolverBB;
+CH_FACTORY_REGISTER(ChSolverBB)
 
 double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                          ) {
@@ -172,7 +172,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
         mdir.MatrDec(ml);               // 5) dir = P(l - alpha*Dg) - l
 
         // dTg = dir'*g;
-        double dTg = mdir.MatrDot(&mdir, &mg);
+        double dTg = mdir.MatrDot(mdir, mg);
 
         // BB dir backward!? fallback to nonpreconditioned dir
         if (dTg > 1e-8) {
@@ -183,7 +183,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
             sysd.ConstraintsProject(mdir);  // 4) dir = P(l - alpha*g) ...
             mdir.MatrDec(ml);               // 5) dir = P(l - alpha*g) - l
             // dTg = d'*g;
-            dTg = mdir.MatrDot(&mdir, &mg);
+            dTg = mdir.MatrDot(mdir, mg);
         }
 
         double lambda = 1;
@@ -206,7 +206,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
             // f_p = 0.5*l_p'*N*l_p - l_p'*b  = l_p'*(0.5*Nl_p - b);
             mb_tmp.MatrScale(0.5);
             mb_tmp.MatrDec(mb);
-            mf_p = ml_p.MatrDot(&ml_p, &mb_tmp);
+            mf_p = ml_p.MatrDot(ml_p, mb_tmp);
 
             f_hist.push_back(mf_p);
 
@@ -250,8 +250,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
             mb_tmp = ms;
             if (do_preconditioning)
                 mb_tmp.MatrScale(mD);
-            double sDs = ms.MatrDot(&ms, &mb_tmp);
-            double sy = ms.MatrDot(&ms, &my);
+            double sDs = ms.MatrDot(ms, mb_tmp);
+            double sy = ms.MatrDot(ms, my);
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
@@ -264,11 +264,11 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
         // this is a modified rayleight quotient - looks like it works anyway...
         if (((do_BB1e2) && (iter%2 ==0)) || do_BB1)
         {
-            double ss = ms.MatrDot(&ms,&ms);
+            double ss = ms.MatrDot(ms,ms);
             mb_tmp = my;
             if (do_preconditioning)
                 mb_tmp.MatrDivScale(mD);
-            double sDy = ms.MatrDot(&ms, &mb_tmp);
+            double sDy = ms.MatrDot(ms, mb_tmp);
             if (sDy <= 0)
             {
                 alpha = neg_BB1_fallback;
@@ -282,11 +282,11 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
         */
 
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
-            double sy = ms.MatrDot(&ms, &my);
+            double sy = ms.MatrDot(ms, my);
             mb_tmp = my;
             if (do_preconditioning)
                 mb_tmp.MatrDivScale(mD);
-            double yDy = my.MatrDot(&my, &mb_tmp);
+            double yDy = my.MatrDot(my, mb_tmp);
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {
@@ -510,7 +510,7 @@ double ChSolverBB::Solve_SupportingStiffness(
         mdir.MatrDec(mx);            // 5) dir = P(x - alpha*Dg) - x
 
         // dTg = dir'*g;
-        double dTg = mdir.MatrDot(&mdir, &mg);
+        double dTg = mdir.MatrDot(mdir, mg);
 
         // BB dir backward!? fallback to nonpreconditioned dir
         if (dTg > 1e-8) {
@@ -521,7 +521,7 @@ double ChSolverBB::Solve_SupportingStiffness(
             sysd.UnknownsProject(mdir);  // 4) dir = P(x - alpha*g) ...
             mdir.MatrDec(mx);            // 5) dir = P(x - alpha*g) - x
             // dTg = d'*g;
-            dTg = mdir.MatrDot(&mdir, &mg);
+            dTg = mdir.MatrDot(mdir, mg);
         }
 
         double lambda = 1;
@@ -544,7 +544,7 @@ double ChSolverBB::Solve_SupportingStiffness(
             // f_p = 0.5*x_p'*Z*x_p - x_p'*d  = x_p'*(0.5*Zx_p - d);
             md_tmp.MatrScale(0.5);
             md_tmp.MatrDec(md);
-            mf_p = mx_p.MatrDot(&mx_p, &md_tmp);
+            mf_p = mx_p.MatrDot(mx_p, md_tmp);
 
             f_hist.push_back(mf_p);
 
@@ -588,8 +588,8 @@ double ChSolverBB::Solve_SupportingStiffness(
             md_tmp = ms;
             if (do_preconditioning)
                 md_tmp.MatrScale(mD);
-            double sDs = ms.MatrDot(&ms, &md_tmp);
-            double sy = ms.MatrDot(&ms, &my);
+            double sDs = ms.MatrDot(ms, md_tmp);
+            double sy = ms.MatrDot(ms, my);
             if (sy <= 0) {
                 alpha = neg_BB1_fallback;
             } else {
@@ -599,11 +599,11 @@ double ChSolverBB::Solve_SupportingStiffness(
         }
 
         if (((do_BB1e2) && (iter % 2 != 0)) || do_BB2) {
-            double sy = ms.MatrDot(&ms, &my);
+            double sy = ms.MatrDot(ms, my);
             md_tmp = my;
             if (do_preconditioning)
                 md_tmp.MatrDivScale(mD);
-            double yDy = my.MatrDot(&my, &md_tmp);
+            double yDy = my.MatrDot(my, md_tmp);
             if (sy <= 0) {
                 alpha = neg_BB2_fallback;
             } else {

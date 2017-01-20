@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChAsset.h"
+#include "chrono/assets/ChAsset.h"
 
 using namespace chrono;
 

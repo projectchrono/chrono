@@ -25,8 +25,9 @@
 //
 // =============================================================================
 
-#include "assets/ChCylinderShape.h"
-#include "assets/ChColorAsset.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
+#include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChHendricksonPRIMAXX.h"
 
@@ -64,7 +65,9 @@ ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspensi
 // -----------------------------------------------------------------------------
 void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
-                                      std::shared_ptr<ChBody> tierod_body) {
+                                      std::shared_ptr<ChBody> tierod_body,
+                                      double left_ang_vel,
+                                      double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -77,9 +80,9 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // (for visualization)
     ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
     ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
-    ChVector<> axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
+    m_outerL = suspension_to_abs.TransformPointLocalToParent(outer_local);
     outer_local.y = -outer_local.y;
-    ChVector<> axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
+    m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axlehousing body.
     m_axlehousing = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
@@ -88,27 +91,27 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_axlehousing->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_axlehousing->SetMass(getAxlehousingMass());
     m_axlehousing->SetInertiaXX(getAxlehousingInertia());
-    AddVisualizationLink(m_axlehousing, axleOuterL, axleOuterR, getAxlehousingRadius(), ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_axlehousing);
 
-    // Transform all points and directions on right and left sides to absolute frame
-    std::vector<ChVector<> > points_R(NUM_POINTS);
-    std::vector<ChVector<> > points_L(NUM_POINTS);
-    std::vector<ChVector<> > dirs_R(NUM_DIRS);
-    std::vector<ChVector<> > dirs_L(NUM_DIRS);
+    // Transform all points and directions to absolute frame
+    m_pointsL.resize(NUM_POINTS);
+    m_pointsR.resize(NUM_POINTS);
+
+    m_dirsL.resize(NUM_DIRS);
+    m_dirsR.resize(NUM_DIRS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        points_L[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y = -rel_pos.y;
-        points_R[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
         ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
-        dirs_L[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+        m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
         rel_dir.y = -rel_dir.y;
-        dirs_R[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
+        m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
     // Create transverse beam body
@@ -121,20 +124,19 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_transversebeam->SetRot(chassis->GetFrame_REF_to_abs().GetRot());
     m_transversebeam->SetMass(getTransversebeamMass());
     m_transversebeam->SetInertiaXX(getTransversebeamInertia());
-    AddVisualizationLink(m_transversebeam, points_L[LOWERBEAM_TB], points_R[LOWERBEAM_TB], getTransversebeamRadius(),
-                         ChColor(0.7f, 0.7f, 0.7f));
     chassis->GetSystem()->AddBody(m_transversebeam);
 
     // Initialize left and right sides.
-    InitializeSide(LEFT, chassis, tierod_body, points_L, dirs_L);
-    InitializeSide(RIGHT, chassis, tierod_body, points_R, dirs_R);
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, m_dirsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, m_dirsR, right_ang_vel);
 }
 
 void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
                                           std::shared_ptr<ChBodyAuxRef> chassis,
                                           std::shared_ptr<ChBody> tierod_body,
                                           const std::vector<ChVector<> >& points,
-                                          const std::vector<ChVector<> >& dirs) {
+                                          const std::vector<ChVector<> >& dirs,
+                                          double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Unit vectors for orientation matrices.
@@ -154,8 +156,6 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_knuckle[side]->SetRot(chassisRot);
     m_knuckle[side]->SetMass(getKnuckleMass());
     m_knuckle[side]->SetInertiaXX(getKnuckleInertia());
-    AddVisualizationKnuckle(m_knuckle[side], points[KNUCKLE_U], points[KNUCKLE_L], points[TIEROD_K],
-                            getKnuckleRadius());
     chassis->GetSystem()->AddBody(m_knuckle[side]);
 
     // Create and initialize spindle body (same orientation as the chassis)
@@ -163,9 +163,9 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize torque rod body.
@@ -184,8 +184,6 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_torquerod[side]->SetRot(rot);
     m_torquerod[side]->SetMass(getTorquerodMass());
     m_torquerod[side]->SetInertiaXX(getTorquerodInertia());
-    AddVisualizationLink(m_torquerod[side], points[TORQUEROD_AH], points[TORQUEROD_C], getTorquerodRadius(),
-                         ChColor(0.6f, 0.2f, 0.6f));
     chassis->GetSystem()->AddBody(m_torquerod[side]);
 
     // Create and initialize lower beam body.
@@ -204,13 +202,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_lowerbeam[side]->SetRot(rot);
     m_lowerbeam[side]->SetMass(getLowerbeamMass());
     m_lowerbeam[side]->SetInertiaXX(getLowerbeamInertia());
-    AddVisualizationLowerBeam(m_lowerbeam[side], points[LOWERBEAM_C], points[LOWERBEAM_AH], points[LOWERBEAM_TB],
-                              getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
     chassis->GetSystem()->AddBody(m_lowerbeam[side]);
-
-    // Append to the axle visualization
-    AddVisualizationLink(m_axlehousing, points[LOWERBEAM_AH], points[TORQUEROD_AH], getAxlehousingRadius() / 2,
-                         ChColor(0.7f, 0.7f, 0.7f));
 
     // Create and initialize the revolute joint between axle and knuckle.
     // Determine the joint orientation matrix from the hardpoint locations by
@@ -248,7 +240,6 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_revoluteTorquerod[side]->Initialize(chassis, m_torquerod[side], revTR_csys);
     chassis->GetSystem()->AddLink(m_revoluteTorquerod[side]);
 
-
     // Create and initialize the revolute joint between chassis and lower beam.
     ChCoordsys<> revLB_csys(points[LOWERBEAM_C], chassisRot * Q_from_AngAxis(CH_C_PI / 2.0, VECT_X));
     m_revoluteLowerbeam[side] = std::make_shared<ChLinkLockRevolute>();
@@ -276,7 +267,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
     m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
     m_shockLB[side]->Set_SpringCallback(getShockLBForceCallback());
-   chassis->GetSystem()->AddLink(m_shockLB[side]);
+    chassis->GetSystem()->AddLink(m_shockLB[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
     m_distTierod[side] = std::make_shared<ChLinkDistance>();
@@ -289,6 +280,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_axle[side] = std::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
+    m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
     m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
@@ -382,6 +374,68 @@ void ChHendricksonPRIMAXX::LogConstraintViolations(VehicleSide side) {
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
+    ChSuspension::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddVisualizationLink(m_axlehousing, m_outerL, m_outerR, getAxlehousingRadius(), ChColor(1.0f, 0.0f, 0.0f));
+    AddVisualizationLink(m_axlehousing, m_pointsL[LOWERBEAM_AH], m_pointsL[TORQUEROD_AH], getAxlehousingRadius() / 2,
+                         ChColor(1.0f, 0.0f, 0.0f));
+    AddVisualizationLink(m_axlehousing, m_pointsR[LOWERBEAM_AH], m_pointsR[TORQUEROD_AH], getAxlehousingRadius() / 2,
+                         ChColor(1.0f, 0.0f, 0.0f));
+
+    AddVisualizationLink(m_transversebeam, m_pointsL[LOWERBEAM_TB], m_pointsR[LOWERBEAM_TB], getTransversebeamRadius(),
+                         ChColor(0.7f, 0.7f, 0.7f));
+
+    AddVisualizationKnuckle(m_knuckle[LEFT], m_pointsL[KNUCKLE_U], m_pointsL[KNUCKLE_L], m_pointsL[TIEROD_K],
+                            getKnuckleRadius());
+    AddVisualizationKnuckle(m_knuckle[RIGHT], m_pointsR[KNUCKLE_U], m_pointsR[KNUCKLE_L], m_pointsR[TIEROD_K],
+                            getKnuckleRadius());
+
+    AddVisualizationLink(m_torquerod[LEFT], m_pointsL[TORQUEROD_AH], m_pointsL[TORQUEROD_C], getTorquerodRadius(),
+                         ChColor(0.6f, 0.2f, 0.6f));
+    AddVisualizationLink(m_torquerod[RIGHT], m_pointsR[TORQUEROD_AH], m_pointsR[TORQUEROD_C], getTorquerodRadius(),
+                         ChColor(0.6f, 0.2f, 0.6f));
+
+    AddVisualizationLowerBeam(m_lowerbeam[LEFT], m_pointsL[LOWERBEAM_C], m_pointsL[LOWERBEAM_AH],
+                              m_pointsL[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
+    AddVisualizationLowerBeam(m_lowerbeam[RIGHT], m_pointsR[LOWERBEAM_C], m_pointsR[LOWERBEAM_AH],
+                              m_pointsR[LOWERBEAM_TB], getLowerbeamRadius(), ChColor(0.2f, 0.6f, 0.2f));
+
+    // Add visualization for the springs and shocks
+    m_shockLB[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockLB[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    m_shockAH[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_shockAH[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+}
+
+void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
+    ChSuspension::RemoveVisualizationAssets();
+
+    m_axlehousing->GetAssets().clear();
+    m_transversebeam->GetAssets().clear();
+
+    m_knuckle[LEFT]->GetAssets().clear();
+    m_knuckle[RIGHT]->GetAssets().clear();
+
+    m_torquerod[LEFT]->GetAssets().clear();
+    m_torquerod[RIGHT]->GetAssets().clear();
+
+    m_lowerbeam[LEFT]->GetAssets().clear();
+    m_lowerbeam[RIGHT]->GetAssets().clear();
+
+    m_shockLB[LEFT]->GetAssets().clear();
+    m_shockLB[RIGHT]->GetAssets().clear();
+
+    m_shockAH[LEFT]->GetAssets().clear();
+    m_shockAH[RIGHT]->GetAssets().clear();
+}
+
+// -----------------------------------------------------------------------------
 //
 
 void ChHendricksonPRIMAXX::AddVisualizationLink(std::shared_ptr<ChBody> body,
@@ -430,15 +484,6 @@ void ChHendricksonPRIMAXX::AddVisualizationLowerBeam(std::shared_ptr<ChBody> bod
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(color);
     body->AddAsset(col);
-}
-
-//-----------------------------------------------------------------------------
-void ChHendricksonPRIMAXX::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
-    auto cyl = std::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    spindle->AddAsset(cyl);
 }
 
 void ChHendricksonPRIMAXX::AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,

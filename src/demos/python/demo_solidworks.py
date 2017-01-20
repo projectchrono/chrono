@@ -19,8 +19,8 @@ if __name__ == '__main__':
 
 import os
 import math
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
+import ChronoEngine_python_core as chrono
+import ChronoEngine_python_postprocess as postprocess
 
 
 # ---------------------------------------------------------------------
@@ -82,7 +82,7 @@ pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 3
 
  # Sets the default ambient light and default light lamp
 pov_exporter.SetAmbientLight(chrono.ChColor(1,1,0.9))
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.1), 1)
+pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(0.9,0.9,1.1), True)
 
  # Sets other settings
 pov_exporter.SetPictureSize(640,480)

@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChShaftsBody> a_registration_ChShaftsBody;
+CH_FACTORY_REGISTER(ChShaftsBody)
 
 ChShaftsBody::ChShaftsBody() : torque_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z) {}
 

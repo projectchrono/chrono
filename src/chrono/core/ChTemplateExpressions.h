@@ -14,7 +14,7 @@
 #define CHTEMPLATEEXPRESSION_H
 
 
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 
 namespace chrono {
@@ -66,9 +66,6 @@ struct enable_if {};
 template<class T>
 struct enable_if<true, T> { typedef T type; };
 
-
-
-} // end namespace
-
+}  // end namespace chrono
 
 #endif

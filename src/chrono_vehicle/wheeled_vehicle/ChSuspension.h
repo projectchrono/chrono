@@ -26,9 +26,10 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsBody.h"
+#include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -44,7 +45,7 @@ namespace vehicle {
 /// @{
 
 /// Base class for a suspension subsystem.
-class CH_VEHICLE_API ChSuspension {
+class CH_VEHICLE_API ChSuspension : public ChPart {
   public:
     ChSuspension(const std::string& name  ///< [in] name of the subsystem
                  );
@@ -56,12 +57,6 @@ class CH_VEHICLE_API ChSuspension {
 
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const = 0;
-
-    /// Get the name identifier for this suspension subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this suspension subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -120,8 +115,23 @@ class CH_VEHICLE_API ChSuspension {
     /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
-                            std::shared_ptr<ChBody> tierod_body     ///< [in] body to which tireods are connected
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) = 0;
+
+    /// Return the radius of the spindle body (visualization only).
+    virtual double getSpindleRadius() const = 0;
+
+    /// Return the width of the spindle body (visualization only).
+    virtual double getSpindleWidth() const = 0;
+
+    /// Add visualization assets for the suspension subsystem.
+    /// This default implementation uses primitives for spindle visualization.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the suspension subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
     /// Specify the left body for a possible antirollbar subsystem.
     /// The default implementation returns a NULL pointer.
@@ -138,12 +148,15 @@ class CH_VEHICLE_API ChSuspension {
     virtual void LogConstraintViolations(VehicleSide side) {}
 
   protected:
-    std::string m_name;  ///< name of the subsystem
-
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
+
+  private:
+    std::shared_ptr<ChCylinderShape> m_spindle_shapes[2];
+
+    void AddVisualizationSpindle(VehicleSide side, double radius, double width);
 };
 
 /// Vector of handles to suspension subsystems.

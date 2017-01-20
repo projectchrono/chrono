@@ -4,6 +4,8 @@ Coordinate transformations        {#coordinate_transformations}
 
 This documentation component introduces important concepts used through the entire Chrono API for managing coordinates, points, transformations and rotations.
 
+\tableofcontents
+
 
 # Vectors  {#manual_ChVector}
 

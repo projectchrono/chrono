@@ -19,10 +19,12 @@
 #ifndef FIALA_TIRE_H
 #define FIALA_TIRE_H
 
+#include "chrono/assets/ChTriangleMeshShape.h"
+
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -44,11 +46,23 @@ class CH_VEHICLE_API FialaTire : public ChFialaTire {
 
     virtual void SetFialaParams() override {}
 
+    virtual double GetVisualizationWidth() const override { return m_visualization_width; }
+
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+    virtual void RemoveVisualizationAssets() override final;
+
   private:
     void Create(const rapidjson::Document& d);
 
     double m_normalStiffness;
     double m_normalDamping;
+
+    bool m_has_mesh;
+    std::string m_meshName;
+    std::string m_meshFile;
+    std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
+
+    double m_visualization_width;
 };
 
 /// @} vehicle_wheeled_tire

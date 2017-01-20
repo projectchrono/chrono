@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono/core/ChLinearAlgebra.h"
@@ -25,7 +25,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChIndexedNodes> a_registration_ChIndexedNodes;
+//CH_FACTORY_REGISTER(ChIndexedNodes) // NO! abstract class!
 
 void ChIndexedNodes::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number

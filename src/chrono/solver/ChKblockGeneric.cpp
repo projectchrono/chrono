@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChKblockGeneric> a_registration_ChKblockGeneric;
+CH_FACTORY_REGISTER(ChKblockGeneric)
 
 ChKblockGeneric::ChKblockGeneric(std::vector<ChVariables*> mvariables) : K(NULL) {
     SetVariables(mvariables);
@@ -144,9 +144,9 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
 
                 if (this->GetVariableN(jv)->IsActive()) {
                     if (add)
-                        storage.PasteSumClippedMatrix(this->K, kio, kjo, in, jn, io, jo);
+                        storage.PasteSumClippedMatrix(*K, kio, kjo, in, jn, io, jo);
                     else
-                        storage.PasteClippedMatrix(this->K, kio, kjo, in, jn, io, jo);
+                        storage.PasteClippedMatrix(*K, kio, kjo, in, jn, io, jo);
                 }
 
                 kjo += jn;

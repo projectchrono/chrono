@@ -26,7 +26,8 @@ namespace chrono {
 /// of a generic function.
 
 class ChApi ChFunction_Derive : public ChFunction {
-    CH_RTTI(ChFunction_Derive, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Derive);
 
   private:
     std::shared_ptr<ChFunction> fa;

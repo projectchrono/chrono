@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,37 +9,20 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChCoordsys.cpp
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-//   Math functions for:
-//
-//	 - COORDINATES
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "core/ChCoordsys.h"
+#include "chrono/core/ChCoordsys.h"
 
 namespace chrono {
 
 ///////////////////////////////////////////////
 ////  COORDSYS  OPERATIONS
 
-Coordsys Force2Dcsys(Coordsys* cs) {
+Coordsys Force2Dcsys(const Coordsys& cs) {
     Coordsys res;
-    res = *cs;
+    res = cs;
     res.pos.z = 0;
     res.rot.e1 = 0;
     res.rot.e2 = 0;
     return (res);
 }
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

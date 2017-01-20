@@ -38,7 +38,9 @@ namespace chrono {
 /// exploit sparsity.
 
 class ChApi ChKblockGeneric : public ChKblock {
-    CH_RTTI(ChKblockGeneric, ChKblock)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChKblockGeneric)
 
   private:
     ChMatrixDynamic<double>* K;

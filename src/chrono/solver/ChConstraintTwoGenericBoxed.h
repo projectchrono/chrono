@@ -31,7 +31,9 @@ namespace chrono {
 /// must set at least the c_i and b_i values, and jacobians.
 
 class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
-    CH_RTTI(ChConstraintTwoGenericBoxed, ChConstraintTwoGeneric)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConstraintTwoGenericBoxed)
 
   protected:
     double l_min;

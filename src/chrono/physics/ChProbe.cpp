@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChProbe> a_registration_ChProbe;
+CH_FACTORY_REGISTER(ChProbe)
 
 void ChProbe::ArchiveOUT(ChArchiveOut& marchive) {
     // version number

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Operation> a_registration_operation;
+CH_FACTORY_REGISTER(ChFunction_Operation)
 
 ChFunction_Operation::ChFunction_Operation() {
     op_type = ChOP_ADD;

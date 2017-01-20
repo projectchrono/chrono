@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "btCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
-#include "collision/ChCModelBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
 #include <stdio.h>
 
 using namespace chrono;

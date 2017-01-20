@@ -15,7 +15,7 @@
 #ifndef CHMESH_H
 #define CHMESH_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 
 #include "chrono/core/ChTimer.h"
@@ -36,19 +36,20 @@ namespace fea {
 
 /// Class which defines a mesh of finite elements of class ChFelem,
 /// between nodes of class  ChFnode.
+
 class ChApiFea ChMesh : public ChIndexedNodes {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChMesh, ChIndexedNodes);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMesh)
 
   private:
-    std::vector<std::shared_ptr<ChNodeFEAbase> > vnodes;     ///<  nodes
-    std::vector<std::shared_ptr<ChElementBase> > velements;  ///<  elements
+    std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes
+    std::vector<std::shared_ptr<ChElementBase>> velements;  ///<  elements
 
     unsigned int n_dofs;    ///< total degrees of freedom
     unsigned int n_dofs_w;  ///< total degrees of freedom, derivative (Lie algebra)
 
-    std::vector<std::shared_ptr<ChContactSurface> > vcontactsurfaces;  ///<  contact surfaces
-    std::vector<std::shared_ptr<ChMeshSurface> > vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
+    std::vector<std::shared_ptr<ChContactSurface>> vcontactsurfaces;  ///<  contact surfaces
+    std::vector<std::shared_ptr<ChMeshSurface>> vmeshsurfaces;        ///<  mesh surfaces, ex.for loads
 
     bool automatic_gravity_load;
     int num_points_gravity;
@@ -77,18 +78,29 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void ClearNodes();
     void ClearElements();
 
+    /// Get the array of nodes of this mesh.
+    const std::vector<std::shared_ptr<ChNodeFEAbase>>& GetNodes() const { return vnodes; }
+
+    /// Get the array of elements of this mesh.
+    const std::vector<std::shared_ptr<ChElementBase>>& GetElements() const { return velements; }
+
     /// Access the N-th node
     virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override { return vnodes[n]; }
-    /// Access the N-th element
-    virtual std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; }
 
+    /// Access the N-th element
+    std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; }
+
+    /// Get the number of nodes in the mesh.
     virtual unsigned int GetNnodes() const override { return (unsigned int)vnodes.size(); }
+
+    /// Get the number of elements in the mesh.
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
-    virtual int GetDOF() { return n_dofs; }
-    virtual int GetDOF_w() { return n_dofs_w; }
+
+    virtual int GetDOF() override { return n_dofs; }
+    virtual int GetDOF_w() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem
-    virtual bool GetCollide() { return true; }
+    virtual bool GetCollide() override { return true; }
 
     /// Reset counters for internal force and Jacobian evaluations.
     void ResetCounters() {
@@ -114,7 +126,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
 
     /// Access the N-th contact surface
-    virtual std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
+    std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
 
     /// Get number of added contact surfaces
     unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
@@ -126,7 +138,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf);
 
     /// Access the N-th mesh surface
-    virtual std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }
+    std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }
 
     /// Get number of added mesh surfaces
     unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
@@ -142,7 +154,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 
     /// This recomputes the number of DOFs, constraints,
     /// as well as state offsets of contained items
-    virtual void Setup();
+    virtual void Setup() override;
 
     /// Update time dependent data, for all elements.
     /// Updates all [A] coord.systems for all (corotational) elements.

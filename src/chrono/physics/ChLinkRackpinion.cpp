@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkRackpinion> a_registration_ChLinkRackpinion;
+CH_FACTORY_REGISTER(ChLinkRackpinion)
 
 ChLinkRackpinion::ChLinkRackpinion()
     : ChLinkMateGeneric(true, false, false, false, false, false),

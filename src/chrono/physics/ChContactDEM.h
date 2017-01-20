@@ -414,14 +414,14 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             prtrbA(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.PasteMatrix(&Jcolumn, 0, i);
+            m_Jac->m_K.PasteMatrix(Jcolumn, 0, i);
 
             stateA_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
             stateA_w(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.PasteMatrix(&Jcolumn, 0, i);
+            m_Jac->m_R.PasteMatrix(Jcolumn, 0, i);
         }
 
         // Jacobian w.r.t. variables of objB
@@ -432,14 +432,14 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
             prtrbB(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_K.PasteMatrix(&Jcolumn, 0, ndofA_w + i);
+            m_Jac->m_K.PasteMatrix(Jcolumn, 0, ndofA_w + i);
 
             stateB_w(i) += perturbation;
             CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
             stateB_w(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
-            m_Jac->m_R.PasteMatrix(&Jcolumn, 0, ndofA_w + i);
+            m_Jac->m_R.PasteMatrix(Jcolumn, 0, ndofA_w + i);
         }
     }
 

@@ -26,8 +26,8 @@ namespace chrono {
 /// Class for using Matlab from Chrono programs.
 
 class ChApiMatlab ChSolverMatlab : public ChSolver {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChSolverMatlab, ChSolver);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSolverMatlab)
 
   protected:
     ChMatlabEngine* mengine;

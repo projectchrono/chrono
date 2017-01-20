@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,16 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-// ChIterative.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChIterative.h"
+#include "chrono/physics/ChIterative.h"
 
 namespace chrono {
 
@@ -147,7 +138,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
     rtilde.CopyFromMatrix(r0);  // copy(r0, rtilde);
 
     // 8. rho=dot(rtilde,r)
-    double rho = ChMatrix<>::MatrDot(&rtilde, &r0);  //= dot(rtilde, r0);
+    double rho = ChMatrix<>::MatrDot(rtilde, r0);  //= dot(rtilde, r0);
     double rho0 = rho;
     ChMatrixDynamic<> y0(N, 1);
     for (;;) {
@@ -155,7 +146,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
         // sigma=dot(rtilde,v)
         // alpha=rho/sigma
         // y2k=y(2k-1)-alpha*v
-        sigma = ChMatrix<>::MatrDot(&rtilde, &v);
+        sigma = ChMatrix<>::MatrDot(rtilde, v);
 
         if (sigma == 0.) {
             error_code = 5; /*iter.fail(5, "tfqmr breakdown: sigma=0");*/
@@ -320,7 +311,7 @@ int ch_iterative_TFQMR(ChMatrix<>& x,
         // 23. beta=rho/rho0                     //need check breakdown
 
         rho0 = rho;
-        rho = ChMatrix<>::MatrDot(&rtilde, &w);
+        rho = ChMatrix<>::MatrDot(rtilde, w);
         if (rho0 == 0.) {
             error_code = 4; /*iter.fail(4, "tfqmr breakdown: beta=0");*/
             break;
@@ -385,6 +376,4 @@ int ch_iterative_TFQMR_easy(ChMatrix<>& A, ChMatrix<>& x, ChMatrix<>& b, double 
     return ch_iterative_TFQMR(x, b, __easy_prodeval, NULL, NULL, mkappa, max_iterations, miters, merr, &A);
 }
 
-}  // END_OF_NAMESPACE____
-
-// eof
+}  // end namespace chrono

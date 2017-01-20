@@ -11,28 +11,17 @@ SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 # (but later on when installing)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
 
-SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
 
 # add the automatically determined parts of the RPATH
 # which point to directories outside the build tree to the install RPATH
 SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 # the RPATH to be used when installing, but only if it's not a system directory
-LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib64" isSystemDir)
 IF("${isSystemDir}" STREQUAL "-1")
-   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib64")
 ENDIF("${isSystemDir}" STREQUAL "-1")
-
-#--------------------------------------------------------------
-# Option to enable metrics tracking
-OPTION(TEST_METRICS "Enable tracking of performance metrics from instrumented tests" OFF)
-
-if (TEST_METRICS)
-  set(TEST_METRICS_PATH "" CACHE PATH "Output directory for JSON performance metrics files")
-  mark_as_advanced(CLEAR TEST_METRICS_PATH)
-else()
-  mark_as_advanced(FORCE TEST_METRICS_PATH)
-endif()
 
 #--------------------------------------------------------------
 # Propagate to subdirectories
@@ -50,14 +39,6 @@ IF (ENABLE_MODULE_MATLAB)
 	mark_as_advanced(FORCE BUILD_TESTS_MATLAB)
 	if(BUILD_TESTS_MATLAB)
   		ADD_SUBDIRECTORY(matlab)
-  	endif()
-ENDIF()
-
-IF (ENABLE_MODULE_MKL)
-	option(BUILD_TESTS_MKL "Build unit tests for MKL module" TRUE)
-	mark_as_advanced(FORCE BUILD_TESTS_MKL)
-	if(BUILD_TESTS_MKL)
-  		ADD_SUBDIRECTORY(mkl)
   	endif()
 ENDIF()
 

@@ -27,6 +27,7 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/ChMacPhersonStrut.h"
@@ -59,35 +60,33 @@ ChMacPhersonStrut::ChMacPhersonStrut(const std::string& name) : ChSuspension(nam
 // -----------------------------------------------------------------------------
 void ChMacPhersonStrut::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                    const ChVector<>& location,
-                                   std::shared_ptr<ChBody> tierod_body) {
+                                   std::shared_ptr<ChBody> tierod_body,
+                                   double left_ang_vel,
+                                   double right_ang_vel) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
 
-    // Transform all points to absolute frame and initialize left side.
-    std::vector<ChVector<> > points(NUM_POINTS);
-
+    // Transform all hardpoints to absolute frame.
+    m_pointsL.resize(NUM_POINTS);
+    m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
-        points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-    }
-
-    InitializeSide(LEFT, chassis, tierod_body, points);
-
-    // Transform all points to absolute frame and initialize right side.
-    for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
+        m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
         rel_pos.y = -rel_pos.y;
-        points[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
-    InitializeSide(RIGHT, chassis, tierod_body, points);
+    // Initialize left and right sides.
+    InitializeSide(LEFT, chassis, tierod_body, m_pointsL, left_ang_vel);
+    InitializeSide(RIGHT, chassis, tierod_body, m_pointsR, right_ang_vel);
 }
 
 void ChMacPhersonStrut::InitializeSide(VehicleSide side,
                                       std::shared_ptr<ChBodyAuxRef> chassis,
                                       std::shared_ptr<ChBody> tierod_body,
-                                      const std::vector<ChVector<> >& points) {
+                                      const std::vector<ChVector<> >& points,
+                                      double ang_vel) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -99,9 +98,9 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
+    m_spindle[side]->SetWvel_loc(ChVector<>(0, ang_vel, 0));
     m_spindle[side]->SetMass(getSpindleMass());
     m_spindle[side]->SetInertiaXX(getSpindleInertia());
-    AddVisualizationSpindle(m_spindle[side], getSpindleRadius(), getSpindleWidth());
     chassis->GetSystem()->AddBody(m_spindle[side]);
 
     // Create and initialize upright body (same orientation as the chassis)
@@ -111,8 +110,6 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
     m_upright[side]->SetInertiaXX(getUprightInertia());
-    AddVisualizationUpright(m_upright[side], 0.5 * (points[SPINDLE] + points[UPRIGHT]), points[SPRING_U], points[LCA_U],
-                            points[TIEROD_U], getUprightRadius());
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Unit vectors for orientation matrices.
@@ -128,7 +125,6 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_strut[side]->SetRot(chassisRot);
     m_strut[side]->SetMass(getStrutMass());
     m_strut[side]->SetInertiaXX(getStrutInertia());
-    AddVisualizationStrut(m_strut[side], points[SPRING_C], points[SPRING_U], getStrutRadius());
     chassis->GetSystem()->AddBody(m_strut[side]);
 
     // Create and initialize Lower Control Arm body.
@@ -147,7 +143,6 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_LCA[side]->SetRot(rot);
     m_LCA[side]->SetMass(getLCAMass());
     m_LCA[side]->SetInertiaXX(getLCAInertia());
-    AddVisualizationControlArm(m_LCA[side], points[LCA_F], points[LCA_B], points[LCA_U], getLCARadius());
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
@@ -239,6 +234,7 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_axle[side] = std::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
+    m_axle[side]->SetPos_dt(-ang_vel);
     chassis->GetSystem()->Add(m_axle[side]);
 
     m_axle_to_spindle[side] = std::make_shared<ChShaftsBody>();
@@ -321,6 +317,52 @@ void ChMacPhersonStrut::LogConstraintViolations(VehicleSide side) {
     // Distance constraint
     GetLog() << "Tierod distance       ";
     GetLog() << "  " << m_distTierod[side]->GetCurrentDistance() - m_distTierod[side]->GetImposedDistance() << "\n";
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChMacPhersonStrut::AddVisualizationAssets(VisualizationType vis) {
+    ChSuspension::AddVisualizationAssets(vis);
+
+    if (vis == VisualizationType::NONE)
+        return;
+
+    AddVisualizationUpright(m_upright[LEFT], 0.5 * (m_pointsL[SPINDLE] + m_pointsL[UPRIGHT]), m_pointsL[SPRING_U], m_pointsL[LCA_U],
+        m_pointsL[TIEROD_U], getUprightRadius());
+    AddVisualizationUpright(m_upright[RIGHT], 0.5 * (m_pointsR[SPINDLE] + m_pointsR[UPRIGHT]), m_pointsR[SPRING_U], m_pointsR[LCA_U],
+        m_pointsR[TIEROD_U], getUprightRadius());
+
+    AddVisualizationStrut(m_strut[LEFT], m_pointsL[SPRING_C], m_pointsL[SPRING_U], getStrutRadius());
+    AddVisualizationStrut(m_strut[RIGHT], m_pointsR[SPRING_C], m_pointsR[SPRING_U], getStrutRadius());
+
+    AddVisualizationControlArm(m_LCA[LEFT], m_pointsL[LCA_F], m_pointsL[LCA_B], m_pointsL[LCA_U], getLCARadius());
+    AddVisualizationControlArm(m_LCA[RIGHT], m_pointsR[LCA_F], m_pointsR[LCA_B], m_pointsR[LCA_U], getLCARadius());
+
+    // Add visualization for the springs and shocks
+    m_spring[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+    m_spring[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+}
+
+void ChMacPhersonStrut::RemoveVisualizationAssets() {
+    ChSuspension::RemoveVisualizationAssets();
+
+    m_upright[LEFT]->GetAssets().clear();
+    m_upright[RIGHT]->GetAssets().clear();
+
+    m_strut[LEFT]->GetAssets().clear();
+    m_strut[RIGHT]->GetAssets().clear();
+
+    m_LCA[LEFT]->GetAssets().clear();
+    m_LCA[RIGHT]->GetAssets().clear();
+
+    m_spring[LEFT]->GetAssets().clear();
+    m_spring[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
@@ -412,14 +454,6 @@ void ChMacPhersonStrut::AddVisualizationUpright(std::shared_ptr<ChBody> upright,
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.2f, 0.6f));
     upright->AddAsset(col);
-}
-
-void ChMacPhersonStrut::AddVisualizationSpindle(std::shared_ptr<ChBody> spindle, double radius, double width) {
-    auto cyl = std::make_shared<ChCylinderShape>();
-    cyl->GetCylinderGeometry().p1 = ChVector<>(0, width / 2, 0);
-    cyl->GetCylinderGeometry().p2 = ChVector<>(0, -width / 2, 0);
-    cyl->GetCylinderGeometry().rad = radius;
-    spindle->AddAsset(cyl);
 }
 
 }  // end namespace vehicle

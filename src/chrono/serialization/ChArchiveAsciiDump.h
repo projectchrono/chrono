@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,9 +12,7 @@
 #ifndef CHARCHIVEASCIIDUMP_H
 #define CHARCHIVEASCIIDUMP_H
 
-
-#include "serialization/ChArchive.h"
-
+#include "chrono/serialization/ChArchive.h"
 
 namespace chrono {
 
@@ -158,7 +155,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
       {
           indent();
           if (!suppress_names) 
@@ -206,7 +203,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 /// This is used to stream out in 'readable' form on a ChStreamOutAscii 
 /// stream whatever C++ object that implements the archive serialization, i.e. 
 /// objects that have ArchiveOUT implemented.
-/// For example:  GetLog() < mymatrix;
+/// For example:  GetLog() << mymatrix;
 
 template <class T>
 ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
@@ -221,7 +218,6 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     return mstream << mystring;
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

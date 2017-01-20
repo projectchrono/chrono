@@ -4,7 +4,7 @@
 
 %{
 /* Includes the header in the wrapper code */
-#include "core/ChException.h"
+#include "chrono/core/ChException.h"
 
 %}
  

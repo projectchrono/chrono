@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), and a collection of
-// track shoes.
+// a collection of road wheel assemblies (suspensions), a collection of rollers,
+// and a collection of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -30,12 +30,13 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChPart.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheelAssembly.h"
+#include "chrono_vehicle/tracked_vehicle/ChRoller.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 
 namespace chrono {
@@ -45,23 +46,20 @@ namespace vehicle {
 /// @{
 
 /// Definition of a track assembly.
-/// A track assembly consists of a sprocket, an idler (with tensioner mechanism),
-/// a set of suspensions (road-wheel assemblies), and a collection of track shoes.
-class CH_VEHICLE_API ChTrackAssembly {
+/// A track assembly consists of a sprocket, an idler (with tensioner mechanism), a set of
+/// rollers, a set of suspensions (road-wheel assemblies), and a collection of track shoes.
+class CH_VEHICLE_API ChTrackAssembly : public ChPart {
   public:
     virtual ~ChTrackAssembly() {}
-
-    /// Get the name identifier for this track assembly subsystem.
-    const std::string& GetName() const { return m_name; }
-
-    /// Set the name identifier for this track assembly subsystem.
-    void SetName(const std::string& name) { m_name = name; }
 
     /// Return the vehicle side for this track assembly.
     VehicleSide GetVehicleSide() const { return m_side; }
 
     /// Get the number of suspensions.
     size_t GetNumRoadWheelAssemblies() const { return m_suspensions.size(); }
+
+    /// Get the number of rollers.
+    size_t GetNumRollers() const { return m_rollers.size(); }
 
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const = 0;
@@ -77,6 +75,9 @@ class CH_VEHICLE_API ChTrackAssembly {
 
     /// Get a handle to the specified suspension subsystem.
     std::shared_ptr<ChRoadWheelAssembly> GetRoadWheelAssembly(size_t id) const { return m_suspensions[id]; }
+
+    /// Get a handle to the specified roller subsystem.
+    std::shared_ptr<ChRoller> GetRoller(size_t id) const { return m_rollers[id]; }
 
     /// Get a handle to the specified road wheel subsystem.
     std::shared_ptr<ChRoadWheel> GetRoadWheel(size_t id) const { return m_suspensions[id]->GetRoadWheel(); }
@@ -119,17 +120,48 @@ class CH_VEHICLE_API ChTrackAssembly {
     /// This includes the masses of the sprocket, idler, suspensions, and track shoes.
     double GetMass() const;
 
+    /// Get the relative location of the sprocket subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<> GetSprocketLocation() const = 0;
+
+    /// Get the relative location of the idler subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<> GetIdlerLocation() const = 0;
+
+    /// Get the relative location of the specified suspension subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<> GetRoadWhelAssemblyLocation(int which) const = 0;
+
+    /// Get the relative location of the specified roller subsystem.
+    /// The track assembly reference frame is ISO, with origin at the sprocket center.
+    virtual const ChVector<> GetRollerLocation(int which) const { return ChVector<>(0, 0, 0); }
+
     /// Initialize this track assembly subsystem.
-    /// The subsystem is initialized by attaching its constituent subsystems to the
-    /// specified chassis body at the specified corresponding locations (with respect
-    /// to and expressed in the reference frame of the chassis).  All subsystem reference
-    /// frames are assumed to be aligned with the chassis reference frame.
-    void Initialize(
-        std::shared_ptr<ChBodyAuxRef> chassis,           ///< [in] handle to the chassis body
-        const ChVector<>& sprocket_loc,                  ///< [in] sprocket location relative to the chassis frame
-        const ChVector<>& idler_loc,                     ///< [in] idler location relative to the chassis frame
-        const std::vector<ChVector<> >& suspension_locs  ///< [in] suspension locations relative to the chassis frame
-        );
+    /// The subsystem is initialized by attaching it to the specified chassis body
+    /// at the specified location (with respect to and expressed in the reference
+    /// frame of the chassis). It is assumed that the track assembly reference frame
+    /// is always aligned with the chassis reference frame.
+    void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                    const ChVector<>& location              ///< [in] location relative to the chassis frame
+                    );
+
+    /// Set visualization type for the sprocket subsystem.
+    void SetSprocketVisualizationType(VisualizationType vis);
+
+    // Set visualization type for the idler subsystem.
+    void SetIdlerVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the suspension subsystems.
+    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the road-wheel subsystems.
+    void SetRoadWheelVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the roller subsystems.
+    void SetRollerVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the track shoe subsystems.
+    void SetTrackShoeVisualizationType(VisualizationType vis);
 
     /// Update the state of this track assembly at the current time.
     void Synchronize(double time,                        ///< [in] current time
@@ -144,18 +176,18 @@ class CH_VEHICLE_API ChTrackAssembly {
     ChTrackAssembly(const std::string& name,  ///< [in] name of the subsystem
                     VehicleSide side          ///< [in] assembly on left/right vehicle side
                     )
-        : m_name(name), m_side(side) {}
+        : ChPart(name), m_side(side) {}
 
     /// Assemble track shoes over wheels.
     /// Return true if the track shoes were initialized in a counter clockwise
     /// direction and false otherwise.
     virtual bool Assemble(std::shared_ptr<ChBodyAuxRef> chassis) = 0;
 
-    std::string m_name;                     ///< name of the subsystem
     VehicleSide m_side;                     ///< assembly on left/right vehicle side
     std::shared_ptr<ChIdler> m_idler;       ///< idler (and tensioner) subsystem
     std::shared_ptr<ChTrackBrake> m_brake;  ///< sprocket brake
     ChRoadWheelAssemblyList m_suspensions;  ///< road-wheel assemblies
+    ChRollerList m_rollers;                 ///< roller subsystems
 };
 
 /// @} vehicle_tracked

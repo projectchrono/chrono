@@ -15,7 +15,7 @@
 #ifndef CHC_TRI_H
 #define CHC_TRI_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 
@@ -27,8 +27,9 @@ namespace geometry {
 /// A triangle geometric shape for collisions and visualization.
 
 class ChApi ChTriangle : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChTriangle, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChTriangle)
 
   public:
     ChVector<> p1;  ///< first triangle vertex

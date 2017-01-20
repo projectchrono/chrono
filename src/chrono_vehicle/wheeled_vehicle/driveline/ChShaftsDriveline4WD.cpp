@@ -31,9 +31,8 @@ namespace vehicle {
 // conic gear pair, in chassis local coords. This is needed because ChShaftsBody
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
-ChShaftsDriveline4WD::ChShaftsDriveline4WD()
-    : ChDriveline(), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {
-}
+ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
+    : ChDriveline(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
 
 // -----------------------------------------------------------------------------
 // Initialize the driveline subsystem.
@@ -138,6 +137,36 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
                                      suspensions[m_driven_axles[0]]->GetAxle(RIGHT));
     m_front_differential->SetTransmissionRatioOrdinary(GetFrontDifferentialRatio());
     my_system->Add(m_front_differential);
+
+    // ---Initialize shaft angular velocities based on the initial wheel angular velocities.
+
+    double omega_axle_FL = suspensions[m_driven_axles[0]]->GetAxleSpeed(LEFT);
+    double omega_axle_FR = suspensions[m_driven_axles[0]]->GetAxleSpeed(RIGHT);
+    double omega_axle_RL = suspensions[m_driven_axles[1]]->GetAxleSpeed(LEFT);
+    double omega_axle_RR = suspensions[m_driven_axles[1]]->GetAxleSpeed(RIGHT);
+
+    // Front differential 
+    //// TODO : Note that we assume here that the front diff ratio = -1.
+    ////        This is how it should always be anyway ->  MUST MODIFY TEMPLATE
+    ////        REMOVE GetFrontDifferentialRatio() and GetRearDifferentialRatio()
+    double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
+    m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
+
+    // Rear diferential
+    double omega_rear_differentialbox = 0.5 * (omega_axle_RL + omega_axle_RR);
+    m_rear_differentialbox->SetPos_dt(omega_rear_differentialbox);
+
+    // Front conical gear
+    double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
+    m_front_shaft->SetPos_dt(omega_front_shaft);
+
+    // Rear conical gear
+    double omega_rear_shaft = omega_rear_differentialbox / GetRearConicalGearRatio();
+    m_rear_shaft->SetPos_dt(omega_rear_shaft);
+
+    // Central differential
+    double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
+    m_driveshaft->SetPos_dt(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------

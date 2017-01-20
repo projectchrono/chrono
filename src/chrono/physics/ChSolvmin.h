@@ -63,7 +63,7 @@ class ChApi ChOptimizer : public ChObj {
 
     int (*break_funct)();    ///< if not null, this function is called each 'break_cycles' evaluations
     int break_cycles;        ///< how many fx evaluations per check
-    int user_break;          ///< if break_funct() reported TRUE, this flag is ON, and optimizers should exit all cycles
+    int user_break;          ///< if break_funct() reported true, this flag is ON, and optimizers should exit all cycles
     int break_cyclecounter;  ///< internal
 
     ChOptimizer();
@@ -110,18 +110,18 @@ class ChApi ChOptimizer : public ChObj {
     /// (or whatever object which can evaluate the string "function" and the "optvarlist")
     /// using the current parameters. Returns false if some error occured.
     /// This function just makes some tests, allocations, and compilations..
-    virtual int PreOptimize();
+    virtual bool PreOptimize();
     ///  This function computes the optimal xv[].
     /// It must be implemented by derived classes
     //<- THIS IS THE STEP WHICH COMPUTES THE OPTIMAL xv[] AND MUST BE IMPLEMENTED BY CHILDREN CLASSES!
-    virtual int DoOptimize();
+    virtual bool DoOptimize();
     /// Finalization and cleanup
-    virtual int PostOptimize();
+    virtual bool PostOptimize();
 
     /// Does the three steps in sequence PreOptimize, DoOptimize, PostOptimize.
     /// The derived classes shouldn't need the definition of this method, because
     /// they just have to implement the DoOptimize.
-    virtual int Optimize();
+    virtual bool Optimize();
 
     /// Each break_cycles number of times this fx is called, the function break_funct() is
     /// evaluated (if any) and if positive, the variable user_break becomes true.
@@ -157,7 +157,7 @@ class ChApi ChOptimizerLocal : public ChOptimizer {
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
     // using the current parameters. Returns false if some error occured.
-    virtual int DoOptimize() override;
+    virtual bool DoOptimize() override;
 };
 
 // -----------------------------------------------------------------------------
@@ -170,7 +170,7 @@ class ChApi ChGenotype {
     double fitness;      ///< fitness value
     double rel_fitness;  ///< relative fitness
     double cum_fitness;  ///< cumulative fitness
-    int need_eval;       ///< genes changed, need recomputation of fitness;
+    bool need_eval;      ///< genes changed, need recomputation of fitness;
 
     ChGenotype(int number_of_genes);
     ChGenotype(const ChGenotype& other);
@@ -202,15 +202,15 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     long crossv_changewhen;   ///< generation number, when the "change of crossover type" takes place
     double mutation_prob;     ///< probability of mutation, 0..1, default = 0.001
     double crossover_prob;    ///< crossover probability, default = 0.3;
-    int speciation_mating;    ///< if TRUE, marriage happens between similar individuals;
-    int incest_taboo;         ///< if TRUE, avoids marriage between individuals too similar
+    bool speciation_mating;   ///< if true, marriage happens between similar individuals;
+    bool incest_taboo;        ///< if true, avoids marriage between individuals too similar
     int replacement;          ///< see codes
     double eugenetics;        ///< range (0..1); if 0, no eugenetics, otherwise clamp for fitness (normalized in 0..1)
 
-    int stop_by_stdeviation;  ///< if true...		(def: false)
-    double stop_stdeviation;  ///< stop search if stdeviation becomes lower than this value (def.0)
-    int stop_by_fitness;      ///< if true...		(def. false)
-    double stop_fitness;      ///< stop search if fitness of best individual exceed this value (def.0)
+    bool stop_by_stdeviation;  ///< if true...		(def: false)
+    double stop_stdeviation;   ///< stop search if stdeviation becomes lower than this value (def.0)
+    bool stop_by_fitness;      ///< if true...		(def. false)
+    double stop_fitness;       ///< stop search if fitness of best individual exceed this value (def.0)
 
     // results and messages
     double average;      ///< the average fitness of individuals
@@ -239,11 +239,11 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     // The optimization procedure.
     // Performs the optimization of the PSystem pointed by "database"
     // using the current parameters. Returns false if some error occured.
-    virtual int DoOptimize() override;
+    virtual bool DoOptimize() override;
 
     // Handling of populations
-    int CreatePopulation(ChGenotype**& my_population, int my_popsize);
-    int DeletePopulation(ChGenotype**& my_population, int my_popsize);
+    bool CreatePopulation(ChGenotype**& my_population, int my_popsize);
+    bool DeletePopulation(ChGenotype**& my_population, int my_popsize);
 
     // Genetic operations on population, used internally by "optimize".
 
@@ -258,20 +258,20 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     // compute fitness for given genotype
     double ComputeFitness(ChGenotype*);
     // apply crossover to two parents, results in childrens
-    int ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGenotype& child1, ChGenotype& child2);
+    void ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGenotype& child1, ChGenotype& child2);
     // all population genotypes are initialized with random values of variables
-    int InitializePopulation();
+    bool InitializePopulation();
     // all individuals get their fitness values.
-    int ComputeAllFitness();
+    bool ComputeAllFitness();
     // the population is selected, according to "selection" parameter.
-    int Selection();
+    void Selection();
     // new alleles are obtained by crossover of individuals.
-    int Crossover();
+    void Crossover();
     // some mutations are performed on the population.
-    int Mutation();
-    int PopulationStats(double& average, double& max, double& min, double& stdeviation);
-    // outputs generation stats to stramLOG file (if filelog TRUE) and to console
-    int LogOut(int filelog);
+    void Mutation();
+    void PopulationStats(double& average, double& max, double& min, double& stdeviation);
+    // outputs generation stats to stramLOG file (if filelog is true) and to console
+    void LogOut(bool filelog);
 };
 
 enum eChGeneticSelection {
@@ -320,7 +320,7 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
     int maxdilationsteps;  ///< max number of 'exploring' steps in forward gradient direction (def 8);
     int maxbisections;     ///< number of bisections in climbing interval, before recomputing gradient (def 10);
     double dilation;       ///< space dilation coeff, def. 2
-    int do_conjugate;      ///< if true, corrects the gradient by conjugate method (default= off)
+    bool do_conjugate;     ///< if true, corrects the gradient by conjugate method (default= off)
 
     ChOptimizerGradient();
     ChOptimizerGradient(const ChOptimizerGradient& other);
@@ -332,7 +332,7 @@ class ChApi ChOptimizerGradient : public ChOptimizer {
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
     // using the current parameters. Returns false if some error occured.
-    virtual int DoOptimize() override;
+    virtual bool DoOptimize() override;
 };
 
 // -----------------------------------------------------------------------------
@@ -372,7 +372,7 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")
     // using the current parameters. Returns false if some error occured.
-    virtual int DoOptimize() override;
+    virtual bool DoOptimize() override;
 };
 
 // ----------------------------------------------------------------------------

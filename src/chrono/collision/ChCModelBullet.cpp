@@ -35,7 +35,7 @@ namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegisterABSTRACT<ChModelBullet> a_registration_ChModelBullet;
+CH_FACTORY_REGISTER(ChModelBullet)
 
 
 ChModelBullet::ChModelBullet() {
@@ -495,7 +495,6 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
     if (!trimesh.getNumTriangles())
         return false;
 
-    //*******EXPERIMENTAL******
     if (geometry::ChTriangleMeshConnected* mesh = dynamic_cast<geometry::ChTriangleMeshConnected*> ( const_cast<geometry::ChTriangleMesh*>(&trimesh))) {
 
         std::vector<std::array<int,4>> trimap;
@@ -955,5 +954,5 @@ void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
 }
 */
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

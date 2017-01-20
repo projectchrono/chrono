@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "utils/ChUtilsValidation.h"
+#include "chrono/utils/ChUtilsValidation.h"
 
 namespace chrono {
 namespace utils {

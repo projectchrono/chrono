@@ -29,9 +29,7 @@
     "Inertia":                      [0.011, 0.011, 0.000142],
     "Radius":                       0.02,
     "Location Axle":                [-0.067, 0.000, 0.227],
-    "Location Chassis":             [-0.710, 0.373, 0.242],
-    "Universal Joint Axis Link":    [0, -1, 0],
-    "Universal Joint Axis Chassis": [0, 0, 1]
+    "Location Chassis":             [-0.710, 0.373, 0.242]
   },
 
   "Lower Link":
@@ -41,9 +39,7 @@
     "Inertia":                      [0.0514, 0.0514, 0.00037],
     "Radius":                       0.02,
     "Location Axle":                [0.117, 0.645, -0.035],
-    "Location Chassis":             [1.042, 0.441, 0.213],
-    "Universal Joint Axis Link":    [0, 1, 0],
-    "Universal Joint Axis Chassis": [0, 0, 1]
+    "Location Chassis":             [1.042, 0.441, 0.213]
   },
   
   "Axle Tube" :
@@ -56,8 +52,28 @@
 
   "Tierod":
   {
-    "Location Chassis":             [-0.091, 0.400, -0.079],
-    "Location Knuckle":             [-0.091, 0.825, -0.079]
+    "Mass":                         1.633,
+    "Inertia":                      [0.252, 0.001, 0.252],
+    "Location Knuckle":             [-0.091, 0.825, -0.079],
+    "Radius":                       0.003
+  },
+
+  "Draglink":
+  {
+    "Mass":                         0.464,
+    "Inertia":                      [0.005, 0.005, 0.001],
+    "Location Chassis":             [0.385, 0.45, -0.02],
+    "Location Bell Crank":          [0, 0.425, -0.05],
+	  "Radius":                       0.003
+  },
+  
+  "Bell Crank":
+  {
+    "Mass":                         0.218,
+    "Inertia":                      [0.001, 0.001, 0.001],
+    "Location Tierod":              [-0.075, 0.325, -0.065],
+    "Location Axle":                [0, 0.325, -0.05],
+	  "Radius":                       0.003
   },
 
   "Spring":

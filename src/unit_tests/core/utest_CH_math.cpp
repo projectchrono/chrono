@@ -1,34 +1,24 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
-
-///////////////////////////////////////////////////
-//
+// -----------------------------------------------------------------------
 //   Demo on how to use Chrono mathematical
 //   functions (vector math, linear algebra, etc)
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// -----------------------------------------------------------------------
 
-#include "core/ChTransform.h"
-#include "core/ChMatrix.h"
-#include "core/ChLog.h"
-#include "core/ChVector.h"
-#include "core/ChQuadrature.h"
-#include "core/ChException.h"
+#include "chrono/core/ChTransform.h"
+#include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/core/ChException.h"
 
 using namespace chrono;
 
@@ -121,7 +111,7 @@ int main(int argc, char* argv[]) {
     chrono::ChMatrixDynamic<> mmv2(5, 1);
     mmv1.FillRandom(1, 3);
     mmv2.FillRandom(2, 4);
-    double mdot = chrono::ChMatrix<>::MatrDot(&mmv1, &mmv2);
+    double mdot = chrono::ChMatrix<>::MatrDot(mmv1, mmv2);
 
     // The comparison
     chrono::ChMatrixDynamic<> mmv3(mmv2);

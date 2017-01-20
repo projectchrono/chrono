@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/geometry/ChTriangle.h"
 
@@ -20,7 +20,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTriangle> a_registration_ChTriangle;
+CH_FACTORY_REGISTER(ChTriangle)
 
 ChTriangle::ChTriangle(const ChTriangle& source) {
     p1 = source.p1;
@@ -147,7 +147,7 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,
     mA.Set_A_axis(Dx, Dy, Dz);
 
     // invert triangle coordinate matrix -if singular matrix, was degenerate triangle-.
-    if (fabs(mA.FastInvert(&mAi)) < 0.000001)
+    if (fabs(mA.FastInvert(mAi)) < 0.000001)
         return mdistance;
 
     T1 = mAi.Matr_x_Vect(Vsub(B, A1));

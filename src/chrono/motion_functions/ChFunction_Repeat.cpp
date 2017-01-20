@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Repeat> a_registration_repeat;
+CH_FACTORY_REGISTER(ChFunction_Repeat)
 
 ChFunction_Repeat::ChFunction_Repeat() : window_start(0), window_length(1) {
     fa = std::make_shared<ChFunction_Const>();  // default
@@ -30,7 +30,7 @@ ChFunction_Repeat::ChFunction_Repeat(const ChFunction_Repeat& other) {
 }
 
 double ChFunction_Repeat::Get_y(double x) const {
-    return fa->Get_y(this->window_start + fmod(x, this->window_length));
+    return fa->Get_y(this->window_start + fmod(x + this->window_phase, this->window_length));
 }
 
 void ChFunction_Repeat::Estimate_x_range(double& xmin, double& xmax) const {

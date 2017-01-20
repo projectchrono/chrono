@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
 namespace chrono {
@@ -69,6 +69,34 @@ void ChTrackedVehicle::Advance(double step) {
 
     // Process contacts.
     m_contacts->Process(this);
+}
+
+// -----------------------------------------------------------------------------
+// Set visualization type for the various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetSprocketVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetSprocketVisualizationType(vis);
+    m_tracks[1]->SetSprocketVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetIdlerVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetIdlerVisualizationType(vis);
+    m_tracks[1]->SetIdlerVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetRoadWheelAssemblyVisualizationType(vis);
+    m_tracks[1]->SetRoadWheelAssemblyVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetRoadWheelVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetRoadWheelVisualizationType(vis);
+    m_tracks[1]->SetRoadWheelVisualizationType(vis);
+}
+
+void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetTrackShoeVisualizationType(vis);
+    m_tracks[1]->SetTrackShoeVisualizationType(vis);
 }
 
 // -----------------------------------------------------------------------------

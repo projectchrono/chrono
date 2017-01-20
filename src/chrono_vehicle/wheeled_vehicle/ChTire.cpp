@@ -21,14 +21,14 @@
 
 #include <cmath>
 
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
 namespace chrono {
 namespace vehicle {
 
 ChTire::ChTire(const std::string& name)
-    : m_name(name), m_vis_enabled(false), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
+    : ChPart(name), m_slip_angle(0), m_longitudinal_slip(0), m_camber_angle(0) {}
 
 // -----------------------------------------------------------------------------
 // Base class implementation of the initialization function.

@@ -44,7 +44,7 @@ enum ShapeType {
     ROUNDEDCYL,   // Currently implemented in parallel only
     ROUNDEDCONE,  // Currently implemented in parallel only
     CONVEX,       // Currently implemented in parallel only
-    FLUID         // Currently implemented in parallel only
+    TETRAHEDRON   // Currently implemented in parallel only
 };
 
 ///
@@ -56,8 +56,8 @@ enum ShapeType {
 
 class ChApi ChCollisionModel {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionModel);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCollisionModel)
 
   public:
     ChCollisionModel();
@@ -393,7 +393,7 @@ class ChApi ChCollisionModel {
     short int family_mask;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

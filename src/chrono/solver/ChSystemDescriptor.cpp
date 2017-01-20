@@ -19,7 +19,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChSystemDescriptor> a_registration_ChSystemDescriptor;
+CH_FACTORY_REGISTER(ChSystemDescriptor)
 
 #define CH_SPINLOCK_HASHSIZE 203
 
@@ -109,7 +109,7 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 }
 
 void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
-                                             ChSparseMatrix* M,
+                                             ChSparseMatrix* H,
                                              ChSparseMatrix* E,
                                              ChMatrix<>* Fvector,
                                              ChMatrix<>* Bvector,
@@ -139,8 +139,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 
     if (Cq)
         Cq->Reset(mn_c, n_q);
-    if (M)
-        M->Reset(n_q, n_q);
+    if (H)
+        H->Reset(n_q, n_q);
     if (E)
         E->Reset(mn_c, mn_c);
     if (Fvector)
@@ -150,24 +150,26 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     if (Frict)
         Frict->Reset(mn_c, 1);
 
-    // Fills M submasses and 'f' vector,
+    // Fills H submasses and 'f' vector,
     // by looping on variables
     int s_q = 0;
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive()) {
-            if (M)
-                mvariables[iv]->Build_M(*M, s_q, s_q, this->c_a);  // .. fills  M
+            if (H)
+                mvariables[iv]->Build_M(*H, s_q, s_q, this->c_a);  // .. fills  H  (often H=M , the mass)
             if (Fvector)
-                Fvector->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
+                Fvector->PasteMatrix(vvariables[iv]->Get_fb(), s_q, 0);  // .. fills  'f'
             s_q += mvariables[iv]->Get_ndof();
         }
     }
 
-    // If some stiffness / hessian matrix has been added to M ,
-    // also add it to the sparse M
+    // If some stiffness / hessian matrix has been added to H ,
+    // also add it to the sparse H
     int s_k = 0;
-    for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
-        this->vstiffness[ik]->Build_K(*M, true);
+    if (H) {
+        for (unsigned int ik = 0; ik < this->vstiffness.size(); ik++) {
+            this->vstiffness[ik]->Build_K(*H, true);
+        }
     }
 
     // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
@@ -261,7 +263,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs)
 		for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
 			if (mvariables[iv]->IsActive()) {
 				// Forces in upper section of rhs
-				rhs->PasteMatrix(&vvariables[iv]->Get_fb(), s_q, 0);
+				rhs->PasteMatrix(vvariables[iv]->Get_fb(), s_q, 0);
 				s_q += mvariables[iv]->Get_ndof();
 			}
 		}
@@ -281,16 +283,6 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChMatrix<>* rhs)
 
 }
 
-void ChSystemDescriptor::BuildMatrices(ChSparseMatrix* Cq,
-                                       ChSparseMatrix* M,
-                                       bool only_bilaterals,
-                                       bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(Cq, M, 0, 0, 0, 0, only_bilaterals, skip_contacts_uv);
-}
-
-void ChSystemDescriptor::BuildVectors(ChMatrix<>* f, ChMatrix<>* b, bool only_bilaterals, bool skip_contacts_uv) {
-    this->ConvertToMatrixForm(0, 0, 0, f, b, 0, only_bilaterals, skip_contacts_uv);
-}
 
 void ChSystemDescriptor::DumpLastMatrices(bool assembled, const char* path) {
     char filename[300];
@@ -363,7 +355,7 @@ int ChSystemDescriptor::BuildFbVector(ChMatrix<>& Fvector  ///< matrix which wil
 // Fills the 'f' vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            Fvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
+            Fvector.PasteMatrix(vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
         }
     }
     return this->n_q;
@@ -393,7 +385,7 @@ int ChSystemDescriptor::BuildDiVector(ChMatrix<>& Dvector) {
 // Fills the 'f' vector part
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            Dvector.PasteMatrix(&vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
+            Dvector.PasteMatrix(vvariables[iv]->Get_fb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the '-b' vector (with flipped sign!)
@@ -446,7 +438,7 @@ int ChSystemDescriptor::FromVariablesToVector(ChMatrix<>& mvector, bool resize_v
 // Fill the vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
+            mvector.PasteMatrix(vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 
@@ -460,7 +452,7 @@ int ChSystemDescriptor::FromVectorToVariables(ChMatrix<>& mvector) {
 // fetch from the vector
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
+            vvariables[iv]->Get_qb().PasteClippedMatrix(mvector, vvariables[iv]->GetOffset(), 0,
                                                         vvariables[iv]->Get_ndof(), 1, 0, 0);
         }
     }
@@ -513,7 +505,7 @@ int ChSystemDescriptor::FromUnknownsToVector(ChMatrix<>& mvector, bool resize_ve
 // Fill the first part of vector, x.q ,with variables q
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            mvector.PasteMatrix(&vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
+            mvector.PasteMatrix(vvariables[iv]->Get_qb(), vvariables[iv]->GetOffset(), 0);
         }
     }
 // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
@@ -536,7 +528,7 @@ int ChSystemDescriptor::FromVectorToUnknowns(ChMatrix<>& mvector) {
 // fetch from the first part of vector (x.q = q)
     for (int iv = 0; iv < (int)vvariables.size(); iv++) {
         if (vvariables[iv]->IsActive()) {
-            vvariables[iv]->Get_qb().PasteClippedMatrix(&mvector, vvariables[iv]->GetOffset(), 0,
+            vvariables[iv]->Get_qb().PasteClippedMatrix(mvector, vvariables[iv]->GetOffset(), 0,
                                                         vvariables[iv]->Get_ndof(), 1, 0, 0);
         }
     }

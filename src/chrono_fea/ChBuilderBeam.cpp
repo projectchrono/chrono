@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include "chrono_fea/ChBuilderBeam.h"
 
@@ -131,27 +133,20 @@ void ChBuilderBeam::BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///<
     }
 }
 
-
-
-
-
-
 /////////////////////////////////////////////////////////
 //
 // ChBuilderBeamANCF
 
-
-
-void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,               ///< mesh to store the resulting elements
-                                  std::shared_ptr<ChBeamSectionCable> sect,   ///< section material for beam elements
-                                  const int N,                                ///< number of elements in the segment
-                                  const ChVector<> A,                         ///< starting point
-                                  const ChVector<> B                          ///< ending point
+void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,              ///< mesh to store the resulting elements
+                                  std::shared_ptr<ChBeamSectionCable> sect,  ///< section material for beam elements
+                                  const int N,                               ///< number of elements in the segment
+                                  const ChVector<> A,                        ///< starting point
+                                  const ChVector<> B                         ///< ending point
                                   ) {
     beam_elems.clear();
     beam_nodes.clear();
 
-    ChVector<> bdir = (B-A);
+    ChVector<> bdir = (B - A);
     bdir.Normalize();
 
     auto nodeA = std::make_shared<ChNodeFEAxyzD>(A, bdir);
@@ -166,7 +161,7 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,               //
         mesh->AddNode(nodeB);
         beam_nodes.push_back(nodeB);
 
-        auto element = std::make_shared<ChElementBeamANCF>();
+        auto element = std::make_shared<ChElementCableANCF>();
         mesh->AddElement(element);
         beam_elems.push_back(element);
 
@@ -176,6 +171,5 @@ void ChBuilderBeamANCF::BuildBeam(std::shared_ptr<ChMesh> mesh,               //
     }
 }
 
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono

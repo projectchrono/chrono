@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverMINRES> a_registration_ChLSolverMINRES;
+CH_FACTORY_REGISTER(ChSolverMINRES)
 
 double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                              ) {
@@ -143,7 +143,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
                 GetLog() << "K";
             // sysd.ShurComplementProduct(Nr, &mr,&en_l); // Nr  =  N * r  (no, recompute only when mr changes, see
             // later)
-            double rNr = mr.MatrDot(&mr, &Nr);  // rNr = r' * N * r
+            double rNr = mr.MatrDot(mr, Nr);  // rNr = r' * N * r
 
             // sysd.ShurComplementProduct(Np, &mp,&en_l); // Np  =  N * p  (no, see optimization at the end)
             double den = pow(Np.NormTwo(), 2);  // den =  ((N*p)'(N*p))
@@ -219,7 +219,7 @@ double ChSolverMINRES::Solve(ChSystemDescriptor& sysd  ///< system description w
             mr.MatrDec((Np * alpha));  // r = r - alpha * N*p;
 
             sysd.ShurComplementProduct(Nr, &mr, &en_l);  // Nr  =  N * r
-            double rNr_ = mr.MatrDot(&mr, &Nr);          // rNr = r' * N * r
+            double rNr_ = mr.MatrDot(mr, Nr);          // rNr = r' * N * r
 
             double beta = rNr_ / rNr;  // beta = r'*(N*r)/ rjNrj;
 
@@ -462,8 +462,8 @@ double ChSolverMINRES::Solve_SupportingStiffness(
             MZp.MatrScale(mDi);
 
         // alpha = (r' * Zr) / ((Zp)'*(MZp));
-        double rZr = r.MatrDot(&r, &Zr);      // 1)  z'* Zr
-        double ZpMZp = r.MatrDot(&Zp, &MZp);  // 2)  ZpMZp = (Zp)'*(MZp)
+        double rZr = r.MatrDot(r, Zr);      // 1)  z'* Zr
+        double ZpMZp = r.MatrDot(Zp, MZp);  // 2)  ZpMZp = (Zp)'*(MZp)
 
         double alpha = rZr / ZpMZp;
 
@@ -489,8 +489,8 @@ double ChSolverMINRES::Solve_SupportingStiffness(
         sysd.SystemProduct(Zr, &r);  // 1)  Zr = Z*r ...        #### MATR.MULTIPLICATION!!!###
 
         // beta = (r' * N*r) / (r_old' * N*r_old);
-        double numerator = r.MatrDot(&r, &Zr);            // 1)  r'* Z *r
-        double denominator = r.MatrDot(&r_old, &Zr_old);  // 2)  r_old'* Z *r_old
+        double numerator = r.MatrDot(r, Zr);            // 1)  r'* Z *r
+        double denominator = r.MatrDot(r_old, Zr_old);  // 2)  r_old'* Z *r_old
 
         double beta = numerator / denominator;
 

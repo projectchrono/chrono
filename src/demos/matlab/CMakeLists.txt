@@ -7,8 +7,8 @@ INCLUDE_DIRECTORIES(${CH_MATLABINC})
 # List all matlab demos
 
 SET(DEMOS
-  demo_matlab
-  demo_chfunctions_plot
+  demo_MTLB_matlab
+  demo_MTLB_functions_plot
 )
 
 MESSAGE(STATUS "Demo programs for MATLAB module...")
@@ -27,6 +27,6 @@ FOREACH(PROGRAM ${DEMOS})
         LINK_FLAGS "${CH_LINKERFLAG_EXE}")
     TARGET_LINK_LIBRARIES(${PROGRAM} ${CH_MATLABLIB} ChronoEngine ChronoEngine_matlab)
     ADD_DEPENDENCIES(${PROGRAM} ChronoEngine ChronoEngine_matlab)
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)

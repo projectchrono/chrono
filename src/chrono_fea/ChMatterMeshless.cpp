@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono/collision/ChCModelBullet.h"
@@ -28,7 +28,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChMatterMeshless> a_registration_ChMatterMeshless;
+CH_FACTORY_REGISTER(ChMatterMeshless)
 
 ChNodeMeshless::ChNodeMeshless()
     : pos_ref(VNULL), UserForce(VNULL), h_rad(0.1), coll_rad(0.001), volume(0.01), hardening(0), container(NULL) {
@@ -129,9 +129,9 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     if (!second)
         Jx1.MatrNeg();
 
-    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(&Jx1, 0, 0, 1, 3, 0, 0);
-    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(&Jx1, 1, 0, 1, 3, 0, 0);
-    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(&Jx1, 2, 0, 1, 3, 0, 0);
+    jacobian_tuple_N.Get_Cq()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+    jacobian_tuple_U.Get_Cq()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+    jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
 std::shared_ptr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase() {
@@ -355,7 +355,7 @@ void ChMatterMeshless::IntLoadResidual_F(
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(&mnode->Amoment);
+        double det = M_tmp.FastInvert(mnode->Amoment);
         if (fabs(det) < 0.00003) {
             mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
             mnode->e_strain.FillElem(0.0);  // detach
@@ -444,8 +444,8 @@ void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in
                                        const ChVectorDynamic<>& L,
                                        const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        nodes[j]->variables.Get_qb().PasteClippedMatrix(&v, off_v + 3 * j, 0, 3, 1, 0, 0);
-        nodes[j]->variables.Get_fb().PasteClippedMatrix(&R, off_v + 3 * j, 0, 3, 1, 0, 0);
+        nodes[j]->variables.Get_qb().PasteClippedMatrix(v, off_v + 3 * j, 0, 3, 1, 0, 0);
+        nodes[j]->variables.Get_fb().PasteClippedMatrix(R, off_v + 3 * j, 0, 3, 1, 0, 0);
     }
 }
 
@@ -454,7 +454,7 @@ void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,  ///< offset 
                                          const unsigned int off_L,  ///< offset in L
                                          ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
-        v.PasteMatrix(&nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
+        v.PasteMatrix(nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);
     }
 }
 
@@ -516,7 +516,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
 
         // Compute A inverse
         ChMatrix33<> M_tmp = mnode->Amoment;
-        double det = M_tmp.FastInvert(&mnode->Amoment);
+        double det = M_tmp.FastInvert(mnode->Amoment);
         if (fabs(det) < 0.00003) {
             mnode->Amoment.FillElem(0);     // deactivate if not possible to invert
             mnode->e_strain.FillElem(0.0);  // detach

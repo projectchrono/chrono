@@ -1,7 +1,7 @@
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 projectchrono.org
+// Copyright (c) 2016 projectchrono.org
 // All right reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
@@ -12,57 +12,61 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// Description: simple operators for a 2D vector
+// Description: Implementation of a 2d Vector
 // =============================================================================
 
 #pragma once
 
-#include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real.h"
-#include <iostream>
-#define R2 make_real2
 
 namespace chrono {
+class real2 {
+  public:
+    CUDA_HOST_DEVICE real2() : x(0.0f), y(0.0f) {}
+    CUDA_HOST_DEVICE explicit real2(real _x) : x(_x), y(_x) {}
+    CUDA_HOST_DEVICE real2(real _x, real _y) : x(_x), y(_y) {}
+    // real2(const real* p) : x(p[0]), y(p[1]) {}
 
-struct real2 {
-  real x, y;
+    CUDA_HOST_DEVICE operator real*() { return &x; }
+    CUDA_HOST_DEVICE operator const real*() const { return &x; };
+
+    CUDA_HOST_DEVICE void Set(real x_, real y_) {
+        x = x_;
+        y = y_;
+    }
+
+    real x;
+    real y;
 };
 
-static inline real2 make_real2(const real& a, const real& b) {
-  real2 t;
-  t.x = a;
-  t.y = b;
-  return t;
-}
+CUDA_HOST_DEVICE real2 operator+(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, real b);
+CUDA_HOST_DEVICE real2 operator+(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator*(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator/(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 operator-(const real2& a);
 
-static inline std::ostream& operator<<(std::ostream& out, const real2& a) {
-  out << "[" << a.x << ", " << a.y << "]" << std::endl;
-  return out;
-}
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real, real2);
 
-static inline real2 operator+(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x + lhs.x, rhs.y + lhs.y);
-}
-static inline real2 operator-(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x - lhs.x, rhs.y - lhs.y);
-}
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(*, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(/, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(+, real2, real2);
+CUDA_HOST_DEVICE OPERATOR_EQUALS_PROTO(-, real2, real2);
 
-static inline real2 operator*(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x * lhs.x, rhs.y * lhs.y);
-}
-static inline real2 operator*(const real2& rhs, const real& lhs) {
-  return R2(rhs.x * lhs, rhs.y * lhs);
-}
+CUDA_HOST_DEVICE real2 operator*(real lhs, const real2& rhs);
 
-static inline real2 operator/(const real2& rhs, const real2& lhs) {
-  return R2(rhs.x / lhs.x, rhs.y / lhs.y);
-}
-
-static inline real2 operator/(const real2& rhs, const real& lhs) {
-  return R2(rhs.x / lhs, rhs.y / lhs);
-}
-
-static inline bool operator==(const real2& a, const real2& b) {
-  return ((a.x == b.x) && (a.y == b.y));
-}
+CUDA_HOST_DEVICE bool operator==(const real2& lhs, const real2& rhs);
+CUDA_HOST_DEVICE real2 Max(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real2 Min(const real2& a, const real2& b);
+CUDA_HOST_DEVICE real Dot(const real2& v1, const real2& v2);
+CUDA_HOST_DEVICE real Dot(const real2& v);
+CUDA_HOST_DEVICE real Length2(const real2& v1);
+CUDA_HOST_DEVICE real2 Normalize(const real2& v1);
+CUDA_HOST_DEVICE void Print(real2 v, const char* name);
 }

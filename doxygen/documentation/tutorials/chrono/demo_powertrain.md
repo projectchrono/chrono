@@ -1,4 +1,4 @@
-Creating A Powertrain In Chrono (demo_powertrain.cpp) {#tutorial_demo_powertrain}
+Creating A Powertrain In Chrono (demo_CH_powertrain.cpp) {#tutorial_demo_powertrain}
 ==========================
 
 Tutorial covers basic approaches to build 
@@ -12,7 +12,7 @@ items (rotating shafts):
 
 
 
-\dontinclude demo_powertrain.cpp
+\dontinclude demo_CH_powertrain.cpp
 
 ## Example 1: create a simple powertrain with ChShaft objects
 
@@ -272,4 +272,4 @@ ChShaftsThermalEngine.
 
 ## The complete listing:
 
-\include demo_powertrain.cpp
+\include demo_CH_powertrain.cpp

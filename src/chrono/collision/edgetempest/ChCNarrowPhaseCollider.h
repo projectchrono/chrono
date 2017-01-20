@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,25 +12,9 @@
 #ifndef CHC_NARROWPHASECOLLIDER_H
 #define CHC_NARROWPHASECOLLIDER_H
 
-//////////////////////////////////////////////////
-//
-//   ChCNarrowPhaseCollider.h
-//
-//   Header file for the class implementing method
-//   which computes collisions/contacts between a
-//   pair of models.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "ChCCompile.h"
-#include "collision/ChCCollisionPair.h"
-#include "ChCCollisionTree.h"
+#include "chrono/collision/edgetempest/ChCCompile.h"
+#include "chrono/collision/edgetempest/ChCCollisionTree.h"
+#include "chrono/collision/ChCCollisionPair.h"
 
 namespace chrono {
 /// Namespace for classes devoted to
@@ -123,7 +107,7 @@ class ChNarrowPhaseCollider {
     Vector T2;        // abs.position of model2
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

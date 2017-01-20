@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_ConstAcc> a_registration_constacc;
+CH_FACTORY_REGISTER(ChFunction_ConstAcc)
 
 ChFunction_ConstAcc::ChFunction_ConstAcc(double m_h, double m_av, double m_aw, double m_end) : h(m_h) {
     Set_end(m_end);

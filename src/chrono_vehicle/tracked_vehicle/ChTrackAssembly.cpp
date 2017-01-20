@@ -13,8 +13,8 @@
 // =============================================================================
 //
 // Base class for a track assembly which consists of one sprocket, one idler,
-// a collection of road wheel assemblies (suspensions), and a collection of
-// track shoes.
+// a collection of road wheel assemblies (suspensions), a collection of rollers,
+// and a collection of track shoes.
 //
 // The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -58,16 +58,22 @@ void ChTrackAssembly::GetTrackShoeStates(BodyStates& states) const {
 // -----------------------------------------------------------------------------
 // Initialize this track assembly subsystem.
 // -----------------------------------------------------------------------------
-void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                 const ChVector<>& sprocket_loc,
-                                 const ChVector<>& idler_loc,
-                                 const std::vector<ChVector<> >& suspension_locs) {
-    GetSprocket()->Initialize(chassis, sprocket_loc, this);
-    m_idler->Initialize(chassis, idler_loc);
+void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  // handle to the chassis body
+                                 const ChVector<>& location              // location relative to the chassis frame
+                                 ) {
+    // Initialize the sprocket, idler, and brake
+    GetSprocket()->Initialize(chassis, location + GetSprocketLocation(), this);
+    m_idler->Initialize(chassis, location + GetIdlerLocation());
     m_brake->Initialize(GetSprocket()->GetRevolute());
 
+    // Initialize the suspension subsystems
     for (size_t i = 0; i < m_suspensions.size(); ++i) {
-        m_suspensions[i]->Initialize(chassis, suspension_locs[i]);
+        m_suspensions[i]->Initialize(chassis, location + GetRoadWhelAssemblyLocation(static_cast<int>(i)));
+    }
+
+    // Initialize the roller subsystems
+    for (size_t i = 0; i < m_rollers.size(); ++i) {
+        m_rollers[i]->Initialize(chassis, location + GetRollerLocation(static_cast<int>(i)));
     }
 
     // Assemble the track. This positions all track shoes around the sprocket,
@@ -88,12 +94,48 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 }
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChTrackAssembly::SetSprocketVisualizationType(VisualizationType vis) {
+    GetSprocket()->SetVisualizationType(vis); 
+}
+
+void ChTrackAssembly::SetIdlerVisualizationType(VisualizationType vis) {
+    GetIdler()->SetVisualizationType(vis);
+}
+
+void ChTrackAssembly::SetRoadWheelAssemblyVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->SetVisualizationType(vis);
+    }
+}
+
+void ChTrackAssembly::SetRoadWheelVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_suspensions.size(); ++i) {
+        m_suspensions[i]->GetRoadWheel()->SetVisualizationType(vis);
+    }
+}
+
+void ChTrackAssembly::SetRollerVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < m_rollers.size(); ++i) {
+        m_rollers[i]->SetVisualizationType(vis);
+    }
+}
+
+void ChTrackAssembly::SetTrackShoeVisualizationType(VisualizationType vis) {
+    for (size_t i = 0; i < GetNumTrackShoes(); ++i) {
+        GetTrackShoe(i)->SetVisualizationType(vis);
+    }
+}
+
+// -----------------------------------------------------------------------------
 // Calculate and return the total mass of the track assembly
 // -----------------------------------------------------------------------------
 double ChTrackAssembly::GetMass() const {
     double mass = GetSprocket()->GetMass() + m_idler->GetMass();
     for (size_t i = 0; i < m_suspensions.size(); i++)
         mass += m_suspensions[i]->GetMass();
+    for (size_t i = 0; i < m_rollers.size(); i++)
+        mass += m_rollers[i]->GetMass();
     for (size_t i = 0; i < GetNumTrackShoes(); ++i)
         mass += GetTrackShoe(i)->GetMass();
 
@@ -126,6 +168,10 @@ void ChTrackAssembly::LogConstraintViolations() {
     for (size_t i = 0; i < m_suspensions.size(); i++) {
         GetLog() << "SUSPENSION #" << i << " constraint violations\n";
         m_suspensions[i]->LogConstraintViolations();
+    }
+    for (size_t i = 0; i < m_rollers.size(); i++) {
+        GetLog() << "ROLLER #" << i << " constraint violations\n";
+        m_rollers[i]->LogConstraintViolations();
     }
 }
 

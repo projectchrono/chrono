@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 using namespace collision;
 

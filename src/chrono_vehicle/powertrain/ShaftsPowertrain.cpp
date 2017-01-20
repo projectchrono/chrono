@@ -16,11 +16,11 @@
 //
 // =============================================================================
 
-#include "physics/ChGlobal.h"
+#include "chrono/physics/ChGlobal.h"
 
 #include "chrono_vehicle/powertrain/ShaftsPowertrain.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -39,7 +39,7 @@ ShaftsPowertrain::ShaftsPowertrain(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

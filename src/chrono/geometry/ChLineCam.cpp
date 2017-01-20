@@ -18,11 +18,11 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLineCam> a_registration_ChLineCam;
+CH_FACTORY_REGISTER(ChLineCam)
 
 ChLineCam::ChLineCam() {
     Set_complexity(10);
-    this->closed = TRUE;
+    this->closed = true;
     type = CAM_TYPE_SLIDEFOLLOWER;
     Rb = 1.0;
     Rr = 0.0;
@@ -33,8 +33,8 @@ ChLineCam::ChLineCam() {
     e = 0;
     s = Rb;
     law = std::make_shared<ChFunction_Const>(0);  // default law = no follower motion
-    negative = FALSE;
-    internal = FALSE;
+    negative = false;
+    internal = false;
 }
 
 ChLineCam::ChLineCam(const ChLineCam& source) : ChLine(source) {

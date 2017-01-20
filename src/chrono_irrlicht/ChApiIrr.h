@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2014 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHAPIIRRLICHT_H
 #define CHAPIIRRLICHT_H
@@ -32,19 +33,17 @@
 #define ChApiIrr ChApiIMPORT
 #endif
 
-
 /**
     @defgroup irrlicht_module IRRLICHT module
     @brief Runtime visualization with Irrlicht
 
-    This module can be used to provide 3D realtime rendering 
+    This module can be used to provide 3D realtime rendering
     in Chrono::Engine.
 
     For additional information, see:
     - the [installation guide](@ref module_irrlicht_installation)
     - the [tutorials](@ref tutorial_root)
 */
-
 
 namespace chrono {
 
@@ -55,10 +54,6 @@ namespace chrono {
 namespace irrlicht {}
 
 /// @}
-
 }
-
-
-
 
 #endif

@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHELEMENTBAR_H
 #define CHELEMENTBAR_H
@@ -92,11 +94,11 @@ class ChApiFea ChElementBar : public ChElementGeneric {
         // note that stiffness and damping matrices are the same, so join stuff here
         double commonfactor = Kstiffness * Kfactor + Rdamping * Rfactor;
         submatr.MatrScale(commonfactor);
-        H.PasteMatrix(&submatr, 0, 0);
-        H.PasteMatrix(&submatr, 3, 3);
+        H.PasteMatrix(submatr, 0, 0);
+        H.PasteMatrix(submatr, 3, 3);
         submatr.MatrNeg();
-        H.PasteMatrix(&submatr, 0, 3);
-        H.PasteMatrix(&submatr, 3, 0);
+        H.PasteMatrix(submatr, 0, 3);
+        H.PasteMatrix(submatr, 3, 0);
 
         // For M mass matrix, do mass lumping:
         H(0, 0) += Mfactor * mass * 0.5;  // node A x,y,z
@@ -178,7 +180,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

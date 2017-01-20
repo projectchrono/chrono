@@ -18,8 +18,9 @@
 #define NULL 0
 #endif
 
-#include <math.h>
-#include "ugello.h"
+#include <cmath>
+
+#include "chrono/pneumatica/ugello.h"
 
 namespace chrono {
 namespace pneumatics {

@@ -24,6 +24,7 @@
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
@@ -116,11 +117,11 @@ struct TrackShoeForce {
 /// Vector of tire force structures.
 typedef std::vector<TrackShoeForce> TrackShoeForces;
 
-/// Utility class for specifying a linear spring force.
+/// Utility class for specifying a linear translational spring force.
 class LinearSpringForce : public ChSpringForceCallback {
   public:
     LinearSpringForce(double k) : m_k(k) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_k * (length - rest_length);
     }
 
@@ -128,21 +129,23 @@ class LinearSpringForce : public ChSpringForceCallback {
     double m_k;
 };
 
-/// Utility class for specifying a linear damper force.
+/// Utility class for specifying a linear translational damper force.
 class LinearDamperForce : public ChSpringForceCallback {
   public:
     LinearDamperForce(double c) : m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_c * vel; }
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return -m_c * vel;
+    }
 
   private:
     double m_c;
 };
 
-/// Utility class for specifying a linear spring-damper force.
+/// Utility class for specifying a linear translational spring-damper force.
 class LinearSpringDamperForce : public ChSpringForceCallback {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_k * (length - rest_length) - m_c * vel;
     }
 
@@ -151,17 +154,31 @@ class LinearSpringDamperForce : public ChSpringForceCallback {
     double m_c;
 };
 
-/// Utility class for specifying a map spring force.
+/// Utility class for specifying a linear translational spring-damper force with pre-tension.
+class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
+  public:
+    LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return m_f - m_k * (length - rest_length) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_f;
+};
+
+/// Utility class for specifying a map translational spring force.
 class MapSpringForce : public ChSpringForceCallback {
   public:
     MapSpringForce() {}
-    MapSpringForce(const std::vector<std::pair<double, double> >& data) {
+    MapSpringForce(const std::vector<std::pair<double, double>>& data) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel) {
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
         return -m_map.Get_y(length - rest_length);
     }
 
@@ -169,48 +186,134 @@ class MapSpringForce : public ChSpringForceCallback {
     ChFunction_Recorder m_map;
 };
 
-/// Utility class for specifying a map damper force.
+/// Utility class for specifying a map translational damper force.
 class MapDamperForce : public ChSpringForceCallback {
   public:
     MapDamperForce() {}
-    MapDamperForce(const std::vector<std::pair<double, double> >& data) {
+    MapDamperForce(const std::vector<std::pair<double, double>>& data) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
     }
     void add_point(double x, double y) { m_map.AddPoint(x, y); }
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_map.Get_y(vel); }
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return -m_map.Get_y(vel);
+    }
+
+  private:
+    ChFunction_Recorder m_map;
+};
+
+/// Utility class for specifying a map translational spring-damper force with pre-tension.
+class MapSpringDamperActuatorForce : public ChSpringForceCallback {
+  public:
+    MapSpringDamperActuatorForce() {}
+    MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,
+                                 const std::vector<std::pair<double, double>>& dataC,
+                                 double f) {
+        for (unsigned int i = 0; i < dataK.size(); ++i) {
+            m_mapK.AddPoint(dataK[i].first, dataK[i].second);
+        }
+        for (unsigned int i = 0; i < dataC.size(); ++i) {
+            m_mapC.AddPoint(dataC[i].first, dataC[i].second);
+        }
+    }
+    void add_pointK(double x, double y) { m_mapK.AddPoint(x, y); }
+    void add_pointC(double x, double y) { m_mapC.AddPoint(x, y); }
+    void set_f(double f) { m_f = f; }
+    virtual double operator()(double time, double rest_length, double length, double vel) override {
+        return m_f - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel);
+    }
+
+  private:
+    ChFunction_Recorder m_mapK;
+    ChFunction_Recorder m_mapC;
+    double m_f;
+};
+
+/// Utility class for specifying a linear rotational spring torque.
+class LinearSpringTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(0) {}
+    virtual double operator()(double time, double angle, double vel) override { return -m_k * (angle - m_rest_angle); }
+
+  private:
+    double m_k;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a linear rotational damper force.
+class LinearDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearDamperTorque(double c) : m_c(c) {}
+    virtual double operator()(double time, double angle, double vel) override { return -m_c * vel; }
+
+  private:
+    double m_c;
+};
+
+/// Utility class for specifying a map rotational spring force.
+class MapSpringTorque : public ChRotSpringTorqueCallback {
+  public:
+    MapSpringTorque() {}
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0) : m_rest_angle(rest_angle) {
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time, double angle, double vel) override {
+        return -m_map.Get_y(angle - m_rest_angle);
+    }
+
+private:
+    ChFunction_Recorder m_map;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a map rotational damper force.
+class MapDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    MapDamperTorque() {}
+    MapDamperTorque(const std::vector<std::pair<double, double>>& data) {
+        for (unsigned int i = 0; i < data.size(); ++i) {
+            m_map.AddPoint(data[i].first, data[i].second);
+        }
+    }
+    void add_point(double x, double y) { m_map.AddPoint(x, y); }
+    virtual double operator()(double time, double angle, double vel) override { return -m_map.Get_y(vel); }
 
   private:
     ChFunction_Recorder m_map;
 };
 
 /// Enum for visualization types.
-enum VisualizationType {
+enum class VisualizationType {
     NONE,        ///< no visualization
     PRIMITIVES,  ///< use primitve shapes
     MESH         ///< use meshes
 };
 
 /// Enum for available tire models.
-enum TireModelType {
-    RIGID,    ///< rigid tire
-    PACEJKA,  ///< Pacejka (magic formula) tire
-    LUGRE,    ///< Lugre frition model tire
-    FIALA,    ///< Fiala tire
-    ANCF,     ///< ANCF shell element-based tire
-    REISSNER, ///< Reissner 6-field shell element-based tire
-    FEA       ///< FEA co-rotational tire
+enum class TireModelType {
+    RIGID,       ///< rigid tire (cylindrical)
+    RIGID_MESH,  ///< rigid tire (mesh)
+    PACEJKA,     ///< Pacejka (magic formula) tire
+    LUGRE,       ///< Lugre frition model tire
+    FIALA,       ///< Fiala tire
+    ANCF,        ///< ANCF shell element-based tire
+    REISSNER,    ///< Reissner 6-field shell element-based tire
+    FEA          ///< FEA co-rotational tire
 };
 
 /// Enum for available powertrain model templates.
-enum PowertrainModelType {
+enum class PowertrainModelType {
     SHAFTS,  ///< powertrain based on ChShaft elements
     SIMPLE   ///< simple powertrain model (similar to a DC motor)
 };
 
-/// Enum for available suspension model templates.
-enum SuspensionType {
+/// Enum for available wheeled-vehicle suspension model templates.
+enum class SuspensionType {
     DOUBLE_WISHBONE,          ///< double wishbone
     DOUBLE_WISHBONE_REDUCED,  ///< simplified double wishbone (constraint-based)
     SOLID_AXLE,               ///< solid axle
@@ -220,23 +323,53 @@ enum SuspensionType {
 };
 
 /// Enum for drive types.
-enum DrivelineType {
+enum class DrivelineType {
     FWD,  ///< front-wheel drive
     RWD,  ///< rear-wheel drive
-    AWD   ///< all-wheel drive
+    AWD,  ///< all-wheel drive
+    SIMPLE
 };
 
 /// Enum for track shoe types.
-enum TrackShoeType {
+enum class TrackShoeType {
     SINGLE_PIN,  ///< single-pin track shoe and sprocket
     DOUBLE_PIN   ///< double-pin track shoe and sprocket
 };
 
 /// Enum for guide pin (track shoe/roadwheel/idler).
-enum GuidePinType {
+enum class GuidePinType {
     CENTRAL_PIN,  ///< track shoes with central guiding pin and double wheels
     LATERAL_PIN   ///< track shoes with lateral guiding pins and single wheels
 };
+
+/// Enumerations for track collision flags.
+namespace TrackCollide {
+// Note: we cannot use strongly typed enums since these are used as integers
+enum Enum {
+    NONE = 0,
+    SPROCKET_LEFT = 1 << 0,
+    SPROCKET_RIGHT = 1 << 1,
+    IDLER_LEFT = 1 << 2,
+    IDLER_RIGHT = 1 << 3,
+    WHEELS_LEFT = 1 << 4,
+    WHEELS_RIGHT = 1 << 5,
+    SHOES_LEFT = 1 << 6,
+    SHOES_RIGHT = 1 << 7,
+    ALL = 0xFFFF
+};
+}
+
+/// Enumerations for track collision families.
+namespace TrackCollisionFamily {
+// Note: we cannot use strongly typed enums, since these are passed as integers
+enum Enum {
+    CHASSIS = 0,  ///< chassis collision family
+    IDLERS = 1,   ///< collision family for idler subsystems
+    WHEELS = 2,   ///< collision family for road-wheel assemblies
+    SHOES = 3,    ///< collision family for track shoe subsystems
+    ROLLERS = 4   ///< collision family for roller subsystems
+};
+}
 
 /// Flags for output (log/debug).
 /// These flags can be bit-wise ORed and used as a mask.

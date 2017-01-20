@@ -12,9 +12,9 @@
 #ifndef CHVISUALIZATION_H
 #define CHVISUALIZATION_H
 
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
-#include "core/ChMath.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
+#include "chrono/core/ChMath.h"
 
 namespace chrono {
 
@@ -23,8 +23,9 @@ namespace chrono {
 /// It contains basic information about position, color, and visibility.
 
 class ChApi ChVisualization : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChVisualization, ChAsset);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVisualization)
 
   public:
     virtual ~ChVisualization() {}
@@ -92,6 +93,6 @@ class ChApi ChVisualization : public ChAsset {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

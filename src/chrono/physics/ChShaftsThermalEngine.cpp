@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChShaftsThermalEngine> a_registration_ChShaftsThermalEngine;
+CH_FACTORY_REGISTER(ChShaftsThermalEngine)
 
 ChShaftsThermalEngine::ChShaftsThermalEngine() : throttle(1), error_backward(false) {
     // default torque curve= constant zero. User will provide better fx.

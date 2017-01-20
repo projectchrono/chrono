@@ -12,21 +12,6 @@
 #ifndef CHEXCEPTION_H
 #define CHEXCEPTION_H
 
-//////////////////////////////////////////////////
-//
-//   ChException.h
-//
-//   Custom exception class, for the
-//   throw() catch() mechanism.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <string>
 
 namespace chrono {
@@ -57,6 +42,6 @@ class ChException : public std::exception {
     virtual const char* what() const throw() { return m_swhat.c_str(); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -18,7 +18,7 @@ namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and
 // persistence
-ChClassRegister<ChLinkSpringCB> a_registration_ChLinkSpringCB;
+CH_FACTORY_REGISTER(ChLinkSpringCB)
 
 ChLinkSpringCB::ChLinkSpringCB() : m_rest_length(0), m_force(0), m_force_fun(NULL) {}
 

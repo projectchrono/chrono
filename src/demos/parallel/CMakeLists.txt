@@ -28,6 +28,9 @@ SET(DEMOS
     demo_PAR_ballsDVI
     demo_PAR_mixerDEM
     demo_PAR_mixerDVI
+    demo_PAR_fluidDVI
+    demo_PAR_snowMPM
+    demo_PAR_rigid3DOFDVI
 )
 
 # ------------------------------------------------------------------------------
@@ -51,7 +54,7 @@ FOREACH(PROGRAM ${DEMOS})
     TARGET_LINK_LIBRARIES(${PROGRAM} ${LIBRARIES})
     ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
 
-    INSTALL(TARGETS ${PROGRAM} DESTINATION bin)
+    INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
 
 ENDFOREACH(PROGRAM)
 

@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChConstraintThreeGeneric> a_registration_ChConstraintThreeGeneric;
+CH_FACTORY_REGISTER(ChConstraintThreeGeneric)
 
 ChConstraintThreeGeneric::ChConstraintThreeGeneric(ChVariables* mvariables_a,
                                                    ChVariables* mvariables_b,
@@ -306,20 +306,20 @@ void ChConstraintThreeGeneric::MultiplyTandAdd(ChMatrix<double>& result, double 
 
 void ChConstraintThreeGeneric::Build_Cq(ChSparseMatrix& storage, int insrow) {
     if (variables_a->IsActive())
-        storage.PasteMatrix(Cq_a, insrow, variables_a->GetOffset());
+        storage.PasteMatrix(*Cq_a, insrow, variables_a->GetOffset());
     if (variables_b->IsActive())
-        storage.PasteMatrix(Cq_b, insrow, variables_b->GetOffset());
+        storage.PasteMatrix(*Cq_b, insrow, variables_b->GetOffset());
     if (variables_c->IsActive())
-        storage.PasteMatrix(Cq_c, insrow, variables_c->GetOffset());
+        storage.PasteMatrix(*Cq_c, insrow, variables_c->GetOffset());
 }
 
 void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
     if (variables_a->IsActive())
-        storage.PasteTranspMatrix(Cq_a, variables_a->GetOffset(), inscol);
+        storage.PasteTranspMatrix(*Cq_a, variables_a->GetOffset(), inscol);
     if (variables_b->IsActive())
-        storage.PasteTranspMatrix(Cq_b, variables_b->GetOffset(), inscol);
+        storage.PasteTranspMatrix(*Cq_b, variables_b->GetOffset(), inscol);
     if (variables_c->IsActive())
-        storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
+        storage.PasteTranspMatrix(*Cq_c, variables_c->GetOffset(), inscol);
 }
 
 void ChConstraintThreeGeneric::StreamOUT(ChStreamOutBinary& mstream) {

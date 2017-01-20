@@ -124,8 +124,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     bool IsRimConnectionEnabled() const { return m_connection_enabled; }
 
     /// Get a handle to the mesh visualization.
-    /// Note that this function can only be invoked after initialization.
-    std::shared_ptr<fea::ChVisualizationFEAmesh> GetMeshVisualization() { return m_visualization; }
+    fea::ChVisualizationFEAmesh* const GetMeshVisualization() const { return m_visualization.get(); }
 
     /// Get the underlying FEA mesh.
     std::shared_ptr<fea::ChMesh> GetMesh() const { return m_mesh; }
@@ -167,6 +166,12 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< [in] associated wheel body
                             VehicleSide side                ///< [in] left/right vehicle side
                             ) override;
+
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override final;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override final;
 
   protected:
     /// Return the default tire pressure.

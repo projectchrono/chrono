@@ -38,8 +38,8 @@ class ChConvexDecomposition;
 
 class ChApi ChModelBullet : public ChCollisionModel {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChModelBullet, ChCollisionModel);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChModelBullet)
 
   protected:
     // The Bullet collision object containing Bullet geometries
@@ -294,7 +294,7 @@ class ChApi ChModelBullet : public ChCollisionModel {
     void onFamilyChange();
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

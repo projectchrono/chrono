@@ -83,8 +83,12 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_vehicle/ChConfigVehicle.h"
 
 set(CV_BASE_FILES
     ChApiVehicle.h
+    ChChassis.h
+    ChChassis.cpp
     ChDriver.h
     ChDriver.cpp
+    ChPart.h
+    ChPart.cpp
     ChPowertrain.h
     ChPowertrain.cpp
     ChSubsysDefs.h
@@ -96,6 +100,12 @@ set(CV_BASE_FILES
     ChVehicleModelData.cpp
 )
 source_group("base" FILES ${CV_BASE_FILES})
+
+set(CV_CHASSIS_FILES
+	chassis/RigidChassis.h
+	chassis/RigidChassis.cpp
+)
+source_group("chassis" FILES ${CV_CHASSIS_FILES})
 
 set(CV_DRIVER_FILES
     driver/ChDataDriver.h
@@ -139,8 +149,8 @@ set(CV_TERRAIN_FILES
 
 if(ENABLE_MODULE_FEA)
     set(CV_FEATERRAIN_FILES
-    terrain/FEADeformableTerrain.h
-    terrain/FEADeformableTerrain.cpp
+        terrain/FEADeformableTerrain.h
+        terrain/FEADeformableTerrain.cpp
     )
 else()
     set(CV_FEATERRAIN_FILES "")
@@ -248,6 +258,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChHendricksonPRIMAXX.cpp
     wheeled_vehicle/suspension/ChMacPhersonStrut.h
     wheeled_vehicle/suspension/ChMacPhersonStrut.cpp
+    wheeled_vehicle/suspension/ChSemiTrailingArm.h
+    wheeled_vehicle/suspension/ChSemiTrailingArm.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
@@ -261,6 +273,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/HendricksonPRIMAXX.cpp
     wheeled_vehicle/suspension/MacPhersonStrut.h
     wheeled_vehicle/suspension/MacPhersonStrut.cpp
+    wheeled_vehicle/suspension/SemiTrailingArm.h
+    wheeled_vehicle/suspension/SemiTrailingArm.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
@@ -287,16 +301,20 @@ if(ENABLE_MODULE_FEA)
         wheeled_vehicle/tire/ChDeformableTire.cpp
         wheeled_vehicle/tire/ChANCFTire.h
         wheeled_vehicle/tire/ChANCFTire.cpp
-		wheeled_vehicle/tire/ChReissnerTire.h
+        wheeled_vehicle/tire/ChReissnerTire.h
         wheeled_vehicle/tire/ChReissnerTire.cpp
         wheeled_vehicle/tire/ChFEATire.h
         wheeled_vehicle/tire/ChFEATire.cpp
-		wheeled_vehicle/tire/ReissnerTire.h
+        wheeled_vehicle/tire/ReissnerTire.h
         wheeled_vehicle/tire/ReissnerTire.cpp
         wheeled_vehicle/tire/ANCFTire.h
         wheeled_vehicle/tire/ANCFTire.cpp
         wheeled_vehicle/tire/FEATire.h
         wheeled_vehicle/tire/FEATire.cpp
+        wheeled_vehicle/tire/ANCFToroidalTire.h
+        wheeled_vehicle/tire/ANCFToroidalTire.cpp
+        wheeled_vehicle/tire/ReissnerToroidalTire.h
+        wheeled_vehicle/tire/ReissnerToroidalTire.cpp
     )
 else()
     set(CV_WV_FEATIRE_FILES "")
@@ -333,22 +351,22 @@ set(CV_WV_WHEEL_FILES
 )
 source_group("wheeled_vehicle\\wheel" FILES ${CV_WV_WHEEL_FILES})
 
-if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
-    set(CV_WV_COSIM_FILES
-        wheeled_vehicle/cosim/ChCosimManager.h
-        wheeled_vehicle/cosim/ChCosimManager.cpp
-        wheeled_vehicle/cosim/ChCosimNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.h
-        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
-        wheeled_vehicle/cosim/ChCosimTireNode.h
-        wheeled_vehicle/cosim/ChCosimTireNode.cpp
-        wheeled_vehicle/cosim/ChCosimTerrainNode.h
-        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
-    )
-    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
-else()
+#if(MPI_CXX_FOUND AND ENABLE_MODULE_FEA)
+#    set(CV_WV_COSIM_FILES
+#        wheeled_vehicle/cosim/ChCosimManager.h
+#        wheeled_vehicle/cosim/ChCosimManager.cpp
+#        wheeled_vehicle/cosim/ChCosimNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.h
+#        wheeled_vehicle/cosim/ChCosimVehicleNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTireNode.h
+#        wheeled_vehicle/cosim/ChCosimTireNode.cpp
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.h
+#        wheeled_vehicle/cosim/ChCosimTerrainNode.cpp
+#    )
+#    source_group("wheeled_vehicle\\cosim" FILES ${CV_WV_COSIM_FILES})
+#else()
     set(CV_WV_COSIM_FILES "")
-endif()
+#endif()
 
 # --------------- TRACKED VEHICLE FILES
 
@@ -359,6 +377,8 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChRoadWheel.cpp 
     tracked_vehicle/ChRoadWheelAssembly.h
     tracked_vehicle/ChRoadWheelAssembly.cpp
+    tracked_vehicle/ChRoller.h
+    tracked_vehicle/ChRoller.cpp
     tracked_vehicle/ChSprocket.h
     tracked_vehicle/ChSprocket.cpp
     tracked_vehicle/ChTrackAssembly.h
@@ -371,7 +391,6 @@ set(CV_TV_BASE_FILES
     tracked_vehicle/ChTrackedVehicle.cpp
     tracked_vehicle/ChTrackShoe.h
     tracked_vehicle/ChTrackShoe.cpp
-    tracked_vehicle/ChTrackSubsysDefs.h
     tracked_vehicle/ChTrackContactManager.h
     tracked_vehicle/ChTrackContactManager.cpp
 )
@@ -380,6 +399,9 @@ source_group("tracked_vehicle\\base" FILES ${CV_TV_BASE_FILES})
 set(CV_TV_BRAKE_FILES
     tracked_vehicle/brake/ChTrackBrakeSimple.h
     tracked_vehicle/brake/ChTrackBrakeSimple.cpp
+
+    tracked_vehicle/brake/TrackBrakeSimple.h
+    tracked_vehicle/brake/TrackBrakeSimple.cpp
 )
 source_group("tracked_vehicle\\brake" FILES ${CV_TV_BRAKE_FILES})
 
@@ -388,6 +410,9 @@ set(CV_TV_DRIVELINE_FILES
     tracked_vehicle/driveline/ChTrackDrivelineBDS.cpp
     tracked_vehicle/driveline/ChSimpleTrackDriveline.h
     tracked_vehicle/driveline/ChSimpleTrackDriveline.cpp
+
+    tracked_vehicle/driveline/SimpleTrackDriveline.h
+    tracked_vehicle/driveline/SimpleTrackDriveline.cpp
 )
 source_group("tracked_vehicle\\driveline" FILES ${CV_TV_DRIVELINE_FILES})
 
@@ -396,6 +421,11 @@ set(CV_TV_IDLER_FILES
     tracked_vehicle/idler/ChSingleIdler.cpp
     tracked_vehicle/idler/ChDoubleIdler.h
     tracked_vehicle/idler/ChDoubleIdler.cpp
+
+    tracked_vehicle/idler/SingleIdler.h
+    tracked_vehicle/idler/SingleIdler.cpp
+    tracked_vehicle/idler/DoubleIdler.h
+    tracked_vehicle/idler/DoubleIdler.cpp
 )
 source_group("tracked_vehicle\\idler" FILES ${CV_TV_IDLER_FILES})
 
@@ -404,20 +434,46 @@ set(CV_TV_ROADWHEEL_FILES
     tracked_vehicle/road_wheel/ChSingleRoadWheel.cpp
     tracked_vehicle/road_wheel/ChDoubleRoadWheel.h
     tracked_vehicle/road_wheel/ChDoubleRoadWheel.cpp
+
+    tracked_vehicle/road_wheel/SingleRoadWheel.h
+    tracked_vehicle/road_wheel/SingleRoadWheel.cpp
+    tracked_vehicle/road_wheel/DoubleRoadWheel.h
+    tracked_vehicle/road_wheel/DoubleRoadWheel.cpp
 )
 source_group("tracked_vehicle\\road_wheel" FILES ${CV_TV_ROADWHEEL_FILES})
+
+set(CV_TV_ROLLER_FILES
+    tracked_vehicle/roller/ChDoubleRoller.h
+    tracked_vehicle/roller/ChDoubleRoller.cpp
+
+    tracked_vehicle/roller/DoubleRoller.h
+    tracked_vehicle/roller/DoubleRoller.cpp
+)
+source_group("tracked_vehicle\\roller" FILES ${CV_TV_ROLLER_FILES})
 
 set(CV_TV_SPROCKET_FILES
     tracked_vehicle/sprocket/ChSprocketSinglePin.h
     tracked_vehicle/sprocket/ChSprocketSinglePin.cpp
     tracked_vehicle/sprocket/ChSprocketDoublePin.h
     tracked_vehicle/sprocket/ChSprocketDoublePin.cpp
+
+    tracked_vehicle/sprocket/SprocketSinglePin.h
+    tracked_vehicle/sprocket/SprocketSinglePin.cpp
+    tracked_vehicle/sprocket/SprocketDoublePin.h
+    tracked_vehicle/sprocket/SprocketDoublePin.cpp
 )
 source_group("tracked_vehicle\\sprocket" FILES ${CV_TV_SPROCKET_FILES})
 
 set(CV_TV_SUSPENSION_FILES
     tracked_vehicle/suspension/ChLinearDamperRWAssembly.h
     tracked_vehicle/suspension/ChLinearDamperRWAssembly.cpp
+    tracked_vehicle/suspension/ChRotationalDamperRWAssembly.h
+    tracked_vehicle/suspension/ChRotationalDamperRWAssembly.cpp
+
+    tracked_vehicle/suspension/LinearDamperRWAssembly.h
+    tracked_vehicle/suspension/LinearDamperRWAssembly.cpp
+    tracked_vehicle/suspension/RotationalDamperRWAssembly.h
+    tracked_vehicle/suspension/RotationalDamperRWAssembly.cpp
 )
 source_group("tracked_vehicle\\suspension" FILES ${CV_TV_SUSPENSION_FILES})
 
@@ -426,6 +482,11 @@ set(CV_TV_TRACKSHOE_FILES
     tracked_vehicle/track_shoe/ChTrackShoeSinglePin.cpp
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h
     tracked_vehicle/track_shoe/ChTrackShoeDoublePin.cpp
+
+    tracked_vehicle/track_shoe/TrackShoeSinglePin.h
+    tracked_vehicle/track_shoe/TrackShoeSinglePin.cpp
+    tracked_vehicle/track_shoe/TrackShoeDoublePin.h
+    tracked_vehicle/track_shoe/TrackShoeDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_shoe" FILES ${CV_TV_TRACKSHOE_FILES})
 
@@ -434,6 +495,11 @@ set(CV_TV_TRACKASSEMBLY_FILES
     tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.cpp
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.h
     tracked_vehicle/track_assembly/ChTrackAssemblyDoublePin.cpp
+
+    tracked_vehicle/track_assembly/TrackAssemblySinglePin.h
+    tracked_vehicle/track_assembly/TrackAssemblySinglePin.cpp
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.h
+    tracked_vehicle/track_assembly/TrackAssemblyDoublePin.cpp
 )
 source_group("tracked_vehicle\\track_assembly" FILES ${CV_TV_TRACKASSEMBLY_FILES})
 
@@ -453,14 +519,20 @@ else()
 endif()
 source_group("tracked_vehicle\\utils" FILES ${CV_TV_UTILS_FILES} ${CVIRR_TV_UTILS_FILES})
 
+set(CV_TV_VEHICLE_FILES
+    tracked_vehicle/vehicle/TrackedVehicle.h
+    tracked_vehicle/vehicle/TrackedVehicle.cpp
+)
+source_group("tracked_vehicle\\vehicle" FILES ${CV_TV_VEHICLE_FILES})
+
 # --------------- THIRD-PARTY FILES
 
 set(CV_EASYBMP_FILES
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.h
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP.cpp
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_BMP.h
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_DataStructures.h
-    ${CMAKE_SOURCE_DIR}/src/thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP.cpp
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_BMP.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_DataStructures.h
+    ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/Easy_BMP/EasyBMP_VariousBMPutilities.h
 )
 source_group("easyBMP" FILES ${CV_EASYBMP_FILES})
 
@@ -493,6 +565,7 @@ endif()
 add_library(ChronoEngine_vehicle SHARED
 #
     ${CV_BASE_FILES}
+    ${CV_CHASSIS_FILES}
     ${CV_DRIVER_FILES}
     ${CVIRR_DRIVER_FILES}
     ${CV_POVERTRAIN_FILES}
@@ -520,12 +593,14 @@ add_library(ChronoEngine_vehicle SHARED
     ${CV_TV_DRIVELINE_FILES}
     ${CV_TV_IDLER_FILES}
     ${CV_TV_ROADWHEEL_FILES}
+    ${CV_TV_ROLLER_FILES}
     ${CV_TV_SPROCKET_FILES}
     ${CV_TV_SUSPENSION_FILES}
     ${CV_TV_TRACKSHOE_FILES}
     ${CV_TV_TRACKASSEMBLY_FILES}
     ${CV_TV_UTILS_FILES}
     ${CVIRR_TV_UTILS_FILES}
+    ${CV_TV_VEHICLE_FILES}
 #
     ${CV_EASYBMP_FILES}
 )
@@ -539,8 +614,8 @@ target_link_libraries(ChronoEngine_vehicle ${LIBRARIES})
 
 install(TARGETS ChronoEngine_vehicle
         RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib)
+        LIBRARY DESTINATION lib64
+        ARCHIVE DESTINATION lib64)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION include/chrono_vehicle

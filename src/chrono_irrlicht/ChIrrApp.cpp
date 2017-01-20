@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -21,8 +22,9 @@ ChIrrApp::ChIrrApp(ChSystem* psystem,
                    core::dimension2d<u32> dimens,
                    bool do_fullscreen,
                    bool do_shadows,
+                   bool do_antialias,
                    video::E_DRIVER_TYPE mydriver)
-    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, mydriver) {
+    : ChIrrAppInterface(psystem, title, dimens, do_fullscreen, do_shadows, do_antialias, mydriver) {
     mconverter = new ChIrrAssetConverter(*this);
 }
 

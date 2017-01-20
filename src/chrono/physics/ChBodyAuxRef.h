@@ -19,22 +19,24 @@
 
 namespace chrono {
 
-/// Class for rigid bodies with an auxiliary reference that can be used
-/// for the collision shapes and marker positions; that reference can be
-/// different from the center of gravity (COG), differently from the
-/// base class ChBody where the COG is used also as reference.
-/// Because of the auxilary reference, this type of rigid bodies can be
-/// a bit less efficient thatn the ChBody simple class.
+/// Class for rigid bodies with an auxiliary reference frame.
+/// Unlike ChBody, where the COG frame is used as the reference frame, the
+/// auxiliary reference frame of a ChBodyAuxRef can be different from its
+/// COG frame.  This spcialization is provided for situations where it is more
+/// convenient to specify collision shapes, visualization assets, and marker
+/// positions with respect to a reference frame other than the COG frame.
+/// Note that, because of the auxilary reference, this type of rigid bodies
+/// can be slightly less efficient than the base ChBody object.
 ///
-/// Further info at the @ref rigid_bodies  manual page.
+/// Additional information can be found in the @ref rigid_bodies manual page.
 
 class ChApi ChBodyAuxRef : public ChBody {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChBodyAuxRef, ChBody);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChBodyAuxRef)
 
   private:
     ChFrameMoving<> auxref_to_cog;  ///< auxiliary REF location, relative to COG
-    ChFrameMoving<> auxref_to_abs;  ///< for speeding up code: REF location relative to abs coords (needs Update() )
+    ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
 
   public:
     ChBodyAuxRef(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
@@ -48,31 +50,29 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChBodyAuxRef* Clone() const override { return new ChBodyAuxRef(*this); }
 
-    /// Get the location of the auxiliary reference respect to COG.
-    /// Viceversa, if you need to know the COG respect to auxiliary
-    /// reference, use GetREF_to_COG().GetInverse()
-    virtual const ChFrame<>& GetFrame_REF_to_COG() const { return auxref_to_cog; }
+    /// Set the auxiliary reference frame with respect to the absolute frame.
+    /// This moves the entire body; the body COG is rigidly moved as well.
+    void SetFrame_REF_to_abs(const ChFrame<>& mfra);
 
-    /// Set the location of the auxiliary reference respect to COG,
-    /// and do not move the body absolute COG (the COG is fixed).
-    virtual void SetFrame_REF_to_COG(const ChFrame<>& mloc) { auxref_to_cog = mloc; }
-
-    /// Set the location of the COG respect to the auxiliary reference,
-    /// and move the body absolute COG (the REF is fixed).
-    /// Note! the position of contained ChMarker objects, if any, is
-    /// not changed respect to the reference!
-    virtual void SetFrame_COG_to_REF(const ChFrame<>& mloc);
-
-    /// Set the absolute location of the auxiliary reference,
-    /// moving the entire body. The body COG is rigidly moved as well.
-    virtual void SetFrame_REF_to_abs(const ChFrame<>& mfra);
-
-    /// Get the rigid body coordinate system that is used for
-    /// defining the collision shapes and the ChMarker objects, respect
-    /// to the absolute system.
-    /// In this ChBodyAuxRef class, differently form ChBody, this is
-    /// not necessarily the same reference of GetFrame_COG_to_abs().
+    /// Get the auxiliary reference frame with respect to the absolute frame.
+    /// Note that, in general, this is different from GetFrame_COG_to_abs().
     virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const override { return auxref_to_abs; }
+
+    /// Set the COG frame with respect to the auxiliary reference frame.
+    /// Note that this also moves the body absolute COG (the REF is fixed).
+    /// The position of contained ChMarker objects, if any, is not changed with respect
+    /// to the reference.
+    void SetFrame_COG_to_REF(const ChFrame<>& mloc);
+
+    /// Get the COG frame with respect to the auxiliary reference frame.
+    ChFrame<> GetFrame_COG_to_REF() const { return auxref_to_cog.GetInverse(); }
+
+    /// Set the auxiliary reference frame with respect to the COG frame.
+    /// Note that this does not move the body absolute COG (the COG is fixed).
+    void SetFrame_REF_to_COG(const ChFrame<>& mloc) { auxref_to_cog = mloc; }
+
+    /// Get the auxiliary reference frame with respect to the COG frame.
+    const ChFrame<>& GetFrame_REF_to_COG() const { return auxref_to_cog; }
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)

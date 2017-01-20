@@ -24,7 +24,8 @@ namespace chrono {
 /// Uses a numerical quadrature method to compute the definite integral.
 
 class ChApi ChFunction_Integrate : public ChFunction {
-    CH_RTTI(ChFunction_Integrate, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Integrate)
 
   private:
     std::shared_ptr<ChFunction> fa;

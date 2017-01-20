@@ -13,23 +13,10 @@
 #ifndef CHASSETLEVEL_H
 #define CHASSETLEVEL_H
 
-///////////////////////////////////////////////////
-//
-//   ChAssetLevel.h
-//
-//   Base class grouping assets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChMatrixDynamic.h"
 
-#include "assets/ChAsset.h"
-#include "core/ChFrame.h"
-#include "core/ChMatrixDynamic.h"
 namespace chrono {
 
 /// Base class for grouping assets in a level. The
@@ -40,8 +27,8 @@ namespace chrono {
 /// its parent level.
 
 class ChApi ChAssetLevel : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChAssetLevel, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChAssetLevel)
 
   protected:
     //
@@ -116,9 +103,6 @@ class ChApi ChAssetLevel : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

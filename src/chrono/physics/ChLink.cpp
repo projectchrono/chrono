@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChLink> a_registration_ChLink;
+//CH_FACTORY_REGISTER(ChLink)   // NO! abstract class!
 
 ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
     Body1 = NULL;
@@ -36,6 +36,9 @@ void ChLink::UpdateTime(double time) {
 void ChLink::Update(double time, bool update_assets) {
     // 1 -
     UpdateTime(time);
+
+    // This will update assets
+    ChPhysicsItem::Update(ChTime, update_assets);
 }
 
 void ChLink::Update(bool update_assets) {

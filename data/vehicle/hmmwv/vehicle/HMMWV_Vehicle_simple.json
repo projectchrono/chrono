@@ -1,13 +1,11 @@
 {
   "Name":     "HMMWV 17 bodies",
   "Type":     "Vehicle",
-  "Template": "Vehicle",
+  "Template": "WheeledVehicle",
 
   "Chassis":
   {
-    "Mass":     2086.524902,
-    "COM":      [0.055765, 0, 0.52349],
-    "Inertia":  [1078.52344, 2955.66050, 3570.20377]
+    "Input File":                "hmmwv/chassis/HMMWV_Chassis.json"
   },
 
   "Axles":
@@ -45,17 +43,5 @@
   {
     "Input File":           "hmmwv/driveline/HMMWV_DrivelineSimple.json",
     "Suspension Indexes":   [0, 1]
-  },
-
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
-  },
-
-  "Visualization":
-  {
-    "Mesh Filename":  "hmmwv/hmmwv_chassis.obj",
-    "Mesh Name":      "hmmwv_chassis_POV_geom"
   }
 }

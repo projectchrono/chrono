@@ -26,7 +26,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverAPGD> a_registration_ChSolverAPGD;
+CH_FACTORY_REGISTER(ChSolverAPGD)
 
 void ChSolverAPGD::ShurBvectorCompute(ChSystemDescriptor& sysd) {
     // ***TO DO*** move the following thirty lines in a short function ChSystemDescriptor::ShurBvectorCompute() ?
@@ -162,14 +162,14 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
         sysd.ShurComplementProduct(tmp, &gammaNew);  // Here tmp is equal to N*gammaNew;
         tmp.MatrScale(0.5);
         tmp.MatrInc(r);
-        obj1 = tmp.MatrDot(&gammaNew, &tmp);
+        obj1 = tmp.MatrDot(gammaNew, tmp);
 
         sysd.ShurComplementProduct(tmp, &y);  // Here tmp is equal to N*y;
         tmp.MatrScale(0.5);
         tmp.MatrInc(r);
-        obj2 = tmp.MatrDot(&y, &tmp);
+        obj2 = tmp.MatrDot(y, tmp);
         tmp.MatrSub(gammaNew, y);  // Here tmp is equal to gammaNew - y
-        obj2 = obj2 + tmp.MatrDot(&tmp, &g) + 0.5 * L * tmp.MatrDot(&tmp, &tmp);
+        obj2 = obj2 + tmp.MatrDot(tmp, g) + 0.5 * L * tmp.MatrDot(tmp, tmp);
 
         while (obj1 >= obj2) {
             // (11) L_k = 2 * L_k
@@ -188,14 +188,14 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
             sysd.ShurComplementProduct(tmp, &gammaNew);  // Here tmp is equal to N*gammaNew;
             tmp.MatrScale(0.5);
             tmp.MatrInc(r);
-            obj1 = tmp.MatrDot(&gammaNew, &tmp);
+            obj1 = tmp.MatrDot(gammaNew, tmp);
 
             sysd.ShurComplementProduct(tmp, &y);  // Here tmp is equal to N*y;
             tmp.MatrScale(0.5);
             tmp.MatrInc(r);
-            obj2 = tmp.MatrDot(&y, &tmp);
+            obj2 = tmp.MatrDot(y, tmp);
             tmp.MatrSub(gammaNew, y);  // Here tmp is equal to gammaNew - y
-            obj2 = obj2 + tmp.MatrDot(&tmp, &g) + 0.5 * L * tmp.MatrDot(&tmp, &tmp);
+            obj2 = obj2 + tmp.MatrDot(tmp, g) + 0.5 * L * tmp.MatrDot(tmp, tmp);
 
             // (14) endwhile
         }
@@ -235,7 +235,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
 
         // (26) if g' * (gamma_(k+1) - gamma_k) > 0
         tmp.MatrSub(gammaNew, gamma);
-        if (tmp.MatrDot(&tmp, &g) > 0) {
+        if (tmp.MatrDot(tmp, g) > 0) {
             // (27) y_(k+1) = gamma_(k+1)
             yNew.CopyFromMatrix(gammaNew);
 

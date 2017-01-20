@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -9,23 +8,11 @@
 // found in the LICENSE file at the top level of the distribution
 // and at http://projectchrono.org/license-chrono.txt.
 //
+// -----------------------------------------------------------------------
+//   Demo code about how to call Matlab from Chrono::Engine
+// -----------------------------------------------------------------------
 
-///////////////////////////////////////////////////
-//
-//   Demo code about
-//
-//     - how to call Matlab from Chrono::Engine
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "physics/ChSystem.h"
+#include "chrono/physics/ChSystem.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 
 // Use the namespace of Chrono

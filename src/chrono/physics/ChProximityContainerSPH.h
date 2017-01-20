@@ -62,7 +62,9 @@ class ChApi ChProximitySPH {
 /// as CPU typical linked list of ChProximitySPH objects.
 
 class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
-    CH_RTTI(ChProximityContainerSPH, ChProximityContainerBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChProximityContainerSPH)
 
   protected:
     std::list<ChProximitySPH*> proximitylist;

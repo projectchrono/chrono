@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/ChReissnerTire.h"
 
-#include "thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/document.h"
 
 namespace chrono {
 namespace vehicle {
@@ -71,6 +71,11 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
 
     std::vector<std::shared_ptr<fea::ChMaterialShellReissner>> m_materials;
 
+    double lugs_young;
+    double lugs_poisson;
+    double lugs_density;
+    double lugs_damping;
+
     unsigned int m_num_elements_bead;
     unsigned int m_num_layers_bead;
     std::vector<double> m_layer_thickness_bead;
@@ -93,6 +98,15 @@ class CH_VEHICLE_API ReissnerTire : public ChReissnerTire {
     std::vector<double> m_profile_t;
     std::vector<double> m_profile_x;
     std::vector<double> m_profile_y;
+
+    unsigned int m_num_lugs_copies;
+    unsigned int m_num_lugs;
+    std::vector<std::vector<double>> m_lugs_ua;
+    std::vector<std::vector<double>> m_lugs_ub;
+    std::vector<std::vector<double>> m_lugs_va;
+    std::vector<std::vector<double>> m_lugs_vb;
+    std::vector<std::vector<double>> m_lugs_ha;
+    std::vector<std::vector<double>> m_lugs_hb;
 };
 
 /// @} vehicle_wheeled_tire

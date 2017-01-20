@@ -15,10 +15,10 @@
 #ifndef CHFUNCT_BASE_H
 #define CHFUNCT_BASE_H
 
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
 #include <memory.h>
 #include <list>
 
@@ -44,8 +44,8 @@ namespace chrono {
 /// Get_y() method, in order to represent more complex functions.
 
 class ChApi ChFunction {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChFunction_base);
+
+    CH_FACTORY_TAG(ChFunction)
 
   public:
     /// Enumeration of function types.
@@ -69,7 +69,8 @@ class ChApi ChFunction {
         FUNCT_REPEAT,
         FUNCT_SEQUENCE,
         FUNCT_SIGMA,
-        FUNCT_SINE
+        FUNCT_SINE,
+        FUNCT_LAMBDA
     };
 
   public:
@@ -150,7 +151,7 @@ class ChApi ChFunction {
 
     /// Get the x and y position of handle, given identifier.
     /// If set mode, x and y values are stored. Return false if handle not found.
-    virtual int HandleAccess(int handle_id, double mx, double my, bool set_mode) { return TRUE; }
+    virtual bool HandleAccess(int handle_id, double mx, double my, bool set_mode) { return true; }
 
     /// Method to allow serialization of transient data to archives
     virtual void ArchiveOUT(ChArchiveOut& marchive);

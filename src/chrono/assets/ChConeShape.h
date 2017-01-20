@@ -12,8 +12,6 @@
 #ifndef CHOBJCONESHAPE_H
 #define CHOBJCONESHAPE_H
 
-
-
 #include "chrono/assets/ChVisualization.h"
 #include "chrono/geometry/ChCone.h"
 
@@ -23,8 +21,8 @@ namespace chrono {
 /// visualized in some way.
 
 class ChApi ChConeShape : public ChVisualization {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChConeShape, ChVisualization);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChConeShape)
 
   protected:
     //
@@ -76,9 +74,6 @@ class ChApi ChConeShape : public ChVisualization {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

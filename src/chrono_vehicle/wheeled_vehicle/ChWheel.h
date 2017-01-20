@@ -27,8 +27,10 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
+#include "chrono_vehicle/ChPart.h"
 
 /**
     @addtogroup vehicle_wheeled
@@ -49,9 +51,11 @@ namespace vehicle {
 /// spindle body owned by the suspension.
 /// A concrete wheel subsystem can optionally carry its own visualization assets
 /// (which are associated with the suspension's spindle body).
-class CH_VEHICLE_API ChWheel {
+class CH_VEHICLE_API ChWheel : public ChPart {
   public:
-    ChWheel() {}
+    ChWheel(const std::string& name  ///< [in] name of the subsystem
+            );
+
     virtual ~ChWheel() {}
 
     /// Get the wheel mass.
@@ -60,16 +64,27 @@ class CH_VEHICLE_API ChWheel {
     /// Get the wheel moments of inertia.
     virtual ChVector<> GetInertia() const = 0;
 
-    /// Get the wheel radius
+    /// Get the wheel radius (for visualization only).
     virtual double GetRadius() const { return 0; }
 
-    /// Get the wheel width
+    /// Get the wheel width (for visualization only).
     virtual double GetWidth() const { return 0; }
 
     /// Initialize this wheel subsystem.
     /// The wheel mass and inertia are used to increment those of the spindle.
     virtual void Initialize(std::shared_ptr<ChBody> spindle  ///< handle to the associated spindle body
                             );
+
+    /// Add visualization assets for the wheel subsystem.
+    /// This default implementation uses primitives.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the wheel subsystem.
+    virtual void RemoveVisualizationAssets() override;
+
+  protected:
+    std::shared_ptr<ChBody> m_spindle;             ///< associated spindle body
+    std::shared_ptr<ChCylinderShape> m_cyl_shape;  ///< visualization cylinder asset
 };
 
 /// Vector of handles to wheel subsystems.

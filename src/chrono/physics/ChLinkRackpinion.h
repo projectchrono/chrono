@@ -24,7 +24,9 @@ namespace chrono {
 /// given the teeth pressure angle.
 
 class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
-    CH_RTTI(ChLinkRackpinion, ChLinkMateGeneric);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkRackpinion)
 
   protected:
     double R;         ///< primitive radius of the pinion

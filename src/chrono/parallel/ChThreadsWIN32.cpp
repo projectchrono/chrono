@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,26 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChThreadsWIN32.cpp
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #if defined _WIN32
 
-#include <stdio.h>
-#include "parallel/ChThreadsWIN32.h"
+#include <cstdio>
 #include <Windows.h>
-#include "core/ChLog.h"
+
+#include "chrono/parallel/ChThreadsWIN32.h"
+#include "chrono/core/ChLog.h"
 
 namespace chrono {
 
@@ -94,7 +81,7 @@ void ChThreadsWIN32::waitForResponse(unsigned int* puiArgument0, unsigned int* p
 
     int last = -1;
 
-    DWORD res = WaitForMultipleObjects(m_completeHandles.size(), &m_completeHandles[0], FALSE, INFINITE);
+    DWORD res = WaitForMultipleObjects(m_completeHandles.size(), &m_completeHandles[0], 0, INFINITE);
     btAssert(res != WAIT_FAILED);
     last = res - WAIT_OBJECT_0;
 
@@ -174,6 +161,6 @@ void ChThreadsWIN32::startSPU() {
 void ChThreadsWIN32::stopSPU() {
 }
 
-}  // end namespace
+}  // end namespace chrono
 
-#endif  // end Windows platform
+#endif

@@ -21,7 +21,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChTexture.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/idler/ChSingleIdler.h"
 
 namespace chrono {
@@ -50,27 +50,16 @@ void ChSingleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
     m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
     m_wheel->GetCollisionModel()->BuildModel();
-
-    switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_wheel->GetMaterialSurface()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurface()->SetRestitution(m_restitution);
-            break;
-        case ChMaterialSurfaceBase::DEM:
-            m_wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            break;
-    }
-
-    // Add visualization of the wheel.
-    AddWheelVisualization();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChSingleIdler::AddWheelVisualization() {
+void ChSingleIdler::AddVisualizationAssets(VisualizationType vis) {
+    ChIdler::AddVisualizationAssets(vis);
+
+    if (vis != VisualizationType::PRIMITIVES)
+        return;
+
     double radius = GetWheelRadius();
     double width = GetWheelWidth();
 
@@ -83,6 +72,12 @@ void ChSingleIdler::AddWheelVisualization() {
     auto tex = std::make_shared<ChTexture>();
     tex->SetTextureFilename(chrono::GetChronoDataFile("bluwhite.png"));
     m_wheel->AddAsset(tex);
+}
+
+void ChSingleIdler::RemoveVisualizationAssets() {
+    ChIdler::RemoveVisualizationAssets();
+
+    m_wheel->GetAssets().clear();
 }
 
 }  // end namespace vehicle

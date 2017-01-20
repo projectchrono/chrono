@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChLinkSpring.h"
+#include "chrono/physics/ChLinkSpring.h"
 
 %}
  

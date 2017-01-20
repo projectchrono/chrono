@@ -8,10 +8,32 @@ option(ENABLE_MODULE_OPENGL "Enable the Chrono OpenGL module" OFF)
 # Return now if this module is not enabled
 
 if(NOT ENABLE_MODULE_OPENGL)
+  # Hide Chrono::OpenGL specific variables
+  mark_as_advanced(FORCE GLEW_INCLUDE_DIR)
+  mark_as_advanced(FORCE GLEW_LIBRARY)
+  mark_as_advanced(FORCE GLFW_INCLUDE_DIR)
+  mark_as_advanced(FORCE GLFW_LIBRARY)
+  mark_as_advanced(FORCE GLM_INCLUDE_DIR)
+  if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    mark_as_advanced(FORCE GLEW_DLL)
+    mark_as_advanced(FORCE GLFW_DLL)
+  endif()
+
   return()
 endif()
 
 message(STATUS "==== Chrono OpenGL module ====")
+
+# Show Chrono::OpenGL specific variables
+mark_as_advanced(CLEAR GLEW_INCLUDE_DIR)
+mark_as_advanced(CLEAR GLEW_LIBRARY)
+mark_as_advanced(CLEAR GLFW_INCLUDE_DIR)
+mark_as_advanced(CLEAR GLFW_LIBRARY)
+mark_as_advanced(CLEAR GLM_INCLUDE_DIR)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+  mark_as_advanced(CLEAR GLEW_DLL)
+  mark_as_advanced(CLEAR GLFW_DLL)
+endif()
 
 # ------------------------------------------------------------------------------
 # Dependencies for OpenGL module
@@ -42,7 +64,7 @@ ELSE()
 ENDIF()
 
 # ------------------------------------------------------------------------------
-# Collect all include directories necessary for the PARALLEL module
+# Collect all include directories necessary for the OpenGL module
 # ------------------------------------------------------------------------------
 
 SET(CH_OPENGL_INCLUDES
@@ -52,6 +74,13 @@ SET(CH_OPENGL_INCLUDES
 )
 
 INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
+
+IF(ENABLE_MODULE_PARALLEL)
+INCLUDE_DIRECTORIES(
+	${BLAZE_DIR}     
+	${BOOST_DIR}
+    ${THRUST_INCLUDE_DIR})
+ENDIF()
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -67,6 +96,8 @@ ADD_EXECUTABLE(embedfile embedfile.cpp)
 
 #All shaders are compiled into strings by embedfile.cpp
 SET(GLSL_SHADERS
+  bar_frag
+  bar_vert
   cloud_frag
   cloud_vert
   dot_frag
@@ -163,11 +194,14 @@ SET(CE_OpenGL_SHAPES_FILES
   shapes/ChOpenGLCloud.cpp
   shapes/ChOpenGLWires.cpp
   shapes/ChOpenGLText.cpp
+  shapes/ChOpenGLBars.cpp
   shapes/ChOpenGLOBJ.cpp
   shapes/obj/ChOpenGLOBJLoader.cpp
+  shapes/ChOpenGLMesh.h
   shapes/ChOpenGLCloud.h
   shapes/ChOpenGLWires.h
   shapes/ChOpenGLText.h
+  shapes/ChOpenGLBars.h
   shapes/ChOpenGLOBJ.h
   shapes/obj/ChOpenGLOBJLoader.h
   )
@@ -190,6 +224,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   ${CMAKE_BINARY_DIR}/resources/cloud_vert.h
   ${CMAKE_BINARY_DIR}/resources/dot_frag.h
   ${CMAKE_BINARY_DIR}/resources/dot_vert.h
+  ${CMAKE_BINARY_DIR}/resources/bar_frag.h
+  ${CMAKE_BINARY_DIR}/resources/bar_vert.h
   ${CMAKE_BINARY_DIR}/resources/sphere_frag.h
   ${CMAKE_BINARY_DIR}/resources/sphere_vert.h
   ${CMAKE_BINARY_DIR}/resources/box.h
@@ -199,8 +235,8 @@ SET(CE_OpenGL_RESOURCES_FILES
   )
 
 SET(CE_OpenGL_TINYOBJLOADER_FILES
-  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
-  ${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
   )
 
 SOURCE_GROUP("" FILES ${CE_OpenGL_BASE_FILES})
@@ -220,8 +256,6 @@ ELSE()
   SET(CE_OpenGL_BULLET_FILES "")
 ENDIF()
 
-INCLUDE_DIRECTORIES(${CUDA_TOOLKIT_INCLUDE})
-
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_opengl library
 # ------------------------------------------------------------------------------
@@ -234,23 +268,34 @@ ADD_LIBRARY(ChronoEngine_opengl SHARED
   ${CE_OpenGL_RESOURCES_FILES}
   ${CE_OpenGL_TINYOBJLOADER_FILES}
   ${CE_OpenGL_BULLET_FILES}
-)
+) 
 
-SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
-  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
-  COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL")
-
-TARGET_LINK_LIBRARIES(ChronoEngine_opengl
+SET(CE_OpenGL_LIBRARIES 
   ${GLEW_LIBRARY}
   ${GLFW_LIBRARY}
   ${OPENGL_LIBRARIES}
   ChronoEngine)
 
+SET(CE_OpenGL_FLAGS "${CH_CXX_FLAGS}")
+
+
+if(ENABLE_MODULE_PARALLEL)
+	SET(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_parallel)
+	SET(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
+endif()
+
+
+SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
+  COMPILE_FLAGS "${CE_OpenGL_FLAGS}"
+  LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+  COMPILE_DEFINITIONS "CH_API_COMPILE_OPENGL")
+
+TARGET_LINK_LIBRARIES(ChronoEngine_opengl ${CE_OpenGL_LIBRARIES})
+
 INSTALL(TARGETS ChronoEngine_opengl
   RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib)
+  LIBRARY DESTINATION lib64
+  ARCHIVE DESTINATION lib64)
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
     DESTINATION include/chrono_opengl

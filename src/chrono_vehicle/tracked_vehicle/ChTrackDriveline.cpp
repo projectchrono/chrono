@@ -26,7 +26,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackDriveline::ChTrackDriveline(const std::string& name) : m_name(name), m_gyration_mode(false) {
+ChTrackDriveline::ChTrackDriveline(const std::string& name) : ChPart(name), m_gyration_mode(false) {
 }
 
 }  // end namespace vehicle

@@ -1,4 +1,4 @@
-Four-bar linkage example (demo_fourbar.cpp)  {#tutorial_demo_fourbar}
+Four-bar linkage example (demo_IRR_fourbar.cpp)  {#tutorial_demo_fourbar}
 ==========================
 
 This tutorial is similar to the demo_crank example, 
@@ -17,5 +17,5 @@ Here you can also learn:
 -  use a direct solver instead of iterative solver, for 
    highest precision. 
 
-\include demo_fourbar.cpp
+\include demo_IRR_fourbar.cpp
 

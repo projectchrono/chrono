@@ -23,15 +23,14 @@
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
-#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/DeformableTerrain.h"
 
-#include "thirdparty/Easy_BMP/EasyBMP.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/Easy_BMP/EasyBMP.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -97,7 +96,8 @@ void DeformableTerrain::SetSoilParametersSCM(
     double mMohr_cohesion,  // Cohesion in, Pa, for shear failure
     double mMohr_friction,  // Friction angle (in degrees!), for shear failure
     double mJanosi_shear,   // J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-    double melastic_K       // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+    double melastic_K,      // elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+    double mdamping_R       // vertical damping R, per unit area (vertical speed proportional, it is zero in original SCM model)
     ) {
     m_ground->Bekker_Kphi = mBekker_Kphi;
     m_ground->Bekker_Kc = mBekker_Kc;
@@ -106,13 +106,18 @@ void DeformableTerrain::SetSoilParametersSCM(
     m_ground->Mohr_friction = mMohr_friction;
     m_ground->Janosi_shear = mJanosi_shear;
     m_ground->elastic_K = ChMax(melastic_K, mBekker_Kphi);
+    m_ground->damping_R = mdamping_R;
 }
 
 void DeformableTerrain::SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor   ///< growth of lateral volume respect to pressed volume
+                                 double mbulldozing_flow_factor,  ///< growth of lateral volume respect to pressed volume
+                                 int mbulldozing_erosion_n_iterations, ///< number of erosion refinements per timestep 
+                                 int mbulldozing_erosion_n_propagations ///< number of concentric vertex selections subject to erosion 
                                  ) {
     m_ground->bulldozing_erosion_angle = mbulldozing_erosion_angle;
     m_ground->bulldozing_flow_factor = mbulldozing_flow_factor;
+    m_ground->bulldozing_erosion_n_iterations = mbulldozing_erosion_n_iterations;
+    m_ground->bulldozing_erosion_n_propagations = mbulldozing_erosion_n_propagations;
 }
 
 void DeformableTerrain::SetAutomaticRefinement(bool mr) { 
@@ -129,6 +134,14 @@ void DeformableTerrain::SetAutomaticRefinementResolution(double mr) {
 
 double DeformableTerrain::GetAutomaticRefinementResolution() const {
     return m_ground->refinement_resolution;
+}
+
+void DeformableTerrain::SetTestHighOffset(double mr) {
+    m_ground->test_high_offset = mr;
+}
+
+double DeformableTerrain::GetTestHighOffset() const {
+    return m_ground->test_high_offset;
 }
 
 // Set the color plot type.
@@ -179,6 +192,8 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     do_bulldozing = false;
     bulldozing_flow_factor = 1.2;
     bulldozing_erosion_angle = 40;
+    bulldozing_erosion_n_iterations = 3;
+    bulldozing_erosion_n_propagations = 10;
 
     do_refinement = false;
     refinement_resolution = 0.01;
@@ -196,6 +211,9 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
     plot_type = DeformableTerrain::PLOT_NONE;
     plot_v_min = 0;
     plot_v_max = 0.2;
+
+    test_high_offset = 0.1;
+    test_low_offset = 0.5;
 
     last_t = 0;
 }
@@ -401,6 +419,9 @@ void DeformableSoil::SetupAuxData() {
     p_vertices_initial= vertices;
     p_speeds.resize( vertices.size());
     p_step_plastic_flow.resize( vertices.size());
+    p_level.resize( vertices.size());
+    p_level_initial.resize( vertices.size());
+    p_hit_level.resize( vertices.size());
     p_sinkage.resize( vertices.size());
     p_sinkage_plastic.resize( vertices.size());
     p_sinkage_elastic.resize( vertices.size());
@@ -409,8 +430,14 @@ void DeformableSoil::SetupAuxData() {
     p_sigma.resize( vertices.size());
     p_sigma_yeld.resize( vertices.size());
     p_tau.resize( vertices.size());  
+    p_massremainder.resize( vertices.size());  
     p_id_island.resize (vertices.size());
     p_erosion.resize(vertices.size());
+
+    for (int i=0; i< vertices.size(); ++i) {
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
+        p_level_initial[i] = p_level[i];
+    }
 
     connected_vertexes.resize( vertices.size() );
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
@@ -426,7 +453,7 @@ void DeformableSoil::SetupAuxData() {
 }
 
 // Reset the list of forces, and fills it with forces from a soil contact model.
-void DeformableSoil::UpdateInternalForces() {
+void DeformableSoil::ComputeInternalForces() {
 
     // Readibility aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
@@ -469,27 +496,38 @@ void DeformableSoil::UpdateInternalForces() {
     // Perform ray-hit test to detect the contact point sinkage
     // 
     
-    collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
-
+    
+//#pragma omp parallel for
     for (int i=0; i< vertices.size(); ++i) {
+        collision::ChCollisionSystem::ChRayhitResult mrayhit_result;
         p_sigma[i] = 0;
         p_sinkage_elastic[i] = 0;
         p_step_plastic_flow[i]=0;
         p_erosion[i] = false;
 
-        ChVector<> to   = vertices[i] +N*0.01; 
-        ChVector<> from = to - N*0.5;
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
 
+        ChVector<> to   = vertices[i] +N*test_high_offset; 
+        ChVector<> from = to - N*test_low_offset;
+        
+        p_hit_level[i] = 1e9;
+        double p_hit_offset = 1e9;
+
+        // DO THE RAY-HIT TEST HERE:
         this->GetSystem()->GetCollisionSystem()->RayHit(from,to,mrayhit_result);
-        if (mrayhit_result.hit == true) {
-            double test_sinkage = - Vdot(( mrayhit_result.abs_hitPoint - p_vertices_initial[i] ), N);
 
-            if (ChContactable* contactable = dynamic_cast<ChContactable*>(mrayhit_result.hitModel->GetPhysicsItem())) {
-                p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
-            }
-            
+        if (mrayhit_result.hit == true) {
+
+            ChContactable* contactable = mrayhit_result.hitModel->GetContactable();
+
+            p_hit_level[i] = plane.TransformParentToLocal(mrayhit_result.abs_hitPoint).y;
+            p_hit_offset = -p_hit_level[i] + p_level_initial[i];
+
+            p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
+
             ChVector<> T = -p_speeds[i];
             T = plane.TransformDirectionParentToLocal(T);
+            double Vn = -T.y;
             T.y=0;
             T = plane.TransformDirectionLocalToParent(T);
             T.Normalize();   
@@ -499,13 +537,20 @@ void DeformableSoil::UpdateInternalForces() {
             ChVector<> Ft;
 
             // Elastic try:
-            p_sigma[i] = elastic_K * (test_sinkage - p_sinkage_plastic[i]);
+            p_sigma[i] = elastic_K * (p_hit_offset - p_sinkage_plastic[i]);   
 
             // Handle unilaterality:
             if (p_sigma[i] <0) {
                 p_sigma[i] =0;
             } else {
-                p_sinkage[i] = test_sinkage;
+                
+                // add compressive speed-proportional damping 
+                //if (Vn < 0) {
+                //    p_sigma[i] += -Vn*this->damping_R;
+                //}
+                
+                p_sinkage[i] = p_hit_offset;
+                p_level[i]   = p_hit_level[i];
 
                 // Accumulate shear for Janosi-Hanamoto
                 p_kshear[i] += Vdot(p_speeds[i],-T) * this->GetSystem()->GetStep();
@@ -523,6 +568,11 @@ void DeformableSoil::UpdateInternalForces() {
 
                 p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
 
+                // add compressive speed-proportional damping (not clamped by pressure yeld)
+                //if (Vn < 0) {
+                    p_sigma[i] += -Vn*this->damping_R;
+                //}
+
                 // Mohr-Coulomb
                 double tau_max = this->Mohr_cohesion + p_sigma[i] * tan(this->Mohr_friction*CH_C_DEG_TO_RAD);
 
@@ -532,7 +582,7 @@ void DeformableSoil::UpdateInternalForces() {
                 Fn = N * p_area[i] * p_sigma[i];
                 Ft = T * p_area[i] * p_tau[i];
 
-                if (ChBody* rigidbody = dynamic_cast<ChBody*>(mrayhit_result.hitModel->GetPhysicsItem())) {
+                if (ChBody* rigidbody = dynamic_cast<ChBody*>(contactable)) {
                     // [](){} Trick: no deletion for this shared ptr, since 'rigidbody' was not a new ChBody() 
                     // object, but an already used pointer because mrayhit_result.hitModel->GetPhysicsItem() 
                     // cannot return it as shared_ptr, as needed by the ChLoadBodyForce:
@@ -541,7 +591,16 @@ void DeformableSoil::UpdateInternalForces() {
                         new ChLoadBodyForce(srigidbody, Fn + Ft, false, vertices[i], false));
                     this->Add(mload);
                 }
-
+                if (ChLoadableUV* surf = dynamic_cast<ChLoadableUV*>(contactable)) {
+                    // [](){} Trick: no deletion for this shared ptr
+                    std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*){});
+                    std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(
+                        new ChLoad<ChLoaderForceOnSurface>(ssurf));
+                    mload->loader.SetForce( Fn +Ft );
+                    mload->loader.SetApplication(0.5, 0.5); //***TODO*** set UV, now just in middle
+                    this->Add(mload);
+                }
+                
                 // Update mesh representation
                 vertices[i] = p_vertices_initial[i] - N * p_sinkage[i];
 
@@ -559,6 +618,9 @@ void DeformableSoil::UpdateInternalForces() {
     if (do_refinement) {  
         
         std::vector<std::vector<double>*> aux_data_double; 
+        aux_data_double.push_back(&p_level);
+        aux_data_double.push_back(&p_level_initial);
+        aux_data_double.push_back(&p_hit_level);
         aux_data_double.push_back(&p_sinkage);
         aux_data_double.push_back(&p_sinkage_plastic);
         aux_data_double.push_back(&p_sinkage_elastic);
@@ -567,7 +629,8 @@ void DeformableSoil::UpdateInternalForces() {
         aux_data_double.push_back(&p_area);
         aux_data_double.push_back(&p_sigma);
         aux_data_double.push_back(&p_sigma_yeld);
-        aux_data_double.push_back(&p_tau); 
+        aux_data_double.push_back(&p_tau);
+        aux_data_double.push_back(&p_massremainder);
         std::vector<std::vector<int>*> aux_data_int;  
         aux_data_int.push_back(&p_id_island);
         std::vector<std::vector<bool>*> aux_data_bool; 
@@ -673,6 +736,7 @@ void DeformableSoil::UpdateInternalForces() {
             int n_vert_island = 1;
             double tot_step_flow_island = p_area[*fillseed] * p_step_plastic_flow[*fillseed] * this->GetSystem()->GetStep();
             double tot_Nforce_island = p_area[*fillseed] * p_sigma[*fillseed];
+            double tot_area_island = p_area[*fillseed];
             fill_front.insert(*fillseed);
             p_id_island[*fillseed] = id_island;
             touched_vertexes.erase(fillseed);
@@ -685,6 +749,7 @@ void DeformableSoil::UpdateInternalForces() {
                             ++n_vert_island;
                             tot_step_flow_island += p_area[ivconnect] * p_step_plastic_flow[ivconnect] * this->GetSystem()->GetStep();
                             tot_Nforce_island += p_area[ivconnect] * p_sigma[ivconnect];
+                            tot_area_island += p_area[ivconnect];
                             fill_front_2.insert(ivconnect);
                             p_id_island[ivconnect] = id_island;
                             touched_vertexes.erase(ivconnect);
@@ -704,19 +769,26 @@ void DeformableSoil::UpdateInternalForces() {
 
             // Raise the boundary because of material flow (it gives a sharp spike around the
             // island boundary, but later we'll use the erosion algorithm to smooth it out)
-            double tot_length_boundary = (double)boundary.size() * sqrt(0.5*tot_area_boundary / (double)boundary.size() ); // approx.
-            double tot_width_boundary = tot_area_boundary/tot_length_boundary;
-            
+
             for (auto ibv : boundary) {
-                double raise_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
-                vertices[ibv]           += N * raise_y;
-                p_vertices_initial[ibv] += N * raise_y;
+                double d_y = bulldozing_flow_factor * ((p_area[ibv]/tot_area_boundary) *  (1/p_area[ibv]) * tot_step_flow_island);
+                double clamped_d_y = d_y; // ChMin(d_y, ChMin(p_hit_level[ibv]-p_level[ibv], test_high_offset) );
+                if (d_y > p_hit_level[ibv]-p_level[ibv]) {
+                    p_massremainder[ibv] += d_y - (p_hit_level[ibv]-p_level[ibv]);
+                    clamped_d_y = p_hit_level[ibv]-p_level[ibv];
+                }
+                p_level[ibv]            += clamped_d_y;
+                p_level_initial[ibv]    += clamped_d_y;
+                vertices[ibv]           += N * clamped_d_y;
+                p_vertices_initial[ibv] += N * clamped_d_y;
             }
 
             domain_boundaries.insert(boundary.begin(), boundary.end());
 
         }// end for islands
-
+ //***TEST***
+//int mm = p_massremainder.size();
+//p_massremainder.clear();p_massremainder.resize(mm);
 
         // Erosion domain area select, by topologically dilation of all the 
         // boundaries of the islands:
@@ -740,20 +812,106 @@ void DeformableSoil::UpdateInternalForces() {
         // Erosion smoothing algorithm on domain
         for (int ismo = 0; ismo <3; ++ismo) {
             for (auto is : domain_erosion) {
-                double my = vertices[is].y;
                 for (auto ivc : connected_vertexes[is]) {
                     ChVector<> vis = this->plane.TransformParentToLocal(vertices[is]);
+                    // flow remainder material 
+                    if (true) {
+                        if (p_massremainder[is]>p_massremainder[ivc]) {
+                            double clamped_d_y_i;
+                            double clamped_d_y_c;
+ 
+                            // if i higher than c: clamp c upward correction as it might invalidate 
+                            // the ceiling constraint, if collision is nearby
+                            double d_y_c = (p_massremainder[is]-p_massremainder[ivc])* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
+                            clamped_d_y_c = d_y_c; 
+                            if (d_y_c > p_hit_level[ivc]-p_level[ivc]) {
+                                p_massremainder[ivc] += d_y_c - (p_hit_level[ivc]-p_level[ivc]);
+                                clamped_d_y_c = p_hit_level[ivc]-p_level[ivc];
+                            }
+                            double d_y_i = - d_y_c * p_area[ivc]/p_area[is];
+                            clamped_d_y_i = d_y_i;
+                            if (p_massremainder[is] >  -d_y_i) {
+                                p_massremainder[is] -= -d_y_i;
+                                clamped_d_y_i = 0;
+                            } else
+                            if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] >0)) {
+                                p_massremainder[is] = 0;
+                                clamped_d_y_i = d_y_i + p_massremainder[is];
+                            }
+                            
+                            // correct vertexes
+                            p_level[ivc]            += clamped_d_y_c;
+                            p_level_initial[ivc]    += clamped_d_y_c;
+                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+
+                            p_level[is]             += clamped_d_y_i;
+                            p_level_initial[is]     += clamped_d_y_i;
+                            vertices[is]            += N * clamped_d_y_i;
+                            p_vertices_initial[is]  += N * clamped_d_y_i;      
+                        }
+                    }
+                    // smooth
                     if (p_sigma[ivc] == 0) {
                         ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
                         ChVector<> vdist = vic-vis;
                         vdist.y=0;
                         double ddist = vdist.Length();
-                        double dy = my - vertices[ivc].y;
+                        double dy = p_level[is] + p_massremainder[is]  - p_level[ivc] - p_massremainder[ivc];
                         double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
-                        if (dy>dy_lim) {
-                            ChVector<> DV = ((dy-dy_lim)*0.5/(double)connected_vertexes[is].size()) * this->plane.TransformDirectionLocalToParent(VECT_Y);
-                            vertices[is]  -= DV;
-                            vertices[ivc] += DV;
+                        if (fabs(dy)>dy_lim) {
+                            double clamped_d_y_i;
+                            double clamped_d_y_c;
+                            if (dy > 0) { 
+                                // if i higher than c: clamp c upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_c = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_c = d_y_c; //clamped_d_y_c = ChMin(d_y_c, p_hit_level[ivc]-p_level[ivc] );
+                                if (d_y_c > p_hit_level[ivc]-p_level[ivc]) {
+                                    p_massremainder[ivc] += d_y_c - (p_hit_level[ivc]-p_level[ivc]);
+                                    clamped_d_y_c = p_hit_level[ivc]-p_level[ivc];
+                                }
+                                double d_y_i = - d_y_c * p_area[ivc]/p_area[is];
+                                clamped_d_y_i = d_y_i;
+                                if (p_massremainder[is] >  -d_y_i) {
+                                    p_massremainder[is] -= -d_y_i;
+                                    clamped_d_y_i = 0;
+                                } else
+                                if ((p_massremainder[is] < -d_y_i) && (p_massremainder[is] >0)) {
+                                    p_massremainder[is] = 0;
+                                    clamped_d_y_i = d_y_i + p_massremainder[is];
+                                }
+                            } else {
+                                // if c higher than i: clamp i upward correction as it might invalidate 
+                                // the ceiling constraint, if collision is nearby
+                                double d_y_i = (fabs(dy)-dy_lim)* (1/(double)connected_vertexes[is].size()) *  p_area[is]/(p_area[is]+p_area[ivc]);
+                                clamped_d_y_i = d_y_i; 
+                                if (d_y_i > p_hit_level[is]-p_level[is]) {
+                                    p_massremainder[is] += d_y_i - (p_hit_level[is]-p_level[is]);
+                                    clamped_d_y_i = p_hit_level[is]-p_level[is];
+                                }
+                                double d_y_c = - d_y_i * p_area[is]/p_area[ivc];
+                                clamped_d_y_c = d_y_c;
+                                if (p_massremainder[ivc] >  -d_y_c) {
+                                    p_massremainder[ivc] -= -d_y_c;
+                                    clamped_d_y_c = 0;
+                                } else
+                                if ((p_massremainder[ivc] < -d_y_c) && (p_massremainder[ivc] >0)) {
+                                    p_massremainder[ivc] = 0;
+                                    clamped_d_y_c = d_y_c + p_massremainder[ivc];
+                                }
+                            }
+
+                            // correct vertexes
+                            p_level[ivc]            += clamped_d_y_c;
+                            p_level_initial[ivc]    += clamped_d_y_c;
+                            vertices[ivc]           += N * clamped_d_y_c;
+                            p_vertices_initial[ivc] += N * clamped_d_y_c;
+
+                            p_level[is]             += clamped_d_y_i;
+                            p_level_initial[is]     += clamped_d_y_i;
+                            vertices[is]            += N * clamped_d_y_i;
+                            p_vertices_initial[is]  += N * clamped_d_y_i;      
                         }
                     }
                 }
@@ -772,6 +930,12 @@ void DeformableSoil::UpdateInternalForces() {
         for (size_t iv = 0; iv< vertices.size(); ++iv) {
             ChColor mcolor;
             switch (plot_type) {
+                case DeformableTerrain::PLOT_LEVEL:
+                    mcolor = ChColor::ComputeFalseColor(p_level[iv], plot_v_min, plot_v_max);
+                    break;
+                case DeformableTerrain::PLOT_LEVEL_INITIAL:
+                    mcolor = ChColor::ComputeFalseColor(p_level_initial[iv], plot_v_min, plot_v_max);
+                    break;
                 case DeformableTerrain::PLOT_SINKAGE:
                     mcolor = ChColor::ComputeFalseColor(p_sinkage[iv], plot_v_min, plot_v_max);
                     break;
@@ -795,6 +959,9 @@ void DeformableSoil::UpdateInternalForces() {
                     break;
                 case DeformableTerrain::PLOT_SHEAR:
                     mcolor = ChColor::ComputeFalseColor(p_tau[iv], plot_v_min, plot_v_max);
+                    break;
+                case DeformableTerrain::PLOT_MASSREMAINDER:
+                    mcolor = ChColor::ComputeFalseColor(p_massremainder[iv], plot_v_min, plot_v_max);
                     break;
                 case DeformableTerrain::PLOT_ISLAND_ID:
                     mcolor = ChColor(0,0,1);

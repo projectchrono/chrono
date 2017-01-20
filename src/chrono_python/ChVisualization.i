@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChVisualization.h"
+#include "chrono/assets/ChVisualization.h"
 
 using namespace chrono;
 

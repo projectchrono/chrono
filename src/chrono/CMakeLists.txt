@@ -28,13 +28,14 @@ include_directories(${CH_INCLUDES})
 
 set(ChronoEngine_core_SOURCES
     core/ChLog.cpp
-    core/ChClassRegister.cpp
+    core/ChClassFactory.cpp
     core/ChFileutils.cpp
     core/ChStream.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
     core/ChCoordsys.cpp
     core/ChLinkedListMatrix.cpp
+    core/ChCSR3Matrix.cpp
     core/ChMapMatrix.cpp
     core/ChQuadrature.cpp
     core/ChBezierCurve.cpp
@@ -44,7 +45,7 @@ set(ChronoEngine_core_SOURCES
 set(ChronoEngine_core_HEADERS
     core/ChApiCE.h
     core/ChChrono.h
-    core/ChClassRegister.h
+    core/ChClassFactory.h
     core/ChCoordsys.h
     core/ChException.h
     core/ChFrame.h
@@ -61,7 +62,6 @@ set(ChronoEngine_core_HEADERS
     core/ChVectorDynamic.h
     core/ChPlatform.h
     core/ChQuaternion.h
-    core/ChRunTimeType.h
     core/ChFileutils.h
     core/ChRealtimeStep.h
     core/ChStream.h
@@ -70,14 +70,16 @@ set(ChronoEngine_core_HEADERS
     core/ChVector.h
     core/ChVector2.h
     core/ChSparseMatrix.h
+    core/ChCSR3Matrix.h
+    core/ChAlignedAllocator.h
     core/ChLinkedListMatrix.h
     core/ChMapMatrix.h
-    core/ChWrapHashmap.h
     core/ChDistribution.h
     core/ChQuadrature.h
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
+	core/ChBitmaskEnums.h
     )
 
 source_group(core FILES
@@ -119,9 +121,9 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkDistance.cpp
     physics/ChLinkMasked.cpp
     physics/ChLinkMarkers.cpp
-    physics/ChLinkNumdiff.cpp
     physics/ChLinkLock.cpp
     physics/ChLinkBrake.cpp
+    physics/ChLinkBushing.cpp
     physics/ChLinkEngine.cpp
     physics/ChLinkGear.cpp
     physics/ChLinkPulley.cpp
@@ -130,7 +132,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkScrew.cpp
     physics/ChLinkSpring.cpp
     physics/ChLinkSpringCB.cpp
-    physics/ChLinkWheel.cpp
+    physics/ChLinkRotSpringCB.cpp
     physics/ChLinkClearance.cpp
     physics/ChLinkPointSpline.cpp
     physics/ChLinkTrajectory.cpp
@@ -209,6 +211,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkBase.h
     physics/ChLink.h
     physics/ChLinkBrake.h
+    physics/ChLinkBushing.h
     physics/ChLinkDistance.h
     physics/ChLinkEngine.h
     physics/ChLinkForce.h
@@ -218,7 +221,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
     physics/ChLinkMasked.h
-    physics/ChLinkNumdiff.h
     physics/ChLinkPneumaticActuator.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
@@ -226,8 +228,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkScrew.h
     physics/ChLinkSpring.h
     physics/ChLinkSpringCB.h
+    physics/ChLinkRotSpringCB.h
     physics/ChLinkTrajectory.h
-    physics/ChLinkWheel.h
     physics/ChLinkClearance.h
     physics/ChLinkMate.h
     physics/ChLinkRackpinion.h
@@ -278,16 +280,16 @@ set(ChronoEngine_physics_HEADERS
     physics/ChInertiaUtils.h
     physics/ChContactable.h
     physics/ChContactTuple.h
-	  physics/ChLoadable.h
-	  physics/ChLoader.h
-	  physics/ChLoaderU.h
-	  physics/ChLoaderUV.h
-	  physics/ChLoaderUVW.h
-	  physics/ChLoad.h
-	  physics/ChLoadsXYZnode.h
-	  physics/ChLoadsBody.h
-	  physics/ChLoadBodyMesh.h
-	  physics/ChLoadContainer.h
+    physics/ChLoadable.h
+    physics/ChLoader.h
+    physics/ChLoaderU.h
+    physics/ChLoaderUV.h
+    physics/ChLoaderUVW.h
+    physics/ChLoad.h
+    physics/ChLoadsXYZnode.h
+    physics/ChLoadsBody.h
+    physics/ChLoadBodyMesh.h
+    physics/ChLoadContainer.h
     )
 
 source_group(physics FILES
@@ -372,6 +374,7 @@ set(ChronoEngine_assets_SOURCES
     assets/ChPathShape.cpp
     assets/ChLineShape.cpp
     assets/ChEmitterAsset.cpp
+    assets/ChPointPointDrawing.cpp
     )
 
 set(ChronoEngine_assets_HEADERS
@@ -399,6 +402,7 @@ set(ChronoEngine_assets_HEADERS
     assets/ChPathShape.h
     assets/ChLineShape.h
     assets/ChEmitterAsset.h
+    assets/ChPointPointDrawing.h
     )
 
 source_group(assets FILES
@@ -505,6 +509,7 @@ set(ChronoEngine_timestepper_HEADERS
     timestepper/ChTimestepperHHT.h
     timestepper/ChStaticAnalysis.h
     timestepper/ChAssemblyAnalysis.h
+	timestepper/ChUpdateFlags.h
     )
 
 source_group(timestepper FILES
@@ -596,8 +601,12 @@ set(ChronoEngine_motion_functions_HEADERS
     motion_functions/ChFunction_Repeat.h
     motion_functions/ChFunction_Sequence.h
     motion_functions/ChFunction_Sigma.h
-    motion_functions/ChFunction_Sine.h
-    )
+    motion_functions/ChFunction_Sine.h)
+
+if(CH_CXX14)
+  set(ChronoEngine_motion_functions_HEADERS ${ChronoEngine_motion_functions_HEADERS}
+      motion_functions/ChFunction_Lambda.h)
+endif()
 
 source_group(motion_functions FILES
     ${ChronoEngine_motion_functions_SOURCES}
@@ -643,8 +652,6 @@ set(ChronoEngine_solver_SOURCES
     solver/ChConstraintTwoGeneric.cpp
     solver/ChConstraintTwoGenericBoxed.cpp
     solver/ChConstraintTwoBodies.cpp
-    solver/ChConstraintNodeFrictionT.cpp
-    solver/ChConstraintNodeContactN.cpp
     solver/ChConstraintThree.cpp
     solver/ChConstraintThreeGeneric.cpp
     solver/ChConstraintThreeBBShaft.cpp
@@ -662,8 +669,6 @@ set(ChronoEngine_solver_SOURCES
 
 set(ChronoEngine_solver_HEADERS
     solver/ChConstraint.h
-    solver/ChConstraintNodeContactN.h
-    solver/ChConstraintNodeFrictionT.h
     solver/ChConstraintThree.h
     solver/ChConstraintThreeBBShaft.h
     solver/ChConstraintThreeGeneric.h
@@ -919,6 +924,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChUtilsValidation.cpp
     utils/ChProfiler.cpp
     utils/ChFilters.cpp
+    utils/ChCompositeInertia.cpp
     )
 
 set(ChronoEngine_utils_HEADERS
@@ -931,11 +937,22 @@ set(ChronoEngine_utils_HEADERS
     utils/ChUtilsValidation.h
     utils/ChProfiler.h
     utils/ChFilters.h
+    utils/ChCompositeInertia.h
 )
 
 source_group(utils FILES
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS})
+
+# TinyObj Group
+
+set(ChronoEngine_tiny_obj_FILES
+  ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
+  ../chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
+  )
+
+source_group(utils\\tiny_obj FILES
+    ${ChronoEngine_tiny_obj_FILES})
 
 # Collect all source and header files for the ChronoEngine library
 
@@ -976,6 +993,7 @@ set(ChronoEngine_FILES
     ${ChronoEngine_collision_gimpact_HEADERS}
     ${ChronoEngine_utils_SOURCES}
     ${ChronoEngine_utils_HEADERS}
+    ${ChronoEngine_tiny_obj_FILES}
     )
 
 # Add the ChronoEngine library to the project
@@ -987,7 +1005,6 @@ endif()
 
 # Set some custom properties of this target
 set_target_properties(ChronoEngine PROPERTIES
-    COMPILE_FLAGS "${CH_CXX_FLAGS}"
     LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
     COMPILE_DEFINITIONS "CH_API_COMPILE")
 
@@ -998,8 +1015,8 @@ endif()
 # Install the main ChronoEngine library
 install(TARGETS ChronoEngine
     RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
-    ARCHIVE DESTINATION lib)
+    LIBRARY DESTINATION lib64
+    ARCHIVE DESTINATION lib64)
 
 # Install all header files for the main ChronoEngine library 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/

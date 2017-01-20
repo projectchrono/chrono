@@ -12,8 +12,8 @@
 #ifndef CHCOLORASSET_H
 #define CHCOLORASSET_H
 
-#include "assets/ChAsset.h"
-#include "assets/ChColor.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/assets/ChColor.h"
 
 namespace chrono {
 
@@ -24,8 +24,8 @@ namespace chrono {
 /// able to recognize it and implement the proper translation.
 
 class ChApi ChColorAsset : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChColorAsset, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChColorAsset)
 
   public:
     ChColorAsset() : fading(0) {}
@@ -77,6 +77,6 @@ class ChApi ChColorAsset : public ChAsset {
     }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -15,7 +15,7 @@
 #ifndef CHC_LINEPOLY_H
 #define CHC_LINEPOLY_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 
@@ -25,8 +25,9 @@ namespace geometry {
 /// Geometric object representing a polygonal line in 3D space, controlled by control points.
 
 class ChApi ChLinePoly : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinePoly, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinePoly)
 
   private:
     std::vector<ChVector<> > points;  ///< control points
@@ -55,7 +56,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
 
     /// Gets the number of control points
     size_t Get_numpoints() const;
@@ -68,7 +69,7 @@ class ChApi ChLinePoly : public ChLine {
     ChVector<> Get_point(size_t mnum) const;
 
     /// Set the n-th control point
-    int Set_point(int mnum, ChVector<> mpoint);
+    bool Set_point(int mnum, ChVector<> mpoint);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {

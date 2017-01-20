@@ -1,16 +1,11 @@
-Math operations in Chrono (demo_math.cpp) {#tutorial_demo_math}
+Math operations in Chrono (demo_CH_math.cpp) {#tutorial_demo_math}
 ==========================
-
 
 Tutorial on main mathematical tools:
 - vectors
 - quaternions
 - matrices
 
-
 No GUI: only text output. 
 
-
-
-\include demo_math.cpp
-
+\include demo_CH_math.cpp

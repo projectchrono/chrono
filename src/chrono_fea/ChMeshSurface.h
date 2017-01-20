@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHMESHSURFACE_H
 #define CHMESHSURFACE_H
@@ -23,18 +25,18 @@ namespace fea {
 class ChMesh;
 
 /// Class which defines a surface for a mesh FEA elements.
-/// The contact surface is a collection of pointers to  ChLoadableUV objects, those can 
+/// The contact surface is a collection of pointers to  ChLoadableUV objects, those can
 /// be shells in the mesh, or proxies to faces of solid elements such as ChFaceTetra_4.
 class ChApiFea ChMeshSurface {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChMeshSurface);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChMeshSurface)
 
   public:
     ChMeshSurface(ChMesh* parentmesh = 0) { mmesh = parentmesh; }
 
     virtual ~ChMeshSurface() {}
 
-    // 
+    //
     // FUNCTIONS
     //
 
@@ -49,7 +51,7 @@ class ChApiFea ChMeshSurface {
 
     /// Add a single mesh face.
     /// Beware, it does not check for double insertion of the same face.
-    virtual void AddFace(std::shared_ptr<ChLoadableUV> mface) {faces.push_back(mface);}
+    virtual void AddFace(std::shared_ptr<ChLoadableUV> mface) { faces.push_back(mface); }
 
     /// Add multiple faces of FEM elements given a set of nodes at vertexes.
     /// It scans all the finite elements already added in the parent ChMesh, and
@@ -76,7 +78,7 @@ class ChApiFea ChMeshSurface {
     ChMesh* mmesh;
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

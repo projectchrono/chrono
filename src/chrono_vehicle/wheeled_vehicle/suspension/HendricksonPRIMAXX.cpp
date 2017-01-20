@@ -20,7 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/HendricksonPRIMAXX.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -50,7 +50,7 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendrick
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

@@ -24,7 +24,7 @@
 // All units SI.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 #include <vector>
 
@@ -38,7 +38,7 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-#include "models/vehicle/hmmwv/HMMWV.h"
+#include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -63,8 +63,8 @@ double terrainLength = 16.0;  // size in X direction
 double terrainWidth = 8.0;    // size in Y direction
 
 // Divisions (X and Y)
-int divLength = 1024;
-int divWidth = 512;
+int divLength = 128;//1024;
+int divWidth = 64;//512;
 
 // -----------------------------------------------------------------------------
 // Vehicle parameters
@@ -79,13 +79,13 @@ enum TerrainType { DEFORMABLE_SOIL, RIGID_SOIL };
 TerrainType terrain_type = DEFORMABLE_SOIL;
 
 // Type of powertrain model (SHAFTS, SIMPLE)
-PowertrainModelType powertrain_model = SHAFTS;
+PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
 // Drive type (FWD, RWD, or AWD)
-DrivelineType drive_type = AWD;
+DrivelineType drive_type = DrivelineType::AWD;
 
 // Chassis visualization (MESH, PRIMITIVES, NONE)
-VisualizationType chassis_vis = NONE;
+VisualizationType chassis_vis = VisualizationType::NONE;
 
 // Initial vehicle position and orientation
 ChVector<> initLoc(-5, -2, 0.6);
@@ -198,13 +198,15 @@ int main(int argc, char* argv[]) {
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
     my_hmmwv.SetChassisFixed(false);
-    my_hmmwv.SetChassisVis(chassis_vis);
-    my_hmmwv.SetWheelVis(wheel_type == CYLINDRICAL ? MESH : NONE);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
     my_hmmwv.SetDriveType(drive_type);
-    my_hmmwv.SetTireType(RIGID);
+    my_hmmwv.SetTireType(TireModelType::RIGID);
     my_hmmwv.Initialize();
+
+    VisualizationType wheel_vis = (wheel_type == CYLINDRICAL) ? VisualizationType::MESH : VisualizationType::NONE;
+    my_hmmwv.SetChassisVisualizationType(chassis_vis);
+    my_hmmwv.SetWheelVisualizationType(wheel_vis);
 
     ChSystem* system = my_hmmwv.GetSystem();
 
@@ -242,11 +244,20 @@ int main(int argc, char* argv[]) {
                                            0,     // Mohr cohesive limit (Pa)
                                            30,    // Mohr friction limit (degrees)
                                            0.01,  // Janosi shear coefficient (m)
-                                           2e8    // Elastic stiffness (Pa/m), before plastic yeld
+                                           2e8,   // Elastic stiffness (Pa/m), before plastic yeld
+                                           3e4    // Damping (Pa s/m), proportional to negative vertical speed (optional)
                                            );
-            ////terrainD->SetBulldozingFlow(true);     // inflate soil at the border of the rut
-            ////terrainD->SetBulldozingParameters(40,  // angle of friction for erosion of displaced material at the border
-            ////                                1.6);  // displaced material vs. downward pressed material
+            /*
+            terrainD->SetBulldozingFlow(true);    // inflate soil at the border of the rut
+            terrainD->SetBulldozingParameters(55, // angle of friction for erosion of displaced material at the border of the rut
+                                            0.8, // displaced material vs downward pressed material.
+                                            5,   // number of erosion refinements per timestep
+                                            10); // number of concentric vertex selections subject to erosion
+            */
+            // Turn on the automatic level of detail refinement, so a coarse terrain mesh
+            // is automatically improved by adding more points under the wheel contact patch:
+            terrainD->SetAutomaticRefinement(true);
+            terrainD->SetAutomaticRefinementResolution(0.04);
 
             ////terrainD->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
             ////terrainD->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
@@ -261,7 +272,9 @@ int main(int argc, char* argv[]) {
 
         case RIGID_SOIL: {
             RigidTerrain* terrainR = new RigidTerrain(system);
-            terrainR->SetContactMaterial(0.9f, 0.01f, 2e7f, 0.3f);
+            terrainR->SetContactFrictionCoefficient(0.9f);
+            terrainR->SetContactRestitutionCoefficient(0.01f);
+            terrainR->SetContactMaterialProperties(2e7f, 0.3f);
             terrainR->SetColor(ChColor(0.8f, 0.8f, 0.5f));
             terrainR->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
             terrainR->Initialize(terrainHeight, terrainLength, terrainWidth);

@@ -21,8 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChAntirollBar::ChAntirollBar(const std::string& name) : m_name(name) {
-}
+ChAntirollBar::ChAntirollBar(const std::string& name) : ChPart(name) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

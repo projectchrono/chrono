@@ -12,12 +12,12 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <float.h>
-#include <math.h>
+#include <cfloat>
+#include <cmath>
 #include <memory.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "chrono/geometry/ChLine.h"
 
@@ -25,17 +25,17 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLine> a_registration_ChLine;
+CH_FACTORY_REGISTER(ChLine)
 
 ChLine::ChLine(const ChLine& source) {
     closed = source.closed;
     complexityU = source.complexityU;
 }
 
-int ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
+bool ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const {
     double mu;
     int points = 20;
-    int closed = FALSE;
+    bool closed = false;
     double bestU = 0;
     double bestdist = 9999999;
     double dist, d1, d2;
@@ -86,7 +86,7 @@ int ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU
     d2 = Vlength(Vsub(vres, point));
     vp2 = vres;
 
-    while (TRUE) {
+    while (true) {
         iters++;
 
         if (nrU < 0) {
@@ -126,16 +126,16 @@ int ChLine::FindNearestLinePoint(ChVector<>& point, double& resU, double approxU
 
         if ((Vlength(Vsub(vp1, vp2)) <= tol) || (dist <= tol)) {
             resU = bestU;
-            return TRUE;
+            return true;
         }
         if (iters > maxiters) {
             resU = bestU;
-            return FALSE;
+            return false;
         }
     }
 
     resU = bestU;
-    return TRUE;
+    return true;
 }
 
 double ChLine::CurveCurveDist(ChLine* compline, int samples) const {
@@ -257,7 +257,7 @@ double ChLine::Length(int sampling) const {
 
 // Draw into the current graph viewport of a ChFile_ps file
 
-int ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
+bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
     ChPageVect mp1;
     ChVector<> mv1;
 
@@ -285,7 +285,7 @@ int ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpola
     mfle->PaintStroke();  // draw it!
     mfle->GrRestore();    // restore old modes, with old clipping
 
-    return TRUE;
+    return true;
 }
 
 }  // end namespace geometry

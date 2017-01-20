@@ -15,7 +15,7 @@
 #ifndef CHC_ROUNDEDBOX_H
 #define CHC_ROUNDEDBOX_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 
@@ -25,8 +25,9 @@ namespace geometry {
 /// A rounded box (sphere-swept box) geometric object for collisions and visualization.
 
 class ChApi ChRoundedBox : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChRoundedBox, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChRoundedBox)
 
   public:
     ChMatrix33<> Rot;  /// rotation of box

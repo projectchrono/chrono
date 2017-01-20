@@ -9,22 +9,13 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChAssetLevel.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "assets/ChAssetLevel.h"
+#include "chrono/assets/ChAssetLevel.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChAssetLevel> a_registration_ChAssetLevel;
+CH_FACTORY_REGISTER(ChAssetLevel)
 
 
 void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
@@ -36,5 +27,4 @@ void ChAssetLevel::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
         assets[ia]->Update(updater, composed_coords);
 }
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

@@ -30,20 +30,20 @@
 #endif
 
 #if defined _MSC_VER
-#define fmax max
-#define fmin min
+#define fmax fmax
+#define fmin fmin
 #endif
 
 #if defined(WIN32) || defined(WIN64)
-  #ifndef WIN32_LEAN_AND_MEAN
-    #define WIN32_LEAN_AND_MEAN
-  #endif
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
 #define ELPP_WINSOCK2
 #endif
 
 /**
     @defgroup parallel_module PARALLEL module
-    @brief Module that enables parallel computation in Chrono 
+    @brief Module that enables parallel computation in Chrono
 
     This module implements parallel computing algorithms that can be
     used as a faster alternative to the default simulation algorithms

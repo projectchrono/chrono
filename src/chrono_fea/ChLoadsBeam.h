@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHLOADSBEAM_H
 #define CHLOADSBEAM_H
@@ -21,17 +23,16 @@ namespace chrono {
 namespace fea {
 
 // This file contains a number of ready-to-use loads (ChLoad inherited classes and
-// their embedded ChLoader classes) that can be applied to threedimensional beam 
+// their embedded ChLoader classes) that can be applied to threedimensional beam
 // elements in FEA.
-// These are 'simplified' tools, that save you from inheriting your custom 
+// These are 'simplified' tools, that save you from inheriting your custom
 // loads from ChLoaderUatomic ChLoaderUdistributed etc. Or just look at these
 // classes and learn how to implement some special type of load.
 
-
 /// Atomic wrench.
 /// Loader for a wrench (force+torque) at a specific position of a beam.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at 
-/// a certain abscyssa U, that is a six-dimensional load. 
+/// An atomic load on the beam is a wrench, i.e. force+load aplied at
+/// a certain abscyssa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic.
 class ChLoaderBeamWrench : public ChLoaderUatomic {
   private:
@@ -67,12 +68,11 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
     ChVector<> GetTorque() const { return this->torque; }
 };
 
-
 /// Atomic wrench (ready to use load)
 /// Load for a wrench (force+torque) at a specific position of a beam.
 /// The ChLoaderBeamWrench is a 'container' for ChLoadBeamWrench.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at 
-/// a certain abscyssa U, that is a six-dimensional load. 
+/// An atomic load on the beam is a wrench, i.e. force+load aplied at
+/// a certain abscyssa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
 class ChLoadBeamWrench : public ChLoad<ChLoaderBeamWrench> {
   public:
@@ -81,8 +81,7 @@ class ChLoadBeamWrench : public ChLoad<ChLoaderBeamWrench> {
 
 //-----------------------------------------------------------------------------------------
 
-
-/// Distributed constant wrench. 
+/// Distributed constant wrench.
 /// Loader for a constant wrench (force+torque) distributed on a beam.
 /// An distributed wrench on the beam contains a "force per unit length"
 /// and a "torque per unit length"
@@ -122,11 +121,10 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
     ChVector<> GetTorquePerUnit() const { return this->torqueperunit; }
 };
 
-
 /// Distributed constant wrench (ready to use load)
 /// Load for a wrench (force+torque) at a specific position of a beam.
 /// The ChLoaderBeamWrench is a 'container' for ChLoadBeamWrench.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at 
+/// An atomic load on the beam is a wrench, i.e. force+load aplied at
 /// a certain abscyssa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
 class ChLoadBeamWrenchDistributed : public ChLoad<ChLoaderBeamWrenchDistributed> {
@@ -135,7 +133,7 @@ class ChLoadBeamWrenchDistributed : public ChLoad<ChLoaderBeamWrenchDistributed>
         : ChLoad<ChLoaderBeamWrenchDistributed>(mloadable) {}
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

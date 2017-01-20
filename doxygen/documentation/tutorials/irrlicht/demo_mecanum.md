@@ -1,4 +1,4 @@
-Mecanum omnidirectional robot example (demo_mecanum.cpp)  {#tutorial_demo_mecanum}
+Mecanum omnidirectional robot example (demo_IRR_mecanum.cpp)  {#tutorial_demo_mecanum}
 ==========================
 
 Simulate a small mobile robot with 
@@ -14,5 +14,5 @@ This tutorial shows how to:
 - manage rotations of references using ChCoordsys and ChFrame classes. 
  
 
-\include demo_mecanum.cpp
+\include demo_IRR_mecanum.cpp
 

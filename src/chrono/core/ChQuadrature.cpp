@@ -11,13 +11,14 @@
 //
 // File author: Alessandro Tasora
 
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
-#include "ChQuadrature.h"
-#include "core/ChMatrixDynamic.h"
+#include <cstdlib>
+#include <cmath>
+#include <cfloat>
 
-using namespace chrono;
+#include "chrono/core/ChQuadrature.h"
+#include "chrono/core/ChMatrixDynamic.h"
+
+namespace chrono {
 
 void ChQuadratureTables::glege_coef(ChMatrix<>& lcoef, int N) {
     int n, i;
@@ -220,4 +221,4 @@ ChQuadratureTablesTetrahedron* ChQuadrature::GetStaticTablesTetrahedron() {
     return &static_tables_tetrahedron;
 }
 
-
+}  // end namespace chrono

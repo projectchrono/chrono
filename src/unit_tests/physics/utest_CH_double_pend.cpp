@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 #include <valarray>
 
 #include "chrono/physics/ChSystem.h"

@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 using namespace chrono;
 

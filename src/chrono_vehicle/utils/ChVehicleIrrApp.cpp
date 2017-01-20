@@ -98,23 +98,22 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
                                  ChPowertrain* powertrain,
                                  const wchar_t* title,
                                  irr::core::dimension2d<irr::u32> dims)
-    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, irr::video::EDT_OPENGL),
+    : ChIrrApp(vehicle->GetSystem(), title, dims, false, false, true, irr::video::EDT_OPENGL),
       m_vehicle(vehicle),
       m_powertrain(powertrain),
-      m_camera(vehicle->GetChassis()),
+      m_camera(vehicle->GetChassisBody()),
       m_stepsize(1e-3),
       m_HUD_x(700),
       m_HUD_y(20),
       m_renderGrid(false),
       m_renderLinks(true),
-      m_renderSprings(true),
       m_renderStats(true),
       m_gridHeight(0.02),
       m_steering(0),
       m_throttle(0),
       m_braking(0) {
     // Initialize the chase camera with default values.
-    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetLocalDriverCoordsys(), 6.0, 0.5);
+    m_camera.Initialize(ChVector<>(0, 0, 1), vehicle->GetChassis()->GetLocalDriverCoordsys(), 6.0, 0.5);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 
@@ -185,7 +184,7 @@ void ChVehicleIrrApp::SetSkyBox() {
 // Set parameters for the underlying chase camera.
 // -----------------------------------------------------------------------------
 void ChVehicleIrrApp::SetChaseCamera(const ChVector<>& ptOnChassis, double chaseDist, double chaseHeight) {
-    m_camera.Initialize(ptOnChassis, m_vehicle->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
+    m_camera.Initialize(ptOnChassis, m_vehicle->GetChassis()->GetLocalDriverCoordsys(), chaseDist, chaseHeight);
     ChVector<> cam_pos = m_camera.GetCameraPos();
     ChVector<> cam_target = m_camera.GetTargetPos();
 }
@@ -252,8 +251,6 @@ void ChVehicleIrrApp::DrawAll() {
 
     ChIrrAppInterface::DrawAll();
 
-    if (m_renderSprings)
-        renderSprings();
     if (m_renderLinks)
         renderLinks();
     if (m_renderStats)
@@ -263,21 +260,7 @@ void ChVehicleIrrApp::DrawAll() {
     renderOtherGraphics();
 }
 
-// Render springs in the vehicle model.
-void ChVehicleIrrApp::renderSprings() {
-    auto ilink = GetSystem()->Get_linklist()->begin();
-    for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                             video::SColor(255, 150, 20, 20), 80, 15, true);
-        } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSpring(GetVideoDriver(), 0.05, link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                             video::SColor(255, 150, 20, 20), 80, 15, true);
-        }
-    }
-}
-
-// render specialized joints in the vehicle model.
+// Render specialized joints in the vehicle model.
 void ChVehicleIrrApp::renderLinks() {
     auto ilink = GetSystem()->Get_linklist()->begin();
     for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {

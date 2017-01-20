@@ -21,6 +21,7 @@
 
 #include "chrono_opengl/core/ChOpenGLBase.h"
 #include "chrono_opengl/core/ChOpenGLShader.h"
+
 #include <vector>
 
 namespace chrono {
@@ -56,8 +57,7 @@ class CH_OPENGL_API ChOpenGLObject : public ChOpenGLBase {
 };
 
 /// @} opengl
-
 }
 }
 
-#endif  // END of CHOPENGLOBJECT_H
+#endif

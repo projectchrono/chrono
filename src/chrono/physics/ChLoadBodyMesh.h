@@ -16,7 +16,6 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 
-
 namespace chrono {
 
 
@@ -31,8 +30,8 @@ namespace chrono {
 
 class  ChLoadBodyMesh : public ChLoadBase {
 
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLoadBodyMesh, ChLoadBase);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLoadBodyMesh)
 
 
   public:
@@ -129,7 +128,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         for (int i= 0; i<forces.size(); ++i) {
             ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_x());
             forces[i]->LoadGetStateBlock_x(mDi);
-            mD.PasteMatrix(&mDi,ndoftot,0);
+            mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_x();
         }
     }
@@ -138,7 +137,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         for (int i= 0; i<forces.size(); ++i) {
             ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_w());
             forces[i]->LoadGetStateBlock_w(mDi);
-            mD.PasteMatrix(&mDi,ndoftot,0);
+            mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_w();
         }
     }
@@ -204,7 +203,6 @@ class  ChLoadBodyMesh : public ChLoadBase {
     std::vector<std::shared_ptr<ChLoadBodyForce> > forces;
 };
 
-}  // END_OF_NAMESPACE____
-
+}  // end namespace chrono
 
 #endif

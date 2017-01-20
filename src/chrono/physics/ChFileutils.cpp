@@ -18,9 +18,9 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
 #include "core/ChFileutils.h"
 
 namespace chrono {

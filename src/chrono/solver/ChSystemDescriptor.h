@@ -26,18 +26,22 @@ namespace chrono {
 /// Base class for collecting objects inherited from ChConstraint ,
 /// ChVariables and, optionally ChKblock. These objects
 /// can be used to define a sparse representation of the system.
+/// This collector is important because it contains all the required
+/// information that is sent to a solver (usually a VI/CCP solver, or
+/// as a subcase, a linear solver). 
 ///  The problem is described by a variational inequality VI(Z*x-d,K):
 ///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
 ///  | Cq -E | |l|  |-b|  |c|
 ///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
+/// Also Z symmetric by flipping sign of l_i: |H  Cq'|*| q|-| f|=|0|
 ///                                           |Cq  E | |-l| |-b| |c|
 /// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
 /// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
 /// * case CCP: Y_i are friction cones
-/// Optionally, also objects inherited from ChKblock can be added
-/// too, hence M becomes M+K (but not all solvers handle ChKblock!)
+/// Usually, H = M, the mass matrix, but in some cases, ex. when using 
+/// implicit integrators, objects inherited from ChKblock can be added
+/// too, hence H could be H=a*M+b*K+c*R (but not all solvers handle ChKblock!)
 /// All solvers require that the description of
 /// the system is passed by means of a ChSystemDescriptor,
 /// where all constraints, variables, masses, known terms
@@ -50,8 +54,9 @@ namespace chrono {
 /// and variables structures with more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChSystemDescriptor);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChSystemDescriptor)
 
   protected:
     //
@@ -133,12 +138,10 @@ class ChApi ChSystemDescriptor {
 
     /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
     /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
-    /// BuildMatrices(), DumpMatrices().
     virtual void SetMassFactor(const double mc_a) { c_a = mc_a;}
 
     /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables 
     /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
-    /// BuildMatrices(), DumpMatrices().
     virtual double GetMassFactor() { return c_a;}
 
     //
@@ -325,23 +328,26 @@ class ChApi ChSystemDescriptor {
     /// contained in this ChSystemDescriptor.
     /// The matrices define the VI variational inequality:
     ///
-    ///  | M -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), c \in normal cone to Y
+    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y (es friction cone), c \in normal cone to Y
     ///  | Cq -E | |l|  |-b|  |c|    (case no friction: LCP c>=0, l>=0, l*c=0;)
     ///                              (case only bilaterals: linear system, c=0)
     ///
-    /// also symmetrizable by flipping the sign of l_i terms:  | M  Cq'|*| q|- | f|= |0|
+    /// also symmetrizable by flipping the sign of l_i terms:  | H  Cq'|*| q|- | f|= |0|
     ///                                                        | Cq -E | |-l|  |-b|  |C|
     /// Note 1: most often you'll call ConvertToMatrixForm() right after a dynamic simulation timestep,
     ///         because the system matrices are properly initialized,
     /// Note 2: when using Anitescu default stepper, the 'f' vector contains forces*timestep = F*dt
     /// Note 3: when using Anitescu default stepper, q represents the 'delta speed',
     /// Note 4: when using Anitescu default stepper, b represents the dt/phi stabilization term.
+    /// Note 5: usually, H = M, the mass matrix, but in some cases, ex. when using 
+    ///         implicit integrators, objects inherited from ChKblock can be added
+    ///         too, hence H could be H=a*M+b*K+c*R
     ///  This can be useful for debugging, data dumping, and similar purposes (most solvers avoid
     /// using these matrices, for performance), for example you will load these matrices in Matlab.
     /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
     /// The matrices and vectors are automatically resized if needed.
 	virtual void ConvertToMatrixForm(ChSparseMatrix* Cq,   ///< fill this system jacobian matrix, if not null
-									 ChSparseMatrix* M,    ///< fill this system mass matrix, if not null
+									 ChSparseMatrix* H,    ///< fill this system H (mass+stiffness+damp) matrix, if not null
 									 ChSparseMatrix* E,    ///< fill this system 'compliance' matrix , if not null
                                      ChMatrix<>* Fvector,  ///< fill this vector as the known term 'f', if not null
                                      ChMatrix<>* Bvector,  ///< fill this vector as the known term 'b', if not null
@@ -360,23 +366,14 @@ class ChApi ChSystemDescriptor {
     ///    dump_Z.dat   has the assembled optimization matrix (Matlab sparse format)
     ///    dump_rhs.dat has the assembled RHS
     /// Otherwise,
-    ///    dump_M.dat   has masses and/or stiffness (Matlab sparse format)
+    ///    dump_H.dat   has masses and/or stiffness (Matlab sparse format)
     ///    dump_Cq.dat  has the jacobians (Matlab sparse format)
     ///    dump_E.dat   has the constr.compliance (Matlab sparse format)
     ///    dump_f.dat   has the applied loads
     ///    dump_b.dat   has the constraint rhs
     virtual void DumpLastMatrices(bool assembled = false, const char* path = "");
 
-    /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm
-	virtual void BuildMatrices(ChSparseMatrix* Cq,
-								ChSparseMatrix* M,
-                               bool only_bilaterals = false,
-                               bool skip_contacts_uv = false);
-    /// OBSOLETE. Kept only for backward compability. Use rather: ConvertToMatrixForm, or BuildFbVector or BuildBiVector
-	virtual void BuildVectors(ChMatrix<>* f,
-								ChMatrix<>* b,
-                              bool only_bilaterals = false,
-                              bool skip_contacts_uv = false);
+
 
     //
     // SERIALIZATION

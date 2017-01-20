@@ -1,4 +1,4 @@
-Irrlicht assets example (demo_irr_assets.cpp)  {#tutorial_demo_irr_assets}
+Irrlicht assets example (demo_IRR_assets.cpp)  {#tutorial_demo_irr_assets}
 ==========================
 
 
@@ -14,5 +14,5 @@ Note: the same assets that you use for Irrlicht display
 can be used for postprocessing, ex. with POVray as 
 explained in demo_postprocess.cpp . 
  
-\include demo_irr_assets.cpp
+\include demo_IRR_assets.cpp
 

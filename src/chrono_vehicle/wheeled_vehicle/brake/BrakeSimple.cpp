@@ -18,7 +18,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/brake/BrakeSimple.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -27,7 +27,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-BrakeSimple::BrakeSimple(const std::string& filename) {
+BrakeSimple::BrakeSimple(const std::string& filename) : ChBrakeSimple("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -36,14 +36,14 @@ BrakeSimple::BrakeSimple(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-BrakeSimple::BrakeSimple(const rapidjson::Document& d) {
+BrakeSimple::BrakeSimple(const rapidjson::Document& d) : ChBrakeSimple("") {
     Create(d);
 }
 
@@ -52,6 +52,8 @@ void BrakeSimple::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     // Read maximum braking torque
     m_maxtorque = d["Maximum Torque"].GetDouble();

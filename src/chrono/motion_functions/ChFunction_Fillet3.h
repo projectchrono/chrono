@@ -27,7 +27,8 @@ namespace chrono {
 ///  - dy2 = y' at the end
 
 class ChApi ChFunction_Fillet3 : public ChFunction {
-    CH_RTTI(ChFunction_Fillet, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Fillet)
 
   private:
     double end;
@@ -61,7 +62,7 @@ class ChApi ChFunction_Fillet3 : public ChFunction {
 
     double Get_end() { return end; }
 
-    int SetupCoefficients();
+    void SetupCoefficients();
 
     void Set_y1(double my1) {
         y1 = my1;

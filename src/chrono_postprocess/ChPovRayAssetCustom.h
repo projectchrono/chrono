@@ -1,33 +1,24 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHPOVRAYASSETCUSTOM_H
 #define CHPOVRAYASSETCUSTOM_H
 
-//////////////////////////////////////////////////
-//
-//   ChPovRayAssetCustom.h
-//
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <string>
+
 #include "chrono_postprocess/ChPostProcessBase.h"
-#include "assets/ChVisualization.h"
+#include "chrono/assets/ChVisualization.h"
 
 namespace chrono {
 namespace postprocess {
@@ -66,10 +57,10 @@ class ChApiPostProcess ChPovRayAssetCustom : public ChAsset {
     // by other assets of the body, then it will put the command block of this asset, as it is.
     // For example you can specify pigment{...} or texture{...} stuff here.
     // void SetCommands (const std::string& mcomm) {custom_command = mcomm;}
-    void SetCommands(char mcomm[]);
+    void SetCommands(const char mcomm[]);
 };
 
-}  // end namespace
-}  // end namespace
+}  // end namespace postprocess
+}  // end namespace chrono
 
 #endif

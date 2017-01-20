@@ -34,7 +34,9 @@ namespace vehicle {
 /// Simple brake created with constant torque opposing sprocket rotation.
 class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
   public:
-    ChTrackBrakeSimple();
+    ChTrackBrakeSimple(const std::string& name  ///< [in] name of the subsystem
+                       );
+
     ~ChTrackBrakeSimple() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.

@@ -9,28 +9,19 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemBullet.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCCollisionSystemBullet.h"
-#include "collision/ChCModelBullet.h"
-#include "collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
-#include "collision/ChCCollisionUtils.h"
-#include "physics/ChBody.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChProximityContainerBase.h"
-#include "LinearMath/btPoolAllocator.h"
-#include "BulletCollision/CollisionShapes/btSphereShape.h"
-#include "BulletCollision/CollisionShapes/btCylinderShape.h"
-#include "BulletCollision/CollisionShapes/bt2DShape.h"
-#include "BulletCollision/CollisionShapes/btCEtriangleShape.h"
-#include "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
+#include "chrono/collision/ChCCollisionSystemBullet.h"
+#include "chrono/collision/ChCModelBullet.h"
+#include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
+#include "chrono/collision/ChCCollisionUtils.h"
+#include "chrono/physics/ChBody.h"
+#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/bt2DShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCEtriangleShape.h"
+#include "chrono/collision/bullet/BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.h"
 
 extern btScalar gContactBreakingThreshold;
 
@@ -39,7 +30,7 @@ namespace collision {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChCollisionSystemBullet> a_registration_ChCollisionSystemBullet;
+CH_FACTORY_REGISTER(ChCollisionSystemBullet)
 
 
 ////////////////////////////////////
@@ -1405,6 +1396,5 @@ void ChCollisionSystemBullet::SetContactBreakingThreshold(double threshold) {
     gContactBreakingThreshold = (btScalar)threshold;
 }
 
-
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono

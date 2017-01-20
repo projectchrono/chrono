@@ -1,20 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Andrea Favali, Alessandro Tasora
+// =============================================================================
+// Authors: Andrea Favali, Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCOROTATIONAL_H
 #define CHCOROTATIONAL_H
 
-#include "ChPolarDecomposition.h"
-#include "ChMatrixCorotation.h"
+#include "chrono_fea/ChPolarDecomposition.h"
+#include "chrono_fea/ChMatrixCorotation.h"
 
 namespace chrono {
 namespace fea {
@@ -48,7 +50,7 @@ class ChApiFea ChElementCorotational {
 
 /// @} fea_elements
 
-}  //___end of namespace fea___
-}  //___end of namespace chrono___
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

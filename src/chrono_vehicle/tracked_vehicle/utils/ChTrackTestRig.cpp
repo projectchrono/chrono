@@ -29,19 +29,61 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChColorAsset.h"
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackSubsysDefs.h"
+#include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
 namespace chrono {
 namespace vehicle {
+
+// -----------------------------------------------------------------------------
+// Defintion of a chassis for a track test rig
+// -----------------------------------------------------------------------------
+class ChTrackTestRigChassis : public ChChassis {
+  public:
+    ChTrackTestRigChassis();
+    virtual double GetMass() const override { return m_mass; }
+    virtual const ChMatrix33<>& GetInertia() const override { return m_inertia; }
+    virtual const ChVector<>& GetLocalPosCOM() const override { return m_COM_loc; }
+    virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+  private:
+    ChMatrix33<> m_inertia;
+
+    static const double m_mass;
+    static const ChVector<> m_inertiaXX;
+    static const ChVector<> m_COM_loc;
+    static const ChCoordsys<> m_driverCsys;
+};
+
+const double ChTrackTestRigChassis::m_mass = 1;
+const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
+const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
+const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+
+ChTrackTestRigChassis::ChTrackTestRigChassis() : ChChassis("Ground") {
+    m_inertia = ChMatrix33<>(m_inertiaXX);
+}
+
+void ChTrackTestRigChassis::AddVisualizationAssets(VisualizationType vis) {
+    auto box = std::make_shared<ChBoxShape>();
+    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
+    m_body->AddAsset(box);
+
+    auto blue = std::make_shared<ChColorAsset>();
+    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
+    m_body->AddAsset(blue);
+}
 
 // -----------------------------------------------------------------------------
 // These utility functions return a ChVector and a ChQuaternion, respectively,
@@ -59,15 +101,11 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
     return ChQuaternion<>(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble(), a[3u].GetDouble());
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
-                               VehicleSide side,
+                               const ChVector<>& location,
                                ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
-    // ---------------------------------------------------------------
-    // Open and parse the input file (vehicle JSON specification file)
-    // ---------------------------------------------------------------
+    : ChVehicle(contact_method), m_location(location), m_max_torque(0) {
+    // Open and parse the input file (track assembly JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -76,104 +114,45 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));
+    std::string type = d["Type"].GetString();
+    assert(type.compare("TrackAssembly") == 0);
     assert(d.HasMember("Template"));
+    std::string subtype = d["Template"].GetString();
     assert(d.HasMember("Name"));
 
-    // Create the chassis (ground) body, fixed, no visualization
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
-
-    //// TODO
-
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
-}
-
-ChTrackTestRig::ChTrackTestRig(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
-    // -----------------------------------------------------------
-    // Open and parse the input file (rig JSON specification file)
-    // -----------------------------------------------------------
-
-    FILE* fp = fopen(filename.c_str(), "r");
-
-    char readBuffer[65536];
-    FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-
-    fclose(fp);
-
-    Document d;
-    d.ParseStream(is);
-
-    // Read top-level data
-    assert(d.HasMember("Type"));
-    assert(d.HasMember("Template"));
-    assert(d.HasMember("Name"));
-
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
-
-    //// TODO
-
+    // Create the track assembly from the specified JSON file.
+    if (subtype.compare("TrackAssemblySinglePin") == 0) {
+        m_track = std::make_shared<TrackAssemblySinglePin>(d);
+    }
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
-                               const ChVector<>& sprocketLoc,
-                               const ChVector<>& idlerLoc,
-                               const std::vector<ChVector<> >& suspLocs,
+                               const ChVector<>& location,
                                ChMaterialSurfaceBase::ContactMethod contact_method)
     : ChVehicle(contact_method),
       m_track(assembly),
-      m_sprocketLoc(sprocketLoc),
-      m_idlerLoc(idlerLoc),
-      m_suspLocs(suspLocs) {
-    // Create the chassis (ground) body, fixed, no visualizastion
-    m_chassis = std::shared_ptr<ChBodyAuxRef>(m_system->NewBodyAuxRef());
-    m_chassis->SetIdentifier(0);
-    m_chassis->SetName("ground");
-    m_chassis->SetFrame_COG_to_REF(ChFrame<>(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    m_chassis->SetBodyFixed(true);
-
-    auto box = std::make_shared<ChBoxShape>();
-    box->GetBoxGeometry().SetLengths(ChVector<>(0.1, 0.1, 0.1));
-    m_chassis->AddAsset(box);
-
-    auto blue = std::make_shared<ChColorAsset>();
-    blue->SetColor(ChColor(0.2f, 0.2f, 0.8f));
-    m_chassis->AddAsset(blue);
-
-    m_system->Add(m_chassis);
+      m_location(location),
+      m_max_torque(0) {
 }
 
-void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
+void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    // ----------------------------
+    // Create the chassis subsystem
+    // ----------------------------
+    m_chassis = std::make_shared<ChTrackTestRigChassis>();
+    m_chassis->Initialize(m_system, chassisPos, 0);
+    m_chassis->GetBody()->SetBodyFixed(true);
+
     // ---------------------------------
     // Initialize the vehicle subsystems
     // ---------------------------------
 
-    m_track->Initialize(m_chassis, m_sprocketLoc, m_idlerLoc, m_suspLocs);
+    m_track->Initialize(m_chassis->GetBody(), m_location);
 
     // ------------------------------------------
     // Create and initialize the shaker post body
@@ -213,7 +192,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     // Prismatic joint to force vertical translation
     m_post_prismatic = std::make_shared<ChLinkLockPrismatic>();
     m_post_prismatic->SetNameString("L_post_prismatic");
-    m_post_prismatic->Initialize(m_chassis, m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
+    m_post_prismatic->Initialize(m_chassis->GetBody(), m_post, ChCoordsys<>(ChVector<>(m_post_pos), QUNIT));
     m_system->AddLink(m_post_prismatic);
 
     // Post actuator
@@ -221,7 +200,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos) {
     m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_linact = std::make_shared<ChLinkLinActuator>();
     m_post_linact->SetNameString("Post_linActuator");
-    m_post_linact->Initialize(m_chassis, m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
+    m_post_linact->Initialize(m_chassis->GetBody(), m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
     m_post_linact->Set_lin_offset(1.0);
     auto func = std::make_shared<ChFunction_Const>(0);
     m_post_linact->Set_dist_funct(func);
@@ -253,10 +232,14 @@ double ChTrackTestRig::GetActuatorMarkerDist() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChTrackTestRig::Synchronize(double time, double disp, const TrackShoeForces& shoe_forces) {
+void ChTrackTestRig::Synchronize(double time, double disp, double throttle, const TrackShoeForces& shoe_forces) {
     // Apply the displacements to the left/right post actuators
     if (auto func = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact->Get_dist_funct()))
         func->Set_yconst(disp);
+
+    // Apply a torque to the sprocket's shaft
+    m_track->GetSprocket()->GetAxle()->SetAppliedTorque(-m_max_torque * throttle);
+
 
     // Apply contact forces to track shoe bodies.
 

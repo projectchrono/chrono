@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -53,9 +52,11 @@ class ChLoadJacobians {
 /// It implements functionalities to perform automatic differentiation of
 /// the load so it optionally can compute the jacobian (the tangent stiffness
 /// matrix of the load) that can be used in implicit integrators, statics, etc.
+
 class ChApi ChLoadBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI_ROOT(ChLoadBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLoadBase)
 
 protected:
     ChLoadJacobians* jacobians;
@@ -237,7 +238,7 @@ public:
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -247,7 +248,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 
@@ -348,7 +349,7 @@ public:
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -358,7 +359,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 
@@ -504,7 +505,7 @@ public:
             Q1 = this->load_Q;
             (*state_x)(i)-= Delta; //***TODO*** use NodeIntStateIncrement
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because K=-dQ/dx
-            this->jacobians->K.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->K.PasteMatrix(Jcolumn,0,i);
         }
         // Compute R=-dQ(x,v)/dv by backward differentiation
         for (int i=0; i<mrows_w; ++i) {
@@ -514,7 +515,7 @@ public:
             (*state_w)(i)-= Delta;
             
             Jcolumn = (Q1 - Q0)*(-1.0/Delta);   // - sign because R=-dQ/dv
-            this->jacobians->R.PasteMatrix(&Jcolumn,0,i);
+            this->jacobians->R.PasteMatrix(Jcolumn,0,i);
         }
      }; 
 

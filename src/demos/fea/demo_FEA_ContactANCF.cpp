@@ -41,7 +41,7 @@
 #include "chrono_irrlicht/ChIrrWizard.h"
 
 #include <iostream>
-#include <math.h>
+#include <cmath>
 #include <sstream>
 #include <fstream>
 #include <string>

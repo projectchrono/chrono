@@ -13,22 +13,19 @@
 #define CHTIMER_H
 
 #if ((defined _WIN32) && !(defined(__MINGW32__) || defined(__CYGWIN__)))
-    #include <time.h>
+    #include <ctime>
     #ifndef NOMINMAX
     #define NOMINMAX
     #endif
     #define WIN32_LEAN_AND_MEAN
     #include <windows.h>
-    #include <time.h>
+    #include <ctime>
     #undef WIN32_LEAN_AND_MEAN
     #undef NOMINMAX
 #else
     #include <ratio>
     #include <chrono>
 #endif
-
-
-
 
 
 namespace chrono {
@@ -197,7 +194,6 @@ class ChTimer {
 
 #endif
 
+}  // end namespace chrono
 
-}  // END_OF_NAMESPACE____
-
-#endif  // END of ChTimer.h
+#endif

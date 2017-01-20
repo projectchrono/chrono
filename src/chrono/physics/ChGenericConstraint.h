@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,7 +12,7 @@
 #ifndef CHGENERICCONSTRAINT_H
 #define CHGENERICCONSTRAINT_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChRef.h"

@@ -28,6 +28,7 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackDriveline.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackContactManager.h"
+
 /**
     @addtogroup vehicle
     @{
@@ -107,6 +108,21 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     void GetTrackShoeStates(VehicleSide side, BodyStates& states) const {
         m_tracks[side]->GetTrackShoeStates(states);
     }
+
+    /// Set visualization type for the sprocket subsystem.
+    void SetSprocketVisualizationType(VisualizationType vis);
+
+    // Set visualization type for the idler subsystem.
+    void SetIdlerVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the suspension subsystems.
+    void SetRoadWheelAssemblyVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the road-wheel subsystems.
+    void SetRoadWheelVisualizationType(VisualizationType vis);
+
+    /// Set visualization type for the track shoe subsystems.
+    void SetTrackShoeVisualizationType(VisualizationType vis);
 
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and

@@ -12,9 +12,8 @@
 #ifndef CHCAMERA_H
 #define CHCAMERA_H
 
-
-#include "assets/ChAsset.h"
-#include "core/ChVector.h"
+#include "chrono/assets/ChAsset.h"
+#include "chrono/core/ChVector.h"
 
 namespace chrono {
 
@@ -22,8 +21,8 @@ namespace chrono {
 /// with basic settings
 
 class ChApi ChCamera : public ChAsset {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChCamera, ChAsset);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCamera)
 
   private:
     //
@@ -143,9 +142,6 @@ class ChApi ChCamera : public ChAsset {
     }
 };
 
-//////////////////////////////////////////////////////
-//////////////////////////////////////////////////////
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

@@ -21,8 +21,7 @@
 namespace chrono {
 namespace vehicle {
 
-ChDriveline::ChDriveline() {
-}
+ChDriveline::ChDriveline(const std::string& name) : ChPart(name) {}
 
 }  // end namespace vehicle
 }  // end namespace chrono

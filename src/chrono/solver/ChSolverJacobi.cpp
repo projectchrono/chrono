@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChSolverJacobi> a_registration_ChSolverJacobi;
+CH_FACTORY_REGISTER(ChSolverJacobi)
 
 double ChSolverJacobi::Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables
                              ) {

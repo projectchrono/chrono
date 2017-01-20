@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChForce> a_registration_ChForce;
+CH_FACTORY_REGISTER(ChForce)
 
 ChForce::ChForce()
     : Body(NULL),
@@ -266,7 +266,7 @@ void ChForce::UpdateState() {
 
             Qfrot.MatrTMultiply(mGl, mat_force);
             Qfrot.MatrNeg();  // Q = - [Gl]'[u]'[A]'F,w
-            Qf->PasteMatrix(&Qfrot, 3, 0);
+            Qf->PasteMatrix(Qfrot, 3, 0);
             break;
         }
 
@@ -282,7 +282,7 @@ void ChForce::UpdateState() {
             ChFrame<>::SetMatrix_Gl(mGl, my_body->GetCoord().rot);
 
             Qfrot.MatrTMultiply(mGl, mat_force);
-            Qf->PasteMatrix(&Qfrot, 3, 0);
+            Qf->PasteMatrix(Qfrot, 3, 0);
 
             break;
     }

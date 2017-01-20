@@ -87,15 +87,15 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
 
     /// Plasticity formulation.
     enum PlasticityFormulation {
-        J2,            ///< J2 plasticity (metals)
-        DruckerPrager,  ///< Drucker-Prager plasticity (soil)
-		DruckerPrager_Cap ///< Drucker-Prager-Cap plasticity (soil)
+        J2,                ///< J2 plasticity (metals)
+        DruckerPrager,     ///< Drucker-Prager plasticity (soil)
+        DruckerPrager_Cap  ///< Drucker-Prager-Cap plasticity (soil)
     };
     /// Maximum number of iteration for DP return mapping
     int m_DP_iterationNo;
     /// Tolerance for yield function value (Drucker-Prager)
     double m_DP_yield;
-	double m_DPCapBeta;                      ///  DP_Cap parameter
+    double m_DPCapBeta;  ///  DP_Cap parameter
     /// Set element dimensions (x, y, z directions).
     void SetDimensions(const ChVector<>& dims) { m_dimensions = dims; }
     /// Get the element dimensions (x, y, z directions).
@@ -122,12 +122,12 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     PlasticityFormulation GetPlasticityFormulation() const { return m_plast_form; }
     /// Set the DP iteration number.
     void SetDPIterationNo(int ItNo) { m_DP_iterationNo = ItNo; }
-	/// Set the hardening parameter look-up table
-	void SetDPVector1(ChMatrixDynamic<double> vec) { m_DPVector1 = vec; }
-	void SetDPVector2(ChMatrixDynamic<double> vec) { m_DPVector2 = vec; }
-	void SetDPVectorSize(int a) { m_DPVector_size = a; }
-	/// Set DP_Cap parameter
-	void SetDPCapBeta(double a) { m_DPCapBeta = a; }
+    /// Set the hardening parameter look-up table
+    void SetDPVector1(ChMatrixDynamic<double> vec) { m_DPVector1 = vec; }
+    void SetDPVector2(ChMatrixDynamic<double> vec) { m_DPVector2 = vec; }
+    void SetDPVectorSize(int a) { m_DPVector_size = a; }
+    /// Set DP_Cap parameter
+    void SetDPCapBeta(double a) { m_DPCapBeta = a; }
     /// Get the DP iteration number.
     int GetDPIterationNo() const { return m_DP_iterationNo; }
     /// Set the DP yield function tolerance.
@@ -242,7 +242,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     ChMatrixNM<double, 11, 11> m_d0d0T;  ///< matrix m_d0 * m_d0^T
     ChMatrixNM<double, 33, 1> m_d_dt;    ///< current nodal velocities
     ChMatrixNM<double, 6, 6> m_E_eps;
-    double m_FrictionAngle;  ///< Drucker-Prager Friction Angle Beta
+    double m_FrictionAngle;   ///< Drucker-Prager Friction Angle Beta
     double m_DilatancyAngle;  ///< Drucker-Prager Dilatancy Angle Phi
     int m_DPHardening;        ///< Drucker-Prager Hardening Type
 
@@ -252,15 +252,15 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     bool m_Plasticity;                   ///< flag activating Plastic deformation
     bool m_DP;                           ///< flag activating Drucker-Prager formulation
 
-    double m_YieldStress;                    ///< plastic yield stress
-    double m_HardeningSlope;                 ///< plastic hardening slope
-    ChMatrixNM<double, 8, 1> m_Alpha_Plast;  ///< hardening alpha parameter
-    ChMatrixNM<double, 9, 8> m_CCPinv_Plast; ///< strain tensor for each integration point
-    int m_InteCounter;  ///< Integration point counter (up to 8)
+    double m_YieldStress;                     ///< plastic yield stress
+    double m_HardeningSlope;                  ///< plastic hardening slope
+    ChMatrixNM<double, 8, 1> m_Alpha_Plast;   ///< hardening alpha parameter
+    ChMatrixNM<double, 9, 8> m_CCPinv_Plast;  ///< strain tensor for each integration point
+    int m_InteCounter;                        ///< Integration point counter (up to 8)
 
-	ChVectorDynamic<double> m_DPVector1;///xtab of hardening parameter look-up table
-	ChVectorDynamic<double> m_DPVector2;///ytab of hardening parameter look-up table
-	int m_DPVector_size;///row number n of hardening parameter look-up table
+    ChVectorDynamic<double> m_DPVector1;  /// xtab of hardening parameter look-up table
+    ChVectorDynamic<double> m_DPVector2;  /// ytab of hardening parameter look-up table
+    int m_DPVector_size;                  /// row number n of hardening parameter look-up table
 
     // -----------------------------------
     // Interface to base classes
@@ -325,19 +325,18 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     void CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt);
 
     void ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
-                                  ChMatrixNM<double, 1, 11> Nx,
-                                  ChMatrixNM<double, 1, 11> Ny,
-                                  ChMatrixNM<double, 1, 11> Nz,
-                                  ChMatrixNM<double, 3, 3> FI,
-                                  ChMatrixNM<double, 3, 3> J0I);
+                               ChMatrixNM<double, 1, 11> Nx,
+                               ChMatrixNM<double, 1, 11> Ny,
+                               ChMatrixNM<double, 1, 11> Nz,
+                               ChMatrixNM<double, 3, 3> FI,
+                               ChMatrixNM<double, 3, 3> J0I);
 
-	void ComputeHardening_a(double & MeanEffP,
-		                    double & Hi,
-							double alphUp,
-							ChVectorDynamic<double> m_DPVector1,
-							ChVectorDynamic<double> m_DPVector2,
-							int m_DPVector_size);
-		                           
+    void ComputeHardening_a(double& MeanEffP,
+                            double& Hi,
+                            double alphUp,
+                            ChVectorDynamic<double> m_DPVector1,
+                            ChVectorDynamic<double> m_DPVector2,
+                            int m_DPVector_size);
 
     friend class MyMassBrick9;
     friend class MyGravityBrick9;

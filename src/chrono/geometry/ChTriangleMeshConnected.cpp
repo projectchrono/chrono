@@ -38,7 +38,7 @@
 //
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <map>
 #include <unordered_map>
 
@@ -49,7 +49,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChTriangleMeshConnected> a_registration_ChTriangleMeshConnected;
+CH_FACTORY_REGISTER(ChTriangleMeshConnected)
 
 #ifdef _WIN32
 #define strcasecmp _stricmp
@@ -70,7 +70,7 @@ class InPlaceParserInterface {
     virtual int ParseLine(
         int lineno,
         int argc,
-        const char** argv) = 0;  // return TRUE to continue parsing, return FALSE to abort parsing process
+        const char** argv) = 0;  // return true to continue parsing, return false to abort parsing process
 };
 
 enum SeparatorType {
@@ -489,7 +489,7 @@ class OBJ : public InPlaceParserInterface {
     int LoadMesh(const char* fname, GeometryInterface* callback, bool textured);
     int ParseLine(int lineno,
                   int argc,
-                  const char** argv);  // return TRUE to continue parsing, return FALSE to abort parsing process
+                  const char** argv);  // return true to continue parsing, return false to abort parsing process
   private:
     void GetVertex(GeometryVertex& v, const char* face) const;
 
@@ -594,7 +594,7 @@ void OBJ::GetVertex(GeometryVertex& v, const char* face) const {
 
 int OBJ::ParseLine(int /*lineno*/,
                    int argc,
-                   const char** argv)  // return TRUE to continue parsing, return FALSE to abort parsing process
+                   const char** argv)  // return true to continue parsing, return false to abort parsing process
 {
     int ret = 0;
 

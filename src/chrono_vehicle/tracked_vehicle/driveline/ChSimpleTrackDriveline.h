@@ -60,7 +60,7 @@ class CH_VEHICLE_API ChSimpleTrackDriveline : public ChTrackDriveline {
     virtual double GetSprocketTorque(VehicleSide side) const override;
 
     /// Get the angular speed of the specified sprocket.
-    double GetSprocketSpeed(VehicleSide side) const override;
+    virtual double GetSprocketSpeed(VehicleSide side) const override;
 
   protected:
     /// Return the torque bias ratio for the differential.

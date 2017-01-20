@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -14,6 +14,7 @@
 #define CHPARTICLEEVENTTRIGGER_H
 
 #include <unordered_map>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/geometry/ChBox.h"
 

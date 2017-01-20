@@ -25,8 +25,9 @@ namespace chrono {
 /// objects.
 
 class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChShaftsTorsionSpring, ChShaftsTorqueBase);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChShaftsTorsionSpring)
 
   private:
     double stiffness;

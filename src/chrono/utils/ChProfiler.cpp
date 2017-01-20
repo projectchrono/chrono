@@ -32,25 +32,19 @@ CODE MODIFIED FROM:
 
 #include "chrono/core/ChTimer.h"
 #include "chrono/utils/ChProfiler.h"
+
 #include <ctime>
 #include <ratio>
 #include <chrono>
 
-using namespace chrono;
-using namespace utils;
-
+namespace chrono {
+namespace utils {
 
 #ifndef CH_NO_PROFILE
 
-
 static ChTimer<double> gProfileClock;
 
-
-
 #define mymin(a,b) (a > b ? a : b)
-
-
-
 
 inline void Profile_Get_Ticks(unsigned long int * ticks)
 {
@@ -313,7 +307,7 @@ float ChProfileManager::Get_Time_Since_Reset( void )
 	return (float)time / Profile_Get_Tick_Rate();
 }
 
-#include <stdio.h>
+#include <cstdio>
 
 void	ChProfileManager::dumpRecursive(ChProfileIterator* profileIterator, int spacing)
 {
@@ -378,3 +372,6 @@ void	ChProfileManager::dumpAll()
 
 
 #endif //CH_NO_PROFILE
+
+}  // end namespace utils
+}  // end namespace chrono

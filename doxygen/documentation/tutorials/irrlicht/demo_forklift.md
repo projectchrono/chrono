@@ -1,4 +1,4 @@
-Forklift example (demo_forklift.cpp)  {#tutorial_demo_forklift}
+Forklift example (demo_IRR_forklift.cpp)  {#tutorial_demo_forklift}
 ==========================
 
 Advanced tutorial. 
@@ -14,5 +14,5 @@ Learn about:
 - how to create some constraints, including a simplified motor
 - how to load .OBJ meshes for visualization etc.
 
-\include demo_forklift.cpp
+\include demo_IRR_forklift.cpp
 

@@ -22,6 +22,8 @@
 #include <vector>
 
 #include "chrono/physics/ChBody.h"
+#include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChTexture.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 #include "chrono_vehicle/ChTerrain.h"
@@ -44,6 +46,12 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     virtual void Initialize(std::shared_ptr<ChBody> wheel,  ///< handle to the associated wheel body
                             VehicleSide side                ///< left/right vehicle side
                             ) override;
+
+    /// Add visualization assets for the rigid tire subsystem.
+    virtual void AddVisualizationAssets(VisualizationType vis) override;
+
+    /// Remove visualization assets for the rigid tire subsystem.
+    virtual void RemoveVisualizationAssets() override;
 
     /// Get the tire width.
     /// This is just an approximation of a tire width.
@@ -116,6 +124,9 @@ class CH_VEHICLE_API ChLugreTire : public ChTire {
     TireForce m_tireForce;
     std::vector<DiscContactData> m_data;
     std::vector<DiscState> m_state;
+
+    std::vector<std::shared_ptr<ChCylinderShape>> m_cyl_shapes;  ///< visualization cylinder assets
+    std::shared_ptr<ChTexture> m_texture;                        ///< visualization texture asset
 };
 
 /// @} vehicle_wheeled_tire

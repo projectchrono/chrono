@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "core/ChStream.h"
+#include "chrono/core/ChStream.h"
 
 using namespace chrono;
 

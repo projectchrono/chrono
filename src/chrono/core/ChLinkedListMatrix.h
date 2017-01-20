@@ -57,8 +57,8 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ChMelement* mnextel;             // address of next writable element in mbufferlist
 
     int mtot_size;      // total allocated space for elements (maybe in noncontiguous buffers list)
-    int mbuffer_size;   // size of currently used buffer
-    int mbuffer_added;  // mbuffer_added grows all time a new element is set non-zero,
+	int mbuffer_size;   // size of currently used buffer
+	int mbuffer_added;  // mbuffer_added grows all time a new element is set non-zero,
     // until it reaches mbuffer_size (if so, allocation of another buffer is needed). Handled internally.
 
     std::vector<int> m_pindices;
@@ -104,13 +104,13 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     void ResetBlocks(int nrows, int ncols);
 
     virtual void SetElement(int row, int col, double elem, bool overwrite = true) override;
-    virtual double GetElement(int row, int col) override;
+    virtual double GetElement(int row, int col) const override;
 
     // Customized functions, speed-optimized for sparse matrices:
 
-    virtual void PasteMatrix(ChMatrix<>* matra, int insrow, int inscol, bool overwrite, bool transp) override;
-    virtual void PasteTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteMatrix(const ChMatrix<>& matra, int insrow, int inscol, bool overwrite, bool transp) override;
+    virtual void PasteTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
+    virtual void PasteClippedMatrix(const ChMatrix<>& matra,
                                     int cliprow,
                                     int clipcol,
                                     int nrows,
@@ -118,20 +118,20 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
                                     int insrow,
                                     int inscol,
                                     bool overwrite) override;
-    virtual void PasteSumClippedMatrix(ChMatrix<>* matra,
+    virtual void PasteSumClippedMatrix(const ChMatrix<>& matra,
                                        int cliprow,
                                        int clipcol,
                                        int nrows,
                                        int ncolumns,
                                        int insrow,
                                        int inscol) override;
-    virtual void PasteSumMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
-    virtual void PasteSumTranspMatrix(ChMatrix<>* matra, int insrow, int inscol) override;
+    virtual void PasteSumMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
+    virtual void PasteSumTranspMatrix(const ChMatrix<>& matra, int insrow, int inscol) override;
 
     // Specialized functions
 
-    void PasteMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
-    void PasteTranspMatrix(ChLinkedListMatrix* matra, int insrow, int inscol);
+    void PasteMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol);
+    void PasteTranspMatrix(const ChLinkedListMatrix& matra, int insrow, int inscol);
 
     // Matrix operations
 

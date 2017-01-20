@@ -56,61 +56,60 @@ class CH_OPENGL_API ChOpenGLVertexAttributesPADSNT {
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesPADSN {
- public:
-  ChOpenGLVertexAttributesPADSN();
-  ChOpenGLVertexAttributesPADSN(const glm::vec3& p,
-                                const glm::vec3& c_a,
-                                const glm::vec3& c_d,
-                                const glm::vec3& c_s,
-                                const glm::vec3& n);
-  ChOpenGLVertexAttributesPADSN(const ChOpenGLVertexAttributesPADSN& other);
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec3 color_ambient;
-  glm::vec3 color_diffuse;
-  glm::vec3 color_specular;
+  public:
+    ChOpenGLVertexAttributesPADSN();
+    ChOpenGLVertexAttributesPADSN(const glm::vec3& p,
+                                  const glm::vec3& c_a,
+                                  const glm::vec3& c_d,
+                                  const glm::vec3& c_s,
+                                  const glm::vec3& n);
+    ChOpenGLVertexAttributesPADSN(const ChOpenGLVertexAttributesPADSN& other);
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color_ambient;
+    glm::vec3 color_diffuse;
+    glm::vec3 color_specular;
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesPCNT {
- public:
-  ChOpenGLVertexAttributesPCNT();
-  ChOpenGLVertexAttributesPCNT(const glm::vec3& p, const glm::vec3& c, const glm::vec3& n, const glm::vec2& t);
-  ChOpenGLVertexAttributesPCNT(const ChOpenGLVertexAttributesPCNT& other);
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec3 color;
-  glm::vec2 texture_coordinate;
+  public:
+    ChOpenGLVertexAttributesPCNT();
+    ChOpenGLVertexAttributesPCNT(const glm::vec3& p, const glm::vec3& c, const glm::vec3& n, const glm::vec2& t);
+    ChOpenGLVertexAttributesPCNT(const ChOpenGLVertexAttributesPCNT& other);
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color;
+    glm::vec2 texture_coordinate;
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesPCN {
- public:
-  ChOpenGLVertexAttributesPCN();
-  ChOpenGLVertexAttributesPCN(const glm::vec3& p, const glm::vec3& c, const glm::vec3& n);
-  ChOpenGLVertexAttributesPCN(const ChOpenGLVertexAttributesPCN& other);
-  glm::vec3 position;
-  glm::vec3 normal;
-  glm::vec3 color;
+  public:
+    ChOpenGLVertexAttributesPCN();
+    ChOpenGLVertexAttributesPCN(const glm::vec3& p, const glm::vec3& c, const glm::vec3& n);
+    ChOpenGLVertexAttributesPCN(const ChOpenGLVertexAttributesPCN& other);
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec3 color;
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesPN {
- public:
-  ChOpenGLVertexAttributesPN();
-  ChOpenGLVertexAttributesPN(const glm::vec3& p, const glm::vec3& n);
-  ChOpenGLVertexAttributesPN(const ChOpenGLVertexAttributesPN& other);
-  glm::vec3 position;
-  glm::vec3 normal;
+  public:
+    ChOpenGLVertexAttributesPN();
+    ChOpenGLVertexAttributesPN(const glm::vec3& p, const glm::vec3& n);
+    ChOpenGLVertexAttributesPN(const ChOpenGLVertexAttributesPN& other);
+    glm::vec3 position;
+    glm::vec3 normal;
 };
 
 class CH_OPENGL_API ChOpenGLVertexAttributesP {
- public:
-  ChOpenGLVertexAttributesP();
-  ChOpenGLVertexAttributesP(const glm::vec3& p);
-  ChOpenGLVertexAttributesP(const ChOpenGLVertexAttributesP& other);
-  glm::vec3 position;
+  public:
+    ChOpenGLVertexAttributesP();
+    ChOpenGLVertexAttributesP(const glm::vec3& p);
+    ChOpenGLVertexAttributesP(const ChOpenGLVertexAttributesP& other);
+    glm::vec3 position;
 };
 
 /// @} opengl
-
 }
 }
-#endif  // END of CHOPENGLVERTEXATTRIBUTE_H
+#endif

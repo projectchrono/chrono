@@ -20,6 +20,7 @@
 
 #include "chrono_opengl/core/ChOpenGLObject.h"
 #include "chrono_opengl/core/ChOpenGLMaterial.h"
+
 #include <map>
 
 namespace chrono {
@@ -51,7 +52,6 @@ class CH_OPENGL_API ChOpenGLText : public ChOpenGLObject {
 };
 
 /// @} opengl
-
 }
 }
-#endif  // END of CHOPENGLTEXT_H
+#endif

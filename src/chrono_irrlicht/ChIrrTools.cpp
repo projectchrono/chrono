@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/physics/ChContactContainerBase.h"
@@ -100,8 +100,6 @@ class _draw_reporter_class : public ChReportContactCallback {
                 break;
         }
 
-        
-
         this->cdriver->draw3DLine(irr::core::vector3dfCH(v1), irr::core::vector3dfCH(v2), mcol);
         return true;  // to continue scanning contacts
     }
@@ -158,7 +156,7 @@ class _label_reporter_class : public ChReportContactCallback {
         irr::core::position2d<s32> spos =
             this->cdevice->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
-    
+
         switch (labeltype) {
             case ChIrrTools::CONTACT_DISTANCES_VAL:
                 sprintf(buffer, "% 6.3g", distance);
@@ -183,7 +181,8 @@ class _label_reporter_class : public ChReportContactCallback {
                 break;
         }
 
-        font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), ccol);
+        font->draw(irr::core::stringw(buffer).c_str(),
+                   irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), ccol);
 
         return true;  // to continue scanning contacts
     }
@@ -275,7 +274,8 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
             ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();  // GetAssetsFrame();
 
             char buffer[25];
-            irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y, (irr::f32)mlinkframe.pos.z);
+            irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y,
+                                      (irr::f32)mlinkframe.pos.z);
             irr::core::position2d<s32> spos =
                 device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
             gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
@@ -307,8 +307,8 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
                     break;
             }
 
-            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
-                       mcol);
+            font->draw(irr::core::stringw(buffer).c_str(),
+                       irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), mcol);
         }
         ++myiter;
     }
@@ -514,28 +514,29 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
         driver->draw2DRectangle(
             irr::video::SColor(90, 255, 0, 0),
             irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetViolationHistory()[i]),
-                            mx + (i + 1) * 4 - 1, sy + my),
+                                 mx + (i + 1) * 4 - 1, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_speed->GetDeltalambdaHistory().size(); i++) {
         driver->draw2DRectangle(
             irr::video::SColor(100, 255, 255, 0),
             irr::core::rect<s32>(mx + i * 4, sy + my - (int)(spfact * msolver_speed->GetDeltalambdaHistory()[i]),
-                            mx + (i + 1) * 4 - 2, sy + my),
+                                 mx + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_stab->GetViolationHistory().size(); i++) {
         driver->draw2DRectangle(
             irr::video::SColor(90, 0, 255, 0),
             irr::core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetViolationHistory()[i]),
-                            mx + sx / 2 + (i + 1) * 4 - 1, sy + my),
+                                 mx + sx / 2 + (i + 1) * 4 - 1, sy + my),
             &mrect);
     }
     for (unsigned int i = 0; i < msolver_stab->GetDeltalambdaHistory().size(); i++) {
         driver->draw2DRectangle(
             irr::video::SColor(100, 0, 255, 255),
-            irr::core::rect<s32>(mx + sx / 2 + i * 4, sy + my - (int)(posfact * msolver_stab->GetDeltalambdaHistory()[i]),
-                            mx + sx / 2 + (i + 1) * 4 - 2, sy + my),
+            irr::core::rect<s32>(mx + sx / 2 + i * 4,
+                                 sy + my - (int)(posfact * msolver_stab->GetDeltalambdaHistory()[i]),
+                                 mx + sx / 2 + (i + 1) * 4 - 2, sy + my),
             &mrect);
     }
 
@@ -551,7 +552,8 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
             font->draw(L"Solver position violation", irr::core::rect<s32>(mx + sx - 100, my, mx + sx, my + 10),
                        irr::video::SColor(200, 0, 100, 0));
             sprintf(buffer, "%g", sy / posfact);
-            font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),
+            font->draw(irr::core::stringw(buffer).c_str(),
+                       irr::core::rect<s32>(mx + sx / 2, my, mx + sx / 2 + 10, my + 10),
                        irr::video::SColor(200, 0, 100, 0));
         }
     }
@@ -592,7 +594,8 @@ void ChIrrTools::drawChFunction(IrrlichtDevice* mdevice,
                 int yzero = my + sy - (int)(((-ymin) / (ymax - ymin)) * (double)sy);
                 driver->draw2DLine(irr::core::position2d<s32>(mx, yzero), irr::core::position2d<s32>(mx + sx, yzero),
                                    irr::video::SColor(90, 255, 255, 255));
-                font->draw(irr::core::stringw(buffer).c_str(), irr::core::rect<s32>(mx, my + yzero, mx + sx, my + yzero + 10),
+                font->draw(irr::core::stringw(buffer).c_str(),
+                           irr::core::rect<s32>(mx, my + yzero, mx + sx, my + yzero + 10),
                            irr::video::SColor(200, 100, 0, 0));
             }
         }
@@ -688,8 +691,7 @@ void ChIrrTools::drawSpring(irr::video::IVideoDriver* driver,
     ChVector<> Vx, Vy, Vz;
     double length = dist.Length();
     ChVector<> dir = Vnorm(dist);
-    ChVector<> singul(VECT_Y);
-    XdirToDxDyDz(&dir, &singul, &Vx, &Vy, &Vz);
+    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
     rel_matrix.Set_A_axis(Vx, Vy, Vz);
     ChQuaternion<> Q12 = rel_matrix.Get_A_quaternion();
     ChCoordsys<> mpos(start, Q12);
@@ -746,50 +748,48 @@ void ChIrrTools::drawGrid(irr::video::IVideoDriver* driver,
     }
 }
 
-
 /// Easy-to-use function to draw color map 2D legend
-void  ChIrrTools::drawColorbar(double vmin, double vmax,
-                             const std::string& label,
-                             IrrlichtDevice* mdevice,
-                             int mx,
-                             int my,
-                             int sx,
-                             int sy) {
-
+void ChIrrTools::drawColorbar(double vmin,
+                              double vmax,
+                              const std::string& label,
+                              IrrlichtDevice* mdevice,
+                              int mx,
+                              int my,
+                              int sx,
+                              int sy) {
     irr::video::IVideoDriver* driver = mdevice->getVideoDriver();
-    
+
     gui::IGUIFont* font = 0;
-    if (mdevice->getGUIEnvironment()) 
+    if (mdevice->getGUIEnvironment())
         font = mdevice->getGUIEnvironment()->getSkin()->getFont();
 
     int steps = 10;
-    double ystep=((double)sy/(double)steps);
-    for (int i=0; i<steps; ++i) {
-        double mv_up = vmax - (vmax-vmin)*((double)(i)/(double)steps);
-        double mv_dw = vmax - (vmax-vmin)*((double)(i+1)/(double)steps);
-        core::rect<s32> mrect(mx,    my+(s32)(i*ystep),  mx+sx, my+(s32)((i+1)*ystep) );
+    double ystep = ((double)sy / (double)steps);
+    for (int i = 0; i < steps; ++i) {
+        double mv_up = vmax - (vmax - vmin) * ((double)(i) / (double)steps);
+        double mv_dw = vmax - (vmax - vmin) * ((double)(i + 1) / (double)steps);
+        core::rect<s32> mrect(mx, my + (s32)(i * ystep), mx + sx, my + (s32)((i + 1) * ystep));
         ChColor c_up = ChColor::ComputeFalseColor(mv_up, vmin, vmax, false);
         ChColor c_dw = ChColor::ComputeFalseColor(mv_dw, vmin, vmax, false);
-        video::SColor col_up (255, u32(255*c_up.R), u32(255*c_up.G), u32(255*c_up.B));
-        video::SColor col_dw (255, u32(255*c_dw.R), u32(255*c_dw.G), u32(255*c_dw.B));
-        driver->draw2DRectangle(mrect, col_up,col_up, col_dw, col_dw);
+        video::SColor col_up(255, u32(255 * c_up.R), u32(255 * c_up.G), u32(255 * c_up.B));
+        video::SColor col_dw(255, u32(255 * c_dw.R), u32(255 * c_dw.G), u32(255 * c_dw.B));
+        driver->draw2DRectangle(mrect, col_up, col_up, col_dw, col_dw);
 
         if (font) {
             char buffer[100];
             sprintf(buffer, "%g", mv_up);
-            font->draw(irr::core::stringw(buffer).c_str(), 
-                       core::rect<s32>(mrect.UpperLeftCorner.X+sx+6, mrect.UpperLeftCorner.Y-5, mrect.LowerRightCorner.X+sx+6,  mrect.LowerRightCorner.Y-5),
+            font->draw(irr::core::stringw(buffer).c_str(),
+                       core::rect<s32>(mrect.UpperLeftCorner.X + sx + 6, mrect.UpperLeftCorner.Y - 5,
+                                       mrect.LowerRightCorner.X + sx + 6, mrect.LowerRightCorner.Y - 5),
                        irr::video::SColor(255, 0, 0, 0));
-            driver->draw2DLine(irr::core::position2d<s32>(mrect.UpperLeftCorner.X+sx-4,   mrect.UpperLeftCorner.Y), 
-                               irr::core::position2d<s32>(mrect.UpperLeftCorner.X+sx,     mrect.UpperLeftCorner.Y),
-                                   irr::video::SColor(255, 100, 100, 100));
+            driver->draw2DLine(irr::core::position2d<s32>(mrect.UpperLeftCorner.X + sx - 4, mrect.UpperLeftCorner.Y),
+                               irr::core::position2d<s32>(mrect.UpperLeftCorner.X + sx, mrect.UpperLeftCorner.Y),
+                               irr::video::SColor(255, 100, 100, 100));
         }
     }
-    font->draw(irr::core::stringw(label.c_str()).c_str(), 
-               core::rect<s32>(mx,my+sy+5, mx+100,my+sy+20),
-                       irr::video::SColor(255, 0, 0, 0));
+    font->draw(irr::core::stringw(label.c_str()).c_str(), core::rect<s32>(mx, my + sy + 5, mx + 100, my + sy + 20),
+               irr::video::SColor(255, 0, 0, 0));
 }
-
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

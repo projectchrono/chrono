@@ -18,9 +18,9 @@
 #define NULL 0
 #endif
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <fstream>
-#include <string.h>
+#include <cstring>
 
 namespace chrono {
 namespace pneumatics {

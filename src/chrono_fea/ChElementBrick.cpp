@@ -232,10 +232,10 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             ///===============================================================//
             ChMatrixNM<double, 216, 1> GDEPSPvec;
             ChMatrixNM<double, 81, 1> KALPHAvec;
-            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);    //
-            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 9, 1, 0, 0);           //
-            GDEPSPvec.PasteClippedMatrix(&TempIntegratedResult, 33, 0, 216, 1, 0, 0);  //
-            KALPHAvec.PasteClippedMatrix(&TempIntegratedResult, 249, 0, 81, 1, 0, 0);  //
+            Finternal.PasteClippedMatrix(TempIntegratedResult, 0, 0, 24, 1, 0, 0);    //
+            HE.PasteClippedMatrix(TempIntegratedResult, 24, 0, 9, 1, 0, 0);           //
+            GDEPSPvec.PasteClippedMatrix(TempIntegratedResult, 33, 0, 216, 1, 0, 0);  //
+            KALPHAvec.PasteClippedMatrix(TempIntegratedResult, 249, 0, 81, 1, 0, 0);  //
             GDEPSP = GDEPSPvec;
             KALPHA = KALPHAvec;
             KALPHA1 = KALPHA;
@@ -285,7 +285,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     throw ChException("Singular matrix.");
                 }
                 LU_solve(INV_KALPHA_Temp, INDX, DAMMY_vec);
-                INV_KALPHA.PasteClippedMatrix(&DAMMY_vec, 0, 0, 9, 1, 0, ii);  //
+                INV_KALPHA.PasteClippedMatrix(DAMMY_vec, 0, 0, 9, 1, 0, ii);  //
             }
             TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
             stock_jac_EAS_elem.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
@@ -359,11 +359,11 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
             ChMatrixNM<double, 216, 1> GDEPSPvec;
             ChMatrixNM<double, 81, 1> KALPHAvec;
             ChMatrixNM<double, 576, 1> JACvec;
-            Finternal.PasteClippedMatrix(&TempIntegratedResult, 0, 0, 24, 1, 0, 0);    //
-            HE.PasteClippedMatrix(&TempIntegratedResult, 24, 0, 9, 1, 0, 0);           //
-            GDEPSPvec.PasteClippedMatrix(&TempIntegratedResult, 33, 0, 216, 1, 0, 0);  //
-            KALPHAvec.PasteClippedMatrix(&TempIntegratedResult, 249, 0, 81, 1, 0, 0);  //
-            JACvec.PasteClippedMatrix(&TempIntegratedResult, 330, 0, 576, 1, 0, 0);    //
+            Finternal.PasteClippedMatrix(TempIntegratedResult, 0, 0, 24, 1, 0, 0);    //
+            HE.PasteClippedMatrix(TempIntegratedResult, 24, 0, 9, 1, 0, 0);           //
+            GDEPSPvec.PasteClippedMatrix(TempIntegratedResult, 33, 0, 216, 1, 0, 0);  //
+            KALPHAvec.PasteClippedMatrix(TempIntegratedResult, 249, 0, 81, 1, 0, 0);  //
+            JACvec.PasteClippedMatrix(TempIntegratedResult, 330, 0, 576, 1, 0, 0);    //
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 24; j++) {
                     GDEPSP(i, j) = GDEPSPvec(i * 24 + j, 0);
@@ -427,7 +427,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
                     throw ChException("Singular matrix.");
                 }
                 LU_solve(INV_KALPHA_Temp, INDX, DAMMY_vec);
-                INV_KALPHA.PasteClippedMatrix(&DAMMY_vec, 0, 0, 9, 1, 0, ii);  //
+                INV_KALPHA.PasteClippedMatrix(DAMMY_vec, 0, 0, 9, 1, 0, ii);  //
             }
             TEMP_GDEPSP.MatrMultiply(INV_KALPHA, GDEPSP);
             stock_jac_EAS_elem.MatrTMultiply(GDEPSP, TEMP_GDEPSP);
@@ -452,7 +452,6 @@ void ChElementBrick::ShapeFunctions(ChMatrix<>& N, double x, double y, double z)
     N(5) = 0.125 * (1.0 + x) * (1.0 - y) * (1.0 + z);
     N(6) = 0.125 * (1.0 + x) * (1.0 + y) * (1.0 + z);
     N(7) = 0.125 * (1.0 - x) * (1.0 + y) * (1.0 + z);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -468,7 +467,6 @@ void ChElementBrick::ShapeFunctionsDerivativeX(ChMatrix<>& Nx, double x, double 
     Nx(5) = 2.0 / a * 0.125 * (1.0) * (1.0 - y) * (1.0 + z);
     Nx(6) = 2.0 / a * 0.125 * (1.0) * (1.0 + y) * (1.0 + z);
     Nx(7) = 2.0 / a * 0.125 * (-1.0) * (1.0 + y) * (1.0 + z);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -484,7 +482,6 @@ void ChElementBrick::ShapeFunctionsDerivativeY(ChMatrix<>& Ny, double x, double 
     Ny(5) = 2.0 / b * 0.125 * (1.0 + x) * (-1.0) * (1.0 + z);
     Ny(6) = 2.0 / b * 0.125 * (1.0 + x) * (1.0) * (1.0 + z);
     Ny(7) = 2.0 / b * 0.125 * (1.0 - x) * (1.0) * (1.0 + z);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -500,7 +497,6 @@ void ChElementBrick::ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double 
     Nz(5) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 - y) * (1.0);
     Nz(6) = 2.0 / c * 0.125 * (1.0 + x) * (1.0 + y) * (1.0);
     Nz(7) = 2.0 / c * 0.125 * (1.0 - x) * (1.0 + y) * (1.0);
-
 }
 
 // ----------------------------------------------------------------------------
@@ -537,19 +533,19 @@ void ChElementBrick::ComputeStiffnessMatrix() {
             m_nodes[inode]->pos.x += diff;
             ComputeInternalForces(F1);  // Flag=1 > Jacobian of internal force calculation
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 0 + inode * 3);
+            m_StiffnessMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 24, 1, 0, 0 + inode * 3);
             m_nodes[inode]->pos.x -= diff;
 
             m_nodes[inode]->pos.y += diff;
             ComputeInternalForces(F1);
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 1 + inode * 3);
+            m_StiffnessMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 24, 1, 0, 1 + inode * 3);
             m_nodes[inode]->pos.y -= diff;
 
             m_nodes[inode]->pos.z += diff;
             ComputeInternalForces(F1);
             Kcolumn = (F0 - F1) * (1.0 / diff);
-            m_StiffnessMatrix.PasteClippedMatrix(&Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 3);
+            m_StiffnessMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 24, 1, 0, 2 + inode * 3);
             m_nodes[inode]->pos.z -= diff;
         }
         // flag_HE=0 is default
@@ -589,57 +585,57 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     //		// Sd=[Nd1*eye(3) Nd2*eye(3) Nd3*eye(3) Nd4*eye(3)]
     ChMatrix33<> Sxi;
     Sxi.FillDiag(Nx(0));
-    Sx.PasteMatrix(&Sxi, 0, 0);
+    Sx.PasteMatrix(Sxi, 0, 0);
     Sxi.FillDiag(Nx(1));
-    Sx.PasteMatrix(&Sxi, 0, 3);
+    Sx.PasteMatrix(Sxi, 0, 3);
     Sxi.FillDiag(Nx(2));
-    Sx.PasteMatrix(&Sxi, 0, 6);
+    Sx.PasteMatrix(Sxi, 0, 6);
     Sxi.FillDiag(Nx(3));
-    Sx.PasteMatrix(&Sxi, 0, 9);
+    Sx.PasteMatrix(Sxi, 0, 9);
     Sxi.FillDiag(Nx(4));
-    Sx.PasteMatrix(&Sxi, 0, 12);
+    Sx.PasteMatrix(Sxi, 0, 12);
     Sxi.FillDiag(Nx(5));
-    Sx.PasteMatrix(&Sxi, 0, 15);
+    Sx.PasteMatrix(Sxi, 0, 15);
     Sxi.FillDiag(Nx(6));
-    Sx.PasteMatrix(&Sxi, 0, 18);
+    Sx.PasteMatrix(Sxi, 0, 18);
     Sxi.FillDiag(Nx(7));
-    Sx.PasteMatrix(&Sxi, 0, 21);
+    Sx.PasteMatrix(Sxi, 0, 21);
 
     ChMatrix33<> Syi;
     Syi.FillDiag(Ny(0));
-    Sy.PasteMatrix(&Syi, 0, 0);
+    Sy.PasteMatrix(Syi, 0, 0);
     Syi.FillDiag(Ny(1));
-    Sy.PasteMatrix(&Syi, 0, 3);
+    Sy.PasteMatrix(Syi, 0, 3);
     Syi.FillDiag(Ny(2));
-    Sy.PasteMatrix(&Syi, 0, 6);
+    Sy.PasteMatrix(Syi, 0, 6);
     Syi.FillDiag(Ny(3));
-    Sy.PasteMatrix(&Syi, 0, 9);
+    Sy.PasteMatrix(Syi, 0, 9);
     Syi.FillDiag(Ny(4));
-    Sy.PasteMatrix(&Syi, 0, 12);
+    Sy.PasteMatrix(Syi, 0, 12);
     Syi.FillDiag(Ny(5));
-    Sy.PasteMatrix(&Syi, 0, 15);
+    Sy.PasteMatrix(Syi, 0, 15);
     Syi.FillDiag(Ny(6));
-    Sy.PasteMatrix(&Syi, 0, 18);
+    Sy.PasteMatrix(Syi, 0, 18);
     Syi.FillDiag(Ny(7));
-    Sy.PasteMatrix(&Syi, 0, 21);
+    Sy.PasteMatrix(Syi, 0, 21);
 
     ChMatrix33<> Szi;
     Szi.FillDiag(Nz(0));
-    Sz.PasteMatrix(&Szi, 0, 0);
+    Sz.PasteMatrix(Szi, 0, 0);
     Szi.FillDiag(Nz(1));
-    Sz.PasteMatrix(&Szi, 0, 3);
+    Sz.PasteMatrix(Szi, 0, 3);
     Szi.FillDiag(Nz(2));
-    Sz.PasteMatrix(&Szi, 0, 6);
+    Sz.PasteMatrix(Szi, 0, 6);
     Szi.FillDiag(Nz(3));
-    Sz.PasteMatrix(&Szi, 0, 9);
+    Sz.PasteMatrix(Szi, 0, 9);
     Szi.FillDiag(Nz(4));
-    Sz.PasteMatrix(&Szi, 0, 12);
+    Sz.PasteMatrix(Szi, 0, 12);
     Szi.FillDiag(Nz(5));
-    Sz.PasteMatrix(&Szi, 0, 15);
+    Sz.PasteMatrix(Szi, 0, 15);
     Szi.FillDiag(Nz(6));
-    Sz.PasteMatrix(&Szi, 0, 18);
+    Sz.PasteMatrix(Szi, 0, 18);
     Szi.FillDiag(Nz(7));
-    Sz.PasteMatrix(&Szi, 0, 21);
+    Sz.PasteMatrix(Szi, 0, 21);
 
     // EAS and Initial Shape
     ChMatrixNM<double, 3, 3> rd0;
@@ -649,17 +645,17 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     temp13.Reset();
     temp13 = (Nx * (*d0));
     temp13.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 0);
+    rd0.PasteClippedMatrix(temp13, 0, 0, 3, 1, 0, 0);
     temp13.MatrTranspose();
 
     temp13 = (Ny * (*d0));
     temp13.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 1);
+    rd0.PasteClippedMatrix(temp13, 0, 0, 3, 1, 0, 1);
     temp13.MatrTranspose();
 
     temp13 = (Nz * (*d0));
     temp13.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp13, 0, 0, 3, 1, 0, 2);
+    rd0.PasteClippedMatrix(temp13, 0, 0, 3, 1, 0, 2);
     detJ0 = rd0.Det();
 
     // Transformation : Orthogonal transformation (A and J)
@@ -802,18 +798,18 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
     ChMatrixNM<double, 6, 24> strainD_til;
     strainD_til.Reset();
     tempB = Nx * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 0, 0);
     tempB = Ny * (*d) * Sy;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 1, 0);
     tempB = Nx * (*d) * Sy + Ny * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 2, 0);
     //== Compatible strain (No ANS)==//
     tempB = Nz * (*d) * Sz;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 3, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 3, 0);
     tempB = Nx * (*d) * Sz + Nz * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 4, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 4, 0);
     tempB = Ny * (*d) * Sz + Nz * (*d) * Sy;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 5, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 5, 0);
     // For orthotropic material
     for (int ii = 0; ii < 24; ii++) {
         strainD(0, ii) = strainD_til(0, ii) * beta(0) * beta(0) + strainD_til(1, ii) * beta(3) * beta(3) +
@@ -1116,11 +1112,11 @@ void ChElementBrick::MyForceAnalytical::Evaluate(ChMatrixNM<double, 906, 1>& res
         }
     }
     // JACVec = JAC11;
-    result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
-    result.PasteClippedMatrix(&HE1, 0, 0, 9, 1, 24, 0);
-    result.PasteClippedMatrix(&GDEPSPVec, 0, 0, 216, 1, 33, 0);
-    result.PasteClippedMatrix(&KALPHAVec, 0, 0, 81, 1, 249, 0);
-    result.PasteClippedMatrix(&JACVec, 0, 0, 576, 1, 330, 0);
+    result.PasteClippedMatrix(Fint, 0, 0, 24, 1, 0, 0);
+    result.PasteClippedMatrix(HE1, 0, 0, 9, 1, 24, 0);
+    result.PasteClippedMatrix(GDEPSPVec, 0, 0, 216, 1, 33, 0);
+    result.PasteClippedMatrix(KALPHAVec, 0, 0, 81, 1, 249, 0);
+    result.PasteClippedMatrix(JACVec, 0, 0, 576, 1, 330, 0);
 }
 // -----------------------------------------------------------------------------
 void ChElementBrick::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
@@ -1135,21 +1131,21 @@ void ChElementBrick::MyMass::Evaluate(ChMatrixNM<double, 24, 24>& result,
     // S=[N1*eye(3) N2*eye(3) N3*eye(3) N4*eye(3)...]
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
+    S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
+    S.PasteMatrix(Si, 0, 3);
     Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
+    S.PasteMatrix(Si, 0, 6);
     Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
+    S.PasteMatrix(Si, 0, 9);
     Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
+    S.PasteMatrix(Si, 0, 12);
     Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
+    S.PasteMatrix(Si, 0, 15);
     Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
+    S.PasteMatrix(Si, 0, 18);
     Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
+    S.PasteMatrix(Si, 0, 21);
 
     ChMatrixNM<double, 1, 3> Nx_d0;
     Nx_d0.MatrMultiply(Nx, *d0);
@@ -1206,57 +1202,57 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     // Sx=[Nx1*eye(3) Nx2*eye(3) Nx3*eye(3) Nx4*eye(3) Nx5*eye(3) Nx6*eye(3) Nx7*eye(3) Nx8*eye(3)]
     ChMatrix33<> Sxi;
     Sxi.FillDiag(Nx(0));
-    Sx.PasteMatrix(&Sxi, 0, 0);
+    Sx.PasteMatrix(Sxi, 0, 0);
     Sxi.FillDiag(Nx(1));
-    Sx.PasteMatrix(&Sxi, 0, 3);
+    Sx.PasteMatrix(Sxi, 0, 3);
     Sxi.FillDiag(Nx(2));
-    Sx.PasteMatrix(&Sxi, 0, 6);
+    Sx.PasteMatrix(Sxi, 0, 6);
     Sxi.FillDiag(Nx(3));
-    Sx.PasteMatrix(&Sxi, 0, 9);
+    Sx.PasteMatrix(Sxi, 0, 9);
     Sxi.FillDiag(Nx(4));
-    Sx.PasteMatrix(&Sxi, 0, 12);
+    Sx.PasteMatrix(Sxi, 0, 12);
     Sxi.FillDiag(Nx(5));
-    Sx.PasteMatrix(&Sxi, 0, 15);
+    Sx.PasteMatrix(Sxi, 0, 15);
     Sxi.FillDiag(Nx(6));
-    Sx.PasteMatrix(&Sxi, 0, 18);
+    Sx.PasteMatrix(Sxi, 0, 18);
     Sxi.FillDiag(Nx(7));
-    Sx.PasteMatrix(&Sxi, 0, 21);
+    Sx.PasteMatrix(Sxi, 0, 21);
 
     ChMatrix33<> Syi;
     Syi.FillDiag(Ny(0));
-    Sy.PasteMatrix(&Syi, 0, 0);
+    Sy.PasteMatrix(Syi, 0, 0);
     Syi.FillDiag(Ny(1));
-    Sy.PasteMatrix(&Syi, 0, 3);
+    Sy.PasteMatrix(Syi, 0, 3);
     Syi.FillDiag(Ny(2));
-    Sy.PasteMatrix(&Syi, 0, 6);
+    Sy.PasteMatrix(Syi, 0, 6);
     Syi.FillDiag(Ny(3));
-    Sy.PasteMatrix(&Syi, 0, 9);
+    Sy.PasteMatrix(Syi, 0, 9);
     Syi.FillDiag(Ny(4));
-    Sy.PasteMatrix(&Syi, 0, 12);
+    Sy.PasteMatrix(Syi, 0, 12);
     Syi.FillDiag(Ny(5));
-    Sy.PasteMatrix(&Syi, 0, 15);
+    Sy.PasteMatrix(Syi, 0, 15);
     Syi.FillDiag(Ny(6));
-    Sy.PasteMatrix(&Syi, 0, 18);
+    Sy.PasteMatrix(Syi, 0, 18);
     Syi.FillDiag(Ny(7));
-    Sy.PasteMatrix(&Syi, 0, 21);
+    Sy.PasteMatrix(Syi, 0, 21);
 
     ChMatrix33<> Szi;
     Szi.FillDiag(Nz(0));
-    Sz.PasteMatrix(&Szi, 0, 0);
+    Sz.PasteMatrix(Szi, 0, 0);
     Szi.FillDiag(Nz(1));
-    Sz.PasteMatrix(&Szi, 0, 3);
+    Sz.PasteMatrix(Szi, 0, 3);
     Szi.FillDiag(Nz(2));
-    Sz.PasteMatrix(&Szi, 0, 6);
+    Sz.PasteMatrix(Szi, 0, 6);
     Szi.FillDiag(Nz(3));
-    Sz.PasteMatrix(&Szi, 0, 9);
+    Sz.PasteMatrix(Szi, 0, 9);
     Szi.FillDiag(Nz(4));
-    Sz.PasteMatrix(&Szi, 0, 12);
+    Sz.PasteMatrix(Szi, 0, 12);
     Szi.FillDiag(Nz(5));
-    Sz.PasteMatrix(&Szi, 0, 15);
+    Sz.PasteMatrix(Szi, 0, 15);
     Szi.FillDiag(Nz(6));
-    Sz.PasteMatrix(&Szi, 0, 18);
+    Sz.PasteMatrix(Szi, 0, 18);
     Szi.FillDiag(Nz(7));
-    Sz.PasteMatrix(&Szi, 0, 21);
+    Sz.PasteMatrix(Szi, 0, 21);
 
     //==EAS and Initial Shape==//
     ChMatrixNM<double, 3, 3> rd0;
@@ -1264,13 +1260,13 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     temp33.Reset();
     temp33 = (Nx * (*d0));
     temp33.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 0);
+    rd0.PasteClippedMatrix(temp33, 0, 0, 3, 1, 0, 0);
     temp33 = (Ny * (*d0));
     temp33.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 1);
+    rd0.PasteClippedMatrix(temp33, 0, 0, 3, 1, 0, 1);
     temp33 = (Nz * (*d0));
     temp33.MatrTranspose();
-    rd0.PasteClippedMatrix(&temp33, 0, 0, 3, 1, 0, 2);
+    rd0.PasteClippedMatrix(temp33, 0, 0, 3, 1, 0, 2);
     detJ0 = rd0.Det();
 
     //////////////////////////////////////////////////////////////
@@ -1418,18 +1414,18 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     ChMatrixNM<double, 6, 24> strainD_til;
     strainD_til.Reset();
     tempB = Nx * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 0, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 0, 0);
     tempB = Ny * (*d) * Sy;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 1, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 1, 0);
     tempB = Nx * (*d) * Sy + Ny * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 2, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 2, 0);
     //== Compatible strain (No ANS)==//
     tempB = Nz * (*d) * Sz;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 3, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 3, 0);
     tempB = Nx * (*d) * Sz + Nz * (*d) * Sx;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 4, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 4, 0);
     tempB = Ny * (*d) * Sz + Nz * (*d) * Sy;
-    strainD_til.PasteClippedMatrix(&tempB, 0, 0, 1, 24, 5, 0);
+    strainD_til.PasteClippedMatrix(tempB, 0, 0, 1, 24, 5, 0);
 
     //// For orthotropic material ///
     for (int ii = 0; ii < 24; ii++) {
@@ -1614,10 +1610,10 @@ void ChElementBrick::MyForceNum::Evaluate(ChMatrixNM<double, 330, 1>& result,
     ChMatrixNM<double, 81, 1> KALPHAVec;
     GDEPSPVec = GDEPSP;
     KALPHAVec = KALPHA;
-    result.PasteClippedMatrix(&Fint, 0, 0, 24, 1, 0, 0);
-    result.PasteClippedMatrix(&HE1, 0, 0, 9, 1, 24, 0);
-    result.PasteClippedMatrix(&GDEPSPVec, 0, 0, 216, 1, 33, 0);
-    result.PasteClippedMatrix(&KALPHAVec, 0, 0, 81, 1, 249, 0);
+    result.PasteClippedMatrix(Fint, 0, 0, 24, 1, 0, 0);
+    result.PasteClippedMatrix(HE1, 0, 0, 9, 1, 24, 0);
+    result.PasteClippedMatrix(GDEPSPVec, 0, 0, 216, 1, 33, 0);
+    result.PasteClippedMatrix(KALPHAVec, 0, 0, 81, 1, 249, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -1731,14 +1727,14 @@ void ChElementBrick::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, dou
     temp.MatrScale(kr_factor);
 
     // Paste scaled K stiffness matrix and R matrix in resulting H:
-    H.PasteMatrix(&temp, 0, 0);
+    H.PasteMatrix(temp, 0, 0);
 
     // 2) Store  +mf*[M]
     temp = m_MassMatrix;
     temp.MatrScale(Mfactor);
 
     // Paste scaled M mass matrix in resulting H:
-    H.PasteSumMatrix(&temp, 0, 0);
+    H.PasteSumMatrix(temp, 0, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -1760,15 +1756,15 @@ void ChElementBrick::T0DetJElementCenterForEAS(ChMatrixNM<double, 8, 3>& d0,
     ShapeFunctionsDerivativeZ(Nz, x, y, z);
     tempVecA = (Nx * d0);
     tempVecA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 0);
+    rd0.PasteClippedMatrix(tempVecA, 0, 0, 3, 1, 0, 0);
     tempVecA.MatrTranspose();
     tempVecA = (Ny * d0);
     tempVecA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 1);
+    rd0.PasteClippedMatrix(tempVecA, 0, 0, 3, 1, 0, 1);
     tempVecA.MatrTranspose();
     tempVecA = (Nz * d0);
     tempVecA.MatrTranspose();
-    rd0.PasteClippedMatrix(&tempVecA, 0, 0, 3, 1, 0, 2);
+    rd0.PasteClippedMatrix(tempVecA, 0, 0, 3, 1, 0, 2);
     tempVecA.MatrTranspose();
     detJ0C = rd0.Det();
     // Transformation : Orthogonal transformation (A and J) ////

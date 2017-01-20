@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -9,23 +9,14 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-///////////////////////////////////////////////////
-//
-//   ChEvents.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <float.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cmath>
+#include <cfloat>
 #include <memory.h>
 
-#include "physics/ChEvents.h"
+#include "chrono/physics/ChEvents.h"
 
 namespace chrono {
 
@@ -89,6 +80,4 @@ int ChEvents::GetLast() {
     return *(ebuffer + current_event);
 }
 
-}  // END_OF_NAMESPACE____
-
-////// end
+}  // end namespace chrono

@@ -67,7 +67,6 @@ class CH_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
 };
 
 /// @} opengl
-
 }
 }
-#endif  // END of CHOPENGLSHADER_H
+#endif

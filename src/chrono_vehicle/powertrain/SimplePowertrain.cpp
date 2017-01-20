@@ -20,7 +20,7 @@
 
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -38,7 +38,7 @@ SimplePowertrain::SimplePowertrain(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

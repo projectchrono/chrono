@@ -9,13 +9,12 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include "assets/ChColorAsset.h"
+#include "chrono/assets/ChColorAsset.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChColorAsset> a_registration_ChColorAsset;
+CH_FACTORY_REGISTER(ChColorAsset)
 
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

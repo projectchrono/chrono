@@ -19,7 +19,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/driveline/ShaftsDriveline2WD.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -38,7 +38,7 @@ static ChVector<> loadVector(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD() {
+ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDriveline2WD("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -47,14 +47,14 @@ ShaftsDriveline2WD::ShaftsDriveline2WD(const std::string& filename) : ChShaftsDr
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsDriveline2WD() {
+ShaftsDriveline2WD::ShaftsDriveline2WD(const rapidjson::Document& d) : ChShaftsDriveline2WD("") {
     Create(d);
 }
 
@@ -63,6 +63,8 @@ void ShaftsDriveline2WD::Create(const rapidjson::Document& d) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    SetName(d["Name"].GetString());
 
     // Get shaft directions.
     assert(d.HasMember("Shaft Direction"));

@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -92,8 +92,7 @@ class ChContactTuple {
 
         // Contact plane
         ChVector<> Vx, Vy, Vz;
-        ChVector<double> singul(VECT_Y);
-        XdirToDxDyDz(&normal, &singul, &Vx, &Vy, &Vz);
+        XdirToDxDyDz(normal, VECT_Y, Vx, Vy, Vz);
         contact_plane.Set_A_axis(Vx, Vy, Vz);
     }
 

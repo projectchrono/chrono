@@ -25,7 +25,8 @@ namespace chrono {
 ///   - end = duration of motion,
 
 class ChApi ChFunction_Poly345 : public ChFunction {
-    CH_RTTI(ChFunction_Poly345, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Poly345)
 
   private:
     double h;

@@ -24,8 +24,9 @@ namespace chrono {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedNodes : public ChPhysicsItem {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChIndexedNodes, ChPhysicsItem);
+    
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChIndexedNodes)
 
   public:
     ChIndexedNodes() {}

@@ -26,8 +26,6 @@ Modified by: Alessandro Tasora
 
 #include "chrono/core/ChApiCE.h"
 
-//#include "PlatformDefinitions.h"
-
 #if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN

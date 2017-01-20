@@ -21,17 +21,50 @@
 //
 // =============================================================================
 
+#include <algorithm>
+
+#include "chrono/physics/ChGlobal.h"
+#include "chrono/assets/ChTexture.h"
+
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
 namespace chrono {
 namespace vehicle {
 
+ChWheel::ChWheel(const std::string& name) : ChPart(name) {}
+
 // The base class initialization function attaches this wheel to the specified
 // suspension spindle body (by incrementing the spindle's mass and inertia with
 // that of the wheel.  A derived class should always invoke this base method.
 void ChWheel::Initialize(std::shared_ptr<ChBody> spindle) {
+    m_spindle = spindle;
     spindle->SetMass(spindle->GetMass() + GetMass());
     spindle->SetInertiaXX(spindle->GetInertiaXX() + GetInertia());
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChWheel::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
+    if (GetRadius() == 0 || GetWidth() == 0)
+        return;
+
+    m_cyl_shape = std::make_shared<ChCylinderShape>();
+    m_cyl_shape->GetCylinderGeometry().rad = GetRadius();
+    m_cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, GetWidth() / 2, 0);
+    m_cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -GetWidth() / 2, 0);
+    m_spindle->AddAsset(m_cyl_shape);
+}
+
+void ChWheel::RemoveVisualizationAssets() {
+    // Make sure we only remove the assets added by ChWheel::AddVisualizationAssets.
+    // This is important for the ChWheel object because a tire may add its own assets
+    // to the same body (the spindle).
+    auto it = std::find(m_spindle->GetAssets().begin(), m_spindle->GetAssets().end(), m_cyl_shape);
+    if (it != m_spindle->GetAssets().end())
+        m_spindle->GetAssets().erase(it);
 }
 
 }  // end namespace vehicle

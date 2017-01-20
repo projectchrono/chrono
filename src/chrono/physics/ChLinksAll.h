@@ -34,8 +34,8 @@
 #include "chrono/physics/ChLinkScrew.h"
 #include "chrono/physics/ChLinkSpring.h"
 #include "chrono/physics/ChLinkSpringCB.h"
+#include "chrono/physics/ChLinkRotSpringCB.h"
 #include "chrono/physics/ChLinkTrajectory.h"
 #include "chrono/physics/ChLinkUniversal.h"
-#include "chrono/physics/ChLinkWheel.h"
 
 #endif

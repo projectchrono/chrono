@@ -23,7 +23,9 @@ namespace chrono {
 /// link type is able to couple translation and rotation.
 
 class ChApi ChLinkScrew : public ChLinkLock {
-    CH_RTTI(ChLinkScrew, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkScrew)
 
   protected:
     double tau;  ///< transmission coeff.

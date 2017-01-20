@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChVariablesGeneric> a_registration_ChVariablesGeneric;
+CH_FACTORY_REGISTER(ChVariablesGeneric)
 
 ChVariablesGeneric::ChVariablesGeneric(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
     Mmass = new ChMatrixDynamic<>(ndof, ndof);

@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHELEMENTBEAMEULER_H
 #define CHELEMENTBEAMEULER_H
@@ -30,11 +32,11 @@ namespace fea {
 /// For this 'basic' implementation, constant section and constant
 /// material are assumed.
 ///
-/// Further information in the 
+/// Further information in the
 /// [white paper PDF](http://www.projectchrono.org/assets/white_papers/euler_beams.pdf)
 ///
-/// Note that there are also ChElementBeamANCF if no torsional effects
-/// are needed, as in cables. 
+/// Note that there are also ChElementCableANCF if no torsional effects
+/// are needed, as in cables.
 
 class ChApiFea ChElementBeamEuler : public ChElementBeam,
                                     public ChLoadableU,
@@ -519,10 +521,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
             mX_b.Set_X_matrix(-vX_b_loc);
 
             ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-            mS.PasteMatrix(&mX_a, 0, 0);
-            mS.PasteMatrix(&mI, 3, 0);
-            mS.PasteMatrix(&mX_b, 6, 0);
-            mS.PasteMatrix(&mI, 9, 0);
+            mS.PasteMatrix(mX_a, 0, 0);
+            mS.PasteMatrix(mI, 3, 0);
+            mS.PasteMatrix(mX_b, 6, 0);
+            mS.PasteMatrix(mI, 9, 0);
 
             ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
             mG(2, 1) = -1. / Lel;
@@ -556,24 +558,24 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
             if (!force_symmetric_stiffness) {
                 skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-                mFnm.PasteMatrix(&skew_f, 0, 0);
-                mFn.PasteMatrix(&skew_f, 0, 0);
+                mFnm.PasteMatrix(skew_f, 0, 0);
+                mFn.PasteMatrix(skew_f, 0, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(3, 0));
-                mFnm.PasteMatrix(&skew_f, 3, 0);
+                mFnm.PasteMatrix(skew_f, 3, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-                mFnm.PasteMatrix(&skew_f, 6, 0);
-                mFn.PasteMatrix(&skew_f, 6, 0);
+                mFnm.PasteMatrix(skew_f, 6, 0);
+                mFn.PasteMatrix(skew_f, 6, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(9, 0));
-                mFnm.PasteMatrix(&skew_f, 9, 0);
+                mFnm.PasteMatrix(skew_f, 9, 0);
             } else {
                 skew_f.Set_X_matrix(f_p.ClipVector(0, 0));
-                mFnm.PasteMatrix(&skew_f, 0, 0);
+                mFnm.PasteMatrix(skew_f, 0, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(3, 0) * 0.5);
-                mFnm.PasteMatrix(&skew_f, 3, 0);
+                mFnm.PasteMatrix(skew_f, 3, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(6, 0));
-                mFnm.PasteMatrix(&skew_f, 6, 0);
+                mFnm.PasteMatrix(skew_f, 6, 0);
                 skew_f.Set_X_matrix(f_p.ClipVector(9, 0) * 0.5);
-                mFnm.PasteMatrix(&skew_f, 9, 0);
+                mFnm.PasteMatrix(skew_f, 9, 0);
                 mFn = mFnm;
             }
 
@@ -641,7 +643,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
         CKCt.MatrScale(mkrfactor);
 
-        H.PasteMatrix(&CKCt, 0, 0);  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
+        H.PasteMatrix(CKCt, 0, 0);  // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
 
         // For M mass matrix, do mass lumping:
 
@@ -681,10 +683,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         ChMatrixCorotation<>::ComputeCK(Mloc, R, 4, CK);
         ChMatrixCorotation<>::ComputeKCt(CK, R, 4, CKCt);
 
-        H.PasteSumMatrix(&CKCt,0,0);
+        H.PasteSumMatrix(CKCt,0,0);
         */
         // ..rather do this because lumped mass matrix does not need rotation transf.
-        H.PasteSumMatrix(&Mloc, 0, 0);
+        H.PasteSumMatrix(Mloc, 0, 0);
 
         //***TO DO*** better per-node lumping, or 4x4 consistent mass matrices, maybe with integration if not uniform
         // materials.
@@ -763,10 +765,10 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
             mX_b.Set_X_matrix(-vX_b_loc);
 
             ChMatrixDynamic<> mS(12, 3);  // [S] = [ -skew[X_a_loc];  [I];  -skew[X_b_loc];  [I] ]
-            mS.PasteMatrix(&mX_a, 0, 0);
-            mS.PasteMatrix(&mI, 3, 0);
-            mS.PasteMatrix(&mX_b, 6, 0);
-            mS.PasteMatrix(&mI, 9, 0);
+            mS.PasteMatrix(mX_a, 0, 0);
+            mS.PasteMatrix(mI, 3, 0);
+            mS.PasteMatrix(mX_b, 6, 0);
+            mS.PasteMatrix(mI, 9, 0);
 
             ChMatrixDynamic<> mG(3, 12);  // [G] = [dw_frame/du_a; dw_frame/dw_a; dw_frame/du_b; dw_frame/dw_b]
             mG(2, 1) = -1. / Lel;
@@ -1073,7 +1075,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) { 
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
         mvars.push_back(&this->nodes[0]->Variables());
         mvars.push_back(&this->nodes[1]->Variables());
     };
@@ -1132,7 +1134,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
 /// @} fea_elements
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace fea
+}  // end namespace chrono
 
 #endif

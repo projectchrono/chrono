@@ -27,8 +27,9 @@ namespace fea {
 /// Base class for properties of materials in a continuum.
 
 class ChApi ChContinuumMaterial {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChContinuumMaterial);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumMaterial)
 
   protected:
     double density;
@@ -141,8 +142,9 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
 /// Defines simply some interface functions.
 
 class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChContinuumElastoplastic, ChContinuumElastic);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumElastoplastic)
 
   public:
     ChContinuumElastoplastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000)
@@ -180,8 +182,9 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
 /// with strain yeld limit based on Von Mises yeld.
 
 class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChContinuumPlasticVonMises, ChContinuumElastoplastic);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumPlasticVonMises)
 
   private:
     double elastic_yeld;
@@ -243,8 +246,9 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
 /// that are useful for simulating soils.
 
 class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
-    // Chrono RTTI, needed for serialization
-    CH_RTTI(ChContinuumDruckerPrager, ChContinuumElastoplastic);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumDruckerPrager)
 
   private:
     double elastic_yeld;

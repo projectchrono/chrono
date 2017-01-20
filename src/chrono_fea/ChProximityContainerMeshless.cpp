@@ -25,7 +25,7 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChProximityContainerMeshless> a_registration_ChProximityContainerMeshless;
+CH_FACTORY_REGISTER(ChProximityContainerMeshless)
 
 ChProximityContainerMeshless::ChProximityContainerMeshless() : n_added(0) {
     lastproximity = proximitylist.begin();

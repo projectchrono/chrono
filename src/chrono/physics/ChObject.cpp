@@ -12,10 +12,10 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <float.h>
-#include <math.h>
+#include <cfloat>
+#include <cmath>
 #include <memory.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 
 #include "chrono/physics/ChGlobal.h"
@@ -24,7 +24,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChObj> a_registration_ChObj;
+//CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
 
 ChObj::ChObj() : ChTime(0) {
     identifier = GetUniqueIntID();

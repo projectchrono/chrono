@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <float.h>
-#include <math.h>
+#include <cfloat>
+#include <cmath>
 #include <memory.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
 
 #include "chrono/motion_functions/ChFunction_Base.h"
@@ -25,7 +25,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChFunction> a_registration;
+//CH_FACTORY_REGISTER(ChFunction) // NO! this is an abstract class, rather use for children concrete classes.
 
 double ChFunction::Get_y_dN(double x, int derivate) const {
     switch (derivate) {

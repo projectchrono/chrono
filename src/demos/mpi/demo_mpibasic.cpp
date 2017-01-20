@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
             ChObj* myobj;
             instreamwrapper.AbstractReadCreate(&myobj); // deserialize unknown object from binary stream.
 
-            if (myobj) GetLog() << "Id 1: created obj of type:" << myobj->GetRTTI()->GetName() << "\n";
+            if (myobj) GetLog() << "Id 1: created obj of type:" << myobj->FactoryNameTag() << "\n";
             GetLog() << "Id 1: received serialized ChVector: " << mv << "\n";
         }
     */

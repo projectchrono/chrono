@@ -108,8 +108,8 @@ SET(INPUT_FILES
 	)
 
 SET(TINYOBJLOADER_FILES
-	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.cc
-	${CMAKE_SOURCE_DIR}/src/thirdparty/tinyobjloader/tiny_obj_loader.h
+	${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.cc
+	${CMAKE_SOURCE_DIR}/src/chrono_thirdparty/tinyobjloader/tiny_obj_loader.h
 	)
 
 SOURCE_GROUP("" FILES ${ROOT_INCLUDE})
@@ -140,6 +140,6 @@ TARGET_LINK_LIBRARIES(ChronoEngine_ogre ${LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_ogre
 	RUNTIME DESTINATION bin
-	LIBRARY DESTINATION lib
-	ARCHIVE DESTINATION lib
+	LIBRARY DESTINATION lib64
+	ARCHIVE DESTINATION lib64
 	)

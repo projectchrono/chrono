@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/core/ChTransform.h"
 #include "chrono/geometry/ChBox.h"
@@ -21,7 +21,7 @@ namespace chrono {
 namespace geometry {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChBox> a_registration_ChBox;
+CH_FACTORY_REGISTER(ChBox)
 
 ChBox::ChBox(const ChVector<>& mpos, const ChMatrix33<>& mrot, const ChVector<>& mlengths)
     : Pos(mpos), Rot(mrot), Size(0.5 * mlengths) {}

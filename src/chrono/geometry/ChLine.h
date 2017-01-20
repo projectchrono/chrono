@@ -15,7 +15,7 @@
 #ifndef CHC_LINE_H
 #define CHC_LINE_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChFilePS.h"
@@ -26,8 +26,9 @@ namespace geometry {
 /// Base class for all geometric objects representing lines in 3D space.
 
 class ChApi ChLine : public ChGeometry {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLine, ChGeometry);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLine)
 
   protected:
     bool closed;
@@ -58,7 +59,7 @@ class ChApi ChLine : public ChGeometry {
     virtual int GetManifoldDimension() const override { return 1; }
 
     /// Find the parameter resU for the nearest point on curve to "point".
-    int FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const;
+    bool FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const;
 
     /// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
     virtual double Length(int sampling) const;
@@ -98,7 +99,7 @@ class ChApi ChLine : public ChGeometry {
     double CurveSegmentDistMax(ChLine* complinesegm, int samples) const;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    virtual int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number

@@ -10,12 +10,12 @@
 //
 
 
-#include "assets/ChRoundedBoxShape.h"
+#include "chrono/assets/ChRoundedBoxShape.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time
 // dynamic creation and persistence
-ChClassRegister<ChRoundedBoxShape> a_registration_ChRoundedBoxShape;
+CH_FACTORY_REGISTER(ChRoundedBoxShape)
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono

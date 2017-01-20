@@ -21,7 +21,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChMaterialSurfaceDEM> a_registration_ChMaterialSurfaceDEM;
+CH_FACTORY_REGISTER(ChMaterialSurfaceDEM)
 
 // Constructors for a DEM material
 ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()

@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChFunction_Integrate> a_registration_integrate;
+CH_FACTORY_REGISTER(ChFunction_Integrate)
 
 ChFunction_Integrate::ChFunction_Integrate() : order(1), C_start(0), x_start(0), x_end(1), num_samples(2000) {
     fa = std::make_shared<ChFunction_Const>();  // default

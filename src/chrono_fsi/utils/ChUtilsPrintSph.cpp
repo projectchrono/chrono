@@ -19,8 +19,8 @@
 #include "chrono_fsi/ChParams.cuh"
 #include <fstream>
 #include <sstream>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <thrust/reduce.h>
 
 namespace chrono {

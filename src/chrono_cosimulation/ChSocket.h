@@ -1,16 +1,19 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+
 #ifndef CHSOCKET_H
 #define CHSOCKET_H
-
-//////////////////////////////////////////////////
-//
-//   ChSocket.h
-//
-//   Custom exception class, for sockets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-///////////////////////////////////////////////////
 
 // Based on the work of Liyang Yu in the tutorial of Codeproject
 
@@ -21,13 +24,13 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <errno.h>
+#include <cerrno>
 #include <iostream>
 #include <sys/types.h>
 //#include <stropts.h>
 #include <sys/ioctl.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <sys/filio.h>
 #else
 #include <winsock2.h>
@@ -194,7 +197,7 @@ class ChApiCosimulation ChSocketTCP : public ChSocket {
     void detectErrorListen(int*, std::string&);
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace cosimul
+}  // end namespace chrono
 
-#endif  // END of header
+#endif

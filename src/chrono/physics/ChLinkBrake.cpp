@@ -18,7 +18,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChLinkBrake> a_registration_ChLinkBrake;
+CH_FACTORY_REGISTER(ChLinkBrake)
 
 ChLinkBrake::ChLinkBrake()
     : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {

@@ -12,13 +12,13 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChClassRegister.h"
+#include "chrono/core/ChClassFactory.h"
 #include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegister<ChMaterialSurface> a_registration_ChMaterialSurface;
+CH_FACTORY_REGISTER(ChMaterialSurface)
 
 ChMaterialSurface::ChMaterialSurface()
     : static_friction(0.6f),

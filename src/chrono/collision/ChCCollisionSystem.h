@@ -12,25 +12,9 @@
 #ifndef CHC_COLLISIONSYSTEM_H
 #define CHC_COLLISIONSYSTEM_H
 
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystem.h
-//
-//   Header for base class for generic collision
-//   engine.
-//   Class must be specialized by children classes.
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "collision/ChCCollisionInfo.h"
-#include "core/ChFrame.h"
-#include "core/ChApiCE.h"
+#include "chrono/collision/ChCCollisionInfo.h"
+#include "chrono/core/ChFrame.h"
+#include "chrono/core/ChApiCE.h"
 
 namespace chrono {
 
@@ -56,7 +40,7 @@ class ChApi ChNarrowPhaseCallback {
     /// Callback, used to report contact points found by default
     /// narrow phase collision step.
     /// This must be implemented by a child class of ChNarrowPhaseCallback
-    virtual void NarrowCallback(const ChCollisionInfo& mcontactinfo) = 0;
+    virtual void NarrowCallback(ChCollisionInfo& mcontactinfo) = 0;
 };
 
 ///
@@ -85,8 +69,8 @@ class ChApi ChBroadPhaseCallback {
 
 class ChApi ChCollisionSystem {
 
-    // Chrono RTTI, needed for serialization
-    CH_RTTI_ROOT(ChCollisionSystem);
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChCollisionSystem)
 
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {
@@ -184,7 +168,7 @@ class ChApi ChCollisionSystem {
     ChNarrowPhaseCallback* narrow_callback;  // user callback for each contact
 };
 
-}  // END_OF_NAMESPACE____
-}  // END_OF_NAMESPACE____
+}  // end namespace collision
+}  // end namespace chrono
 
 #endif

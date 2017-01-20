@@ -22,9 +22,8 @@
 #include <set>
 #include <string>
 
-#include "chrono/assets/ChColor.h"
 #include "chrono/assets/ChColorAsset.h"
-#include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
@@ -48,6 +47,8 @@ class CH_VEHICLE_API DeformableTerrain : public ChTerrain {
 public:
     enum DataPlotType {
         PLOT_NONE,
+        PLOT_LEVEL,
+        PLOT_LEVEL_INITIAL,
         PLOT_SINKAGE,
         PLOT_SINKAGE_ELASTIC,
         PLOT_SINKAGE_PLASTIC,
@@ -57,7 +58,8 @@ public:
         PLOT_SHEAR,
         PLOT_K_JANOSI,
         PLOT_IS_TOUCHED,
-        PLOT_ISLAND_ID
+        PLOT_ISLAND_ID,
+        PLOT_MASSREMAINDER
     };
 
     /// Construct a default DeformableSoil.
@@ -108,7 +110,8 @@ public:
         double mMohr_cohesion,  ///< Cohesion in, Pa, for shear failure
         double mMohr_friction,  ///< Friction angle (in degrees!), for shear failure
         double mJanosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double melastic_K       ///< elastic stiffness K (must be > Kphi; very high values gives the original SCM model)
+        double melastic_K,      ///< elastic stiffness K, per unit area, [Pa/m] (must be > Kphi; very high values gives the original SCM model)
+        double mdamping_R       ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical negative speed, it is zero in original SCM model)
         );
 
     /// If true, enable the creation of soil inflation at the side of the ruts, 
@@ -119,7 +122,9 @@ public:
     /// If true, enable the creation of soil inflation at the side of the ruts, 
     /// like bulldozing the material apart. Remember to enable SetBulldozingFlow(true).
     void SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor = 1.0  ///< growth of lateral volume respect to pressed volume
+                                 double mbulldozing_flow_factor = 1.0,  ///< growth of lateral volume respect to pressed volume
+                                 int mbulldozing_erosion_n_iterations = 3, ///< number of erosion refinements per timestep 
+                                 int mbulldozing_erosion_n_propagations = 10 ///< number of concentric vertex selections subject to erosion 
                                  );
 
 
@@ -134,6 +139,15 @@ public:
     /// Note, you must turn on automatic refinement via SetAutomaticRefinement(true)!
     void SetAutomaticRefinementResolution(double mr);
     double GetAutomaticRefinementResolution() const;
+
+    /// This value says up to which vertical level the collision is tested - respect to current ground level 
+    /// at the sample point.
+    /// Since the contact is unilateral, this could be zero. However when computing bulldozing 
+    /// flow, if enabled, one might also need to know if in the surrounding there is some potential future contact: so it
+    /// might be better to use a positive value (but not higher than the max. expected height of the bulldozed rubble, to 
+    /// avoid slowdown of collision tests).
+    void SetTestHighOffset(double moff);
+    double GetTestHighOffset() const;
 
 
     /// Set the color plot type for the soil mesh.
@@ -202,24 +216,33 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
                     );
 
   private:
+
+    // Updates the forces and the geometry, at the beginning of each timestep
+    virtual void Setup() override {
+        
+        //GetLog() << " Setup update soil t= "<< this->ChTime << "\n";
+        this->ComputeInternalForces();
+
+        ChLoadContainer::Update(ChTime, true);
+       
+    }
+
     // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
-        // optimization to avoid double updates per each integration time step
-        if (last_t != mytime) {
-            // Computes the internal forces
-            this->UpdateInternalForces();
-            // Overloading base class
-            ChLoadContainer::Update(mytime, update_assets);
-            last_t = mytime;
-            //GetLog() << "update soil t= "<< mytime << "\n";
-        } 
-        //else GetLog() << "unneeded update t= "<< mytime << "\n";
+        
+        // Note!!! we cannot call ComputeInternalForces here, because Update() could
+        // be called multiple times per timestep (ex. see HHT or RungKutta) and not
+        // necessarily in time-increasing order; this is a problem because in this
+        // force model the force is dissipative and keeps an 'history'. So we do
+        // ComputeInternalForces only at the beginning of the timestep; look Setup().
+
+        ChTime = mytime;
     }
 
     // Reset the list of forces, and fills it with forces from a soil contact model.
     // This is called automatically during timestepping (only at the beginning of
     // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
-    void UpdateInternalForces();
+    void ComputeInternalForces();
 
     
     // Override the ChLoadContainer method for computing the generalized force F term:
@@ -227,10 +250,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
                                    ) override {
-        // reset the internal forces
-        // this->GetLoadList().clear();
-        // Computes the internal forces
-        // this->UpdateInternalForces();
+
         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
@@ -246,6 +266,9 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
 
     std::vector<ChVector<>> p_vertices_initial;
     std::vector<ChVector<>> p_speeds;
+    std::vector<double> p_level;
+    std::vector<double> p_level_initial;
+    std::vector<double> p_hit_level;
     std::vector<double> p_sinkage;
     std::vector<double> p_sinkage_plastic;
     std::vector<double> p_sinkage_elastic;
@@ -255,6 +278,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     std::vector<double> p_sigma;
     std::vector<double> p_sigma_yeld;
     std::vector<double> p_tau;
+    std::vector<double> p_massremainder;
     std::vector<int>    p_id_island;
     std::vector<bool>   p_erosion;
 
@@ -265,6 +289,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     double Mohr_friction;
     double Janosi_shear;
     double elastic_K;
+    double damping_R;
 
     int plot_type;
     double plot_v_min;
@@ -279,9 +304,14 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     bool do_bulldozing;
     double bulldozing_flow_factor;
     double bulldozing_erosion_angle;
+    int    bulldozing_erosion_n_iterations;
+    int    bulldozing_erosion_n_propagations;
 
     bool do_refinement;
     double refinement_resolution;
+
+    double test_high_offset;
+    double test_low_offset;
 
     friend class DeformableTerrain;
     

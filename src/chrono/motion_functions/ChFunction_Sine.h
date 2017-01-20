@@ -23,7 +23,8 @@ namespace chrono {
 /// y = sin (phase + w*x )     w=2*PI*freq
 
 class ChApi ChFunction_Sine : public ChFunction {
-    CH_RTTI(ChFunction_Sine, ChFunction);
+
+    CH_FACTORY_TAG(ChFunction_Sine)
 
   private:
     double amp;

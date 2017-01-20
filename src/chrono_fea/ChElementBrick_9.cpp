@@ -183,27 +183,27 @@ void MyMassBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, 
     ChMatrixNM<double, 3, 33> S;
     ChMatrix33<> Si;
     Si.FillDiag(N(0));
-    S.PasteMatrix(&Si, 0, 0);
+    S.PasteMatrix(Si, 0, 0);
     Si.FillDiag(N(1));
-    S.PasteMatrix(&Si, 0, 3);
+    S.PasteMatrix(Si, 0, 3);
     Si.FillDiag(N(2));
-    S.PasteMatrix(&Si, 0, 6);
+    S.PasteMatrix(Si, 0, 6);
     Si.FillDiag(N(3));
-    S.PasteMatrix(&Si, 0, 9);
+    S.PasteMatrix(Si, 0, 9);
     Si.FillDiag(N(4));
-    S.PasteMatrix(&Si, 0, 12);
+    S.PasteMatrix(Si, 0, 12);
     Si.FillDiag(N(5));
-    S.PasteMatrix(&Si, 0, 15);
+    S.PasteMatrix(Si, 0, 15);
     Si.FillDiag(N(6));
-    S.PasteMatrix(&Si, 0, 18);
+    S.PasteMatrix(Si, 0, 18);
     Si.FillDiag(N(7));
-    S.PasteMatrix(&Si, 0, 21);
+    S.PasteMatrix(Si, 0, 21);
     Si.FillDiag(N(8));
-    S.PasteMatrix(&Si, 0, 24);
+    S.PasteMatrix(Si, 0, 24);
     Si.FillDiag(N(9));
-    S.PasteMatrix(&Si, 0, 27);
+    S.PasteMatrix(Si, 0, 27);
     Si.FillDiag(N(10));
-    S.PasteMatrix(&Si, 0, 30);
+    S.PasteMatrix(Si, 0, 30);
 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
@@ -408,21 +408,21 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 0, 0);
             tempB3.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 1, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 2, 0);
 
             tempB3.MatrMultiply(Nz, m_element->m_d);
             for (int i = 0; i < 11; i++) {
@@ -430,21 +430,21 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 3, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 4, 0);
             tempB31.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 5, 0);
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
@@ -521,7 +521,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
             FI.MatrInverse();
 
             // Obtain Jacobian of strains w.r.t. element coordinates
-            m_element->ComputeStrainD_Brick9(strainD, Nx, Ny, Nz, FI, j0); 
+            m_element->ComputeStrainD_Brick9(strainD, Nx, Ny, Nz, FI, j0);
 
             // Obtain eigenvalues of Kirchhoff stress tensor
             ChMatrixNM<double, 3, 1> StressK_eig;
@@ -546,7 +546,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                 EETD.y = LogStrain(1, 0) - EEVD3;
                 EETD.z = LogStrain(2, 0) - EEVD3;
                 // Norm of deviatoric Hencky strain
-                double ETDNorm = EETD.Length(); 
+                double ETDNorm = EETD.Length();
                 // Hydrostatic pressure
                 double hydroP;
                 // Deviatoric stress
@@ -650,7 +650,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                     } break;
 
                     case ChElementBrick_9::DruckerPrager: {
-                        double EDNInv; // Inverse of norm of deviatoric Hencky strain
+                        double EDNInv;  // Inverse of norm of deviatoric Hencky strain
                         ChMatrixNM<double, 6, 1> UniDev;
 
                         // Evaluate norm of deviatoric Hencky strain
@@ -678,8 +678,9 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
                         double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-                        double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
-                        double gsi; // Coefficient multiplying 'current' cohesion value in yield function
+                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                     // internal friction
+                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
                         if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
@@ -697,14 +698,14 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         }
                         double alpha1;
                         double beta1;
-						if (etab == 0) {
-							etab = 0.000001;
-						}
-						alpha1 = gsi / etab;
-						if (eta == 0) {
-							eta = 0.000001;
-						}
-						beta1 = gsi / eta;
+                        if (etab == 0) {
+                            etab = 0.000001;
+                        }
+                        alpha1 = gsi / etab;
+                        if (eta == 0) {
+                            eta = 0.000001;
+                        }
+                        beta1 = gsi / eta;
 
                         // Yield function at trial stage
                         YieldFunc =
@@ -723,7 +724,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                             double DGamma = 0.0;
                             double Yfunc1 = YieldFunc;  // Initially recalculated
 
-                            for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {  
+                            for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                 // Compute Newton residual
                                 double DDGamma =
                                     Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
@@ -733,11 +734,13 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                 double P = PT - K * etab * DGamma;
                                 Yfunc1 = SQRJ2T + eta * P -
                                          gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-                                if (Yfunc1 < m_element->GetDPYieldTol()) 
+                                if (Yfunc1 < m_element->GetDPYieldTol())
                                     break;
 
                                 if (ii == m_element->GetDPIterationNo() - 1)
-                                    throw ChException("Maximum number of iterations reached in Drucker-Prager Newton-Raphson algorithm");
+                                    throw ChException(
+                                        "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
+                                        "algorithm");
                             }
                             DeltaGamma = DGamma;
                             double Check_DP_Cone = J2Rt - G * DGamma;
@@ -783,7 +786,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                             lambda.x = exp(2.0 * LogStrain(0, 0));
                             lambda.y = exp(2.0 * LogStrain(1, 0));
                             lambda.z = exp(2.0 * LogStrain(2, 0));
-                            // Updated left Cauchy-Green strain tensor  
+                            // Updated left Cauchy-Green strain tensor
                             ChMatrixNM<double, 3, 3> BEUP;
                             MM1.MatrScale(lambda.x);
                             MM2.MatrScale(lambda.y);
@@ -809,390 +812,426 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         }
                     } break;
 
-					case ChElementBrick_9::DruckerPrager_Cap: {
-						// Hydrostatic pressure (Cap)
-						double hydroPt;
-						// Current value of yield function (Cap)
-						double YieldFunc_Cap;
-						int FlagYieldType;  //(DP_Cap)
-						int PlasticCount; //(DP_Cap)
-						double EDNInv; // Inverse of norm of deviatoric Hencky strain
-						ChMatrixNM<double, 6, 1> UniDev;
+                    case ChElementBrick_9::DruckerPrager_Cap: {
+                        // Hydrostatic pressure (Cap)
+                        double hydroPt;
+                        // Current value of yield function (Cap)
+                        double YieldFunc_Cap;
+                        int FlagYieldType;  //(DP_Cap)
+                        int PlasticCount;   //(DP_Cap)
+                        double EDNInv;      // Inverse of norm of deviatoric Hencky strain
+                        ChMatrixNM<double, 6, 1> UniDev;
 
-						//// Evaluate norm of deviatoric Hencky strain
-						if (ETDNorm != 0.0) {
-							EDNInv = 1.0 / ETDNorm;
-						}
-						else {
-							EDNInv = 0.0;
-						}
-						UniDev(2, 0) = 0.0;
-						UniDev(4, 0) = 0.0;
-						UniDev(5, 0) = 0.0;
+                        //// Evaluate norm of deviatoric Hencky strain
+                        if (ETDNorm != 0.0) {
+                            EDNInv = 1.0 / ETDNorm;
+                        } else {
+                            EDNInv = 0.0;
+                        }
+                        UniDev(2, 0) = 0.0;
+                        UniDev(4, 0) = 0.0;
+                        UniDev(5, 0) = 0.0;
 
-						UniDev(0, 0) = EETD.x * EDNInv;
-						UniDev(1, 0) = EETD.y * EDNInv;
-						UniDev(3, 0) = EETD.z * EDNInv;
+                        UniDev(0, 0) = EETD.x * EDNInv;
+                        UniDev(1, 0) = EETD.y * EDNInv;
+                        UniDev(3, 0) = EETD.z * EDNInv;
 
-						double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
-						hydroP = K * EETV;
-						devStress.x = 2.0 * G * (LogStrain(0, 0) - EEVD3);
-						devStress.y = 2.0 * G * (LogStrain(1, 0) - EEVD3);
-						devStress.z = 2.0 * G * (LogStrain(2, 0) - EEVD3);
-						// Euclidean natural norm of the second-order tensor
-						NormSn =
-							sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
+                        double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
+                        hydroP = K * EETV;
+                        devStress.x = 2.0 * G * (LogStrain(0, 0) - EEVD3);
+                        devStress.y = 2.0 * G * (LogStrain(1, 0) - EEVD3);
+                        devStress.z = 2.0 * G * (LogStrain(2, 0) - EEVD3);
+                        // Euclidean natural norm of the second-order tensor
+                        NormSn =
+                            sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
-						J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / sqrt(2.0);
 
-						double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-						double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-						double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
-						double gsi; // Coefficient multiplying 'current' cohesion value in yield function
-						double etab;
+                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                     // internal friction
+                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab;
 
-						if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = 1.0 / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						double alpha1;
-						double beta1;
-						if (etab == 0) {
-							etab = 0.000001;
-						}
-						alpha1 = gsi / etab;
-						if (eta == 0) {
-							eta = 0.000001;
-						}
-						beta1 = gsi / eta;
+                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = 1.0 / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        }
+                        double alpha1;
+                        double beta1;
+                        if (etab == 0) {
+                            etab = 0.000001;
+                        }
+                        alpha1 = gsi / etab;
+                        if (eta == 0) {
+                            eta = 0.000001;
+                        }
+                        beta1 = gsi / eta;
 
-						//-------------------------------//
-						// Yield function at trial stage //
-						//-------------------------------//
+                        //-------------------------------//
+                        // Yield function at trial stage //
+                        //-------------------------------//
 
-						// DP yield function
-						YieldFunc =
-							J2Rt + eta * hydroP -
-							gsi * (m_element->m_YieldStress +
-							m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+                        // DP yield function
+                        YieldFunc =
+                            J2Rt + eta * hydroP -
+                            gsi * (m_element->m_YieldStress +
+                                   m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
 
-						// CAP yield function
-						hydroPt = beta1*m_element->m_YieldStress;
-						double CapM = sqrt(3.0)*eta;						
+                        // CAP yield function
+                        hydroPt = beta1 * m_element->m_YieldStress;
+                        double CapM = sqrt(3.0) * eta;
 
-						double MeanEffP;
-						double Hi;
+                        double MeanEffP;
+                        double Hi;
 
+                        // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                        m_element->ComputeHardening_a(
+                            MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter, 0), m_element->m_DPVector1,
+                            m_element->m_DPVector2, m_element->m_DPVector_size);
 
-						// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-						m_element->ComputeHardening_a(MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter, 0), m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
+                        YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                            (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
+                                        (sqrt(3.0) * J2Rt / CapM) * (sqrt(3.0) * J2Rt / CapM) - MeanEffP * MeanEffP;
 
-						YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(hydroP - hydroPt + MeanEffP)*(hydroP - hydroPt + MeanEffP) + (sqrt(3.0)*J2Rt / CapM)*(sqrt(3.0)*J2Rt / CapM) - MeanEffP*MeanEffP;
-					
-						double SQRJ2T = J2Rt;
-						double PT = hydroP;
-						double EPBARN = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);// alphUp;
+                        double SQRJ2T = J2Rt;
+                        double PT = hydroP;
+                        double EPBARN = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);  // alphUp;
 
-						YieldFlag = 0;
-						FlagYieldType = 0;
+                        YieldFlag = 0;
+                        FlagYieldType = 0;
 
-						if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt-MeanEffP)) {
-							YieldFlag = 1;
-							PlasticCount = 1;
-							if (YieldFunc > 0.0) {// DP smmothed surface return mapping
-								// Initialize for Newton-Raphson
-								double DGamma = 0.0;
-								double Yfunc1 = YieldFunc;  // Initially recalculated
+                        if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt - MeanEffP)) {
+                            YieldFlag = 1;
+                            PlasticCount = 1;
+                            if (YieldFunc > 0.0) {  // DP smmothed surface return mapping
+                                // Initialize for Newton-Raphson
+                                double DGamma = 0.0;
+                                double Yfunc1 = YieldFunc;  // Initially recalculated
 
-								for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-									// Compute Newton residual
-									double DDGamma =
-										Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-									DGamma = DGamma + DDGamma;
-									SQRJ2T = SQRJ2T - G * DGamma;
-									double P = PT - K * etab * DGamma;
-									double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
-									Yfunc1 = SQRJ2T + eta * P -
-										gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-									if (abs(Yfunc1) < m_element->GetDPYieldTol())
-										break;
+                                for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                    // Compute Newton residual
+                                    double DDGamma =
+                                        Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
+                                    DGamma = DGamma + DDGamma;
+                                    SQRJ2T = SQRJ2T - G * DGamma;
+                                    double P = PT - K * etab * DGamma;
+                                    double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
+                                    Yfunc1 = SQRJ2T + eta * P -
+                                             gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
+                                    if (abs(Yfunc1) < m_element->GetDPYieldTol())
+                                        break;
 
-									if (ii == m_element->GetDPIterationNo() - 1)
-										throw ChException("Maximum number of iterations reached in Drucker-Prager Surface Newton-Raphson algorithm");
-								}
-								DeltaGamma = DGamma;
-								double Check_DP_Cone = J2Rt - G * DGamma;
+                                    if (ii == m_element->GetDPIterationNo() - 1)
+                                        throw ChException(
+                                            "Maximum number of iterations reached in Drucker-Prager Surface "
+                                            "Newton-Raphson algorithm");
+                                }
+                                DeltaGamma = DGamma;
+                                double Check_DP_Cone = J2Rt - G * DGamma;
 
-								if (Check_DP_Cone < 0.0) {  // Cone return mapping
-									FlagYieldType = 2;
-									double Rtrial = hydroP -
-										beta1 * (m_element->m_YieldStress +
-										m_element->m_HardeningSlope *
-										m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
-									DeltaGamma = Rtrial / (K + alpha1 * beta1 * m_element->m_HardeningSlope);
+                                if (Check_DP_Cone < 0.0) {  // Cone return mapping
+                                    FlagYieldType = 2;
+                                    double Rtrial = hydroP -
+                                                    beta1 * (m_element->m_YieldStress +
+                                                             m_element->m_HardeningSlope *
+                                                                 m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+                                    DeltaGamma = Rtrial / (K + alpha1 * beta1 * m_element->m_HardeningSlope);
 
+                                    // Stress update
+                                    StressK_eig(0, 0) = hydroP - K * DeltaGamma;
+                                    StressK_eig(1, 0) = hydroP - K * DeltaGamma;
+                                    StressK_eig(2, 0) = hydroP - K * DeltaGamma;
 
-									// Stress update
-									StressK_eig(0, 0) = hydroP - K * DeltaGamma;
-									StressK_eig(1, 0) = hydroP - K * DeltaGamma;
-									StressK_eig(2, 0) = hydroP - K * DeltaGamma;
+                                    // Calculate update elastic logarithmic strain
+                                    LogStrain = StressK_eig;
+                                    LogStrain.MatrScale(1 / (3.0 * K));
+                                } else {
+                                    if (YieldFunc_Cap <= 0.0 ||
+                                        ((hydroP - K * etab * DeltaGamma) >= hydroPt - MeanEffP)) {
+                                        FlagYieldType = 1;
+                                        //// Update plastic alpha parameter
+                                        // m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
+                                        //	m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DeltaGamma;
+                                        // Deviatoric stress
+                                        devStressUp = (1.0 - G * DeltaGamma / J2Rt) * devStress;
+                                        // Hydrostatic stress
+                                        double hydroPUp = hydroP - K * etab * DeltaGamma;
+                                        // Stress update
+                                        StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                        StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                        StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                        // Calculate update elastic logarithmic strain
+                                        LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                        LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                        LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    }
+                                }  // end of // Cone return mapping
+                            }      // end of // DP smmothed surface return mapping
 
-									// Calculate update elastic logarithmic strain
-									LogStrain = StressK_eig;
-									LogStrain.MatrScale(1 / (3.0 * K));
-								} else {
-									if (YieldFunc_Cap <= 0.0 || ((hydroP - K*etab*DeltaGamma) >= hydroPt - MeanEffP)){
-										FlagYieldType = 1;
-										//// Update plastic alpha parameter
-										//m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) =
-										//	m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DeltaGamma;
-										// Deviatoric stress
-										devStressUp = (1.0 - G * DeltaGamma / J2Rt) * devStress;
-										// Hydrostatic stress
-										double hydroPUp = hydroP - K * etab * DeltaGamma;
-										// Stress update
-										StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-										StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-										StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-										// Calculate update elastic logarithmic strain
-										LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-										LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-										LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-									}
-								}// end of // Cone return mapping
-							}// end of // DP smmothed surface return mapping
+                            if (YieldFunc_Cap > 0.0 && FlagYieldType == 0) {  // Cap return mapping
+                                // Initialize of Newton raphson for Cap surface
+                                double DGamma = 0.0;
+                                double EPBAR = EPBARN;
+                                double SQRJ2 = SQRJ2T;
+                                double P = PT;
+                                ChVector<double> devS = devStress;
 
-							if (YieldFunc_Cap > 0.0 && FlagYieldType == 0){// Cap return mapping
-								// Initialize of Newton raphson for Cap surface
-								double DGamma = 0.0;
-								double EPBAR = EPBARN;
-								double SQRJ2 = SQRJ2T;
-								double P = PT;
-								ChVector<double>devS = devStress;
+                                // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                              m_element->m_DPVector2, m_element->m_DPVector_size);
+                                // Evaluate initial 2 residual vectors
+                                double Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                   (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                               (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                               MeanEffP * MeanEffP;
+                                double Res02 = EPBAR - EPBARN +
+                                               DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                                   (P - hydroPt + MeanEffP);
 
-								// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-								m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-								//Evaluate initial 2 residual vectors
-								double Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-								double Res02 = EPBAR - EPBARN + DGamma*2.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
+                                double Acof;
+                                double A11;
+                                double A12;
+                                double A21;
+                                double A22;
+                                double B11;
+                                double B12;
+                                double B21;
+                                double B22;
+                                double DDGamma;
+                                double DALPHA;
+                                for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                    Acof = P - hydroPt + MeanEffP;
+                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
+                                          (sqrt(3.0) * SQRJ2 / CapM);
+                                    A12 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
+                                          2.0 * MeanEffP * Hi;
+                                    A21 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta);
+                                    A22 = 1.0 +
+                                          2.0 * DGamma / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi);
 
+                                    if (A11 * A22 - A12 * A21 == 0.0) {
+                                        printf("Cap Return Singular Matrix!!\n");
+                                        exit(1);
+                                    }
 
-								double Acof;
-								double A11;
-								double A12;
-								double A21;
-								double A22;
-								double B11;
-								double B12;
-								double B21;
-								double B22;
-								double DDGamma;
-								double DALPHA;
-								for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-									 Acof = P - hydroPt + MeanEffP;
-									 A11 = -12.0*G / (CapM*CapM + 6.0*G*DGamma)*(sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM);
-									 A12 = 2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi) - 2.0*MeanEffP*Hi;
-									 A21 = 2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta);
-									 A22 = 1.0 + 2.0*DGamma / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi);
+                                    B11 = A22 / (A11 * A22 - A12 * A21);
+                                    B12 = -A12 / (A11 * A22 - A12 * A21);
+                                    B21 = -A21 / (A11 * A22 - A12 * A21);
+                                    B22 = A11 / (A11 * A22 - A12 * A21);
 
-									if (A11*A22 - A12*A21 == 0.0) {
-										printf("Cap Return Singular Matrix!!\n");
-										system("pause");
-										exit(1);
-									}
+                                    DDGamma = -B11 * Res01 - B12 * Res02;
+                                    DALPHA = -B21 * Res01 - B22 * Res02;
 
-									B11 = A22 / (A11*A22 - A12*A21);
-									B12 = -A12 / (A11*A22 - A12*A21);
-									B21 = -A21 / (A11*A22 - A12*A21);
-									B22 = A11 / (A11*A22 - A12*A21);
+                                    DGamma = DGamma + DDGamma;  //! Update Newton increment in terms of DGamma
+                                    EPBAR = EPBAR +
+                                            DALPHA;  //! Update Newton increment in terms of alpha(hardening parameters)
+                                    P = PT + K * (EPBAR - EPBARN);
+                                    SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * SQRJ2T;
+                                    devS.x = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.x;
+                                    devS.y = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.y;
+                                    devS.z = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.z;
 
-									DDGamma = -B11*Res01 - B12*Res02;
-									DALPHA = -B21*Res01 - B22*Res02;
+                                    // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
 
-									DGamma = DGamma + DDGamma; //!Update Newton increment in terms of DGamma
-									EPBAR = EPBAR + DALPHA; //!Update Newton increment in terms of alpha(hardening parameters)
-									P = PT + K*(EPBAR - EPBARN);
-									SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*SQRJ2T;
-									devS.x = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.x;
-									devS.y = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.y;
-									devS.z = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.z;
+                                    Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            MeanEffP * MeanEffP;
+                                    Res02 = EPBAR - EPBARN +
+                                            DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                                (P - hydroPt + MeanEffP);
 
-									// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-									m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                        if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
 
-									Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-									Res02 = EPBAR - EPBARN + DGamma*2.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
-								
+                                            break;
+                                    } else {
+                                        if (sqrt(Res01 * Res01) / abs(Hi) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) / abs(Hi) < m_element->GetDPYieldTol())
 
+                                            break;
+                                    }
 
-									if (abs(Hi) < m_element->GetDPYieldTol()) {
-										if (sqrt(Res01*Res01) < m_element->GetDPYieldTol() && sqrt(Res02*Res02) < m_element->GetDPYieldTol())
-				
-											break;
-									} else {
-										if (sqrt(Res01*Res01) / abs(Hi) < m_element->GetDPYieldTol() && sqrt(Res02*Res02) /abs( Hi) < m_element->GetDPYieldTol())
-				
-											break;
-									}
-				
-									if (ii == m_element->GetDPIterationNo() - 1)
-										throw ChException("Maximum number of iterations reached in Drucker-Prager Cap surface Newton-Raphson algorithm");
-								}// End of Newton raphson
+                                    if (ii == m_element->GetDPIterationNo() - 1)
+                                        throw ChException(
+                                            "Maximum number of iterations reached in Drucker-Prager Cap surface "
+                                            "Newton-Raphson algorithm");
+                                }  // End of Newton raphson
 
-								DeltaGamma = DGamma;
+                                DeltaGamma = DGamma;
 
-								if (P>hydroPt - MeanEffP){// Transition return mapping
-									FlagYieldType = 4;
-									//Initialize for newton raphson									
-									double DGamma_B = 0.0;
-									double AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B);
-									double DGamma_A = (AA*SQRJ2T+eta*PT-eta*hydroPt)/(AA*G+K*eta*etab);
-									EPBAR = EPBARN - etab*DGamma_A;
-									SQRJ2 = SQRJ2T;
-									P = PT;
-									devS = devStress;
-									// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-									m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-								    // initial resid vector
-									Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-									double DGamma_B1;
-									double Res11;
-									double DRes01;
-									for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-										//TransNewtonDifference
+                                if (P > hydroPt - MeanEffP) {  // Transition return mapping
+                                    FlagYieldType = 4;
+                                    // Initialize for newton raphson
+                                    double DGamma_B = 0.0;
+                                    double AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
+                                    double DGamma_A =
+                                        (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                    EPBAR = EPBARN - etab * DGamma_A;
+                                    SQRJ2 = SQRJ2T;
+                                    P = PT;
+                                    devS = devStress;
+                                    // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    // initial resid vector
+                                    Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            MeanEffP * MeanEffP;
+                                    double DGamma_B1;
+                                    double Res11;
+                                    double DRes01;
+                                    for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                        // TransNewtonDifference
 
-										//** pertervation for DGAMA_B1
-										DGamma_B1 = DGamma_B + 1e-10;
-										AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B1);
-										DGamma_A = (AA*SQRJ2T + eta*PT - eta*hydroPt) / (AA*G + K*eta*etab);
-										EPBAR = EPBARN - etab*DGamma_A;
-										// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-										m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-										// update stresses
-										P = PT - K*etab*DGamma_A;
-										SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B1)*(1.0 - G*DGamma_A/SQRJ2T)*SQRJ2T;
-										//Check yield functions
-										Res11 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-										DRes01 = (Res11 - Res01) / 1e-10;
+                                        //** pertervation for DGAMA_B1
+                                        DGamma_B1 = DGamma_B + 1e-10;
+                                        AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1);
+                                        DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                        EPBAR = EPBARN - etab * DGamma_A;
+                                        // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                      m_element->m_DPVector2,
+                                                                      m_element->m_DPVector_size);
+                                        // update stresses
+                                        P = PT - K * etab * DGamma_A;
+                                        SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1) *
+                                                (1.0 - G * DGamma_A / SQRJ2T) * SQRJ2T;
+                                        // Check yield functions
+                                        Res11 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                MeanEffP * MeanEffP;
+                                        DRes01 = (Res11 - Res01) / 1e-10;
 
-										if (DRes01 == 0.0) {
-											printf("Singular for Transition DP/CAP!!\n");
-											system("pause");
-											exit(1);
-										}
+                                        if (DRes01 == 0.0) {
+                                            printf("Singular for Transition DP/CAP!!\n");
+                                            exit(1);
+                                        }
 
-										//update 3 parameters (plastic and hardening parameters)
-										DGamma_B = DGamma_B - 1.0 / DRes01*Res01;
-										AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B);
-										DGamma_A = (AA*SQRJ2T + eta*PT - eta*hydroPt) / (AA*G + K*eta*etab);
-										EPBAR = EPBARN - etab*DGamma_A; //plastic strain
-										//Upadate yield stress and the Hi(slop) at plastic strain from table
-										m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-										//Update stresses
-										P = PT - K*etab*DGamma_A;
-										SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*SQRJ2T;
-										devS.x = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.x;
-										devS.y = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.y;
-										devS.z = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.z;
-									    //Check yield functions
-										Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-										if (abs(Hi) < m_element->GetDPYieldTol()) {
-											if (abs(Res01) < m_element->GetDPYieldTol())
-												break;										
-										} else {
-											if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
-												break;
-										}
-										if (ii == m_element->GetDPIterationNo() - 1)
-											throw ChException("Hit the max iteration for Transient Cap_surf and DP_surf return mapping");
-									}//End of Newton raphson
+                                        // update 3 parameters (plastic and hardening parameters)
+                                        DGamma_B = DGamma_B - 1.0 / DRes01 * Res01;
+                                        AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
+                                        DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                        EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
+                                        // Upadate yield stress and the Hi(slop) at plastic strain from table
+                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                      m_element->m_DPVector2,
+                                                                      m_element->m_DPVector_size);
+                                        // Update stresses
+                                        P = PT - K * etab * DGamma_A;
+                                        SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                (1.0 - G * DGamma_A / SQRJ2T) * SQRJ2T;
+                                        devS.x = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.x;
+                                        devS.y = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.y;
+                                        devS.z = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.z;
+                                        // Check yield functions
+                                        Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                MeanEffP * MeanEffP;
+                                        if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                            if (abs(Res01) < m_element->GetDPYieldTol())
+                                                break;
+                                        } else {
+                                            if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
+                                                break;
+                                        }
+                                        if (ii == m_element->GetDPIterationNo() - 1)
+                                            throw ChException(
+                                                "Hit the max iteration for Transient Cap_surf and DP_surf return "
+                                                "mapping");
+                                    }  // End of Newton raphson
 
-									DeltaGamma = DGamma_A + DGamma_B;
+                                    DeltaGamma = DGamma_A + DGamma_B;
 
+                                    m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = EPBAR;  //??????
 
-									m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = EPBAR;//??????
+                                    // Update stress
+                                    devStressUp = devS;
+                                    //(Hydrostatic)
+                                    double hydroPUp = P;
+                                    // Stress update first
+                                    StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                    StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                    StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                    // calculate updated elastic logarithmic Strain
+                                    LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                } else {
+                                    FlagYieldType = 3;
 
+                                    m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = EPBAR;  //??????
 
-									//Update stress
-									devStressUp = devS;
-									//(Hydrostatic)
-									double hydroPUp = P;
-									//Stress update first
-									StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-									StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-									StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-									//calculate updated elastic logarithmic Strain
-									LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-									LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-									LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-								} else {
-									FlagYieldType = 3;
+                                    // Update stress
+                                    devStressUp = devS;
+                                    //(Hydrostatic)
+                                    double hydroPUp = P;
+                                    // Stress update first
+                                    StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                    StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                    StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                    // calculate updated elastic logarithmic Strain
+                                    LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                }  // end if of transition return mapping
+                            }      // end if Cap return mapping
+                            // Update eigenvalues of strain tensor
+                            lambda.x = exp(2.0 * LogStrain(0, 0));
+                            lambda.y = exp(2.0 * LogStrain(1, 0));
+                            lambda.z = exp(2.0 * LogStrain(2, 0));
+                            // Updated left Cauchy-Green strain tensor
+                            ChMatrixNM<double, 3, 3> BEUP;
+                            MM1.MatrScale(lambda.x);
+                            MM2.MatrScale(lambda.y);
+                            MM3.MatrScale(lambda.z);
+                            BEUP = MM1 + MM2 + MM3;
+                            Temp33.MatrMultiply(FI, BEUP);
+                            CCPinv.MatrMultiplyT(Temp33, FI);
 
+                            // Obtain plastic deformation tensor
+                            MM1.MatrScale(1 / lambda.x);
+                            MM2.MatrScale(1 / lambda.y);
+                            MM3.MatrScale(1 / lambda.z);
 
-									m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) = EPBAR;//??????
+                            // Store plastic deformation tensor for each iteration
+                            m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
+                            m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
+                            m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
+                            m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
+                            m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
+                            m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
+                            m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
+                            m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
+                            m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
 
+                        }  // end if of Yield criteria
 
-									//Update stress
-									devStressUp = devS;
-									//(Hydrostatic)
-									double hydroPUp = P;
-									//Stress update first
-									StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-									StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-									StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-									//calculate updated elastic logarithmic Strain
-									LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-									LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-									LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-								}// end if of transition return mapping
-							}// end if Cap return mapping
-							// Update eigenvalues of strain tensor
-							lambda.x = exp(2.0 * LogStrain(0, 0));
-							lambda.y = exp(2.0 * LogStrain(1, 0));
-							lambda.z = exp(2.0 * LogStrain(2, 0));
-							// Updated left Cauchy-Green strain tensor  
-							ChMatrixNM<double, 3, 3> BEUP;
-							MM1.MatrScale(lambda.x);
-							MM2.MatrScale(lambda.y);
-							MM3.MatrScale(lambda.z);
-							BEUP = MM1 + MM2 + MM3;
-							Temp33.MatrMultiply(FI, BEUP);
-							CCPinv.MatrMultiplyT(Temp33, FI);
+                        // if (FlagYieldType !=0 )
+                        // GetLog() << "FlagYieldType=" << FlagYieldType <<"\n";
 
-							// Obtain plastic deformation tensor
-							MM1.MatrScale(1 / lambda.x);
-							MM2.MatrScale(1 / lambda.y);
-							MM3.MatrScale(1 / lambda.z);
-
-							// Store plastic deformation tensor for each iteration
-							m_element->m_CCPinv_Plast(0, m_element->m_InteCounter) = CCPinv(0, 0);
-							m_element->m_CCPinv_Plast(1, m_element->m_InteCounter) = CCPinv(0, 1);
-							m_element->m_CCPinv_Plast(2, m_element->m_InteCounter) = CCPinv(0, 2);
-							m_element->m_CCPinv_Plast(3, m_element->m_InteCounter) = CCPinv(1, 0);
-							m_element->m_CCPinv_Plast(4, m_element->m_InteCounter) = CCPinv(1, 1);
-							m_element->m_CCPinv_Plast(5, m_element->m_InteCounter) = CCPinv(1, 2);
-							m_element->m_CCPinv_Plast(6, m_element->m_InteCounter) = CCPinv(2, 0);
-							m_element->m_CCPinv_Plast(7, m_element->m_InteCounter) = CCPinv(2, 1);
-							m_element->m_CCPinv_Plast(8, m_element->m_InteCounter) = CCPinv(2, 2);
-
-						}// end if of Yield criteria
-
-						//if (FlagYieldType !=0 )
-						//GetLog() << "FlagYieldType=" << FlagYieldType <<"\n";
-
-					} break; //end of Case DruckerPrager_Cap
+                    } break;  // end of Case DruckerPrager_Cap
                 }
             }
 
@@ -1278,8 +1317,8 @@ class MyJacobianBrick9 : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
     ChElementBrick_9* m_element;
     double m_Kfactor;
     double m_Rfactor;
-	ChMatrixNM<double, 33, 33> m_KTE1;
-	ChMatrixNM<double, 33, 33> m_KTE2;
+    ChMatrixNM<double, 33, 33> m_KTE1;
+    ChMatrixNM<double, 33, 33> m_KTE2;
 
     virtual void Evaluate(ChMatrixNM<double, 33, 33>& result, const double x, const double y, const double z) override;
 };
@@ -1393,21 +1432,21 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 0, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 0, 0);
             tempB3.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 1, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 1, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Ny(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 2, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 2, 0);
 
             tempB3.MatrMultiply(Nz, m_element->m_d);
             for (int i = 0; i < 11; i++) {
@@ -1415,44 +1454,44 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 3, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 3, 0);
             tempB31.MatrMultiply(Nx, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Nx(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 4, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 4, 0);
             tempB31.MatrMultiply(Ny, m_element->m_d);
             for (int i = 0; i < 11; i++) {
                 for (int j = 0; j < 3; j++) {
                     tempB(0, i * 3 + j) = tempB3(0, j) * Ny(0, i) + tempB31(0, j) * Nz(0, i);
                 }
             }
-            strainD.PasteClippedMatrix(&tempB, 0, 0, 1, 33, 5, 0);
+            strainD.PasteClippedMatrix(tempB, 0, 0, 1, 33, 5, 0);
 
             // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
             // coordinates)
-			ChMatrixNM<double, 9, 33> Gd;
-			double Temp1;
-			double Temp2;
-			double Temp3;
-			for (int ii = 0; ii < 11; ii++) {
-				Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
-				Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
-				Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
-				Gd(0, 3 * (ii)) = Temp1;
-				Gd(1, 3 * (ii)+1) = Temp1;
-				Gd(2, 3 * (ii)+2) = Temp1;
+            ChMatrixNM<double, 9, 33> Gd;
+            double Temp1;
+            double Temp2;
+            double Temp3;
+            for (int ii = 0; ii < 11; ii++) {
+                Temp1 = j0(0, 0) * Nx(0, ii) + j0(1, 0) * Ny(0, ii) + j0(2, 0) * Nz(0, ii);
+                Temp2 = j0(0, 1) * Nx(0, ii) + j0(1, 1) * Ny(0, ii) + j0(2, 1) * Nz(0, ii);
+                Temp3 = j0(0, 2) * Nx(0, ii) + j0(1, 2) * Ny(0, ii) + j0(2, 2) * Nz(0, ii);
+                Gd(0, 3 * (ii)) = Temp1;
+                Gd(1, 3 * (ii) + 1) = Temp1;
+                Gd(2, 3 * (ii) + 2) = Temp1;
 
-				Gd(3, 3 * (ii)) = Temp2;
-				Gd(4, 3 * (ii)+1) = Temp2;
-				Gd(5, 3 * (ii)+2) = Temp2;
+                Gd(3, 3 * (ii)) = Temp2;
+                Gd(4, 3 * (ii) + 1) = Temp2;
+                Gd(5, 3 * (ii) + 2) = Temp2;
 
-				Gd(6, 3 * (ii)) = Temp3;
-				Gd(7, 3 * (ii)+1) = Temp3;
-				Gd(8, 3 * (ii)+2) = Temp3;
-			}
+                Gd(6, 3 * (ii)) = Temp3;
+                Gd(7, 3 * (ii) + 1) = Temp3;
+                Gd(8, 3 * (ii) + 2) = Temp3;
+            }
 
             // Add damping strains
             ChMatrixNM<double, 6, 1> DEPS;
@@ -1518,10 +1557,10 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             // Term from  differentiation of Jacobian of strain w.r.t. coordinates w.r.t. coordinates (that is, twice)
             temp339.MatrTMultiply(Gd, Sigm);
             // Sum contributions to the final Jacobian of internal forces
-			m_KTE1.MatrMultiply(temp336, strainD);
-			m_KTE2.MatrMultiply(temp339, Gd);
+            m_KTE1.MatrMultiply(temp336, strainD);
+            m_KTE2.MatrMultiply(temp339, Gd);
 
-			result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
+            result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
             result.MatrScale(detJ0 * m_element->m_GaussScaling);
         } break;
         case ChElementBrick_9::Hencky: {
@@ -1552,9 +1591,9 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 CCPinv(1, 1) = 1.0;
                 CCPinv(2, 2) = 1.0;
             }
-            Temp33.MatrMultiply(DefF, CCPinv);  // Obtain elastic deformation gradient (remove plastic part)
-            BETRI.MatrMultiplyT(Temp33, DefF);  // Obtain left Cauchy-Green tensor // ?
-            BETRI.FastEigen(BETRI_eigv, BETRI_eig); // Obtain eigenvalues of left Cauchy-Green tensor
+            Temp33.MatrMultiply(DefF, CCPinv);       // Obtain elastic deformation gradient (remove plastic part)
+            BETRI.MatrMultiplyT(Temp33, DefF);       // Obtain left Cauchy-Green tensor // ?
+            BETRI.FastEigen(BETRI_eigv, BETRI_eig);  // Obtain eigenvalues of left Cauchy-Green tensor
             for (int i = 0; i < 3; i++) {
                 e3(i, 0) = BETRI_eigv(i, 0);
                 e1(i, 0) = BETRI_eigv(i, 1);
@@ -1603,7 +1642,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                 EETD.x = LogStrain(0, 0) - EEVD3;
                 EETD.y = LogStrain(1, 0) - EEVD3;
                 EETD.z = LogStrain(2, 0) - EEVD3;
-                // Norm of deviatoric Hencky strain 
+                // Norm of deviatoric Hencky strain
                 double ETDNorm = EETD.Length();
                 // Hydrostatic pressure
                 double hydroP;
@@ -1702,7 +1741,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                     } break;
 
                     case ChElementBrick_9::DruckerPrager: {
-                        double EDNInv; // Inverse of norm of deviatoric Hencky strain
+                        double EDNInv;  // Inverse of norm of deviatoric Hencky strain
                         ChMatrixNM<double, 6, 1> UniDev;
                         // Evaluate norm of deviatoric Hencky strain
                         if (ETDNorm != 0.0) {
@@ -1726,9 +1765,10 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                         J2Rt = NormSn / sqrt(2.0);
 
                         double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-						double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
-                        double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
-                        double gsi; // Coefficient multiplying 'current' cohesion value in yield function
+                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                     // internal friction
+                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
                         double etab;
 
                         if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
@@ -1747,13 +1787,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
                         double alpha1;
                         double beta1;
-						if (etab == 0) {
-							etab = 0.000001;
-						}
+                        if (etab == 0) {
+                            etab = 0.000001;
+                        }
                         alpha1 = gsi / etab;
                         if (eta == 0) {
                             eta = 0.000001;
-                        } 
+                        }
                         beta1 = gsi / eta;
 
                         // Yield function at trial stage
@@ -1785,8 +1825,10 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                 if (Yfunc1 < m_element->GetDPYieldTol()) {
                                     break;
                                 }
-                                if (ii == m_element->GetDPIterationNo()-1) {
-                                    throw ChException("Maximum number of iterations reached in Drucker-Prager Newton-Raphson algorithm. Jacobian \n");
+                                if (ii == m_element->GetDPIterationNo() - 1) {
+                                    throw ChException(
+                                        "Maximum number of iterations reached in Drucker-Prager Newton-Raphson "
+                                        "algorithm. Jacobian \n");
                                 }
                             }
                             DeltaGamma = DGamma;
@@ -1830,15 +1872,15 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             SOID(1, 0) = 1.0;
                             SOID(3, 0) = 1.0;
 
-							double AFact;
+                            double AFact;
                             if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
-								double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-								AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-								double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
-								double CFact = -sqrt(2.0) * G * Aux * K;
-								double DFact = K * (1.0 - K * eta * etab * Aux);
+                                double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
+                                AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
+                                double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
+                                double CFact = -sqrt(2.0) * G * Aux * K;
+                                double DFact = K * (1.0 - K * eta * etab * Aux);
 
-								for (int ii = 0; ii < 6; ii++) {
+                                for (int ii = 0; ii < 6; ii++) {
                                     for (int jj = 0; jj < 6; jj++) {
                                         Dep(ii, jj) =
                                             AFact * FOID(ii, jj) + BFact * UniDev(ii) +
@@ -1847,7 +1889,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                     }
                                 }
                             } else {  // Consistent tangent for cone point
-								AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
+                                AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
                                 for (int ii = 0; ii < 6; ii++) {
                                     for (int jj = 0; jj < 6; jj++) {
                                         Dep(ii, jj) = AFact * SOID(ii) * SOID(jj);
@@ -1856,494 +1898,555 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                             }
                         }  // End Yield Criteria
                     } break;
-					case ChElementBrick_9::DruckerPrager_Cap: {
-						// Hydrostatic pressure (Cap)
-						double hydroPt;
-						// Current value of yield function (Cap)
-						double YieldFunc_Cap;
-						int FlagYieldType;  //(DP_Cap)
-						int PlasticCount; //(DP_Cap)
-						double EDNInv; // Inverse of norm of deviatoric Hencky strain
-						ChMatrixNM<double, 6, 1> UniDev;
+                    case ChElementBrick_9::DruckerPrager_Cap: {
+                        // Hydrostatic pressure (Cap)
+                        double hydroPt;
+                        // Current value of yield function (Cap)
+                        double YieldFunc_Cap;
+                        int FlagYieldType;  //(DP_Cap)
+                        int PlasticCount;   //(DP_Cap)
+                        double EDNInv;      // Inverse of norm of deviatoric Hencky strain
+                        ChMatrixNM<double, 6, 1> UniDev;
 
-						// Evaluate norm of deviatoric Hencky strain
-						if (ETDNorm != 0.0) {
-							EDNInv = 1.0 / ETDNorm;
-						}
-						else {
-							EDNInv = 0.0;
-						}
+                        // Evaluate norm of deviatoric Hencky strain
+                        if (ETDNorm != 0.0) {
+                            EDNInv = 1.0 / ETDNorm;
+                        } else {
+                            EDNInv = 0.0;
+                        }
 
-						UniDev(0, 0) = EETD.x * EDNInv;
-						UniDev(1, 0) = EETD.y * EDNInv;
-						UniDev(3, 0) = EETD.z * EDNInv;
+                        UniDev(0, 0) = EETD.x * EDNInv;
+                        UniDev(1, 0) = EETD.y * EDNInv;
+                        UniDev(3, 0) = EETD.z * EDNInv;
 
-						double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
-						hydroP = K * EETV;
-						devStress.x = 2.0 * G * (LogStrain(0, 0) - EEVD3);
-						devStress.y = 2.0 * G * (LogStrain(1, 0) - EEVD3);
-						devStress.z = 2.0 * G * (LogStrain(2, 0) - EEVD3);
-						// Euclidean natural norm of the second-order tensor
-						NormSn =
-							sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
+                        double EETV = LogStrain(0, 0) + LogStrain(1, 0) + LogStrain(2, 0);
+                        hydroP = K * EETV;
+                        devStress.x = 2.0 * G * (LogStrain(0, 0) - EEVD3);
+                        devStress.y = 2.0 * G * (LogStrain(1, 0) - EEVD3);
+                        devStress.z = 2.0 * G * (LogStrain(2, 0) - EEVD3);
+                        // Euclidean natural norm of the second-order tensor
+                        NormSn =
+                            sqrt(devStress.x * devStress.x + devStress.y * devStress.y + devStress.z * devStress.z);
 
-						J2Rt = NormSn / sqrt(2.0);
+                        J2Rt = NormSn / sqrt(2.0);
 
-						double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-						double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
 
-						double eta; // Coefficient multiplying hydros. pressure in yield function - function of internal friction
-						double gsi; // Coefficient multiplying 'current' cohesion value in yield function
-						double etab;
+                        double eta;  // Coefficient multiplying hydros. pressure in yield function - function of
+                                     // internal friction
+                        double gsi;  // Coefficient multiplying 'current' cohesion value in yield function
+                        double etab;
 
-						if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
-							eta = tan(phi) / sqrt(3.0);
-							gsi = 1.0 / sqrt(3.0);
-							etab = tan(phi2) / sqrt(3.0);
-						}
-						double alpha1;
-						double beta1;
-						if (etab == 0) {
-							etab = 0.000001;
-						}
-						alpha1 = gsi / etab;
-						if (eta == 0) {
-							eta = 0.000001;
-						}
-						beta1 = gsi / eta;
+                        if (m_element->m_DPHardening == 1) {  // Tension corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = (1.0 + tan(phi) / 3.0) / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        } else if (m_element->m_DPHardening == 2) {  // Compression corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = (1.0 - tan(phi) / 3.0) / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        } else if (m_element->m_DPHardening == 3) {  // Shear corresponding to Abaqus model
+                            eta = tan(phi) / sqrt(3.0);
+                            gsi = 1.0 / sqrt(3.0);
+                            etab = tan(phi2) / sqrt(3.0);
+                        }
+                        double alpha1;
+                        double beta1;
+                        if (etab == 0) {
+                            etab = 0.000001;
+                        }
+                        alpha1 = gsi / etab;
+                        if (eta == 0) {
+                            eta = 0.000001;
+                        }
+                        beta1 = gsi / eta;
 
-						//-------------------------------//
-						// Yield function at trial stage //
-						//-------------------------------//
+                        //-------------------------------//
+                        // Yield function at trial stage //
+                        //-------------------------------//
 
-						// DP yield function
-						YieldFunc =
-							J2Rt + eta * hydroP -
-							gsi * (m_element->m_YieldStress +
-							m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+                        // DP yield function
+                        YieldFunc =
+                            J2Rt + eta * hydroP -
+                            gsi * (m_element->m_YieldStress +
+                                   m_element->m_HardeningSlope * m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
 
-						// CAP yield function
-						hydroPt = beta1*m_element->m_YieldStress;
-						double CapM = sqrt(3.0)*eta;
+                        // CAP yield function
+                        hydroPt = beta1 * m_element->m_YieldStress;
+                        double CapM = sqrt(3.0) * eta;
 
-						double MeanEffP;
-						double Hi;
-						//double alphUp;
-						//ChMatrixDynamic<double> mm_DPVector1 = m_element->m_DPVector1;
-						//ChMatrixDynamic<double> mm_DPVector2 = m_element->m_DPVector2;
-						//int mm_DPVector_size=m_element->m_DPVector_size;
-						//double mm_DPCapBeta=m_element->m_DPCapBeta;
+                        double MeanEffP;
+                        double Hi;
+                        // double alphUp;
+                        // ChMatrixDynamic<double> mm_DPVector1 = m_element->m_DPVector1;
+                        // ChMatrixDynamic<double> mm_DPVector2 = m_element->m_DPVector2;
+                        // int mm_DPVector_size=m_element->m_DPVector_size;
+                        // double mm_DPCapBeta=m_element->m_DPCapBeta;
 
-						//alphUp = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);
-						//GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
-						//system("pause");
+                        // alphUp = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);
+                        // GetLog() << "m_DPVector1" << mm_DPVector1 << "m_DPVector2" << mm_DPVector2 <<"\n";
 
-						// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-						m_element->ComputeHardening_a(MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter, 0), m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
+                        // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                        m_element->ComputeHardening_a(
+                            MeanEffP, Hi, m_element->m_Alpha_Plast(m_element->m_InteCounter, 0), m_element->m_DPVector1,
+                            m_element->m_DPVector2, m_element->m_DPVector_size);
 
-						YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(hydroP - hydroPt + MeanEffP)*(hydroP - hydroPt + MeanEffP) + (sqrt(3.0)*J2Rt / CapM)*(sqrt(3.0)*J2Rt / CapM) - MeanEffP*MeanEffP;
+                        YieldFunc_Cap = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                            (hydroP - hydroPt + MeanEffP) * (hydroP - hydroPt + MeanEffP) +
+                                        (sqrt(3.0) * J2Rt / CapM) * (sqrt(3.0) * J2Rt / CapM) - MeanEffP * MeanEffP;
 
-						double SQRJ2T = J2Rt;
-						double PT = hydroP;
-						double EPBARN = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);
+                        double SQRJ2T = J2Rt;
+                        double PT = hydroP;
+                        double EPBARN = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0);
 
-						YieldFlag = 0;
-						FlagYieldType = 0;
+                        YieldFlag = 0;
+                        FlagYieldType = 0;
 
-						if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt - MeanEffP)) {
-							YieldFlag = 1;
-							PlasticCount = 1;
-							if (YieldFunc > 0.0) {// DP smmothed surface return mapping
-								// Initialize for Newton-Raphson
-								double DGamma = 0.0;
-								double Yfunc1 = YieldFunc;  // Initially recalculated
+                        if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt - MeanEffP)) {
+                            YieldFlag = 1;
+                            PlasticCount = 1;
+                            if (YieldFunc > 0.0) {  // DP smmothed surface return mapping
+                                // Initialize for Newton-Raphson
+                                double DGamma = 0.0;
+                                double Yfunc1 = YieldFunc;  // Initially recalculated
 
-								for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-									// Compute Newton residual
-									double DDGamma =
-										Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-									DGamma = DGamma + DDGamma;
-									SQRJ2T = SQRJ2T - G * DGamma;
-									double P = PT - K * etab * DGamma;
-									double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
-									Yfunc1 = SQRJ2T + eta * P -
-										gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-									if (abs(Yfunc1) < m_element->GetDPYieldTol())
-										break;
+                                for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                    // Compute Newton residual
+                                    double DDGamma =
+                                        Yfunc1 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
+                                    DGamma = DGamma + DDGamma;
+                                    SQRJ2T = SQRJ2T - G * DGamma;
+                                    double P = PT - K * etab * DGamma;
+                                    double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
+                                    Yfunc1 = SQRJ2T + eta * P -
+                                             gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
+                                    if (abs(Yfunc1) < m_element->GetDPYieldTol())
+                                        break;
 
-									if (ii == m_element->GetDPIterationNo() - 1)
-										throw ChException("Maximum number of iterations reached in Drucker-Prager Surface Newton-Raphson algorithm");
-								}
-								DeltaGamma = DGamma;
-								double Check_DP_Cone = J2Rt - G * DGamma;
+                                    if (ii == m_element->GetDPIterationNo() - 1)
+                                        throw ChException(
+                                            "Maximum number of iterations reached in Drucker-Prager Surface "
+                                            "Newton-Raphson algorithm");
+                                }
+                                DeltaGamma = DGamma;
+                                double Check_DP_Cone = J2Rt - G * DGamma;
 
-								if (Check_DP_Cone < 0.0) {  // Cone return mapping
-									FlagYieldType = 2;
-									double Rtrial = hydroP -
-										beta1 * (m_element->m_YieldStress +
-										m_element->m_HardeningSlope *
-										m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
-									DeltaGamma = Rtrial / (K + alpha1 * beta1 * m_element->m_HardeningSlope);
+                                if (Check_DP_Cone < 0.0) {  // Cone return mapping
+                                    FlagYieldType = 2;
+                                    double Rtrial = hydroP -
+                                                    beta1 * (m_element->m_YieldStress +
+                                                             m_element->m_HardeningSlope *
+                                                                 m_element->m_Alpha_Plast(m_element->m_InteCounter, 0));
+                                    DeltaGamma = Rtrial / (K + alpha1 * beta1 * m_element->m_HardeningSlope);
 
-									// Stress update
-									StressK_eig(0, 0) = hydroP - K * DeltaGamma;
-									StressK_eig(1, 0) = hydroP - K * DeltaGamma;
-									StressK_eig(2, 0) = hydroP - K * DeltaGamma;
+                                    // Stress update
+                                    StressK_eig(0, 0) = hydroP - K * DeltaGamma;
+                                    StressK_eig(1, 0) = hydroP - K * DeltaGamma;
+                                    StressK_eig(2, 0) = hydroP - K * DeltaGamma;
 
-									//// Calculate update elastic logarithmic strain
-									//LogStrain = StressK_eig;
-									//LogStrain.MatrScale(1 / (3.0 * K));
-								}
-								else {
-									if (YieldFunc_Cap <= 0.0 || ((hydroP - K*etab*DeltaGamma) >= hydroPt - MeanEffP)){
-										FlagYieldType = 1;
+                                    //// Calculate update elastic logarithmic strain
+                                    // LogStrain = StressK_eig;
+                                    // LogStrain.MatrScale(1 / (3.0 * K));
+                                } else {
+                                    if (YieldFunc_Cap <= 0.0 ||
+                                        ((hydroP - K * etab * DeltaGamma) >= hydroPt - MeanEffP)) {
+                                        FlagYieldType = 1;
 
-										// Deviatoric stress
-										devStressUp = (1.0 - G * DeltaGamma / J2Rt) * devStress;
-										// Hydrostatic stress
-										double hydroPUp = hydroP - K * etab * DeltaGamma;
-										// Stress update
-										StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-										StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-										StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-										//// Calculate update elastic logarithmic strain
-										//LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-										//LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-										//LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-									}
-								}// end of // Cone return mapping
-								// Calculation for Dep: Plastic contribution to Jacobian of internal forces
-								ChMatrixNM<double, 6, 6> FOID;
-								ChMatrixNM<double, 6, 1> SOID;
+                                        // Deviatoric stress
+                                        devStressUp = (1.0 - G * DeltaGamma / J2Rt) * devStress;
+                                        // Hydrostatic stress
+                                        double hydroPUp = hydroP - K * etab * DeltaGamma;
+                                        // Stress update
+                                        StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                        StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                        StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                        //// Calculate update elastic logarithmic strain
+                                        // LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                        // LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                        // LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    }
+                                }  // end of // Cone return mapping
+                                // Calculation for Dep: Plastic contribution to Jacobian of internal forces
+                                ChMatrixNM<double, 6, 6> FOID;
+                                ChMatrixNM<double, 6, 1> SOID;
 
-								FOID(0, 0) = 1.0;
-								FOID(1, 1) = 1.0;
-								FOID(2, 2) = 0.5;
-								FOID(3, 3) = 1.0;
-								FOID(4, 4) = 0.5;
-								FOID(5, 5) = 0.5;
+                                FOID(0, 0) = 1.0;
+                                FOID(1, 1) = 1.0;
+                                FOID(2, 2) = 0.5;
+                                FOID(3, 3) = 1.0;
+                                FOID(4, 4) = 0.5;
+                                FOID(5, 5) = 0.5;
 
-								SOID(0, 0) = 1.0;
-								SOID(1, 0) = 1.0;
-								SOID(3, 0) = 1.0;
+                                SOID(0, 0) = 1.0;
+                                SOID(1, 0) = 1.0;
+                                SOID(3, 0) = 1.0;
 
-								double AFact;
-								if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
-									double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
-									AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
-									double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
-									double CFact = -sqrt(2.0) * G * Aux * K;
-									double DFact = K * (1.0 - K * eta * etab * Aux);
+                                double AFact;
+                                if (Check_DP_Cone >= 0.0) {  // Consistent tangent for smooth cone wall return
+                                    double Aux = 1.0 / (G + K * eta * etab + gsi * gsi * m_element->m_HardeningSlope);
+                                    AFact = 2.0 * G * (1.0 - DeltaGamma / (sqrt(2.0) * ETDNorm));
+                                    double BFact = 2.0 * G * (DeltaGamma / (sqrt(2.0) * ETDNorm) - G * Aux);
+                                    double CFact = -sqrt(2.0) * G * Aux * K;
+                                    double DFact = K * (1.0 - K * eta * etab * Aux);
 
-									for (int ii = 0; ii < 6; ii++) {
-										for (int jj = 0; jj < 6; jj++) {
-											Dep(ii, jj) =
-												AFact * FOID(ii, jj) + BFact * UniDev(ii) +
-												CFact * (eta * UniDev(ii) * SOID(jj) + etab * SOID(ii) * UniDev(jj)) +
-												(DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
-										}
-									}
-								}
-								else {  // Consistent tangent for cone point
-									AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
-									for (int ii = 0; ii < 6; ii++) {
-										for (int jj = 0; jj < 6; jj++) {
-											Dep(ii, jj) = AFact * SOID(ii) * SOID(jj);
-										}
-									}
-								}
-							}// end of // DP smmothed surface return mapping
+                                    for (int ii = 0; ii < 6; ii++) {
+                                        for (int jj = 0; jj < 6; jj++) {
+                                            Dep(ii, jj) =
+                                                AFact * FOID(ii, jj) + BFact * UniDev(ii) +
+                                                CFact * (eta * UniDev(ii) * SOID(jj) + etab * SOID(ii) * UniDev(jj)) +
+                                                (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                        }
+                                    }
+                                } else {  // Consistent tangent for cone point
+                                    AFact = K * (1.0 - K / (K + alpha1 * beta1 * m_element->m_HardeningSlope));
+                                    for (int ii = 0; ii < 6; ii++) {
+                                        for (int jj = 0; jj < 6; jj++) {
+                                            Dep(ii, jj) = AFact * SOID(ii) * SOID(jj);
+                                        }
+                                    }
+                                }
+                            }  // end of // DP smmothed surface return mapping
 
-							if (YieldFunc_Cap > 0.0 && FlagYieldType == 0){// Cap return mapping
-								// Initialize of Newton raphson for Cap surface
-								double DGamma = 0.0;
-								double DGamma_A;
-								double DGamma_B;
-								double EPBAR = EPBARN;
-								double SQRJ2 = SQRJ2T;
-								double P = PT;
-								ChVector<double>devS = devStress;
-								double Acof;
-								double A11;
-								double A12;
-								double A21;
-								double A22;
-								double B11;
-								double B12;
-								double B21;
-								double B22;
-								double Res01;
-								double Res02;
-								double DDGamma;
-								double DALPHA;
-								// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-								m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-								//Evaluate initial 2 residual vectors
-								Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-								Res02 = EPBAR - EPBARN + DGamma*2.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
+                            if (YieldFunc_Cap > 0.0 && FlagYieldType == 0) {  // Cap return mapping
+                                // Initialize of Newton raphson for Cap surface
+                                double DGamma = 0.0;
+                                double DGamma_A;
+                                double DGamma_B;
+                                double EPBAR = EPBARN;
+                                double SQRJ2 = SQRJ2T;
+                                double P = PT;
+                                ChVector<double> devS = devStress;
+                                double Acof;
+                                double A11;
+                                double A12;
+                                double A21;
+                                double A22;
+                                double B11;
+                                double B12;
+                                double B21;
+                                double B22;
+                                double Res01;
+                                double Res02;
+                                double DDGamma;
+                                double DALPHA;
+                                // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                              m_element->m_DPVector2, m_element->m_DPVector_size);
+                                // Evaluate initial 2 residual vectors
+                                Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                            (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                        (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) - MeanEffP * MeanEffP;
+                                Res02 = EPBAR - EPBARN +
+                                        DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                            (P - hydroPt + MeanEffP);
 
-								for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-									Acof = P - hydroPt + MeanEffP;
-									A11 = -12.0*G / (CapM*CapM + 6.0*G*DGamma)*(sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM);
-									A12 = 2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi) - 2.0*MeanEffP*Hi;
-									A21 = 2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta);
-									A22 = 1.0 + 2.0*DGamma / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi);
+                                for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                    Acof = P - hydroPt + MeanEffP;
+                                    A11 = -12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
+                                          (sqrt(3.0) * SQRJ2 / CapM);
+                                    A12 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
+                                          2.0 * MeanEffP * Hi;
+                                    A21 = 2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta);
+                                    A22 = 1.0 +
+                                          2.0 * DGamma / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi);
 
-									if (A11*A22 - A12*A21 == 0.0) {
-										printf("Cap Return Singular Matrix!!\n");
-										system("pause");
-										exit(1);
-									}
+                                    if (A11 * A22 - A12 * A21 == 0.0) {
+                                        printf("Cap Return Singular Matrix!!\n");
+                                        exit(1);
+                                    }
 
-									B11 = A22 / (A11*A22 - A12*A21);
-									B12 = -A12 / (A11*A22 - A12*A21);
-									B21 = -A21 / (A11*A22 - A12*A21);
-									B22 = A11 / (A11*A22 - A12*A21);
+                                    B11 = A22 / (A11 * A22 - A12 * A21);
+                                    B12 = -A12 / (A11 * A22 - A12 * A21);
+                                    B21 = -A21 / (A11 * A22 - A12 * A21);
+                                    B22 = A11 / (A11 * A22 - A12 * A21);
 
-									DDGamma = -B11*Res01 - B12*Res02;
-									DALPHA = -B21*Res01 - B22*Res02;
+                                    DDGamma = -B11 * Res01 - B12 * Res02;
+                                    DALPHA = -B21 * Res01 - B22 * Res02;
 
-									DGamma = DGamma + DDGamma; //!Update Newton increment in terms of DGamma
-									EPBAR = EPBAR + DALPHA; //!Update Newton increment in terms of alpha(hardening parameters)
-									P = PT + K*(EPBAR - EPBARN);
-									SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*SQRJ2T;
-									devS.x = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.x;
-									devS.y = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.y;
-									devS.z = CapM*CapM / (CapM*CapM + 6.0*G*DGamma)*devStress.z;
+                                    DGamma = DGamma + DDGamma;  //! Update Newton increment in terms of DGamma
+                                    EPBAR = EPBAR +
+                                            DALPHA;  //! Update Newton increment in terms of alpha(hardening parameters)
+                                    P = PT + K * (EPBAR - EPBARN);
+                                    SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * SQRJ2T;
+                                    devS.x = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.x;
+                                    devS.y = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.y;
+                                    devS.z = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma) * devStress.z;
 
-									// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-									m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
 
-									Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-									Res02 = EPBAR - EPBARN + DGamma*2.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
+                                    Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            MeanEffP * MeanEffP;
+                                    Res02 = EPBAR - EPBARN +
+                                            DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                                (P - hydroPt + MeanEffP);
 
-									if (abs(Hi) < m_element->GetDPYieldTol()) {
-										if (sqrt(Res01*Res01) < m_element->GetDPYieldTol() && sqrt(Res02*Res02) < m_element->GetDPYieldTol())
-											break;
-									}
-									else {
-										if (sqrt(Res01*Res01) /abs( Hi) < m_element->GetDPYieldTol() && sqrt(Res02*Res02) / abs(Hi) < m_element->GetDPYieldTol())
-											break;
-									}
-									if (ii == m_element->GetDPIterationNo() - 1)
-										throw ChException("Maximum number of iterations reached in Drucker-Prager Cap surface Newton-Raphson algorithm");
-								}// End of Newton raphson
+                                    if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                        if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
+                                            break;
+                                    } else {
+                                        if (sqrt(Res01 * Res01) / abs(Hi) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) / abs(Hi) < m_element->GetDPYieldTol())
+                                            break;
+                                    }
+                                    if (ii == m_element->GetDPIterationNo() - 1)
+                                        throw ChException(
+                                            "Maximum number of iterations reached in Drucker-Prager Cap surface "
+                                            "Newton-Raphson algorithm");
+                                }  // End of Newton raphson
 
-								DeltaGamma = DGamma;
+                                DeltaGamma = DGamma;
 
-								if (P>hydroPt - MeanEffP){// Transition return mapping
-									FlagYieldType = 4;
-									//Initialize for newton raphson									
-									DGamma_B = 0.0;
-									double AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B);
-									DGamma_A = (AA*SQRJ2T + eta*PT - eta*hydroPt) / (AA*G + K*eta*etab);
-									EPBAR = EPBARN - etab*DGamma_A;
-									SQRJ2 = SQRJ2T;
-									P = PT;
-									devS = devStress;
-									// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-									m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-									// initial resid vector
-									Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-									double DGamma_B1;
-									double Res11;
-									double DRes01;
-									for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
-										//TransNewtonDifference
+                                if (P > hydroPt - MeanEffP) {  // Transition return mapping
+                                    FlagYieldType = 4;
+                                    // Initialize for newton raphson
+                                    DGamma_B = 0.0;
+                                    double AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
+                                    DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                    EPBAR = EPBARN - etab * DGamma_A;
+                                    SQRJ2 = SQRJ2T;
+                                    P = PT;
+                                    devS = devStress;
+                                    // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                    m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                  m_element->m_DPVector2, m_element->m_DPVector_size);
+                                    // initial resid vector
+                                    Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                            (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                            MeanEffP * MeanEffP;
+                                    double DGamma_B1;
+                                    double Res11;
+                                    double DRes01;
+                                    for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
+                                        // TransNewtonDifference
 
-										//** pertervation for DGAMA_B1
-										DGamma_B1 = DGamma_B + 1e-10;
-										AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B1);
-										DGamma_A = (AA*SQRJ2T + eta*PT - eta*hydroPt) / (AA*G + K*eta*etab);
-										EPBAR = EPBARN - etab*DGamma_A;
-										// obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
-										m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-										// update stresses
-										P = PT - K*etab*DGamma_A;
-										SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B1)*(1.0 - G*DGamma_A / SQRJ2T)*SQRJ2T;
-										//Check yield functions
-										Res11 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-										DRes01 = (Res11 - Res01) / 1e-10;
+                                        //** pertervation for DGAMA_B1
+                                        DGamma_B1 = DGamma_B + 1e-10;
+                                        AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1);
+                                        DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                        EPBAR = EPBARN - etab * DGamma_A;
+                                        // obtain "hardening parameter a"=MeanEffP and "first derivative of a" =Hi
+                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                      m_element->m_DPVector2,
+                                                                      m_element->m_DPVector_size);
+                                        // update stresses
+                                        P = PT - K * etab * DGamma_A;
+                                        SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1) *
+                                                (1.0 - G * DGamma_A / SQRJ2T) * SQRJ2T;
+                                        // Check yield functions
+                                        Res11 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                MeanEffP * MeanEffP;
+                                        DRes01 = (Res11 - Res01) / 1e-10;
 
-										if (DRes01 == 0.0) {
-											printf("Singular for Transition DP/CAP!!\n");
-											system("pause");
-											exit(1);
-										}
+                                        if (DRes01 == 0.0) {
+                                            printf("Singular for Transition DP/CAP!!\n");
+                                            exit(1);
+                                        }
 
-										//update 3 parameters (plastic and hardening parameters)
-										DGamma_B = DGamma_B - 1.0 / DRes01*Res01;
-										AA = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B);
-										DGamma_A = (AA*SQRJ2T + eta*PT - eta*hydroPt) / (AA*G + K*eta*etab);
-										EPBAR = EPBARN - etab*DGamma_A; //plastic strain
-										//Upadate yield stress and the Hi(slop) at plastic strain from table
-										m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1, m_element->m_DPVector2, m_element->m_DPVector_size);
-										//Update stresses
-										P = PT - K*etab*DGamma_A;
-										SQRJ2 = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*SQRJ2T;
-										devS.x = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.x;
-										devS.y = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.y;
-										devS.z = CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*(1.0 - G*DGamma_A / SQRJ2T)*devStress.z;
-										//Check yield functions
-										Res01 = (1.0 / (m_element->m_DPCapBeta*m_element->m_DPCapBeta))*(P - hydroPt + MeanEffP)*(P - hydroPt + MeanEffP) + (sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM) - MeanEffP*MeanEffP;
-										if (abs(Hi) < m_element->GetDPYieldTol()) {
-											if (abs(Res01) < m_element->GetDPYieldTol())
-												break;
-										}
-										else {
-											if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
-												break;
-										}
-										if (ii == m_element->GetDPIterationNo() - 1)
-											throw ChException("Hit the max iteration for Transient Cap_surf and DP_surf return mapping");
-									}//End of Newton raphson
+                                        // update 3 parameters (plastic and hardening parameters)
+                                        DGamma_B = DGamma_B - 1.0 / DRes01 * Res01;
+                                        AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
+                                        DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
+                                        EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
+                                        // Upadate yield stress and the Hi(slop) at plastic strain from table
+                                        m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
+                                                                      m_element->m_DPVector2,
+                                                                      m_element->m_DPVector_size);
+                                        // Update stresses
+                                        P = PT - K * etab * DGamma_A;
+                                        SQRJ2 = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                (1.0 - G * DGamma_A / SQRJ2T) * SQRJ2T;
+                                        devS.x = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.x;
+                                        devS.y = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.y;
+                                        devS.z = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) *
+                                                 (1.0 - G * DGamma_A / SQRJ2T) * devStress.z;
+                                        // Check yield functions
+                                        Res01 = (1.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta)) *
+                                                    (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
+                                                (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
+                                                MeanEffP * MeanEffP;
+                                        if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                            if (abs(Res01) < m_element->GetDPYieldTol())
+                                                break;
+                                        } else {
+                                            if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
+                                                break;
+                                        }
+                                        if (ii == m_element->GetDPIterationNo() - 1)
+                                            throw ChException(
+                                                "Hit the max iteration for Transient Cap_surf and DP_surf return "
+                                                "mapping");
+                                    }  // End of Newton raphson
 
-									DeltaGamma = DGamma_A + DGamma_B;
+                                    DeltaGamma = DGamma_A + DGamma_B;
 
+                                    // Update stress
+                                    devStressUp = devS;
+                                    //(Hydrostatic)
+                                    double hydroPUp = P;
+                                    // Stress update first
+                                    StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                    StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                    StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                    ////calculate updated elastic logarithmic Strain
+                                    // LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    // LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    // LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                } else {
+                                    FlagYieldType = 3;
 
+                                    // Update stress
+                                    devStressUp = devS;
+                                    //(Hydrostatic)
+                                    double hydroPUp = P;
+                                    // Stress update first
+                                    StressK_eig(0, 0) = devStressUp.x + hydroPUp;
+                                    StressK_eig(1, 0) = devStressUp.y + hydroPUp;
+                                    StressK_eig(2, 0) = devStressUp.z + hydroPUp;
+                                    ////calculate updated elastic logarithmic Strain
+                                    // LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    // LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
+                                    // LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
+                                }  // end if of transition return mapping
+                                // Calculation for Dep: Plastic contribution to Jacobian of internal forces
+                                ChMatrixNM<double, 6, 6> FOID;
+                                ChMatrixNM<double, 6, 1> SOID;
+                                FOID(0, 0) = 1.0;
+                                FOID(1, 1) = 1.0;
+                                FOID(2, 2) = 0.5;
+                                FOID(3, 3) = 1.0;
+                                FOID(4, 4) = 0.5;
+                                FOID(5, 5) = 0.5;
 
-									//Update stress
-									devStressUp = devS;
-									//(Hydrostatic)
-									double hydroPUp = P;
-									//Stress update first
-									StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-									StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-									StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-									////calculate updated elastic logarithmic Strain
-									//LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-									//LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-									//LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-								}
-								else {
-									FlagYieldType = 3;
+                                SOID(0, 0) = 1.0;
+                                SOID(1, 0) = 1.0;
+                                SOID(3, 0) = 1.0;
+                                double AFact;
+                                double BFact;
+                                double C1Fact;
+                                double C2Fact;
+                                double DFact;
+                                double C11;
+                                double C12;
+                                double C21;
+                                double C22;
+                                if (FlagYieldType == 3) {  //!! Consistent tangent for cap surface
+                                    Acof = P - hydroPt + MeanEffP;
+                                    A11 = -(-12.0 * G / (CapM * CapM + 6.0 * G * DGamma) * (sqrt(3.0) * SQRJ2 / CapM) *
+                                            (sqrt(3.0) * SQRJ2 / CapM));
+                                    A12 = -(2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi) -
+                                            2.0 * MeanEffP * Hi);
+                                    A21 = -(2.0 * Acof / (m_element->m_DPCapBeta * m_element->m_DPCapBeta));
+                                    A22 =
+                                        -(1.0 +
+                                          2.0 * DGamma / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * (K + Hi));
 
+                                    B11 = A22 / (A11 * A22 - A12 * A21);
+                                    B12 = -A12 / (A11 * A22 - A12 * A21);
+                                    B21 = -A21 / (A11 * A22 - A12 * A21);
+                                    B22 = A11 / (A11 * A22 - A12 * A21);
 
+                                    C11 = 2.0 * sqrt(6.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T /
+                                          ((CapM * CapM + 6.0 * G * DGamma) * (CapM * CapM + 6.0 * G * DGamma)) * B11;
+                                    C12 = 2.0 * Acof * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B11 +
+                                          2.0 * DGamma * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B12;
+                                    C21 = 2.0 * sqrt(6.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T /
+                                          ((CapM * CapM + 6.0 * G * DGamma) * (CapM * CapM + 6.0 * G * DGamma)) * B21;
+                                    C22 = 2.0 * Acof * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B21 +
+                                          2.0 * DGamma * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) * B22;
 
-									//Update stress
-									devStressUp = devS;
-									//(Hydrostatic)
-									double hydroPUp = P;
-									//Stress update first
-									StressK_eig(0, 0) = devStressUp.x + hydroPUp;
-									StressK_eig(1, 0) = devStressUp.y + hydroPUp;
-									StressK_eig(2, 0) = devStressUp.z + hydroPUp;
-									////calculate updated elastic logarithmic Strain
-									//LogStrain(0, 0) = devStressUp.x / (2.0 * G) + hydroPUp / (3.0 * K);
-									//LogStrain(1, 0) = devStressUp.y / (2.0 * G) + hydroPUp / (3.0 * K);
-									//LogStrain(2, 0) = devStressUp.z / (2.0 * G) + hydroPUp / (3.0 * K);
-								}// end if of transition return mapping
-								// Calculation for Dep: Plastic contribution to Jacobian of internal forces
-								ChMatrixNM<double, 6, 6> FOID;
-								ChMatrixNM<double, 6, 1> SOID;
-								FOID(0, 0) = 1.0;
-								FOID(1, 1) = 1.0;
-								FOID(2, 2) = 0.5;
-								FOID(3, 3) = 1.0;
-								FOID(4, 4) = 0.5;
-								FOID(5, 5) = 0.5;
+                                    AFact = 2.0 * G * (CapM * CapM) / ((CapM * CapM) + 6.0 * G * DGamma);
+                                    BFact = -12.0 * (G * G) * (CapM * CapM) * ETDNorm * C11 /
+                                            (((CapM * CapM) + 6.0 * G * DGamma) * ((CapM * CapM) + 6.0 * G * DGamma));
+                                    C1Fact = -12.0 * (G * G) * (CapM * CapM) * ETDNorm * C12 /
+                                             (((CapM * CapM) + 6.0 * G * DGamma) * ((CapM * CapM) + 6.0 * G * DGamma));
+                                    C2Fact = K * C21;
+                                    DFact = K * (1.0 + C22);
 
-								SOID(0, 0) = 1.0;
-								SOID(1, 0) = 1.0;
-								SOID(3, 0) = 1.0;
-								double AFact;
-								double BFact;
-								double C1Fact;
-								double C2Fact;
-								double DFact;
-								double C11;
-								double C12;
-								double C21;
-								double C22;
-								if (FlagYieldType == 3){//!! Consistent tangent for cap surface
-									Acof = P - hydroPt + MeanEffP;
-									A11 = -(-12.0*G / (CapM*CapM + 6.0*G*DGamma)*(sqrt(3.0)*SQRJ2 / CapM)*(sqrt(3.0)*SQRJ2 / CapM));
-									A12 = -(2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi) - 2.0*MeanEffP*Hi);
-									A21 = -(2.0*Acof / (m_element->m_DPCapBeta*m_element->m_DPCapBeta));
-									A22 = -(1.0 + 2.0*DGamma / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(K + Hi));
+                                    for (int ii = 0; ii < 6; ii++) {
+                                        for (int jj = 0; jj < 6; jj++) {
+                                            Dep(ii, jj) = AFact * FOID(ii, jj) + BFact * UniDev(ii) * UniDev(jj) +
+                                                          C1Fact * UniDev(ii) * SOID(jj) +
+                                                          C2Fact * SOID(ii) * UniDev(jj) +
+                                                          (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                        }
+                                    }
+                                }
+                                if (FlagYieldType == 4) {  // Consistent tangent for elastic modulus
+                                    Acof = G * DGamma_A / SQRJ2T - 1.0;
+                                    double Bcof = CapM * CapM + 6.0 * G * DGamma_B;
 
-									B11 = A22 / (A11*A22 - A12*A21);
-									B12 = -A12 / (A11*A22 - A12*A21);
-									B21 = -A21 / (A11*A22 - A12*A21);
-									B22 = A11 / (A11*A22 - A12*A21);
+                                    A11 = -(-K * eta * etab - G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B));
+                                    A12 = -(2.0 * sqrt(3.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T * Acof /
+                                            (Bcof * Bcof));
+                                    A21 = -(2.0 * sqrt(3.0) * G * (CapM * CapM) * sqrt(3.0) * SQRJ2T * Acof /
+                                                (Bcof * Bcof) -
+                                            2.0 * K * etab * (P - hydroPt + MeanEffP) /
+                                                (m_element->m_DPCapBeta * m_element->m_DPCapBeta));
+                                    A22 = -(-12.0 * G * (CapM * CapM) * ((sqrt(3.0) * SQRJ2T) * (sqrt(3.0) * SQRJ2T)) *
+                                            (Acof * Acof) / (Bcof * Bcof * Bcof));
 
-									C11 = 2.0*sqrt(6.0)*G*(CapM*CapM)*sqrt(3.0)*SQRJ2T / ((CapM*CapM + 6.0*G*DGamma)*(CapM*CapM + 6.0*G*DGamma))*B11;
-									C12 = 2.0*Acof*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*B11 + 2.0*DGamma*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*B12;
-									C21 = 2.0*sqrt(6.0)*G*(CapM*CapM)*sqrt(3.0)*SQRJ2T / ((CapM*CapM + 6.0*G*DGamma)*(CapM*CapM + 6.0*G*DGamma))*B21;
-									C22 = 2.0*Acof*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*B21 + 2.0*DGamma*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*B22;
+                                    B11 = A22 / (A11 * A22 - A12 * A21);
+                                    B12 = -A12 / (A11 * A22 - A12 * A21);
+                                    B21 = -A21 / (A11 * A22 - A12 * A21);
+                                    B22 = A11 / (A11 * A22 - A12 * A21);
 
-									AFact = 2.0*G*(CapM*CapM) / ((CapM*CapM) + 6.0*G*DGamma);
-									BFact = -12.0*(G*G)*(CapM*CapM)*ETDNorm*C11 / (((CapM*CapM) + 6.0*G*DGamma)*((CapM*CapM) + 6.0*G*DGamma));
-									C1Fact = -12.0*(G*G)*(CapM*CapM)*ETDNorm*C12 / (((CapM*CapM) + 6.0*G*DGamma)*((CapM*CapM) + 6.0*G*DGamma));
-									C2Fact = K*C21;
-									DFact = K*(1.0 + C22);
+                                    C11 = B11 * sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
+                                          B12 * 2.0 * sqrt(2.0) * G * (CapM * CapM) /
+                                              ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B));
+                                    C12 = B11 * K * eta +
+                                          B12 * 2.0 * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                              (P - hydroPt + MeanEffP);
+                                    C21 = B21 * sqrt(2.0) * G * (CapM * CapM) / (CapM * CapM + 6.0 * G * DGamma_B) -
+                                          B22 * 2.0 * sqrt(2.0) * G * (CapM * CapM) /
+                                              ((CapM * CapM + 6.0 * G * DGamma_B) * (CapM * CapM + 6.0 * G * DGamma_B));
+                                    C22 = B21 * K * eta +
+                                          B12 * 2.0 * K / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
+                                              (P - hydroPt + MeanEffP);
 
-									for (int ii = 0; ii < 6; ii++) {
-										for (int jj = 0; jj < 6; jj++) {
-											Dep(ii, jj) =
-												AFact * FOID(ii, jj) + BFact * UniDev(ii)* UniDev(jj) +
-												C1Fact * UniDev(ii) * SOID(jj) + C2Fact*SOID(ii)*UniDev(jj) + (DFact - AFact / 3.0)*SOID(ii)*SOID(jj);
-										}
-									}
-								}
-								if (FlagYieldType == 4){//Consistent tangent for elastic modulus
-									Acof = G*DGamma_A / SQRJ2T - 1.0;
-									double Bcof = CapM*CapM + 6.0*G*DGamma_B;
+                                    AFact = 2.0 * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
+                                    BFact = -sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C11 -
+                                            12.0 * G * G * CapM * CapM / ((CapM * CapM + 6.0 * G * DGamma_B) *
+                                                                          (CapM * CapM + 6.0 * G * DGamma_B)) *
+                                                (ETDNorm - 1.0 / sqrt(2.0) * DGamma_A) * C21;
+                                    C1Fact = -sqrt(2.0) * G * CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B) * C12 -
+                                             12.0 * G * G * CapM * CapM / ((CapM * CapM + 6.0 * G * DGamma_B) *
+                                                                           (CapM * CapM + 6.0 * G * DGamma_B)) *
+                                                 (ETDNorm - 1.0 / sqrt(2.0) * DGamma_A) * C22;
+                                    C2Fact = -K * etab * C11;
+                                    DFact = K * (1.0 - etab * C12);
 
-									A11 = -(-K*eta*etab - G*CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B));
-									A12 = -(2.0*sqrt(3.0)*G*(CapM*CapM)*sqrt(3.0)*SQRJ2T*Acof / (Bcof*Bcof));
-									A21 = -(2.0*sqrt(3.0)*G*(CapM*CapM)*sqrt(3.0)*SQRJ2T*Acof / (Bcof*Bcof) - 2.0*K*etab*(P - hydroPt + MeanEffP) / (m_element->m_DPCapBeta*m_element->m_DPCapBeta));
-									A22 = -(-12.0*G*(CapM*CapM)*((sqrt(3.0)*SQRJ2T)*(sqrt(3.0)*SQRJ2T))*(Acof*Acof) / (Bcof*Bcof*Bcof));
-									
-									B11 = A22 / (A11*A22 - A12*A21);
-									B12 = -A12 / (A11*A22 - A12*A21);
-									B21 = -A21 / (A11*A22 - A12*A21);									
-									B22 = A11 / (A11*A22 - A12*A21);
-									
-									C11 = B11*sqrt(2.0)*G*(CapM*CapM) / (CapM*CapM + 6.0*G*DGamma_B) - B12*2.0*sqrt(2.0)*G*(CapM*CapM) / ((CapM*CapM + 6.0*G*DGamma_B)*(CapM*CapM + 6.0*G*DGamma_B));
-									C12 = B11*K*eta + B12*2.0*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
-									C21 = B21*sqrt(2.0)*G*(CapM*CapM) / (CapM*CapM + 6.0*G*DGamma_B) - B22*2.0*sqrt(2.0)*G*(CapM*CapM) / ((CapM*CapM + 6.0*G*DGamma_B)*(CapM*CapM + 6.0*G*DGamma_B));
-									C22 = B21*K*eta + B12*2.0*K / (m_element->m_DPCapBeta*m_element->m_DPCapBeta)*(P - hydroPt + MeanEffP);
-									
-									AFact = 2.0 * G*CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B);
-									BFact = -sqrt(2.0)*G*CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*C11
-										- 12.0*G*G* CapM*CapM / ((CapM*CapM + 6.0*G*DGamma_B)*(CapM*CapM + 6.0*G*DGamma_B))*(ETDNorm - 1.0 / sqrt(2.0)*DGamma_A)*C21;
-									C1Fact = -sqrt(2.0)*G*CapM*CapM / (CapM*CapM + 6.0*G*DGamma_B)*C12
-										- 12.0*G*G * CapM*CapM / ((CapM*CapM + 6.0*G*DGamma_B)*(CapM*CapM + 6.0*G*DGamma_B))*(ETDNorm - 1.0 / sqrt(2.0)*DGamma_A)*C22;
-									C2Fact = -K*etab*C11;
-									DFact = K*(1.0 - etab*C12);
+                                    for (int ii = 0; ii < 6; ii++) {
+                                        for (int jj = 0; jj < 6; jj++) {
+                                            Dep(ii, jj) = AFact * FOID(ii, jj) + BFact * UniDev(ii) * UniDev(jj) +
+                                                          C1Fact * UniDev(ii) * SOID(jj) +
+                                                          C2Fact * SOID(ii) * UniDev(jj) +
+                                                          (DFact - AFact / 3.0) * SOID(ii) * SOID(jj);
+                                        }
+                                    }
+                                    // Elastic De
+                                    for (int ii = 0; ii < 6; ii++) {
+                                        for (int jj = 0; jj < 6; jj++) {
+                                            Dep(ii, jj) =
+                                                2.0 * G * FOID(ii, jj) + (K - 2.0 * G / 3.0) * SOID(ii) * SOID(jj);
+                                        }
+                                    }
+                                }
 
-									for (int ii = 0; ii < 6; ii++) {
-										for (int jj = 0; jj < 6; jj++) {
-											Dep(ii, jj) =
-												AFact * FOID(ii, jj) + BFact * UniDev(ii)* UniDev(jj) +
-												C1Fact * UniDev(ii) * SOID(jj) + C2Fact*SOID(ii)*UniDev(jj) + (DFact - AFact / 3.0)*SOID(ii)*SOID(jj);
-										}
-									}
-									//Elastic De
-									for (int ii = 0; ii < 6; ii++) {
-										for (int jj = 0; jj < 6; jj++) {
-											Dep(ii, jj) = 2.0*G*FOID(ii, jj) + (K - 2.0*G / 3.0)*SOID(ii)*SOID(jj);
-										}
-									}
-								}
+                            }  // end if Cap return mapping
 
-							}// end if Cap return mapping
-
-
-						}// end if of yield criteria
-					} break; //end of Case DruckerPrager_Cap
-
+                        }     // end if of yield criteria
+                    } break;  // end of Case DruckerPrager_Cap
                 }
 
             }  // End of Plastic Deformation
@@ -2417,8 +2520,8 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
             Sigm(7, 7) = Stress(3, 0);
             Sigm(8, 8) = Stress(3, 0);
 
-			// Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
-			// coordinates)
+            // Gd is the total deformation gradient differentiated by the coordinates (9 components diff. by 33
+            // coordinates)
             ChMatrixNM<double, 9, 33> Gd;
             double Temp1;
             double Temp2;
@@ -2451,10 +2554,10 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
 
             temp339.MatrTMultiply(Gd, Sigm);  // Stress contribution to the Jacobian of internal forces
 
-			m_KTE1.MatrMultiply(temp336, strainD);
-			m_KTE2.MatrMultiply(temp339, Gd);
+            m_KTE1.MatrMultiply(temp336, strainD);
+            m_KTE2.MatrMultiply(temp339, Gd);
 
-			result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) +  m_KTE2 * m_Kfactor;
+            result = m_KTE1 * (m_Kfactor + m_Rfactor * m_element->m_Alpha) + m_KTE2 * m_Kfactor;
             result.MatrScale(detJ * m_element->m_GaussScaling);
 
             m_element->m_InteCounter++;
@@ -2770,46 +2873,51 @@ void ChElementBrick_9::CalcCoordDerivMatrix(ChMatrixNM<double, 33, 1>& dt) {
     dt(31, 0) = m_central_node->GetCurvatureZZ_dt().y;
     dt(32, 0) = m_central_node->GetCurvatureZZ_dt().z;
 }
-void ChElementBrick_9::ComputeHardening_a(double & MeanEffP,
-	                                      double & Hi,
-	                                      double alphUp,
-	                                      ChVectorDynamic<double> m_DPVector1,
-	                                      ChVectorDynamic<double> m_DPVector2,
-										  int m_DPVector_size){
-	//Given a value of alphUp return a value of MeanEffP based on interpolation
-    //within a table of m_DPVector2 values(ytab) corresponding to the m_DPVector1 values
-    //contained in the array xtab.The subroutine assumes that the
-    //values in xtab increase monotonically.
-	int i1;
-	int flag;
-	double wx;
-	double x;
-	flag = 0;
-	x = alphUp;
-	if (x < m_DPVector1(0)) { //is below the table range
-		flag = 2;
-	} else {
-		for (i1 = 0; i1 < m_DPVector_size - 1; i1++) {
-			if (x <= m_DPVector1(i1 + 1)) { break; }
-		}
-		if (x > m_DPVector1(m_DPVector_size - 1)) { //is above the table range
-			flag = 1;
-		}
-	}
+void ChElementBrick_9::ComputeHardening_a(double& MeanEffP,
+                                          double& Hi,
+                                          double alphUp,
+                                          ChVectorDynamic<double> m_DPVector1,
+                                          ChVectorDynamic<double> m_DPVector2,
+                                          int m_DPVector_size) {
+    // Given a value of alphUp return a value of MeanEffP based on interpolation
+    // within a table of m_DPVector2 values(ytab) corresponding to the m_DPVector1 values
+    // contained in the array xtab.The subroutine assumes that the
+    // values in xtab increase monotonically.
+    int i1;
+    int flag;
+    double wx;
+    double x;
+    flag = 0;
+    x = alphUp;
+    if (x < m_DPVector1(0)) {  // is below the table range
+        flag = 2;
+    } else {
+        for (i1 = 0; i1 < m_DPVector_size - 1; i1++) {
+            if (x <= m_DPVector1(i1 + 1)) {
+                break;
+            }
+        }
+        if (x > m_DPVector1(m_DPVector_size - 1)) {  // is above the table range
+            flag = 1;
+        }
+    }
 
-	if (flag == 0){//Inter range
-		wx = (x - m_DPVector1(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-		MeanEffP = (1.0 - wx)*m_DPVector2(i1) + wx*m_DPVector2(i1 + 1);
-		Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-	}
-	if (flag == 1){//outer range above
-		MeanEffP = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1))*(x - m_DPVector1(i1)) + m_DPVector2(i1);
-		Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
-	}
-	if (flag == 2){//outer range below
-		MeanEffP = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0))*(x - m_DPVector1(0)) + m_DPVector2(0);
-		Hi = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0));
-	}
+    if (flag == 0) {  // Inter range
+        wx = (x - m_DPVector1(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
+        MeanEffP = (1.0 - wx) * m_DPVector2(i1) + wx * m_DPVector2(i1 + 1);
+        Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
+    }
+    if (flag == 1) {  // outer range above
+        MeanEffP =
+            (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1)) * (x - m_DPVector1(i1)) +
+            m_DPVector2(i1);
+        Hi = (m_DPVector2(i1 + 1) - m_DPVector2(i1)) / (m_DPVector1(i1 + 1) - m_DPVector1(i1));
+    }
+    if (flag == 2) {  // outer range below
+        MeanEffP = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0)) * (x - m_DPVector1(0)) +
+                   m_DPVector2(0);
+        Hi = (m_DPVector2(1) - m_DPVector2(0)) / (m_DPVector1(1) - m_DPVector1(0));
+    }
 }
 
 }  // end namespace fea

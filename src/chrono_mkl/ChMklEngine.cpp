@@ -21,20 +21,6 @@
 
 namespace chrono {
 
-enum phase_t {
-    COMPLETE = 13,
-    ANALYSIS = 11,
-    ANALYSIS_NUMFACTORIZATION = 12,
-    NUMFACTORIZATION = 22,
-    NUMFACTORIZATION_SOLVE = 23,
-    SOLVE = 33,
-    SOLVE_FORWARD = 331,
-    SOLVE_DIAGONAL = 332,
-    SOLVE_BACKWARD = 333,
-    RELEASE_FACTORS = 0,
-    RELEASE_ALL = -1
-};
-
 // Constructor.
 // m_nrhs   - number of RHS vectors (currently only 1 supported)
 // m_maxfct - max. number of factors with identical sparsity structure that must be kept in
@@ -59,8 +45,8 @@ ChMklEngine::~ChMklEngine() {
     int phase = RELEASE_ALL;
     int msglvl = 1;
     int error;
-    PARDISO(m_pt, &m_maxfct, &m_mnum, &m_type, &phase, &m_n, m_a, m_ia, m_ja, m_perm.data(), &m_nrhs, m_iparm, &msglvl, m_b,
-            m_x, &error);
+    PARDISO(m_pt, &m_maxfct, &m_mnum, &m_type, &phase, &m_n, m_a, m_ia, m_ja, m_perm.data(), &m_nrhs, m_iparm, &msglvl,
+            m_b, m_x, &error);
     if (error)
         printf("Error while releasing memory: %d", error);
 }
@@ -71,8 +57,8 @@ void ChMklEngine::SetMatrix(ChSparseMatrix& Z) {
     m_n = Z.GetNumRows();
 
     m_a = Z.GetCSR_ValueArray();
-    m_ia = Z.GetCSR_RowIndexArray();
-    m_ja = Z.GetCSR_ColIndexArray();
+    m_ia = Z.GetCSR_LeadingIndexArray();
+    m_ja = Z.GetCSR_TrailingIndexArray();
 
     int type = ConvertMatrixType(Z.GetType());
     if (m_type != type) {
@@ -131,20 +117,26 @@ void ChMklEngine::resetIparmElement(int iparm_num, int reset_value) {
         m_iparm[iparm_num] = reset_value;
 
         switch (iparm_num) {
-        case 3:
-            printf("Preconditioned CGS has been disabled. iparm[3] = 0"); break;
-        case 4:
-            printf("Permutation vector has been disabled.iparm[4] = 0"); break;
-        case 7:
-            printf("Iterative refinement steps has been disabled. iparm[7] = 0"); break;
-        case 30:
-            printf("Partial solution has been disabled. iparm[30] = 0"); break;
-        case 35:
-            printf("Schur computation has been disabled. iparm[35] = 0"); break;
-        case 59:
-            printf("Mkl is now running in-core. iparm[59] = 0"); break;
-        default:
-            printf("WARN: IparmReset not handled");
+            case 3:
+                printf("Preconditioned CGS has been disabled. iparm[3] = 0");
+                break;
+            case 4:
+                printf("Permutation vector has been disabled.iparm[4] = 0");
+                break;
+            case 7:
+                printf("Iterative refinement steps has been disabled. iparm[7] = 0");
+                break;
+            case 30:
+                printf("Partial solution has been disabled. iparm[30] = 0");
+                break;
+            case 35:
+                printf("Schur computation has been disabled. iparm[35] = 0");
+                break;
+            case 59:
+                printf("Mkl is now running in-core. iparm[59] = 0");
+                break;
+            default:
+                printf("WARN: IparmReset not handled");
         }
     }
 }
@@ -155,7 +147,6 @@ void ChMklEngine::UsePartialSolution(int option, int start_row, int end_row) {
     m_iparm[30] = option;
 
     if (option) {
-
         resetIparmElement(3);
         resetIparmElement(4);
         resetIparmElement(7);
@@ -245,23 +236,23 @@ void ChMklEngine::ResetSolver() {
     // use m_iparm[10] = 1 (scaling) and m_iparm[12] = 1 (matchings);
 
     // Main settings
-    m_iparm[0] = 1;   // No default values for solver
-    m_iparm[5] = 0;   // Write solution on u
-    m_iparm[11] = 0;  // Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]
-    m_iparm[17] = -1; // Report number of nonzeros
-    m_iparm[18] = -1; // Report number of floating point operations
-    m_iparm[34] = 1;  // Zero based indexing
-    m_iparm[26] = 0;  // Matrix checker
-    m_iparm[27] = 0;  // Double precision
-    m_iparm[35] = 0;  // Schur complement matrix computation control [def:0, do not compute Schur]
-    m_iparm[55] = 0;  // Diagonal and pivoting control [def:0, disabled]
-    m_iparm[59] = 0;  // In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode]
+    m_iparm[0] = 1;    // No default values for solver
+    m_iparm[5] = 0;    // Write solution on u
+    m_iparm[11] = 0;   // Solve with transposed/conjugate transposed matrix [def: 0, solve simply A*x=b]
+    m_iparm[17] = -1;  // Report number of nonzeros
+    m_iparm[18] = -1;  // Report number of floating point operations
+    m_iparm[34] = 1;   // Zero based indexing
+    m_iparm[26] = 0;   // Matrix checker
+    m_iparm[27] = 0;   // Double precision
+    m_iparm[35] = 0;   // Schur complement matrix computation control [def:0, do not compute Schur]
+    m_iparm[55] = 0;   // Diagonal and pivoting control [def:0, disabled]
+    m_iparm[59] = 0;   // In-Core (OC) / Out-Of-Core (OOC) switch [def:0, IC mode]
 
     // Fine settings
-    m_iparm[1] = 2;  // Fill-in reducing ordering [def:2]
-    m_iparm[3] = 0;  // Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED
-    m_iparm[4] = 0;  // User fill-in reducing permutation [def:0, default filling]
-    m_iparm[7] = 10; // Maximum number of iterative refinement steps
+    m_iparm[1] = 2;   // Fill-in reducing ordering [def:2]
+    m_iparm[3] = 0;   // Preconditioned CGS/CG [def:0] - HIGHLY RECOMMENDED
+    m_iparm[4] = 0;   // User fill-in reducing permutation [def:0, default filling]
+    m_iparm[7] = 10;  // Maximum number of iterative refinement steps
 }
 
 void ChMklEngine::GetResidual(ChMatrix<>& res) const {

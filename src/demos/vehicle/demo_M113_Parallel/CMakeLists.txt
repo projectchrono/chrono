@@ -37,4 +37,4 @@ TARGET_LINK_LIBRARIES(${DEMO}
                       ChronoEngine_parallel
                       ChronoEngine_opengl
                       ChronoModels_vehicle)
-INSTALL(TARGETS ${DEMO} DESTINATION bin)
+INSTALL(TARGETS ${DEMO} DESTINATION ${CH_INSTALL_DEMO})

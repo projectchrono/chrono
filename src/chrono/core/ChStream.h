@@ -1,46 +1,30 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHSTREAM_H
 #define CHSTREAM_H
 
-//////////////////////////////////////////////////
-//
-//   ChStream.h
-//
-//   Class for stream input-output of Chrono objects.
-//   Defines some functions for ASCII parsing of the
-//   textual file format of Chrono.
-//   Defines binary in/out
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include <stdio.h>
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstring>
+#include <cassert>
+#include <cstdlib>
 #include <iostream>
 #include <fstream>
 #include <vector>
 #include <ios>
-#include "ChException.h"
-#include "core/ChApiCE.h"
-//#include "core/ChClassRegister.h"	///this didn't help the "create not found problem..."
+
+#include "chrono/core/ChException.h"
+#include "chrono/core/ChApiCE.h"
+
 namespace chrono {
 /// Ugly hack added by hammad to get code to compile on osx.
 /// Compiler had trouble finding the create function,
@@ -275,8 +259,8 @@ class ChApi ChBinaryArchive {
 
     virtual ~ChBinaryArchive();
 
-    /// Returns TRUE if the machine where the code runs
-    /// has big endian byte ordering, returns FALSE otherwise.
+    /// Returns true if the machine where the code runs
+    /// has big endian byte ordering, returns false otherwise.
     bool IsBigEndianMachine();
 
     /// Reinitialize the vector of pointers to loaded/saved objects
@@ -371,9 +355,8 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
+            std::string str = pObj->FactoryNameTag();
             *this << str;   // serialize class type
             *this < *pObj;  // serialize data
         } else {
@@ -400,9 +383,8 @@ class ChApi ChStreamOutBinary : public ChStreamOut, public ChBinaryArchive {
         int pos = PutPointer(pObj);
 
         if (pos == -1) {
-            pObj->GetRTTI()->GetName();
             // New Object, we have to full serialize it
-            std::string str = pObj->GetRTTI()->GetName();
+            std::string str = pObj->FactoryNameTag();
             *this << str;               // serialize class type
             pObj->StreamOUTall(*this);  // serialize data
         } else {
@@ -843,6 +825,6 @@ class ChApi ChStreamInAsciiFile : public ChStreamFile, public ChStreamInAscii {
     virtual void Input(char* data, size_t n) { ChStreamFile::Read(data, n); }
 };
 
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

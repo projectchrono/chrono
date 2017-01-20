@@ -21,12 +21,12 @@
 
 #include <cmath>
 
-#include "core/ChApiCE.h"
-#include "core/ChVector.h"
-#include "core/ChQuaternion.h"
-#include "core/ChMathematics.h"
+#include "chrono/core/ChApiCE.h"
+#include "chrono/core/ChVector.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChMathematics.h"
 
-#include "collision/ChCCollisionModel.h"
+#include "chrono/collision/ChCCollisionModel.h"
 
 namespace chrono {
 namespace utils {

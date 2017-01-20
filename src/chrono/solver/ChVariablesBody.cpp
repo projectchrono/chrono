@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-ChClassRegisterABSTRACT<ChVariablesBody> a_registration_ChVariablesBody;
+//CH_FACTORY_REGISTER(ChVariablesBody)   // NO! Abstract class
 
 ChVariablesBody& ChVariablesBody::operator=(const ChVariablesBody& other) {
     if (&other == this)

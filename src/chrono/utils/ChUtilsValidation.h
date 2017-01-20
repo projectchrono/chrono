@@ -29,7 +29,7 @@
 #include <numeric>
 #include <algorithm>
 
-#include "core/ChApiCE.h"
+#include "chrono/core/ChApiCE.h"
 
 
 namespace chrono {

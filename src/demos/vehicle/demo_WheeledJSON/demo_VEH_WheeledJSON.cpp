@@ -69,6 +69,7 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Independent.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
 
 // JSON files for terrain (rigid plane), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -76,6 +77,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // JSON files tire models (rigid)
 std::string rigidtire_file("generic/tire/RigidTire.json");
+//std::string rigidtire_file("hmmwv/tire/HMMWV_RigidMeshTire.json");
 //std::string rigidtire_file("MAN_5t/tire/MAN_5t_RigidTire.json");
 
 // Driver input file (if not using Irrlicht)
@@ -125,14 +127,18 @@ int main(int argc, char* argv[]) {
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
-    ////vehicle.GetChassis()->SetBodyFixed(true);
+    vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
+    ////vehicle.GetChassisBody()->SetBodyFixed(true);
+    vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetWheelVisualizationType(VisualizationType::NONE);
 
     // Create the ground
     RigidTerrain terrain(vehicle.GetSystem(), vehicle::GetDataFile(rigidterrain_file));
 
     // Create and initialize the powertrain system
     SimplePowertrain powertrain(vehicle::GetDataFile(simplepowertrain_file));
-    powertrain.Initialize(vehicle.GetChassis(), vehicle.GetDriveshaft());
+    powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
     // Create and initialize the tires
     int num_axles = vehicle.GetNumberAxles();
@@ -142,6 +148,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < num_wheels; i++) {
         tires[i] = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
         tires[i]->Initialize(vehicle.GetWheelBody(i), VehicleSide(i % 2));
+        tires[i]->SetVisualizationType(VisualizationType::MESH);
     }
 
 #ifdef USE_IRRLICHT

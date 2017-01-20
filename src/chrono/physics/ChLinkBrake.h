@@ -27,7 +27,9 @@ namespace chrono {
 ///  shafts
 
 class ChApi ChLinkBrake : public ChLinkLock {
-    CH_RTTI(ChLinkBrake, ChLinkLock);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkBrake)
 
   protected:
     double brake_torque;  ///< applied torque.

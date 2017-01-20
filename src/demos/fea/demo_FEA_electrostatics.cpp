@@ -12,7 +12,7 @@
 //
 //   Demo code about
 //
-//     - FEA visualization using Irrlicht
+//     - FEA electrostatics
 
 // Include some headers used by this tutorial...
 
@@ -174,9 +174,8 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-20);
     my_system.SetParallelThreadNumber(1);
 
-    // Note: if you are interested only in a single LINEAR STATIC solution
-    // (not a transient thermal solution, but rather the steady-state solution),
-    // at this point you can do:
+    // Note: in electrostatics, here you can have only a single linear (non transient) solution
+    // so at this point you must do:
 
     my_system.DoStaticLinear();
 

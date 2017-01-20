@@ -25,7 +25,9 @@ class ChShaft;
 /// a shaft, with inertia and associated variable (rotational speed)
 
 class ChApi ChVariablesShaft : public ChVariables {
-    CH_RTTI(ChVariablesShaft, ChVariables)
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChVariablesShaft)
 
   private:
     ChShaft* m_shaft;      ///< associated shaft element

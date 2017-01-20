@@ -18,8 +18,8 @@
 #define NULL 0
 #endif
 
-#include "volume.h"
-#include <string.h>
+#include "chrono/pneumatica/volume.h"
+#include <cstring>
 
 namespace chrono {
 namespace pneumatics {

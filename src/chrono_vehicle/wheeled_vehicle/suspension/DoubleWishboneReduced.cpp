@@ -20,7 +20,7 @@
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -51,7 +51,7 @@ DoubleWishboneReduced::DoubleWishboneReduced(const std::string& filename)
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 
@@ -128,7 +128,7 @@ void DoubleWishboneReduced::Create(const rapidjson::Document& d) {
     assert(d["Shock"].IsObject());
 
     m_points[SHOCK_C] = loadVector(d["Shock"]["Location Chassis"]);
-    m_points[SHOCK_U] = loadVector(d["Shock"]["Location Arm"]);
+    m_points[SHOCK_U] = loadVector(d["Shock"]["Location Upright"]);
     m_springRestLength = d["Shock"]["Free Length"].GetDouble();
     m_shockForceCB = new LinearSpringDamperForce(d["Shock"]["Spring Coefficient"].GetDouble(),
                                                  d["Shock"]["Damping Coefficient"].GetDouble());

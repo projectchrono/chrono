@@ -1,7 +1,6 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
 // Copyright (c) 2013 Project Chrono
 // All rights reserved.
 //
@@ -13,22 +12,21 @@
 #ifndef CHARCHIVEJSON_H
 #define CHARCHIVEJSON_H
 
+#include "chrono/serialization/ChArchive.h"
+#include "chrono/core/ChLog.h"
+#include "chrono/core/ChMathematics.h"
 
-#include "serialization/ChArchive.h"
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/prettywriter.h"
-#include "thirdparty/rapidjson/filereadstream.h"
-#include "thirdparty/rapidjson/filewritestream.h"
-#include "core/ChLog.h"
-#include "core/ChMathematics.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/prettywriter.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/filewritestream.h"
+
 #include <stack>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
 namespace chrono {
-
-
 
 /// ASCII 'LOG' ARCHIVES (only output, for debugging etc.)
 
@@ -229,7 +227,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_abstract (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -458,7 +456,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
       }
 
       // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_abstract (ChNameValue<ChFunctorArchiveIn> bVal) 
+      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
@@ -481,14 +479,14 @@ class  ChArchiveInJSON : public ChArchiveIn {
              
             if (!is_reference) {
                 // 2) Dynamically create using class factory
-                bVal.value().CallNewAbstract(*this, cls_name.c_str()); 
+                bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
 
                 if (bVal.value().CallGetRawPtr(*this)) {
                     objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
-                    throw(ChExceptionArchive("Archive cannot create abstract object of class '" + cls_name + "'"));
+                    throw(ChExceptionArchive("Archive cannot create polimorphic object of class '" + cls_name + "'"));
             }
 
             } else {
@@ -559,10 +557,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
       bool tolerate_missing_tokens;   
 };
 
-
-
-
-
-}  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif

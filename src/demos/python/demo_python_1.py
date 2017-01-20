@@ -14,7 +14,7 @@ print ("First tutorial about Chrono::Engine in Python");
 
 
 # Load the Chrono::Engine unit!!!
-import ChronoEngine_PYTHON_core as chrono
+import ChronoEngine_python_core as chrono
 
 
 # Test logging

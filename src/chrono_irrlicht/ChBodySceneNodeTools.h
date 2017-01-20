@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHBODYSCENENODETOOLS_H
 #define CHBODYSCENENODETOOLS_H
@@ -64,28 +64,27 @@ ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_offsetCOG(
 /// and add collision geometry by hand, but the following is easier).
 /// The returned object has collision detection turned ON by default.
 ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easySphere(ChSystem* asystem,
-                                                   irr::scene::ISceneManager* amanager,
-                                                   double mmass = 1.0,
-                                                   const ChVector<>& position = ChVector<>(0, 0, 0),
-                                                   double mradius = 1.0,
-                                                   int Hslices = 15,
-                                                   int Vslices = 8,
-                                                   irr::scene::ISceneNode* aparent = 0,
-                                                   irr::s32 mid = -1);
+                                                               irr::scene::ISceneManager* amanager,
+                                                               double mmass = 1.0,
+                                                               const ChVector<>& position = ChVector<>(0, 0, 0),
+                                                               double mradius = 1.0,
+                                                               int Hslices = 15,
+                                                               int Vslices = 8,
+                                                               irr::scene::ISceneNode* aparent = 0,
+                                                               irr::s32 mid = -1);
 
 /// Easy-to-use function which creates a ChBodySceneNode representing a box,
 /// ready to use for collisions (otherwise you could use addChBodySceneNode()
 /// and add collision geometry by hand, but the following is easier).
 /// The returned object has collision detection turned ON by default.
-ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyBox(
-    ChSystem* asystem,
-    irr::scene::ISceneManager* amanager,
-    double mmass = 1.0,
-    const ChVector<>& position = ChVector<>(0, 0, 0),
-    const ChQuaternion<>& rotation = ChQuaternion<>(1, 0, 0, 0),
-    const ChVector<>& size = ChVector<>(1, 1, 1),
-    irr::scene::ISceneNode* aparent = 0,
-    irr::s32 mid = -1);
+ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyBox(ChSystem* asystem,
+                                                            irr::scene::ISceneManager* amanager,
+                                                            double mmass = 1.0,
+                                                            const ChVector<>& position = ChVector<>(0, 0, 0),
+                                                            const ChQuaternion<>& rotation = ChQuaternion<>(1, 0, 0, 0),
+                                                            const ChVector<>& size = ChVector<>(1, 1, 1),
+                                                            irr::scene::ISceneNode* aparent = 0,
+                                                            irr::s32 mid = -1);
 
 /// Easy-to-use function which creates a ChBodySceneNode representing a
 /// cylinder, ready to use for collisions (otherwise you could use
@@ -107,18 +106,18 @@ ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyCylinder(
 /// and add collision geometry by hand, but the following is easier).
 /// The returned object has collision detection turned ON by default.
 ChApiIrr irr::scene::ISceneNode* addChBodySceneNode_easyBarrel(ChSystem* asystem,
-                                                   irr::scene::ISceneManager* amanager,
-                                                   double mmass = 1.0,
-                                                   const ChVector<>& position = ChVector<>(0, 0, 0),
-                                                   double mradiusH = 1.0,
-                                                   double mradiusV = 1.0,
-                                                   double mYlow = -0.5,
-                                                   double mYhigh = 0.8,
-                                                   double mOffset = 0.0,
-                                                   int Hslices = 15,
-                                                   int Vslices = 10,
-                                                   irr::scene::ISceneNode* aparent = 0,
-                                                   irr::s32 mid = -1);
+                                                               irr::scene::ISceneManager* amanager,
+                                                               double mmass = 1.0,
+                                                               const ChVector<>& position = ChVector<>(0, 0, 0),
+                                                               double mradiusH = 1.0,
+                                                               double mradiusV = 1.0,
+                                                               double mYlow = -0.5,
+                                                               double mYhigh = 0.8,
+                                                               double mOffset = 0.0,
+                                                               int Hslices = 15,
+                                                               int Vslices = 10,
+                                                               irr::scene::ISceneNode* aparent = 0,
+                                                               irr::s32 mid = -1);
 
 /// Easy-to-use function that creates a ChBodySceneNode representing a clone of
 /// another ChBodySceneNode, but at a different position and rotation.

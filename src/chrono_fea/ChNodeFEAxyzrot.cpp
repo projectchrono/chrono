@@ -129,12 +129,12 @@ void ChNodeFEAxyzrot::NodeIntLoadResidual_Mv(const unsigned int off,
 }
 
 void ChNodeFEAxyzrot::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb().PasteClippedMatrix(&v, off_v, 0, 6, 1, 0, 0);
-    variables.Get_fb().PasteClippedMatrix(&R, off_v, 0, 6, 1, 0, 0);
+    variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 6, 1, 0, 0);
+    variables.Get_fb().PasteClippedMatrix(R, off_v, 0, 6, 1, 0, 0);
 }
 
 void ChNodeFEAxyzrot::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.PasteMatrix(&variables.Get_qb(), off_v, 0);
+    v.PasteMatrix(variables.Get_qb(), off_v, 0);
 }
 
 // -----------------------------------------------------------------------------

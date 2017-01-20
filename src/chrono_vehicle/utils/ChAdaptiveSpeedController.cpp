@@ -32,8 +32,8 @@
 
 #include "chrono_vehicle/utils/ChAdaptiveSpeedController.h"
 
-#include "thirdparty/rapidjson/document.h"
-#include "thirdparty/rapidjson/filereadstream.h"
+#include "chrono_thirdparty/rapidjson/document.h"
+#include "chrono_thirdparty/rapidjson/filereadstream.h"
 
 using namespace rapidjson;
 
@@ -59,7 +59,7 @@ ChAdaptiveSpeedController::ChAdaptiveSpeedController(const std::string& filename
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Ki = d["Gains"]["Ki"].GetDouble();

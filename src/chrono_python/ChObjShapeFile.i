@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "assets/ChObjShapeFile.h"
+#include "chrono/assets/ChObjShapeFile.h"
 
 using namespace chrono;
 

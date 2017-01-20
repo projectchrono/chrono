@@ -18,6 +18,7 @@
 // =============================================================================
 
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/tracked_vehicle/suspension/ChLinearDamperRWAssembly.h"
@@ -46,15 +47,13 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
-    // Sanity check.
-    assert(points[ARM_WHEEL].x == susp_to_abs.GetPos().x && points[ARM_WHEEL].z == susp_to_abs.GetPos().z);
-
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
+    ChVector<> y_dir = susp_to_abs.GetA().Get_A_Yaxis();
     ChVector<> u = susp_to_abs.GetPos() - points[ARM_CHASSIS];
     u.Normalize();
-    ChVector<> w = Vcross(u, susp_to_abs.GetA().Get_A_Yaxis());
+    ChVector<> w = Vcross(u, y_dir);
     w.Normalize();
     ChVector<> v = Vcross(w, u);
     ChMatrix33<> rot;
@@ -66,8 +65,15 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
     m_arm->SetInertiaXX(GetArmInertia());
-    AddVisualizationArm(susp_to_abs.GetPos(), points[ARM], points[ARM_WHEEL], points[ARM_CHASSIS], points[SHOCK_A]);
     chassis->GetSystem()->AddBody(m_arm);
+
+    // Cache points and directions for arm visualization (expressed in the arm frame)
+    m_pO = m_arm->TransformPointParentToLocal(susp_to_abs.GetPos());
+    m_pA = m_arm->TransformPointParentToLocal(points[ARM]);
+    m_pAW = m_arm->TransformPointParentToLocal(points[ARM_WHEEL]);
+    m_pAC = m_arm->TransformPointParentToLocal(points[ARM_CHASSIS]);
+    m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
+    m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
     // Create and initialize the revolute joint between arm and chassis.
     // The axis of rotation is the y axis of the suspension reference frame.
@@ -101,50 +107,52 @@ double ChLinearDamperRWAssembly::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
-                                                   const ChVector<>& pt_A,
-                                                   const ChVector<>& pt_AW,
-                                                   const ChVector<>& pt_AC,
-                                                   const ChVector<>& pt_AS) {
+void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
+    if (vis == VisualizationType::NONE)
+        return;
+
     static const double threshold2 = 1e-6;
     double radius = GetArmVisRadius();
 
-    // Express hardpoint locations in body frame.
-    ChVector<> p_O = m_arm->TransformPointParentToLocal(pt_O);
-    ChVector<> p_A = m_arm->TransformPointParentToLocal(pt_A);
-    ChVector<> p_AC = m_arm->TransformPointParentToLocal(pt_AC);
-    ChVector<> p_AW = m_arm->TransformPointParentToLocal(pt_AW);
-    ChVector<> p_AS = m_arm->TransformPointParentToLocal(pt_AS);
-
-    if ((p_A - p_AW).Length2() > threshold2) {
+    if ((m_pA - m_pAW).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_A;
-        cyl->GetCylinderGeometry().p2 = p_AW;
+        cyl->GetCylinderGeometry().p1 = m_pA;
+        cyl->GetCylinderGeometry().p2 = m_pAW;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
     }
 
-    if ((p_A - p_AC).Length2() > threshold2) {
+    if ((m_pA - m_pAC).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_A;
-        cyl->GetCylinderGeometry().p2 = p_AC;
+        cyl->GetCylinderGeometry().p1 = m_pA;
+        cyl->GetCylinderGeometry().p2 = m_pAC;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
     }
 
-    if ((p_A - p_AS).Length2() > threshold2) {
+    if ((m_pA - m_pAS).Length2() > threshold2) {
         auto cyl = std::make_shared<ChCylinderShape>();
-        cyl->GetCylinderGeometry().p1 = p_A;
-        cyl->GetCylinderGeometry().p2 = p_AS;
+        cyl->GetCylinderGeometry().p1 = m_pA;
+        cyl->GetCylinderGeometry().p2 = m_pAS;
         cyl->GetCylinderGeometry().rad = 0.75 * radius;
         m_arm->AddAsset(cyl);
     }
 
-    if ((p_O - p_AW).Length2() > threshold2) {
+    // Revolute joint (arm-chassis)
+    {
         auto cyl = std::make_shared<ChCylinderShape>();
-        double len = (p_O - p_AW).Length();
-        cyl->GetCylinderGeometry().p1 = p_O;
-        cyl->GetCylinderGeometry().p2 = p_AW + (p_AW - p_O) * radius/len;
+        cyl->GetCylinderGeometry().p1 = m_pAC - radius * m_dY;
+        cyl->GetCylinderGeometry().p2 = m_pAC + radius * m_dY;
+        cyl->GetCylinderGeometry().rad = 1.5 * radius;
+        m_arm->AddAsset(cyl);
+    }
+
+    // Revolute joint (arm-wheel)
+    if ((m_pO - m_pAW).Length2() > threshold2) {
+        auto cyl = std::make_shared<ChCylinderShape>();
+        double len = (m_pO - m_pAW).Length();
+        cyl->GetCylinderGeometry().p1 = m_pO;
+        cyl->GetCylinderGeometry().p2 = m_pAW + (m_pAW - m_pO) * radius/len;
         cyl->GetCylinderGeometry().rad = radius;
         m_arm->AddAsset(cyl);
     }
@@ -152,6 +160,17 @@ void ChLinearDamperRWAssembly::AddVisualizationArm(const ChVector<>& pt_O,
     auto col = std::make_shared<ChColorAsset>();
     col->SetColor(ChColor(0.2f, 0.6f, 0.3f));
     m_arm->AddAsset(col);
+
+    // Visualization of the shock (with default color)
+    if (m_has_shock) {
+        m_shock->AddAsset(std::make_shared<ChPointPointSegment>());
+    }
+}
+
+void ChLinearDamperRWAssembly::RemoveVisualizationAssets() {
+    m_arm->GetAssets().clear();
+    if (m_has_shock)
+      m_shock->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

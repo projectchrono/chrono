@@ -141,7 +141,7 @@ endif()
 #-----------------------------------------------------------------------------
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
-set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+set(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib64)
 
 #-----------------------------------------------------------------------------
 
@@ -186,6 +186,20 @@ set(CPACK_SOURCE_STRIP_FILES "")
 #set(CPACK_TOPLEVEL_TAG "Linux-x64")
 
 #------------------------------------------------------------
+# Install destinations for data and demo programs
+#------------------------------------------------------------
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_INSTALL_DATA "data")
+    set(CH_INSTALL_DEMO "bin")
+    set(CH_INSTALL_PYTHON "bin")
+else()
+    set(CH_INSTALL_DATA "share/chrono/data")
+    set(CH_INSTALL_DEMO "share/chrono/bin")
+    set(CH_INSTALL_PYTHON "share/chrono/python")
+endif()
+
+#------------------------------------------------------------
 # Copy data directory to BUILD tree 
 # Install data directory 
 #------------------------------------------------------------
@@ -196,7 +210,8 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION data)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA}
+        PATTERN "testing" EXCLUDE)
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

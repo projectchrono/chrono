@@ -28,7 +28,9 @@ namespace chrono {
 /// these constraints model the cross in a physical universal joint.
 
 class ChApi ChLinkUniversal : public ChLink {
-    CH_RTTI(ChLinkUniversal, ChLink);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkUniversal)
 
   public:
     ChLinkUniversal();

@@ -22,17 +22,11 @@
 #ifndef CH_VEHICLE_H
 #define CH_VEHICLE_H
 
-#include "chrono/core/ChVector.h"
-#include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
-
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChSubsysDefs.h"
-
+#include "chrono_vehicle/ChChassis.h"
 
 namespace chrono {
-
 namespace vehicle {
 
 /// @addtogroup vehicle
@@ -43,12 +37,6 @@ namespace vehicle {
 /// pointing forward, and Y-axis towards the left of the vehicle.
 class CH_VEHICLE_API ChVehicle {
   public:
-    /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
-
-    /// Construct a vehicle system using the specified ChSystem.
-    ChVehicle(ChSystem* system);
-
     /// Destructor.
     virtual ~ChVehicle();
 
@@ -58,41 +46,37 @@ class CH_VEHICLE_API ChVehicle {
     /// Get the current simulation time of the underlying ChSystem.
     double GetChTime() const { return m_system->GetChTime(); }
 
+    /// Get a handle to the vehicle's chassis subsystem.
+    std::shared_ptr<ChChassis> GetChassis() const { return m_chassis; }
+
     /// Get a handle to the vehicle's chassis body.
-    std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
-
-    /// Get the global location of the chassis reference frame origin.
-    const ChVector<>& GetChassisPos() const { return m_chassis->GetFrame_REF_to_abs().GetPos(); }
-
-    /// Get the orientation of the chassis reference frame.
-    /// The chassis orientation is returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetChassisRot() const { return m_chassis->GetFrame_REF_to_abs().GetRot(); }
-
-    /// Get the global location of the chassis center of mass.
-    const ChVector<>& GetChassisPosCOM() const { return m_chassis->GetPos(); }
-
-    /// Get the orientation of the chassis centroidal frame.
-    /// The chassis orientation is returned as a quaternion representing a
-    /// rotation with respect to the global reference frame.
-    const ChQuaternion<>& GetChassisRotCOM() const { return m_chassis->GetRot(); }
+    std::shared_ptr<ChBodyAuxRef> GetChassisBody() const { return m_chassis->GetBody(); }
 
     /// Get the vehicle total mass.
     /// This includes the mass of the chassis and all vehicle subsystems.
     virtual double GetVehicleMass() const = 0;
 
+    /// Get the vehicle location.
+    /// This is the global location of the chassis reference frame origin.
+    const ChVector<>& GetVehiclePos() const { return m_chassis->GetPos(); }
+    
+    /// Get the vehicle orientation.
+    /// This is the chassis orientation, returned as a quaternion representing a
+    /// rotation with respect to the global reference frame.
+    const ChQuaternion<>& GetVehicleRot() const { return m_chassis->GetRot(); }
+
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the chassis reference frame.
-    double GetVehicleSpeed() const { return m_chassis->GetFrame_REF_to_abs().GetPos_dt().Length(); }
+    double GetVehicleSpeed() const { return m_chassis->GetSpeed(); }
 
     /// Get the speed of the chassis COM.
     /// Return the speed measured at the chassis center of mass.
-    double GetVehicleSpeedCOM() const { return m_chassis->GetPos_dt().Length(); }
+    double GetVehicleSpeedCOM() const { return m_chassis->GetCOMSpeed(); }
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const;
+    ChVector<> GetVehicleAcceleration(const ChVector<>& locpos) const { return m_chassis->GetPointAcceleration(locpos); }
 
     /// Get a handle to the vehicle's driveshaft body.
     virtual std::shared_ptr<ChShaft> GetDriveshaft() const = 0;
@@ -102,16 +86,16 @@ class CH_VEHICLE_API ChVehicle {
     /// powertrain system.
     virtual double GetDriveshaftSpeed() const = 0;
 
-    /// Get the local driver position and orientation.
-    /// This is a coordinate system relative to the chassis reference frame.
-    virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
-
     /// Get the global location of the driver.
-    ChVector<> GetDriverPos() const;
+    ChVector<> GetDriverPos() const { return m_chassis->GetDriverPos(); }
 
     /// Initialize this vehicle at the specified global location and orientation.
-    virtual void Initialize(const ChCoordsys<>& chassisPos  ///< [in] initial global position and orientation
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
                             ) = 0;
+
+    /// Set visualization mode for the chassis subsystem.
+    void SetChassisVisualizationType(VisualizationType vis);
 
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step);
@@ -126,10 +110,16 @@ class CH_VEHICLE_API ChVehicle {
     virtual void LogConstraintViolations() = 0;
 
   protected:
+    /// Construct a vehicle system with a default ChSystem.
+    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+
+    /// Construct a vehicle system using the specified ChSystem.
+    ChVehicle(ChSystem* system);
+
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 
-    std::shared_ptr<ChBodyAuxRef> m_chassis;  ///< handle to the chassis body
+    std::shared_ptr<ChChassis> m_chassis;  ///< handle to the chassis subsystem
 
     double m_stepsize;  ///< integration step-size for the vehicle system
 };

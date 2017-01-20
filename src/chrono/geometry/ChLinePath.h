@@ -15,7 +15,7 @@
 #ifndef CHC_LINEPATH_H
 #define CHC_LINEPATH_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 
@@ -26,8 +26,9 @@ namespace geometry {
 /// The ChLine objects are assumed to be properly concatenated and to have C0 continuity.
 
 class ChApi ChLinePath : public ChLine {
-    // Chrono simulation of RTTI, needed for serialization
-    CH_RTTI(ChLinePath, ChLine);
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinePath)
 
   public:
     std::vector<std::shared_ptr<ChLine> > lines;

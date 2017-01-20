@@ -1,7 +1,7 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010 Alessandro Tasora
+// Copyright (c) 2014 projectchrono.org
 // All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be
@@ -12,25 +12,11 @@
 #ifndef CHTHREADSWIN32_H
 #define CHTHREADSWIN32_H
 
-//////////////////////////////////////////////////
-//
-//   ChThreadsWIN32.h
-//
-//   Interface for multithreading (for multi-core
-//   processors) on the Window platform
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
 #include <string>
-#include "core/ChApiCE.h"
-#include "parallel/ChThreadsFunct.h"
-#include "LinearMath/btAlignedObjectArray.h"
+
+#include "chrono/core/ChApiCE.h"
+#include "chrono/parallel/ChThreadsFunct.h"
+#include "chrono/collision/bullet/LinearMath/btAlignedObjectArray.h"
 
 namespace chrono {
 
@@ -91,6 +77,6 @@ class ChApi ChThreadsWIN32  // : public ChThreads
 
 typedef ChThreadsWIN32 ChThreadsPlatformImplementation;
 
-};  // END_OF_NAMESPACE____
+}  // end namespace chrono
 
 #endif
