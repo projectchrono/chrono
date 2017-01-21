@@ -570,7 +570,7 @@ class ChMatrix {
         int B_NCol = matrb.GetColumns();
         const double* A_add = matra.GetAddress();
         const double* B_add = matrb.GetAddress();
-        bool NeedsPadding = B_NCol % 4;
+        bool NeedsPadding = (B_NCol % 4 != 0);
         int CorrectFAT = ((B_NCol >> 2) << 2);
         for (int rowA = 0; rowA < A_Nrow; rowA++) {
             for (int rowB = 0; rowB < B_Nrow; rowB++) {
