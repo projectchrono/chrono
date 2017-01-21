@@ -67,6 +67,7 @@ namespace WAVEFRONT {
 /*******************************************************************/
 class InPlaceParserInterface {
   public:
+    virtual ~InPlaceParserInterface() {}
     virtual int ParseLine(
         int lineno,
         int argc,
@@ -474,6 +475,7 @@ class GeometryVertex {
 
 class GeometryInterface {
   public:
+    virtual ~GeometryInterface() {}
     virtual void NodeTriangle(const GeometryVertex* /*v1*/,
                               const GeometryVertex* /*v2*/,
                               const GeometryVertex* /*v3*/,
@@ -487,9 +489,10 @@ class GeometryInterface {
 class OBJ : public InPlaceParserInterface {
   public:
     int LoadMesh(const char* fname, GeometryInterface* callback, bool textured);
-    int ParseLine(int lineno,
-                  int argc,
-                  const char** argv);  // return true to continue parsing, return false to abort parsing process
+    virtual int ParseLine(
+        int lineno,
+        int argc,
+        const char** argv) override;  // return true to continue parsing, return false to abort parsing process
   private:
     void GetVertex(GeometryVertex& v, const char* face) const;
 
@@ -723,7 +726,7 @@ class BuildMesh : public GeometryInterface {
     virtual void NodeTriangle(const GeometryVertex* v1,
                               const GeometryVertex* v2,
                               const GeometryVertex* v3,
-                              bool textured) {
+                              bool textured) override {
         mIndices.push_back(GetIndex(v1->mPos, textured ? v1->mTexel : NULL));
         mIndices.push_back(GetIndex(v2->mPos, textured ? v2->mTexel : NULL));
         mIndices.push_back(GetIndex(v3->mPos, textured ? v3->mTexel : NULL));

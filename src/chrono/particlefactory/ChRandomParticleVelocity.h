@@ -29,6 +29,7 @@ namespace particlefactory {
 class ChRandomParticleVelocity {
   public:
     ChRandomParticleVelocity() {}
+    virtual ~ChRandomParticleVelocity() {}
 
     /// Function that creates a random velocity each
     /// time it is called.
@@ -49,7 +50,7 @@ class ChRandomParticleVelocityConstantDirection : public ChRandomParticleVelocit
 
     /// Function that creates a random velocity each
     /// time it is called.
-    virtual ChVector<> RandomVelocity() { return direction * modulus->GetRandom(); }
+    virtual ChVector<> RandomVelocity() override { return direction * modulus->GetRandom(); }
 
     /// Set the direction for all the randomized velocities
     void SetDirection(ChVector<> mdir) { direction = mdir.GetNormalized(); }
@@ -77,7 +78,7 @@ class ChRandomParticleVelocityAnyDirection : public ChRandomParticleVelocity {
 
     /// Function that creates a random velocity each
     /// time it is called.
-    virtual ChVector<> RandomVelocity() {
+    virtual ChVector<> RandomVelocity() override {
         ChVector<> random_direction(ChRandom() - 0.5, ChRandom() - 0.5, ChRandom() - 0.5);
         random_direction.Normalize();
 

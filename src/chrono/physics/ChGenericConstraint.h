@@ -39,7 +39,7 @@ class ChApi ChGenericConstraint {
 
   public:
     ChGenericConstraint();
-    ~ChGenericConstraint();
+    virtual ~ChGenericConstraint();
 
     /// Tells if the constraint data is currently valid.
     /// Instead of implementing it, child classes may simply

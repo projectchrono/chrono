@@ -139,7 +139,7 @@ class ChApi ChBezierCurve {
     // SERIALIZATION
     //
 
-    virtual void ArchiveOUT(ChArchiveOut& marchive)
+    void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
         marchive.VersionWrite(1);
@@ -155,7 +155,7 @@ class ChApi ChBezierCurve {
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) 
+    void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
         int version = marchive.VersionRead();

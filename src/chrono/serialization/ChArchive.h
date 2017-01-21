@@ -264,14 +264,13 @@ ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flag
 
 class ChEnumMapperBase {
 public:
-    ChEnumMapperBase ()  {};
+    ChEnumMapperBase ()  {}
 
     virtual int  GetValueAsInt() = 0;
     virtual void SetValueAsInt(const int mval) = 0;
 
     virtual std::string GetValueAsString() = 0;
     virtual bool SetValueAsString(const std::string& mname) = 0;
-
 };
 
 template <class Te>
@@ -285,15 +284,14 @@ public:
 
 template <class Te>
 class ChEnumMapper : public ChEnumMapperBase {
-public:
-    ChEnumMapper () : 
-        value_ptr(0) {
-        enummap = std::shared_ptr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
-    };
+  public:
+    ChEnumMapper() : value_ptr(0) {
+        enummap = std::shared_ptr<std::vector<ChEnumNamePair<Te> > >(new std::vector<ChEnumNamePair<Te> >);
+    }
 
-    ChEnumMapper (std::shared_ptr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
-        value_ptr(0), 
-        enummap(mmap) {};
+    ChEnumMapper(std::shared_ptr<std::vector<ChEnumNamePair<Te> > > mmap) : value_ptr(0), enummap(mmap) {}
+
+    virtual ~ChEnumMapper() {}
 
     void AddMapping(const char* name, Te enumid) {
         ChEnumNamePair<Te> mpair (name, enumid);
@@ -309,14 +307,14 @@ public:
 
     Te& Value() {return *value_ptr;}
 
-    virtual int  GetValueAsInt() { 
+    virtual int  GetValueAsInt() override { 
         return static_cast<int>(*value_ptr);
     };
-    virtual void SetValueAsInt(const int mval) {
+    virtual void SetValueAsInt(const int mval) override {
         *value_ptr = static_cast<Te>(mval);
     };
 
-    virtual std::string GetValueAsString() {
+    virtual std::string GetValueAsString() override {
         for (int i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).enumid == *value_ptr)
@@ -328,7 +326,7 @@ public:
         return std::string(buffer);
     };
 
-    virtual bool SetValueAsString(const std::string& mname) {
+    virtual bool SetValueAsString(const std::string& mname) override {
         for (int i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).name == mname) {

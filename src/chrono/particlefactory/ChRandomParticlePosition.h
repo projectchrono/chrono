@@ -29,6 +29,7 @@ namespace particlefactory {
 class ChRandomParticlePosition {
   public:
     ChRandomParticlePosition() {}
+    virtual ~ChRandomParticlePosition() {}
 
     /// Function that creates a random position each
     /// time it is called.
@@ -49,7 +50,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() {
+    virtual ChVector<> RandomPosition() override {
         ChVector<> localp = ChVector<>(ChRandom() * width - 0.5 * width, ChRandom() * height - 0.5 * height, 0);
         return outlet.TransformLocalToParent(localp);
     }
@@ -81,7 +82,7 @@ class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
 
     /// Function that creates a random position each
     /// time it is called.
-    virtual ChVector<> RandomPosition() {
+    virtual ChVector<> RandomPosition() override {
         ChVector<> mpos;
         geometry->Evaluate(mpos, ChRandom(), ChRandom(), ChRandom());
         return mpos;
