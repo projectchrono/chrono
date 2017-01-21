@@ -71,7 +71,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() override { return this->contact_plane.MatrT_x_Vect(m_force); }
+    virtual ChVector<> GetContactForce() const override { return this->contact_plane.MatrT_x_Vect(m_force); }
 
     /// Get the contact penetration (positive if there is overlap).
     double GetContactPenetration() const { return -this->norm_dist; }
