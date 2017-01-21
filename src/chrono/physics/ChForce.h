@@ -186,7 +186,7 @@ class ChApi ChForce : public ChObj {
     ChMatrix<>* GetQf() { return Qf; }
     /// Gets force-torque applied to rigid body, as force vector (in absol.coords)
     /// and torque vector (in body coords).
-    void GetBodyForceTorque(ChVector<>* body_force, ChVector<>* body_torque);
+    void GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const;
 
     //
     // UPDATING
