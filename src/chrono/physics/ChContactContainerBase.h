@@ -33,6 +33,8 @@ namespace chrono {
 /// implement a custom ContactCallback() function.
 class ChApi ChAddContactCallback {
   public:
+    virtual ~ChAddContactCallback() {}
+
     /// Callback used to report contact points being added to the container.
     /// This must be implemented by a child class of ChAddContactCallback
     virtual void ContactCallback(
@@ -48,6 +50,8 @@ class ChApi ChAddContactCallback {
 /// implement a custom ReportContactCallback() function.
 class ChApi ChReportContactCallback {
   public:
+    virtual ~ChReportContactCallback() {}
+
     /// Callback, used to report contact points already added to the container.
     /// This must be implemented by a child class of ChReportContactCallback.
     /// If returns false, the contact scanning will be stopped.

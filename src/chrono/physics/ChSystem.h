@@ -672,6 +672,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
     class ChApi ChCustomComputeCollisionCallback {
       public:
+        virtual ~ChCustomComputeCollisionCallback() {}
         virtual void PerformCustomCollision(ChSystem* msys) {}
     };
 

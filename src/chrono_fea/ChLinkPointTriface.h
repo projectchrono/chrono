@@ -38,9 +38,9 @@ class ChApiFea ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB2;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB3;
 
-    virtual ChVariables* GetVariables1() { return &mnodeB1->Variables(); };
-    virtual ChVariables* GetVariables2() { return &mnodeB2->Variables(); };
-    virtual ChVariables* GetVariables3() { return &mnodeB3->Variables(); };
+    virtual ChVariables* GetVariables1() override { return &mnodeB1->Variables(); }
+    virtual ChVariables* GetVariables2() override { return &mnodeB2->Variables(); }
+    virtual ChVariables* GetVariables3() override { return &mnodeB3->Variables(); }
 };
 
 /// Class for creating a constraint between a xyz FEA node (point)

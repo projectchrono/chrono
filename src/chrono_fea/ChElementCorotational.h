@@ -37,6 +37,8 @@ class ChApiFea ChElementCorotational {
         A(2, 2) = 1;
     }
 
+    virtual ~ChElementCorotational() {}
+
     /// Access the cumulative rotation matrix of the element,
     /// The rotation is expressed relative to initial reference
     /// position of element.

@@ -24,6 +24,8 @@ namespace chrono {
 
 class ChRotSpringTorqueCallback {
   public:
+    virtual ~ChRotSpringTorqueCallback() {}
+
     virtual double operator()(double time,   ///< current time
                               double angle,  ///< relative angle of rotation
                               double vel     ///< relative angular speed

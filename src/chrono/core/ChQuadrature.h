@@ -83,6 +83,8 @@ class ChApi ChQuadratureTablesTetrahedron {
 template <class T = double>
 class ChIntegrable1D {
   public:
+    virtual ~ChIntegrable1D() {}
+
     /// Evaluate the function at point x , that is
     /// result T = f(x)
     virtual void Evaluate(T& result, const double x) = 0;
@@ -93,6 +95,8 @@ class ChIntegrable1D {
 template <class T = double>
 class ChIntegrable2D {
   public:
+    virtual ~ChIntegrable2D() {}
+
     /// Evaluate the function at point x,y , that is
     /// result T = f(x,y)
     virtual void Evaluate(T& result, const double x, const double y) = 0;
@@ -103,6 +107,8 @@ class ChIntegrable2D {
 template <class T = double>
 class ChIntegrable3D {
   public:
+    virtual ~ChIntegrable3D() {}
+
     /// Evaluate the function at point x,y,z , that is
     /// result T = f(x,y,z)
     virtual void Evaluate(T& result, const double x, const double y, const double z) = 0;

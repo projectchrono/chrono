@@ -24,6 +24,8 @@ namespace chrono {
 
 class ChSpringForceCallback {
   public:
+    virtual ~ChSpringForceCallback() {}
+
     virtual double operator()(double time,         ///< current time
                               double rest_length,  ///< undeformed length
                               double length,       ///< current length

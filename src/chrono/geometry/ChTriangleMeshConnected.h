@@ -177,10 +177,12 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Class to be used optionally in RefineMeshEdges()
     class ChRefineEdgeCriterion {
-    public:
-        // Compute lenght of an edge or more in general a 
+      public:
+        virtual ~ChRefineEdgeCriterion() {}
+
+        // Compute lenght of an edge or more in general a
         // merit function - the higher, the more likely the edge must be cut
-        virtual double ComputeLength(const int vert_a, const int  vert_b, ChTriangleMeshConnected* mmesh) = 0;
+        virtual double ComputeLength(const int vert_a, const int vert_b, ChTriangleMeshConnected* mmesh) = 0;
     };
 
     /// Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.

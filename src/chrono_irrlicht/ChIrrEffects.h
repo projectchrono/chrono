@@ -397,6 +397,8 @@ class CScreenQuad {
         Vertices[3] = irr::video::S3DVertex(1.0f, -1.0f, 0.0f, 0, 0, 1, irr::video::SColor(0x0), 1.0f, 1.0f);
     }
 
+    virtual ~CScreenQuad() {}
+
     virtual void render(irr::video::IVideoDriver* driver) {
         const irr::u16 indices[6] = {0, 1, 2, 0, 2, 3};
 
