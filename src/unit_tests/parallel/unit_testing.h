@@ -167,7 +167,7 @@ void WeakEqual(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSILO
     WeakEqual(a.x22, b.x22, COMPARE_EPS);
 }
 void OutputRowMatrix(const ChMatrixDynamic<real>& x) {
-    for (unsigned int ic = 0; ic < x.GetRows(); ic++) {
+    for (int ic = 0; ic < x.GetRows(); ic++) {
         std::cout << x(ic, 0) << std::endl;
     }
 }

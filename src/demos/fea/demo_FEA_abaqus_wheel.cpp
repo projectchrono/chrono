@@ -62,11 +62,12 @@ int main(int argc, char* argv[]) {
     application.AddTypicalLogo();
     application.AddTypicalSky();
     application.AddTypicalLights();
-    application.AddTypicalCamera(core::vector3df(1, (f32)1.4, -1.2), core::vector3df(0, tire_rad, 0));
-    //application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
+    application.AddTypicalCamera(core::vector3dfCH(ChVector<>(1, 1.4, -1.2)),
+                                 core::vector3dfCH(ChVector<>(0, tire_rad, 0)));
+    // application.SetContactsDrawMode(irr::ChIrrTools::CONTACT_DISTANCES);
 
-    application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                                   video::SColorf(0.8, 0.8, 1));
+    application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
+                                   40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
 
     //
     // CREATE THE PHYSICAL SYSTEM

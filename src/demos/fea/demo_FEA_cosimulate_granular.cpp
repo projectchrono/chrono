@@ -105,9 +105,11 @@ int main(int argc, char* argv[]) {
   application.AddTypicalLogo();
   application.AddTypicalSky();
   application.AddTypicalLights();
-  application.AddTypicalCamera(core::vector3df(3, (f32)1.4, -3.2), core::vector3df(0, 0, 0));
-  application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-      video::SColorf(0.8, 0.8, 1));
+  application.AddTypicalCamera(core::vector3dfCH(ChVector<>(3, 1.4, -3.2)),
+                               core::vector3dfCH(ChVector<>(0, 0, 0)));
+
+  application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
+                                 40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
 #endif
   //
   // CREATE A FINITE ELEMENT MESH
