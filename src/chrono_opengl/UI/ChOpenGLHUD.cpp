@@ -73,11 +73,11 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimer<>* t_render, ChTime
 }
 
 void ChOpenGLHUD::Update(const glm::ivec2& window_size,
-                         const float& dpi,
-                         const float& frame_per_sec,
-                         const float& t_geometry,
-                         const float& t_text,
-                         const float& t_total) {
+                         const double& dpi,
+                         const double& frame_per_sec,
+                         const double& t_geometry,
+                         const double& t_text,
+                         const double& t_total) {
     int screen_width = window_size.x;
     int screen_height = window_size.y;
 

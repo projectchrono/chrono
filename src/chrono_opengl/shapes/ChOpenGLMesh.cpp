@@ -235,7 +235,7 @@ void ChOpenGLMesh::Draw(const mat4& projection, const mat4& view) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, this->vertex_element_handle);
 
     GLReturnedError("ChOpenGLMesh::Draw - before draw");
-    glDrawElementsInstanced(GL_TRIANGLES, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0, size);
+    glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0, size);
     GLReturnedError("ChOpenGLMesh::Draw - after draw");
     // unbind everything and cleanup
     glBindVertexArray(0);

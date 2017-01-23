@@ -56,8 +56,8 @@ bool ChOpenGLText::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* _shader) {
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, font_data.tex_width, font_data.tex_height, 0, GL_RED, GL_UNSIGNED_BYTE,
-                 font_data.tex_data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, (GLsizei)font_data.tex_width, (GLsizei)font_data.tex_height, 0, GL_RED,
+                 GL_UNSIGNED_BYTE, font_data.tex_data);
     glBindTexture(GL_TEXTURE_2D, 0);
 
     this->AttachShader(_shader);
@@ -145,7 +145,7 @@ void ChOpenGLText::Draw(const mat4& projection, const mat4& view) {
     glUniform3fv(color_handle, 1, glm::value_ptr(color));
     glBufferData(GL_ARRAY_BUFFER, text_data.size() * sizeof(glm::vec4), &this->text_data[0], GL_STATIC_DRAW);
     glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0);
-    glDrawArrays(GL_TRIANGLES, 0, text_data.size());
+    glDrawArrays(GL_TRIANGLES, 0, (GLsizei)text_data.size());
     glBindTexture(GL_TEXTURE_2D, 0);
     glUseProgram(0);
 

@@ -25,9 +25,9 @@ namespace opengl {
 static glm::vec3 ColorConverter(int hex_value) {
     glm::vec3 rgbColor;
 
-    rgbColor.r = ((hex_value >> 16) & 0xFF) / 255.0;  // Extract the RR byte
-    rgbColor.g = ((hex_value >> 8) & 0xFF) / 255.0;   // Extract the GG byte
-    rgbColor.b = ((hex_value)&0xFF) / 255.0;          // Extract the BB byte
+    rgbColor.r = ((hex_value >> 16) & 0xFF) / 255.0f;  // Extract the RR byte
+    rgbColor.g = ((hex_value >> 8) & 0xFF) / 255.0f;   // Extract the GG byte
+    rgbColor.b = ((hex_value)&0xFF) / 255.0f;          // Extract the BB byte
 
     return rgbColor;
 }

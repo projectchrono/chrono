@@ -106,9 +106,9 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     std::vector<glm::vec3> mpm_node_data;
     std::vector<glm::vec3> line_path_data;
 
-    int simulation_frame;   // The current frame number
-    float simulation_h;     // The simulation step size
-    float simulation_time;  // The current simulation time
+    int simulation_frame;    // The current frame number
+    double simulation_h;     // The simulation step size
+    double simulation_time;  // The current simulation time
     bool pause_sim;
     bool pause_vis;
     bool single_step;
@@ -122,8 +122,8 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 
     glm::mat4 model, view, projection, modelview;
 
-    float old_time, current_time, time_total, time_text, time_geometry;
-    float fps;
+    double old_time, current_time, time_total, time_text, time_geometry;
+    double fps;
 
     std::vector<glm::mat4> model_box;
     std::vector<glm::mat4> model_sphere;

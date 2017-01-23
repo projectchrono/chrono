@@ -308,7 +308,7 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
         lrot.Q_to_AngAxis(angle, axis);
 
         if (ChSphereShape* sphere_shape = dynamic_cast<ChSphereShape*>(asset.get())) {
-            float radius = sphere_shape->GetSphereGeometry().rad;
+            double radius = sphere_shape->GetSphereGeometry().rad;
             ChVector<> pos_final = pos + center;
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
