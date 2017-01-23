@@ -87,7 +87,6 @@ void AddFluid(ChSystemParallelDVI* sys) {
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, -.2);
-    real vol;
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
@@ -178,7 +177,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "fluidDVI", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2);
+    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
     gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.

@@ -70,7 +70,7 @@ double time_step = 1e-3;
 int max_iteration_normal = 0;
 int max_iteration_sliding = 25;
 int max_iteration_spinning = 0;
-float contact_recovery_speed = 10e30;
+float contact_recovery_speed = 10e30f;
 double tolerance = 1e-2;
 
 // Simulation frame at which detailed timing information is printed

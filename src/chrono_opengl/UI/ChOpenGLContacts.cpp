@@ -36,7 +36,7 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
         return false;
     contact_data.push_back(glm::vec3(0, 0, 0));
     contacts.Initialize(contact_data, mat, shader);
-    contacts.SetPointSize(0.01);
+    contacts.SetPointSize(0.01f);
     return true;
 }
 

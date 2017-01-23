@@ -25,7 +25,7 @@ namespace chrono {
 namespace opengl {
 
 ChOpenGLCloud::ChOpenGLCloud() : ChOpenGLObject() {
-    point_size = .04;
+    point_size = .04f;
     point_size_handle = BAD_GL_VALUE;
     color_handle = BAD_GL_VALUE;
 }
@@ -102,7 +102,7 @@ void ChOpenGLCloud::Draw(const mat4& projection, const mat4& view) {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, vertex_element_handle);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertex_indices.size() * sizeof(GLuint), &vertex_indices[0], GL_DYNAMIC_DRAW);
 
-    glDrawElements(GL_POINTS, this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0);
+    glDrawElements(GL_POINTS, (GLsizei)this->vertex_indices.size(), GL_UNSIGNED_INT, (void*)0);
 
     GLReturnedError("ChOpenGLCloud::Draw - after draw");
     glBindVertexArray(0);

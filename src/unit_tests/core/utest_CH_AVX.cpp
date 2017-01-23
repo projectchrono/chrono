@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     bool passed = true;
 
     // Initialize seed for rand()
-    srand(time(NULL));
+    srand(static_cast<unsigned int>(time(nullptr)));
 
     GetLog() << "\n-----------------MatrMultiply---------------------- \n";
 
