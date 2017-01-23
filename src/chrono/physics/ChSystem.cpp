@@ -1407,10 +1407,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
         // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
         // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
+
         const char* numformat = "%.12g";
-        char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
-        std::string sprefix(cprefix);
+        std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
         descriptor->DumpLastMatrices(true, sprefix.c_str());
         descriptor->DumpLastMatrices(false, sprefix.c_str());
@@ -1448,9 +1447,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // Diagnostics:
     if (dump_matrices) {
         const char* numformat = "%.12g";
-        char cprefix[100];
-        sprintf(cprefix, "solve_%04d_%02d_", stepcount, solvecount);
-        std::string sprefix(cprefix);
+        std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
         chrono::ChStreamOutAsciiFile file_Dv((sprefix + "Dv.dat").c_str());
         file_Dv.SetNumFormat(numformat);
