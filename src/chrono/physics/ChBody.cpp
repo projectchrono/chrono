@@ -623,7 +623,7 @@ void ChBody::UpdateForces(double mytime) {
         // update positions, f=f(t,q)
         force->Update(mytime);
 
-        force->GetBodyForceTorque(&mforce, &mtorque);
+        force->GetBodyForceTorque(mforce, mtorque);
         Xforce += mforce;
         Xtorque += mtorque;
     }

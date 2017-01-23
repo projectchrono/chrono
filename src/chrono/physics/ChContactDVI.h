@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCONTACTDVI_H
 #define CHCONTACTDVI_H
@@ -138,7 +139,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() { return react_force; }
+    virtual ChVector<> GetContactForce() const override { return react_force; }
 
     /// Get the contact friction coefficient
     virtual double GetFriction() { return Nx.GetFrictionCoefficient(); }

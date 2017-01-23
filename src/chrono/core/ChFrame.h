@@ -64,6 +64,8 @@ class ChFrame {
     /// Copy constructor, build from another frame
     ChFrame(const ChFrame<Real>& other) : coord(other.coord), Amatrix(other.Amatrix) {}
 
+    virtual ~ChFrame() {}
+
     //
     // OPERATORS OVERLOADING
     //

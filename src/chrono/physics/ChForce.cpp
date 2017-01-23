@@ -152,21 +152,21 @@ void ChForce::SetMforce(double newf) {
 }
 
 // Force as applied to body
-void ChForce::GetBodyForceTorque(ChVector<>* body_force, ChVector<>* body_torque) {
+void ChForce::GetBodyForceTorque(ChVector<>& body_force, ChVector<>& body_torque) const {
     ChMatrix33<> Xpos;
 
     switch (mode) {
         case FORCE:
-            *body_force = this->force;  // Fb = F.w
+            body_force = this->force;  // Fb = F.w
 
             Xpos.Set_X_matrix(this->vrelpoint);
-            *body_torque = Xpos.MatrT_x_Vect(this->relforce);
-            *body_torque = Vmul(*body_torque, -1.0);  // Mb = - [u]'[A]'F,w   = - [u]'F,l
+            body_torque = Xpos.MatrT_x_Vect(this->relforce);
+            body_torque = Vmul(body_torque, -1.0);  // Mb = - [u]'[A]'F,w   = - [u]'F,l
             break;
 
         case TORQUE:
-            *body_force = VNULL;      // Fb = 0;
-            *body_torque = relforce;  // Mb = [A]'F,w   = F,l
+            body_force = VNULL;      // Fb = 0;
+            body_torque = relforce;  // Mb = [A]'F,w   = F,l
             break;
 
         default:

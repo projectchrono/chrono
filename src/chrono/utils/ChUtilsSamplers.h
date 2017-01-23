@@ -102,6 +102,8 @@ class Sampler {
   public:
     typedef typename Types<T>::PointVector PointVector;
 
+    virtual ~Sampler() {}
+
     PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim) {
         m_center = center;
         m_size = halfDim;
@@ -246,7 +248,7 @@ class PDSampler : public Sampler<T> {
     enum Direction2D { NONE, X_DIR, Y_DIR, Z_DIR };
 
     // This is the worker function for sampling the given domain.
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         // Check 2D/3D. If the size in one direction (e.g. z) is less than the
@@ -438,7 +440,7 @@ class GridSampler : public Sampler<T> {
     GridSampler(const ChVector<T>& spacing) : m_spacing(spacing) {}
 
   private:
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         ChVector<T> bl = this->m_center - this->m_size;
@@ -478,7 +480,7 @@ class HCPSampler : public Sampler<T> {
     HCPSampler(T spacing) : m_spacing(spacing) {}
 
   private:
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         ChVector<T> bl = this->m_center - this->m_size;

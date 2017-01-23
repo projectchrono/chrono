@@ -108,12 +108,12 @@ class ChApi ChLineCam : public ChLine {
     ChVector<> Get_center() const { return center; }
 
     /// If true, creates a negative cam.
-    void Set_Negative(int mne) { negative = mne; }
-    int Get_Negative() const { return negative; }
+    void Set_Negative(bool val) { negative = val; }
+    bool Get_Negative() const { return negative; }
 
     /// If true, creates an internal cam.
-    void Set_Internal(int min) { internal = min; }
-    int Get_Internal() const { return internal; }
+    void Set_Internal(bool val) { internal = val; }
+    bool Get_Internal() const { return internal; }
 
     /// Sets the data for the rotating follower (length, distance from cam center, initial phase mb0)
     void Set_rotating_follower(double mp, double md, double mb0);

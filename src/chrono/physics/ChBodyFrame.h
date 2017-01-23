@@ -30,6 +30,8 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     ChBodyFrame() {}
     ChBodyFrame(const ChBodyFrame& other) : ChFrameMoving<double>(other) {}
 
+    virtual ~ChBodyFrame() {}
+
     /// Returns reference to the encapsulated ChVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
     /// and forces.

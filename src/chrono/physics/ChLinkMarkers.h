@@ -201,10 +201,10 @@ class ChApi ChLinkMarkers : public ChLink {
     /// To get & set the 'script' force buffers(only accessed by
     /// external scripts, so it's up to the script to remember
     /// to set& reset them -link class just add them to C_force etc.
-    ChVector<>* Get_Scr_force() { return &Scr_force; };
-    ChVector<>* Get_Scr_torque() { return &Scr_torque; };
-    void Set_Scr_force(ChVector<> mf) { Scr_force = mf; };
-    void Set_Scr_torque(ChVector<> mf) { Scr_torque = mf; };
+    const ChVector<>& Get_Scr_force() const { return Scr_force; }
+    const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
+    void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
+    void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
 
     /// Get the total applied force accumulators (force, momentum) in link coords.
     /// These forces might be affected by additional springs, dampers, etc. but they do not

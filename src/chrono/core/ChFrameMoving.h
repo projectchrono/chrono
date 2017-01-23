@@ -66,6 +66,9 @@ class ChFrameMoving : public ChFrame<Real> {
     ChFrameMoving(const ChFrameMoving<Real>& other)
         : ChFrame<Real>(other), coord_dt(other.coord_dt), coord_dtdt(other.coord_dtdt) {}
 
+    /// Destructor
+    virtual ~ChFrameMoving() {}
+
     //
     // OPERATORS OVERLOADING
     //
