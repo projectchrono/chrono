@@ -160,28 +160,28 @@ int main(int argc, char *argv[]) {
 		app.getInputManager()->AxisThreshold = 0.1;
 
 
-		ChOgre::ChOgreGUITextPtr p = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChOgre::ChFloat3(), ChOgre::ChFloat3());
-		p->setPosition(ChOgre::ChFloat3(0, 0, 0));
+		ChOgre::ChOgreGUITextPtr p = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChVector2<>(), ChVector2<>());
+		p->setPosition(ChVector2<>(0, 0));
 		p->setColor(1.0, 1.0, 1.0);
 		p->setText("");
 
-		ChOgre::ChOgreGUITextPtr p2 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChOgre::ChFloat3(), ChOgre::ChFloat3());
-		p2->setPosition(ChOgre::ChFloat3(0, 0.06, 0));
+		ChOgre::ChOgreGUITextPtr p2 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChVector2<>(), ChVector2<>());
+		p2->setPosition(ChVector2<>(0, 0.06));
 		p2->setColor(1.0, 1.0, 1.0);
 		p2->setText("");
 
-		ChOgre::ChOgreGUITextPtr p3 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChOgre::ChFloat3(), ChOgre::ChFloat3());
-		p3->setPosition(ChOgre::ChFloat3(0, 0.12, 0));
+		ChOgre::ChOgreGUITextPtr p3 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChVector2<>(), ChVector2<>());
+		p3->setPosition(ChVector2<>(0, 0.12));
 		p3->setColor(1.0, 1.0, 1.0);
 		p3->setText("");
 
-		ChOgre::ChOgreGUITextPtr p4 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChOgre::ChFloat3(), ChOgre::ChFloat3());
-		p4->setPosition(ChOgre::ChFloat3(0, 0.18, 0));
+		ChOgre::ChOgreGUITextPtr p4 = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIText>(ChVector2<>(), ChVector2<>());
+		p4->setPosition(ChVector2<>(0, 0.18));
 		p4->setColor(1.0, 1.0, 1.0);
 		p4->setText("");
 
-		ChOgre::ChOgreGUIButtonPtr t = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIButton>(ChOgre::ChFloat3(), ChOgre::ChFloat3());
-		t->setPosition(ChOgre::ChFloat3(0, 0.24, 0));
+		ChOgre::ChOgreGUIButtonPtr t = app.getGUIManager()->createWidget<ChOgre::ChOgreGUIButton>(ChVector2<>(), ChVector2<>());
+		t->setPosition(ChVector2<>(0, 0.24));
 		t->setText("Button");
 		t->setTextColor(1.0, 1.0, 1.0);
 		t->setColor(0.0, 0.0, 0.0);
