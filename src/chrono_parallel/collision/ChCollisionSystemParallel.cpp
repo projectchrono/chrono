@@ -192,7 +192,7 @@ void ChCollisionSystemParallel::Run() {
 
 #pragma omp parallel for
         for (int i = 0; i < data_manager->host_data.active_rigid.size(); i++) {
-            if (data_manager->host_data.active_rigid[i] == true && data_manager->host_data.collide_rigid[i] == true) {
+            if (data_manager->host_data.active_rigid[i] != 0 && data_manager->host_data.collide_rigid[i] != 0) {
                 data_manager->host_data.active_rigid[i] = body_active[i];
             }
         }
