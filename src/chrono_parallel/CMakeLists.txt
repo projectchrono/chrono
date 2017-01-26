@@ -13,7 +13,6 @@ option(ENABLE_MODULE_PARALLEL "Enable the Chrono Parallel module" OFF)
 
 if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
-  mark_as_advanced(FORCE BOOST_DIR)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   mark_as_advanced(FORCE USE_PARALLEL_SIMD)
   mark_as_advanced(FORCE USE_PARALLEL_CUDA)
@@ -23,7 +22,6 @@ endif()
 message(STATUS "==== Chrono Parallel module ====")
 
 mark_as_advanced(CLEAR BLAZE_DIR)
-mark_as_advanced(CLEAR BOOST_DIR)
 mark_as_advanced(CLEAR USE_PARALLEL_DOUBLE)
 mark_as_advanced(CLEAR USE_PARALLEL_SIMD)
 mark_as_advanced(CLEAR USE_PARALLEL_CUDA)
@@ -130,10 +128,14 @@ ENDIF()
 
 # ----- BOOST -- required for Blaze -----
 
-# TODO: is this robust enough on other platforms?
-IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-   SET(BOOST_DIR ""  CACHE PATH   "Where is Boost located?")
-ENDIF()
+set(BOOST_ROOT "" CACHE PATH "Where is Boost located?")
+find_package(Boost REQUIRED)
+
+if (Boost_FOUND)
+  message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+else()
+  mark_as_advanced(CLEAR BOOST_ROOT)
+endif()
 
 # ----------------------------------------------------------------------------
 # Generate and install configuration header file.
@@ -157,7 +159,7 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
 
 SET(CH_PARALLEL_INCLUDES
     ${BLAZE_DIR}
-    ${BOOST_DIR}
+    ${Boost_INCLUDE_DIRS}
     ${THRUST_INCLUDE_DIR}
 )
 
