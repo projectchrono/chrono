@@ -38,7 +38,7 @@ ChVector<> ChChassis::GetPointAcceleration(const ChVector<>& locpos) const {
 // Return the global driver position
 // -----------------------------------------------------------------------------
 ChVector<> ChChassis::GetDriverPos() const {
-    return m_body->GetCoord().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
+    return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
 
 // -----------------------------------------------------------------------------
