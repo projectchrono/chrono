@@ -92,6 +92,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
             csv << mat->young_modulus << mat->poisson_ratio;
             csv << mat->static_friction << mat->sliding_friction;
             csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
+            csv << mat->kn << mat->gn << mat->kt << mat->gt;
         }
 
         csv << std::endl;
@@ -197,6 +198,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             iss2 >> mat->young_modulus >> mat->poisson_ratio;
             iss2 >> mat->static_friction >> mat->sliding_friction;
             iss2 >> mat->restitution >> mat->constant_adhesion >> mat->adhesionMultDMT;
+            iss2 >> mat->kn >> mat->gn >> mat->kt >> mat->gt;
         }
 
         // Add the body to the system.
