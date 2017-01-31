@@ -92,11 +92,21 @@ void ChCBroadphase::DetermineBoundingBox() {
         min_point = Min(min_point, data_manager->measures.collision.ff_min_bounding_point);
         max_point = Max(max_point, data_manager->measures.collision.ff_max_bounding_point);
     }
+
     if (data_manager->num_fea_tets != 0) {
         TetBoundingBox();
         min_point = Min(min_point, data_manager->measures.collision.tet_min_bounding_point);
         max_point = Max(max_point, data_manager->measures.collision.tet_max_bounding_point);
     }
+
+    // Inflate the overall bounding box by a small percentage.
+    // This takes care of corner cases where a degenerate object bounding box is on the
+    // boundary of the overall bounding box.
+    real fraction = 1e-3;
+    real3 size = max_point - min_point;
+    min_point = min_point - fraction * size;
+    max_point = max_point + fraction * size;
+
     data_manager->measures.collision.min_bounding_point = min_point;
     data_manager->measures.collision.max_bounding_point = max_point;
     data_manager->measures.collision.global_origin = min_point;
