@@ -305,9 +305,6 @@ ChSystem::~ChSystem() {
     RemoveAllProbes();
     RemoveAllControls();
 
-    delete descriptor;
-    descriptor = NULL;
-
     delete collision_system;
     collision_system = NULL;
 
@@ -344,11 +341,7 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
 
     solver_type = mval;
 
-    if (descriptor)
-        delete descriptor;
-    descriptor = 0;
-
-    descriptor = new ChSystemDescriptor;
+    descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
     contact_container = std::make_shared<ChContactContainerDVI>();
@@ -486,10 +479,8 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
 // Plug-in components configuration
 
-void ChSystem::ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor) {
+void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor) {
     assert(newdescriptor);
-    if (descriptor)
-        delete descriptor;
     descriptor = newdescriptor;
 }
 void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
@@ -2186,12 +2177,8 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     eCh_solverType_mapper msolmapper;
     marchive >> CHNVP(msolmapper(solver_type), "solver_type");
 
-    if (descriptor)
-        delete descriptor;
     marchive >> CHNVP(descriptor);
-
     marchive >> CHNVP(solver_speed);
-
     marchive >> CHNVP(solver_stab);
 
     marchive >> CHNVP(max_iter_solver_speed);

@@ -28,7 +28,7 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
     data_manager = new ChParallelDataManager();
 
-    descriptor = new ChSystemDescriptorParallel(data_manager);
+    descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
     collision_system = new ChCollisionSystemParallel(data_manager);
 

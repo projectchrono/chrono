@@ -305,7 +305,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
     /// from ChSolver) and plug it into the system using this function. 
-    /// Note: this also sets the the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
+    /// Note: this also sets the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
     virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the stabilization solver, configured to be used for the stabilization
@@ -313,23 +313,20 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual std::shared_ptr<ChSolver> GetStabSolver();
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
-    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
+    /// from ChSolver) and plug it into the system using this function.
+    /// Note: this also sets the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
     virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the solver, configured to be used for the main differential
     /// inclusion problem (on speed-impulses).
     virtual std::shared_ptr<ChSolver> GetSolver();
 
-    /// Instead of using the default 'system descriptor', you can create your own custom descriptor (suffice
-    /// it is inherited from ChSystemDescriptor) and plug it into the system using this function. The replaced
-    /// descriptor is automatically deleted. When the system is deleted, the custom descriptor that you plugged
-    /// will be automatically deleted.
-    void ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor);
+    /// Instead of using the default 'system descriptor', you can create your own custom descriptor
+    /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
+    void SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor);
 
     /// Access directly the 'system descriptor'.
-    ChSystemDescriptor* GetSystemDescriptor() { return descriptor; }
+    std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -921,10 +918,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     eCh_integrationType integration_type;  ///< integration scheme
 
-    ChSystemDescriptor* descriptor;  ///< the system descriptor
+    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
     std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
     std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
-    eCh_solverType solver_type;      ///< Type of solver (iterative= fastest, but may fail satisfying constraints)
+    eCh_solverType solver_type;  ///< Type of solver (iterative= fastest, but may fail satisfying constraints)
 
     int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
     int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization

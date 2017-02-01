@@ -37,7 +37,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
       m_adhesion_model(Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
-    descriptor = new ChSystemDescriptor;
+    descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
     solver_type = ChSystem::SOLVER_DEM;
