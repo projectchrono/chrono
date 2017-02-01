@@ -296,7 +296,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     // ---------------
 
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(100000);

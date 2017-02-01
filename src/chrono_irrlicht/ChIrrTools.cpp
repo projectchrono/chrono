@@ -500,11 +500,11 @@ void ChIrrTools::drawHUDviolation(irr::video::IVideoDriver* driver,
                                   int sy,
                                   double spfact,
                                   double posfact) {
-    if (!dynamic_cast<ChIterativeSolver*>(asystem.GetSolverSpeed()))
+    if (!std::dynamic_pointer_cast<ChIterativeSolver>(asystem.GetSolver()))
         return;
 
-    ChIterativeSolver* msolver_speed = static_cast<ChIterativeSolver*>(asystem.GetSolverSpeed());
-    ChIterativeSolver* msolver_stab = static_cast<ChIterativeSolver*>(asystem.GetSolverStab());
+    auto msolver_speed = std::static_pointer_cast<ChIterativeSolver>(asystem.GetSolver());
+    auto msolver_stab = std::static_pointer_cast<ChIterativeSolver>(asystem.GetStabSolver());
     msolver_speed->SetRecordViolation(true);
     msolver_stab->SetRecordViolation(true);
 

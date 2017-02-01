@@ -7,7 +7,7 @@
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    solver_speed = new ChIterativeSolverParallelDVI(data_manager);
+    solver_speed = std::make_shared<ChIterativeSolverParallelDVI>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
     data_manager->settings.system_type = SYSTEM_DVI;
@@ -40,7 +40,7 @@ ChBody* ChSystemParallelDVI::NewBody() {
 }
 
 void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
-    ((ChIterativeSolverParallelDVI*)(solver_speed))->ChangeSolverType(type);
+    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->ChangeSolverType(type);
 }
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
@@ -127,7 +127,7 @@ void ChSystemParallelDVI::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("solver");
-    ((ChIterativeSolverParallelDVI*)(solver_speed))->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
     data_manager->system_timer.stop("step");
 }

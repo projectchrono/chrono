@@ -324,19 +324,11 @@ int main(int argc, char* argv[]) {
     //
 
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  
 
-    //***TEST***
-    /*
-    ChMatlabEngine matlab_engine;
-    ChSolverMatlab* matlab_solver_stab  = new ChSolverMatlab(matlab_engine);
-    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeSolverStab (matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
-    */
     application.SetTimestep(0.001);
 
     while (application.GetDevice()->run()) {

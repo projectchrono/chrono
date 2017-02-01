@@ -253,13 +253,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    /// You can choose between the eCh_solverType types, ex. SOLVER_SOR for speed and low
+    /// You can choose between the eCh_solverType types, e.g. SOLVER_SOR for speed and low
     /// precision, SOLVER_BARZILAIBORWEIN for precision, etc.
-    /// NOTE: Do not use SOLVER_CUSTOM, this type will be set automatically set if one
-    /// provides its solver via ChangeSolverStab etc.
+    /// NOTE: Do not use SOLVER_CUSTOM, as this type will be set automatically if one
+    /// provides a custom solver through SetSolver or SetStabSolver.
     /// NOTE: This is a shortcut, that internally is equivalent to the two calls
-    /// ChangeSolverStab(..) and ChangeSolverSpeed(...)
+    /// SetSolver() and SetStabSolve()
     virtual void SetSolverType(eCh_solverType mval);
+
     /// Gets the current solver type.
     eCh_solverType GetSolverType() const { return solver_type; }
 
@@ -280,14 +281,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab()
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver()
     void SetSolverWarmStarting(bool usewarm = true);
     /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
     bool GetSolverWarmStarting() const;
 
     /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
     /// (the one for speed and the other for position stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
     /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
     void SetSolverOverrelaxationParam(double momega = 1.0);
     /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
@@ -295,7 +296,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
     /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
     /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
     void SetSolverSharpnessParam(double momega = 1.0);
@@ -303,24 +304,23 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     double GetSolverSharpnessParam() const;
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
-    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
-    virtual void ChangeSolverStab(ChSolver* newsolver);
+    /// from ChSolver) and plug it into the system using this function. 
+    /// Note: this also sets the the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
+    virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
 
-    /// Access directly the solver, configured to be used for the stabilization
+    /// Access directly the stabilization solver, configured to be used for the stabilization
     /// of constraints (solve delta positions).
-    virtual ChSolver* GetSolverStab();
+    virtual std::shared_ptr<ChSolver> GetStabSolver();
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
     /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
     /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
     /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
-    virtual void ChangeSolverSpeed(ChSolver* newsolver);
+    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the solver, configured to be used for the main differential
     /// inclusion problem (on speed-impulses).
-    virtual ChSolver* GetSolverSpeed();
+    virtual std::shared_ptr<ChSolver> GetSolver();
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor (suffice
     /// it is inherited from ChSystemDescriptor) and plug it into the system using this function. The replaced
@@ -922,8 +922,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     eCh_integrationType integration_type;  ///< integration scheme
 
     ChSystemDescriptor* descriptor;  ///< the system descriptor
-    ChSolver* solver_speed;          ///< the solver for speed problem
-    ChSolver* solver_stab;           ///< the solver for position (stabilization) problem, if any
+    std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
+    std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
     eCh_solverType solver_type;      ///< Type of solver (iterative= fastest, but may fail satisfying constraints)
 
     int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver

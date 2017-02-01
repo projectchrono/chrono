@@ -163,12 +163,9 @@ int main(int argc, char* argv[]) {
 
     // change the solver to MKL: 
     GetLog() << "Using MKL solver\n";
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_speed->SetSparsityPatternLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    mkl_solver->SetSparsityPatternLock(true);
+    my_system.SetSolver(mkl_solver);
     
     
     // Change the timestepper to HHT: 

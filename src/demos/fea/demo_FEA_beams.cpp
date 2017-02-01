@@ -259,18 +259,17 @@ int main(int argc, char* argv[])
     my_system.SetMaxItersSolverSpeed(460);
     my_system.SetMaxItersSolverStab(460);
     my_system.SetTolForce(1e-13);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
     /*
 	    // TEST: The Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChMatlabSolver* matlab_solver_stab  = new ChMatlabSolver(matlab_engine);
-    ChMatlabSolver* matlab_solver_speed = new ChMatlabSolver(matlab_engine);
-    my_system.ChangeSolverStab (matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
-    application.GetSystem()->Update();
+    auto matlab_solver = ats::make_shared<ChMatlabSolver>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
+    my_system.Update();
     application.SetPaused(true);
     */
 

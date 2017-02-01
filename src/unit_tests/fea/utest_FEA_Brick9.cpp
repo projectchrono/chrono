@@ -238,7 +238,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
     // Set up solver
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
@@ -446,7 +446,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
     // Set up solver
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(500);
     my_system.SetTolForce(1e-08);
@@ -645,7 +645,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
     // Set up solver
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
@@ -855,7 +855,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
     // Set up solver
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);

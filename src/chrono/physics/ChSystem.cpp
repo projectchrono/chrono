@@ -305,12 +305,6 @@ ChSystem::~ChSystem() {
     RemoveAllProbes();
     RemoveAllControls();
 
-    delete solver_speed;
-    solver_speed = NULL;
-
-    delete solver_stab;
-    solver_stab = NULL;
-
     delete descriptor;
     descriptor = NULL;
 
@@ -350,12 +344,6 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
 
     solver_type = mval;
 
-    if (solver_speed)
-        delete solver_speed;
-    solver_speed = 0;
-    if (solver_stab)
-        delete solver_stab;
-    solver_stab = 0;
     if (descriptor)
         delete descriptor;
     descriptor = 0;
@@ -368,53 +356,53 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
 
     switch (mval) {
         case SOLVER_SOR:
-            solver_speed = new ChSolverSOR();
-            solver_stab = new ChSolverSOR();
+            solver_speed = std::make_shared<ChSolverSOR>();
+            solver_stab = std::make_shared<ChSolverSOR>();
             break;
         case SOLVER_SYMMSOR:
-            solver_speed = new ChSolverSymmSOR();
-            solver_stab = new ChSolverSymmSOR();
+            solver_speed = std::make_shared<ChSolverSymmSOR>();
+            solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
         case SOLVER_JACOBI:
-            solver_speed = new ChSolverJacobi();
-            solver_stab = new ChSolverJacobi();
+            solver_speed = std::make_shared<ChSolverJacobi>();
+            solver_stab = std::make_shared<ChSolverJacobi>();
             break;
         case SOLVER_SOR_MULTITHREAD:
-            solver_speed = new ChSolverSORmultithread((char*)"speedSolver", parallel_thread_number);
-            solver_stab = new ChSolverSORmultithread((char*)"posSolver", parallel_thread_number);
+            solver_speed = std::make_shared<ChSolverSORmultithread>((char*)"speedSolver", parallel_thread_number);
+            solver_stab = std::make_shared<ChSolverSORmultithread>((char*)"posSolver", parallel_thread_number);
             break;
         case SOLVER_PMINRES:
-            solver_speed = new ChSolverPMINRES();
-            solver_stab = new ChSolverPMINRES();
+            solver_speed = std::make_shared<ChSolverPMINRES>();
+            solver_stab = std::make_shared<ChSolverPMINRES>();
             break;
         case SOLVER_BARZILAIBORWEIN:
-            solver_speed = new ChSolverBB();
-            solver_stab = new ChSolverBB();
+            solver_speed = std::make_shared<ChSolverBB>();
+            solver_stab = std::make_shared<ChSolverBB>();
             break;
         case SOLVER_PCG:
-            solver_speed = new ChSolverPCG();
-            solver_stab = new ChSolverPCG();
+            solver_speed = std::make_shared<ChSolverPCG>();
+            solver_stab = std::make_shared<ChSolverPCG>();
             break;
         case SOLVER_APGD:
-            solver_speed = new ChSolverAPGD();
-            solver_stab = new ChSolverAPGD();
+            solver_speed = std::make_shared<ChSolverAPGD>();
+            solver_stab = std::make_shared<ChSolverAPGD>();
             break;
         case SOLVER_MINRES:
-            solver_speed = new ChSolverMINRES();
-            solver_stab = new ChSolverMINRES();
+            solver_speed = std::make_shared<ChSolverMINRES>();
+            solver_stab = std::make_shared<ChSolverMINRES>();
             break;
         default:
-            solver_speed = new ChSolverSymmSOR();
-            solver_stab = new ChSolverSymmSOR();
+            solver_speed = std::make_shared<ChSolverSymmSOR>();
+            solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
     }
 }
 
-ChSolver* ChSystem::GetSolverSpeed() {
+std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -422,11 +410,11 @@ ChSolver* ChSystem::GetSolverSpeed() {
     return solver_speed;
 }
 
-ChSolver* ChSystem::GetSolverStab() {
+std::shared_ptr<ChSolver> ChSystem::GetStabSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -435,48 +423,48 @@ ChSolver* ChSystem::GetSolverStab() {
 }
 
 void ChSystem::SetSolverWarmStarting(bool usewarm) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetWarmStart(usewarm);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetSolverWarmStarting() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetSolverOverrelaxationParam(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetOmega(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetSolverOverrelaxationParam() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetSolverSharpnessParam(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetSharpnessLambda(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetSolverSharpnessParam() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;
@@ -491,8 +479,8 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
     descriptor->SetNumThreads(mthreads);
 
     if (solver_type == SOLVER_SOR_MULTITHREAD) {
-        ((ChSolverSORmultithread*)solver_speed)->ChangeNumberOfThreads(mthreads);
-        ((ChSolverSORmultithread*)solver_stab)->ChangeNumberOfThreads(mthreads);
+        std::static_pointer_cast<ChSolverSORmultithread>(solver_speed)->ChangeNumberOfThreads(mthreads);
+        std::static_pointer_cast<ChSolverSORmultithread>(solver_stab)->ChangeNumberOfThreads(mthreads);
     }
 }
 
@@ -504,18 +492,14 @@ void ChSystem::ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor) {
         delete descriptor;
     descriptor = newdescriptor;
 }
-void ChSystem::ChangeSolverSpeed(ChSolver* newsolver) {
+void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
-    if (solver_speed)
-        delete solver_speed;
     solver_speed = newsolver;
     solver_type = SOLVER_CUSTOM;
 }
 
-void ChSystem::ChangeSolverStab(ChSolver* newsolver) {
+void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
-    if (solver_stab)
-        delete solver_stab;
     solver_stab = newsolver;
     solver_type = SOLVER_CUSTOM;
 }
@@ -1389,7 +1373,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if (force_setup || GetSolverSpeed()->SolveRequiresMatrix()) {
+    if (force_setup || GetSolver()->SolveRequiresMatrix()) {
         // Cq  matrix
         ConstraintsLoadJacobians();
 
@@ -1427,7 +1411,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // Return 'false' if the setup phase fails.
     if (force_setup) {
         timer_setup.start();
-        bool success = GetSolverSpeed()->Setup(*descriptor);
+        bool success = GetSolver()->Setup(*descriptor);
         timer_setup.stop();
         setupcount++;
         if (!success)
@@ -1437,7 +1421,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // Solve the problem
     // The solution is scattered in the provided system descriptor
     timer_solver.start();
-    GetSolverSpeed()->Solve(*descriptor);
+    GetSolver()->Solve(*descriptor);
     timer_solver.stop();
     solvecount++;
 
@@ -2206,12 +2190,8 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
         delete descriptor;
     marchive >> CHNVP(descriptor);
 
-    if (solver_speed)
-        delete solver_speed;
     marchive >> CHNVP(solver_speed);
 
-    if (solver_stab)
-        delete solver_stab;
     marchive >> CHNVP(solver_stab);
 
     marchive >> CHNVP(max_iter_solver_speed);

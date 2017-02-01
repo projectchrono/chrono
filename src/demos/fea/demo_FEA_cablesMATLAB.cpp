@@ -90,11 +90,9 @@ int main(int argc, char* argv[]) {
 
     // Change solver to Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
-    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeSolverStab(matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
-    application.GetSystem()->Update();
+    auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
+    my_system.Update();
 
     // Change type of integrator:
     my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise

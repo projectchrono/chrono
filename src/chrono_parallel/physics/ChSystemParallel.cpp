@@ -99,7 +99,7 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("solver");
-    ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
 
     data_manager->system_timer.start("update");

@@ -42,8 +42,8 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
 
     solver_type = ChSystem::SOLVER_DEM;
 
-    solver_speed = new ChSolverDEM();
-    solver_stab = new ChSolverDEM();
+    solver_speed = std::make_shared<ChSolverDEM>();
+    solver_stab = std::make_shared<ChSolverDEM>();
 
     collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
 
@@ -66,22 +66,12 @@ void ChSystemDEM::SetSolverType(eCh_solverType mval) {
     contact_container->SetSystem(this);
 }
 
-/*
-void ChSystemDEM::ChangeSolverSpeed(ChSolver* newsolver) {
-    if (dynamic_cast<ChSolverDEM*>(newsolver))
-        ChSystem::ChangeSolverSpeed(newsolver);
-}
-*/
-
 void ChSystemDEM::ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) {
     if (std::dynamic_pointer_cast<ChContactContainerDEM>(newcontainer))
         ChSystem::ChangeContactContainer(newcontainer);
 }
 
-
-////////
-////////  STREAMING - FILE HANDLING
-////////
+// STREAMING - FILE HANDLING
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.

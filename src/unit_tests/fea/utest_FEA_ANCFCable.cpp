@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetMaxItersSolverStab(200);
     my_system.SetTolForce(1e-14);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 

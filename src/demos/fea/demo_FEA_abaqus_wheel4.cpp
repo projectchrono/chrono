@@ -357,13 +357,10 @@ int main(int argc, char* argv[]) {
     my_system.SetTolForce(1e-10);  
 */
         // Change solver to pluggable MKL
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
-    application.GetSystem()->Update();
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
+    my_system.Update();
 
 
     // Change type of integrator:
