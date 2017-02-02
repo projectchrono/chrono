@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
         application.SetVideoframeSaveInterval(10);
         
         // Use the following for less numerical damping, 2nd order accuracy (but slower)
-        //my_system.SetIntegrationType(ChSystem::INT_HHT);
+        //my_system.SetTimestepperType(ChSystem::TS_HHT);
         if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())){
             mystepper->SetVerbose(true);
             mystepper->SetStepControl(false);

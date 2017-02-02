@@ -110,8 +110,6 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     application.SetTimestep(0.001);
 
-    ////system.SetIntegrationType(ChSystem::INT_ANITESCU);
-
     while (application.GetDevice()->run()) {
         application.BeginScene();
 

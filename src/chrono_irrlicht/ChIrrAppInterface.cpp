@@ -263,45 +263,39 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_ANITESCU);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT);
                             break;
                         case 1:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TASORA);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
                             break;
                         case 2:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_PROJECTED);
                             break;
                         case 3:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_TRAPEZOIDAL);
                             break;
                         case 4:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_TRAPEZOIDAL_LINEARIZED);
                             break;
                         case 5:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_HHT);
                             break;
                         case 6:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_HEUN);
                             break;
                         case 7:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_RUNGEKUTTA45);
                             break;
                         case 8:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HEUN);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_EXPLICIT);
                             break;
                         case 9:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_RUNGEKUTTA45);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_LEAPFROG);
                             break;
                         case 10:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_EXPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChSystem::TS_NEWMARK);
                             break;
                         case 11:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_LEAPFROG);
-                            break;
-                        case 12:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_NEWMARK);
-                            break;
-                        case 13:
                             GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ "
                                         "instead.\n";
                             break;
@@ -520,8 +514,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_ccpsolver->setSelected(5);
 
     gad_stepper = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
-    gad_stepper->addItem(L"Anitescu stepper");
-    gad_stepper->addItem(L"Tasora stepper");
     gad_stepper->addItem(L"Euler implicit");
     gad_stepper->addItem(L"Euler semimplicit (linearized)");
     gad_stepper->addItem(L"Euler semimplicit projected");
@@ -819,48 +811,42 @@ void ChIrrAppInterface::DrawAll() {
                 break;
         }
 
-        switch (GetSystem()->GetIntegrationType()) {
-            case ChSystem::INT_ANITESCU:
+        switch (GetSystem()->GetTimestepperType()) {
+            case ChSystem::TS_EULER_IMPLICIT:
                 gad_stepper->setSelected(0);
                 break;
-            case ChSystem::INT_TASORA:
+            case ChSystem::TS_EULER_IMPLICIT_LINEARIZED:
                 gad_stepper->setSelected(1);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT:
+            case ChSystem::TS_EULER_IMPLICIT_PROJECTED:
                 gad_stepper->setSelected(2);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT_LINEARIZED:
+            case ChSystem::TS_TRAPEZOIDAL:
                 gad_stepper->setSelected(3);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT_PROJECTED:
+            case ChSystem::TS_TRAPEZOIDAL_LINEARIZED:
                 gad_stepper->setSelected(4);
                 break;
-            case ChSystem::INT_TRAPEZOIDAL:
+            case ChSystem::TS_HHT:
                 gad_stepper->setSelected(5);
                 break;
-            case ChSystem::INT_TRAPEZOIDAL_LINEARIZED:
+            case ChSystem::TS_HEUN:
                 gad_stepper->setSelected(6);
                 break;
-            case ChSystem::INT_HHT:
+            case ChSystem::TS_RUNGEKUTTA45:
                 gad_stepper->setSelected(7);
                 break;
-            case ChSystem::INT_HEUN:
+            case ChSystem::TS_EULER_EXPLICIT:
                 gad_stepper->setSelected(8);
                 break;
-            case ChSystem::INT_RUNGEKUTTA45:
+            case ChSystem::TS_LEAPFROG:
                 gad_stepper->setSelected(9);
                 break;
-            case ChSystem::INT_EULER_EXPLICIT:
+            case ChSystem::TS_NEWMARK:
                 gad_stepper->setSelected(10);
                 break;
-            case ChSystem::INT_LEAPFROG:
-                gad_stepper->setSelected(11);
-                break;
-            case ChSystem::INT_NEWMARK:
-                gad_stepper->setSelected(12);
-                break;
             default:
-                gad_stepper->setSelected(13);
+                gad_stepper->setSelected(11);
                 break;
         }
 

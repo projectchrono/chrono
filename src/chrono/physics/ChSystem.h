@@ -133,54 +133,54 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Available methods for time integration (time steppers).
     enum eCh_integrationType {
-        INT_ANITESCU = 0,  ///< alias of INT_EULER_IMPLICIT_LINEARIZED
-        INT_TASORA = 6,    ///< alias of INT_EULER_IMPLICIT_PROJECTED
-        INT_EULER_IMPLICIT = 7,
-        INT_EULER_IMPLICIT_LINEARIZED = 8,
-        INT_EULER_IMPLICIT_PROJECTED = 17,
-        INT_TRAPEZOIDAL = 9,
-        INT_TRAPEZOIDAL_LINEARIZED = 10,
-        INT_HHT = 11,
-        INT_HEUN = 12,
-        INT_RUNGEKUTTA45 = 13,
-        INT_EULER_EXPLICIT = 14,
-        INT_LEAPFROG = 15,
-        INT_NEWMARK = 16,
-        INT_CUSTOM__ = 17,
+        TS_EULER_IMPLICIT_LINEARIZED = 0,
+        TS_EULER_IMPLICIT_PROJECTED = 1,
+        TS_EULER_IMPLICIT = 2,
+        TS_TRAPEZOIDAL = 3,
+        TS_TRAPEZOIDAL_LINEARIZED = 4,
+        TS_HHT = 5,
+        TS_HEUN = 6,
+        TS_RUNGEKUTTA45 = 7,
+        TS_EULER_EXPLICIT = 8,
+        TS_LEAPFROG = 9,
+        TS_NEWMARK = 10,
+        TS_CUSTOM__ = 20
     };
     CH_ENUM_MAPPER_BEGIN(eCh_integrationType);
-    CH_ENUM_VAL(INT_ANITESCU);
-    CH_ENUM_VAL(INT_TASORA);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT_LINEARIZED);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT_PROJECTED);
-    CH_ENUM_VAL(INT_TRAPEZOIDAL);
-    CH_ENUM_VAL(INT_TRAPEZOIDAL_LINEARIZED);
-    CH_ENUM_VAL(INT_HHT);
-    CH_ENUM_VAL(INT_HEUN);
-    CH_ENUM_VAL(INT_RUNGEKUTTA45);
-    CH_ENUM_VAL(INT_EULER_EXPLICIT);
-    CH_ENUM_VAL(INT_LEAPFROG);
-    CH_ENUM_VAL(INT_NEWMARK);
-    CH_ENUM_VAL(INT_CUSTOM__);
+    CH_ENUM_VAL(TS_EULER_IMPLICIT);
+    CH_ENUM_VAL(TS_EULER_IMPLICIT_LINEARIZED);
+    CH_ENUM_VAL(TS_EULER_IMPLICIT_PROJECTED);
+    CH_ENUM_VAL(TS_TRAPEZOIDAL);
+    CH_ENUM_VAL(TS_TRAPEZOIDAL_LINEARIZED);
+    CH_ENUM_VAL(TS_HHT);
+    CH_ENUM_VAL(TS_HEUN);
+    CH_ENUM_VAL(TS_RUNGEKUTTA45);
+    CH_ENUM_VAL(TS_EULER_EXPLICIT);
+    CH_ENUM_VAL(TS_LEAPFROG);
+    CH_ENUM_VAL(TS_NEWMARK);
+    CH_ENUM_VAL(TS_CUSTOM__);
     CH_ENUM_MAPPER_END(eCh_integrationType);
 
-    /// Sets the method for time integration (time stepper).
-    /// Suggested for fast dynamics with hard (DVI) contacts: INT_EULER_IMPLICIT_LINEARIZED,
-    /// Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: INT_EULER_IMPLICIT_PROJECTED,
-    /// Suggested for finite element smooth dynamics: INT_HHT, INT_EULER_IMPLICIT_LINEARIZED.
-    /// NOTE: for more advanced customization, use SetTimestepper().
-    void SetIntegrationType(eCh_integrationType m_integration_type);
+    /// Sets the method for time integration (time stepper type).
+    /// <pre>
+    ///   - Suggested for fast dynamics with hard (DVI) contacts: TS_EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: TS_EULER_IMPLICIT_PROJECTED
+    ///   - Suggested for finite element smooth dynamics: TS_HHT, TS_EULER_IMPLICIT_LINEARIZED
+    /// NOTES:
+    ///   - for more advanced customization, use SetTimestepper()
+    ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
+    ///     respectively
+    /// </pre>
+    void SetTimestepperType(eCh_integrationType type);
 
-    /// Gets the current method for time integration (time stepper).
-    eCh_integrationType GetIntegrationType() const { return integration_type; }
+    /// Gets the current method for time integration (time stepper type).
+    eCh_integrationType GetTimestepperType() const { return timestepper_type; }
 
-    /// Set the timestepper to be used for time integration.
-    /// This is more powerful than SetIntegrationType, because you can provide your own object.
-    /// Also sets the mode to INT_CUSTOM__ , should you ever call GetIntegrationType() later.
+    /// Set the timestepper object to be used for time integration.
+    /// Also sets the mode to TS_CUSTOM__ , should you ever call GetTimestepperType() later.
     void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) {
         timestepper = mstepper;
-        integration_type = INT_CUSTOM__;
+        timestepper_type = TS_CUSTOM__;
     }
 
     /// Get the timestepper currently used for time integration
@@ -269,10 +269,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Current maximum number of iterations, if using an iterative solver.
     int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
 
-    /// In case you are using an iterative solver (es. SOLVER_SOR)
-    /// and an integration method requiring post-stabilization (es. INT_TASORA)
-    /// you can set the maximum number of stabilization iterations. The higher the
-    /// iteration number, the more precise the simulation (but more CPU time)
+    /// When using an iterative solver (es. SOLVER_SOR) and a timestepping method
+    /// requiring post-stabilization (e.g., TS_EULER_IMPLICIT_PROJECTED), set the
+    /// the maximum number of stabilization iterations. The higher the iteration
+    /// number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
     /// Current maxi. number of iterations, if using an iterative solver for stabilization.
     int GetMaxItersSolverStab() const { return max_iter_solver_stab; }
@@ -886,8 +886,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
-    eCh_integrationType integration_type;  ///< integration scheme
-
     std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
     std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
     std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
@@ -923,6 +921,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChTimer<double> timer_collision_narrow;  ///< timer for collision narrow phase
     ChTimer<double> timer_update;            ///< timer for system update
 
+    eCh_integrationType timestepper_type;  ///< time-stepper type
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
   public:

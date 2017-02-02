@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
     
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 
     application.SetTimestep(0.005);

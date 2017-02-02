@@ -211,9 +211,9 @@ int main(int argc, char* argv[]) {
     my_system.SetMaxItersSolverSpeed(4000000);
     my_system.SetTolForce(1e-6);
     msolver->SetVerbose(false);
-    //
-    // INT_HHT or INT_EULER_IMPLICIT
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+
+    // TS_HHT or TS_EULER_IMPLICIT
+    my_system.SetTimestepperType(ChSystem::TS_HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
@@ -221,18 +221,16 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    //    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    ////my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     application.SetTimestep(time_step);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        //        std::cout << "Time t = " << my_system.GetChTime() << "s \t";
-        //        std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 *
-        //        pow(my_system.GetChTime(),
-        //        2)
-        //                  << "\n";
+        ////std::cout << "Time t = " << my_system.GetChTime() << "s \t";
+        ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
+        ////          << "\n";
         double t_s = my_system.GetChTime();
 
         application.DoStep();

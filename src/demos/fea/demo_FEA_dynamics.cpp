@@ -109,7 +109,7 @@ void test_1() {
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.01;
     while (my_system.GetChTime() < 2) {
@@ -193,7 +193,7 @@ void test_2() {
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -277,7 +277,7 @@ void test_2b() {
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -373,8 +373,7 @@ void test_3() {
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(
-        ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_EULER_IMPLICIT_LINEARIZED);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.1) {
@@ -470,7 +469,7 @@ void test_4() {
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
