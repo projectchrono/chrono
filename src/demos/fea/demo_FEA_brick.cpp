@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
     my_system.SetMaxItersSolverSpeed(1000);
     my_system.SetTolForce(1e-08);
 
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(100);

@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.01);
     mystepper->SetMaxiters(10000);

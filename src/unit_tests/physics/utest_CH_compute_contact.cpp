@@ -216,7 +216,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
     if (method == ChMaterialSurfaceBase::DEM) {
         GetLog() << "Using HHT integrator.\n";
-        system->SetTimestepperType(ChSystem::TS_HHT);
+        system->SetTimestepperType(ChTimestepper::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(0.0);
         integrator->SetMaxiters(100);

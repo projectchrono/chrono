@@ -263,37 +263,37 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
                             break;
                         case 1:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
                             break;
                         case 2:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_PROJECTED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::EULER_IMPLICIT_PROJECTED);
                             break;
                         case 3:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_TRAPEZOIDAL);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::TRAPEZOIDAL);
                             break;
                         case 4:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_TRAPEZOIDAL_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::TRAPEZOIDAL_LINEARIZED);
                             break;
                         case 5:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_HHT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::HHT);
                             break;
                         case 6:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_HEUN);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::HEUN);
                             break;
                         case 7:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_RUNGEKUTTA45);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::RUNGEKUTTA45);
                             break;
                         case 8:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_EULER_EXPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::EULER_EXPLICIT);
                             break;
                         case 9:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_LEAPFROG);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::LEAPFROG);
                             break;
                         case 10:
-                            app->GetSystem()->SetTimestepperType(ChSystem::TS_NEWMARK);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::NEWMARK);
                             break;
                         case 11:
                             GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ "
@@ -812,37 +812,37 @@ void ChIrrAppInterface::DrawAll() {
         }
 
         switch (GetSystem()->GetTimestepperType()) {
-            case ChSystem::TS_EULER_IMPLICIT:
+            case ChTimestepper::EULER_IMPLICIT:
                 gad_stepper->setSelected(0);
                 break;
-            case ChSystem::TS_EULER_IMPLICIT_LINEARIZED:
+            case ChTimestepper::EULER_IMPLICIT_LINEARIZED:
                 gad_stepper->setSelected(1);
                 break;
-            case ChSystem::TS_EULER_IMPLICIT_PROJECTED:
+            case ChTimestepper::EULER_IMPLICIT_PROJECTED:
                 gad_stepper->setSelected(2);
                 break;
-            case ChSystem::TS_TRAPEZOIDAL:
+            case ChTimestepper::TRAPEZOIDAL:
                 gad_stepper->setSelected(3);
                 break;
-            case ChSystem::TS_TRAPEZOIDAL_LINEARIZED:
+            case ChTimestepper::TRAPEZOIDAL_LINEARIZED:
                 gad_stepper->setSelected(4);
                 break;
-            case ChSystem::TS_HHT:
+            case ChTimestepper::HHT:
                 gad_stepper->setSelected(5);
                 break;
-            case ChSystem::TS_HEUN:
+            case ChTimestepper::HEUN:
                 gad_stepper->setSelected(6);
                 break;
-            case ChSystem::TS_RUNGEKUTTA45:
+            case ChTimestepper::RUNGEKUTTA45:
                 gad_stepper->setSelected(7);
                 break;
-            case ChSystem::TS_EULER_EXPLICIT:
+            case ChTimestepper::EULER_EXPLICIT:
                 gad_stepper->setSelected(8);
                 break;
-            case ChSystem::TS_LEAPFROG:
+            case ChTimestepper::LEAPFROG:
                 gad_stepper->setSelected(9);
                 break;
-            case ChSystem::TS_NEWMARK:
+            case ChTimestepper::NEWMARK:
                 gad_stepper->setSelected(10);
                 break;
             default:

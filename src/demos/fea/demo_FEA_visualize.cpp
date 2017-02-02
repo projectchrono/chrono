@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);
 
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetSolverWarmStarting(true);

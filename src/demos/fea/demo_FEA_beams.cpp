@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 
 	
 	// Change type of integrator: 
-	my_system.SetTimestepperType(chrono::ChSystem::TS_HHT); 
+	my_system.SetTimestepperType(chrono::ChTimestepper::HHT); 
 	
 	// if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
@@ -286,7 +286,7 @@ int main(int argc, char* argv[])
         mystepper->SetStepControl(false);
 	}
 
-	my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED); 
+	my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED); 
 
 	application.SetTimestep(0.001);
 

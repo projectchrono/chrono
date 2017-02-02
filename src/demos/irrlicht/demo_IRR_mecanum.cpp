@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_PROJECTED);
+    mphysicalSystem.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_PROJECTED);
 
     mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
 

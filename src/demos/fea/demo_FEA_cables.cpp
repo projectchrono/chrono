@@ -100,8 +100,8 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
     // Change type of integrator:
-    my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetTimestepperType(chrono::ChSystem::TS_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {

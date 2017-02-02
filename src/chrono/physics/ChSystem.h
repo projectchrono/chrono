@@ -131,37 +131,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the upper limit for time step
     double GetStepMax() const { return step_max; }
 
-    /// Available methods for time integration (time steppers).
-    enum eCh_integrationType {
-        TS_EULER_IMPLICIT_LINEARIZED = 0,
-        TS_EULER_IMPLICIT_PROJECTED = 1,
-        TS_EULER_IMPLICIT = 2,
-        TS_TRAPEZOIDAL = 3,
-        TS_TRAPEZOIDAL_LINEARIZED = 4,
-        TS_HHT = 5,
-        TS_HEUN = 6,
-        TS_RUNGEKUTTA45 = 7,
-        TS_EULER_EXPLICIT = 8,
-        TS_LEAPFROG = 9,
-        TS_NEWMARK = 10,
-        TS_CUSTOM__ = 20
-    };
-    CH_ENUM_MAPPER_BEGIN(eCh_integrationType);
-    CH_ENUM_VAL(TS_EULER_IMPLICIT);
-    CH_ENUM_VAL(TS_EULER_IMPLICIT_LINEARIZED);
-    CH_ENUM_VAL(TS_EULER_IMPLICIT_PROJECTED);
-    CH_ENUM_VAL(TS_TRAPEZOIDAL);
-    CH_ENUM_VAL(TS_TRAPEZOIDAL_LINEARIZED);
-    CH_ENUM_VAL(TS_HHT);
-    CH_ENUM_VAL(TS_HEUN);
-    CH_ENUM_VAL(TS_RUNGEKUTTA45);
-    CH_ENUM_VAL(TS_EULER_EXPLICIT);
-    CH_ENUM_VAL(TS_LEAPFROG);
-    CH_ENUM_VAL(TS_NEWMARK);
-    CH_ENUM_VAL(TS_CUSTOM__);
-    CH_ENUM_MAPPER_END(eCh_integrationType);
-
-    /// Sets the method for time integration (time stepper type).
+    /// Set the method for time integration (time stepper type).
     /// <pre>
     ///   - Suggested for fast dynamics with hard (DVI) contacts: TS_EULER_IMPLICIT_LINEARIZED
     ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: TS_EULER_IMPLICIT_PROJECTED
@@ -171,17 +141,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
     ///     respectively
     /// </pre>
-    void SetTimestepperType(eCh_integrationType type);
+    void SetTimestepperType(ChTimestepper::Type type);
 
-    /// Gets the current method for time integration (time stepper type).
-    eCh_integrationType GetTimestepperType() const { return timestepper_type; }
+    /// Get the current method for time integration (time stepper type).
+    ChTimestepper::Type GetTimestepperType() const { return timestepper->GetType(); }
 
     /// Set the timestepper object to be used for time integration.
-    /// Also sets the mode to TS_CUSTOM__ , should you ever call GetTimestepperType() later.
-    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) {
-        timestepper = mstepper;
-        timestepper_type = TS_CUSTOM__;
-    }
+    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) { timestepper = mstepper; }
 
     /// Get the timestepper currently used for time integration
     std::shared_ptr<ChTimestepper> GetTimestepper() const { return timestepper; }
@@ -921,7 +887,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChTimer<double> timer_collision_narrow;  ///< timer for collision narrow phase
     ChTimer<double> timer_update;            ///< timer for system update
 
-    eCh_integrationType timestepper_type;  ///< time-stepper type
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
   public:

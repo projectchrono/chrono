@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
     msolver->SetVerbose(false);
 
     // TS_HHT or TS_EULER_IMPLICIT
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    ////my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    ////my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     application.SetTimestep(time_step);
 

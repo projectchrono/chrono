@@ -214,9 +214,8 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 {
     system = this;  // as needed by ChAssembly
 
-    SetTimestepperType(TS_EULER_IMPLICIT_LINEARIZED);
-
-    parallel_thread_number = CHOMPfunctions::GetNumProcs();  // default n.threads as n.cores
+    // Set default number of threads to be equal to number of available cores
+    parallel_thread_number = CHOMPfunctions::GetNumProcs();
 
     // Set default contact container
     if (init_sys) {
@@ -233,6 +232,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
+    // Set default timestepper.
     timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
 
     // Set default solver
@@ -253,7 +253,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     solvecount = other.solvecount;
     setupcount = other.setupcount;
     dump_matrices = other.dump_matrices;
-    SetTimestepperType(other.timestepper_type);
+    SetTimestepperType(other.GetTimestepperType());
     tol = other.tol;
     tol_force = other.tol_force;
     maxiter = other.maxiter;
@@ -588,53 +588,53 @@ void ChSystem::Reference_LM_byID() {
 // PREFERENCES
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetTimestepperType(eCh_integrationType type) {
-    if (type == timestepper_type)
-        return;
-    if (type == TS_CUSTOM__)
+void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
+    // Do nothing if changing to a CUSTOM timestepper.
+    if (type == ChTimestepper::CUSTOM)
         return;
 
-    // set integration scheme:
-    timestepper_type = type;
+    // Do nothing, if no change from current typestepper.
+    if (type == GetTimestepperType())
+        return;
 
-    // plug in the new required timestepper
+    // Plug in the new required timestepper
     // (the previous will be automatically deallocated thanks to shared pointers)
-    switch (timestepper_type) {
-        case TS_EULER_IMPLICIT:
+    switch (type) {
+        case ChTimestepper::EULER_IMPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
             std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
             break;
-        case TS_EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::EULER_IMPLICIT_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
             break;
-        case TS_EULER_IMPLICIT_PROJECTED:
+        case ChTimestepper::EULER_IMPLICIT_PROJECTED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this);
             break;
-        case TS_TRAPEZOIDAL:
+        case ChTimestepper::TRAPEZOIDAL:
             timestepper = std::make_shared<ChTimestepperTrapezoidal>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
             break;
-        case TS_TRAPEZOIDAL_LINEARIZED:
+        case ChTimestepper::TRAPEZOIDAL_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
             break;
-        case TS_HHT:
+        case ChTimestepper::HHT:
             timestepper = std::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
             break;
-        case TS_HEUN:
+        case ChTimestepper::HEUN:
             timestepper = std::make_shared<ChTimestepperHeun>(this);
             break;
-        case TS_RUNGEKUTTA45:
+        case ChTimestepper::RUNGEKUTTA45:
             timestepper = std::make_shared<ChTimestepperRungeKuttaExpl>(this);
             break;
-        case TS_EULER_EXPLICIT:
+        case ChTimestepper::EULER_EXPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerExplIIorder>(this);
             break;
-        case TS_LEAPFROG:
+        case ChTimestepper::LEAPFROG:
             timestepper = std::make_shared<ChTimestepperLeapfrog>(this);
             break;
-        case TS_NEWMARK:
+        case ChTimestepper::NEWMARK:
             timestepper = std::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
@@ -2029,8 +2029,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 
     marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
-    eCh_integrationType_mapper mintmapper;
-    marchive << CHNVP(mintmapper(timestepper_type), "timestepper_type");
     marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
@@ -2076,9 +2074,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(parallel_thread_number);
 
     marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
-
-    eCh_integrationType_mapper mintmapper;
-    marchive >> CHNVP(mintmapper(timestepper_type), "timestepper_type");
 
     marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     timestepper->SetIntegrable(this);

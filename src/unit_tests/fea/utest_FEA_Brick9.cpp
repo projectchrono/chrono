@@ -244,7 +244,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
@@ -452,7 +452,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     my_system.SetTolForce(1e-08);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
@@ -651,7 +651,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -861,7 +861,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChSystem::TS_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);

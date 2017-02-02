@@ -327,7 +327,7 @@ int main(int argc, char* argv[]) {
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
-    my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  
+    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  
 
     application.SetTimestep(0.001);
 

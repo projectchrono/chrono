@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     my_system.SetSolverType(ChSystem::SOLVER_MINRES);
     my_system.SetSolverWarmStarting(false);
     my_system.SetMaxItersSolverSpeed(160);
-    my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // Note: if you are interested only in a single LINEAR STATIC solution
     // (not a transient thermal solution, but rather the steady-state solution),

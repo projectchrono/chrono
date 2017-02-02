@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.001);
-    system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
+    system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
     system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
     system.SetMaxItersSolverSpeed(20000);
     system.SetTolForce(1e-7);

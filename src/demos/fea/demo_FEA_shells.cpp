@@ -491,9 +491,9 @@ int main(int argc, char* argv[]) {
     */
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT); 
-    //my_system.SetTimestepperType(ChSystem::TS_EULER_IMPLICIT_LINEARIZED);
-    //my_system.SetTimestepperType(ChSystem::TS_NEWMARK);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT); 
+    //my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    //my_system.SetTimestepperType(ChTimestepper::NEWMARK);
 
     if (auto mint =  std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {
         mint->SetMaxiters(5);

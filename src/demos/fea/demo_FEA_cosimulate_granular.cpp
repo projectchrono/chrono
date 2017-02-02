@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
   my_system.SetTolForce(1e-10);
 
   // Change type of integrator:
-  my_system.SetTimestepperType(chrono::ChSystem::TS_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+  my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 #ifndef CHRONO_OPENGL
   application.SetTimestep(time_step);
