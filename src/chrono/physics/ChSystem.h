@@ -35,7 +35,6 @@
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChProbe.h"
-#include "chrono/physics/ChScriptEngine.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
@@ -626,25 +625,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// Set the script engine (ex. a Javascript engine).
-    /// The user must take care of creating and deleting the script
-    /// engine , if any, and deletion must happen after deletion of the ChSystem.
-    void SetScriptEngine(ChScriptEngine* mengine) { scriptEngine = mengine; }
-    ChScriptEngine* GetScriptEngine() const { return scriptEngine; }
-
-    const std::string& GetScriptForStartFile() const { return scriptForStartFile; }
-    const std::string& GetScriptForUpdateFile() const { return scriptForUpdateFile; }
-    const std::string& GetScriptForStepFile() const { return scriptForStepFile; }
-    const std::string& GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
-    int SetScriptForStartFile(const std::string& mfile);
-    int SetScriptForUpdateFile(const std::string& mfile);
-    int SetScriptForStepFile(const std::string& mfile);
-    int SetScriptFor3DStepFile(const std::string& mfile);
-    int ExecuteScriptForStart();
-    int ExecuteScriptForUpdate();
-    int ExecuteScriptForStep();
-    int ExecuteScriptFor3DStep();
-
     /// If ChControl() objects are added to this system, using the following commands
     /// you call the execution of their scripts. You seldom call these functions directly,
     /// since the ChSystem() methods already call them automatically, at each step, update, etc.
@@ -940,23 +920,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
 
-  public:
-    ChCustomCollisionPointCallback* collisionpoint_callback;
-
-  private:
-    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
-
-    ChScriptEngine* scriptEngine;  ///< points to a script engine
-    ChScript* scriptForStart;      ///< this script is executed when simulation starts.
-    std::string scriptForStartFile;
-    ChScript* scriptForUpdate;  ///< this script is executed for each Update step.
-    std::string scriptForUpdateFile;
-    ChScript* scriptForStep;  ///< this script is executed for each integration step
-    std::string scriptForStepFile;
-    ChScript* scriptFor3DStep;  ///< this script is executed for each 3d interface macro step
-    std::string scriptFor3DStepFile;
-
-  protected:
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step
     ChTimer<double> timer_solver;            ///< timer for solver (excluding setup phase)
@@ -966,6 +929,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChTimer<double> timer_update;            ///< timer for system update
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
+
+  public:
+    ChCustomCollisionPointCallback* collisionpoint_callback;
+
+  private:
+    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
 };
 
 }  // end namespace chrono

@@ -213,12 +213,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       solvecount(0),
       setupcount(0),
       dump_matrices(false),
-      last_err(false),
-      scriptEngine(NULL),
-      scriptForStart(NULL),
-      scriptForUpdate(NULL),
-      scriptForStep(NULL),
-      scriptFor3DStep(NULL)
+      last_err(false)
 
 {
     system = this;  // as needed by ChAssembly
@@ -284,11 +279,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
 
     RemoveAllProbes();
     RemoveAllControls();
-
-    SetScriptForStartFile(other.scriptForStartFile);
-    SetScriptForUpdateFile(other.scriptForUpdateFile);
-    SetScriptForStepFile(other.scriptForStepFile);
-    SetScriptFor3DStepFile(other.scriptFor3DStepFile);
 }
 
 ChSystem::~ChSystem() {
@@ -303,11 +293,6 @@ ChSystem::~ChSystem() {
 
     delete collision_system;
     collision_system = NULL;
-
-    delete scriptForStart;
-    delete scriptForUpdate;
-    delete scriptForStep;
-    delete scriptFor3DStep;
 }
 
 void ChSystem::Clear() {
@@ -513,58 +498,6 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
-}
-
-// JS commands
-
-int ChSystem::SetScriptForStartFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForStartFile = mfile;
-    scriptForStart = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForStart, mfile.c_str());
-}
-int ChSystem::SetScriptForUpdateFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForUpdateFile = mfile;
-    scriptForUpdate = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForUpdate, mfile.c_str());
-}
-int ChSystem::SetScriptForStepFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForStepFile = mfile;
-    scriptForStep = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForStep, mfile.c_str());
-}
-int ChSystem::SetScriptFor3DStepFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptFor3DStepFile = mfile;
-    scriptFor3DStep = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptFor3DStep, mfile.c_str());
-}
-
-int ChSystem::ExecuteScriptForStart() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForStart);
-}
-int ChSystem::ExecuteScriptForUpdate() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForUpdate);
-}
-int ChSystem::ExecuteScriptForStep() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForStep);
-}
-int ChSystem::ExecuteScriptFor3DStep() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptFor3DStep);
 }
 
 // PROBE STUFF
@@ -955,14 +888,10 @@ void ChSystem::Setup() {
 void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
-    // Executes the "forUpdate" script, if any
-    ExecuteScriptForUpdate();
-    // Executes the "forUpdate" script
-    // in all controls of controlslist
+    // Executes the "forUpdate" in all controls of controlslist
     ExecuteControlsForUpdate();
 
-    // Inherit parent class
-    // (recursively update sub objects bodies, links, etc)
+    // Inherit parent class (recursively update sub objects bodies, links, etc)
     ChAssembly::Update(update_assets);
 
     // Update all contacts, if any
@@ -1660,9 +1589,7 @@ bool ChSystem::Integrate_Y() {
 
     timer_step.start();
 
-    // Executes the "forStep" script, if any
-    ExecuteScriptForStep();
-    // Executes the "forStep" script in all controls of controlslist
+    // Executes "forStep" in all controls of controlslist
     ExecuteControlsForStep();
 
     stepcount++;
@@ -2120,12 +2047,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 
     marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
-    // marchive << CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive << CHNVP(scriptForStartFile);
-    marchive << CHNVP(scriptForUpdateFile);
-    marchive << CHNVP(scriptForStepFile);
-    marchive << CHNVP(scriptFor3DStepFile);
-
     eCh_integrationType_mapper mintmapper;
     marchive << CHNVP(mintmapper(integration_type), "integration_type");
     marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
@@ -2175,12 +2096,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     if (collision_system)
         delete collision_system;
     marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
-
-    // marchive >> CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive >> CHNVP(scriptForStartFile);
-    marchive >> CHNVP(scriptForUpdateFile);
-    marchive >> CHNVP(scriptForStepFile);
-    marchive >> CHNVP(scriptFor3DStepFile);
 
     eCh_integrationType_mapper mintmapper;
     marchive >> CHNVP(mintmapper(integration_type), "integration_type");

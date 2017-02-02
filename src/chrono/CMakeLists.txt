@@ -251,7 +251,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChProximityContainerBase.h
     physics/ChProximityContainerSPH.h
     physics/ChRef.h
-    physics/ChScriptEngine.h
     physics/ChShaft.h
     physics/ChShaftsBody.h
     physics/ChShaftsClutch.h
