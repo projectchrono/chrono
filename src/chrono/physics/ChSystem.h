@@ -215,7 +215,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
-    /// For the Anitescu stepper, you can limit the speed of exiting from penetration
+    /// For the default stepper, you can limit the speed of exiting from penetration
     /// situations. Usually set a positive value, about 0.1 .. 2 . (as exiting speed, in m/s)
     void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
@@ -636,8 +636,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void SynchronizeLastCollPositions();
 
     /// Perform the collision detection.
-    /// New contacts are inserted in the ChContactContainer object(s), and
-    /// old are removed.
+    /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
     double ComputeCollisions();
 
@@ -654,7 +653,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// add further contacts using this callback.
     void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) {
         collision_callbacks.push_back(mcallb);
-    };
+    }
 
     /// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
     class ChApi ChCustomCollisionPointCallback {
@@ -669,20 +668,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// each contact point is created. The callback will be called many times, once for each contact.
     /// Example: it can be used to modify the friction coefficients for each created
     /// contact (otherwise, by default, would be the average of the two frict.coeff.)
-    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; };
+    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; }
 
-    /// For higher performance (ex. when GPU coprocessors are available) you can create your own
-    /// custom collision engine (suffice it is inherited from ChCollisionSystem) and plug
-    /// it into the system using this function. The replaced engine is automatically deleted.
-    /// When the system is deleted, the custom engine that you plugged will be automatically deleted.
+    /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
+    /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
     /// Note: use only _before_ you start adding colliding bodies to the system!
-    void ChangeCollisionSystem(collision::ChCollisionSystem* newcollsystem);
+    void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
 
     /// Access the collision system, the engine which
     /// computes the contact points (usually you don't need to
     /// access it, since it is automatically handled by the
     /// client ChSystem object).
-    collision::ChCollisionSystem* GetCollisionSystem() { return collision_system; };
+    std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
 
     /// Turn on this feature to let the system put to sleep the bodies whose
     /// motion has almost come to a rest. This feature will allow faster simulation
@@ -793,12 +790,11 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// sparse matrix -which is used only for the purpose of this function.
     void GetDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
 
-    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian 
+    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian
     /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
     /// This function has a small overhead, because it must assembly the
     /// sparse matrix -which is used only for the purpose of this function.
-    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);    ///< fill this system damping matrix
-
+    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
 
     // ---- KINEMATICS
 
@@ -871,16 +867,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe> > probelist;  ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls> >
-        controlslist;  ///< list of 'controls' script objects (objects containing scripting programs)
+    std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
+    std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
 
     std::shared_ptr<ChContactContainerBase> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
 
-    double end_time;  ///< end of simulation, in seconds
-    double step;      ///< time step, in seconds
+    double end_time;  ///< end of simulation
+    double step;      ///< time step
     double step_min;  ///< min time step
     double step_max;  ///< max time step
 
@@ -903,9 +898,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
 
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
-    double max_penetration_recovery_speed;  ///< this limits the speed of penetration recovery (>0, speed of exiting)
+    double max_penetration_recovery_speed;  ///< limit for the speed of penetration recovery (positive, speed of exiting)
 
-    int parallel_thread_number;  ///< used for multithreaded solver etc.
+    int parallel_thread_number;  ///< used for multithreaded solver
 
     size_t stepcount;  ///< internal counter for steps
 
@@ -916,7 +911,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    collision::ChCollisionSystem* collision_system;  ///< collision engine, to compute and store contact manifolds
+    std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
 
     std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
 
@@ -934,7 +929,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChCustomCollisionPointCallback* collisionpoint_callback;
 
   private:
-    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
+    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 };
 
 }  // end namespace chrono

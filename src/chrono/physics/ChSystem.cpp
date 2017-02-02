@@ -202,11 +202,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
-      collision_system(NULL),
       collisionpoint_callback(NULL),
-      descriptor(NULL),
-      solver_speed(NULL),
-      solver_stab(NULL),
       use_sleeping(false),
       G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
@@ -230,7 +226,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 
     // Set default collision engine
     if (init_sys) {
-        collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
+        collision_system = std::make_shared<ChCollisionSystemBullet>(max_objects, scene_size);
     }
 
     // Set default collision envelope and margin.
@@ -290,9 +286,6 @@ ChSystem::~ChSystem() {
 
     RemoveAllProbes();
     RemoveAllControls();
-
-    delete collision_system;
-    collision_system = NULL;
 }
 
 void ChSystem::Clear() {
@@ -473,16 +466,13 @@ void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
 
 void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
     assert(newcontainer);
-
     contact_container = newcontainer;
     contact_container->SetSystem(this);
 }
 
-void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
     assert(GetNbodies() == 0);
     assert(newcollsystem);
-    if (collision_system)
-        delete collision_system;
     collision_system = newcollsystem;
 }
 
@@ -2093,8 +2083,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(max_penetration_recovery_speed);
     marchive >> CHNVP(parallel_thread_number);
 
-    if (collision_system)
-        delete collision_system;
     marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
     eCh_integrationType_mapper mintmapper;

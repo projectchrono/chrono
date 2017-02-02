@@ -30,7 +30,7 @@ ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10
 
     descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
-    collision_system = new ChCollisionSystemParallel(data_manager);
+    collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = COLLSYS_PARALLEL;
     counter = 0;
@@ -662,16 +662,14 @@ void ChSystemParallel::RecomputeThreads() {
 void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
     assert(GetNbodies() == 0);
 
-    delete collision_system;
-
     collision_system_type = type;
 
     switch (type) {
         case COLLSYS_PARALLEL:
-            collision_system = new ChCollisionSystemParallel(data_manager);
+            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
         case COLLSYS_BULLET_PARALLEL:
-            collision_system = new ChCollisionSystemBulletParallel(data_manager);
+            collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
             break;
     }
 }

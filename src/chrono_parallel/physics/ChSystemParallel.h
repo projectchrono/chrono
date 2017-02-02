@@ -71,7 +71,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
-    virtual void Setup();
+    virtual void Setup() override;
     virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
 
     virtual void PrintStepStats();
@@ -172,6 +172,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     virtual void AssembleSystem();
     virtual void SolveSystem();
 };
+
 //====================================================================================================
 class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
@@ -184,21 +185,21 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
-    virtual void Setup();
-    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void Setup() override;
+    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const;
     virtual real3 GetBodyContactTorque(uint body_id) const;
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
-    virtual void PrintStepStats();
+    virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const {
         return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");

@@ -753,10 +753,10 @@ void ChModelBullet::onFamilyChange() {
     this->SyncPosition();
 
     // Trick to avoid troubles if setting mask or family when model is already overlapping to some other model
-    ChCollisionSystem* mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
+    auto mcosys = this->GetPhysicsItem()->GetSystem()->GetCollisionSystem();
     mcosys->Remove(this);
 
-    ChCollisionSystemBullet* mcs = static_cast<ChCollisionSystemBullet*>(mcosys);
+    auto mcs = std::static_pointer_cast<ChCollisionSystemBullet>(mcosys);
     mcs->GetBulletCollisionWorld()->addCollisionObject(bt_collision_object, family_group, family_mask);
 }
 

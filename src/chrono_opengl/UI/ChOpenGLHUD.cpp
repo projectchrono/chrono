@@ -184,7 +184,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         num_contacts = parallel_system->GetNcontacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
     } else {
-        ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+        auto collision_system = std::static_pointer_cast<ChCollisionSystemBullet>(physics_system->GetCollisionSystem());
         num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
         num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
         num_contacts = physics_system->GetNcontacts();
