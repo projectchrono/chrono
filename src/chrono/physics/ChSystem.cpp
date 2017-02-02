@@ -248,8 +248,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
     if (init_sys) {
         SetSolverType(SOLVER_SYMMSOR);
     }
-
-    events = new ChEvents(250);
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
@@ -287,8 +285,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     RemoveAllProbes();
     RemoveAllControls();
 
-    events->ResetAllEvents();  // don't copy events.
-
     SetScriptForStartFile(other.scriptForStartFile);
     SetScriptForUpdateFile(other.scriptForUpdateFile);
     SetScriptForStepFile(other.scriptForStepFile);
@@ -308,9 +304,6 @@ ChSystem::~ChSystem() {
     delete collision_system;
     collision_system = NULL;
 
-    delete events;
-    events = NULL;
-
     delete scriptForStart;
     delete scriptForUpdate;
     delete scriptForStep;
@@ -320,8 +313,6 @@ ChSystem::~ChSystem() {
 void ChSystem::Clear() {
     // first the parent class data...
     ChAssembly::Clear();
-
-    events->ResetAllEvents();
 
     // contact_container->RemoveAllContacts();
 
@@ -896,10 +887,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
-    events->Record(CHEVENT_SETUP);
-
-    // inherit the parent class
-    // (compute offsets of bodies, links, etc.)
+    // inherit the parent class (compute offsets of bodies, links, etc.)
     ChAssembly::Setup();
 
     // also compute offsets for contact container
@@ -966,8 +954,6 @@ void ChSystem::Setup() {
 
 void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
-
-    events->Record(CHEVENT_UPDATE);  // Record an update event
 
     // Executes the "forUpdate" script, if any
     ExecuteScriptForUpdate();
@@ -1673,8 +1659,6 @@ bool ChSystem::Integrate_Y() {
     ResetTimers();
 
     timer_step.start();
-
-    events->Record(CHEVENT_TIMESTEP);
 
     // Executes the "forStep" script, if any
     ExecuteScriptForStep();

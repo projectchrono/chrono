@@ -31,7 +31,6 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChControls.h"
-#include "chrono/physics/ChEvents.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChMaterialCouple.h"
@@ -423,10 +422,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
         timer_collision_narrow.reset();
         timer_update.reset();
     }
-
-    /// Gets the cyclic event buffer of this system (it can be used for
-    /// debugging/profiling etc.)
-    ChEvents* Get_events() { return events; }
 
   protected:
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
@@ -950,8 +945,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
   private:
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
-
-    ChEvents* events;  ///< the cyclic buffer which records event IDs
 
     ChScriptEngine* scriptEngine;  ///< points to a script engine
     ChScript* scriptForStart;      ///< this script is executed when simulation starts.
