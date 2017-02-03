@@ -284,9 +284,9 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     if (abody->GetAssets().size() == 0) {
         return;
     }
-
+	//position of the body
     const Vector pos = abody->GetFrame_REF_to_abs().GetPos();
-
+	//rotation of the body
     Quaternion rot = abody->GetFrame_REF_to_abs().GetRot();
     double angle;
     Vector axis;
@@ -300,9 +300,13 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
         }
 
         ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
+		//position of the asset
         Vector center = visual_asset->Pos;
+		//rotate asset pos into global frame
         center = rot.Rotate(center);
+		//Get the local rotation of the asset
         Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
+		//add the local rotation to the rotation of the body
         lrot = rot % lrot;
         lrot.Normalize();
         lrot.Q_to_AngAxis(angle, axis);
@@ -335,7 +339,6 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 
         } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
             double rad = cylinder_shape->GetCylinderGeometry().rad;
-            //double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
 			ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
 			double height = dir.Length();
 			dir.Normalize();
@@ -343,18 +346,13 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 			dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
 			ChMatrix33<> mrot;
 			mrot.Set_A_axis(mx, my, mz);
-			
-
-            // Quaternion rott(1,0,0,0);
-            Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
-            // lrot = lrot % rott;
-            lrot =  mrot.Get_A_quaternion() % lrot;
-			
-			center =
-				0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+            lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
+			//position of cylinder based on two points
+			ChVector<> mpos = 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
-            ChVector<> pos_final = pos + center;
+			ChVector<> pos_final = pos  + rot.Rotate(mpos);
+
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x, pos_final.y, pos_final.z));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x, axis.y, axis.z));
             model = glm::scale(model, glm::vec3(rad, height * .5, rad));
