@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetMaxItersSolverStab(200);

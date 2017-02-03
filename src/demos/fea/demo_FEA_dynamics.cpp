@@ -104,7 +104,7 @@ void test_1() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
@@ -187,7 +187,7 @@ void test_2() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -272,7 +272,7 @@ void test_2b() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
@@ -368,7 +368,7 @@ void test_3() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
@@ -463,7 +463,7 @@ void test_4() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);

@@ -107,7 +107,7 @@ class solver_settings {
         max_iteration_spinning = 0;
         max_iteration_bilateral = 100;
         max_iteration_fem = 0;
-        solver_type = APGD;
+        solver_type = SOLVERTYPE::APGD;
         solver_mode = SLIDING;
         local_solver_mode = NORMAL;
 

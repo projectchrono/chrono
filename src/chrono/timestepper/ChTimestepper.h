@@ -104,8 +104,6 @@ class ChApi ChTimestepper {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
-    Type type;
-
     ChIntegrable* integrable;
     double T;
 

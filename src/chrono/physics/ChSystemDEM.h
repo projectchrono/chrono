@@ -78,7 +78,7 @@ class ChApi ChSystemDEM : public ChSystem {
     /// collision model used by this system.  The returned body is not added to the system.
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
 
-    virtual void SetSolverType(eCh_solverType mval) override;
+    virtual void SetSolverType(ChSolver::Type type) override;
 
     virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) override;
 

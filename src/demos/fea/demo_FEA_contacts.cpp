@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverType(ChSolver::MINRES);     
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);

@@ -40,8 +40,6 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    solver_type = ChSystem::SOLVER_DEM;
-
     solver_speed = std::make_shared<ChSolverDEM>();
     solver_stab = std::make_shared<ChSolverDEM>();
 
@@ -58,9 +56,9 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
     m_characteristicVelocity = 1; 
 }
 
-void ChSystemDEM::SetSolverType(eCh_solverType mval) {
+void ChSystemDEM::SetSolverType(ChSolver::Type type) {
 
-    ChSystem::SetSolverType(mval);
+    ChSystem::SetSolverType(type);
 
     contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);

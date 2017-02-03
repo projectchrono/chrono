@@ -45,6 +45,7 @@ void ChTimestepper::ArchiveOUT(ChArchiveOut& marchive) {
         marchive.VersionWrite(1);
         // method type:
         my_enum_mappers::Type_mapper typemapper;
+        Type type = GetType();
         marchive << CHNVP(typemapper(type), "timestepper_type");
         // serialize all member data:
         marchive << CHNVP(verbose);
@@ -57,6 +58,7 @@ void ChTimestepper::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead();
     // method type:
     my_enum_mappers::Type_mapper typemapper;
+    Type type = GetType();
     marchive >> CHNVP(typemapper(type), "timestepper_type");
     // stream in all member data:
     marchive >> CHNVP(verbose);

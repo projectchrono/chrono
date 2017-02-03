@@ -232,28 +232,28 @@ int main(int argc, char* argv[]) {
   // Run the problem with different combinations of solver options.
   Options opts;
 
-  opts.type = APGDREF;
+  opts.type = SOLVERTYPE::APGDREF;
   opts.mode = NORMAL;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGDREF;
+  opts.type = SOLVERTYPE::APGDREF;
   opts.mode = NORMAL;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGDREF;
+  opts.type = SOLVERTYPE::APGDREF;
   opts.mode = SLIDING;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGDREF;
+  opts.type = SOLVERTYPE::APGDREF;
   opts.mode = SLIDING;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 0;
@@ -261,28 +261,28 @@ int main(int argc, char* argv[]) {
   test_passed &= TestMechanism(opts, animate);
 
   /*
-  opts.type = APGD;
+  opts.type = SOLVERTYPE::APGD;
   opts.mode = NORMAL;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGD;
+  opts.type = SOLVERTYPE::APGD;
   opts.mode = NORMAL;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGD;
+  opts.type = SOLVERTYPE::APGD;
   opts.mode = SLIDING;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = APGD;
+  opts.type = SOLVERTYPE::APGD;
   opts.mode = SLIDING;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 0;

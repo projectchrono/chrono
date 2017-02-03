@@ -231,7 +231,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system->GetSettings()->solver.alpha = 0;
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->ChangeSolverType(APGD);
+    system->ChangeSolverType(SOLVERTYPE::APGD);
 
     system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;

@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Solver settings.
-    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    ////system->SetSolverType(ChSolver::MINRES);
     system->SetMaxItersSolverSpeed(50);
     system->SetMaxItersSolverStab(50);
     ////system->SetTol(0);

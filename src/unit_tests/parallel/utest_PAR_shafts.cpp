@@ -78,7 +78,7 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(APGD);
+    systemDVI->ChangeSolverType(SOLVERTYPE::APGD);
   }
 
   return system;

@@ -147,7 +147,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 100;
             sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->ChangeSolverType(APGD);
+            sys->ChangeSolverType(SOLVERTYPE::APGD);
             system = sys;
 
             auto mat = std::make_shared<ChMaterialSurface>();

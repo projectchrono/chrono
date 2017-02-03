@@ -237,7 +237,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 
     // Set default solver
     if (init_sys) {
-        SetSolverType(SOLVER_SYMMSOR);
+        SetSolverType(ChSolver::SYMMSOR);
     }
 }
 
@@ -304,11 +304,10 @@ void ChSystem::Clear() {
 // Set/Get routines
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetSolverType(eCh_solverType mval) {
-    if (mval == SOLVER_CUSTOM)
+void ChSystem::SetSolverType(ChSolver::Type type) {
+    // Do nothing if changing to a CUSTOM solver.
+    if (type == ChSolver::CUSTOM)
         return;
-
-    solver_type = mval;
 
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
@@ -316,40 +315,40 @@ void ChSystem::SetSolverType(eCh_solverType mval) {
     contact_container = std::make_shared<ChContactContainerDVI>();
     contact_container->SetSystem(this);
 
-    switch (mval) {
-        case SOLVER_SOR:
+    switch (type) {
+        case ChSolver::SOR:
             solver_speed = std::make_shared<ChSolverSOR>();
             solver_stab = std::make_shared<ChSolverSOR>();
             break;
-        case SOLVER_SYMMSOR:
+        case ChSolver::SYMMSOR:
             solver_speed = std::make_shared<ChSolverSymmSOR>();
             solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
-        case SOLVER_JACOBI:
+        case ChSolver::JACOBI:
             solver_speed = std::make_shared<ChSolverJacobi>();
             solver_stab = std::make_shared<ChSolverJacobi>();
             break;
-        case SOLVER_SOR_MULTITHREAD:
+        case ChSolver::SOR_MULTITHREAD:
             solver_speed = std::make_shared<ChSolverSORmultithread>((char*)"speedSolver", parallel_thread_number);
             solver_stab = std::make_shared<ChSolverSORmultithread>((char*)"posSolver", parallel_thread_number);
             break;
-        case SOLVER_PMINRES:
+        case ChSolver::PMINRES:
             solver_speed = std::make_shared<ChSolverPMINRES>();
             solver_stab = std::make_shared<ChSolverPMINRES>();
             break;
-        case SOLVER_BARZILAIBORWEIN:
+        case ChSolver::BARZILAIBORWEIN:
             solver_speed = std::make_shared<ChSolverBB>();
             solver_stab = std::make_shared<ChSolverBB>();
             break;
-        case SOLVER_PCG:
+        case ChSolver::PCG:
             solver_speed = std::make_shared<ChSolverPCG>();
             solver_stab = std::make_shared<ChSolverPCG>();
             break;
-        case SOLVER_APGD:
+        case ChSolver::APGD:
             solver_speed = std::make_shared<ChSolverAPGD>();
             solver_stab = std::make_shared<ChSolverAPGD>();
             break;
-        case SOLVER_MINRES:
+        case ChSolver::MINRES:
             solver_speed = std::make_shared<ChSolverMINRES>();
             solver_stab = std::make_shared<ChSolverMINRES>();
             break;
@@ -440,7 +439,7 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
     descriptor->SetNumThreads(mthreads);
 
-    if (solver_type == SOLVER_SOR_MULTITHREAD) {
+    if (solver_speed->GetType() == ChSolver::SOR_MULTITHREAD) {
         std::static_pointer_cast<ChSolverSORmultithread>(solver_speed)->ChangeNumberOfThreads(mthreads);
         std::static_pointer_cast<ChSolverSORmultithread>(solver_stab)->ChangeNumberOfThreads(mthreads);
     }
@@ -455,13 +454,11 @@ void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescri
 void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
     solver_speed = newsolver;
-    solver_type = SOLVER_CUSTOM;
 }
 
 void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
     solver_stab = newsolver;
-    solver_type = SOLVER_CUSTOM;
 }
 
 void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
@@ -2014,8 +2011,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(maxiter);
     marchive << CHNVP(use_sleeping);
 
-    eCh_solverType_mapper msolmapper;
-    marchive << CHNVP(msolmapper(solver_type), "solver_type");
     marchive << CHNVP(descriptor);
     marchive << CHNVP(solver_speed);
     marchive << CHNVP(solver_stab);
@@ -2058,9 +2053,6 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(tol_force);
     marchive >> CHNVP(maxiter);
     marchive >> CHNVP(use_sleeping);
-
-    eCh_solverType_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(solver_type), "solver_type");
 
     marchive >> CHNVP(descriptor);
     marchive >> CHNVP(solver_speed);

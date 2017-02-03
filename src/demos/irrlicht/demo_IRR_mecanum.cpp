@@ -281,7 +281,7 @@ int main(int argc, char* argv[]) {
 
     mphysicalSystem.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_PROJECTED);
 
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetSolverType(ChSolver::SOR);
 
     mphysicalSystem.SetMaxItersSolverSpeed(30);
     mphysicalSystem.SetMaxItersSolverStab(30);

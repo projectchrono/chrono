@@ -178,7 +178,7 @@ void SetupSystem(ChSystemParallelDVI* msystem) {
   msystem->GetSettings()->solver.alpha = 0;
   msystem->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
   msystem->SetMaxPenetrationRecoverySpeed(contact_recovery_speed);
-  msystem->ChangeSolverType(APGD);
+  msystem->ChangeSolverType(SOLVERTYPE::APGD);
   msystem->GetSettings()->collision.collision_envelope = 0;
   msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
   CHOMPfunctions::SetNumThreads(1);

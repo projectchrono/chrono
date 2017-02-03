@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->solver.tolerance = tolerance;
   msystem.GetSettings()->solver.alpha = 0;
   msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-  msystem.ChangeSolverType(APGDREF);
+  msystem.ChangeSolverType(SOLVERTYPE::APGDREF);
   msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
   msystem.GetSettings()->collision.collision_envelope = 0.01;

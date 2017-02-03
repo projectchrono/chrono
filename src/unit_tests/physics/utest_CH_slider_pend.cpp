@@ -308,7 +308,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ////system->SetMaxItersSolverStab(200);
     ////system->SetTolForce(1e-5);
 
-    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    ////system->SetSolverType(ChSolver::MINRES);
     ////auto msolver = std::static_pointer_cast<ChSolverMINRES>(system->GetSolver());
 
     // Set integrator and modify parameters.

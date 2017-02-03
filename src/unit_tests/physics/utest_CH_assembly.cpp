@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetMaxItersSolverStab(100);
-    my_system.SetSolverType(ChSystem::SOLVER_SOR);
+    my_system.SetSolverType(ChSolver::SOR);
     my_system.SetTol(1e-6);
     my_system.SetTolForce(1e-4);
 

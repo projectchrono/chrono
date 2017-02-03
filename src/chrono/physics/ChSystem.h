@@ -37,6 +37,7 @@
 #include "chrono/physics/ChProbe.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
+#include "chrono/solver/ChSolver.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -44,7 +45,6 @@
 namespace chrono {
 
 // Forward references
-class ChSolver;
 class ChSystemDescriptor;
 class ChContactContainerBase;
 
@@ -133,9 +133,9 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Set the method for time integration (time stepper type).
     /// <pre>
-    ///   - Suggested for fast dynamics with hard (DVI) contacts: TS_EULER_IMPLICIT_LINEARIZED
-    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: TS_EULER_IMPLICIT_PROJECTED
-    ///   - Suggested for finite element smooth dynamics: TS_HHT, TS_EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (DVI) contacts: EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
+    ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
     /// NOTES:
     ///   - for more advanced customization, use SetTimestepper()
     ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
@@ -187,56 +187,31 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
-    /// Available types of solvers.
-    enum eCh_solverType {
-        SOLVER_SOR = 0,
-        SOLVER_SYMMSOR,
-        SOLVER_JACOBI,
-        SOLVER_SOR_MULTITHREAD,
-        SOLVER_PMINRES,
-        SOLVER_BARZILAIBORWEIN,
-        SOLVER_PCG,
-        SOLVER_APGD,
-        SOLVER_DEM,
-        SOLVER_MINRES,
-        SOLVER_CUSTOM,
-    };
-    CH_ENUM_MAPPER_BEGIN(eCh_solverType);
-    CH_ENUM_VAL(SOLVER_SOR);
-    CH_ENUM_VAL(SOLVER_SYMMSOR);
-    CH_ENUM_VAL(SOLVER_JACOBI);
-    CH_ENUM_VAL(SOLVER_SOR_MULTITHREAD);
-    CH_ENUM_VAL(SOLVER_PMINRES);
-    CH_ENUM_VAL(SOLVER_BARZILAIBORWEIN);
-    CH_ENUM_VAL(SOLVER_PCG);
-    CH_ENUM_VAL(SOLVER_APGD);
-    CH_ENUM_VAL(SOLVER_DEM);
-    CH_ENUM_VAL(SOLVER_MINRES);
-    CH_ENUM_VAL(SOLVER_CUSTOM);
-    CH_ENUM_MAPPER_END(eCh_solverType);
-
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    /// You can choose between the eCh_solverType types, e.g. SOLVER_SOR for speed and low
-    /// precision, SOLVER_BARZILAIBORWEIN for precision, etc.
-    /// NOTE: Do not use SOLVER_CUSTOM, as this type will be set automatically if one
-    /// provides a custom solver through SetSolver or SetStabSolver.
-    /// NOTE: This is a shortcut, that internally is equivalent to the two calls
-    /// SetSolver() and SetStabSolve()
-    virtual void SetSolverType(eCh_solverType mval);
+    /// <pre>
+    ///   - Suggested solver for speed, but lower precision: SOR
+    ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
+    ///   - For problems that involve a stiffness matrix: MINRES
+    /// NOTES:
+    ///   - Do not use CUSTOM type, as this type is reserved for external solvers
+    ///     (set using SetSolver and/or SetStabSolver)
+    ///   - This function is a shortcut, internally equivalent to two calls to
+    ///     SetSolver() and SetStabSolve()
+    /// </pre>
+    virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
-    eCh_solverType GetSolverType() const { return solver_type; }
+    ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
 
-    /// In case you are using an iterative solver (es. SOLVER_SOR)
-    /// you can set the maximum number of iterations. The higher the
-    /// iteration number, the more precise the simulation (but more CPU time)
+    /// When using an iterative solver (es. SOR) set the maximum number of iterations.
+    /// The higher the iteration number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
     /// Current maximum number of iterations, if using an iterative solver.
     int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
 
-    /// When using an iterative solver (es. SOLVER_SOR) and a timestepping method
-    /// requiring post-stabilization (e.g., TS_EULER_IMPLICIT_PROJECTED), set the
+    /// When using an iterative solver (es. SOR) and a timestepping method
+    /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
     /// the maximum number of stabilization iterations. The higher the iteration
     /// number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
@@ -267,9 +242,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
     double GetSolverSharpnessParam() const;
 
-    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function. 
-    /// Note: this also sets the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
+    /// Instead of using SetSolverType(), you can create your own custom solver (inherited from ChSolver)
+    /// and plug it into the system using this function. 
     virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the stabilization solver, configured to be used for the stabilization
@@ -278,7 +252,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
     /// from ChSolver) and plug it into the system using this function.
-    /// Note: this also sets the solver type to SOLVER_CUSTOM, should you ever call GetSolverType() later.
     virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the solver, configured to be used for the main differential
@@ -855,7 +828,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
     std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
     std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
-    eCh_solverType solver_type;  ///< Type of solver (iterative= fastest, but may fail satisfying constraints)
 
     int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
     int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization

@@ -225,31 +225,31 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+                            app->GetSystem()->SetSolverType(ChSolver::SOR);
                             break;
                         case 1:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SYMMSOR);
+                            app->GetSystem()->SetSolverType(ChSolver::SYMMSOR);
                             break;
                         case 2:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_JACOBI);
+                            app->GetSystem()->SetSolverType(ChSolver::JACOBI);
                             break;
                         case 3:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
+                            app->GetSystem()->SetSolverType(ChSolver::SOR_MULTITHREAD);
                             break;
                         case 4:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+                            app->GetSystem()->SetSolverType(ChSolver::BARZILAIBORWEIN);
                             break;
                         case 5:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PCG);
+                            app->GetSystem()->SetSolverType(ChSolver::PCG);
                             break;
                         case 6:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PMINRES);
+                            app->GetSystem()->SetSolverType(ChSolver::PMINRES);
                             break;
                         case 7:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_APGD);
+                            app->GetSystem()->SetSolverType(ChSolver::APGD);
                             break;
                         case 8:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
+                            app->GetSystem()->SetSolverType(ChSolver::MINRES);
                             break;
                         case 9:
                             GetLog()
@@ -779,31 +779,31 @@ void ChIrrAppInterface::DrawAll() {
         gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
         switch (GetSystem()->GetSolverType()) {
-            case ChSystem::SOLVER_SOR:
+            case ChSolver::SOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case ChSystem::SOLVER_SYMMSOR:
+            case ChSolver::SYMMSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case ChSystem::SOLVER_JACOBI:
+            case ChSolver::JACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case ChSystem::SOLVER_SOR_MULTITHREAD:
+            case ChSolver::SOR_MULTITHREAD:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case ChSystem::SOLVER_BARZILAIBORWEIN:
+            case ChSolver::BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case ChSystem::SOLVER_PCG:
+            case ChSolver::PCG:
                 gad_ccpsolver->setSelected(5);
                 break;
-            case ChSystem::SOLVER_PMINRES:
+            case ChSolver::PMINRES:
                 gad_ccpsolver->setSelected(6);
                 break;
-            case ChSystem::SOLVER_APGD:
+            case ChSolver::APGD:
                 gad_ccpsolver->setSelected(7);
                 break;
-            case ChSystem::SOLVER_MINRES:
+            case ChSolver::MINRES:
                 gad_ccpsolver->setSelected(8);
                 break;
             default:

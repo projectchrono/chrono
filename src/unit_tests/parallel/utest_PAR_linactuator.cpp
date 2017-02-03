@@ -287,7 +287,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
     msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     msystemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     msystemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    msystemDVI->ChangeSolverType(APGD);
+    msystemDVI->ChangeSolverType(SOLVERTYPE::APGD);
   }
 
   // Create the ground body.

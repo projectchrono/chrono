@@ -1848,7 +1848,7 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    // my_system.SetSolverType(ChSolver::MINRES);
     // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
@@ -2093,7 +2093,7 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    // my_system.SetSolverType(ChSolver::MINRES);
     // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);

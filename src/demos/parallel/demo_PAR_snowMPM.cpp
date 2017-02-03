@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
     msystem.GetSettings()->solver.cache_step_length = true;
-    msystem.ChangeSolverType(BB);
+    msystem.ChangeSolverType(SOLVERTYPE::BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
     AddFluid(&msystem);

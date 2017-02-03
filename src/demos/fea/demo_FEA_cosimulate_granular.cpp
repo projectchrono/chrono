@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
   // Change solver to embedded MINRES
   // NOTE! it is strongly advised that you compile the optional MKL module
   // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-  my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+  my_system.SetSolverType(ChSolver::MINRES);
   my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
   my_system.SetMaxItersSolverSpeed(40);
   my_system.SetTolForce(1e-10);
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->solver.tolerance = tolerance;
   systemG->GetSettings()->solver.alpha = 0;
   systemG->GetSettings()->solver.contact_recovery_speed = 10000;
-  systemG->ChangeSolverType(APGD);
+  systemG->ChangeSolverType(SOLVERTYPE::APGD);
   systemG->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
 
   systemG->GetSettings()->collision.collision_envelope = 0.01;

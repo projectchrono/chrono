@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetSolverType(ChSolver::SOR);
     mphysicalSystem.SetMaxItersSolverSpeed(20);
     // mphysicalSystem.SetMaxItersSolverStab(5);
 

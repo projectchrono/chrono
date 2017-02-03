@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Perform a dynamic time integration:
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(10000);

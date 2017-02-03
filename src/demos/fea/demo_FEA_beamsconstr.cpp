@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 
         //***TEST***
         /*
-        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+        my_system.SetSolverType(ChSolver::MINRES);
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);
@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
 
         //***TEST*** 
         /*
-        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+        my_system.SetSolverType(ChSolver::MINRES);
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);

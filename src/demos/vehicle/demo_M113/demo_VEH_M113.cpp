@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        ////vehicle.GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
+        ////vehicle.GetSystem()->SetSolverType(ChSolver::MINRES);
         vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
         vehicle.GetSystem()->SetMaxItersSolverStab(50);
         ////vehicle.GetSystem()->SetTol(0);
