@@ -72,7 +72,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
-    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void ChangeCollisionSystem(CollisionSystemType type);
 
     virtual void PrintStepStats();
     int GetNumBodies();
@@ -110,7 +110,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     // based on the passed logging level and the state of that level, enable or
     // disable logging level
-    void SetLoggingLevel(LOGGINGLEVEL level, bool state = true);
+    void SetLoggingLevel(LoggingLevel level, bool state = true);
 
     /// Calculate the (linearized) bilateral constraint violations.
     /// Return the maximum constraint violation.
@@ -129,7 +129,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     uint frame_threads, frame_bins, counter;
     std::vector<ChLink*>::iterator it;
 
-    COLLISIONSYSTEMTYPE collision_system_type;
+    CollisionSystemType collision_system_type;
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
@@ -151,7 +151,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
 
-    void ChangeSolverType(SOLVERTYPE type);
+    void ChangeSolverType(SolverType type);
     void Initialize();
 
     virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
@@ -192,7 +192,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
     virtual void Setup() override;
-    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) override;
+    virtual void ChangeCollisionSystem(CollisionSystemType type) override;
 
     virtual real3 GetBodyContactForce(uint body_id) const;
     virtual real3 GetBodyContactTorque(uint body_id) const;

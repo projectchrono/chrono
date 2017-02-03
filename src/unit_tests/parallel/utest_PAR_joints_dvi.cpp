@@ -37,8 +37,8 @@ using namespace chrono;
 using namespace chrono::collision;
 
 struct Options {
-  SOLVERMODE mode;
-  SOLVERTYPE type;
+  SolverMode mode;
+  SolverType type;
 
   uint max_iter_bilateral;
   uint max_iter_normal;
@@ -49,7 +49,7 @@ struct Options {
 // Create and simulate the mechanism
 // -----------------------------------------------------------------------------
 bool TestMechanism(Options opts, bool animate) {
-  std::cout << "Solver type:  " << opts.type << "  mode:  " << opts.mode << std::endl
+  std::cout << "Solver type:  " << as_integer(opts.type) << "  mode:  " << as_integer(opts.mode) << std::endl
             << "     max_iter_bilateral: " << opts.max_iter_bilateral
             << "     max_iter_normal: " << opts.max_iter_normal << "     max_iter_sliding: " << opts.max_iter_sliding
             << std::endl;
@@ -232,58 +232,58 @@ int main(int argc, char* argv[]) {
   // Run the problem with different combinations of solver options.
   Options opts;
 
-  opts.type = SOLVERTYPE::APGDREF;
-  opts.mode = NORMAL;
+  opts.type = SolverType::APGDREF;
+  opts.mode = SolverMode::NORMAL;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGDREF;
-  opts.mode = NORMAL;
+  opts.type = SolverType::APGDREF;
+  opts.mode = SolverMode::NORMAL;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGDREF;
-  opts.mode = SLIDING;
+  opts.type = SolverType::APGDREF;
+  opts.mode = SolverMode::SLIDING;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGDREF;
-  opts.mode = SLIDING;
+  opts.type = SolverType::APGDREF;
+  opts.mode = SolverMode::SLIDING;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;
   test_passed &= TestMechanism(opts, animate);
 
   /*
-  opts.type = SOLVERTYPE::APGD;
-  opts.mode = NORMAL;
+  opts.type = SolverType::APGD;
+  opts.mode = SolverMode::NORMAL;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGD;
-  opts.mode = NORMAL;
+  opts.type = SolverType::APGD;
+  opts.mode = SolverMode::NORMAL;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 1000;
   opts.max_iter_sliding = 0;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGD;
-  opts.mode = SLIDING;
+  opts.type = SolverType::APGD;
+  opts.mode = SolverMode::SLIDING;
   opts.max_iter_bilateral = 100;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;
   test_passed &= TestMechanism(opts, animate);
 
-  opts.type = SOLVERTYPE::APGD;
-  opts.mode = SLIDING;
+  opts.type = SolverType::APGD;
+  opts.mode = SolverMode::SLIDING;
   opts.max_iter_bilateral = 0;
   opts.max_iter_normal = 0;
   opts.max_iter_sliding = 1000;

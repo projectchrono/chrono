@@ -86,7 +86,9 @@ static std::ostream null_stream(&null_buffer);
 #define Thrust_Unique(x) thrust::unique(THRUST_PAR x.begin(), x.end()) - x.begin();
 #define DBG(x) printf(x);
 
-enum SOLVERTYPE {
+namespace chrono {
+
+enum class SolverType {
     STEEPEST_DESCENT,
     GRADIENT_DESCENT,
     CONJUGATE_GRADIENT,
@@ -104,11 +106,11 @@ enum SOLVERTYPE {
     SPGQP
 };
 
-enum SOLVERMODE { NORMAL, SLIDING, SPINNING, BILATERAL };
+enum class SolverMode { NORMAL, SLIDING, SPINNING, BILATERAL };
 
-enum COLLISIONSYSTEMTYPE { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
+enum class CollisionSystemType { COLLSYS_PARALLEL, COLLSYS_BULLET_PARALLEL };
 
-enum NARROWPHASETYPE {
+enum class NarrowPhaseType {
     NARROWPHASE_MPR,
     NARROWPHASE_R,
     NARROWPHASE_HYBRID_MPR,
@@ -116,12 +118,21 @@ enum NARROWPHASETYPE {
 
 // This is set so that parts of the code that have been "flattened" can know what
 // type of system is used.
-enum SYSTEMTYPE { SYSTEM_DVI, SYSTEM_DEM };
+enum class SystemType { SYSTEM_DVI, SYSTEM_DEM };
 
-enum BILATERALTYPE { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAFT_SHAFT_BODY, UNKNOWN };
+// Types of bilateral constraints.
+enum BilateralType { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAFT_SHAFT_BODY, UNKNOWN };
 
 // Supported Logging Levels
-enum LOGGINGLEVEL { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
+enum class LoggingLevel { LOG_NONE, LOG_INFO, LOG_TRACE, LOG_WARNING, LOG_ERROR };
+
+// Explicit conversion of scoped enumeration to int (e.g. for streaming)
+template <typename Enumeration>
+auto as_integer(Enumeration const value) -> typename std::underlying_type<Enumeration>::type {
+    return static_cast<typename std::underlying_type<Enumeration>::type>(value);
+}
+
+}  // end namespace chrono
 
 #define max_neighbors 64
 #define max_rigid_neighbors 32

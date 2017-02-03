@@ -94,11 +94,11 @@ int main(int argc, char* argv[]) {
   system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  system->GetSettings()->solver.solver_mode = SLIDING;
+  system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
   system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
   system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-  system->ChangeSolverType(SOLVERTYPE::APGD);
+  system->ChangeSolverType(SolverType::APGD);
 
   // Define a couple of rotations for later use
   ChQuaternion<> y2x;

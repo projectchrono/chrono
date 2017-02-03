@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
   // Set solver parameters
-  msystem.GetSettings()->solver.solver_mode = SLIDING;
+  msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
   msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
   msystem.GetSettings()->solver.max_iteration_spinning = 0;
@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->solver.tolerance = tolerance;
   msystem.GetSettings()->solver.alpha = 0;
   msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-  msystem.ChangeSolverType(SOLVERTYPE::APGD);
-  msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+  msystem.ChangeSolverType(SolverType::APGD);
+  msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
   msystem.GetSettings()->collision.collision_envelope = 0.01;
   msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);

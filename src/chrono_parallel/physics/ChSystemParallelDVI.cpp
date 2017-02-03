@@ -10,7 +10,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
     solver_speed = std::make_shared<ChIterativeSolverParallelDVI>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
-    data_manager->settings.system_type = SYSTEM_DVI;
+    data_manager->settings.system_type = SystemType::SYSTEM_DVI;
 
     data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
     data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
@@ -33,18 +33,18 @@ ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChS
 }
 
 ChBody* ChSystemParallelDVI::NewBody() {
-    if (collision_system_type == COLLSYS_PARALLEL)
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
 
     return new ChBody(ChMaterialSurfaceBase::DVI);
 }
 
-void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
+void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
     std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->ChangeSolverType(type);
 }
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
-    if (collision_system_type == COLLSYS_PARALLEL)
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI);

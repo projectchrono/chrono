@@ -142,8 +142,8 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     uint num_potential_rigid_fluid_contacts;
 
     real collision_envelope;
-    NARROWPHASETYPE narrowphase_algorithm;
-    SYSTEMTYPE system_type;
+    NarrowPhaseType narrowphase_algorithm;
+    SystemType system_type;
 
     custom_vector<uint> f_bin_intersections;
     custom_vector<uint> f_bin_number;
