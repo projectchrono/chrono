@@ -141,6 +141,12 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_parallel")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_parallel.dll")
 
+      # Chrono::Parallel depends on Chrono::FEA if it was enabled
+      if(Chrono_HAS_fea)
+         list(APPEND CHRONO_LIB_NAMES "ChronoEngine_fea")
+         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fea.dll")
+      endif()
+
     elseif(${COMPONENT_UPPER} MATCHES "OPENGL")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_OPENGL_INCLUDES@")
@@ -153,6 +159,9 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_DLLS "@GLFW_DLL@")
 
     elseif(${COMPONENT_UPPER} MATCHES "IRRLICHT")
+
+      set(CHRONO_CXX_FLAGS "${CHRONO_CXX_FLAGS} @CH_IRRLICHT_CXX_FLAGS@")
+      set(CHRONO_C_FLAGS "${CHRONO_C_FLAGS} @CH_IRRLICHT_C_FLAGS@")
 
       list(APPEND CHRONO_INCLUDE_DIRS "@CH_IRRLICHTINC@")
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_irrlicht")
