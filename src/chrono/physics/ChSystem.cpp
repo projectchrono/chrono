@@ -329,8 +329,8 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver_stab = std::make_shared<ChSolverJacobi>();
             break;
         case ChSolver::SOR_MULTITHREAD:
-            solver_speed = std::make_shared<ChSolverSORmultithread>((char*)"speedSolver", parallel_thread_number);
-            solver_stab = std::make_shared<ChSolverSORmultithread>((char*)"posSolver", parallel_thread_number);
+            solver_speed = std::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
+            solver_stab = std::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
             break;
         case ChSolver::PMINRES:
             solver_speed = std::make_shared<ChSolverPMINRES>();
