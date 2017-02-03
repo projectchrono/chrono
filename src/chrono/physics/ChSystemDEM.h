@@ -80,7 +80,9 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual void SetSolverType(ChSolver::Type type) override;
 
-    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) override;
+    /// Replace the contact container. 
+    /// The provided container object must be inherited from ChContactContainerDEM.
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase>  container) override;
 
     /// Enable/disable using physical contact material properties.
     /// If true, contact coefficients are estimated from physical material properties.

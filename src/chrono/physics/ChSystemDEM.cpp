@@ -64,9 +64,9 @@ void ChSystemDEM::SetSolverType(ChSolver::Type type) {
     contact_container->SetSystem(this);
 }
 
-void ChSystemDEM::ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) {
-    if (std::dynamic_pointer_cast<ChContactContainerDEM>(newcontainer))
-        ChSystem::ChangeContactContainer(newcontainer);
+void ChSystemDEM::SetContactContainer(std::shared_ptr<ChContactContainerBase>  container) {
+    if (std::dynamic_pointer_cast<ChContactContainerDEM>(container))
+        ChSystem::SetContactContainer(container);
 }
 
 // STREAMING - FILE HANDLING

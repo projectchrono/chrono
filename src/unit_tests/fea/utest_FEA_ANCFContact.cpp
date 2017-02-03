@@ -314,7 +314,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     auto container = std::make_shared<MyContactContainer>();
     //    auto contacts = std::make_shared<MyContacts>();
 
-    my_system.ChangeContactContainer(container);
+    my_system.SetContactContainer(container);
     bool thereIsContact;
     bool printContactPoints = true;
     auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));

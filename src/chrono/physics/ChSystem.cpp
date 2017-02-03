@@ -461,9 +461,9 @@ void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     solver_stab = newsolver;
 }
 
-void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
-    assert(newcontainer);
-    contact_container = newcontainer;
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
+    assert(container);
+    contact_container = container;
     contact_container->SetSystem(this);
 }
 

@@ -316,11 +316,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Remove all controls from this system.
     void RemoveAllControls();
 
-    /// For higher performance (ex. when GPU coprocessors are available) you can create your own
-    /// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
-    /// it into the system using this function. The replaced container is automatically deleted.
-    /// When the system is deleted, the custom container that you plugged will be automatically deleted.
-    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer);
+    /// Replace the contact continer.
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase> container);
 
     /// Get the contact container
     std::shared_ptr<ChContactContainerBase> GetContactContainer() { return contact_container; }
