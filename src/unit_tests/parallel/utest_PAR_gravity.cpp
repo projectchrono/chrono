@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->max_threads = 1;
   msystem.GetSettings()->perform_thread_tuning = false;
 
-  auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   double mass = 1;
   ChVector<> pos = ChVector<>(0, 0, 0);
   ChVector<> vel = ChVector<>(2, 2, 0);

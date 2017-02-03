@@ -144,7 +144,7 @@ class MyDriverInputs : public ChDriverInputsCallback {
 class MyCylindricalTire : public ChTireContactCallback {
   public:
     virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
-        wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+        wheelBody->SetCollisionModel(std::make_shared<collision::ChCollisionModelParallel>());
 
         wheelBody->GetCollisionModel()->ClearModel();
         wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);

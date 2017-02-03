@@ -377,7 +377,7 @@ class MySimpleTank {
         my_system.Add(rigidBodyShoe);
 
         rigidBodyShoe->GetCollisionModel()->ClearModel();
-        rigidBodyShoe->GetCollisionModel()->AddCopyOfAnotherModel(template_shoe->GetCollisionModel());
+        rigidBodyShoe->GetCollisionModel()->AddCopyOfAnotherModel(template_shoe->GetCollisionModel().get());
         rigidBodyShoe->GetCollisionModel()->BuildModel();
         rigidBodyShoe->SetCollide(true);
 

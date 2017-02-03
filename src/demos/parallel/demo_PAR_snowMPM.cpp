@@ -67,7 +67,7 @@ void AddBody(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(100);
@@ -99,7 +99,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);

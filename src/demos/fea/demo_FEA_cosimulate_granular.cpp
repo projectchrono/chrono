@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
 
   int triId = 0;
   for (int i = 0; i < triangles.size(); i++) {
-      auto triangle = std::make_shared<ChBody>(new ChCollisionModelParallel);
+      auto triangle = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
       triangle->SetMaterialSurface(triMat);
       triangle->SetIdentifier(triId++);
       triangle->SetMass(mass);

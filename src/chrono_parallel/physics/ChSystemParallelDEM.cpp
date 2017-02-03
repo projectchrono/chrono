@@ -21,14 +21,14 @@ ChSystemParallelDEM::ChSystemParallelDEM(const ChSystemParallelDEM& other) : ChS
 
 ChBody* ChSystemParallelDEM::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
 
     return new ChBody(ChMaterialSurfaceBase::DEM);
 }
 
 ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM);
 }

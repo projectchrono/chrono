@@ -158,7 +158,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    ChCollisionModel* coll_model = wheelBody->GetCollisionModel();
+    auto coll_model = wheelBody->GetCollisionModel();
     coll_model->ClearModel();
 
     // Assemble the tire contact from 15 segments, properly offset.

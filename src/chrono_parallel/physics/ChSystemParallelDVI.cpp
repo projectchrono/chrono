@@ -34,7 +34,7 @@ ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChS
 
 ChBody* ChSystemParallelDVI::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
 
     return new ChBody(ChMaterialSurfaceBase::DVI);
 }
@@ -45,7 +45,7 @@ void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI);
 }
@@ -142,8 +142,8 @@ void ChSystemParallelDVI::AssembleSystem() {
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
-        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
-        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
+        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel().get();
+        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
         icontact.vpA =
             ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);

@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   // Create the ground body
   // ----------------------
 
-  auto ground = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto ground = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   ground->SetBodyFixed(true);
   system->AddBody(ground);
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
   // Create a pendulum modeled using ChBody
   // --------------------------------------
 
-  auto pend_1 = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto pend_1 = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   system->AddBody(pend_1);
   pend_1->SetIdentifier(1);
   pend_1->SetBodyFixed(false);
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
   // Create a pendulum modeled using ChBodyAuxRef
   // --------------------------------------------
 
-  auto pend_2 = std::make_shared<ChBodyAuxRef>(new ChCollisionModelParallel);
+  auto pend_2 = std::make_shared<ChBodyAuxRef>(std::make_shared<ChCollisionModelParallel>());
   system->Add(pend_2);
   pend_2->SetIdentifier(2);
   pend_2->SetBodyFixed(false);

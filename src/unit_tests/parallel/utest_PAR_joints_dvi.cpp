@@ -106,14 +106,14 @@ bool TestMechanism(Options opts, bool animate) {
   // -----------------
 
   // Create the ground body
-  auto ground = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
+  auto ground = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
   ground->SetIdentifier(-1);
   ground->SetBodyFixed(true);
   ground->SetCollide(false);
   system->AddBody(ground);
 
   // Create the sled body
-  auto sled = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
+  auto sled = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
   sled->SetIdentifier(1);
   sled->SetMass(550);
   sled->SetInertiaXX(ChVector<>(100, 100, 100));
@@ -131,7 +131,7 @@ bool TestMechanism(Options opts, bool animate) {
   system->AddBody(sled);
 
   // Create the wheel body
-  auto wheel = std::make_shared<ChBody>(new collision::ChCollisionModelParallel);
+  auto wheel = std::make_shared<ChBody>(std::make_shared<collision::ChCollisionModelParallel>());
   wheel->SetIdentifier(2);
   wheel->SetMass(350);
   wheel->SetInertiaXX(ChVector<>(50, 138, 138));
