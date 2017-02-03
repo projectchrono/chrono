@@ -335,11 +335,23 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 
         } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
             double rad = cylinder_shape->GetCylinderGeometry().rad;
-            double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
+            //double height = cylinder_shape->GetCylinderGeometry().p1.y - cylinder_shape->GetCylinderGeometry().p2.y;
+			ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
+			double height = dir.Length();
+			dir.Normalize();
+			ChVector<> mx, my, mz;
+			dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+			ChMatrix33<> mrot;
+			mrot.Set_A_axis(mx, my, mz);
+			
+
             // Quaternion rott(1,0,0,0);
             Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
             // lrot = lrot % rott;
-            lrot = rot % lrot;
+            lrot =  mrot.Get_A_quaternion() % lrot;
+			
+			center =
+				0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
             ChVector<> pos_final = pos + center;
