@@ -70,7 +70,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
   mat->SetRestitution(0.1f);
 
   // Create the containing bin (2 x 2 x 1)
-  auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+  auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -95,7 +95,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  auto mixer = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+  auto mixer = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
@@ -144,7 +144,7 @@ void AddFallingBalls(ChSystemParallelDEM* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+      auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
   // Select the narrow phase collision algorithm
-  msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_R;
+  msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
 
   // Set tolerance and maximum number of iterations for bilateral constraint solver
   msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;

@@ -198,25 +198,22 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    //    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    //    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    //    my_system.ChangeSolverStab(mkl_solver_stab);
-    //    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    //    mkl_solver_stab->SetSparsityPatternLock(true);
-    //    mkl_solver_speed->SetSparsityPatternLock(true);
-    //    application.GetSystem()->Update();
+    ////auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    ////my_system.SetSolver(mkl_solver);
+    ////mkl_solver->SetSparsityPatternLock(true);
+    ////my_system.Update();
 
     // Setup solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of
     my_system.SetMaxItersSolverSpeed(4000000);
     my_system.SetTolForce(1e-6);
     msolver->SetVerbose(false);
-    //
-    // INT_HHT or INT_EULER_IMPLICIT
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+
+    // HHT or EULER_IMPLICIT
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
@@ -224,18 +221,16 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    //    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    ////my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     application.SetTimestep(time_step);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        //        std::cout << "Time t = " << my_system.GetChTime() << "s \t";
-        //        std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 *
-        //        pow(my_system.GetChTime(),
-        //        2)
-        //                  << "\n";
+        ////std::cout << "Time t = " << my_system.GetChTime() << "s \t";
+        ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
+        ////          << "\n";
         double t_s = my_system.GetChTime();
 
         application.DoStep();

@@ -958,8 +958,8 @@ int main(int argc, char* argv[]) {
     application.SetUserEventReceiver(&receiver);
 
     // Set some integrator settings
-    // mphysicalSystem.SetSolverType(ChSystem::SOLVER_APGD);
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
+    // mphysicalSystem.SetSolverType(ChSolver::APGD);
+    mphysicalSystem.SetSolverType(ChSolver::SOR_MULTITHREAD);
     mphysicalSystem.SetMaxItersSolverSpeed(70);
     mphysicalSystem.SetMaxItersSolverStab(15);
     mphysicalSystem.SetParallelThreadNumber(4);

@@ -144,7 +144,7 @@ class MyDriverInputs : public ChDriverInputsCallback {
 class MyCylindricalTire : public ChTireContactCallback {
   public:
     virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
-        wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+        wheelBody->SetCollisionModel(std::make_shared<collision::ChCollisionModelParallel>());
 
         wheelBody->GetCollisionModel()->ClearModel();
         wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);
@@ -224,16 +224,16 @@ int main(int argc, char* argv[]) {
 
     system->GetSettings()->solver.tolerance = tolerance;
 
-    system->GetSettings()->solver.solver_mode = SLIDING;
+    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
     system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system->GetSettings()->solver.alpha = 0;
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->ChangeSolverType(APGD);
+    system->ChangeSolverType(SolverType::APGD);
 
-    system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
     system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 

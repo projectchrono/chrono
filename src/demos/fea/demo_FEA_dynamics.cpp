@@ -104,13 +104,12 @@ void test_1() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.01;
     while (my_system.GetChTime() < 2) {
@@ -188,14 +187,13 @@ void test_2() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -274,13 +272,12 @@ void test_2b() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -371,14 +368,12 @@ void test_3() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(
-        ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // INT_EULER_IMPLICIT_LINEARIZED);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.1) {
@@ -468,14 +463,13 @@ void test_4() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);  // INT_HHT);//INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {

@@ -143,11 +143,11 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sprintf(title, "Contact Force test (DVI)");
 
             ChSystemParallelDVI* sys = new ChSystemParallelDVI;
-            sys->GetSettings()->solver.solver_mode = SLIDING;
+            sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 100;
             sys->GetSettings()->solver.max_iteration_spinning = 0;
-            sys->ChangeSolverType(APGD);
+            sys->ChangeSolverType(SolverType::APGD);
             system = sys;
 
             auto mat = std::make_shared<ChMaterialSurface>();

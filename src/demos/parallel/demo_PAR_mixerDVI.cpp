@@ -68,7 +68,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   mat->SetFriction(0.4f);
 
   // Create the containing bin (2 x 2 x 1)
-  auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   bin->SetMaterialSurface(mat);
   bin->SetIdentifier(binId);
   bin->SetMass(1);
@@ -93,7 +93,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
   sys->AddBody(bin);
 
   // The rotating mixer body (1.6 x 0.2 x 0.4)
-  auto mixer = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto mixer = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   mixer->SetMaterialSurface(mat);
   mixer->SetIdentifier(mixerId);
   mixer->SetMass(10.0);
@@ -140,7 +140,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
     for (int iy = -2; iy < 3; iy++) {
       ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-      auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel);
+      auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
       ball->SetMaterialSurface(ballMat);
 
       ball->SetIdentifier(ballId++);
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
   msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
   // Set solver parameters
-  msystem.GetSettings()->solver.solver_mode = SLIDING;
+  msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   msystem.GetSettings()->solver.max_iteration_normal = max_iteration / 3;
   msystem.GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
   msystem.GetSettings()->solver.max_iteration_spinning = 0;
@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
   msystem.GetSettings()->solver.tolerance = tolerance;
   msystem.GetSettings()->solver.alpha = 0;
   msystem.GetSettings()->solver.contact_recovery_speed = 10000;
-  msystem.ChangeSolverType(APGD);
-  msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+  msystem.ChangeSolverType(SolverType::APGD);
+  msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
   msystem.GetSettings()->collision.collision_envelope = 0.01;
   msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);

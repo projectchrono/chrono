@@ -5,12 +5,12 @@ using namespace chrono;
 using namespace chrono::collision;
 
 ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    solver_speed = new ChIterativeSolverParallelDEM(data_manager);
+    solver_speed = std::make_shared<ChIterativeSolverParallelDEM>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
-    data_manager->settings.system_type = SYSTEM_DEM;
+    data_manager->settings.system_type = SystemType::SYSTEM_DEM;
 
     data_manager->system_timer.AddTimer("ChIterativeSolverParallelDEM_ProcessContact");
 }
@@ -20,15 +20,15 @@ ChSystemParallelDEM::ChSystemParallelDEM(const ChSystemParallelDEM& other) : ChS
 }
 
 ChBody* ChSystemParallelDEM::NewBody() {
-    if (collision_system_type == COLLSYS_PARALLEL)
-        return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
 
     return new ChBody(ChMaterialSurfaceBase::DEM);
 }
 
 ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
-    if (collision_system_type == COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM);
 }
@@ -96,7 +96,7 @@ void ChSystemParallelDEM::Setup() {
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemParallelDEM::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
+void ChSystemParallelDEM::ChangeCollisionSystem(CollisionSystemType type) {
     ChSystemParallel::ChangeCollisionSystem(type);
     data_manager->settings.collision.collision_envelope = 0;
 }

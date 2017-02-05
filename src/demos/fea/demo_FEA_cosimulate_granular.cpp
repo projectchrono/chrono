@@ -239,13 +239,13 @@ int main(int argc, char* argv[]) {
   // Change solver to embedded MINRES
   // NOTE! it is strongly advised that you compile the optional MKL module
   // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-  my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+  my_system.SetSolverType(ChSolver::MINRES);
   my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
   my_system.SetMaxItersSolverSpeed(40);
   my_system.SetTolForce(1e-10);
 
   // Change type of integrator:
-  my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+  my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 #ifndef CHRONO_OPENGL
   application.SetTimestep(time_step);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
   systemG->Set_G_acc(my_system.Get_G_acc());
 
   // Set solver parameters
-  systemG->GetSettings()->solver.solver_mode = SLIDING;
+  systemG->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   systemG->GetSettings()->solver.max_iteration_normal = max_iteration / 3;
   systemG->GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
   systemG->GetSettings()->solver.max_iteration_spinning = 0;
@@ -266,8 +266,8 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->solver.tolerance = tolerance;
   systemG->GetSettings()->solver.alpha = 0;
   systemG->GetSettings()->solver.contact_recovery_speed = 10000;
-  systemG->ChangeSolverType(APGD);
-  systemG->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+  systemG->ChangeSolverType(SolverType::APGD);
+  systemG->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
   systemG->GetSettings()->collision.collision_envelope = 0.01;
   systemG->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
@@ -302,7 +302,7 @@ int main(int argc, char* argv[]) {
 
   int triId = 0;
   for (int i = 0; i < triangles.size(); i++) {
-      auto triangle = std::make_shared<ChBody>(new ChCollisionModelParallel);
+      auto triangle = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
       triangle->SetMaterialSurface(triMat);
       triangle->SetIdentifier(triId++);
       triangle->SetMass(mass);

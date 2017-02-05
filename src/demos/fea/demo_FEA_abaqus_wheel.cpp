@@ -301,23 +301,21 @@ int main(int argc, char* argv[]) {
 
     
         // Change solver to embedded MINRES
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverType(ChSolver::MINRES);     
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);  
 
    
         // Change solver to pluggable MKL
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    application.GetSystem()->Update();
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    my_system.Update();
 
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     

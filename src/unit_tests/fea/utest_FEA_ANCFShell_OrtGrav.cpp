@@ -183,24 +183,16 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Setup solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-09);
 
-    /*ChSolverMKL<> * mkl_solver_stab = new ChSolverMKL<>; // MKL Solver option
-    ChSolverMKL<> * mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetProblemSizeLock(true);
-    mkl_solver_stab->SetSparsityPatternLock(false);
-    my_system.Update();*/
-
     // Setup integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);

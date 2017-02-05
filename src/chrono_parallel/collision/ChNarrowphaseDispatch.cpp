@@ -62,7 +62,7 @@ void ChCNarrowphaseDispatch::ProcessRigids() {
 
 void ChCNarrowphaseDispatch::PreprocessCount() {
     // MPR always reports at most one contact per pair.
-    if (narrowphase_algorithm == NARROWPHASE_MPR) {
+    if (narrowphase_algorithm == NarrowPhaseType::NARROWPHASE_MPR) {
         thrust::fill(contact_index.begin(), contact_index.end(), 1);
         return;
     }
@@ -292,13 +292,13 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
     thrust::fill(contact_rigid_active.begin(), contact_rigid_active.end(), false);
 
     switch (narrowphase_algorithm) {
-        case NARROWPHASE_MPR:
+        case NarrowPhaseType::NARROWPHASE_MPR:
             DispatchMPR();
             break;
-        case NARROWPHASE_R:
+        case NarrowPhaseType::NARROWPHASE_R:
             DispatchR();
             break;
-        case NARROWPHASE_HYBRID_MPR:
+        case NarrowPhaseType::NARROWPHASE_HYBRID_MPR:
             DispatchHybridMPR();
             break;
     }

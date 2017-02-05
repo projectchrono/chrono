@@ -295,15 +295,15 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.SetupInitial();
     // ---------------
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(100000);
     my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-6);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(40);
@@ -314,7 +314,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     auto container = std::make_shared<MyContactContainer>();
     //    auto contacts = std::make_shared<MyContacts>();
 
-    my_system.ChangeContactContainer(container);
+    my_system.SetContactContainer(container);
     bool thereIsContact;
     bool printContactPoints = true;
     auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));

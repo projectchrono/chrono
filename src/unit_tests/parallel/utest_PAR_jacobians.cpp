@@ -174,13 +174,13 @@ void SetupSystem(ChSystemParallelDVI* msystem) {
     msystem->Set_G_acc(ChVector<>(0, 0, -gravity));
 
     msystem->GetSettings()->solver.tolerance = tolerance;
-    msystem->GetSettings()->solver.solver_mode = SLIDING;
+    msystem->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystem->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     msystem->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     msystem->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     msystem->GetSettings()->solver.alpha = 0;
     msystem->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    msystem->ChangeSolverType(APGD);
+    msystem->ChangeSolverType(SolverType::APGD);
     msystem->GetSettings()->collision.collision_envelope = 0.00;
     msystem->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
     CHOMPfunctions::SetNumThreads(1);
@@ -298,9 +298,9 @@ int main(int argc, char* argv[]) {
     ChSystemParallelDVI* msystem = new ChSystemParallelDVI();
 
 #ifdef BULLET
-    msystem->ChangeCollisionSystem(COLLSYS_BULLET_PARALLEL);
+    msystem->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);
 #else
-    msystem->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_MPR;
+    msystem->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_MPR;
 #endif
 
     SetupSystem(msystem);

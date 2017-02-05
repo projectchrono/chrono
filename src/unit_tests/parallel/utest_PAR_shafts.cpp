@@ -74,11 +74,11 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
 
   if (cm == ChMaterialSurfaceBase::DVI) {
     ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
-    systemDVI->GetSettings()->solver.solver_mode = SLIDING;
+    systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(APGD);
+    systemDVI->ChangeSolverType(SolverType::APGD);
   }
 
   return system;

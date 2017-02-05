@@ -110,9 +110,7 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.001);
 
-    //// TODO: Fix bug in ChTimestepper related to joint limits!
-    ////       Currently, this only works with the old INT_ANITESCU
-    system.SetIntegrationType(ChSystem::INT_ANITESCU);
+    system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

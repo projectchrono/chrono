@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    ////system->SetSolverType(ChSolver::MINRES);
     system->SetMaxItersSolverSpeed(50);
     system->SetMaxItersSolverStab(50);
     ////system->SetTol(0);
@@ -288,13 +288,13 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.tolerance = tolerance;
 
 #ifndef USE_DEM
-    system->GetSettings()->solver.solver_mode = SLIDING;
+    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system->GetSettings()->solver.alpha = 0;
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->ChangeSolverType(APGD);
+    system->ChangeSolverType(SolverType::APGD);
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
 #else
     system->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;

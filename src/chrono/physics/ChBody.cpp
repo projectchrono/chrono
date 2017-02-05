@@ -77,7 +77,7 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::ContactMethod contact_method) {
+ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model, ChMaterialSurfaceBase::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -158,13 +158,10 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 ChBody::~ChBody() {
     RemoveAllForces();
     RemoveAllMarkers();
-
-    if (collision_model)
-        delete collision_model;
 }
 
-ChCollisionModel* ChBody::InstanceCollisionModel() {
-    ChCollisionModel* collision_model_t = (ChModelBullet*)new ChModelBullet();
+std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
+    auto collision_model_t = std::make_shared<ChModelBullet>();
     collision_model_t->SetContactable(this);
     return collision_model_t;
 }
@@ -690,20 +687,18 @@ void ChBody::SetCollide(bool mcoll) {
         SyncCollisionModels();
         BFlagSetON(BF_COLLIDE);
         if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+            GetSystem()->GetCollisionSystem()->Add(collision_model.get());
     } else {
         BFlagSetOFF(BF_COLLIDE);
         if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+            GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
     }
 }
 
-void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
+void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
     if (collision_model) {
         if (system)
-            system->GetCollisionSystem()->Remove(collision_model);
-
-        delete collision_model;
+            system->GetCollisionSystem()->Remove(collision_model.get());
     }
 
     collision_model = new_collision_model;
@@ -732,13 +727,13 @@ void ChBody::AddCollisionModelsToSystem() {
     assert(this->GetSystem());
     SyncCollisionModels();
     if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+        this->GetSystem()->GetCollisionSystem()->Add(collision_model.get());
 }
 
 void ChBody::RemoveCollisionModelsFromSystem() {
     assert(this->GetSystem());
     if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+        this->GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
 }
 
 void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {

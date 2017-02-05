@@ -322,16 +322,13 @@ void DPCapPress() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-	my_system.ChangeSolverStab(mkl_solver_stab);
-	my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
+	auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+	my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
 	my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	my_system.SetTimestepperType(ChTimestepper::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(25);//20
@@ -676,16 +673,13 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -994,16 +988,13 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1331,16 +1322,13 @@ void SoilBin() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-	my_system.ChangeSolverStab(mkl_solver_stab);
-	my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
-	my_system.Update();
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
+    my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	my_system.SetTimestepperType(ChTimestepper::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(20);
@@ -1620,16 +1608,13 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1863,24 +1848,20 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
-    //                                                   // handle stiffness matrices
-    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // my_system.SetSolverType(ChSolver::MINRES);
+    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(2000);
@@ -2112,24 +2093,20 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
-    //                                                   // handle stiffness matrices
-    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // my_system.SetSolverType(ChSolver::MINRES);
+    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);

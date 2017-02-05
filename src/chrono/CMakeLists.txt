@@ -144,7 +144,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkUniversal.cpp
     physics/ChSystem.cpp
     physics/ChGlobal.cpp
-    physics/ChEvents.cpp
     physics/ChSolvmin.cpp
     physics/ChProbe.cpp
     physics/ChControls.cpp
@@ -199,7 +198,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChController.h
     physics/ChControls.h
     physics/ChConveyor.h
-    physics/ChEvents.h
     physics/ChFilePS.h
     physics/ChForce.h
     physics/ChFx.h
@@ -253,7 +251,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChProximityContainerBase.h
     physics/ChProximityContainerSPH.h
     physics/ChRef.h
-    physics/ChScriptEngine.h
     physics/ChShaft.h
     physics/ChShaftsBody.h
     physics/ChShaftsClutch.h

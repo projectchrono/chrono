@@ -184,7 +184,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         num_contacts = parallel_system->GetNcontacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
     } else {
-        ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+        auto collision_system = std::static_pointer_cast<ChCollisionSystemBullet>(physics_system->GetCollisionSystem());
         num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
         num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
         num_contacts = physics_system->GetNcontacts();
@@ -276,10 +276,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
-    const std::vector<double>& vhist = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
+    double iters = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetTotalIterations();
+    const std::vector<double>& vhist =
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
-        ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 

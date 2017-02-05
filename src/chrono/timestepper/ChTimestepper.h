@@ -35,18 +35,23 @@ class ChApi ChTimestepper {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChTimestepper)
 
-  protected:
-    ChIntegrable* integrable;
-    double T;
-
-    ChVectorDynamic<> L;
-
-    bool verbose;
-
-    bool Qc_do_clamp;
-    double Qc_clamping;
-
   public:
+      /// Available methods for time integration (time steppers).
+      enum Type {
+          EULER_IMPLICIT_LINEARIZED = 0,
+          EULER_IMPLICIT_PROJECTED = 1,
+          EULER_IMPLICIT = 2,
+          TRAPEZOIDAL = 3,
+          TRAPEZOIDAL_LINEARIZED = 4,
+          HHT = 5,
+          HEUN = 6,
+          RUNGEKUTTA45 = 7,
+          EULER_EXPLICIT = 8,
+          LEAPFROG = 9,
+          NEWMARK = 10,
+          CUSTOM = 20
+      };
+
     /// Constructor
     ChTimestepper(ChIntegrable* mintegrable = nullptr) {
         integrable = mintegrable;
@@ -60,53 +65,54 @@ class ChApi ChTimestepper {
     /// Destructor
     virtual ~ChTimestepper() {}
 
+    /// Return type of the integration method.
+    /// Default is CUSTOM. Derived classes should override this function.
+    virtual Type GetType() const { return CUSTOM; }
+
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          ) = 0;
 
-    /// Access the lagrangian multipliers, if any
+    /// Access the lagrangian multipliers, if any.
     virtual ChVectorDynamic<>& get_L() { return L; }
 
-    /// Set the integrable object
+    /// Set the integrable object.
     virtual void SetIntegrable(ChIntegrable* mintegrable) { integrable = mintegrable; }
 
-    /// Get the integrable object
+    /// Get the integrable object.
     ChIntegrable* GetIntegrable() { return integrable; }
 
-    /// Get the current time
+    /// Get the current time.
     virtual double GetTime() const { return T; }
 
-    /// Set the current time
+    /// Set the current time.
     virtual void SetTime(double mt) { T = mt; }
 
-    /// Turn on/off logging of messages
+    /// Turn on/off logging of messages.
     void SetVerbose(bool mverbose) { verbose = mverbose; }
 
-    /// Turn on/off clamping on the Qcterm
+    /// Turn on/off clamping on the Qcterm.
     void SetQcDoClamp(bool mdc) { Qc_do_clamp = mdc; }
 
-    /// Turn on/off clamping on the Qcterm
+    /// Turn on/off clamping on the Qcterm.
     void SetQcClamping(double mcl) { Qc_clamping = mcl; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize all member data:
-        marchive << CHNVP(verbose);
-        marchive << CHNVP(Qc_do_clamp);
-        marchive << CHNVP(Qc_clamping);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-        // stream in all member data:
-        marchive >> CHNVP(verbose);
-        marchive >> CHNVP(Qc_do_clamp);
-        marchive >> CHNVP(Qc_clamping);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    ChIntegrable* integrable;
+    double T;
+
+    ChVectorDynamic<> L;
+
+    bool verbose;
+
+    bool Qc_do_clamp;
+    double Qc_clamping;
 };
 
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.
@@ -303,6 +309,8 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
     /// Constructors (default empty)
     ChTimestepperEulerExplIIorder(ChIntegrableIIorder* mintegrable = nullptr) : ChTimestepperIIorder(mintegrable) {}
 
+    virtual Type GetType() const override { return EULER_EXPLICIT; }
+
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          );
@@ -342,6 +350,8 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
     /// Constructors (default empty)
     ChTimestepperRungeKuttaExpl(ChIntegrable* mintegrable = nullptr) : ChTimestepperIorder(mintegrable) {}
 
+    virtual Type GetType() const override { return RUNGEKUTTA45; }
+
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          );
@@ -360,6 +370,8 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
   public:
     /// Constructors (default empty)
     ChTimestepperHeun(ChIntegrable* mintegrable = nullptr) : ChTimestepperIorder(mintegrable) {}
+
+    virtual Type GetType() const override { return HEUN; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -380,6 +392,8 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
   public:
     /// Constructors (default empty)
     ChTimestepperLeapfrog(ChIntegrableIIorder* mintegrable = nullptr) : ChTimestepperIIorder(mintegrable) {}
+
+    virtual Type GetType() const override { return LEAPFROG; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -403,6 +417,8 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
     /// Constructors (default empty)
     ChTimestepperEulerImplicit(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
+
+    virtual Type GetType() const override { return EULER_IMPLICIT; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -429,6 +445,8 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper() {}
 
+    virtual Type GetType() const override { return EULER_IMPLICIT_LINEARIZED; }
+
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          );
@@ -453,6 +471,8 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     /// Constructors (default empty)
     ChTimestepperEulerImplicitProjected(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper() {}
+
+    virtual Type GetType() const override { return EULER_IMPLICIT_PROJECTED; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -481,6 +501,8 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
     ChTimestepperTrapezoidal(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
 
+    virtual Type GetType() const override { return TRAPEZOIDAL; }
+
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
                          );
@@ -504,6 +526,8 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
     /// Constructors (default empty)
     ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
+
+    virtual Type GetType() const override { return TRAPEZOIDAL_LINEARIZED; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -558,6 +582,8 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
     }
 
+    virtual Type GetType() const override { return NEWMARK; }
+
     /// Set the numerical damping parameter gamma and the beta parameter.
     /// Gamma: in the [1/2, 1] interval.
     /// For gamma = 1/2, no numerical damping
@@ -566,18 +592,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
     /// For beta = 1/4, gamma = 1/2 -> constant acceleration method
     /// For beta = 1/6, gamma = 1/2 -> linear acceleration method
     /// Method is second order accurate only for gamma = 1/2
-    void SetGammaBeta(double mgamma, double mbeta) {
-        gamma = mgamma;
-        if (gamma < 0.5)
-            gamma = 0.5;
-        if (gamma > 1)
-            gamma = 1;
-        beta = mbeta;
-        if (beta < 0)
-            beta = 0;
-        if (beta > 1)
-            beta = 1;
-    }
+    void SetGammaBeta(double mgamma, double mbeta);
 
     double GetGamma() { return gamma; }
 
@@ -588,28 +603,10 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
                          );
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) override {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize parent class:
-        ChTimestepperIIorder::ArchiveOUT(marchive);
-        ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
-        // serialize all member data:
-        marchive << CHNVP(beta);
-        marchive << CHNVP(gamma);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) override {
-        // version number
-        int version = marchive.VersionRead();
-        // deserialize parent class:
-        ChTimestepperIIorder::ArchiveIN(marchive);
-        ChImplicitIterativeTimestepper::ArchiveIN(marchive);
-        // stream in all member data:
-        marchive >> CHNVP(beta);
-        marchive >> CHNVP(gamma);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
 /// @} chrono_timestepper

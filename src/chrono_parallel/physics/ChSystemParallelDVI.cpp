@@ -7,10 +7,10 @@
 using namespace chrono;
 
 ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    solver_speed = new ChIterativeSolverParallelDVI(data_manager);
+    solver_speed = std::make_shared<ChIterativeSolverParallelDVI>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
-    data_manager->settings.system_type = SYSTEM_DVI;
+    data_manager->settings.system_type = SystemType::SYSTEM_DVI;
 
     data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
     data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
@@ -33,19 +33,19 @@ ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChS
 }
 
 ChBody* ChSystemParallelDVI::NewBody() {
-    if (collision_system_type == COLLSYS_PARALLEL)
-        return new ChBody(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
 
     return new ChBody(ChMaterialSurfaceBase::DVI);
 }
 
-void ChSystemParallelDVI::ChangeSolverType(SOLVERTYPE type) {
-    ((ChIterativeSolverParallelDVI*)(solver_speed))->ChangeSolverType(type);
+void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
+    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->ChangeSolverType(type);
 }
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
-    if (collision_system_type == COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(new collision::ChCollisionModelParallel, ChMaterialSurfaceBase::DVI);
+    if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI);
 }
@@ -127,7 +127,7 @@ void ChSystemParallelDVI::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("solver");
-    ((ChIterativeSolverParallelDVI*)(solver_speed))->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
     data_manager->system_timer.stop("step");
 }
@@ -142,8 +142,8 @@ void ChSystemParallelDVI::AssembleSystem() {
     chrono::collision::ChCollisionInfo icontact;
     for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->host_data.bids_rigid_rigid[i];
-        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel();
-        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel();
+        icontact.modelA = bodylist[cd_pair.x]->GetCollisionModel().get();
+        icontact.modelB = bodylist[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->host_data.norm_rigid_rigid[i]);
         icontact.vpA =
             ToChVector(data_manager->host_data.cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);

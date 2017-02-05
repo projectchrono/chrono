@@ -31,14 +31,13 @@
 #include "chrono/physics/ChBodyAuxRef.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChControls.h"
-#include "chrono/physics/ChEvents.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
 #include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChProbe.h"
-#include "chrono/physics/ChScriptEngine.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
+#include "chrono/solver/ChSolver.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
@@ -46,7 +45,6 @@
 namespace chrono {
 
 // Forward references
-class ChSolver;
 class ChSystemDescriptor;
 class ChContactContainerBase;
 
@@ -133,57 +131,23 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Gets the upper limit for time step
     double GetStepMax() const { return step_max; }
 
-    /// Available methods for time integration (time steppers).
-    enum eCh_integrationType {
-        INT_ANITESCU = 0,  ///< alias of INT_EULER_IMPLICIT_LINEARIZED
-        INT_TASORA = 6,    ///< alias of INT_EULER_IMPLICIT_PROJECTED
-        INT_EULER_IMPLICIT = 7,
-        INT_EULER_IMPLICIT_LINEARIZED = 8,
-        INT_EULER_IMPLICIT_PROJECTED = 17,
-        INT_TRAPEZOIDAL = 9,
-        INT_TRAPEZOIDAL_LINEARIZED = 10,
-        INT_HHT = 11,
-        INT_HEUN = 12,
-        INT_RUNGEKUTTA45 = 13,
-        INT_EULER_EXPLICIT = 14,
-        INT_LEAPFROG = 15,
-        INT_NEWMARK = 16,
-        INT_CUSTOM__ = 17,
-    };
-    CH_ENUM_MAPPER_BEGIN(eCh_integrationType);
-    CH_ENUM_VAL(INT_ANITESCU);
-    CH_ENUM_VAL(INT_TASORA);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT_LINEARIZED);
-    CH_ENUM_VAL(INT_EULER_IMPLICIT_PROJECTED);
-    CH_ENUM_VAL(INT_TRAPEZOIDAL);
-    CH_ENUM_VAL(INT_TRAPEZOIDAL_LINEARIZED);
-    CH_ENUM_VAL(INT_HHT);
-    CH_ENUM_VAL(INT_HEUN);
-    CH_ENUM_VAL(INT_RUNGEKUTTA45);
-    CH_ENUM_VAL(INT_EULER_EXPLICIT);
-    CH_ENUM_VAL(INT_LEAPFROG);
-    CH_ENUM_VAL(INT_NEWMARK);
-    CH_ENUM_VAL(INT_CUSTOM__);
-    CH_ENUM_MAPPER_END(eCh_integrationType);
+    /// Set the method for time integration (time stepper type).
+    /// <pre>
+    ///   - Suggested for fast dynamics with hard (DVI) contacts: EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
+    ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
+    /// NOTES:
+    ///   - for more advanced customization, use SetTimestepper()
+    ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
+    ///     respectively
+    /// </pre>
+    void SetTimestepperType(ChTimestepper::Type type);
 
-    /// Sets the method for time integration (time stepper).
-    /// Suggested for fast dynamics with hard (DVI) contacts: INT_EULER_IMPLICIT_LINEARIZED,
-    /// Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: INT_EULER_IMPLICIT_PROJECTED,
-    /// Suggested for finite element smooth dynamics: INT_HHT, INT_EULER_IMPLICIT_LINEARIZED.
-    /// NOTE: for more advanced customization, use SetTimestepper().
-    void SetIntegrationType(eCh_integrationType m_integration_type);
+    /// Get the current method for time integration (time stepper type).
+    ChTimestepper::Type GetTimestepperType() const { return timestepper->GetType(); }
 
-    /// Gets the current method for time integration (time stepper).
-    eCh_integrationType GetIntegrationType() const { return integration_type; }
-
-    /// Set the timestepper to be used for time integration.
-    /// This is more powerful than SetIntegrationType, because you can provide your own object.
-    /// Also sets the mode to INT_CUSTOM__ , should you ever call GetIntegrationType() later.
-    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) {
-        timestepper = mstepper;
-        integration_type = INT_CUSTOM__;
-    }
+    /// Set the timestepper object to be used for time integration.
+    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) { timestepper = mstepper; }
 
     /// Get the timestepper currently used for time integration
     std::shared_ptr<ChTimestepper> GetTimestepper() const { return timestepper; }
@@ -217,77 +181,53 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Objects will rebounce only if their relative colliding speed is above this threshold.
     double GetMinBounceSpeed() const { return min_bounce_speed; }
 
-    /// For the Anitescu stepper, you can limit the speed of exiting from penetration
+    /// For the default stepper, you can limit the speed of exiting from penetration
     /// situations. Usually set a positive value, about 0.1 .. 2 . (as exiting speed, in m/s)
     void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
     /// Get the limit on the speed for exiting from penetration situations (for Anitescu stepper)
     double GetMaxPenetrationRecoverySpeed() const { return max_penetration_recovery_speed; }
 
-    /// Available types of solvers.
-    enum eCh_solverType {
-        SOLVER_SOR = 0,
-        SOLVER_SYMMSOR,
-        SOLVER_JACOBI,
-        SOLVER_SOR_MULTITHREAD,
-        SOLVER_PMINRES,
-        SOLVER_BARZILAIBORWEIN,
-        SOLVER_PCG,
-        SOLVER_APGD,
-        SOLVER_DEM,
-        SOLVER_MINRES,
-        SOLVER_CUSTOM,
-    };
-    CH_ENUM_MAPPER_BEGIN(eCh_solverType);
-    CH_ENUM_VAL(SOLVER_SOR);
-    CH_ENUM_VAL(SOLVER_SYMMSOR);
-    CH_ENUM_VAL(SOLVER_JACOBI);
-    CH_ENUM_VAL(SOLVER_SOR_MULTITHREAD);
-    CH_ENUM_VAL(SOLVER_PMINRES);
-    CH_ENUM_VAL(SOLVER_BARZILAIBORWEIN);
-    CH_ENUM_VAL(SOLVER_PCG);
-    CH_ENUM_VAL(SOLVER_APGD);
-    CH_ENUM_VAL(SOLVER_DEM);
-    CH_ENUM_VAL(SOLVER_MINRES);
-    CH_ENUM_VAL(SOLVER_CUSTOM);
-    CH_ENUM_MAPPER_END(eCh_solverType);
-
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    /// You can choose between the eCh_solverType types, ex. SOLVER_SOR for speed and low
-    /// precision, SOLVER_BARZILAIBORWEIN for precision, etc.
-    /// NOTE: Do not use SOLVER_CUSTOM, this type will be set automatically set if one
-    /// provides its solver via ChangeSolverStab etc.
-    /// NOTE: This is a shortcut, that internally is equivalent to the two calls
-    /// ChangeSolverStab(..) and ChangeSolverSpeed(...)
-    virtual void SetSolverType(eCh_solverType mval);
-    /// Gets the current solver type.
-    eCh_solverType GetSolverType() const { return solver_type; }
+    /// <pre>
+    ///   - Suggested solver for speed, but lower precision: SOR
+    ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
+    ///   - For problems that involve a stiffness matrix: MINRES
+    /// NOTES:
+    ///   - Do not use CUSTOM type, as this type is reserved for external solvers
+    ///     (set using SetSolver and/or SetStabSolver)
+    ///   - This function is a shortcut, internally equivalent to two calls to
+    ///     SetSolver() and SetStabSolve()
+    /// </pre>
+    virtual void SetSolverType(ChSolver::Type type);
 
-    /// In case you are using an iterative solver (es. SOLVER_SOR)
-    /// you can set the maximum number of iterations. The higher the
-    /// iteration number, the more precise the simulation (but more CPU time)
+    /// Gets the current solver type.
+    ChSolver::Type GetSolverType() const { return solver_speed->GetType(); }
+
+    /// When using an iterative solver (es. SOR) set the maximum number of iterations.
+    /// The higher the iteration number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverSpeed(int mval) { max_iter_solver_speed = mval; }
     /// Current maximum number of iterations, if using an iterative solver.
     int GetMaxItersSolverSpeed() const { return max_iter_solver_speed; }
 
-    /// In case you are using an iterative solver (es. SOLVER_SOR)
-    /// and an integration method requiring post-stabilization (es. INT_TASORA)
-    /// you can set the maximum number of stabilization iterations. The higher the
-    /// iteration number, the more precise the simulation (but more CPU time)
+    /// When using an iterative solver (es. SOR) and a timestepping method
+    /// requiring post-stabilization (e.g., EULER_IMPLICIT_PROJECTED), set the
+    /// the maximum number of stabilization iterations. The higher the iteration
+    /// number, the more precise the simulation (but more CPU time).
     void SetMaxItersSolverStab(int mval) { max_iter_solver_stab = mval; }
     /// Current maxi. number of iterations, if using an iterative solver for stabilization.
     int GetMaxItersSolverStab() const { return max_iter_solver_stab; }
 
     /// If you want to easily turn ON/OFF the warm starting feature of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab()
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver()
     void SetSolverWarmStarting(bool usewarm = true);
     /// Tell if the warm starting is enabled for the speed solver, (if iterative type).
     bool GetSolverWarmStarting() const;
 
     /// If you want to easily adjust the omega overrelaxation parameter of both iterative solvers
     /// (the one for speed and the other for position stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
     /// Note, usually a good omega for Jacobi or GPU solver is 0.2; for other iter.solvers can be up to 1.0
     void SetSolverOverrelaxationParam(double momega = 1.0);
     /// Tell the omega overrelaxation factor for the speed solver, (if iterative type).
@@ -295,41 +235,35 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// If you want to easily adjust the 'sharpness lambda' parameter of both iterative solvers
     /// (the one for speed and the other for pos.stabilization) you can simply use the
-    /// following instead of accessing them directly with GetSolverSpeed() and GetSolverStab().
+    /// following instead of accessing them directly with GetSolver() and GetStabSolver().
     /// Note, usually a good sharpness value is in 1..0.8 range (the lower, the more it helps exact
     /// convergence, but overall convergence gets also much slower so maybe better to tolerate some error)
     void SetSolverSharpnessParam(double momega = 1.0);
     /// Tell the 'sharpness lambda' factor for the speed solver, (if iterative type).
     double GetSolverSharpnessParam() const;
 
-    /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
-    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
-    virtual void ChangeSolverStab(ChSolver* newsolver);
+    /// Instead of using SetSolverType(), you can create your own custom solver (inherited from ChSolver)
+    /// and plug it into the system using this function. 
+    virtual void SetStabSolver(std::shared_ptr<ChSolver> newsolver);
 
-    /// Access directly the solver, configured to be used for the stabilization
+    /// Access directly the stabilization solver, configured to be used for the stabilization
     /// of constraints (solve delta positions).
-    virtual ChSolver* GetSolverStab();
+    virtual std::shared_ptr<ChSolver> GetStabSolver();
 
     /// Instead of using SetSolverType(), you can create your own custom solver (suffice it is inherited
-    /// from ChSolver) and plug it into the system using this function. The replaced solver is automatically
-    /// deleted. When the system is deleted, the custom solver that you plugged will be automatically deleted.
-    /// Note: this also sets the SOLVER_CUSTOM mode, should you ever call GetSolverType() later.
-    virtual void ChangeSolverSpeed(ChSolver* newsolver);
+    /// from ChSolver) and plug it into the system using this function.
+    virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access directly the solver, configured to be used for the main differential
     /// inclusion problem (on speed-impulses).
-    virtual ChSolver* GetSolverSpeed();
+    virtual std::shared_ptr<ChSolver> GetSolver();
 
-    /// Instead of using the default 'system descriptor', you can create your own custom descriptor (suffice
-    /// it is inherited from ChSystemDescriptor) and plug it into the system using this function. The replaced
-    /// descriptor is automatically deleted. When the system is deleted, the custom descriptor that you plugged
-    /// will be automatically deleted.
-    void ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor);
+    /// Instead of using the default 'system descriptor', you can create your own custom descriptor
+    /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
+    void SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor);
 
     /// Access directly the 'system descriptor'.
-    ChSystemDescriptor* GetSystemDescriptor() { return descriptor; }
+    std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
     /// Changes the number of parallel threads (by default is n.of cores).
     /// Note that not all solvers use parallel computation.
@@ -382,11 +316,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Remove all controls from this system.
     void RemoveAllControls();
 
-    /// For higher performance (ex. when GPU coprocessors are available) you can create your own
-    /// custom contact container (suffice it is inherited from ChContactContainerBase) and plug
-    /// it into the system using this function. The replaced container is automatically deleted.
-    /// When the system is deleted, the custom container that you plugged will be automatically deleted.
-    virtual void ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer);
+    /// Replace the contact continer.
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase> container);
 
     /// Get the contact container
     std::shared_ptr<ChContactContainerBase> GetContactContainer() { return contact_container; }
@@ -426,10 +357,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
         timer_collision_narrow.reset();
         timer_update.reset();
     }
-
-    /// Gets the cyclic event buffer of this system (it can be used for
-    /// debugging/profiling etc.)
-    ChEvents* Get_events() { return events; }
 
   protected:
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc.
@@ -634,25 +561,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// but if you inherit a special ChSystem you can implement this.
     virtual void CustomEndOfStep() {}
 
-    /// Set the script engine (ex. a Javascript engine).
-    /// The user must take care of creating and deleting the script
-    /// engine , if any, and deletion must happen after deletion of the ChSystem.
-    void SetScriptEngine(ChScriptEngine* mengine) { scriptEngine = mengine; }
-    ChScriptEngine* GetScriptEngine() const { return scriptEngine; }
-
-    const std::string& GetScriptForStartFile() const { return scriptForStartFile; }
-    const std::string& GetScriptForUpdateFile() const { return scriptForUpdateFile; }
-    const std::string& GetScriptForStepFile() const { return scriptForStepFile; }
-    const std::string& GetScriptFor3DStepFile() { return scriptFor3DStepFile; }
-    int SetScriptForStartFile(const std::string& mfile);
-    int SetScriptForUpdateFile(const std::string& mfile);
-    int SetScriptForStepFile(const std::string& mfile);
-    int SetScriptFor3DStepFile(const std::string& mfile);
-    int ExecuteScriptForStart();
-    int ExecuteScriptForUpdate();
-    int ExecuteScriptForStep();
-    int ExecuteScriptFor3DStep();
-
     /// If ChControl() objects are added to this system, using the following commands
     /// you call the execution of their scripts. You seldom call these functions directly,
     /// since the ChSystem() methods already call them automatically, at each step, update, etc.
@@ -664,8 +572,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void SynchronizeLastCollPositions();
 
     /// Perform the collision detection.
-    /// New contacts are inserted in the ChContactContainer object(s), and
-    /// old are removed.
+    /// New contacts are inserted in the ChContactContainer object(s), and old ones are removed.
     /// This is mostly called automatically by time integration.
     double ComputeCollisions();
 
@@ -682,7 +589,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// add further contacts using this callback.
     void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) {
         collision_callbacks.push_back(mcallb);
-    };
+    }
 
     /// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
     class ChApi ChCustomCollisionPointCallback {
@@ -697,20 +604,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// each contact point is created. The callback will be called many times, once for each contact.
     /// Example: it can be used to modify the friction coefficients for each created
     /// contact (otherwise, by default, would be the average of the two frict.coeff.)
-    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; };
+    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; }
 
-    /// For higher performance (ex. when GPU coprocessors are available) you can create your own
-    /// custom collision engine (suffice it is inherited from ChCollisionSystem) and plug
-    /// it into the system using this function. The replaced engine is automatically deleted.
-    /// When the system is deleted, the custom engine that you plugged will be automatically deleted.
+    /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
+    /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
     /// Note: use only _before_ you start adding colliding bodies to the system!
-    void ChangeCollisionSystem(collision::ChCollisionSystem* newcollsystem);
+    void SetCollisionSystem(std::shared_ptr<collision::ChCollisionSystem> newcollsystem);
 
     /// Access the collision system, the engine which
     /// computes the contact points (usually you don't need to
     /// access it, since it is automatically handled by the
     /// client ChSystem object).
-    collision::ChCollisionSystem* GetCollisionSystem() { return collision_system; };
+    std::shared_ptr<collision::ChCollisionSystem> GetCollisionSystem() const { return collision_system; }
 
     /// Turn on this feature to let the system put to sleep the bodies whose
     /// motion has almost come to a rest. This feature will allow faster simulation
@@ -821,12 +726,11 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// sparse matrix -which is used only for the purpose of this function.
     void GetDampingMatrix(ChSparseMatrix* R);    ///< fill this system damping matrix
 
-    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian 
+    /// Compute the system-level constraint jacobian matrix, i.e. the jacobian
     /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
     /// This function has a small overhead, because it must assembly the
     /// sparse matrix -which is used only for the purpose of this function.
-    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);    ///< fill this system damping matrix
-
+    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
 
     // ---- KINEMATICS
 
@@ -899,16 +803,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     int FileWriteChR(ChStreamOutBinary& m_file);
 
   protected:
-    std::vector<std::shared_ptr<ChProbe> > probelist;  ///< list of 'probes' (variable-recording objects)
-    std::vector<std::shared_ptr<ChControls> >
-        controlslist;  ///< list of 'controls' script objects (objects containing scripting programs)
+    std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
+    std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
 
     std::shared_ptr<ChContactContainerBase> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
 
-    double end_time;  ///< end of simulation, in seconds
-    double step;      ///< time step, in seconds
+    double end_time;  ///< end of simulation
+    double step;      ///< time step
     double step_min;  ///< min time step
     double step_max;  ///< max time step
 
@@ -919,21 +822,18 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 
-    eCh_integrationType integration_type;  ///< integration scheme
-
-    ChSystemDescriptor* descriptor;  ///< the system descriptor
-    ChSolver* solver_speed;          ///< the solver for speed problem
-    ChSolver* solver_stab;           ///< the solver for position (stabilization) problem, if any
-    eCh_solverType solver_type;      ///< Type of solver (iterative= fastest, but may fail satisfying constraints)
+    std::shared_ptr<ChSystemDescriptor> descriptor;  ///< the system descriptor
+    std::shared_ptr<ChSolver> solver_speed;          ///< the solver for speed problem
+    std::shared_ptr<ChSolver> solver_stab;           ///< the solver for position (stabilization) problem, if any
 
     int max_iter_solver_speed;  ///< maximum num iterations for the iterative solver
     int max_iter_solver_stab;   ///< maximum num iterations for the iterative solver for constraint stabilization
     int max_steps_simplex;      ///< maximum number of steps for the simplex solver.
 
     double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
-    double max_penetration_recovery_speed;  ///< this limits the speed of penetration recovery (>0, speed of exiting)
+    double max_penetration_recovery_speed;  ///< limit for the speed of penetration recovery (positive, speed of exiting)
 
-    int parallel_thread_number;  ///< used for multithreaded solver etc.
+    int parallel_thread_number;  ///< used for multithreaded solver
 
     size_t stepcount;  ///< internal counter for steps
 
@@ -944,29 +844,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    collision::ChCollisionSystem* collision_system;  ///< collision engine, to compute and store contact manifolds
+    std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
 
     std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
 
-  public:
-    ChCustomCollisionPointCallback* collisionpoint_callback;
-
-  private:
-    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics (see CHSYS_ERR_xxxx code)
-
-    ChEvents* events;  ///< the cyclic buffer which records event IDs
-
-    ChScriptEngine* scriptEngine;  ///< points to a script engine
-    ChScript* scriptForStart;      ///< this script is executed when simulation starts.
-    std::string scriptForStartFile;
-    ChScript* scriptForUpdate;  ///< this script is executed for each Update step.
-    std::string scriptForUpdateFile;
-    ChScript* scriptForStep;  ///< this script is executed for each integration step
-    std::string scriptForStepFile;
-    ChScript* scriptFor3DStep;  ///< this script is executed for each 3d interface macro step
-    std::string scriptFor3DStepFile;
-
-  protected:
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step
     ChTimer<double> timer_solver;            ///< timer for solver (excluding setup phase)
@@ -976,6 +857,12 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ChTimer<double> timer_update;            ///< timer for system update
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
+
+  public:
+    ChCustomCollisionPointCallback* collisionpoint_callback;
+
+  private:
+    bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 };
 
 }  // end namespace chrono

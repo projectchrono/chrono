@@ -66,9 +66,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     CH_FACTORY_TAG(ChBody)
 
   protected:
-    collision::ChCollisionModel* collision_model;  ///< Pointer to the collision model
+    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< Pointer to the collision model
 
-  protected:
     int bflag;             ///< body-specific flags.
     unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
 
@@ -109,7 +108,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     /// Build a rigid body with a different collision model.
-    ChBody(collision::ChCollisionModel* new_collision_model,
+    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
            ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     ChBody(const ChBody& other);
@@ -298,20 +297,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
-    /// Instantiate the collision model
-    virtual collision::ChCollisionModel* InstanceCollisionModel();
-
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration();
 
     /// Change the collision model.
-    void ChangeCollisionModel(collision::ChCollisionModel* new_collision_model);
+    void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
 
     /// Acess the collision model for the collision engine.
     /// To get a non-null pointer, remember to SetCollide(true), before.
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
 
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels();
@@ -817,6 +813,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    /// Instantiate the collision model
+    virtual std::shared_ptr<collision::ChCollisionModel> InstanceCollisionModel();
 };
 
 const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space

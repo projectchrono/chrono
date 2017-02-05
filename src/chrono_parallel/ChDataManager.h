@@ -410,7 +410,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     host_container host_data;
     shape_container shape_data;
     // This pointer is used by the bilarerals for computing the jacobian and other terms
-    ChSystemDescriptor* system_descriptor;
+    std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
     Ch3DOFContainer* node_container;
     Ch3DOFContainer* fea_container;

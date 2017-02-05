@@ -177,16 +177,13 @@ int main(int argc, char* argv[]) {
     // Configure the solver with non-default settings
     //
 
-    // By default, the solver uses the INT_ANITESCU stepper, that is very
-    // fast, but may allow some geometric error in constraints (because it is
-    // based on constraint stabilization). Alternatively, the timestepper
-    // INT_EULER_IMPLICIT_LINEARIZED (formerly INT_TASORA)
-    // is less fast, but it is based on constraint projection, so
-    // gaps in constraints are less noticeable (hence avoids the 'spongy'
-    // behaviour of the default INT_ANITESCU solver, which operates only
-    // on speed-impulse level and keeps constraints'closed' by a continuous
-    // stabilization)
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    // By default, the solver uses the EULER_IMPLICIT_LINEARIZED stepper, that is very fast,
+    // but may allow some geometric error in constraints (because it is based on constraint
+    // stabilization). Alternatively, the timestepper EULER_IMPLICIT_PROJECTED is slower,
+    // but it is based on constraint projection, so gaps in constraints are less noticeable
+    // (hence avoids the 'spongy' behaviour of the default stepper, which operates only
+    // on speed-impulse level and keeps constraints'closed' by a continuous stabilization).
+    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

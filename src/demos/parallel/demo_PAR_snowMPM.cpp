@@ -67,7 +67,7 @@ void AddBody(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(100);
@@ -99,7 +99,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.solver_mode = SLIDING;
+    msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystem.GetSettings()->solver.max_iteration_normal = 0;
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
@@ -268,15 +268,15 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
     msystem.GetSettings()->solver.cache_step_length = true;
-    msystem.ChangeSolverType(BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    msystem.ChangeSolverType(SolverType::BB);
+    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
     AddFluid(&msystem);
 
     msystem.GetSettings()->collision.collision_envelope = (mpm_container->kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    msystem.SetLoggingLevel(LOG_TRACE, true);
-    msystem.SetLoggingLevel(LOG_INFO, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
 

@@ -220,7 +220,7 @@ ISceneNode* addChBodySceneNode_easyClone(ChSystem* asystem,
     rigidBodyZ->setScale(source->getScale());
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel());
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel().get());
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 

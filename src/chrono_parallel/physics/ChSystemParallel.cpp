@@ -28,11 +28,11 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
     data_manager = new ChParallelDataManager();
 
-    descriptor = new ChSystemDescriptorParallel(data_manager);
+    descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
-    collision_system = new ChCollisionSystemParallel(data_manager);
+    collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
 
-    collision_system_type = COLLSYS_PARALLEL;
+    collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;
     counter = 0;
     timer_accumulator.resize(10, 0);
     cd_accumulator.resize(10, 0);
@@ -99,7 +99,7 @@ bool ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("solver");
-    ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
 
     data_manager->system_timer.start("update");
@@ -479,7 +479,7 @@ void ChSystemParallel::UpdateLinks() {
         linklist[i]->InjectConstraints(*descriptor);
 
         for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
-            data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+            data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
 
@@ -488,26 +488,26 @@ void ChSystemParallel::UpdateLinks() {
 // specified physics item. Return UNKNOWN if the item has no associated
 // bilateral constraints or if it is unsupported.
 //
-BILATERALTYPE GetBilateralType(ChPhysicsItem* item) {
+BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (item->GetDOC_c() == 0)
-        return UNKNOWN;
+        return BilateralType::UNKNOWN;
 
     if (dynamic_cast<ChShaftsCouple*>(item))
-        return SHAFT_SHAFT;
+        return BilateralType::SHAFT_SHAFT;
 
     if (dynamic_cast<ChShaftsPlanetary*>(item))
-        return SHAFT_SHAFT_SHAFT;
+        return BilateralType::SHAFT_SHAFT_SHAFT;
 
     if (dynamic_cast<ChShaftsGearbox*>(item) || dynamic_cast<ChShaftsGearboxAngled*>(item))
-        return SHAFT_SHAFT_BODY;
+        return BilateralType::SHAFT_SHAFT_BODY;
 
     if (dynamic_cast<ChShaftsBody*>(item))
-        return SHAFT_BODY;
+        return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?
     assert(item->GetDOC_c() == 0);
 
-    return UNKNOWN;
+    return BilateralType::UNKNOWN;
 }
 
 //
@@ -535,9 +535,9 @@ void ChSystemParallel::UpdateOtherPhysics() {
         otherphysicslist[i]->VariablesFbLoadForces(GetStep());
         otherphysicslist[i]->VariablesQbLoadSpeed();
 
-        BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get());
+        BilateralType type = GetBilateralType(otherphysicslist[i].get());
 
-        if (type == UNKNOWN)
+        if (type == BilateralType::UNKNOWN)
             continue;
 
         otherphysicslist[i]->InjectConstraints(*descriptor);
@@ -559,19 +559,19 @@ void ChSystemParallel::UpdateBilaterals() {
         if (mconstraints[ic]->IsActive()) {
             data_manager->host_data.bilateral_mapping.push_back(ic);
             switch (data_manager->host_data.bilateral_type[ic]) {
-                case BODY_BODY:
+                case BilateralType::BODY_BODY:
                     data_manager->nnz_bilaterals += 12;
                     break;
-                case SHAFT_SHAFT:
+                case BilateralType::SHAFT_SHAFT:
                     data_manager->nnz_bilaterals += 2;
                     break;
-                case SHAFT_SHAFT_SHAFT:
+                case BilateralType::SHAFT_SHAFT_SHAFT:
                     data_manager->nnz_bilaterals += 3;
                     break;
-                case SHAFT_BODY:
+                case BilateralType::SHAFT_BODY:
                     data_manager->nnz_bilaterals += 7;
                     break;
-                case SHAFT_SHAFT_BODY:
+                case BilateralType::SHAFT_SHAFT_BODY:
                     data_manager->nnz_bilaterals += 8;
                     break;
             }
@@ -659,42 +659,40 @@ void ChSystemParallel::RecomputeThreads() {
 #endif
 }
 
-void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
+void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
     assert(GetNbodies() == 0);
-
-    delete collision_system;
 
     collision_system_type = type;
 
     switch (type) {
-        case COLLSYS_PARALLEL:
-            collision_system = new ChCollisionSystemParallel(data_manager);
+        case CollisionSystemType::COLLSYS_PARALLEL:
+            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
-        case COLLSYS_BULLET_PARALLEL:
-            collision_system = new ChCollisionSystemBulletParallel(data_manager);
+        case CollisionSystemType::COLLSYS_BULLET_PARALLEL:
+            collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
             break;
     }
 }
 
-void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
+void ChSystemParallel::SetLoggingLevel(LoggingLevel level, bool state) {
 #ifdef LOGGINGENABLED
 
     std::string value = state ? "true" : "false";
 
     switch (level) {
-        case LOG_NONE:
+        case LoggingLevel::LOG_NONE:
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
             break;
-        case LOG_INFO:
+        case LoggingLevel::LOG_INFO:
             el::Loggers::reconfigureAllLoggers(el::Level::Info, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_TRACE:
+        case LoggingLevel::LOG_TRACE:
             el::Loggers::reconfigureAllLoggers(el::Level::Trace, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_WARNING:
+        case LoggingLevel::LOG_WARNING:
             el::Loggers::reconfigureAllLoggers(el::Level::Warning, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_ERROR:
+        case LoggingLevel::LOG_ERROR:
             el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
             break;
     }

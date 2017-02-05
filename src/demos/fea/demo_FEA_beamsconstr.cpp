@@ -275,35 +275,30 @@ int main(int argc, char* argv[]) {
 
         //***TEST***
         /*
-        my_system.SetSolverType(
-            ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-        my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+        my_system.SetSolverType(ChSolver::MINRES);
+        my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);
         my_system.SetTolForce(1e-20);
-        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
         msolver->SetVerbose(true);
         msolver->SetDiagonalPreconditioning(false);
         */
 
         //***TEST***
         /*ChMatlabEngine matlab_engine;
-        ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
-        ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-        my_system.ChangeSolverStab(matlab_solver_stab);
-        my_system.ChangeSolverSpeed(matlab_solver_speed);*/
+        auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+        my_system.SetSolver(matlab_solver);*/
 		
 		//***TEST***
-        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-		my_system.ChangeSolverStab(mkl_solver_stab);
-		my_system.ChangeSolverSpeed(mkl_solver_speed);
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+		my_system.SetSolver(mkl_solver);
 
         application.SetTimestep(0.0005);
         application.SetVideoframeSaveInterval(10);
         
         // Use the following for less numerical damping, 2nd order accuracy (but slower)
-        //my_system.SetIntegrationType(ChSystem::INT_HHT);
+        //my_system.SetTimestepperType(ChTimestepper::HHT);
         if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())){
             mystepper->SetVerbose(true);
             mystepper->SetStepControl(false);
@@ -486,28 +481,23 @@ int main(int argc, char* argv[]) {
 
         //***TEST*** 
         /*
-        my_system.SetSolverType(
-            ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-        my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+        my_system.SetSolverType(ChSolver::MINRES);
+        my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);
         my_system.SetTolForce(1e-12);
-        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
         msolver->SetDiagonalPreconditioning(true);
         */
 
         ////***TEST***
         //ChMatlabEngine matlab_engine;
-        //ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
-        //ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-        //my_system.ChangeSolverStab(matlab_solver_stab);
-        //my_system.ChangeSolverSpeed(matlab_solver_speed);
+        //auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+        //my_system.SetSolver(matlab_solver);
 		
 		//***TEST***
-        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-		my_system.ChangeSolverStab(mkl_solver_stab);
-		my_system.ChangeSolverSpeed(mkl_solver_speed);
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+		my_system.SetSolver(mkl_solver);
 
         application.SetTimestep(0.001);
         application.SetVideoframeSaveInterval(10);
