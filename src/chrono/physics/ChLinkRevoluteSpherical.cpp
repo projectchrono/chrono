@@ -145,7 +145,7 @@ ChCoordsys<> ChLinkRevoluteSpherical::GetLinkRelativeCoords() {
 // -----------------------------------------------------------------------------
 void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
     // Inherit time changes of parent class (ChLink)
-    ChLink::UpdateTime(time);
+    ChLink::Update(time, update_assets);
 
     // Express the body locations and direction in absolute frame
     ChVector<> pos1_abs = Body1->TransformPointLocalToParent(m_pos1);

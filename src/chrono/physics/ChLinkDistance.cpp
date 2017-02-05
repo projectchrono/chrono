@@ -84,7 +84,7 @@ ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
 
 void ChLinkDistance::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::UpdateTime(mytime);
+    ChLink::Update(mytime, update_assets);
 
     // compute jacobians
     ChVector<> AbsDist = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
