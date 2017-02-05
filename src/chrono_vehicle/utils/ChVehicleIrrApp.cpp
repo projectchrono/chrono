@@ -106,7 +106,6 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_HUD_x(700),
       m_HUD_y(20),
       m_renderGrid(false),
-      m_renderLinks(true),
       m_renderStats(true),
       m_gridHeight(0.02),
       m_steering(0),
@@ -251,27 +250,11 @@ void ChVehicleIrrApp::DrawAll() {
 
     ChIrrAppInterface::DrawAll();
 
-    if (m_renderLinks)
-        renderLinks();
     if (m_renderStats)
         renderStats();
 
     // Allow derived classes to render additional graphical elements
     renderOtherGraphics();
-}
-
-// Render specialized joints in the vehicle model.
-void ChVehicleIrrApp::renderLinks() {
-    auto ilink = GetSystem()->Get_linklist()->begin();
-    for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                              video::SColor(255, 0, 20, 0), true);
-        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
-                                              video::SColor(255, 180, 0, 0), true);
-        }
-    }
 }
 
 // Render a horizontal grid.

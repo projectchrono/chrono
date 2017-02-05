@@ -173,6 +173,36 @@ void ChDoubleWishboneReduced::AddVisualizationAssets(VisualizationType vis) {
     // Add visualization for the spring-dampers
     m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
     m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    // Add visualization for the arm and tie-rod distance constraints
+    ChColor col_tierod(0.8f, 0.3f, 0.3f);
+    ChColor col_upperarm(0.1f, 0.4f, 0.1f);
+    ChColor col_lowerarm(0.1f, 0.1f, 0.4f);
+
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_tierod));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_tierod));
+
+    m_distUCA_F[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distUCA_F[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distUCA_F[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_F[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+
+    m_distUCA_B[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distUCA_B[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distUCA_B[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+    m_distUCA_B[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_upperarm));
+
+    m_distLCA_F[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distLCA_F[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distLCA_F[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_F[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
+
+    m_distLCA_B[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distLCA_B[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distLCA_B[LEFT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
+    m_distLCA_B[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(col_lowerarm));
 }
 
 void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
@@ -183,6 +213,19 @@ void ChDoubleWishboneReduced::RemoveVisualizationAssets() {
 
     m_shock[LEFT]->GetAssets().clear();
     m_shock[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
+
+    m_distUCA_F[LEFT]->GetAssets().clear();
+    m_distUCA_F[RIGHT]->GetAssets().clear();
+    m_distUCA_B[LEFT]->GetAssets().clear();
+    m_distUCA_B[RIGHT]->GetAssets().clear();
+
+    m_distLCA_F[LEFT]->GetAssets().clear();
+    m_distLCA_F[RIGHT]->GetAssets().clear();
+    m_distLCA_B[LEFT]->GetAssets().clear();
+    m_distLCA_B[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

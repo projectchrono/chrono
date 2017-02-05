@@ -346,6 +346,12 @@ void ChDoubleWishbone::AddVisualizationAssets(VisualizationType vis) {
 
     m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+
+    // Add visualization for the tie-rods
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 void ChDoubleWishbone::RemoveVisualizationAssets() {
@@ -365,6 +371,9 @@ void ChDoubleWishbone::RemoveVisualizationAssets() {
 
     m_shock[LEFT]->GetAssets().clear();
     m_shock[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------
