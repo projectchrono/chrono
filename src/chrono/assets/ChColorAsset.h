@@ -29,6 +29,7 @@ class ChApi ChColorAsset : public ChAsset {
 
   public:
     ChColorAsset() : fading(0) {}
+    ChColorAsset(const ChColor& c) : color(c), fading(0) {}
     ChColorAsset(float mR, float mG, float mB, float mA = 0) : color(mR, mG, mB, mA), fading(0) {}
 
     /// Get/Set the color of the surface. This information could be used by
