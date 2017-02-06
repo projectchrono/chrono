@@ -76,7 +76,7 @@ class ChApi ChLinkLock : public ChLinkMasked {
     ChLinkLimit* limit_D;   ///< the polar (conical) limit for "shoulder"rotation
 
     /// Type of link-lock
-    enum LinkType {
+    enum class LinkType {
         LOCK,
         SPHERICAL,
         POINTPLANE,

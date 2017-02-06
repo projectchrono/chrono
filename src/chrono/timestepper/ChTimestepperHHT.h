@@ -73,7 +73,7 @@ class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIte
   public:
     ChTimestepperHHT(ChIntegrableIIorder* mintegrable = nullptr);
 
-    virtual Type GetType() const override { return HHT; }
+    virtual Type GetType() const override { return Type::HHT; }
 
     /// Set the numerical damping parameter.
     /// It must be in the [-1/3, 0] interval. The closer to -1/3, the more damping.

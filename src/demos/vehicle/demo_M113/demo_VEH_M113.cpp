@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
         mkl_solver->SetSparsityPatternLock(true);
         vehicle.GetSystem()->SetSolver(mkl_solver);
 
-        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::HHT);
+        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         integrator->SetVerbose(true);
 #endif
     } else {
-        ////vehicle.GetSystem()->SetSolverType(ChSolver::MINRES);
+        ////vehicle.GetSystem()->SetSolverType(ChSolver::Type::MINRES);
         vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
         vehicle.GetSystem()->SetMaxItersSolverStab(50);
         ////vehicle.GetSystem()->SetTol(0);

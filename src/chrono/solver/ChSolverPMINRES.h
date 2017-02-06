@@ -55,7 +55,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
 
     virtual ~ChSolverPMINRES() {}
 
-    virtual Type GetType() const override { return PMINRES; }
+    virtual Type GetType() const override { return Type::PMINRES; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

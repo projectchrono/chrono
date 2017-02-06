@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
         my_system.Set_G_acc(ChVector<>(0, 0, 0));
         my_system.SetMaxItersSolverSpeed(20);
-        my_system.SetSolverType(ChSolver::BARZILAIBORWEIN);
+        my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
         // 2) Add a socket framework object
         ChSocketFramework socket_tools;

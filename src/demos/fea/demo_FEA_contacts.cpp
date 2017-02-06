@@ -323,11 +323,11 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(ChSolver::MINRES);     
+    my_system.SetSolverType(ChSolver::Type::MINRES);     
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
-    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  
 
     application.SetTimestep(0.001);
 

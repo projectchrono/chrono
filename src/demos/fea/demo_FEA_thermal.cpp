@@ -172,10 +172,10 @@ int main(int argc, char* argv[]) {
 
     // Use MINRES solver because other solvers cannot handle stiffness matrices.
     // For improved convergence, use warm starting.
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(false);
     my_system.SetMaxItersSolverSpeed(160);
-    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // Note: if you are interested only in a single LINEAR STATIC solution
     // (not a transient thermal solution, but rather the steady-state solution),

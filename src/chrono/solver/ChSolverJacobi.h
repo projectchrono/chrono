@@ -49,7 +49,7 @@ class ChApi ChSolverJacobi : public ChIterativeSolver {
 
     virtual ~ChSolverJacobi() {}
 
-    virtual Type GetType() const override { return JACOBI; }
+    virtual Type GetType() const override { return Type::JACOBI; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

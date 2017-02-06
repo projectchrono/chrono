@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.001);
 
-    system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

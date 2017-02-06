@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
 	// 
 	// THE SOFT-REAL-TIME CYCLE
     //
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(460);
     my_system.SetMaxItersSolverStab(460);
@@ -275,7 +275,7 @@ int main(int argc, char* argv[])
 
 	
 	// Change type of integrator: 
-	my_system.SetTimestepperType(chrono::ChTimestepper::HHT); 
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT); 
 	
 	// if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
@@ -286,7 +286,7 @@ int main(int argc, char* argv[])
         mystepper->SetStepControl(false);
 	}
 
-	my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED); 
+	my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED); 
 
 	application.SetTimestep(0.001);
 

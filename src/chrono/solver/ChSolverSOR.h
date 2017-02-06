@@ -47,7 +47,7 @@ class ChApi ChSolverSOR : public ChIterativeSolver {
 
     virtual ~ChSolverSOR() {}
 
-    virtual Type GetType() const override { return SOR; }
+    virtual Type GetType() const override { return Type::SOR; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

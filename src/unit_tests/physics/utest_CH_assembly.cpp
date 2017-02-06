@@ -42,10 +42,10 @@ int main(int argc, char* argv[]) {
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
     // Integrator settings
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetMaxItersSolverStab(100);
-    my_system.SetSolverType(ChSolver::SOR);
+    my_system.SetSolverType(ChSolver::Type::SOR);
     my_system.SetTol(1e-6);
     my_system.SetTolForce(1e-4);
 

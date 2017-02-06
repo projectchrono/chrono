@@ -45,7 +45,7 @@ class ChApi ChSolverPCG : public ChIterativeSolver {
 
     virtual ~ChSolverPCG() {}
 
-    virtual Type GetType() const override { return PCG; }
+    virtual Type GetType() const override { return Type::PCG; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

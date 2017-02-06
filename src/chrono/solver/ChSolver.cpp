@@ -21,17 +21,17 @@ namespace chrono {
 class my_enum_mappers : public ChSolver {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
-    CH_ENUM_VAL(SOR);
-    CH_ENUM_VAL(SYMMSOR);
-    CH_ENUM_VAL(JACOBI);
-    CH_ENUM_VAL(SOR_MULTITHREAD);
-    CH_ENUM_VAL(PMINRES);
-    CH_ENUM_VAL(BARZILAIBORWEIN);
-    CH_ENUM_VAL(PCG);
-    CH_ENUM_VAL(APGD);
-    CH_ENUM_VAL(MINRES);
-    CH_ENUM_VAL(SOLVER_DEM);
-    CH_ENUM_VAL(CUSTOM);
+    CH_ENUM_VAL(Type::SOR);
+    CH_ENUM_VAL(Type::SYMMSOR);
+    CH_ENUM_VAL(Type::JACOBI);
+    CH_ENUM_VAL(Type::SOR_MULTITHREAD);
+    CH_ENUM_VAL(Type::PMINRES);
+    CH_ENUM_VAL(Type::BARZILAIBORWEIN);
+    CH_ENUM_VAL(Type::PCG);
+    CH_ENUM_VAL(Type::APGD);
+    CH_ENUM_VAL(Type::MINRES);
+    CH_ENUM_VAL(Type::SOLVER_DEM);
+    CH_ENUM_VAL(Type::CUSTOM);
     CH_ENUM_MAPPER_END(Type);
 };
 

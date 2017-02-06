@@ -239,13 +239,13 @@ int main(int argc, char* argv[]) {
   // Change solver to embedded MINRES
   // NOTE! it is strongly advised that you compile the optional MKL module
   // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-  my_system.SetSolverType(ChSolver::MINRES);
+  my_system.SetSolverType(ChSolver::Type::MINRES);
   my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
   my_system.SetMaxItersSolverSpeed(40);
   my_system.SetTolForce(1e-10);
 
   // Change type of integrator:
-  my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+  my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 #ifndef CHRONO_OPENGL
   application.SetTimestep(time_step);

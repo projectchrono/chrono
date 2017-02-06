@@ -313,7 +313,7 @@ int main(int argc, char* argv[]) {
     AddConstraints(my_system);
 
     // Set up linear solver
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(2000);
     my_system.SetMaxItersSolverStab(2000);
@@ -323,7 +323,7 @@ int main(int argc, char* argv[]) {
     msolver->SetDiagonalPreconditioning(true);
 
     // Set up integrator
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(1000);

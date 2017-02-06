@@ -407,7 +407,7 @@ void test_1() {
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetMaxItersSolverStab(100);

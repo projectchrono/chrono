@@ -480,7 +480,7 @@ int main(int argc, char* argv[]) {
     my_system.SetSolver(mkl_solver);
 
     /*
-    my_system.SetSolverType(ChSolver::MINRES); // <- NEEDED THIS or Matlab or MKL solver
+    my_system.SetSolverType(ChSolver::Type::MINRES); // <- NEEDED THIS or Matlab or MKL solver
 	my_system.SetSolverWarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetMaxItersSolverSpeed(200);
 	my_system.SetMaxItersSolverStab(200);
@@ -491,8 +491,8 @@ int main(int argc, char* argv[]) {
     */
 
     // Change type of integrator:
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT); 
-    //my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT); 
+    //my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     //my_system.SetTimestepperType(ChTimestepper::NEWMARK);
 
     if (auto mint =  std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {

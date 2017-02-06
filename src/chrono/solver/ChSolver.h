@@ -47,7 +47,7 @@ class ChApi ChSolver {
 
   public:
       /// Available types of solvers.
-      enum Type {
+      enum class Type {
           SOR = 0,
           SYMMSOR,
           JACOBI,
@@ -67,7 +67,7 @@ class ChApi ChSolver {
 
     /// Return type of the solver.
     /// Default is CUSTOM. Derived classes should override this function.
-    virtual Type GetType() const { return CUSTOM; }
+    virtual Type GetType() const { return Type::CUSTOM; }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, direct solvers only need the matrix for the Setup() phase. However,

@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
         my_system.SetSolver(mkl_solver);
 #endif
     } else {
-        my_system.SetSolverType(ChSolver::MINRES);
+        my_system.SetSolverType(ChSolver::Type::MINRES);
         auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
         msolver->SetDiagonalPreconditioning(true);
         my_system.SetSolverWarmStarting(true);
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);

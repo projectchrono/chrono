@@ -186,14 +186,14 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     // Set up integrator
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(100);

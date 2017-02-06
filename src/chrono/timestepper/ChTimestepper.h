@@ -37,7 +37,7 @@ class ChApi ChTimestepper {
 
   public:
       /// Available methods for time integration (time steppers).
-      enum Type {
+      enum class Type {
           EULER_IMPLICIT_LINEARIZED = 0,
           EULER_IMPLICIT_PROJECTED = 1,
           EULER_IMPLICIT = 2,
@@ -67,7 +67,7 @@ class ChApi ChTimestepper {
 
     /// Return type of the integration method.
     /// Default is CUSTOM. Derived classes should override this function.
-    virtual Type GetType() const { return CUSTOM; }
+    virtual Type GetType() const { return Type::CUSTOM; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -309,7 +309,7 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
     /// Constructors (default empty)
     ChTimestepperEulerExplIIorder(ChIntegrableIIorder* mintegrable = nullptr) : ChTimestepperIIorder(mintegrable) {}
 
-    virtual Type GetType() const override { return EULER_EXPLICIT; }
+    virtual Type GetType() const override { return Type::EULER_EXPLICIT; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -350,7 +350,7 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
     /// Constructors (default empty)
     ChTimestepperRungeKuttaExpl(ChIntegrable* mintegrable = nullptr) : ChTimestepperIorder(mintegrable) {}
 
-    virtual Type GetType() const override { return RUNGEKUTTA45; }
+    virtual Type GetType() const override { return Type::RUNGEKUTTA45; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -371,7 +371,7 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
     /// Constructors (default empty)
     ChTimestepperHeun(ChIntegrable* mintegrable = nullptr) : ChTimestepperIorder(mintegrable) {}
 
-    virtual Type GetType() const override { return HEUN; }
+    virtual Type GetType() const override { return Type::HEUN; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -393,7 +393,7 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
     /// Constructors (default empty)
     ChTimestepperLeapfrog(ChIntegrableIIorder* mintegrable = nullptr) : ChTimestepperIIorder(mintegrable) {}
 
-    virtual Type GetType() const override { return LEAPFROG; }
+    virtual Type GetType() const override { return Type::LEAPFROG; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -418,7 +418,7 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
     ChTimestepperEulerImplicit(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
 
-    virtual Type GetType() const override { return EULER_IMPLICIT; }
+    virtual Type GetType() const override { return Type::EULER_IMPLICIT; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -445,7 +445,7 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
     ChTimestepperEulerImplicitLinearized(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper() {}
 
-    virtual Type GetType() const override { return EULER_IMPLICIT_LINEARIZED; }
+    virtual Type GetType() const override { return Type::EULER_IMPLICIT_LINEARIZED; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -472,7 +472,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
     ChTimestepperEulerImplicitProjected(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitTimestepper() {}
 
-    virtual Type GetType() const override { return EULER_IMPLICIT_PROJECTED; }
+    virtual Type GetType() const override { return Type::EULER_IMPLICIT_PROJECTED; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -501,7 +501,7 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
     ChTimestepperTrapezoidal(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
 
-    virtual Type GetType() const override { return TRAPEZOIDAL; }
+    virtual Type GetType() const override { return Type::TRAPEZOIDAL; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -527,7 +527,7 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
     ChTimestepperTrapezoidalLinearized(ChIntegrableIIorder* mintegrable = nullptr)
         : ChTimestepperIIorder(mintegrable), ChImplicitIterativeTimestepper() {}
 
-    virtual Type GetType() const override { return TRAPEZOIDAL_LINEARIZED; }
+    virtual Type GetType() const override { return Type::TRAPEZOIDAL_LINEARIZED; }
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
@@ -582,7 +582,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
         SetGammaBeta(0.6, 0.3);  // default values with some damping, and that works also with DAE constraints
     }
 
-    virtual Type GetType() const override { return NEWMARK; }
+    virtual Type GetType() const override { return Type::NEWMARK; }
 
     /// Set the numerical damping parameter gamma and the beta parameter.
     /// Gamma: in the [1/2, 1] interval.
