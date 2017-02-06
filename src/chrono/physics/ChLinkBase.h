@@ -56,7 +56,6 @@ namespace chrono {
 #define LNK_SPRING_CALLBACK 30
 #define LNK_ENGINE 31
 #define LNK_BRAKE 32
-#define LNK_PNEUMATIC 33
 #define LNK_CLEARANCE 34
 #define LNK_FASTCONTACT 35
 #define LNK_GEOMETRICDISTANCE 37
