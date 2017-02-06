@@ -55,9 +55,6 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRotSpringCB* Clone() const override { return new ChLinkRotSpringCB(*this); }
 
-    /// Get the link type.
-    virtual int GetType() const override { return LNK_ROT_SPRING_CALLBACK; }
-
     /// Get the current relative angle about the common rotation axis.
     double Get_RotSpringAngle() const { return relAngle; }
 

@@ -41,9 +41,6 @@ ChLinkEngine::ChLinkEngine()
       torque_react2(0),
       eng_mode(ENG_MODE_ROTATION),
       learn(false) {
-    // initializes type
-    type = LNK_ENGINE;
-
     rot_funct = std::make_shared<ChFunction_Const>(0);
     spe_funct = std::make_shared<ChFunction_Const>(0);
     tor_funct = std::make_shared<ChFunction_Const>(0);

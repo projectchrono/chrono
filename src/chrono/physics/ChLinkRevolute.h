@@ -40,9 +40,6 @@ class ChApi ChLinkRevolute : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRevolute* Clone() const override { return new ChLinkRevolute(*this); }
 
-    /// Get the type of this joint.
-    virtual int GetType() const override { return LNK_REVOLUTE; }
-
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual int GetDOC_c() { return 5; }
 

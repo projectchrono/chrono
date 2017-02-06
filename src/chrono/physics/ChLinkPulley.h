@@ -57,8 +57,6 @@ class ChApi ChLinkPulley : public ChLinkLock {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkPulley* Clone() const override { return new ChLinkPulley(*this); }
 
-    virtual int GetType() const override { return LNK_PULLEY; }
-
     /// Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;
 

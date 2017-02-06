@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkClearance)
 
 ChLinkClearance::ChLinkClearance() {
-    type = LNK_CLEARANCE;  // initializes type
+    type = LinkType::CLEARANCE;
 
     clearance = 0.1;
     c_friction = 0.;

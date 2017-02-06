@@ -20,9 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkScrew)
 
 ChLinkScrew::ChLinkScrew() {
-    // initializes type
-    type = LNK_SCREW;
-
     Set_thread(0.05);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)

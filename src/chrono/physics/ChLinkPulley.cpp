@@ -33,8 +33,6 @@ ChLinkPulley::ChLinkPulley()
       belt_low1(VNULL),
       belt_low2(VNULL) {
     // initializes type
-    type = LNK_PULLEY;
-
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 

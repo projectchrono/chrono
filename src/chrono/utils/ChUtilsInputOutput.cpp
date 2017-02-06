@@ -309,19 +309,30 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 // a visual asset (except for cylinders where that is implicit)!
 // -----------------------------------------------------------------------------
 enum POVRayShapeType {
-    SPHERE,
-    ELLIPSOID,
-    BOX,
-    CYLINDER,
-    CONVEXHULL,
-    TRIANGLEMESH,
-    BARREL,
-    CAPSULE,
-    CONE,
-    ROUNDEDBOX,
-    ROUNDEDCYL,
-    ROUNDEDCONE,
-    BEZIER
+    SPHERE = 0,
+    ELLIPSOID = 1,
+    BOX = 2,
+    CYLINDER = 3,
+    CONVEXHULL = 4,
+    TRIANGLEMESH = 5,
+    BARREL = 6,
+    CAPSULE = 7,
+    CONE = 8,
+    ROUNDEDBOX = 9,
+    ROUNDEDCYL = 10,
+    ROUNDEDCONE = 11,
+    BEZIER = 12
+};
+
+enum POVRayLinkType {
+    REVOLUTE = 0,
+    SPHERICAL = 1,
+    PRISMATIC = 2,
+    UNIVERSAL = 3,
+    DISTANCE = 4,
+    ENGINE = 5,
+    SPRING = 6,
+    SPRING_CB = 7
 };
 
 void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_info, const std::string& delim) {
@@ -434,54 +445,52 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
     int l_count = 0;
     std::vector<std::shared_ptr<ChLink> >::iterator ilink = system->Get_linklist()->begin();
     for (; ilink != system->Get_linklist()->end(); ++ilink) {
-        int type = (*ilink)->GetType();
-
         if (ChLinkLockRevolute* link = dynamic_cast<ChLinkLockRevolute*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << REVOLUTE << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
         } else if (ChLinkLockSpherical* link = dynamic_cast<ChLinkLockSpherical*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << std::endl;
+            csv << SPHERICAL << frA_abs.GetPos() << std::endl;
             l_count++;
         }
         if (ChLinkLockPrismatic* link = dynamic_cast<ChLinkLockPrismatic*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << PRISMATIC << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
         } else if (ChLinkUniversal* link = dynamic_cast<ChLinkUniversal*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = link->GetFrame1Abs();
             chrono::ChFrame<> frB_abs = link->GetFrame2Abs();
 
-            csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
+            csv << UNIVERSAL << frA_abs.GetPos() << frA_abs.GetA().Get_A_Xaxis() << frB_abs.GetA().Get_A_Yaxis()
                 << std::endl;
             l_count++;
         } else if (ChLinkSpring* link = dynamic_cast<ChLinkSpring*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+            csv << SPRING << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
         } else if (ChLinkSpringCB* link = dynamic_cast<ChLinkSpringCB*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
+            csv << SPRING_CB << frA_abs.GetPos() << frB_abs.GetPos() << std::endl;
             l_count++;
         } else if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
-            csv << type << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
+            csv << DISTANCE << link->GetEndPoint1Abs() << link->GetEndPoint2Abs() << std::endl;
             l_count++;
         } else if (ChLinkEngine* link = dynamic_cast<ChLinkEngine*>((*ilink).get())) {
             chrono::ChFrame<> frA_abs = *(link->GetMarker1()) >> *(link->GetBody1());
             chrono::ChFrame<> frB_abs = *(link->GetMarker2()) >> *(link->GetBody2());
 
-            csv << type << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
+            csv << ENGINE << frA_abs.GetPos() << frA_abs.GetA().Get_A_Zaxis() << std::endl;
             l_count++;
         }
     }

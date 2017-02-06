@@ -22,8 +22,6 @@ CH_FACTORY_REGISTER(ChLinkBrake)
 
 ChLinkBrake::ChLinkBrake()
     : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
-    type = LNK_BRAKE;  // initializes type
-
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, false, false, false);

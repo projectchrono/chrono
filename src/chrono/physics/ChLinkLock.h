@@ -29,7 +29,6 @@ namespace chrono {
 /// thank to the ChLinkLimit objects.
 
 class ChApi ChLinkLock : public ChLinkMasked {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLock)
 
@@ -76,7 +75,27 @@ class ChApi ChLinkLock : public ChLinkMasked {
     ChLinkLimit* limit_Rp;  ///< the polar (conical) limit for "shoulder"rotation
     ChLinkLimit* limit_D;   ///< the polar (conical) limit for "shoulder"rotation
 
-    int type;  ///< type of link_lock joint
+    /// Type of link-lock
+    enum LinkType {
+        LOCK,
+        SPHERICAL,
+        POINTPLANE,
+        POINTLINE,
+        CYLINDRICAL,
+        PRISMATIC,
+        PLANEPLANE,
+        OLDHAM,
+        REVOLUTE,
+        FREE,
+        ALIGN,
+        PARALLEL,
+        PERPEND,
+        TRAJECTORY,
+        CLEARANCE,
+        REVOLUTEPRISMATIC
+    };
+
+    LinkType type;  ///< type of link_lock joint
 
   public:
     ChLinkLock();
@@ -85,12 +104,6 @@ class ChApi ChLinkLock : public ChLinkMasked {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
-
-    void BuildLinkType(int link_type);
-
-    void ChangeLinkType(int new_link_type);
-
-    virtual int GetType() const override { return type; }
 
     //
     // UPDATING FUNCTIONS
@@ -267,6 +280,12 @@ class ChApi ChLinkLock : public ChLinkMasked {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    void ChangeLinkType(LinkType new_link_type);
+
+  private:
+    void BuildLinkType(LinkType link_type);
 };
 
 // ---------------------------------------------------------------------------------------
@@ -277,12 +296,11 @@ class ChApi ChLinkLock : public ChLinkMasked {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockRevolute : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockRevolute)
 
   public:
-    ChLinkLockRevolute() { ChangeLinkType(LNK_REVOLUTE); }
+    ChLinkLockRevolute() { ChangeLinkType(LinkType::REVOLUTE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolute* Clone() const override { return new ChLinkLockRevolute(*this); }
@@ -292,12 +310,11 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockLock : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockLock)
 
   public:
-    ChLinkLockLock() { ChangeLinkType(LNK_LOCK); }
+    ChLinkLockLock() { ChangeLinkType(LinkType::LOCK); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockLock* Clone() const override { return new ChLinkLockLock(*this); }
@@ -307,12 +324,11 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockSpherical : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockSpherical)
 
   public:
-    ChLinkLockSpherical() { ChangeLinkType(LNK_SPHERICAL); }
+    ChLinkLockSpherical() { ChangeLinkType(LinkType::SPHERICAL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockSpherical* Clone() const override { return new ChLinkLockSpherical(*this); }
@@ -322,12 +338,11 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockCylindrical)
 
   public:
-    ChLinkLockCylindrical() { ChangeLinkType(LNK_CYLINDRICAL); }
+    ChLinkLockCylindrical() { ChangeLinkType(LinkType::CYLINDRICAL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockCylindrical* Clone() const override { return new ChLinkLockCylindrical(*this); }
@@ -337,12 +352,11 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 /// Default axis along +z
 
 class ChApi ChLinkLockPrismatic : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockPrismatic)
 
   public:
-    ChLinkLockPrismatic() { ChangeLinkType(LNK_PRISMATIC); }
+    ChLinkLockPrismatic() { ChangeLinkType(LinkType::PRISMATIC); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPrismatic* Clone() const override { return new ChLinkLockPrismatic(*this); }
@@ -352,12 +366,11 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockPointPlane)
 
   public:
-    ChLinkLockPointPlane() { ChangeLinkType(LNK_POINTPLANE); }
+    ChLinkLockPointPlane() { ChangeLinkType(LinkType::POINTPLANE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointPlane* Clone() const override { return new ChLinkLockPointPlane(*this); }
@@ -367,12 +380,11 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointLine : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockPointLine)
 
   public:
-    ChLinkLockPointLine() { ChangeLinkType(LNK_POINTLINE); }
+    ChLinkLockPointLine() { ChangeLinkType(LinkType::POINTLINE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointLine* Clone() const override { return new ChLinkLockPointLine(*this); }
@@ -382,12 +394,11 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPlanePlane : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockPlanePlane)
 
   public:
-    ChLinkLockPlanePlane() { ChangeLinkType(LNK_PLANEPLANE); }
+    ChLinkLockPlanePlane() { ChangeLinkType(LinkType::PLANEPLANE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPlanePlane* Clone() const override { return new ChLinkLockPlanePlane(*this); }
@@ -397,12 +408,11 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockOldham : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockOldham)
 
   public:
-    ChLinkLockOldham() { ChangeLinkType(LNK_OLDHAM); }
+    ChLinkLockOldham() { ChangeLinkType(LinkType::OLDHAM); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockOldham* Clone() const override { return new ChLinkLockOldham(*this); }
@@ -412,12 +422,11 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockFree : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockFree)
 
   public:
-    ChLinkLockFree() { ChangeLinkType(LNK_FREE); }
+    ChLinkLockFree() { ChangeLinkType(LinkType::FREE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockFree* Clone() const override { return new ChLinkLockFree(*this); }
@@ -427,12 +436,11 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockAlign : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockAlign)
 
   public:
-    ChLinkLockAlign() { ChangeLinkType(LNK_ALIGN); }
+    ChLinkLockAlign() { ChangeLinkType(LinkType::ALIGN); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockAlign* Clone() const override { return new ChLinkLockAlign(*this); }
@@ -442,12 +450,11 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockParallel : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockParallel)
 
   public:
-    ChLinkLockParallel() { ChangeLinkType(LNK_PARALLEL); }
+    ChLinkLockParallel() { ChangeLinkType(LinkType::PARALLEL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockParallel* Clone() const override { return new ChLinkLockParallel(*this); }
@@ -457,12 +464,11 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 /// (allows a simplier creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPerpend : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockPerpend)
 
   public:
-    ChLinkLockPerpend() { ChangeLinkType(LNK_PERPEND); }
+    ChLinkLockPerpend() { ChangeLinkType(LinkType::PERPEND); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPerpend* Clone() const override { return new ChLinkLockPerpend(*this); }
@@ -471,12 +477,11 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 /// RevolutePrismatic joint , with the 'ChLinkLock' formulation.
 /// Translates along x-dir, rotates about z-axis
 class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkLockRevolutePrismatic)
 
   public:
-    ChLinkLockRevolutePrismatic() { ChangeLinkType(LNK_REVOLUTEPRISMATIC); }
+    ChLinkLockRevolutePrismatic() { ChangeLinkType(LinkType::REVOLUTEPRISMATIC); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolutePrismatic* Clone() const override { return new ChLinkLockRevolutePrismatic(*this); }

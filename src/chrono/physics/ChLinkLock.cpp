@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkLock)
 
 ChLinkLock::ChLinkLock()
-    : type(LNK_SPHERICAL),
+    : type(LinkType::SPHERICAL),
       relC(CSYSNORM),
       relC_dt(CSYSNULL),
       relC_dtdt(CSYSNULL),
@@ -52,15 +52,15 @@ ChLinkLock::ChLinkLock()
     limit_Rp = new ChLinkLimit;  // the polar limit;
     limit_Rp->Set_polar(true);
 
+    // delete the class mask created by base constructor
     if (mask)
-        delete mask;            // delete the class mask created by base constructor, and,
-    mask = new ChLinkMaskLF();  // create the LF-mask (the extended version,for
-                                // lock-formulation)
-                                // instead.
+        delete mask;
+    // create instead the LF-mask (the extended version, for lock-formulation)
+    mask = new ChLinkMaskLF();  
 
-    BuildLinkType(LNK_SPHERICAL);  // default type: spherical link
-                                   // Sets the mask
-                                   // Sets up all the matrices and  n. of DOC and DOF,
+    // default type: spherical link
+    // Sets the mask, all the matrices, and number of DOC and DOF
+    BuildLinkType(LinkType::SPHERICAL);
 }
 
 ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
@@ -138,67 +138,66 @@ ChLinkLock::~ChLinkLock() {
     // DestroyLinkType()
 }
 
-void ChLinkLock::BuildLinkType(int link_type) {
+void ChLinkLock::BuildLinkType(LinkType link_type) {
     type = link_type;
 
     ChLinkMaskLF m_mask;
 
-    // Note that the SetLockMask() sets the costraints for the
-    // link coordinates: (X,Y,Z, E0,E1,E2,E3)
-
-    // default.. free
-    m_mask.SetLockMask(false, false, false, false, false, false, false);
-
-    if (type == LNK_FREE)
-        m_mask.SetLockMask(false, false, false, false, false, false, false);
-
-    if (type == LNK_LOCK)
-        m_mask.SetLockMask(true, true, true, false, true, true, true);
-
-    if (type == LNK_SPHERICAL)
-        m_mask.SetLockMask(true, true, true, false, false, false, false);
-
-    if (type == LNK_POINTPLANE)
-        m_mask.SetLockMask(false, false, true, false, false, false, false);
-
-    if (type == LNK_POINTLINE)
-        m_mask.SetLockMask(false, true, true, false, false, false, false);
-
-    if (type == LNK_REVOLUTE)
-        m_mask.SetLockMask(true, true, true, false, true, true, false);
-
-    if (type == LNK_CYLINDRICAL)
-        m_mask.SetLockMask(true, true, false, false, true, true, false);
-
-    if (type == LNK_PRISMATIC)
-        m_mask.SetLockMask(true, true, false, false, true, true, true);
-
-    if (type == LNK_PLANEPLANE)
-        m_mask.SetLockMask(false, false, true, false, true, true, false);
-
-    if (type == LNK_OLDHAM)
-        m_mask.SetLockMask(false, false, true, false, true, true, true);
-
-    if (type == LNK_ALIGN)
-        m_mask.SetLockMask(false, false, false, false, true, true, true);
-
-    if (type == LNK_PARALLEL)
-        m_mask.SetLockMask(false, false, false, false, true, true, false);
-
-    if (type == LNK_PERPEND)
-        m_mask.SetLockMask(false, false, false, false, true, false, true);
-
-    if (type == LNK_REVOLUTEPRISMATIC)
-        m_mask.SetLockMask(false, true, true, false, true, true, false);
+    // SetLockMask() sets the costraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
+    switch (type) {
+        case LinkType::FREE:
+            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            break;
+        case LinkType::LOCK:
+            m_mask.SetLockMask(true, true, true, false, true, true, true);
+            break;
+        case LinkType::SPHERICAL:
+            m_mask.SetLockMask(true, true, true, false, false, false, false);
+            break;
+        case LinkType::POINTPLANE:
+            m_mask.SetLockMask(false, false, true, false, false, false, false);
+            break;
+        case LinkType::POINTLINE:
+            m_mask.SetLockMask(false, true, true, false, false, false, false);
+            break;
+        case LinkType::REVOLUTE:
+            m_mask.SetLockMask(true, true, true, false, true, true, false);
+            break;
+        case LinkType::CYLINDRICAL:
+            m_mask.SetLockMask(true, true, false, false, true, true, false);
+            break;
+        case LinkType::PRISMATIC:
+            m_mask.SetLockMask(true, true, false, false, true, true, true);
+            break;
+        case LinkType::PLANEPLANE:
+            m_mask.SetLockMask(false, false, true, false, true, true, false);
+            break;
+        case LinkType::OLDHAM:
+            m_mask.SetLockMask(false, false, true, false, true, true, true);
+            break;
+        case LinkType::ALIGN:
+            m_mask.SetLockMask(false, false, false, false, true, true, true);
+        case LinkType::PARALLEL:
+            m_mask.SetLockMask(false, false, false, false, true, true, false);
+            break;
+        case LinkType::PERPEND:
+            m_mask.SetLockMask(false, false, false, false, true, false, true);
+            break;
+        case LinkType::REVOLUTEPRISMATIC:
+            m_mask.SetLockMask(false, true, true, false, true, true, false);
+            break;
+        default:
+            m_mask.SetLockMask(false, false, false, false, false, false, false);
+            break;
+    }
 
     BuildLink(&m_mask);
 }
 
-void ChLinkLock::ChangeLinkType(int new_link_type) {
+void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
     DestroyLink();
     BuildLinkType(new_link_type);
 
-    // Also...
     // reset all motions and limits!
 
     if (motion_X)
@@ -1994,6 +1993,32 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 ///////// FILE I/O
 /////////
 
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers : public ChLinkLock {
+  public:
+    CH_ENUM_MAPPER_BEGIN(LinkType);
+
+    CH_ENUM_VAL(LOCK);
+    CH_ENUM_VAL(SPHERICAL);
+    CH_ENUM_VAL(POINTPLANE);
+    CH_ENUM_VAL(POINTLINE);
+    CH_ENUM_VAL(CYLINDRICAL);
+    CH_ENUM_VAL(PRISMATIC);
+    CH_ENUM_VAL(PLANEPLANE);
+    CH_ENUM_VAL(OLDHAM);
+    CH_ENUM_VAL(REVOLUTE);
+    CH_ENUM_VAL(FREE);
+    CH_ENUM_VAL(ALIGN);
+    CH_ENUM_VAL(PARALLEL);
+    CH_ENUM_VAL(PERPEND);
+    CH_ENUM_VAL(TRAJECTORY);
+    CH_ENUM_VAL(CLEARANCE);
+    CH_ENUM_VAL(REVOLUTEPRISMATIC);
+
+    CH_ENUM_MAPPER_END(LinkType);
+};
+
 void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
@@ -2002,7 +2027,8 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     ChLinkMasked::ArchiveOUT(marchive);
 
     // serialize all member data:
-    marchive << CHNVP(type);
+    my_enum_mappers::LinkType_mapper typemapper;
+    marchive << CHNVP(typemapper(type), "link_type");
     marchive << CHNVP(motion_X);
     marchive << CHNVP(motion_Y);
     marchive << CHNVP(motion_Z);
@@ -2030,10 +2056,10 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     ChLinkMasked::ArchiveIN(marchive);
 
     // deserialize all member data:
-    int ifoo;
-    marchive >> CHNVP(ifoo);
-    ChangeLinkType(ifoo);  // this also setup mask flags and lot of stuff,
-                           // simplifying the serialization
+    my_enum_mappers::LinkType_mapper typemapper;
+    LinkType link_type;
+    marchive >> CHNVP(typemapper(link_type), "link_type");
+    ChangeLinkType(link_type);
     marchive >> CHNVP(motion_X);
     marchive >> CHNVP(motion_Y);
     marchive >> CHNVP(motion_Z);

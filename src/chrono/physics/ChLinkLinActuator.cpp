@@ -29,9 +29,6 @@ ChLinkLinActuator::ChLinkLinActuator()
       mot_rerot(0),
       mot_rerot_dt(0),
       mot_rerot_dtdt(0) {
-    // initializes type
-    type = LNK_LINACTUATOR;
-
     dist_funct = std::make_shared<ChFunction_Const>(0);
     mot_torque = std::make_shared<ChFunction_Recorder>();
     mot_rot = std::make_shared<ChFunction_Recorder>();

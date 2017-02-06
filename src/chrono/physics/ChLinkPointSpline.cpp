@@ -24,8 +24,6 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChLinkPointSpline)
 
 ChLinkPointSpline::ChLinkPointSpline() {
-    type = LNK_POINTSPLINE;  // initializes type
-
     // default trajectory is a segment
     trajectory_line = std::make_shared<ChLineSegment>();
 

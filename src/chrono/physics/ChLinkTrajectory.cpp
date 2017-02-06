@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChLinkTrajectory)
 
 ChLinkTrajectory::ChLinkTrajectory() : modulo_s(false) {
     // initializes type
-    type = LNK_TRAJECTORY;
+    type = LinkType::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
     space_fx = std::make_shared<ChFunction_Ramp>(0, 1.);

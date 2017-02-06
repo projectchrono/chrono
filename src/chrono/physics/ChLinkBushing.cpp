@@ -28,7 +28,7 @@ CH_FACTORY_REGISTER(ChLinkBushing)
 
 ChLinkBushing::ChLinkBushing(bushing_joint bushing_joint_type) {
     m_bushing_joint = bushing_joint_type;
-    ChangeLinkType(LNK_FREE);  // Our bushing element will be a free joint
+    ChangeLinkType(LinkType::FREE);  // Our bushing element will be a free joint
 }
 
 ChLinkBushing::~ChLinkBushing() {}

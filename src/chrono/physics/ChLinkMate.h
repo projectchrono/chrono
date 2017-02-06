@@ -46,8 +46,6 @@ class ChApi ChLinkMate : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMate* Clone() const override { return new ChLinkMate(*this); }
 
-    virtual int GetType() const override { return LNK_MATE; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
@@ -96,8 +94,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateGeneric* Clone() const override { return new ChLinkMateGeneric(*this); }
-
-    virtual int GetType() const override { return LNK_MATEGENERIC; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
@@ -248,8 +244,6 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMatePlane* Clone() const override { return new ChLinkMatePlane(*this); }
 
-    virtual int GetType() const override { return LNK_MATEPLANE; }
-
     /// Tell if the two normals must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
     bool IsFlipped() { return flipped; }
@@ -304,8 +298,6 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateCoaxial* Clone() const override { return new ChLinkMateCoaxial(*this); }
 
-    virtual int GetType() const override { return LNK_MATECOAXIAL; }
-
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
     bool IsFlipped() { return flipped; }
@@ -347,8 +339,6 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateSpherical* Clone() const override { return new ChLinkMateSpherical(*this); }
 
-    virtual int GetType() const override { return LNK_MATESPHERICAL; }
-
     /// Specialized initialization for coincident mate, given the two bodies to be connected,
     /// and two points (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -379,8 +369,6 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateXdistance* Clone() const override { return new ChLinkMateXdistance(*this); }
-
-    virtual int GetType() const override { return LNK_MATEXDISTANCE; }
 
     /// Set the distance on X of frame 2
     void SetDistance(double msep) { distance = msep; }
@@ -431,8 +419,6 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateParallel* Clone() const override { return new ChLinkMateParallel(*this); }
 
-    virtual int GetType() const override { return LNK_MATEPARALLEL; }
-
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
     bool IsFlipped() { return flipped; }
@@ -481,8 +467,6 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
 
-    virtual int GetType() const override { return LNK_MATEORTHOGONAL; }
-
     /// Specialized initialization for orthogonal mate, given the two bodies to be connected,
     /// two points and two directions (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -523,8 +507,6 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateFix* Clone() const override { return new ChLinkMateFix(*this); }
-
-    virtual int GetType() const override { return LNK_MATEFIX; }
 
     /// Specialized initialization for "fix" mate, given the two bodies to be connected;
     /// the positions of the two auxiliary frames where the two bodies are connected are

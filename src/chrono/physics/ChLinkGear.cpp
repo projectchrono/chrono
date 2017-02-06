@@ -31,9 +31,6 @@ ChLinkGear::ChLinkGear()
       r1(0),
       r2(0),
       contact_pt(VNULL) {
-    // initializes type
-    type = LNK_GEAR;
-
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 

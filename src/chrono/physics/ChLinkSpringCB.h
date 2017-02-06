@@ -54,8 +54,6 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
 
-    virtual int GetType() const override { return LNK_SPRING_CALLBACK; }
-
     // data fetch/store
     double Get_SpringRestLength() const { return m_rest_length; }
     double Get_SpringDeform() const { return dist - m_rest_length; }

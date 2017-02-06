@@ -66,9 +66,6 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
   public:
-    /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() const override { return LNK_BASE; }
-
     /// Return the 1st referenced marker (the 'slave' marker, owned by 1st body)
     ChMarker* GetMarker1() { return marker1; }
     /// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)

@@ -55,8 +55,6 @@ class ChApi ChLinkGear : public ChLinkLock {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkGear* Clone() const override { return new ChLinkGear(*this); }
 
-    virtual int GetType() const override { return LNK_GEAR; }
-
     // Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;
 
