@@ -142,29 +142,6 @@ class ChCollisionPair {
                              /// manifold in the collision engine
 };
 
-// codes for tri_type  ***OBSOLETE***
-
-#define CH_TRICOLL_SURFACE 0           // surface type, curved and refinable
-#define CH_TRICOLL_SURFACE_TRIANGLE 7  // surface type, basic triangle
-
-#define CH_TRICOLL_EDGE 1          // edge, curved and refinable
-#define CH_TRICOLL_EDGE_LIMITU0 2  // limiting edge on a patch
-#define CH_TRICOLL_EDGE_LIMITU1 3  // limiting edge on a patch
-#define CH_TRICOLL_EDGE_LIMITV0 4  // limiting edge on a patch
-#define CH_TRICOLL_EDGE_LIMITV1 5  // limiting edge on a patch
-#define CH_TRICOLL_EDGE_TRI_A 8    // edge triangle 1-2
-#define CH_TRICOLL_EDGE_TRI_B 9    // edge triangle 2-3
-#define CH_TRICOLL_EDGE_TRI_C 10   // edge triangle 3-1
-
-#define CH_TRICOLL_VERTEX 6         // vertex type (1st of triangle)
-#define CH_TRICOLL_VERTEX_TRI_A 12  // vertex of triangle
-#define CH_TRICOLL_VERTEX_TRI_B 13  // vertex of triangle
-#define CH_TRICOLL_VERTEX_TRI_C 14  // vertex of triangle
-
-#define CH_TRICOLL_TRIANGLE 11  // has vertex, edge, surface
-
-#define CH_TRICOLL_SPHERE 15  // sphere (1st of triangle is center, 2nd.x is rad);
-
 }  // end namespace collision
 }  // end namespace chrono
 
