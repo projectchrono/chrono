@@ -30,8 +30,11 @@ This module consists of *two* main sets of build targets:
 	- you must have [Python](http://www.python.org) installed.
 - To **build** this module:
 	- you must have [Python](http://www.python.org) installed,
-	- you must have the [Swig](http://www.swig.org/) wrapper generator installed.
+	- you must have the [SWIG](http://www.swig.org/) wrapper generator installed.
 
+<div class="ce-warning">
+Some previous SWIG versions have a bug related to processing private and protected C++11 enum classes. This bug has been fixed in recent releases.  Use **SWIG-3.0.12**.
+</div>
 
 ## Building instructions
 
