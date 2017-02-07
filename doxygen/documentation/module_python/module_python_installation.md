@@ -38,8 +38,7 @@ Some previous SWIG versions have a bug related to processing private and protect
 
 ## Building instructions
 
-1. Install SWIG on your system. (If needed, add its directory to your PATH so that swig.exe 
-   can be run from the shell).
+1. Install SWIG on your system. Version 3.0.12 or higher is required. (on Windows, just unzip where you want).
 
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
@@ -51,8 +50,8 @@ Some previous SWIG versions have a bug related to processing private and protect
 
 5. When you pressed 'Configure', CMake should have detected your SWIG tools. This should create two variables in CMake called <tt>SWIG_DIR</tt> and <tt>SWIG_EXECUTABLE</tt>. 
    If all is fine, they should automatically contain meaningful values, 
-   for example <tt>C:/swigwin-2.0.4/Lib</tt> and <tt>C:/swigwin-2.0.4/swig.exe</tt> , 
-   so you do not need to touch them.
+   for example <tt>C:/swigwin-3.0.12/Lib</tt> and <tt>C:/swigwin-3.0.12/swig.exe</tt> , 
+   so you do not need to touch them. (On Windows, you may need to set them by hand).
 
 6. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.
 

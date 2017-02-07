@@ -91,6 +91,7 @@ using namespace chrono::postprocess;
 // tree must be promoted to %shared_ptr too).
 
 %shared_ptr(chrono::ChAsset)
+%shared_ptr(chrono::ChVisualization)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::postprocess::ChPostProcessBase)
 %shared_ptr(chrono::postprocess::ChPovRay)
