@@ -267,7 +267,7 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
     std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set integrator and modify parameters.
-    system->SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Set verbose solver and integrator (for debugging).
     ////system->GetSolver()->SetVerbose(true);
@@ -308,11 +308,11 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ////system->SetMaxItersSolverStab(200);
     ////system->SetTolForce(1e-5);
 
-    ////system->SetSolverType(ChSolver::MINRES);
+    ////system->SetSolverType(ChSolver::Type::MINRES);
     ////auto msolver = std::static_pointer_cast<ChSolverMINRES>(system->GetSolver());
 
     // Set integrator and modify parameters.
-    system->SetTimestepperType(ChTimestepper::HHT);
+    system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(20);

@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
     // but it is based on constraint projection, so gaps in constraints are less noticeable
     // (hence avoids the 'spongy' behaviour of the default stepper, which operates only
     // on speed-impulse level and keeps constraints'closed' by a continuous stabilization).
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

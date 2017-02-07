@@ -205,8 +205,8 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSolver::BARZILAIBORWEIN);
-    // mphysicalSystem.SetSolverType(ChSolver::SOR);
+    mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    // mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
     mphysicalSystem.SetMaxItersSolverSpeed(60);
     mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);

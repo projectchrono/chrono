@@ -237,7 +237,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 
     // Set default solver
     if (init_sys) {
-        SetSolverType(ChSolver::SYMMSOR);
+        SetSolverType(ChSolver::Type::SYMMSOR);
     }
 }
 
@@ -306,7 +306,7 @@ void ChSystem::Clear() {
 
 void ChSystem::SetSolverType(ChSolver::Type type) {
     // Do nothing if changing to a CUSTOM solver.
-    if (type == ChSolver::CUSTOM)
+    if (type == ChSolver::Type::CUSTOM)
         return;
 
     descriptor = std::make_shared<ChSystemDescriptor>();
@@ -316,39 +316,39 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     contact_container->SetSystem(this);
 
     switch (type) {
-        case ChSolver::SOR:
+        case ChSolver::Type::SOR:
             solver_speed = std::make_shared<ChSolverSOR>();
             solver_stab = std::make_shared<ChSolverSOR>();
             break;
-        case ChSolver::SYMMSOR:
+        case ChSolver::Type::SYMMSOR:
             solver_speed = std::make_shared<ChSolverSymmSOR>();
             solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
-        case ChSolver::JACOBI:
+        case ChSolver::Type::JACOBI:
             solver_speed = std::make_shared<ChSolverJacobi>();
             solver_stab = std::make_shared<ChSolverJacobi>();
             break;
-        case ChSolver::SOR_MULTITHREAD:
+        case ChSolver::Type::SOR_MULTITHREAD:
             solver_speed = std::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
             solver_stab = std::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
             break;
-        case ChSolver::PMINRES:
+        case ChSolver::Type::PMINRES:
             solver_speed = std::make_shared<ChSolverPMINRES>();
             solver_stab = std::make_shared<ChSolverPMINRES>();
             break;
-        case ChSolver::BARZILAIBORWEIN:
+        case ChSolver::Type::BARZILAIBORWEIN:
             solver_speed = std::make_shared<ChSolverBB>();
             solver_stab = std::make_shared<ChSolverBB>();
             break;
-        case ChSolver::PCG:
+        case ChSolver::Type::PCG:
             solver_speed = std::make_shared<ChSolverPCG>();
             solver_stab = std::make_shared<ChSolverPCG>();
             break;
-        case ChSolver::APGD:
+        case ChSolver::Type::APGD:
             solver_speed = std::make_shared<ChSolverAPGD>();
             solver_stab = std::make_shared<ChSolverAPGD>();
             break;
-        case ChSolver::MINRES:
+        case ChSolver::Type::MINRES:
             solver_speed = std::make_shared<ChSolverMINRES>();
             solver_stab = std::make_shared<ChSolverMINRES>();
             break;
@@ -439,7 +439,7 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
     descriptor->SetNumThreads(mthreads);
 
-    if (solver_speed->GetType() == ChSolver::SOR_MULTITHREAD) {
+    if (solver_speed->GetType() == ChSolver::Type::SOR_MULTITHREAD) {
         std::static_pointer_cast<ChSolverSORmultithread>(solver_speed)->ChangeNumberOfThreads(mthreads);
         std::static_pointer_cast<ChSolverSORmultithread>(solver_stab)->ChangeNumberOfThreads(mthreads);
     }
@@ -587,7 +587,7 @@ void ChSystem::Reference_LM_byID() {
 
 void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
     // Do nothing if changing to a CUSTOM timestepper.
-    if (type == ChTimestepper::CUSTOM)
+    if (type == ChTimestepper::Type::CUSTOM)
         return;
 
     // Do nothing, if no change from current typestepper.
@@ -597,41 +597,41 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
     // Plug in the new required timestepper
     // (the previous will be automatically deallocated thanks to shared pointers)
     switch (type) {
-        case ChTimestepper::EULER_IMPLICIT:
+        case ChTimestepper::Type::EULER_IMPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
             std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
             break;
-        case ChTimestepper::EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
             break;
-        case ChTimestepper::EULER_IMPLICIT_PROJECTED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this);
             break;
-        case ChTimestepper::TRAPEZOIDAL:
+        case ChTimestepper::Type::TRAPEZOIDAL:
             timestepper = std::make_shared<ChTimestepperTrapezoidal>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
             break;
-        case ChTimestepper::TRAPEZOIDAL_LINEARIZED:
+        case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
             break;
-        case ChTimestepper::HHT:
+        case ChTimestepper::Type::HHT:
             timestepper = std::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
             break;
-        case ChTimestepper::HEUN:
+        case ChTimestepper::Type::HEUN:
             timestepper = std::make_shared<ChTimestepperHeun>(this);
             break;
-        case ChTimestepper::RUNGEKUTTA45:
+        case ChTimestepper::Type::RUNGEKUTTA45:
             timestepper = std::make_shared<ChTimestepperRungeKuttaExpl>(this);
             break;
-        case ChTimestepper::EULER_EXPLICIT:
+        case ChTimestepper::Type::EULER_EXPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerExplIIorder>(this);
             break;
-        case ChTimestepper::LEAPFROG:
+        case ChTimestepper::Type::LEAPFROG:
             timestepper = std::make_shared<ChTimestepperLeapfrog>(this);
             break;
-        case ChTimestepper::NEWMARK:
+        case ChTimestepper::Type::NEWMARK:
             timestepper = std::make_shared<ChTimestepperNewmark>(this);
             break;
         default:

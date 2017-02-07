@@ -104,12 +104,12 @@ void test_1() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.01;
     while (my_system.GetChTime() < 2) {
@@ -187,13 +187,13 @@ void test_2() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -272,12 +272,12 @@ void test_2b() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {
@@ -368,12 +368,12 @@ void test_3() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT_LINEARIZED);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.1) {
@@ -463,13 +463,13 @@ void test_4() {
 
     // Perform a dynamic time integration:
 
-    my_system.SetSolverType(ChSolver::MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
-    my_system.SetTimestepperType(ChTimestepper::EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
     double timestep = 0.001;
     while (my_system.GetChTime() < 0.2) {

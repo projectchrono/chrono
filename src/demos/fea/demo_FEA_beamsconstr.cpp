@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
 
         //***TEST***
         /*
-        my_system.SetSolverType(ChSolver::MINRES);
+        my_system.SetSolverType(ChSolver::Type::MINRES);
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
         application.SetVideoframeSaveInterval(10);
         
         // Use the following for less numerical damping, 2nd order accuracy (but slower)
-        //my_system.SetTimestepperType(ChTimestepper::HHT);
+        //my_system.SetTimestepperType(ChTimestepper::Type::HHT);
         if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())){
             mystepper->SetVerbose(true);
             mystepper->SetStepControl(false);
@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
 
         //***TEST*** 
         /*
-        my_system.SetSolverType(ChSolver::MINRES);
+        my_system.SetSolverType(ChSolver::Type::MINRES);
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(600);
         my_system.SetMaxItersSolverStab(600);

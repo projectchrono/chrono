@@ -328,7 +328,7 @@ void DPCapPress() {
 	my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetTimestepperType(ChTimestepper::HHT);
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(25);//20
@@ -679,7 +679,7 @@ void ShellBrickContact() {
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -994,7 +994,7 @@ void SimpleBoxContact() {
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1328,7 +1328,7 @@ void SoilBin() {
     my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetTimestepperType(ChTimestepper::HHT);
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(20);
@@ -1614,7 +1614,7 @@ void AxialDynamics() {
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1848,7 +1848,7 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSolver::MINRES);
+    // my_system.SetSolverType(ChSolver::Type::MINRES);
     // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
@@ -1861,7 +1861,7 @@ void BendingQuasiStatic() {
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(2000);
@@ -2093,7 +2093,7 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSolver::MINRES);
+    // my_system.SetSolverType(ChSolver::Type::MINRES);
     // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
@@ -2106,7 +2106,7 @@ void SwingingShell() {
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetTimestepperType(ChTimestepper::HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);

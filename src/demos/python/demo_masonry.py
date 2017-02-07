@@ -45,7 +45,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 # might want to use SetMaxItersSolverSpeed to set the number of iterations
 # per timestep, etc.
 
-#my_system.SetSolverType(chrono.ChSystem.SOLVER_BARZILAIBORWEIN) # precise, more slow
+#my_system.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
 my_system.SetMaxItersSolverSpeed(70)
 
 

@@ -351,7 +351,7 @@ int main(int argc, char* argv[]) {
 
 /*    
         // Change solver to embedded MINRES
-    my_system.SetSolverType(ChSolver::MINRES);     
+    my_system.SetSolverType(ChSolver::Type::MINRES);     
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(90);
     my_system.SetTolForce(1e-10);  
@@ -364,8 +364,8 @@ int main(int argc, char* argv[]) {
 
 
     // Change type of integrator:
-    my_system.SetTimestepperType(chrono::ChTimestepper::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetTimestepperType(chrono::ChTimestepper::HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper()))  {

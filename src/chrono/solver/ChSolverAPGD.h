@@ -46,7 +46,7 @@ class ChApi ChSolverAPGD : public ChIterativeSolver {
 
     virtual ~ChSolverAPGD() {}
 
-    virtual Type GetType() const override { return APGD; }
+    virtual Type GetType() const override { return Type::APGD; }
 
     /// Performs the solution of the problem.
     virtual double Solve(ChSystemDescriptor& sysd) override;
