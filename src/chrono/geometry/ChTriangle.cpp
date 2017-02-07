@@ -22,6 +22,9 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangle)
 
+// Tolerance for testing degenerate triangles
+#define EPS_TRIDEGENERATE 1e-20
+
 ChTriangle::ChTriangle(const ChTriangle& source) {
     p1 = source.p1;
     p2 = source.p2;

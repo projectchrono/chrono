@@ -25,6 +25,18 @@
 
 namespace chrono {
 
+#define OPT_ERR_OK 0
+#define OPT_ERR_NOVARS 1
+#define OPT_ERR_NOMEMORY 2
+#define OPT_ERR_INFINITY 3
+#define OPT_ERR_CANNOTEVALFX 4
+#define OPT_ERR_CANNOTEVALVAR 5
+#define OPT_ERR_INVALIDSYS 6
+
+#define OPT_IMPOSSIBLE +999999
+#define OPT_PENALTY_POS +999998
+#define OPT_PENALTY_NEG -999998
+
 void null_entry_solv_opt(double x[], double g[]) {}
 
 ChOptimizer::ChOptimizer() {
