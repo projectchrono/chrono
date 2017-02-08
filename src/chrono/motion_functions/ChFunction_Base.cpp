@@ -124,7 +124,8 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
     ChMatrixDynamic<> yf(mresol, 1);
     ChMatrixDynamic<> xf(mresol, 1);
     double mx, xmin, xmax;
-    ChPageVect mp;
+    ChVector2<> mp;
+
     // xmin
     mp = m_file->Get_G_p();
     mp = m_file->To_graph_from_page(mp);

@@ -94,7 +94,7 @@ double ChLinePoly::Length(int sampling) const {
 // Draw into the current graph viewport of a ChFile_ps file
 
 bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
-    ChPageVect mp1;
+    ChVector2<> mp1;
     ChVector<> mv1;
 
     mfle->GrSave();

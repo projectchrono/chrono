@@ -15,17 +15,9 @@
 
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/core/ChVector2.h"
 
 namespace chrono {
-
-/// Class for x,y coordinate
-/// on a PostScript page
-
-class ChApi ChPageVect {
-  public:
-    double x;
-    double y;
-};
 
 /// Class for RGB color for a PostScript
 /// item (line, circle, etc)
@@ -150,13 +142,13 @@ class ChApi ChFile_ps_graph_setting {
 class ChApi ChFile_ps : public ChStreamOutAsciiFile {
   protected:
     double unit_scale;     // (72)/(current length unit, in inches)
-    ChPageVect page_size;  // max width/height, or initial w/h of bbox for eps
+    ChVector2<> page_size;  // max width/height, or initial w/h of bbox for eps
 
     // graph-viewport variables, for transformation 2d graph space <-> page space
-    ChPageVect G_p;         // viewport position of left-lower corner, in page space
-    ChPageVect Gs_p;        // viewport width/height, in page space
-    ChPageVect Gc_g;        // viewport center, in world or graph space;
-    ChPageVect Gz;          // viewport x,y zoom factors, as (page unit)/(2dgraph units)
+    ChVector2<> G_p;         // viewport position of left-lower corner, in page space
+    ChVector2<> Gs_p;        // viewport width/height, in page space
+    ChVector2<> Gc_g;        // viewport center, in world or graph space;
+    ChVector2<> Gz;          // viewport x,y zoom factors, as (page unit)/(2dgraph units)
     char prolog_file[150];  // path and name of Chrono eps prolog file (default "prolog.ps")
 
   public:
@@ -197,36 +189,36 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     // Functions for setting the viewport of grpahs for graph plotting
 
     /// Get viewport position of left-lower graph corner, in page space
-    ChPageVect Get_G_p() { return G_p; };
+    const ChVector2<>& Get_G_p() const { return G_p; };
     /// Get viewport width/height of graph, in page space
-    ChPageVect Get_Gs_p() { return Gs_p; };
+    const ChVector2<>& Get_Gs_p() const { return Gs_p; };
     /// Get viewport center, in 2d graph space;
-    ChPageVect Get_Gc_g() { return Gc_g; };
+    const ChVector2<>& Get_Gc_g() const { return Gc_g; };
     /// Get viewport graph zoom factor:
-    ChPageVect Get_Gz() { return Gz; };
+    const ChVector2<>& Get_Gz() const { return Gz; };
     /// Set viewport position of left-lower graph corner, in page space
-    void Set_G_p(ChPageVect mv) { G_p = mv; };
+    void Set_G_p(ChVector2<> mv) { G_p = mv; };
     /// Set viewport width/height of graph, in page space
-    void Set_Gs_p(ChPageVect mv) { Gs_p = mv; };
+    void Set_Gs_p(ChVector2<> mv) { Gs_p = mv; };
     /// Set viewport center, in 2d graph space;
-    void Set_Gc_g(ChPageVect mv) { Gc_g = mv; };
+    void Set_Gc_g(ChVector2<> mv) { Gc_g = mv; };
     /// Set viewport graph zoom factor:
     void Set_Gz(double mz) {
         Gz.x = mz;
         Gz.y = mz;
     }
     /// Set viewport graph zoom factor:
-    void Set_Gz(ChPageVect mz) { Gz = mz; }
+    void Set_Gz(ChVector2<> mz) { Gz = mz; }
     /// Set viewport zoom and pan (center) given the max/min
     /// extension in graph space
     void Set_ZoomPan_by_fit(double Xgmin, double Xgmax, double Ygmin, double Ygmax);
 
     /// Transform position from 'page space' to 'graph viewport space'
-    ChPageVect To_page_from_graph(ChPageVect mv_g);
+    ChVector2<> To_page_from_graph(ChVector2<> mv_g) const;
     /// Transform position from 'graph viewport space' to 'page space',
-    ChPageVect To_graph_from_page(ChPageVect mv_p);
+    ChVector2<> To_graph_from_page(ChVector2<> mv_p) const;
 
-    ChPageVect TransPt(ChPageVect mfrom, Space space);
+    ChVector2<> TransPt(ChVector2<> mfrom, Space space) const;
 
     // --- Functions which record graphical operations on file ------
 
@@ -249,9 +241,9 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     // Low level draw functions
 
     void CustomPsCommand(char* command);
-    void MoveTo(ChPageVect mp);  // move the cursor
+    void MoveTo(ChVector2<> mp);  // move the cursor
     void StartLine();            // always sequence StartLine()..AddLinePoint()..PaintStroke()
-    void AddLinePoint(ChPageVect mp);
+    void AddLinePoint(ChVector2<> mp);
     void CloseLine();
     void PaintStroke();  // after the line has been set, this draws it!
     void PaintFill();    // same as before, but fills the enclosed area.
@@ -263,20 +255,20 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     // graph space and then projected and clipped onto it, otherwise are in page space.
 
     /// Draws a single "dot" point,
-    void DrawPoint(ChPageVect mfrom, Space space);
+    void DrawPoint(ChVector2<> mfrom, Space space);
     /// Draws line from point to point,
-    void DrawLine(ChPageVect mfrom, ChPageVect mto, Space space);
+    void DrawLine(ChVector2<> mfrom, ChVector2<> mto, Space space);
     /// Draws rectangle from point to point
-    void DrawRectangle(ChPageVect mfrom, ChPageVect mwh, Space space, bool filled);
+    void DrawRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space, bool filled);
     /// Sets clip rectangle draw region, from point to point (remember GrSave() and GrRestore() before and later..)
-    void ClipRectangle(ChPageVect mfrom, ChPageVect mwh, Space space);
+    void ClipRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space);
     /// Sets clip rectangle as graph region (remember GrSave() and GrRestore() before and later..)
     void ClipToGraph();
 
     /// Draw text at given position
-    void DrawText(ChPageVect mfrom, char* string, Space space, Justification justified = Justification::LEFT);
+    void DrawText(ChVector2<> mfrom, char* string, Space space, Justification justified = Justification::LEFT);
     /// Draw number at given position
-    void DrawText(ChPageVect mfrom, double number, Space space, Justification justified = Justification::LEFT);
+    void DrawText(ChVector2<> mfrom, double number, Space space, Justification justified = Justification::LEFT);
 
     /// Draw the x/y axes for the graph viewport
     void DrawGraphAxes(ChFile_ps_graph_setting* msetting);
@@ -302,8 +294,8 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
                         ChFile_ps_color bkgndcolor = ChFile_ps_color::WHITE);
 };
 
-extern ChApi ChPageVect pv_set(double x, double y);
-extern ChApi ChPageVect pv_set(Vector mv);
+extern ChApi ChVector2<> pv_set(double x, double y);
+extern ChApi ChVector2<> pv_set(Vector mv);
 
 
 }  // end namespace chrono

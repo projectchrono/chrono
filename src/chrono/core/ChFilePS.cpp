@@ -156,18 +156,18 @@ ChFile_ps::~ChFile_ps() {
 
 // Transform positions from 'graph viewport space' to 'page space',
 // or viceversa.
-ChPageVect ChFile_ps::To_page_from_graph(ChPageVect mv_g) {
-    ChPageVect v_p;
-    ChPageVect mGc_p;
+ChVector2<> ChFile_ps::To_page_from_graph(ChVector2<> mv_g) const {
+    ChVector2<> v_p;
+    ChVector2<> mGc_p;
     mGc_p.x = G_p.x + (Gs_p.x) / 2;
     mGc_p.y = G_p.y + (Gs_p.y) / 2;
     v_p.x = mGc_p.x + (mv_g.x - Gc_g.x) * Gz.x;
     v_p.y = mGc_p.y + (mv_g.y - Gc_g.y) * Gz.y;
     return v_p;
 }
-ChPageVect ChFile_ps::To_graph_from_page(ChPageVect mv_p) {
-    ChPageVect v_g;
-    ChPageVect mGc_p;
+ChVector2<> ChFile_ps::To_graph_from_page(ChVector2<> mv_p) const {
+    ChVector2<> v_g;
+    ChVector2<> mGc_p;
     mGc_p.x = G_p.x + (Gs_p.x) / 2;
     mGc_p.y = G_p.y + (Gs_p.y) / 2;
     v_g.x = (mv_p.x - mGc_p.x) * (1 / Gz.x) + Gc_g.x;
@@ -175,7 +175,7 @@ ChPageVect ChFile_ps::To_graph_from_page(ChPageVect mv_p) {
     return v_g;
 }
 
-ChPageVect ChFile_ps::TransPt(ChPageVect mfrom, Space space) {
+ChVector2<> ChFile_ps::TransPt(ChVector2<> mfrom, Space space) const {
     if ((mfrom.x > 1.e+20) || (mfrom.x < -1.e+20))
         mfrom.x = 0;
     if ((mfrom.y > 1.e+20) || (mfrom.y < -1.e+20))
@@ -222,7 +222,7 @@ void ChFile_ps::SetFont(char* name, double size) {
 void ChFile_ps::CustomPsCommand(char* mcommand) {
     *this << mcommand << "\n";
 }
-void ChFile_ps::MoveTo(ChPageVect mp) {
+void ChFile_ps::MoveTo(ChVector2<> mp) {
     *this << mp.x << " ";
     *this << mp.y << " ";
     *this << "MT\n";
@@ -230,7 +230,7 @@ void ChFile_ps::MoveTo(ChPageVect mp) {
 void ChFile_ps::StartLine() {
     *this << "NP\n";
 }
-void ChFile_ps::AddLinePoint(ChPageVect mp) {
+void ChFile_ps::AddLinePoint(ChVector2<> mp) {
     *this << mp.x << " ";
     *this << mp.y << " ";
     *this << "LT\n";
@@ -256,7 +256,7 @@ void ChFile_ps::GrRestore() {
 
 // Hi level PS draw functions:
 
-void ChFile_ps::DrawPoint(ChPageVect mfrom, Space space) {
+void ChFile_ps::DrawPoint(ChVector2<> mfrom, Space space) {
     GrSave();
     SetLinecap(1);
     StartLine();
@@ -266,7 +266,7 @@ void ChFile_ps::DrawPoint(ChPageVect mfrom, Space space) {
     GrRestore();
 }
 
-void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, Space space) {
+void ChFile_ps::DrawLine(ChVector2<> mfrom, ChVector2<> mto, Space space) {
     GrSave();
     StartLine();
     MoveTo(TransPt(mfrom, space));
@@ -275,8 +275,8 @@ void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, Space space) {
     GrRestore();
 }
 
-void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, Space space, bool filled) {
-    ChPageVect mp1, mp2, mp3;
+void ChFile_ps::DrawRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space, bool filled) {
+    ChVector2<> mp1, mp2, mp3;
     mp1.x = mfrom.x + mwh.x;
     mp1.y = mfrom.y;
     mp2.x = mfrom.x + mwh.x;
@@ -297,8 +297,8 @@ void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, Space space, boo
     GrRestore();
 }
 
-void ChFile_ps::ClipRectangle(ChPageVect mfrom, ChPageVect mwh, Space space) {
-    ChPageVect mp1, mp2, mp3;
+void ChFile_ps::ClipRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space) {
+    ChVector2<> mp1, mp2, mp3;
     mp1.x = mfrom.x + mwh.x;
     mp1.y = mfrom.y;
     mp2.x = mfrom.x + mwh.x;
@@ -318,7 +318,7 @@ void ChFile_ps::ClipToGraph() {
     ClipRectangle(Get_G_p(), Get_Gs_p(), Space::PAGE);
 }
 
-void ChFile_ps::DrawText(ChPageVect mfrom, char* string, Space space, Justification justified) {
+void ChFile_ps::DrawText(ChVector2<> mfrom, char* string, Space space, Justification justified) {
     GrSave();
     MoveTo(TransPt(mfrom, space));
     *this << "(";
@@ -339,14 +339,14 @@ void ChFile_ps::DrawText(ChPageVect mfrom, char* string, Space space, Justificat
     GrRestore();
 }
 
-void ChFile_ps::DrawText(ChPageVect mfrom, double number, Space space, Justification justified) {
+void ChFile_ps::DrawText(ChVector2<> mfrom, double number, Space space, Justification justified) {
     char mbuff[20];
     sprintf(mbuff, this->number_format, number);
     DrawText(mfrom, mbuff, space, justified);
 }
 
 void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
-    ChPageVect cpt, cp1, cp2, lole_g, upri_g, org_g, org_p;
+    ChVector2<> cpt, cp1, cp2, lole_g, upri_g, org_g, org_p;
 
     // save old gfx mode
     GrSave();
@@ -508,7 +508,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
 void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues) {
     int points;
-    ChPageVect mp;
+    ChVector2<> mp;
 
     // Set clip region
     GrSave();
@@ -537,7 +537,7 @@ void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues) {
 
 void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, double Xfrom, double Xstep) {
     int points;
-    ChPageVect mp;
+    ChVector2<> mp;
     double mx;
 
     // clip region
@@ -575,13 +575,13 @@ void ChFile_ps::DrawGraphLabel(double dx,
                                ChFile_ps_color bkgndcolor) {
     if (fontsize == 0)
         fontsize = 0.3;
-    ChPageVect mp1, mp2, mp3;
+    ChVector2<> mp1, mp2, mp3;
     mp3.y = G_p.y + dy;
     mp1.y = mp3.y + 0.0;
     mp2.y = mp1.y;
     mp1.x = G_p.x + dx;
     mp2.x = G_p.x + dx + 0.6;
-    ChPageVect mpa, mpb;
+    ChVector2<> mpa, mpb;
     mpa = mp1;
     mpa.y -= fontsize * 0.7;
     mpb.x = backwidth;
@@ -615,15 +615,15 @@ void ChFile_ps::DrawGraphLabel(double dx,
 // External utility functions
 //
 
-ChPageVect pv_set(double x, double y) {
-    ChPageVect mpv;
+ChVector2<> pv_set(double x, double y) {
+    ChVector2<> mpv;
     mpv.x = x;
     mpv.y = y;
     return mpv;
 }
 
-ChPageVect pv_set(Vector mv) {
-    ChPageVect mpv;
+ChVector2<> pv_set(Vector mv) {
+    ChVector2<> mpv;
     mpv.x = mv.x;
     mpv.y = mv.y;
     return mpv;
