@@ -20,6 +20,17 @@
 
 namespace chrono {
 
+/// Definitions of various angle sets for conversions.
+enum class AngleSet {
+    ANGLE_AXIS,
+    EULERO,
+    CARDANO,
+    HPB,
+    RXYZ,
+    RODRIGUEZ,
+    QUATERNION,
+};
+
 ///
 /// QUATERNION:
 ///
@@ -38,9 +49,6 @@ namespace chrono {
 template <class Real = double>
 class ChQuaternion {
   public:
-    //
-    // DATA
-    //
     Real e0;
     Real e1;
     Real e2;
@@ -830,25 +838,13 @@ ChApi ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq, co
 
 ChApi ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat);
 
-//
-// ANGLE SET CONVERSION
-//
-
-#define ANGLESET_ANGLE_AXIS 0
-#define ANGLESET_EULERO 1
-#define ANGLESET_CARDANO 2
-#define ANGLESET_HPB 3
-#define ANGLESET_RXYZ 4
-#define ANGLESET_RODRIGUEZ 5
-#define ANGLESET_QUATERNION 6
-
 // Angle conversion utilities
 
-ChApi ChVector<double> Quat_to_Angle(int angset, const ChQuaternion<double>& mquat);
-ChApi ChVector<double> Angle_to_Angle(int setfrom, int setto, const ChVector<double>& mangles);
-ChApi ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& mangles);
-ChApi ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
-ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
+ChApi ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat);
+ChApi ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector<double>& mangles);
+ChApi ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mangles);
+ChApi ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
+ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 
 // CONSTANTS
 

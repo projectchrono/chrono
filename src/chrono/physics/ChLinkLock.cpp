@@ -29,7 +29,7 @@ ChLinkLock::ChLinkLock()
       deltaC_dt(CSYSNULL),
       deltaC_dtdt(CSYSNULL),
       motion_axis(VECT_Z),
-      angleset(ANGLESET_ANGLE_AXIS) {
+      angleset(AngleSet::ANGLE_AXIS) {
     // matrices used by lock formulation
     Cq1_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
@@ -220,7 +220,7 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
     motion_ang2 = new ChFunction_Const(0);
     motion_ang3 = new ChFunction_Const(0);
     motion_axis = VECT_Z;
-    angleset = ANGLESET_ANGLE_AXIS;
+    angleset = AngleSet::ANGLE_AXIS;
 
     if (limit_X)
         delete limit_X;
@@ -326,7 +326,7 @@ void ChLinkLock::UpdateTime(double time) {
     deltaC_dtdt.pos.z = motion_Z->Get_y_dxdx(time);
 
     switch (angleset) {
-        case ANGLESET_ANGLE_AXIS:
+        case AngleSet::ANGLE_AXIS:
             ang = motion_ang->Get_y(time);
             ang_dt = motion_ang->Get_y_dx(time);
             ang_dtdt = motion_ang->Get_y_dxdx(time);
@@ -341,10 +341,10 @@ void ChLinkLock::UpdateTime(double time) {
                 deltaC_dtdt.rot = QNULL;
             }
             break;
-        case ANGLESET_EULERO:
-        case ANGLESET_CARDANO:
-        case ANGLESET_HPB:
-        case ANGLESET_RXYZ:
+        case AngleSet::EULERO:
+        case AngleSet::CARDANO:
+        case AngleSet::HPB:
+        case AngleSet::RXYZ:
             Vector vangles, vangles_dt, vangles_dtdt;
             vangles.x = motion_ang->Get_y(time);
             vangles.y = motion_ang2->Get_y(time);
@@ -1998,7 +1998,6 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 class my_enum_mappers : public ChLinkLock {
   public:
     CH_ENUM_MAPPER_BEGIN(LinkType);
-
     CH_ENUM_VAL(LinkType::LOCK);
     CH_ENUM_VAL(LinkType::SPHERICAL);
     CH_ENUM_VAL(LinkType::POINTPLANE);
@@ -2015,8 +2014,17 @@ class my_enum_mappers : public ChLinkLock {
     CH_ENUM_VAL(LinkType::TRAJECTORY);
     CH_ENUM_VAL(LinkType::CLEARANCE);
     CH_ENUM_VAL(LinkType::REVOLUTEPRISMATIC);
-
     CH_ENUM_MAPPER_END(LinkType);
+
+    CH_ENUM_MAPPER_BEGIN(AngleSet);
+    CH_ENUM_VAL(AngleSet::ANGLE_AXIS);
+    CH_ENUM_VAL(AngleSet::EULERO);
+    CH_ENUM_VAL(AngleSet::CARDANO);
+    CH_ENUM_VAL(AngleSet::HPB);
+    CH_ENUM_VAL(AngleSet::RXYZ);
+    CH_ENUM_VAL(AngleSet::RODRIGUEZ);
+    CH_ENUM_VAL(AngleSet::QUATERNION);
+    CH_ENUM_MAPPER_END(AngleSet);
 };
 
 void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
@@ -2036,7 +2044,8 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(motion_ang2);
     marchive << CHNVP(motion_ang3);
     marchive << CHNVP(motion_axis);
-    marchive << CHNVP(angleset);
+    my_enum_mappers::AngleSet_mapper setmapper;
+    marchive << CHNVP(setmapper(angleset), "angle_set");
     marchive << CHNVP(limit_X);
     marchive << CHNVP(limit_Y);
     marchive << CHNVP(limit_Z);
@@ -2067,7 +2076,8 @@ void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(motion_ang2);
     marchive >> CHNVP(motion_ang3);
     marchive >> CHNVP(motion_axis);
-    marchive >> CHNVP(angleset);
+    my_enum_mappers::AngleSet_mapper setmapper;
+    marchive >> CHNVP(setmapper(angleset), "angle_set");
     marchive >> CHNVP(limit_X);
     marchive >> CHNVP(limit_Y);
     marchive >> CHNVP(limit_Z);

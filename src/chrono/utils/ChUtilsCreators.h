@@ -214,7 +214,7 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 
 // Create a cylindrical container body with contact and asset geometry representing a cylindrical container
-// represented by boxes.
+// modeled with boxes.
 // The container is aligned with the z direction. The position refers to the center of the bottom inner circle.
 // Only half of the cylinder is visualized.
 ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(

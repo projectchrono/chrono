@@ -63,7 +63,7 @@ class ChApi ChLinkLock : public ChLinkMasked {
     ChFunction* motion_ang2;  ///< user imposed angle rotation if three-angles rot.
     ChFunction* motion_ang3;  ///< user imposed angle rotation if three-angles rot.
     Vector motion_axis;       ///< this is the axis for the user imposed rotation
-    int angleset;             ///< type of rotation (3 Eul angles, angle/axis, etc.)
+    AngleSet angleset;             ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
     // limits
     ChLinkLimit* limit_X;   ///< the upper/lower limits for X dof
@@ -164,8 +164,8 @@ class ChApi ChLinkLock : public ChLinkMasked {
     void SetMotion_ang2(ChFunction* m_funct);
     void SetMotion_ang3(ChFunction* m_funct);
     void SetMotion_axis(Vector m_axis);
-    int Get_angleset() { return angleset; };
-    void Set_angleset(int mset) { angleset = mset; }
+    AngleSet Get_angleset() { return angleset; };
+    void Set_angleset(AngleSet mset) { angleset = mset; }
 
     // for the limits on free degrees
     ChLinkLimit* GetLimit_X() { return limit_X; }

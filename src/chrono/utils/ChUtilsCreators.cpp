@@ -587,8 +587,8 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 // CreateCylindricalContainerFromBoxes
 //
-// Create a fixed body with contact and asset geometry representing a box with 5
-// walls (no top).
+// Create a fixed body with contact and asset geometry representing a cylindrical
+// container with no top.
 // hdim = (rad, rad, height) (the second and the third components are the same)
 // by default, it is z_up
 // -----------------------------------------------------------------------------
@@ -635,7 +635,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     for (int i = 0; i < numBoxes; i++) {
         p_pos = pos + ChVector<>(sin(ang * i) * (hthick + hdim.x), cos(ang * i) * (hthick + hdim.x), hdim.z);
 
-        p_quat = Angle_to_Quat(ANGLESET_RXYZ, ChVector<>(0, 0, ang * i));
+        p_quat = Angle_to_Quat(AngleSet::RXYZ, ChVector<>(0, 0, ang * i));
 
         // this is here to make half the cylinder invisible.
         bool m_visualization = true;
