@@ -209,10 +209,15 @@ void my_serialization_example(ChArchiveOut& marchive)
         std::list< ChVector<> > m_stllist; 
         m_stllist.push_back ( ChVector<>(1,2,3) ); 
         m_stllist.push_back ( ChVector<>(3,4,5) );
+        std::pair<int, double> m_stlpair(120, 0.99);
+        std::unordered_map<int, double> m_stlunorderedmap;
+        m_stlunorderedmap[12]=11.2;
+        m_stlunorderedmap[41]=44.8;
+        m_stlunorderedmap[34]=33.6;
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
-        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);  
+        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
    
         marchive << CHNVP(m_double,"custom double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
@@ -221,6 +226,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_string);  
         marchive << CHNVP(m_stlvector);
         marchive << CHNVP(m_stllist);
+        marchive << CHNVP(m_stlpair);
+        marchive << CHNVP(m_stlunorderedmap);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);
         marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
@@ -290,6 +297,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         std::string m_string;
         std::vector< double > m_stlvector;
         std::list< ChVector<> > m_stllist;
+        std::pair<int, double> m_stlpair;
+        std::unordered_map<int, double> m_stlunorderedmap;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
@@ -304,6 +313,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(m_string);  
         marchive >> CHNVP(m_stlvector);
         marchive >> CHNVP(m_stllist);
+        marchive >> CHNVP(m_stlpair);
+        marchive >> CHNVP(m_stlunorderedmap);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
         marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
@@ -344,12 +355,14 @@ void my_deserialization_example(ChArchiveIn& marchive)
 
         // Just for safety, log some of the restored data:
 
-        GetLog() << "\n\nSome results of deserialization I/O: \n\n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
+        GetLog() << "\n\nSome results of deserialization I/O: \n\n" << m_text << " \n" << m_int << " \n" << m_double << "\n";
         GetLog() << m_matr;
         GetLog() << m_vect;
         GetLog() << m_quat;
         GetLog() << m_string.c_str() << "\n";
         GetLog() << m_stlvector;
+        GetLog() << m_stlpair;
+        GetLog() << m_stlunorderedmap;
         GetLog() << m_boss;
         GetLog() << a_vect;
 
