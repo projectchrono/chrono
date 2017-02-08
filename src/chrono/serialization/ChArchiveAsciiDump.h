@@ -123,8 +123,9 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             indent();
-            if (!suppress_names) 
-                (*ostream) << name << "\t"; 
+            if (!suppress_names) {
+                (*ostream) << name << "  ";
+            }
             (*ostream) << "array of "<< msize << " [" << classname << "]\n";
             ++tablevel;
             indent();
@@ -213,6 +214,7 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     ChArchiveAsciiDump marchive(mtempstream);
     // this avoids printing too much except the object:
     marchive.SetCutAllPointers(true);
+    marchive.SetSuppressNames(true);
     marchive << CHNVP(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;
