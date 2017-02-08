@@ -24,7 +24,7 @@
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"
-#include "chrono/physics/ChFilePS.h"
+#include "chrono/core/ChFilePS.h"
 
 namespace chrono {
 

@@ -30,6 +30,7 @@ set(ChronoEngine_core_SOURCES
     core/ChLog.cpp
     core/ChClassFactory.cpp
     core/ChFileutils.cpp
+    core/ChFilePS.cpp
     core/ChStream.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
@@ -49,6 +50,7 @@ set(ChronoEngine_core_HEADERS
     core/ChClassFactory.h
     core/ChCoordsys.h
     core/ChException.h
+    core/ChFilePS.h
     core/ChFrame.h
     core/ChFrameMoving.h
     core/ChLinearAlgebra.h
@@ -80,7 +82,7 @@ set(ChronoEngine_core_HEADERS
     core/ChTemplateExpressions.h
     core/ChBezierCurve.h
     core/ChCubicSpline.h
-	core/ChBitmaskEnums.h
+    core/ChBitmaskEnums.h
     )
 
 source_group(core FILES
@@ -106,7 +108,6 @@ source_group(serialization FILES
 # Physics group
 
 set(ChronoEngine_physics_SOURCES
-    physics/ChFilePS.cpp
     physics/ChNlsolver.cpp
     physics/ChLimit.cpp
     physics/ChObject.cpp
@@ -199,7 +200,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChController.h
     physics/ChControls.h
     physics/ChConveyor.h
-    physics/ChFilePS.h
     physics/ChForce.h
     physics/ChFx.h
     physics/ChGlobal.h

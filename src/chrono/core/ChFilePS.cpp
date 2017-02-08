@@ -12,9 +12,15 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChFilePS.h"
+#include "chrono/core/ChFilePS.h"
 
 namespace chrono {
+
+const ChFile_ps_color ChFile_ps_color::WHITE(1, 1, 1);
+const ChFile_ps_color ChFile_ps_color::BLACK(0, 0, 0);
+
+const double ChFile_ps::PS_SCALE_CENTIMETERS = 28.3476;
+const double ChFile_ps::PS_SCALE_INCHES = 72.0;
 
 ChFile_ps_axis_setting::ChFile_ps_axis_setting() {
     InitializeDefaults();
@@ -168,16 +174,17 @@ ChPageVect ChFile_ps::To_graph_from_page(ChPageVect mv_p) {
     v_g.y = (mv_p.y - mGc_p.y) * (1 / Gz.y) + Gc_g.y;
     return v_g;
 }
-ChPageVect ChFile_ps::TransPt(ChPageVect mfrom, int space) {
+
+ChPageVect ChFile_ps::TransPt(ChPageVect mfrom, Space space) {
     if ((mfrom.x > 1.e+20) || (mfrom.x < -1.e+20))
         mfrom.x = 0;
     if ((mfrom.y > 1.e+20) || (mfrom.y < -1.e+20))
         mfrom.y = 0;
 
     switch (space) {
-        case PS_SPACE_PAGE:
+        case Space::PAGE:
             return mfrom;
-        case PS_SPACE_GRAPH:
+        case Space::GRAPH:
             return To_page_from_graph(mfrom);
         default:
             return mfrom;
@@ -249,7 +256,7 @@ void ChFile_ps::GrRestore() {
 
 // Hi level PS draw functions:
 
-void ChFile_ps::DrawPoint(ChPageVect mfrom, int space) {
+void ChFile_ps::DrawPoint(ChPageVect mfrom, Space space) {
     GrSave();
     SetLinecap(1);
     StartLine();
@@ -259,7 +266,7 @@ void ChFile_ps::DrawPoint(ChPageVect mfrom, int space) {
     GrRestore();
 }
 
-void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, int space) {
+void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, Space space) {
     GrSave();
     StartLine();
     MoveTo(TransPt(mfrom, space));
@@ -268,7 +275,7 @@ void ChFile_ps::DrawLine(ChPageVect mfrom, ChPageVect mto, int space) {
     GrRestore();
 }
 
-void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, bool filled) {
+void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, Space space, bool filled) {
     ChPageVect mp1, mp2, mp3;
     mp1.x = mfrom.x + mwh.x;
     mp1.y = mfrom.y;
@@ -290,7 +297,7 @@ void ChFile_ps::DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, bool 
     GrRestore();
 }
 
-void ChFile_ps::ClipRectangle(ChPageVect mfrom, ChPageVect mwh, int space) {
+void ChFile_ps::ClipRectangle(ChPageVect mfrom, ChPageVect mwh, Space space) {
     ChPageVect mp1, mp2, mp3;
     mp1.x = mfrom.x + mwh.x;
     mp1.y = mfrom.y;
@@ -308,22 +315,22 @@ void ChFile_ps::ClipRectangle(ChPageVect mfrom, ChPageVect mwh, int space) {
 }
 
 void ChFile_ps::ClipToGraph() {
-    ClipRectangle(Get_G_p(), Get_Gs_p(), PS_SPACE_PAGE);
+    ClipRectangle(Get_G_p(), Get_Gs_p(), Space::PAGE);
 }
 
-void ChFile_ps::DrawText(ChPageVect mfrom, char* string, int space, int justified) {
+void ChFile_ps::DrawText(ChPageVect mfrom, char* string, Space space, Justification justified) {
     GrSave();
     MoveTo(TransPt(mfrom, space));
     *this << "(";
     *this << string;
     switch (justified) {
-        case PS_LEFT_JUSTIFIED:
+        case Justification::LEFT:
             *this << ") show \n";
             break;
-        case PS_RIGHT_JUSTIFIED:
+        case Justification::RIGHT:
             *this << ") dup stringwidth pop neg 0 rmoveto show \n";
             break;
-        case PS_CENTER_JUSTIFIED:
+        case Justification::CENTER:
             *this << ") dup stringwidth pop 2 div neg 0 rmoveto show \n";
             break;
         default:
@@ -332,7 +339,7 @@ void ChFile_ps::DrawText(ChPageVect mfrom, char* string, int space, int justifie
     GrRestore();
 }
 
-void ChFile_ps::DrawText(ChPageVect mfrom, double number, int space, int justified) {
+void ChFile_ps::DrawText(ChPageVect mfrom, double number, Space space, Justification justified) {
     char mbuff[20];
     sprintf(mbuff, this->number_format, number);
     DrawText(mfrom, mbuff, space, justified);
@@ -376,7 +383,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             cp2 = To_page_from_graph(cp2);
             SetWidth(msetting->grid_width);
             SetRGB(msetting->grid_color);
-            DrawLine(cp1, cp2, PS_SPACE_PAGE);
+            DrawLine(cp1, cp2, Space::PAGE);
         }
         if (msetting->Xaxis.ticks) {
             cp1 = To_page_from_graph(cpt);
@@ -384,7 +391,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             cp2.y = cp1.y + 0.10;
             SetWidth(msetting->Xaxis.ticks_width);
             SetRGB(msetting->Xaxis.axis_color);
-            DrawLine(cp1, cp2, PS_SPACE_PAGE);
+            DrawLine(cp1, cp2, Space::PAGE);
         }
         if (msetting->Xaxis.numbers) {
             char numstr[20];
@@ -396,7 +403,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             if (fabs(w) < 1.e-15)
                 tw = 0;
             sprintf(numstr, this->number_format, tw);
-            DrawText(cp1, numstr, PS_SPACE_PAGE);
+            DrawText(cp1, numstr, Space::PAGE);
         }
     }
 
@@ -420,7 +427,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             cp2 = To_page_from_graph(cp2);
             SetWidth(msetting->grid_width);
             SetRGB(msetting->grid_color);
-            DrawLine(cp1, cp2, PS_SPACE_PAGE);
+            DrawLine(cp1, cp2, Space::PAGE);
         }
         if (msetting->Yaxis.ticks) {
             cp1 = To_page_from_graph(cpt);
@@ -428,7 +435,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             cp2.y = cp1.y;
             SetWidth(msetting->Yaxis.ticks_width);
             SetRGB(msetting->Yaxis.axis_color);
-            DrawLine(cp1, cp2, PS_SPACE_PAGE);
+            DrawLine(cp1, cp2, Space::PAGE);
         }
         if (msetting->Yaxis.numbers) {
             char numstr[20];
@@ -440,7 +447,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             if (fabs(th) < 1.e-15)
                 th = 0;
             sprintf(numstr, this->number_format, th);
-            DrawText(cp1, numstr, PS_SPACE_PAGE);
+            DrawText(cp1, numstr, Space::PAGE);
         }
     }
 
@@ -451,7 +458,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     cp2 = org_g;
     cp1.x = lole_g.x;
     cp2.x = upri_g.x;
-    DrawLine(cp1, cp2, PS_SPACE_GRAPH);
+    DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw y axis line
     SetWidth(msetting->Yaxis.axis_width);
@@ -460,7 +467,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     cp2 = org_g;
     cp1.y = lole_g.y;
     cp2.y = upri_g.y;
-    DrawLine(cp1, cp2, PS_SPACE_GRAPH);
+    DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw xy labels
     if (msetting->Xaxis.label) {
@@ -468,14 +475,14 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
         cp1.y = G_p.y + 0.4;
         SetRGB(msetting->Xaxis.label_color);
         SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
-        DrawText(cp1, msetting->Xaxis.label, PS_SPACE_PAGE, PS_RIGHT_JUSTIFIED);
+        DrawText(cp1, msetting->Xaxis.label, Space::PAGE, Justification::RIGHT);
     }
     if (msetting->Yaxis.label) {
         cp1.x = G_p.x + 0.7;
         cp1.y = G_p.y + Gs_p.y - 0.3;
         SetRGB(msetting->Yaxis.label_color);
         SetFont(ch_font_labels[msetting->Yaxis.label_fontname], msetting->Yaxis.label_fontsize);
-        DrawText(cp1, msetting->Yaxis.label, PS_SPACE_PAGE);
+        DrawText(cp1, msetting->Yaxis.label, Space::PAGE);
     }
 
     // restore old gfx mode -without the clipping region
@@ -483,7 +490,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
     // draw enclosing frame
     SetGray(0.0);
-    DrawRectangle(G_p, Gs_p, PS_SPACE_PAGE, false);
+    DrawRectangle(G_p, Gs_p, Space::PAGE, false);
 
     // draw title
     if (msetting->title)
@@ -492,7 +499,7 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             SetRGB(msetting->title_color);
             cpt.x = G_p.x + 0.0;
             cpt.y = G_p.y + Gs_p.y + 0.4;
-            DrawText(cpt, msetting->title, PS_SPACE_PAGE);
+            DrawText(cpt, msetting->title, Space::PAGE);
         }
 
     // return to original gfx mode
@@ -587,19 +594,19 @@ void ChFile_ps::DrawGraphLabel(double dx,
     if (background) {
         GrSave();
         SetRGB(bkgndcolor);
-        DrawRectangle(mpa, mpb, PS_SPACE_PAGE, true);
+        DrawRectangle(mpa, mpb, Space::PAGE, true);
         GrRestore();
     }
     if (dolinesample) {
         mp1.x += 0.08;
-        DrawLine(mp1, mp2, PS_SPACE_PAGE);
+        DrawLine(mp1, mp2, Space::PAGE);
         mp3.x = mp2.x + 0.3;
     } else {
         mp3.x = mp1.x;
     }
     mp3.y = mp1.y - fontsize * 0.0;
     SetGray(0.0);
-    DrawText(mp3, label, PS_SPACE_PAGE);
+    DrawText(mp3, label, Space::PAGE);
 
     GrRestore();
 }
@@ -614,6 +621,7 @@ ChPageVect pv_set(double x, double y) {
     mpv.y = y;
     return mpv;
 }
+
 ChPageVect pv_set(Vector mv) {
     ChPageVect mpv;
     mpv.x = mv.x;

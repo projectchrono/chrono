@@ -53,12 +53,10 @@ class ChApi ChFile_ps_color {
         g = mgr;
         b = mgr;
     };
+
+    static const ChFile_ps_color WHITE;
+    static const ChFile_ps_color BLACK;
 };
-
-const ChFile_ps_color PS_COLOR_WHITE(1, 1, 1);
-const ChFile_ps_color PS_COLOR_BLACK(0, 0, 0);
-
-#define PS_STRLEN_LABEL 100
 
 static char* ch_font_labels[] = {(char*)"/Times-Roman",
                                  (char*)"/Times-Italic",
@@ -81,6 +79,7 @@ class ChApi ChFile_ps_axis_setting {
     bool ticks;
     double ticks_step;
     double ticks_width;
+    static const int PS_STRLEN_LABEL = 100;
     char label[PS_STRLEN_LABEL];
     ChFile_ps_color label_color;
     double label_fontsize;
@@ -116,8 +115,8 @@ class ChApi ChFile_ps_graph_setting {
     bool gridy;
     double grid_width;
     ChFile_ps_color grid_color;
-
-    char title[PS_STRLEN_LABEL];
+    static const int PS_STRLEN_TITLE = 100;
+    char title[PS_STRLEN_TITLE];
     ChFile_ps_color title_color;
     double title_fontsize;
     int title_fontname;
@@ -134,7 +133,7 @@ class ChApi ChFile_ps_graph_setting {
 
     void InitializeDefaults();
     bool SetTitle(char* ml) {
-        if (strlen(ml) < PS_STRLEN_LABEL)
+        if (strlen(ml) < PS_STRLEN_TITLE)
             strcpy(this->title, ml);
         else
             return false;
@@ -150,10 +149,6 @@ class ChApi ChFile_ps_graph_setting {
 
 class ChApi ChFile_ps : public ChStreamOutAsciiFile {
   protected:
-    //
-    // DATA
-    //
-
     double unit_scale;     // (72)/(current length unit, in inches)
     ChPageVect page_size;  // max width/height, or initial w/h of bbox for eps
 
@@ -165,6 +160,20 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     char prolog_file[150];  // path and name of Chrono eps prolog file (default "prolog.ps")
 
   public:
+    enum class Justification {
+        LEFT,
+        RIGHT,
+        CENTER,
+    };
+
+    enum class Space {
+        PAGE,
+        GRAPH
+    };
+
+    static const double PS_SCALE_CENTIMETERS;
+    static const double PS_SCALE_INCHES;
+
     //
     // CONSTRUCTORS
     //
@@ -217,7 +226,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     /// Transform position from 'graph viewport space' to 'page space',
     ChPageVect To_graph_from_page(ChPageVect mv_p);
 
-    ChPageVect TransPt(ChPageVect mfrom, int space);
+    ChPageVect TransPt(ChPageVect mfrom, Space space);
 
     // --- Functions which record graphical operations on file ------
 
@@ -254,25 +263,20 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     // graph space and then projected and clipped onto it, otherwise are in page space.
 
     /// Draws a single "dot" point,
-    void DrawPoint(ChPageVect mfrom, int space);
+    void DrawPoint(ChPageVect mfrom, Space space);
     /// Draws line from point to point,
-    void DrawLine(ChPageVect mfrom, ChPageVect mto, int space);
+    void DrawLine(ChPageVect mfrom, ChPageVect mto, Space space);
     /// Draws rectangle from point to point
-    void DrawRectangle(ChPageVect mfrom, ChPageVect mwh, int space, bool filled);
+    void DrawRectangle(ChPageVect mfrom, ChPageVect mwh, Space space, bool filled);
     /// Sets clip rectangle draw region, from point to point (remember GrSave() and GrRestore() before and later..)
-    void ClipRectangle(ChPageVect mfrom, ChPageVect mwh, int space);
+    void ClipRectangle(ChPageVect mfrom, ChPageVect mwh, Space space);
     /// Sets clip rectangle as graph region (remember GrSave() and GrRestore() before and later..)
     void ClipToGraph();
 
-    enum {
-        PS_LEFT_JUSTIFIED = 0,
-        PS_RIGHT_JUSTIFIED,
-        PS_CENTER_JUSTIFIED,
-    };
     /// Draw text at given position
-    void DrawText(ChPageVect mfrom, char* string, int space, int justified = PS_LEFT_JUSTIFIED);
+    void DrawText(ChPageVect mfrom, char* string, Space space, Justification justified = Justification::LEFT);
     /// Draw number at given position
-    void DrawText(ChPageVect mfrom, double number, int space, int justified = PS_LEFT_JUSTIFIED);
+    void DrawText(ChPageVect mfrom, double number, Space space, Justification justified = Justification::LEFT);
 
     /// Draw the x/y axes for the graph viewport
     void DrawGraphAxes(ChFile_ps_graph_setting* msetting);
@@ -295,17 +299,12 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
                         int dolinesample,
                         bool background = true,
                         double backwidth = 3.0,
-                        ChFile_ps_color bkgndcolor = PS_COLOR_WHITE);
+                        ChFile_ps_color bkgndcolor = ChFile_ps_color::WHITE);
 };
 
 extern ChApi ChPageVect pv_set(double x, double y);
 extern ChApi ChPageVect pv_set(Vector mv);
 
-#define PS_SPACE_PAGE 0
-#define PS_SPACE_GRAPH 1
-
-#define PS_SCALE_CENTIMETERS 28.3476
-#define PS_SCALE_INCHES 72
 
 }  // end namespace chrono
 

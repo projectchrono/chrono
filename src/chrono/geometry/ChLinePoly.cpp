@@ -98,7 +98,7 @@ bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inte
     ChVector<> mv1;
 
     mfle->GrSave();
-    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), PS_SPACE_PAGE);
+    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
     // start a line, move cursor to beginning
     mfle->StartLine();
     mp1.x = Get_point(0).x;
