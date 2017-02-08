@@ -392,6 +392,31 @@ class ChEnumMapper : public ChEnumMapperBase {
         } }; 
 
 
+//
+// Wrapper class to ease the archival of std::pair
+//
+
+template<class T, class Tv>
+class _wrap_pair {
+public:
+    _wrap_pair(std::pair<T, Tv>& apair) {
+        _wpair = &apair;
+    }
+    void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        marchive << CHNVP(_wpair->first,"1");
+        marchive << CHNVP(_wpair->second,"2");
+    }
+    void ArchiveIN(ChArchiveIn& marchive)
+    {
+        marchive >> CHNVP(_wpair->first,"1");
+        marchive >> CHNVP(_wpair->second,"2");
+    }
+private:
+    std::pair<T, Tv>* _wpair;
+};
+
+
 ///
 /// This is a base class for archives with pointers to shared objects 
 ///
@@ -561,6 +586,13 @@ class  ChArchiveOut : public ChArchive {
               this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
           }
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+      }
+        // trick to wrap stl::pair container
+      template<class T, class Tv>
+      void out     (ChNameValue< std::pair<T, Tv> > bVal) {
+          _wrap_pair<T,Tv> mpair(bVal.value());
+          ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
+          this->out (pair_val);
       }
      
 
@@ -791,6 +823,13 @@ class  ChArchiveIn : public ChArchive {
               this->in_array_between(bVal.name());
           }
           this->in_array_end(bVal.name());
+      }
+        // trick to wrap stl::pair container
+      template<class T, class Tv>
+      void in     (ChNameValue< std::pair<T, Tv> > bVal) {
+          _wrap_pair<T,Tv> mpair(bVal.value());
+          ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
+          this->in (pair_val);
       }
 
         // trick to call in_ref on ChSharedPointer, with class polimorphism:
