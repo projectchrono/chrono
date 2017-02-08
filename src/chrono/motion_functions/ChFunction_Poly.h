@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define POLY_COEFF_ARRAY 6
-
 /// POLYNOMIAL FUNCTION:
 /// y = a + bx + cx^2 + dx^3 + ...
 
@@ -29,8 +27,10 @@ class ChApi ChFunction_Poly : public ChFunction {
     CH_FACTORY_TAG(ChFunction_Poly)
 
   private:
+    static const int POLY_COEFF_ARRAY = 6;
     double coeff[POLY_COEFF_ARRAY];  ///< vector of coefficients
     int order;                       ///< 0= const, 1= linear, etc...
+
   public:
     ChFunction_Poly();
     ChFunction_Poly(const ChFunction_Poly& other);
