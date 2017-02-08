@@ -25,6 +25,18 @@
 
 namespace chrono {
 
+#define OPT_ERR_OK 0
+#define OPT_ERR_NOVARS 1
+#define OPT_ERR_NOMEMORY 2
+#define OPT_ERR_INFINITY 3
+#define OPT_ERR_CANNOTEVALFX 4
+#define OPT_ERR_CANNOTEVALVAR 5
+#define OPT_ERR_INVALIDSYS 6
+
+#define OPT_IMPOSSIBLE +999999
+#define OPT_PENALTY_POS +999998
+#define OPT_PENALTY_NEG -999998
+
 void null_entry_solv_opt(double x[], double g[]) {}
 
 ChOptimizer::ChOptimizer() {
@@ -398,12 +410,12 @@ ChOptimizerGenetic::ChOptimizerGenetic() {
     population = NULL;
     best_indiv = new ChGenotype(1);
     max_generations = 100;
-    selection = SELEC_ROULETTEBEST;
-    crossover = CROSSOVER_BLEND;
-    mutation = MUTATION_UNIFORM;
-    elite = ELITE_FALSE;
-    crossv_change = CRO_CHANGE_NULL;
-    crossv_changeto = CROSSOVER_BLEND;
+    selection = SelectionType::ROULETTEBEST;
+    crossover = CrossoverType::BLEND;
+    mutation = MutationType::UNIFORM;
+    elite = false;
+    crossv_change = CrossoverChangeType::NO_CHANGE;
+    crossv_changeto = CrossoverType::BLEND;
     crossv_changewhen = 40;
     average = 0;
     stdeviation = 0;
@@ -414,7 +426,7 @@ ChOptimizerGenetic::ChOptimizerGenetic() {
     crossover_prob = 0.3;
     speciation_mating = false;
     incest_taboo = true;
-    replacement = REPLA_PARENTS;
+    replacement = ReplaceMode::PARENTS;
     eugenetics = 0.0;
 
     stop_by_stdeviation = false;
@@ -695,11 +707,11 @@ void ChOptimizerGenetic::Selection() {
 
     // move the good elements into the new temp array of selected elements
     switch (selection) {
-        case SELEC_ROULETTE:
+        case SelectionType::ROULETTE:
             for (i = 0; i < popsize; i++)
                 selected_population[i]->Copy(Select_roulette(population));
             break;
-        case SELEC_ROULETTEBEST:
+        case SelectionType::ROULETTEBEST:
             for (i = 0; i < popsize; i++)
                 selected_population[i]->Copy(Select_roulette(population));
             Select_worst(selected_population)->Copy(Select_best(population));
@@ -721,7 +733,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
     ChMatrixDynamic<> mtemp(nvars, 1);
 
     switch (crossover) {
-        case CROSSOVER_DISABLED:
+        case CrossoverType::DISABLED:
             // do not perform crossover, return same as parent without need of evaluation
             child1.Copy(par1);
             child2.Copy(par2);
@@ -729,7 +741,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
             child2.need_eval = false;
             return;  // %%%%
 
-        case CROSSOVER_ARITMETIC:
+        case CrossoverType::ARITMETIC:
             // 'Aritmetic' crossover:
             // average of fenotypes with random wheight
             for (mv = 0; mv < nvars; mv++) {
@@ -744,7 +756,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
             }
             break;
 
-        case CROSSOVER_BLEND:
+        case CrossoverType::BLEND:
             // 'Blend' crossover:
             // linear average of two fenotypes with constant weights 0.3 and 0.7 (children are linear
             // interpolation of parents 0...0.3...0.7...1)
@@ -759,7 +771,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
                 child2.genes->SetElement(mv, 0, newfen2);
             }
             break;
-        case CROSSOVER_BLEND_RANDOM:
+        case CrossoverType::BLEND_RANDOM:
             // 'Blend random' crossover:
             // linear average of two fenotypes with random weights 0.3 and 0.7 (children are linear
             // interpolation of parents 0...rnd...rnd...1)
@@ -774,7 +786,7 @@ void ChOptimizerGenetic::ApplyCrossover(ChGenotype* par1, ChGenotype* par2, ChGe
                 child2.genes->SetElement(mv, 0, newfen2);
             }
             break;
-        case CROSSOVER_HEURISTIC:
+        case CrossoverType::HEURISTIC:
             // 'heuristic crossover' extrapolates the child in the direction of
             // the parent with best fitness
             ChGenotype* lead_par;
@@ -865,11 +877,11 @@ void ChOptimizerGenetic::Crossover() {
 
             // replacement of children data  ##########
             switch (replacement) {
-                case REPLA_PARENTS:
+                case ReplaceMode::PARENTS:
                     par1->Copy(&child1);
                     par2->Copy(&child2);
                     break;
-                case REPLA_WORST:
+                case ReplaceMode::WORST:
                     Select_worst(population)->Copy(&child1);
                     Select_worst(population)->Copy(&child2);
                     break;
@@ -899,10 +911,10 @@ void ChOptimizerGenetic::Mutation() {
                 a2 = xv_sup[mvar];  // must lie within the max/min
                 // Perform mutation:
                 switch (mutation) {
-                    case MUTATION_UNIFORM:
+                    case MutationType::UNIFORM:
                         mutval = a1 + ChRandom() * (a2 - a1);
                         break;
-                    case MUTATION_BOUNDARY:
+                    case MutationType::BOUNDARY:
                         if (ChRandom() < 0.5)
                             mutval = a1;
                         else
@@ -1001,7 +1013,7 @@ bool ChOptimizerGenetic::DoOptimize() {
     // GENERATION BY GENERATION
     //
     for (generations_done = 1; generations_done <= max_generations; generations_done++) {
-        if (crossv_change == CRO_CHANGE_DATE)
+        if (crossv_change == CrossoverChangeType::DATE)
             if (generations_done > crossv_changewhen)
                 crossover = crossv_changeto;
 
@@ -1049,7 +1061,7 @@ bool ChOptimizerGenetic::DoOptimize() {
         // -- SELECTION
         Selection();
 
-        if (elite == ELITE_TRUE) {
+        if (elite) {
             if (Select_best(population)->fitness < best_indiv->fitness) {
                 Select_worst(population)->Copy(best_indiv);
             }

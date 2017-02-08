@@ -19,8 +19,6 @@
 
 namespace chrono {
 
-#define CHF_MATLAB_STRING_LEN 200
-
 /// Matlab function: y = matlab evaluation of function y=f(x)
 
 class ChApi ChFunction_Matlab : public ChFunction {
@@ -28,6 +26,7 @@ class ChApi ChFunction_Matlab : public ChFunction {
     CH_FACTORY_TAG(ChFunction_Matlab)
 
   private:
+    static const int CHF_MATLAB_STRING_LEN = 200;
     char mat_command[CHF_MATLAB_STRING_LEN];  ///< matlab command
 
   public:

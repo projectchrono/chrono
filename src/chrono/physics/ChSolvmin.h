@@ -23,20 +23,6 @@ struct JSScript;
 
 namespace chrono {
 
-#define OPT_ERR_OK 0
-#define OPT_ERR_NOVARS 1
-#define OPT_ERR_NOMEMORY 2
-#define OPT_ERR_INFINITY 3
-#define OPT_ERR_CANNOTEVALFX 4
-#define OPT_ERR_CANNOTEVALVAR 5
-#define OPT_ERR_INVALIDSYS 6
-
-#define OPT_IMPOSSIBLE +999999
-#define OPT_PENALTY_POS +999998
-#define OPT_PENALTY_NEG -999998
-
-// -----------------------------------------------------------------------------
-
 /// Base class for multi-variable optimization.
 
 class ChApi ChOptimizer : public ChObj {
@@ -189,23 +175,50 @@ class ChApi ChGenotype {
 
 class ChApi ChOptimizerGenetic : public ChOptimizer {
   public:
-    int popsize;              ///< def = 100; initial population size in array "population"
-    ChGenotype** population;  ///< Array of pointers to population genotypes
-    ChGenotype* best_indiv;   ///< Copy of the individual with best fitness found in latest optimization.
-    int max_generations;      ///< max number of generations to perform
-    int selection;            ///< reproduction (selection) type (see codes)
-    int crossover;            ///< crossover type (see codes)
-    int mutation;             ///< mutation type;
-    int elite;                ///< if true, best parent is always kept after crossover
-    int crossv_change;        ///< see codes above, if NULL the crossover type is always the same
-    int crossv_changeto;      ///< the type of new crossover if using crossv_change
-    long crossv_changewhen;   ///< generation number, when the "change of crossover type" takes place
-    double mutation_prob;     ///< probability of mutation, 0..1, default = 0.001
-    double crossover_prob;    ///< crossover probability, default = 0.3;
-    bool speciation_mating;   ///< if true, marriage happens between similar individuals;
-    bool incest_taboo;        ///< if true, avoids marriage between individuals too similar
-    int replacement;          ///< see codes
-    double eugenetics;        ///< range (0..1); if 0, no eugenetics, otherwise clamp for fitness (normalized in 0..1)
+    enum class SelectionType {
+        ROULETTE,
+        ROULETTEBEST,
+        NORMGEOMETRIC,
+        TOURNAMENT,
+    };
+    enum class CrossoverType {
+        ARITMETIC,
+        BLEND,
+        BLEND_RANDOM,
+        HEURISTIC,
+        DISABLED,
+    };
+    enum class CrossoverChangeType {
+        NO_CHANGE,
+        DATE,
+        SLOWLY,
+    };
+    enum class MutationType {
+        UNIFORM,
+        BOUNDARY,
+    };
+    enum class ReplaceMode {
+        PARENTS = 0,
+        WORST,
+    };
+
+    int popsize;                        ///< def = 100; initial population size in array "population"
+    ChGenotype** population;            ///< Array of pointers to population genotypes
+    ChGenotype* best_indiv;             ///< Copy of the individual with best fitness found in latest optimization.
+    int max_generations;                ///< max number of generations to perform
+    SelectionType selection;            ///< reproduction (selection) type
+    CrossoverType crossover;            ///< crossover type
+    MutationType mutation;              ///< mutation type;
+    bool elite;                    ///< if true, best parent is always kept after crossover
+    CrossoverChangeType crossv_change;  ///< see codes above, if NO_CHANGE the crossover type is always the same
+    CrossoverType crossv_changeto;      ///< the type of new crossover if using crossv_change
+    long crossv_changewhen;             ///< generation number, when the "change of crossover type" takes place
+    double mutation_prob;               ///< probability of mutation, 0..1, default = 0.001
+    double crossover_prob;              ///< crossover probability, default = 0.3;
+    bool speciation_mating;             ///< if true, marriage happens between similar individuals;
+    bool incest_taboo;                  ///< if true, avoids marriage between individuals too similar
+    ReplaceMode replacement;            ///< replacement mode
+    double eugenetics;  ///< range (0..1); if 0, no eugenetics, otherwise clamp for fitness (normalized in 0..1)
 
     bool stop_by_stdeviation;  ///< if true...		(def: false)
     double stop_stdeviation;   ///< stop search if stdeviation becomes lower than this value (def.0)
@@ -272,37 +285,6 @@ class ChApi ChOptimizerGenetic : public ChOptimizer {
     void PopulationStats(double& average, double& max, double& min, double& stdeviation);
     // outputs generation stats to stramLOG file (if filelog is true) and to console
     void LogOut(bool filelog);
-};
-
-enum eChGeneticSelection {
-    SELEC_ROULETTE = 0,
-    SELEC_ROULETTEBEST,
-    SELEC_NORMGEOMETRIC,
-    SELEC_TOURNAMENT,
-};
-enum eChGeneticCrossover {
-    CROSSOVER_ARITMETIC = 0,
-    CROSSOVER_BLEND,
-    CROSSOVER_BLEND_RANDOM,
-    CROSSOVER_HEURISTIC,
-    CROSSOVER_DISABLED,
-};
-enum eChGeneticChange {
-    CRO_CHANGE_NULL = 0,
-    CRO_CHANGE_DATE,
-    CRO_CHANGE_SLOWLY,
-};
-enum eChGeneticMutation {
-    MUTATION_UNIFORM = 0,
-    MUTATION_BOUNDARY,
-};
-enum eChGeneticEliteMode {
-    ELITE_FALSE = 0,
-    ELITE_TRUE,
-};
-enum eChGeneticReplaceMode {
-    REPLA_PARENTS = 0,
-    REPLA_WORST,
 };
 
 // -----------------------------------------------------------------------------

@@ -13,8 +13,8 @@
 
 namespace chrono {
 
-///////////////////////////////////////////////
-////  COORDSYS  OPERATIONS
+ChApi const ChCoordsys<double> CSYSNULL(VNULL, QNULL);
+ChApi const ChCoordsys<double> CSYSNORM(VNULL, QUNIT);
 
 Coordsys Force2Dcsys(const Coordsys& cs) {
     Coordsys res;

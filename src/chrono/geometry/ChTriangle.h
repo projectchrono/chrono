@@ -22,10 +22,7 @@
 namespace chrono {
 namespace geometry {
 
-#define EPS_TRIDEGENERATE 1e-20
-
 /// A triangle geometric shape for collisions and visualization.
-
 class ChApi ChTriangle : public ChGeometry {
 
     // Tag needed for class factory in archive (de)serialization:

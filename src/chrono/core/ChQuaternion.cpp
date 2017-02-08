@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+ChApi const ChQuaternion<double> QNULL(0., 0., 0., 0.);
+ChApi const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
+
 ///////////////////////////////////////////////////
 // QUATERNION OPERATIONS
 
@@ -350,24 +353,24 @@ ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
 ////////////////////////////////////////////////////////////
 //  ANGLE CONVERSION UTILITIES
 
-ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& mangles) {
+ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mangles) {
     ChQuaternion<double> res;
     ChMatrix33<> Acoord;
 
     switch (angset) {
-        case ANGLESET_EULERO:
+        case AngleSet::EULERO:
             Acoord.Set_A_Eulero(mangles);
             break;
-        case ANGLESET_CARDANO:
+        case AngleSet::CARDANO:
             Acoord.Set_A_Cardano(mangles);
             break;
-        case ANGLESET_HPB:
+        case AngleSet::HPB:
             Acoord.Set_A_Hpb(mangles);
             break;
-        case ANGLESET_RXYZ:
+        case AngleSet::RXYZ:
             Acoord.Set_A_Rxyz(mangles);
             break;
-        case ANGLESET_RODRIGUEZ:
+        case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
     }
@@ -375,33 +378,33 @@ ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& mangles) 
     return res;
 }
 
-ChVector<double> Quat_to_Angle(int angset, const ChQuaternion<double>& mquat) {
+ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mquat) {
     ChVector<double> res;
     ChMatrix33<> Acoord;
 
     Acoord.Set_A_quaternion(mquat);
 
     switch (angset) {
-        case ANGLESET_EULERO:
+        case AngleSet::EULERO:
             res = Acoord.Get_A_Eulero();
             break;
-        case ANGLESET_CARDANO:
+        case AngleSet::CARDANO:
             res = Acoord.Get_A_Cardano();
             break;
-        case ANGLESET_HPB:
+        case AngleSet::HPB:
             res = Acoord.Get_A_Hpb();
             break;
-        case ANGLESET_RXYZ:
+        case AngleSet::RXYZ:
             res = Acoord.Get_A_Rxyz();
             break;
-        case ANGLESET_RODRIGUEZ:
+        case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
             break;
     }
     return res;
 }
 
-ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
+ChQuaternion<double> AngleDT_to_QuatDT(AngleSet angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
     ChQuaternion<double> res;
     ChQuaternion<double> q2;
     ChVector<double> ang1, ang2;
@@ -414,7 +417,7 @@ ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangl
     return res;
 }
 
-ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
+ChQuaternion<double> AngleDTDT_to_QuatDTDT(AngleSet angset, const ChVector<double>& mangles, const ChQuaternion<double>& q) {
     ChQuaternion<double> res;
     ChQuaternion<double> qa, qb;
     ChVector<double> ang0, angA, angB;
@@ -430,42 +433,42 @@ ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& m
     return res;
 }
 
-ChVector<double> Angle_to_Angle(int setfrom, int setto, const ChVector<double>& mangles) {
+ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector<double>& mangles) {
     ChVector<double> res;
     ChMatrix33<> Acoord;
 
     switch (setfrom) {
-        case ANGLESET_EULERO:
+        case AngleSet::EULERO:
             Acoord.Set_A_Eulero(mangles);
             break;
-        case ANGLESET_CARDANO:
+        case AngleSet::CARDANO:
             Acoord.Set_A_Cardano(mangles);
             break;
-        case ANGLESET_HPB:
+        case AngleSet::HPB:
             Acoord.Set_A_Hpb(mangles);
             break;
-        case ANGLESET_RXYZ:
+        case AngleSet::RXYZ:
             Acoord.Set_A_Rxyz(mangles);
             break;
-        case ANGLESET_RODRIGUEZ:
+        case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
     }
 
     switch (setto) {
-        case ANGLESET_EULERO:
+        case AngleSet::EULERO:
             res = Acoord.Get_A_Eulero();
             break;
-        case ANGLESET_CARDANO:
+        case AngleSet::CARDANO:
             res = Acoord.Get_A_Cardano();
             break;
-        case ANGLESET_HPB:
+        case AngleSet::HPB:
             res = Acoord.Get_A_Hpb();
             break;
-        case ANGLESET_RXYZ:
+        case AngleSet::RXYZ:
             res = Acoord.Get_A_Rxyz();
             break;
-        case ANGLESET_RODRIGUEZ:
+        case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
             break;
     }

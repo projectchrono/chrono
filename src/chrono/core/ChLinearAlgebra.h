@@ -21,12 +21,6 @@
 #define MIN_PIVOT 0.00000001
 #define INFINITE_PIVOT 1.e+34
 
-#define EIG_ROTATE(a, i, j, k, l)                 \
-    g = a->Get33Element(i, j);                    \
-    h = a->Get33Element(k, l);                    \
-    a->Set33Element(i, j, g - s * (h + g * tau)); \
-    a->Set33Element(k, l, h + s * (g - h * tau));
-
 namespace chrono {
 
 // template <class Real = double>
