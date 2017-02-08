@@ -25,13 +25,6 @@
 
 namespace chrono {
 
-// CONSTANTS
-
-#define VNULL ChVector<double>(0., 0., 0.)
-#define VECT_X ChVector<double>(1., 0., 0.)
-#define VECT_Y ChVector<double>(0., 1., 0.)
-#define VECT_Z ChVector<double>(0., 0., 1.)
-
 /// Definition of general purpose 3d vector variables, such as points in 3D.
 /// This class implements the vectorial algebra in 3D (Gibbs products).
 /// ChVector is templated by precision, with default 'double'.
@@ -417,15 +410,6 @@ ChVector<Real> operator*(const Real s, const ChVector<Real>& V) {
 }
 
 //
-// CONSTANTS
-//
-// Commented this and added #defines above as code was not compiling (under linux at least)- Hammad
-// static const ChVector<double> VNULL(0.,0.,0.);
-// static const ChVector<double> VECT_X(1.,0.,0.);
-// static const ChVector<double> VECT_Y(0.,1.,0.);
-// static const ChVector<double> VECT_Z(0.,0.,1.);
-
-//
 // STATIC VECTOR MATH OPERATIONS
 //
 //  These functions are here for people which prefer to use static
@@ -588,6 +572,13 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     // compute Vy
     Vy = Vcross(Vz, Vx);
 }
+
+// CONSTANTS
+
+ChApi extern const ChVector<double> VNULL;
+ChApi extern const ChVector<double> VECT_X;
+ChApi extern const ChVector<double> VECT_Y;
+ChApi extern const ChVector<double> VECT_Z;
 
 }  // end namespace chrono
 

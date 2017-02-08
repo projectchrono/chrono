@@ -20,13 +20,6 @@
 
 namespace chrono {
 
-//
-// CONSTANTS
-//
-// Added this here as code was not compiling (under Swig parser)
-#define QNULL ChQuaternion<double>(0.,0.,0.,0.)
-#define QUNIT ChQuaternion<double>(1.,0.,0.,0.)
-
 ///
 /// QUATERNION:
 ///
@@ -857,6 +850,10 @@ ChApi ChQuaternion<double> Angle_to_Quat(int angset, const ChVector<double>& man
 ChApi ChQuaternion<double> AngleDT_to_QuatDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 ChApi ChQuaternion<double> AngleDTDT_to_QuatDTDT(int angset, const ChVector<double>& mangles, const ChQuaternion<double>& q);
 
+// CONSTANTS
+
+ChApi extern const ChQuaternion<double> QNULL;
+ChApi extern const ChQuaternion<double> QUNIT;
 
 }  // end namespace chrono
 

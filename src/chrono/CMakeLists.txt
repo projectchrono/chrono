@@ -33,6 +33,7 @@ set(ChronoEngine_core_SOURCES
     core/ChStream.cpp
     core/ChMathematics.cpp
     core/ChQuaternion.cpp
+    core/ChVector.cpp
     core/ChCoordsys.cpp
     core/ChLinkedListMatrix.cpp
     core/ChCSR3Matrix.cpp

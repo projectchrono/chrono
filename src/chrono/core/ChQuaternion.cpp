@@ -19,6 +19,9 @@
 
 namespace chrono {
 
+ChApi const ChQuaternion<double> QNULL(0., 0., 0., 0.);
+ChApi const ChQuaternion<double> QUNIT(1., 0., 0., 0.);
+
 ///////////////////////////////////////////////////
 // QUATERNION OPERATIONS
 
