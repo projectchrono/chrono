@@ -299,8 +299,8 @@ class ChVector {
     Real LengthInf() const { return ChMax(ChMax(fabs(x), fabs(y)), fabs(z)); }
 
     /// Normalize this vector, so that its euclidean length is 1.
-    /// Returns false if original vector had zero length (in such a case
-    /// it will be defaulted as VECT_X) otherwise returns true for success.
+    /// Returns false if original vector had zero length (in which case the vector
+    /// set to [1,0,0]) and returns true otherwise.
     bool Normalize() {
         Real mlength = this->Length();
         if (mlength < CH_NANOTOL) {
@@ -313,7 +313,7 @@ class ChVector {
         return true;
     }
 
-    /// Return a normalized copy of this vector, with euclidean length =1.
+    /// Return a normalized copy of this vector, with euclidean length = 1.
     /// Not to be confused with Normalize(), that normalizes in place.
     ChVector<Real> GetNormalized() const {
         ChVector<Real> mret(*this);
@@ -512,13 +512,13 @@ bool Vnotnull(const ChVector<RealA>& va) {
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplane(const ChVector<RealA>& va) {
-    return asin(Vdot(va, VECT_X));
+    return asin(Vdot(va, ChVector<RealA>(1, 0, 0)));
 }
 
 // Gets the zenith angle of a unit vector respect to YZ plane  ***OBSOLETE
 template <class RealA>
 double VangleYZplaneNorm(const ChVector<RealA>& va) {
-    return acos(Vdot(va, VECT_X));
+    return acos(Vdot(va, ChVector<RealA>(1, 0, 0)));
 }
 
 // Gets the angle of the projection on the YZ plane respect to
@@ -559,11 +559,11 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
                   ChVector<RealA>& Vx,
                   ChVector<RealA>& Vy,
                   ChVector<RealA>& Vz) {
-    ChVector<RealA> mVnull = VNULL;
+    ChVector<RealA> mVnull(0, 0, 0);
     double mzlen;
 
     if (Vequal(Vxdir, mVnull))
-        Vx = VECT_X;
+        Vx = ChVector<RealA>(1, 0, 0);
     else
         Vx = Vnorm(Vxdir);
 
@@ -574,11 +574,11 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     if (mzlen < 0.0001) {
         ChVector<> mVsingular;
         if (fabs(Vsingular.z) < 0.9)
-            mVsingular = VECT_Z;
+            mVsingular = ChVector<RealA>(0, 0, 1);
         if (fabs(Vsingular.y) < 0.9)
-            mVsingular = VECT_Y;
+            mVsingular = ChVector<RealA>(0, 1, 0);
         if (fabs(Vsingular.x) < 0.9)
-            mVsingular = VECT_X;
+            mVsingular = ChVector<RealA>(1, 0, 0);
         Vz = Vcross(Vx, mVsingular);
         mzlen = Vlength(Vz);  // now should be nonzero length.
     }
