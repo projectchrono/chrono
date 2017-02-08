@@ -594,6 +594,22 @@ class  ChArchiveOut : public ChArchive {
           ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
           this->out (pair_val);
       }
+        // trick to wrap stl::unordered_map container
+      template<class T, class Tv>
+      void out     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
+          this->out_array_pre(bVal.name(), bVal.value().size(), typeid(std::pair<T, Tv>).name());
+          int i=0;
+          for ( auto it = bVal.value().begin(); it != bVal.value().end(); ++it )
+          {
+              char buffer[20];
+              sprintf(buffer, "el_%lu", (unsigned long)i);
+              ChNameValue< std::pair<T, Tv> > array_key(buffer, (*it));
+              this->out (array_key);
+              this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
+              ++i;
+          }
+          this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+      }
      
 
 
@@ -831,6 +847,26 @@ class  ChArchiveIn : public ChArchive {
           ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
           this->in (pair_val);
       }
+        // trick to wrap stl::unordered_map container
+      template<class T, class Tv>
+      void in     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
+          bVal.value().clear();
+          size_t arraysize;
+          this->in_array_pre(bVal.name(), arraysize);
+          for (size_t i = 0; i<arraysize; ++i)
+          {
+              char idname[20];
+              sprintf(idname, "el_%lu", (unsigned long)i);
+              std::pair<T,Tv> mpair;
+              ChNameValue< std::pair<T,Tv> > array_val(idname, mpair);
+              this->in (array_val);
+              // store in map; constant time:
+              bVal.value()[mpair.first]=mpair.second; 
+              this->in_array_between(bVal.name());
+          }
+          this->in_array_end(bVal.name());
+      }
+
 
         // trick to call in_ref on ChSharedPointer, with class polimorphism:
       template<class T>
