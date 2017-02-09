@@ -135,7 +135,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void SetCollide(bool state);
 
     /// Return true if collision is enabled for this body.
-    virtual bool GetCollide() override;
+    virtual bool GetCollide() const override;
 
     /// Show collision mesh in 3D views.
     void SetShowCollisionMesh(bool state);

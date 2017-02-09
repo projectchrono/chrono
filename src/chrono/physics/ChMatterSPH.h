@@ -248,7 +248,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() const { return do_collide; }
+    virtual bool GetCollide() const override { return do_collide; }
 
     /// Get the number of scalar coordinates (variables), if any, in this item
     virtual int GetDOF() override { return 3 * GetNnodes(); }

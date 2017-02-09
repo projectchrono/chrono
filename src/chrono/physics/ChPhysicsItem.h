@@ -98,7 +98,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Tell if the object is subject to collision.
     /// Only for interface; child classes may override this, using internal flags.
-    virtual bool GetCollide() { return false; }
+    virtual bool GetCollide() const { return false; }
 
     /// If this physical item contains one or more collision models,
     /// sinchronize their coordinates and bounding boxes to the state of the item.

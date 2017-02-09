@@ -801,7 +801,7 @@ void ChBody::SetCollide(bool state) {
     }
 }
 
-bool ChBody::GetCollide() {
+bool ChBody::GetCollide() const {
     return BFlagGet(BodyFlag::COLLIDE);
 }
 
