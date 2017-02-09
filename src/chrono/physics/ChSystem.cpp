@@ -680,8 +680,8 @@ bool ChSystem::ManageSleepingBodies() {
                 return true;
             bool sleep1 = b1->GetSleeping();
             bool sleep2 = b2->GetSleeping();
-            bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
-            bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
+            bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+            bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
             bool ground1 = b1->GetBodyFixed();
             bool ground2 = b2->GetBodyFixed();
             if (sleep1 && !(sleep2 || could_sleep2) && !ground2) {
@@ -693,10 +693,10 @@ bool ChSystem::ManageSleepingBodies() {
                 need_Setup_A = true;
             }
             if (could_sleep1 && !(sleep2 || could_sleep2) && !ground2) {
-                b1->BFlagSet(BF_COULDSLEEP, false);
+                b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
-                b2->BFlagSet(BF_COULDSLEEP, false);
+                b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
             someone_sleeps = sleep1 | sleep2 | someone_sleeps;
 
@@ -728,8 +728,8 @@ bool ChSystem::ManageSleepingBodies() {
                 if (b1 && b2) {
                     bool sleep1 = b1->GetSleeping();
                     bool sleep2 = b2->GetSleeping();
-                    bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
-                    bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
+                    bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                    bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
                     if (sleep1 && !(sleep2 || could_sleep2)) {
                         b1->SetSleeping(false);
                         need_Setup_L = true;
@@ -739,10 +739,10 @@ bool ChSystem::ManageSleepingBodies() {
                         need_Setup_L = true;
                     }
                     if (could_sleep1 && !(sleep2 || could_sleep2)) {
-                        b1->BFlagSet(BF_COULDSLEEP, false);
+                        b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
                     }
                     if (could_sleep2 && !(sleep1 || could_sleep1)) {
-                        b2->BFlagSet(BF_COULDSLEEP, false);
+                        b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
                     }
                 }
             }
@@ -759,7 +759,7 @@ bool ChSystem::ManageSleepingBodies() {
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
     for (int ip = 0; ip < bodylist.size(); ++ip) {
-        if (bodylist[ip]->BFlagGet(BF_COULDSLEEP)) {
+        if (bodylist[ip]->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
             bodylist[ip]->SetSleeping(true);
             ++need_Setup_B;
         }
