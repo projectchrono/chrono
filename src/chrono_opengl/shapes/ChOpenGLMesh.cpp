@@ -76,12 +76,12 @@ bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMat
         this->vertex_indices.push_back(i * 3 + 1);
         this->vertex_indices.push_back(i * 3 + 2);
         glm::vec3 v, n;
-        v = glm::vec3(v1.x, v1.y, v1.z);
-        n = glm::vec3(norm.x, norm.y, norm.z);
+        v = glm::vec3(v1.x(), v1.y(), v1.z());
+        n = glm::vec3(norm.x(), norm.y(), norm.z());
         this->data.push_back(ChOpenGLVertexAttributesPN(v, n));
-        v = glm::vec3(v2.x, v2.y, v2.z);
+        v = glm::vec3(v2.x(), v2.y(), v2.z());
         this->data.push_back(ChOpenGLVertexAttributesPN(v, n));
-        v = glm::vec3(v3.x, v3.y, v3.z);
+        v = glm::vec3(v3.x(), v3.y(), v3.z());
         this->data.push_back(ChOpenGLVertexAttributesPN(v, n));
     }
     ambient = mat.ambient_color;
