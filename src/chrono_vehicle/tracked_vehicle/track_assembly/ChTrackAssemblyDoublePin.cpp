@@ -58,9 +58,9 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     ChVector<> rear_wheel_pos_3d = front_wheel_pos_3d;
     for (size_t i = 1; i < num_wheels; i++) {
         ChVector<> wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
-        if (wheel_pos.x > front_wheel_pos_3d.x)
+        if (wheel_pos.x() > front_wheel_pos_3d.x())
             front_wheel_pos_3d = wheel_pos;
-        if (wheel_pos.x < rear_wheel_pos_3d.x)
+        if (wheel_pos.x() < rear_wheel_pos_3d.x())
             rear_wheel_pos_3d = wheel_pos;
     }
 
@@ -68,16 +68,16 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // clockwise (sprocket behind idler).
     // Set the positions of the road wheel closest to the sprocket and of the one
     // closest to the idler.
-    bool ccw = sprocket_pos_3d.x > idler_pos_3d.x;
+    bool ccw = sprocket_pos_3d.x() > idler_pos_3d.x();
     double sign = ccw ? -1 : +1;
     const ChVector<>& wheel_sprocket_pos_3d = ccw ? front_wheel_pos_3d : rear_wheel_pos_3d;
     const ChVector<>& wheel_idler_pos_3d = ccw ? rear_wheel_pos_3d : front_wheel_pos_3d;
 
     // Restrict to (x-z) plane.
-    ChVector2<> sprocket_pos(sprocket_pos_3d.x, sprocket_pos_3d.z);
-    ChVector2<> idler_pos(idler_pos_3d.x, idler_pos_3d.z);
-    ChVector2<> wheel_sprocket_pos(wheel_sprocket_pos_3d.x, wheel_sprocket_pos_3d.z);
-    ChVector2<> wheel_idler_pos(wheel_idler_pos_3d.x, wheel_idler_pos_3d.z);
+    ChVector2<> sprocket_pos(sprocket_pos_3d.x(), sprocket_pos_3d.z());
+    ChVector2<> idler_pos(idler_pos_3d.x(), idler_pos_3d.z());
+    ChVector2<> wheel_sprocket_pos(wheel_sprocket_pos_3d.x(), wheel_sprocket_pos_3d.z());
+    ChVector2<> wheel_idler_pos(wheel_idler_pos_3d.x(), wheel_idler_pos_3d.z());
 
     // Subsystem parameters.
     // Note that the idler and wheel radii are inflated by a fraction of the shoe height.
@@ -90,7 +90,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double wheel_radius = m_suspensions[0]->GetWheelRadius() + 1.1 * shoe_height;
 
     m_chassis = chassis;
-    m_sprocket_offset = sprocket_pos_3d.y;
+    m_sprocket_offset = sprocket_pos_3d.y();
     m_connector_offset = m_shoes[0]->GetShoeWidth() / 2;
 
     // Set target points around the track.

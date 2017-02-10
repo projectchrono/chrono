@@ -84,9 +84,9 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
                                       const ChVector<>& terrain_dimension,
                                       const ChVector<int>& terrain_discretization) {
     // Specification of the mesh (40,20,6)
-    int numDiv_x = terrain_discretization(0);
-    int numDiv_y = terrain_discretization(1);
-    int numDiv_z = terrain_discretization(2);
+    int numDiv_x = terrain_discretization.x();
+    int numDiv_y = terrain_discretization.y();
+    int numDiv_z = terrain_discretization.z();
 
     int N_x = numDiv_x + 1;
     int N_y = numDiv_y + 1;
@@ -98,9 +98,9 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     int TotalNumNodes = (numDiv_z + 1) * XYNumNodes + TotalNumElements;
 
     // For uniform mesh
-    double dx = terrain_dimension(0) / numDiv_x;
-    double dy = terrain_dimension(1) / numDiv_y;
-    double dz = terrain_dimension(2) / numDiv_z;
+    double dx = terrain_dimension.x() / numDiv_x;
+    double dy = terrain_dimension.y() / numDiv_y;
+    double dz = terrain_dimension.z() / numDiv_z;
 
     bool Plasticity = true;
 
@@ -108,9 +108,9 @@ void FEADeformableTerrain::Initialize(const ChVector<>& start_point,
     for (int j = 0; j <= numDiv_z; j++) {
         for (int i = 0; i < XYNumNodes; i++) {
             // Node location
-            double loc_x = start_point(0) + (i % (numDiv_x + 1)) * dx;
-            double loc_y = start_point(1) + (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
-            double loc_z = start_point(2) + j * dz;
+            double loc_x = start_point.x() + (i % (numDiv_x + 1)) * dx;
+            double loc_y = start_point.y() + (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
+            double loc_z = start_point.z() + j * dz;
 
             // Create the node
             auto node = std::make_shared<ChNodeFEAxyz>(ChVector<>(loc_x, loc_y, loc_z));

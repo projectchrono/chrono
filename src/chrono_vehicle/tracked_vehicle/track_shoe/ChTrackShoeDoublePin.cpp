@@ -168,14 +168,14 @@ void ChTrackShoeDoublePin::AddShoeContact() {
     const ChVector<>& pad_dims = GetPadBoxDimensions();
     const ChVector<>& guide_dims = GetGuideBoxDimensions();
 
-    double p0y = 2.1 * (pad_dims.y / 2);
-    double p1y = 1.5 * (pad_dims.y / 2);
+    double p0y = 2.1 * (pad_dims.y() / 2);
+    double p1y = 1.5 * (pad_dims.y() / 2);
 
     m_shoe->GetCollisionModel()->ClearModel();
 
-    m_shoe->GetCollisionModel()->AddBox(pad_dims.x / 2, pad_dims.y / 2, pad_dims.z / 2, GetPadBoxLocation());
+    m_shoe->GetCollisionModel()->AddBox(pad_dims.x() / 2, pad_dims.y() / 2, pad_dims.z() / 2, GetPadBoxLocation());
 
-    m_shoe->GetCollisionModel()->AddBox(guide_dims.x / 2, guide_dims.y / 2, guide_dims.z / 2, GetGuideBoxLocation());
+    m_shoe->GetCollisionModel()->AddBox(guide_dims.x() / 2, guide_dims.y() / 2, guide_dims.z() / 2, GetGuideBoxLocation());
 
     m_shoe->GetCollisionModel()->BuildModel();
 }
@@ -203,7 +203,7 @@ void ChTrackShoeDoublePin::AddShoeVisualization() {
     double s_width = GetShoeWidth();
     double c_width = GetConnectorWidth();
 
-    double pin_radius = pad_box_dims.z / 6;
+    double pin_radius = pad_box_dims.z() / 6;
     double pin_len = s_width + c_width + 2 * c_width;
 
     auto rev_rear = std::make_shared<ChCylinderShape>();

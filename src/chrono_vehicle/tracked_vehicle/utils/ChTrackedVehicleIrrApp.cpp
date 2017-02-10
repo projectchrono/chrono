@@ -80,7 +80,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
+        if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
@@ -91,7 +91,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y)
+        if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 

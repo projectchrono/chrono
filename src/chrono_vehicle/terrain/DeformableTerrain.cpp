@@ -385,17 +385,17 @@ void DeformableSoil::Initialize(const std::string& heightmap_file,
     // Calculate normals and then average the normals from all adjacent faces.
     for (unsigned int it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector<> nrm = Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
-                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
+                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
-        normals[idx_normals[it].x] += nrm;
-        normals[idx_normals[it].y] += nrm;
-        normals[idx_normals[it].z] += nrm;
+        normals[idx_normals[it][0]] += nrm;
+        normals[idx_normals[it][1]] += nrm;
+        normals[idx_normals[it][2]] += nrm;
         // Increment the count of all incident vertices by 1
-        accumulators[idx_normals[it].x] += 1;
-        accumulators[idx_normals[it].y] += 1;
-        accumulators[idx_normals[it].z] += 1;
+        accumulators[idx_normals[it][0]] += 1;
+        accumulators[idx_normals[it][1]] += 1;
+        accumulators[idx_normals[it][2]] += 1;
     }
 
     // Set the normals to the average values.
@@ -435,18 +435,18 @@ void DeformableSoil::SetupAuxData() {
     p_erosion.resize(vertices.size());
 
     for (int i=0; i< vertices.size(); ++i) {
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
         p_level_initial[i] = p_level[i];
     }
 
     connected_vertexes.resize( vertices.size() );
     for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
-        connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].y);
-        connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].z);
-        connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].x);
-        connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].z);
-        connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].x);
-        connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].y);
+        connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][1]);
+        connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][2]);
+        connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][0]);
+        connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][2]);
+        connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][0]);
+        connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][1]);
     }
 
     m_trimesh_shape->GetMesh().ComputeNeighbouringTriangleMap(this->tri_map);
@@ -478,16 +478,16 @@ void DeformableSoil::ComputeInternalForces() {
         p_area[iv] = 0;
     }
     for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
-        ChVector<> AB = vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x];
-        ChVector<> AC = vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x];
+        ChVector<> AB = vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]];
+        ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][1]];
         AB = plane.TransformDirectionParentToLocal(AB);
         AC = plane.TransformDirectionParentToLocal(AC);
-        AB.y=0;
-        AC.y=0;
+        AB.y()=0;
+        AC.y()=0;
         double triangle_area = 0.5*(Vcross(AB,AC)).Length();
-        p_area[idx_normals[it].x] += triangle_area /3.0;
-        p_area[idx_normals[it].y] += triangle_area /3.0;
-        p_area[idx_normals[it].z] += triangle_area /3.0;
+        p_area[idx_normals[it][0]] += triangle_area /3.0;
+        p_area[idx_normals[it][1]] += triangle_area /3.0;
+        p_area[idx_normals[it][2]] += triangle_area /3.0;
     }
 
     ChVector<> N    = plane.TransformDirectionLocalToParent(ChVector<>(0,1,0));
@@ -505,7 +505,7 @@ void DeformableSoil::ComputeInternalForces() {
         p_step_plastic_flow[i]=0;
         p_erosion[i] = false;
 
-        p_level[i] = plane.TransformParentToLocal(vertices[i]).y;
+        p_level[i] = plane.TransformParentToLocal(vertices[i]).y();
 
         ChVector<> to   = vertices[i] +N*test_high_offset; 
         ChVector<> from = to - N*test_low_offset;
@@ -520,15 +520,15 @@ void DeformableSoil::ComputeInternalForces() {
 
             ChContactable* contactable = mrayhit_result.hitModel->GetContactable();
 
-            p_hit_level[i] = plane.TransformParentToLocal(mrayhit_result.abs_hitPoint).y;
+            p_hit_level[i] = plane.TransformParentToLocal(mrayhit_result.abs_hitPoint).y();
             p_hit_offset = -p_hit_level[i] + p_level_initial[i];
 
             p_speeds[i] = contactable->GetContactPointSpeed(vertices[i]);
 
             ChVector<> T = -p_speeds[i];
             T = plane.TransformDirectionParentToLocal(T);
-            double Vn = -T.y;
-            T.y=0;
+            double Vn = -T.y();
+            T.y() = 0;
             T = plane.TransformDirectionLocalToParent(T);
             T.Normalize();   
 
@@ -643,9 +643,9 @@ void DeformableSoil::ComputeInternalForces() {
         std::vector<int> marked_tris;
         for (int it = 0; it< idx_vertices.size(); ++it) {
             // see if at least one of the vertexes are touching
-            if ( p_sigma[idx_vertices[it].x] >0 || 
-                 p_sigma[idx_vertices[it].y] >0 ||
-                 p_sigma[idx_vertices[it].z] >0 ) {
+            if ( p_sigma[idx_vertices[it][0]] >0 || 
+                 p_sigma[idx_vertices[it][1]] >0 ||
+                 p_sigma[idx_vertices[it][2]] >0 ) {
                 marked_tris.push_back(it);
             }
         }
@@ -656,7 +656,7 @@ void DeformableSoil::ComputeInternalForces() {
         public:
             virtual double ComputeLength(const int vert_a, const int  vert_b, geometry::ChTriangleMeshConnected* mmesh) {
                 ChVector<> d = A.MatrT_x_Vect(mmesh->m_vertices[vert_a] - mmesh->m_vertices[vert_b]);
-                d.y = 0;
+                d.y() = 0;
                 return d.Length();
             }
             ChMatrix33<> A;
@@ -682,12 +682,12 @@ void DeformableSoil::ComputeInternalForces() {
         connected_vertexes.clear();
         connected_vertexes.resize( vertices.size() );
         for (unsigned int iface = 0; iface < idx_vertices.size(); ++iface) {
-            connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].y);
-            connected_vertexes[idx_vertices[iface].x].insert(idx_vertices[iface].z);
-            connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].x);
-            connected_vertexes[idx_vertices[iface].y].insert(idx_vertices[iface].z);
-            connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].x);
-            connected_vertexes[idx_vertices[iface].z].insert(idx_vertices[iface].y);
+            connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][1]);
+            connected_vertexes[idx_vertices[iface][0]].insert(idx_vertices[iface][2]);
+            connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][0]);
+            connected_vertexes[idx_vertices[iface][1]].insert(idx_vertices[iface][2]);
+            connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][0]);
+            connected_vertexes[idx_vertices[iface][2]].insert(idx_vertices[iface][1]);
         }
 
         // Recompute areas (could be optimized)
@@ -695,16 +695,16 @@ void DeformableSoil::ComputeInternalForces() {
             p_area[iv] = 0;
         }
         for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
-            ChVector<> AB = vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x];
-            ChVector<> AC = vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x];
+            ChVector<> AB = vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]];
+            ChVector<> AC = vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]];
             AB = plane.TransformDirectionParentToLocal(AB);
             AC = plane.TransformDirectionParentToLocal(AC);
-            AB.y=0;
-            AC.y=0;
-            double triangle_area = 0.5*(Vcross(AB,AC)).Length();
-            p_area[idx_normals[it].x] += triangle_area /3.0;
-            p_area[idx_normals[it].y] += triangle_area /3.0;
-            p_area[idx_normals[it].z] += triangle_area /3.0;
+            AB.y() = 0;
+            AC.y() = 0;
+            double triangle_area = 0.5 * (Vcross(AB, AC)).Length();
+            p_area[idx_normals[it][0]] += triangle_area /3.0;
+            p_area[idx_normals[it][1]] += triangle_area /3.0;
+            p_area[idx_normals[it][2]] += triangle_area /3.0;
         }
     }
 
@@ -855,7 +855,7 @@ void DeformableSoil::ComputeInternalForces() {
                     if (p_sigma[ivc] == 0) {
                         ChVector<> vic = this->plane.TransformParentToLocal(vertices[ivc]);
                         ChVector<> vdist = vic-vis;
-                        vdist.y=0;
+                        vdist.y() = 0;
                         double ddist = vdist.Length();
                         double dy = p_level[is] + p_massremainder[is]  - p_level[ivc] - p_massremainder[ivc];
                         double dy_lim = ddist * tan(bulldozing_erosion_angle*CH_C_DEG_TO_RAD);
@@ -994,17 +994,17 @@ void DeformableSoil::ComputeInternalForces() {
     // Calculate normals and then average the normals from all adjacent faces.
     for (unsigned int it = 0; it < idx_vertices.size(); ++it) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector<> nrm = -Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
-                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        ChVector<> nrm = -Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
+                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
-        normals[idx_normals[it].x] += nrm;
-        normals[idx_normals[it].y] += nrm;
-        normals[idx_normals[it].z] += nrm;
+        normals[idx_normals[it][0]] += nrm;
+        normals[idx_normals[it][1]] += nrm;
+        normals[idx_normals[it][2]] += nrm;
         // Increment the count of all incident vertices by 1
-        accumulators[idx_normals[it].x] += 1;
-        accumulators[idx_normals[it].y] += 1;
-        accumulators[idx_normals[it].z] += 1;
+        accumulators[idx_normals[it][0]] += 1;
+        accumulators[idx_normals[it][1]] += 1;
+        accumulators[idx_normals[it][2]] += 1;
     }
 
     // Set the normals to the average values.

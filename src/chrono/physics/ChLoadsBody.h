@@ -90,12 +90,12 @@ public:
 
         // ChBody assumes F={force_abs, torque_abs}
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-        mF(0) = abs_force.x;
-        mF(1) = abs_force.y;
-        mF(2) = abs_force.z;
+        mF(0) = abs_force.x();
+        mF(1) = abs_force.y();
+        mF(2) = abs_force.z();
 
         // Compute Q = N(u,v,w)'*F
-        mbody->ComputeNF(abs_application.x, abs_application.y, abs_application.z, load_Q, detJ, mF, state_x, state_w);
+        mbody->ComputeNF(abs_application.x(), abs_application.y(), abs_application.z(), load_Q, detJ, mF, state_x, state_w);
     }
 
     virtual bool IsStiff() {return false;}
@@ -148,9 +148,9 @@ public:
 
       // ChBody assumes F={force_abs, torque_abs}
       ChVectorDynamic<> mF(loadable->Get_field_ncoords());
-      mF(3) = this->torque.x;
-      mF(4) = this->torque.y;
-      mF(5) = this->torque.z;
+      mF(3) = this->torque.x();
+      mF(4) = this->torque.y();
+      mF(5) = this->torque.z();
 
       // Compute Q = N(u,v,w)'*F
       mbody->ComputeNF(0, 0, 0, load_Q, detJ, mF, state_x, state_w);
