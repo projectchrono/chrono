@@ -160,8 +160,8 @@ class ChVector {
     /// Set this vector to the difference of A and B: this = A - B
     void Sub(const ChVector<Real>& A, const ChVector<Real>& B);
 
-    /// Set this vector to the component-wise product of A and B: this = A * B
-    void Mul(const ChVector<Real>& A, const Real v);
+    /// Set this vector to the product of a vector A and scalar s: this = A * s
+    void Mul(const ChVector<Real>& A, const Real s);
 
     /// Scale this vector by a scalar: this *= s
     void Scale(const Real s);
@@ -555,10 +555,10 @@ inline void ChVector<Real>::Sub(const ChVector<Real>& A, const ChVector<Real>& B
 }
 
 template <class Real>
-inline void ChVector<Real>::Mul(const ChVector<Real>& A, const Real v) {
-    data[0] = A.data[0] * B.data[0];
-    data[1] = A.data[1] * B.data[1];
-    data[2] = A.data[2] * B.data[2];
+inline void ChVector<Real>::Mul(const ChVector<Real>& A, const Real s) {
+    data[0] = A.data[0] * s;
+    data[1] = A.data[1] * s;
+    data[2] = A.data[2] * s;
 }
 
 template <class Real>

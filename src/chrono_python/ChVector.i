@@ -26,7 +26,7 @@
 			char *__str__() 
 					{
 						static char temp[256];
-						sprintf(temp,"[ %g, %g, %g ]", $self->x,$self->y,$self->z);
+						sprintf(temp,"[ %g, %g, %g ]", $self->x(),$self->y(),$self->z());
 						return &temp[0];
 					}
 					// operator  ^  as ^ in c++ 
