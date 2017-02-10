@@ -354,7 +354,7 @@ void ChLinkEngine::UpdateForces(double mytime) {
     }
 
     if ((eng_mode == ENG_MODE_ROTATION) || (eng_mode == ENG_MODE_SPEED) || (eng_mode == ENG_MODE_KEY_ROTATION)) {
-        mot_torque = react_torque.z;
+        mot_torque = react_torque.z();
         mot_retorque = mot_torque * (mot_tau / mot_eta) + mot_rerot_dtdt * mot_inertia;
     }
 

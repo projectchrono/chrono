@@ -39,9 +39,9 @@ ChBox::ChBox(ChVector<>& mC0, ChVector<>& mC1, ChVector<>& mC2, ChVector<>& mC3)
         D3 = -D3;
     }
 
-    this->Size.x = 0.5 * Vlength(D1);
-    this->Size.y = 0.5 * Vlength(D2);
-    this->Size.z = 0.5 * Vlength(D3);
+    this->Size.x() = 0.5 * Vlength(D1);
+    this->Size.y() = 0.5 * Vlength(D2);
+    this->Size.z() = 0.5 * Vlength(D3);
     this->Pos = Vadd(Vadd(Vadd(C0, Vmul(D1, 0.5)), Vmul(D2, 0.5)), Vmul(D3, 0.5));
     this->Rot.Set_A_axis(Vnorm(D1), Vnorm(D2), Vnorm(D3));
 }
@@ -54,66 +54,66 @@ ChBox::ChBox(const ChBox& source) {
 
 void ChBox::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {
     ChVector<> Pr;
-    Pr.x = Size.x * (parU - 0.5);
-    Pr.y = Size.y * (parV - 0.5);
-    Pr.z = Size.z * (parW - 0.5);
+    Pr.x() = Size.x() * (parU - 0.5);
+    Pr.y() = Size.y() * (parV - 0.5);
+    Pr.z() = Size.z() * (parW - 0.5);
     pos = ChTransform<>::TransformLocalToParent(Pr, Pos, Rot);
 }
 
 ChVector<> ChBox::GetP1() const {
     ChVector<> P1r;
-    P1r.x = +Size.x;
-    P1r.y = +Size.y;
-    P1r.z = +Size.z;
+    P1r.x() = +Size.x();
+    P1r.y() = +Size.y();
+    P1r.z() = +Size.z();
     return ChTransform<>::TransformLocalToParent(P1r, Pos, Rot);
 }
 ChVector<> ChBox::GetP2() const {
     ChVector<> P2r;
-    P2r.x = -Size.x;
-    P2r.y = +Size.y;
-    P2r.z = +Size.z;
+    P2r.x() = -Size.x();
+    P2r.y() = +Size.y();
+    P2r.z() = +Size.z();
     return ChTransform<>::TransformLocalToParent(P2r, Pos, Rot);
 }
 ChVector<> ChBox::GetP3() const {
     ChVector<> P3r;
-    P3r.x = -Size.x;
-    P3r.y = -Size.y;
-    P3r.z = +Size.z;
+    P3r.x() = -Size.x();
+    P3r.y() = -Size.y();
+    P3r.z() = +Size.z();
     return ChTransform<>::TransformLocalToParent(P3r, Pos, Rot);
 }
 ChVector<> ChBox::GetP4() const {
     ChVector<> P4r;
-    P4r.x = +Size.x;
-    P4r.y = -Size.y;
-    P4r.z = +Size.z;
+    P4r.x() = +Size.x();
+    P4r.y() = -Size.y();
+    P4r.z() = +Size.z();
     return ChTransform<>::TransformLocalToParent(P4r, Pos, Rot);
 }
 ChVector<> ChBox::GetP5() const {
     ChVector<> P5r;
-    P5r.x = +Size.x;
-    P5r.y = +Size.y;
-    P5r.z = -Size.z;
+    P5r.x() = +Size.x();
+    P5r.y() = +Size.y();
+    P5r.z() = -Size.z();
     return ChTransform<>::TransformLocalToParent(P5r, Pos, Rot);
 }
 ChVector<> ChBox::GetP6() const {
     ChVector<> P6r;
-    P6r.x = -Size.x;
-    P6r.y = +Size.y;
-    P6r.z = -Size.z;
+    P6r.x() = -Size.x();
+    P6r.y() = +Size.y();
+    P6r.z() = -Size.z();
     return ChTransform<>::TransformLocalToParent(P6r, Pos, Rot);
 }
 ChVector<> ChBox::GetP7() const {
     ChVector<> P7r;
-    P7r.x = -Size.x;
-    P7r.y = -Size.y;
-    P7r.z = -Size.z;
+    P7r.x() = -Size.x();
+    P7r.y() = -Size.y();
+    P7r.z() = -Size.z();
     return ChTransform<>::TransformLocalToParent(P7r, Pos, Rot);
 }
 ChVector<> ChBox::GetP8() const {
     ChVector<> P8r;
-    P8r.x = +Size.x;
-    P8r.y = -Size.y;
-    P8r.z = -Size.z;
+    P8r.x() = +Size.x();
+    P8r.y() = -Size.y();
+    P8r.z() = -Size.z();
     return ChTransform<>::TransformLocalToParent(P8r, Pos, Rot);
 }
 
@@ -174,103 +174,103 @@ void ChBox::GetBoundingBox(double& xmin,
         p8 = bbRot->MatrT_x_Vect(GetP8());
     }
 
-    if (p1.x > xmax)
-        xmax = p1.x;
-    if (p1.y > ymax)
-        ymax = p1.y;
-    if (p1.z > zmax)
-        zmax = p1.z;
-    if (p2.x > xmax)
-        xmax = p2.x;
-    if (p2.y > ymax)
-        ymax = p2.y;
-    if (p2.z > zmax)
-        zmax = p2.z;
-    if (p3.x > xmax)
-        xmax = p3.x;
-    if (p3.y > ymax)
-        ymax = p3.y;
-    if (p3.z > zmax)
-        zmax = p3.z;
-    if (p4.x > xmax)
-        xmax = p4.x;
-    if (p4.y > ymax)
-        ymax = p4.y;
-    if (p4.z > zmax)
-        zmax = p4.z;
-    if (p5.x > xmax)
-        xmax = p5.x;
-    if (p5.y > ymax)
-        ymax = p5.y;
-    if (p5.z > zmax)
-        zmax = p5.z;
-    if (p6.x > xmax)
-        xmax = p6.x;
-    if (p6.y > ymax)
-        ymax = p6.y;
-    if (p6.z > zmax)
-        zmax = p6.z;
-    if (p7.x > xmax)
-        xmax = p7.x;
-    if (p7.y > ymax)
-        ymax = p7.y;
-    if (p7.z > zmax)
-        zmax = p7.z;
-    if (p8.x > xmax)
-        xmax = p8.x;
-    if (p8.y > ymax)
-        ymax = p8.y;
-    if (p8.z > zmax)
-        zmax = p8.z;
+    if (p1.x() > xmax)
+        xmax = p1.x();
+    if (p1.y() > ymax)
+        ymax = p1.y();
+    if (p1.z() > zmax)
+        zmax = p1.z();
+    if (p2.x() > xmax)
+        xmax = p2.x();
+    if (p2.y() > ymax)
+        ymax = p2.y();
+    if (p2.z() > zmax)
+        zmax = p2.z();
+    if (p3.x() > xmax)
+        xmax = p3.x();
+    if (p3.y() > ymax)
+        ymax = p3.y();
+    if (p3.z() > zmax)
+        zmax = p3.z();
+    if (p4.x() > xmax)
+        xmax = p4.x();
+    if (p4.y() > ymax)
+        ymax = p4.y();
+    if (p4.z() > zmax)
+        zmax = p4.z();
+    if (p5.x() > xmax)
+        xmax = p5.x();
+    if (p5.y() > ymax)
+        ymax = p5.y();
+    if (p5.z() > zmax)
+        zmax = p5.z();
+    if (p6.x() > xmax)
+        xmax = p6.x();
+    if (p6.y() > ymax)
+        ymax = p6.y();
+    if (p6.z() > zmax)
+        zmax = p6.z();
+    if (p7.x() > xmax)
+        xmax = p7.x();
+    if (p7.y() > ymax)
+        ymax = p7.y();
+    if (p7.z() > zmax)
+        zmax = p7.z();
+    if (p8.x() > xmax)
+        xmax = p8.x();
+    if (p8.y() > ymax)
+        ymax = p8.y();
+    if (p8.z() > zmax)
+        zmax = p8.z();
 
-    if (p1.x < xmin)
-        xmin = p1.x;
-    if (p1.y < ymin)
-        ymin = p1.y;
-    if (p1.z < zmin)
-        zmin = p1.z;
-    if (p2.x < xmin)
-        xmin = p2.x;
-    if (p2.y < ymin)
-        ymin = p2.y;
-    if (p2.z < zmin)
-        zmin = p2.z;
-    if (p3.x < xmin)
-        xmin = p3.x;
-    if (p3.y < ymin)
-        ymin = p3.y;
-    if (p3.z < zmin)
-        zmin = p3.z;
-    if (p4.x < xmin)
-        xmin = p4.x;
-    if (p4.y < ymin)
-        ymin = p4.y;
-    if (p4.z < zmin)
-        zmin = p4.z;
-    if (p5.x < xmin)
-        xmin = p5.x;
-    if (p5.y < ymin)
-        ymin = p5.y;
-    if (p5.z < zmin)
-        zmin = p5.z;
-    if (p6.x < xmin)
-        xmin = p6.x;
-    if (p6.y < ymin)
-        ymin = p6.y;
-    if (p6.z < zmin)
-        zmin = p6.z;
-    if (p7.x < xmin)
-        xmin = p7.x;
-    if (p7.y < ymin)
-        ymin = p7.y;
-    if (p7.z < zmin)
-        zmin = p7.z;
-    if (p8.x < xmin)
-        xmin = p8.x;
-    if (p8.y < ymin)
-        ymin = p8.y;
-    if (p8.z < zmin)
-        zmin = p8.z;
+    if (p1.x() < xmin)
+        xmin = p1.x();
+    if (p1.y() < ymin)
+        ymin = p1.y();
+    if (p1.z() < zmin)
+        zmin = p1.z();
+    if (p2.x() < xmin)
+        xmin = p2.x();
+    if (p2.y() < ymin)
+        ymin = p2.y();
+    if (p2.z() < zmin)
+        zmin = p2.z();
+    if (p3.x() < xmin)
+        xmin = p3.x();
+    if (p3.y() < ymin)
+        ymin = p3.y();
+    if (p3.z() < zmin)
+        zmin = p3.z();
+    if (p4.x() < xmin)
+        xmin = p4.x();
+    if (p4.y() < ymin)
+        ymin = p4.y();
+    if (p4.z() < zmin)
+        zmin = p4.z();
+    if (p5.x() < xmin)
+        xmin = p5.x();
+    if (p5.y() < ymin)
+        ymin = p5.y();
+    if (p5.z() < zmin)
+        zmin = p5.z();
+    if (p6.x() < xmin)
+        xmin = p6.x();
+    if (p6.y() < ymin)
+        ymin = p6.y();
+    if (p6.z() < zmin)
+        zmin = p6.z();
+    if (p7.x() < xmin)
+        xmin = p7.x();
+    if (p7.y() < ymin)
+        ymin = p7.y();
+    if (p7.z() < zmin)
+        zmin = p7.z();
+    if (p8.x() < xmin)
+        xmin = p8.x();
+    if (p8.y() < ymin)
+        ymin = p8.y();
+    if (p8.z() < zmin)
+        zmin = p8.z();
 }
 
 void ChBox::CovarianceMatrix(ChMatrix33<>& C) const {
@@ -286,17 +286,17 @@ void ChBox::CovarianceMatrix(ChMatrix33<>& C) const {
     p8 = GetP8();
 
     C(0, 0) =
-        p1.x * p1.x + p2.x * p2.x + p3.x * p3.x + p4.x * p4.x + p5.x * p5.x + p6.x * p6.x + p7.x * p7.x + p8.x * p8.x;
+        p1.x() * p1.x() + p2.x() * p2.x() + p3.x() * p3.x() + p4.x() * p4.x() + p5.x() * p5.x() + p6.x() * p6.x() + p7.x() * p7.x() + p8.x() * p8.x();
     C(1, 1) =
-        p1.y * p1.y + p2.y * p2.y + p3.y * p3.y + p4.y * p4.y + p5.y * p5.y + p6.y * p6.y + p7.y * p7.y + p8.y * p8.y;
+        p1.y() * p1.y() + p2.y() * p2.y() + p3.y() * p3.y() + p4.y() * p4.y() + p5.y() * p5.y() + p6.y() * p6.y() + p7.y() * p7.y() + p8.y() * p8.y();
     C(2, 2) =
-        p1.z * p1.z + p2.z * p2.z + p3.z * p3.z + p4.z * p4.z + p5.z * p5.z + p6.z * p6.z + p7.z * p7.z + p8.z * p8.z;
+        p1.z() * p1.z() + p2.z() * p2.z() + p3.z() * p3.z() + p4.z() * p4.z() + p5.z() * p5.z() + p6.z() * p6.z() + p7.z() * p7.z() + p8.z() * p8.z();
     C(0, 1) =
-        p1.x * p1.y + p2.x * p2.y + p3.x * p3.y + p4.x * p4.y + p5.x * p5.y + p6.x * p6.y + p7.x * p7.y + p8.x * p8.y;
+        p1.x() * p1.y() + p2.x() * p2.y() + p3.x() * p3.y() + p4.x() * p4.y() + p5.x() * p5.y() + p6.x() * p6.y() + p7.x() * p7.y() + p8.x() * p8.y();
     C(0, 2) =
-        p1.x * p1.z + p2.x * p2.z + p3.x * p3.z + p4.x * p4.z + p5.x * p5.z + p6.x * p6.z + p7.x * p7.z + p8.x * p8.z;
+        p1.x() * p1.z() + p2.x() * p2.z() + p3.x() * p3.z() + p4.x() * p4.z() + p5.x() * p5.z() + p6.x() * p6.z() + p7.x() * p7.z() + p8.x() * p8.z();
     C(1, 2) =
-        p1.y * p1.z + p2.y * p2.z + p3.y * p3.z + p4.y * p4.z + p5.y * p5.z + p6.y * p6.z + p7.y * p7.z + p8.y * p8.z;
+        p1.y() * p1.z() + p2.y() * p2.z() + p3.y() * p3.z() + p4.y() * p4.z() + p5.y() * p5.z() + p6.y() * p6.z() + p7.y() * p7.z() + p8.y() * p8.z();
 }
 
 }  // end namespace geometry

@@ -89,8 +89,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Access the n-th triangle in mesh
     virtual ChTriangle getTriangle(int index) const {
-        return ChTriangle(m_vertices[m_face_v_indices[index].x], m_vertices[m_face_v_indices[index].y],
-                          m_vertices[m_face_v_indices[index].z]);
+        return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
+                          m_vertices[m_face_v_indices[index].z()]);
     }
 
     /// Clear all data

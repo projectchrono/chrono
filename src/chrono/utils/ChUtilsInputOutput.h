@@ -100,7 +100,7 @@ class ChApi CSV_writer {
 
 template <typename T>
 inline CSV_writer& operator<<(CSV_writer& out, const ChVector<T>& v) {
-  out << v.x << v.y << v.z;
+  out << v.x() << v.y() << v.z();
   return out;
 }
 

@@ -399,34 +399,34 @@ void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
 }
 
 void ChBody::SetInertiaXX(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 0, iner.x);
-    variables.GetBodyInertia().SetElement(1, 1, iner.y);
-    variables.GetBodyInertia().SetElement(2, 2, iner.z);
+    variables.GetBodyInertia().SetElement(0, 0, iner.x());
+    variables.GetBodyInertia().SetElement(1, 1, iner.y());
+    variables.GetBodyInertia().SetElement(2, 2, iner.z());
     variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 void ChBody::SetInertiaXY(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 1, iner.x);
-    variables.GetBodyInertia().SetElement(0, 2, iner.y);
-    variables.GetBodyInertia().SetElement(1, 2, iner.z);
-    variables.GetBodyInertia().SetElement(1, 0, iner.x);
-    variables.GetBodyInertia().SetElement(2, 0, iner.y);
-    variables.GetBodyInertia().SetElement(2, 1, iner.z);
+    variables.GetBodyInertia().SetElement(0, 1, iner.x());
+    variables.GetBodyInertia().SetElement(0, 2, iner.y());
+    variables.GetBodyInertia().SetElement(1, 2, iner.z());
+    variables.GetBodyInertia().SetElement(1, 0, iner.x());
+    variables.GetBodyInertia().SetElement(2, 0, iner.y());
+    variables.GetBodyInertia().SetElement(2, 1, iner.z());
     variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 
 ChVector<> ChBody::GetInertiaXX() {
     ChVector<> iner;
-    iner.x = variables.GetBodyInertia().GetElement(0, 0);
-    iner.y = variables.GetBodyInertia().GetElement(1, 1);
-    iner.z = variables.GetBodyInertia().GetElement(2, 2);
+    iner.x() = variables.GetBodyInertia().GetElement(0, 0);
+    iner.y() = variables.GetBodyInertia().GetElement(1, 1);
+    iner.z() = variables.GetBodyInertia().GetElement(2, 2);
     return iner;
 }
 
 ChVector<> ChBody::GetInertiaXY() {
     ChVector<> iner;
-    iner.x = variables.GetBodyInertia().GetElement(0, 1);
-    iner.y = variables.GetBodyInertia().GetElement(0, 2);
-    iner.z = variables.GetBodyInertia().GetElement(1, 2);
+    iner.x() = variables.GetBodyInertia().GetElement(0, 1);
+    iner.y() = variables.GetBodyInertia().GetElement(0, 2);
+    iner.z() = variables.GetBodyInertia().GetElement(1, 2);
     return iner;
 }
 
@@ -1072,16 +1072,16 @@ void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream << this->coord.pos.x;
-    mstream << this->coord.pos.x;
-    mstream << this->coord.pos.x;
+    mstream << this->coord.pos.x();
+    mstream << this->coord.pos.y();
+    mstream << this->coord.pos.z();
     mstream << this->coord.rot.e0;
     mstream << this->coord.rot.e1;
     mstream << this->coord.rot.e2;
     mstream << this->coord.rot.e3;
-    mstream << this->coord_dt.pos.x;
-    mstream << this->coord_dt.pos.x;
-    mstream << this->coord_dt.pos.x;
+    mstream << this->coord_dt.pos.x();
+    mstream << this->coord_dt.pos.y();
+    mstream << this->coord_dt.pos.z();
     mstream << this->coord_dt.rot.e0;
     mstream << this->coord_dt.rot.e1;
     mstream << this->coord_dt.rot.e2;
@@ -1092,17 +1092,17 @@ void ChBody::StreamINstate(ChStreamInBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream >> this->coord.pos.x;
-    mstream >> this->coord.pos.x;
-    mstream >> this->coord.pos.x;
+    mstream >> this->coord.pos.x();
+    mstream >> this->coord.pos.y();
+    mstream >> this->coord.pos.z();
     mstream >> this->coord.rot.e0;
     mstream >> this->coord.rot.e1;
     mstream >> this->coord.rot.e2;
     mstream >> this->coord.rot.e3;
     this->SetCoord(coord);
-    mstream >> this->coord_dt.pos.x;
-    mstream >> this->coord_dt.pos.x;
-    mstream >> this->coord_dt.pos.x;
+    mstream >> this->coord_dt.pos.x();
+    mstream >> this->coord_dt.pos.y();
+    mstream >> this->coord_dt.pos.z();
     mstream >> this->coord_dt.rot.e0;
     mstream >> this->coord_dt.rot.e1;
     mstream >> this->coord_dt.rot.e2;

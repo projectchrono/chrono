@@ -53,7 +53,7 @@ void ChLinkScrew::UpdateState() {
             zangle = -zangle;  // a/2 = -acos(Crz);
             msign = -1;
         }
-        double mrelz = relC.pos.z;
+        double mrelz = relC.pos.z();
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
@@ -65,9 +65,9 @@ void ChLinkScrew::UpdateState() {
         coeffa = +2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
         coeffb = +2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
 
-        scr_C_dt = relC_dt.pos.z + relC_dt.rot.e0 * coeffa;
-        scr_C_dtdt = relC_dtdt.pos.z + relC_dt.rot.e0 * coeffb + relC_dtdt.rot.e0 * coeffa;
-        scr_Ct = Ct_temp.pos.z + coeffa * Ct_temp.rot.e0;
+        scr_C_dt = relC_dt.pos.z() + relC_dt.rot.e0 * coeffa;
+        scr_C_dtdt = relC_dtdt.pos.z() + relC_dt.rot.e0 * coeffb + relC_dtdt.rot.e0 * coeffa;
+        scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e0;
         scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(3, 0) - relC_dt.rot.e0 * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();
@@ -83,7 +83,7 @@ void ChLinkScrew::UpdateState() {
             zangle = CH_C_PI - zangle;
             msign = -1;
         }
-        double mrelz = relC.pos.z;  // fmod (relC.pos.z , (tau * 2 * CH_C_PI));
+        double mrelz = relC.pos.z();  // fmod (relC.pos.z() , (tau * 2 * CH_C_PI));
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
@@ -95,9 +95,9 @@ void ChLinkScrew::UpdateState() {
         coeffa = -2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
         coeffb = -2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
 
-        scr_C_dt = relC_dt.pos.z + relC_dt.rot.e3 * coeffa;
-        scr_C_dtdt = relC_dtdt.pos.z + relC_dt.rot.e3 * coeffb + relC_dtdt.rot.e3 * coeffa;
-        scr_Ct = Ct_temp.pos.z + coeffa * Ct_temp.rot.e3;
+        scr_C_dt = relC_dt.pos.z() + relC_dt.rot.e3 * coeffa;
+        scr_C_dtdt = relC_dtdt.pos.z() + relC_dt.rot.e3 * coeffb + relC_dtdt.rot.e3 * coeffa;
+        scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e3;
         scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(6, 0) - relC_dt.rot.e3 * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();

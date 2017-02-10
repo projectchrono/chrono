@@ -95,16 +95,11 @@ ChQuaternion<double> Q_from_AngAxis(double angle, const ChVector<double>& axis) 
     sinhalf = sin(halfang);
 
     quat.e0 = cos(halfang);
-    quat.e1 = axis.x * sinhalf;
-    quat.e2 = axis.y * sinhalf;
-    quat.e3 = axis.z * sinhalf;
+    quat.e1 = axis.x() * sinhalf;
+    quat.e2 = axis.y() * sinhalf;
+    quat.e3 = axis.z() * sinhalf;
     return (quat);
 }
-
-
-// Declarations used for Q_from_Vect_to_Vect()
-static ChVector<double> getOrthogonalVector(const ChVector<double>& vect);
-static int maxComponent(const ChVector<double>& vect);
 
 // Get the quaternion from a source vector and a destination vector which specifies
 // the rotation from one to the other.  The vectors do not need to be normalized.
@@ -130,12 +125,12 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
 	}
 	else if (abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
 		// fr_vect & to_vect are opposite, i.e. ~180 deg apart
-		axis = getOrthogonalVector(fr_vect) + getOrthogonalVector(-to_vect);
+        axis = fr_vect.GetOrthogonalVector() + (-to_vect).GetOrthogonalVector();
 		axis.Normalize();
 		quat.e0 = 0.0;
-		quat.e1 = ChClamp(axis.x, -1.0, +1.0);
-		quat.e2 = ChClamp(axis.y, -1.0, +1.0);
-		quat.e3 = ChClamp(axis.z, -1.0, +1.0);
+		quat.e1 = ChClamp(axis.x(), -1.0, +1.0);
+		quat.e2 = ChClamp(axis.y(), -1.0, +1.0);
+		quat.e3 = ChClamp(axis.z(), -1.0, +1.0);
 	}
 	else {
 		// fr_vect & to_vect are not co-linear case
@@ -144,38 +139,11 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
 		sinhalf = sin(halfang);
 
 		quat.e0 = cos(halfang);
-		quat.e1 = ChClamp(axis.x, -1.0, +1.0);
-		quat.e2 = ChClamp(axis.y, -1.0, +1.0);
-		quat.e3 = ChClamp(axis.z, -1.0, +1.0);
+		quat.e1 = ChClamp(axis.x(), -1.0, +1.0);
+		quat.e2 = ChClamp(axis.y(), -1.0, +1.0);
+		quat.e3 = ChClamp(axis.z(), -1.0, +1.0);
 	}
 	return (quat);
-}
-
-
-// Return the maximum component of a vector.
-static int maxComponent(const ChVector<double>& vect) {
-	int idx = 0;
-	double max = abs(vect(0));
-	if (abs(vect(1)) > max) { idx = 1; max = vect(1); }
-	if (abs(vect(2)) > max) { idx = 2; max = vect(2); }
-	return idx;
-}
-
-// Find a vector which is orthogonal to the given vector.
-static ChVector<double> getOrthogonalVector(const ChVector<double>& vect) {
-	ChVector<double> v2, ortho;
-	int idx1 = maxComponent(vect);
-	int idx2 = (idx1 + 1) % 3;  // Cycle to the next component
-	int idx3 = (idx2 + 1) % 3;  // Cycle to the next component
-
-	// Construct v2 by rotating in the plane containing the maximum component
-	v2(idx1) = -vect(idx2);
-	v2(idx2) = vect(idx1);
-	v2(idx3) = vect(idx3);
-
-	ortho = vect % v2;
-	ortho.Normalize();
-	return ortho;
 }
 
 ChQuaternion<double> Q_from_AngZ(double angleZ) {
@@ -190,12 +158,12 @@ ChQuaternion<double> Q_from_AngY(double angleY) {
 
 ChQuaternion<double> Q_from_NasaAngles(const ChVector<double>& mang) {
     ChQuaternion<double> mq;
-    double c1 = cos(mang.z / 2);
-    double s1 = sin(mang.z / 2);
-    double c2 = cos(mang.x / 2);
-    double s2 = sin(mang.x / 2);
-    double c3 = cos(mang.y / 2);
-    double s3 = sin(mang.y / 2);
+    double c1 = cos(mang.z() / 2);
+    double s1 = sin(mang.z() / 2);
+    double c2 = cos(mang.x() / 2);
+    double s2 = sin(mang.x() / 2);
+    double c3 = cos(mang.y() / 2);
+    double s3 = sin(mang.y() / 2);
     double c1c2 = c1 * c2;
     double s1s2 = s1 * s2;
     mq.e0 = c1c2 * c3 + s1s2 * s3;
@@ -212,11 +180,11 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
     double sqy = q1.e2 * q1.e2;
     double sqz = q1.e3 * q1.e3;
     // heading
-    mnasa.z = atan2(2.0 * (q1.e1 * q1.e2 + q1.e3 * q1.e0), (sqx - sqy - sqz + sqw));
+    mnasa.z() = atan2(2.0 * (q1.e1 * q1.e2 + q1.e3 * q1.e0), (sqx - sqy - sqz + sqw));
     // bank
-    mnasa.y = atan2(2.0 * (q1.e2 * q1.e3 + q1.e1 * q1.e0), (-sqx - sqy + sqz + sqw));
+    mnasa.y() = atan2(2.0 * (q1.e2 * q1.e3 + q1.e1 * q1.e0), (-sqx - sqy + sqz + sqw));
     // attitude
-    mnasa.x = asin(-2.0 * (q1.e1 * q1.e3 - q1.e2 * q1.e0));
+    mnasa.x() = asin(-2.0 * (q1.e1 * q1.e3 - q1.e2 * q1.e0));
     return mnasa;
 }
 
@@ -225,15 +193,15 @@ void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<doub
         double arg = acos(quat.e0);
         double invsine = 1 / (sin(arg));
         ChVector<double> vtemp;
-        vtemp.x = invsine * quat.e1;
-        vtemp.y = invsine * quat.e2;
-        vtemp.z = invsine * quat.e3;
+        vtemp.x() = invsine * quat.e1;
+        vtemp.y() = invsine * quat.e2;
+        vtemp.z() = invsine * quat.e3;
         angle = 2 * arg;
         axis = Vnorm(vtemp);
     } else {
-        axis.x = 1;
-        axis.y = 0;
-        axis.z = 0;
+        axis.x() = 1;
+        axis.y() = 0;
+        axis.z() = 0;
         angle = 0;
     }
 }
@@ -244,9 +212,9 @@ ChQuaternion<double> Qdt_from_Wabs(const ChVector<double>& w, const ChQuaternion
     double half = 0.5;
 
     qw.e0 = 0;
-    qw.e1 = w.x;
-    qw.e2 = w.y;
-    qw.e3 = w.z;
+    qw.e1 = w.x();
+    qw.e2 = w.y();
+    qw.e3 = w.z();
 
     return Qscale(Qcross(qw, q), half);  // {q_dt} = 1/2 {0,w}*{q}
 }
@@ -257,9 +225,9 @@ ChQuaternion<double> Qdt_from_Wrel(const ChVector<double>& w, const ChQuaternion
     double half = 0.5;
 
     qw.e0 = 0;
-    qw.e1 = w.x;
-    qw.e2 = w.y;
-    qw.e3 = w.z;
+    qw.e1 = w.x();
+    qw.e2 = w.y();
+    qw.e3 = w.z();
 
     return Qscale(Qcross(q, qw), half);  // {q_dt} = 1/2 {q}*{0,w_rel}
 }
@@ -315,9 +283,9 @@ bool Qnotnull(const ChQuaternion<double>& qa) {
 // Note: singularities are possible.
 ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
     ChQuaternion<double> mq;
-    mq.e1 = qimm.x;
-    mq.e2 = qimm.y;
-    mq.e3 = qimm.z;
+    mq.e1 = qimm.x();
+    mq.e2 = qimm.y();
+    mq.e3 = qimm.z();
     mq.e0 = sqrt(1 - mq.e1 * mq.e1 - mq.e2 * mq.e2 - mq.e3 * mq.e3);
     return mq;
 }
@@ -327,9 +295,9 @@ ChQuaternion<double> ImmQ_complete(const ChVector<double>& qimm) {
 // Note: singularities are possible.
 ChQuaternion<double> ImmQ_dt_complete(const ChQuaternion<double>& mq, const ChVector<double>& qimm_dt) {
     ChQuaternion<double> mqdt;
-    mqdt.e1 = qimm_dt.x;
-    mqdt.e2 = qimm_dt.y;
-    mqdt.e3 = qimm_dt.z;
+    mqdt.e1 = qimm_dt.x();
+    mqdt.e2 = qimm_dt.y();
+    mqdt.e3 = qimm_dt.z();
     mqdt.e0 = (-mq.e1 * mqdt.e1 - mq.e2 * mqdt.e2 - mq.e3 * mqdt.e3) / mq.e0;
     return mqdt;
 }
@@ -341,9 +309,9 @@ ChQuaternion<double> ImmQ_dtdt_complete(const ChQuaternion<double>& mq,
                                         const ChQuaternion<double>& mqdt,
                                         const ChVector<double>& qimm_dtdt) {
     ChQuaternion<double> mqdtdt;
-    mqdtdt.e1 = qimm_dtdt.x;
-    mqdtdt.e2 = qimm_dtdt.y;
-    mqdtdt.e3 = qimm_dtdt.z;
+    mqdtdt.e1 = qimm_dtdt.x();
+    mqdtdt.e2 = qimm_dtdt.y();
+    mqdtdt.e3 = qimm_dtdt.z();
     mqdtdt.e0 = (-mq.e1 * mqdtdt.e1 - mq.e2 * mqdtdt.e2 - mq.e3 * mqdtdt.e3 - mqdt.e0 * mqdt.e0 - mqdt.e1 * mqdt.e1 -
                  mqdt.e2 * mqdt.e2 - mqdt.e3 * mqdt.e3) /
                 mq.e0;
@@ -479,9 +447,9 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
 // represents the alignment of the coordsystem.
 ChVector<double> VaxisXfromQuat(const ChQuaternion<double>& quat) {
     ChVector<double> res;
-    res.x = (pow(quat.e0, 2) + pow(quat.e1, 2)) * 2 - 1;
-    res.y = ((quat.e1 * quat.e2) + (quat.e0 * quat.e3)) * 2;
-    res.z = ((quat.e1 * quat.e3) - (quat.e0 * quat.e2)) * 2;
+    res.x() = (pow(quat.e0, 2) + pow(quat.e1, 2)) * 2 - 1;
+    res.y() = ((quat.e1 * quat.e2) + (quat.e0 * quat.e3)) * 2;
+    res.z() = ((quat.e1 * quat.e3) - (quat.e0 * quat.e2)) * 2;
     return res;
 }
 

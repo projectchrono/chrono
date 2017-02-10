@@ -486,8 +486,8 @@ class ChFrame {
         Real de1 = 2 * mq.e1;
         Real de2 = 2 * mq.e2;
         Real de3 = 2 * mq.e3;
-        return ChQuaternion<Real>(-de1 * v.x - de2 * v.y - de3 * v.z, +de0 * v.x - de3 * v.y + de2 * v.z,
-                                  +de3 * v.x + de0 * v.y - de1 * v.z, -de2 * v.x + de1 * v.y + de0 * v.z);
+        return ChQuaternion<Real>(-de1 * v.x() - de2 * v.y() - de3 * v.z(), +de0 * v.x() - de3 * v.y() + de2 * v.z(),
+                                  +de3 * v.x() + de0 * v.y() - de1 * v.z(), -de2 * v.x() + de1 * v.y() + de0 * v.z());
     }
 
     //

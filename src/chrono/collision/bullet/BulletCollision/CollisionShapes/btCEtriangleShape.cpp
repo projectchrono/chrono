@@ -63,19 +63,19 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
     btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
 	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
     btVector3 vtx;
-	vtx = btVector3(this->p1->x,this->p1->y,this->p1->z);
+	vtx = btVector3(this->p1->x(),this->p1->y(),this->p1->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
 			supVec = vtx;
 	}
-    vtx = btVector3(this->p2->x,this->p2->y,this->p2->z);
+    vtx = btVector3(this->p2->x(),this->p2->y(),this->p2->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
 			supVec = vtx;
 	}
-    vtx = btVector3(this->p3->x,this->p3->y,this->p3->z);
+    vtx = btVector3(this->p3->x(),this->p3->y(),this->p3->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
@@ -124,9 +124,9 @@ void	btCEtriangleShape::calculateLocalInertia(btScalar mass,btVector3& inertia) 
 void btCEtriangleShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
 	
-	btVector3 p1_w = t.getOrigin()+ t.getBasis()*btVector3(this->p1->x, this->p1->y, this->p1->z);
-    btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3(this->p2->x, this->p2->y, this->p2->z);
-    btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3(this->p3->x, this->p3->y, this->p3->z);
+	btVector3 p1_w = t.getOrigin()+ t.getBasis()*btVector3(this->p1->x(), this->p1->y(), this->p1->z());
+    btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3(this->p2->x(), this->p2->y(), this->p2->z());
+    btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3(this->p3->x(), this->p3->y(), this->p3->z());
 
     collision::ChModelBullet* triModel = (collision::ChModelBullet*)this->getUserPointer();
 

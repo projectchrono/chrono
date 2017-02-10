@@ -91,7 +91,7 @@ int ChModelBullet::BuildModel() {
 }
 
 static btVector3 ChVectToBullet(const ChVector<>& pos) {
-    return btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z);
+    return btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z());
 }
 
 static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btTransform& mtransform) {
@@ -99,7 +99,7 @@ static void ChPosMatrToBullet(const ChVector<>& pos, const ChMatrix33<>& rA, btT
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
                        (btScalar)rA(2, 2));
     mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)pos.x, (btScalar)pos.y, (btScalar)pos.z));
+    mtransform.setOrigin(btVector3((btScalar)pos.x(), (btScalar)pos.y(), (btScalar)pos.z()));
 }
 
 static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransform) {
@@ -109,7 +109,7 @@ static void ChCoordsToBullet(const ChCoordsys<>& mcoords, btTransform& mtransfor
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),
                        (btScalar)rA(2, 2));
     mtransform.setBasis(basisA);
-    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x, (btScalar)mcoords.pos.y, (btScalar)mcoords.pos.z));
+    mtransform.setOrigin(btVector3((btScalar)mcoords.pos.x(), (btScalar)mcoords.pos.y(), (btScalar)mcoords.pos.z()));
 }
 
 void ChModelBullet::_injectShape(const ChVector<>& pos, const ChMatrix33<>& rot, btCollisionShape* mshape) {
@@ -262,17 +262,17 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
 
     for (size_t i = 0; i < mpath.GetSubLinesCount(); ++i) {
         if (auto msegment = std::dynamic_pointer_cast<geometry::ChLineSegment>(mpath.GetSubLineN(i))) {
-            if ((msegment->pA.z != 0) || (msegment->pB.z != 0))
+            if ((msegment->pA.z() != 0) || (msegment->pB.z() != 0))
                 throw ChException("Error! Add2Dpath: a sub segment of the ChLinePath had non-zero z coordinate!");
 
-            btVector3 pa((btScalar)msegment->pA.x, (btScalar)msegment->pA.y, (btScalar)0);
-            btVector3 pb((btScalar)msegment->pB.x, (btScalar)msegment->pB.y, (btScalar)0);
+            btVector3 pa((btScalar)msegment->pA.x(), (btScalar)msegment->pA.y(), (btScalar)0);
+            btVector3 pb((btScalar)msegment->pB.x(), (btScalar)msegment->pB.y(), (btScalar)0);
             bt2DsegmentShape* mshape = new bt2DsegmentShape(pa, pb, (btScalar)mthickness);
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
             _injectShape(pos, rot, mshape);
         } else if (auto marc = std::dynamic_pointer_cast<geometry::ChLineArc>(mpath.GetSubLineN(i))) {
-            if ((marc->origin.pos.z != 0))
+            if ((marc->origin.pos.z() != 0))
                 throw ChException(
                     "Error! Add2Dpath: a sub arc of the ChLinePath had center with non-zero z coordinate! It must be "
                     "flat on xy.");
@@ -281,7 +281,7 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
             if (mangle1 - mangle2 == CH_C_2PI)
                 mangle1 -= 1e-7;
             bt2DarcShape* mshape =
-                new bt2DarcShape((btScalar)marc->origin.pos.x, (btScalar)marc->origin.pos.y, (btScalar)marc->radius,
+                new bt2DarcShape((btScalar)marc->origin.pos.x(), (btScalar)marc->origin.pos.y(), (btScalar)marc->radius,
                                  (btScalar)mangle1, (btScalar)mangle2, marc->counterclockwise, (btScalar)mthickness);
 
             mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
@@ -314,11 +314,11 @@ bool ChModelBullet::Add2Dpath(geometry::ChLinePath& mpath,
                     "Error! Add2Dpath: ChLinePath must contain sequence of connected segments/arcs, with no gaps");
 
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
-            if (Vcross(dir_prev, dir_next).z < -1e-9) {
-                double mangle1 = atan2(dir_prev.y, dir_prev.x) + CH_C_PI_2;
-                double mangle2 = atan2(dir_next.y, dir_next.x) + CH_C_PI_2;
+            if (Vcross(dir_prev, dir_next).z() < -1e-9) {
+                double mangle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
+                double mangle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
                 bt2DarcShape* mshape =
-                    new bt2DarcShape((btScalar)pos_prev.x, (btScalar)pos_prev.y, (btScalar)0, (btScalar)mangle1,
+                    new bt2DarcShape((btScalar)pos_prev.x(), (btScalar)pos_prev.y(), (btScalar)0, (btScalar)mangle1,
                                      (btScalar)mangle2, false, (btScalar)mthickness);
 
                 mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
@@ -386,15 +386,15 @@ bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
     ChVector<> aabbMax(-1e9,-1e9,-1e9);
     ChVector<> aabbMin(1e9,1e9,1e9);
     for (size_t i=0; i< pointlist.size(); ++i) {
-        aabbMax.x=ChMax(aabbMax.x,pointlist[i].x);
-        aabbMax.y=ChMax(aabbMax.y,pointlist[i].y);
-        aabbMax.z=ChMax(aabbMax.z,pointlist[i].z);
-        aabbMin.x=ChMin(aabbMin.x,pointlist[i].x);
-        aabbMin.y=ChMin(aabbMin.y,pointlist[i].y);
-        aabbMin.z=ChMin(aabbMin.z,pointlist[i].z);
+        aabbMax.x()=ChMax(aabbMax.x(),pointlist[i].x());
+        aabbMax.y()=ChMax(aabbMax.y(),pointlist[i].y());
+        aabbMax.z()=ChMax(aabbMax.z(),pointlist[i].z());
+        aabbMin.x()=ChMin(aabbMin.x(),pointlist[i].x());
+        aabbMin.y()=ChMin(aabbMin.y(),pointlist[i].y());
+        aabbMin.z()=ChMin(aabbMin.z(),pointlist[i].z());
     }
     ChVector<>aabbsize = aabbMax -aabbMin;
-    double approx_chord = ChMin( ChMin(aabbsize.x, aabbsize.y), aabbsize.z );
+    double approx_chord = ChMin( ChMin(aabbsize.x(), aabbsize.y()), aabbsize.z() );
     // override the inward margin if larger than 0.2 chord:
     this->SetSafeMargin((btScalar)ChMin(this->GetSafeMargin(), approx_chord*0.2));
 
@@ -408,7 +408,7 @@ bool ChModelBullet::AddConvexHull(std::vector<ChVector<double> >& pointlist,
     mmesh.MakeOffset(-this->GetSafeMargin());
 
     for (unsigned int i = 0; i < mmesh.m_vertices.size(); i++) {
-        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x, (btScalar)mmesh.m_vertices[i].y, (btScalar)mmesh.m_vertices[i].z));
+        mshape->addPoint(btVector3((btScalar)mmesh.m_vertices[i].x(), (btScalar)mmesh.m_vertices[i].y(), (btScalar)mmesh.m_vertices[i].z()));
     }
 
     mshape->setMargin((btScalar) this->GetSuggestedFullMargin());
@@ -508,9 +508,9 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
         // iterate on triangles
         for (int it = 0; it < mesh->m_face_v_indices.size(); ++it) {
             // edges = pairs of vertexes indexes
-            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x, mesh->m_face_v_indices[it].y);
-            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y, mesh->m_face_v_indices[it].z);
-            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z, mesh->m_face_v_indices[it].x);
+            std::pair<int, int> medgeA(mesh->m_face_v_indices[it].x(), mesh->m_face_v_indices[it].y());
+            std::pair<int, int> medgeB(mesh->m_face_v_indices[it].y(), mesh->m_face_v_indices[it].z());
+            std::pair<int, int> medgeC(mesh->m_face_v_indices[it].z(), mesh->m_face_v_indices[it].x());
             // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
             if (medgeA.first>medgeA.second) 
                 medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
@@ -527,48 +527,48 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             int i_wingvertex_C = -1;
 
             if (trimap[it][1] != -1) {
-                i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].x;
-                if (mesh->m_face_v_indices[trimap[it][1]].y != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].y != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].y;
-                if (mesh->m_face_v_indices[trimap[it][1]].z != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].z != wingedgeA->first.second)
-                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].z;
+                i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].x();
+                if (mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].y() != wingedgeA->first.second)
+                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].y();
+                if (mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.first && mesh->m_face_v_indices[trimap[it][1]].z() != wingedgeA->first.second)
+                    i_wingvertex_A = mesh->m_face_v_indices[trimap[it][1]].z();
             }
 
             if (trimap[it][2] != -1) {
-                i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].x;
-                if (mesh->m_face_v_indices[trimap[it][2]].y != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].y != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].y;
-                if (mesh->m_face_v_indices[trimap[it][2]].z != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].z != wingedgeB->first.second)
-                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].z;
+                i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].x();
+                if (mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].y() != wingedgeB->first.second)
+                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].y();
+                if (mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.first && mesh->m_face_v_indices[trimap[it][2]].z() != wingedgeB->first.second)
+                    i_wingvertex_B = mesh->m_face_v_indices[trimap[it][2]].z();
             }
 
             if (trimap[it][3] != -1) {
-                i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].x;
-                if (mesh->m_face_v_indices[trimap[it][3]].y != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].y != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].y;
-                if (mesh->m_face_v_indices[trimap[it][3]].z != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].z != wingedgeC->first.second)
-                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z;
+                i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].x();
+                if (mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].y() != wingedgeC->first.second)
+                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].y();
+                if (mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.first && mesh->m_face_v_indices[trimap[it][3]].z() != wingedgeC->first.second)
+                    i_wingvertex_C = mesh->m_face_v_indices[trimap[it][3]].z();
             }
 
-            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x], 
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].y],
-                                   &mesh->m_vertices[mesh->m_face_v_indices[it].z],
+            this->AddTriangleProxy(&mesh->m_vertices[mesh->m_face_v_indices[it].x()], 
+                                   &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                                   &mesh->m_vertices[mesh->m_face_v_indices[it].z()],
                                    // if no wing vertex (ie. 'free' edge), point to opposite vertex, ie vertex in triangle not belonging to edge
-                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z], 
-                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x],
-                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y],
-                                   !added_vertexes[mesh->m_face_v_indices[it].x],
-                                   !added_vertexes[mesh->m_face_v_indices[it].y],
-                                   !added_vertexes[mesh->m_face_v_indices[it].z],
+                                   wingedgeA->second.second != -1 ? &mesh->m_vertices[i_wingvertex_A] : &mesh->m_vertices[mesh->m_face_v_indices[it].z()], 
+                                   wingedgeB->second.second != -1 ? &mesh->m_vertices[i_wingvertex_B] : &mesh->m_vertices[mesh->m_face_v_indices[it].x()],
+                                   wingedgeC->second.second != -1 ? &mesh->m_vertices[i_wingvertex_C] : &mesh->m_vertices[mesh->m_face_v_indices[it].y()],
+                                   !added_vertexes[mesh->m_face_v_indices[it].x()],
+                                   !added_vertexes[mesh->m_face_v_indices[it].y()],
+                                   !added_vertexes[mesh->m_face_v_indices[it].z()],
                                    // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
                                    wingedgeA->second.first != -1,
                                    wingedgeB->second.first != -1,
                                    wingedgeC->second.first != -1,
                                    sphereswept_thickness);
             // Mark added vertexes
-            added_vertexes[mesh->m_face_v_indices[it].x] = true;
-            added_vertexes[mesh->m_face_v_indices[it].y] = true;
-            added_vertexes[mesh->m_face_v_indices[it].z] = true;
+            added_vertexes[mesh->m_face_v_indices[it].x()] = true;
+            added_vertexes[mesh->m_face_v_indices[it].y()] = true;
+            added_vertexes[mesh->m_face_v_indices[it].z()] = true;
             // Mark added edges, setting to -1 the 'ti' id of 1st triangle in winged edge {{vi,vj}{ti,tj}}
             wingedgeA->second.first = -1;
             wingedgeB->second.first = -1;
@@ -790,7 +790,7 @@ void ChModelBullet::SyncPosition()
     ChCoordsys<> mcsys = this->mcontactable->GetCsysForCollisionModel();
 
     bt_collision_object->getWorldTransform().setOrigin(btVector3(
-        (btScalar)mcsys.pos.x, (btScalar)mcsys.pos.y, (btScalar)mcsys.pos.z));
+        (btScalar)mcsys.pos.x(), (btScalar)mcsys.pos.y(), (btScalar)mcsys.pos.z()));
     const ChMatrix33<>& rA(mcsys.rot);
     btMatrix3x3 basisA((btScalar)rA(0, 0), (btScalar)rA(0, 1), (btScalar)rA(0, 2), (btScalar)rA(1, 0),
                        (btScalar)rA(1, 1), (btScalar)rA(1, 2), (btScalar)rA(2, 0), (btScalar)rA(2, 1),

@@ -101,7 +101,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
                 Vector mv_force = Vmul(VECT_X, this->brake_torque);
                 mdir = 0;  // F-->  rear motion: frontfacing break force
 
-                if (this->relM_dt.pos.x > 0.0) {
+                if (this->relM_dt.pos.x() > 0.0) {
                     mv_force = Vmul(mv_force, -1.0);  // break force always opposed to speed
                     mdir = 1;                         // F<-- backfacing breakforce for front motion
                 }

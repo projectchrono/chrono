@@ -35,24 +35,24 @@ void ChCylinder::GetBoundingBox(double& xmin,
                                 double& zmin,
                                 double& zmax,
                                 ChMatrix33<>* Rot) const {
-    ChVector<> dims = ChVector<>(rad, p2.y - p1.y, rad);
+    ChVector<> dims = ChVector<>(rad, p2.y() - p1.y(), rad);
     ChVector<> trsfCenter = Baricenter();
     if (Rot) {
         trsfCenter = Rot->MatrT_x_Vect(Baricenter());
     }
-    xmin = trsfCenter.x - dims.x;
-    xmax = trsfCenter.x + dims.x;
-    ymin = trsfCenter.y - dims.y;
-    ymax = trsfCenter.y + dims.y;
-    zmin = trsfCenter.z - dims.z;
-    zmax = trsfCenter.z + dims.z;
+    xmin = trsfCenter.x() - dims.x();
+    xmax = trsfCenter.x() + dims.x();
+    ymin = trsfCenter.y() - dims.y();
+    ymax = trsfCenter.y() + dims.y();
+    zmin = trsfCenter.z() - dims.z();
+    zmax = trsfCenter.z() + dims.z();
 }
 
 void ChCylinder::CovarianceMatrix(ChMatrix33<>& C) const {
     C.Reset();
-    C(0, 0) = p1.x * p1.x;
-    C(1, 1) = p1.y * p1.y;
-    C(2, 2) = p1.z * p1.z;
+    C(0, 0) = p1.x() * p1.x();
+    C(1, 1) = p1.y() * p1.y();
+    C(2, 2) = p1.z() * p1.z();
 }
 
 }  // end namespace geometry

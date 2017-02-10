@@ -295,7 +295,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
 };
 
 extern ChApi ChVector2<> pv_set(double x, double y);
-extern ChApi ChVector2<> pv_set(Vector mv);
+extern ChApi ChVector2<> pv_set(ChVector<> mv);
 
 
 }  // end namespace chrono

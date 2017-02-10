@@ -66,7 +66,7 @@ class ChQuaternion {
     ChQuaternion(const Real ne0, const Real ne1, const Real ne2, const Real ne3) : e0(ne0), e1(ne1), e2(ne2), e3(ne3) {}
 
     /// Constructor from real part, and vector with i,j,k imaginary part.
-    ChQuaternion(const Real ns, const ChVector<Real>& nv) : e0(ns), e1(nv.x), e2(nv.y), e3(nv.z) {}
+    ChQuaternion(const Real ns, const ChVector<Real>& nv) : e0(ns), e1(nv.x()), e2(nv.y()), e3(nv.z()) {}
 
     /// Copy constructor
     ChQuaternion(const ChQuaternion<Real>& other) : e0(other.e0), e1(other.e1), e2(other.e2), e3(other.e3) {}
@@ -284,9 +284,9 @@ class ChQuaternion {
     void SetScalar(const Real s) { e0 = s; }
     /// Sets the vectorial part only
     void SetVector(const ChVector<Real>& mv) {
-        e1 = mv.x;
-        e2 = mv.y;
-        e3 = mv.z;
+        e1 = mv.x();
+        e2 = mv.y();
+        e3 = mv.z();
     }
 
     /// Gets the vectorial part only
@@ -427,9 +427,9 @@ class ChQuaternion {
         Real e1e2 = e1 * e2;
         Real e1e3 = e1 * e3;
         Real e2e3 = e2 * e3;
-        return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x + ((e1e2 - e0e3) * 2) * A.y + ((e1e3 + e0e2) * 2) * A.z,
-                              ((e1e2 + e0e3) * 2) * A.x + ((e0e0 + e2e2) * 2 - 1) * A.y + ((e2e3 - e0e1) * 2) * A.z,
-                              ((e1e3 - e0e2) * 2) * A.x + ((e2e3 + e0e1) * 2) * A.y + ((e0e0 + e3e3) * 2 - 1) * A.z);
+        return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
+                              ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
+                              ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
     }
 
     /// Rotates the vector A on the basis of conjugate of this quaternion: res=p'*[0,A]*p
@@ -445,9 +445,9 @@ class ChQuaternion {
         Real e1e2 = e1 * e2;
         Real e1e3 = e1 * e3;
         Real e2e3 = e2 * e3;
-        return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x + ((e1e2 - e0e3) * 2) * A.y + ((e1e3 + e0e2) * 2) * A.z,
-                              ((e1e2 + e0e3) * 2) * A.x + ((e0e0 + e2e2) * 2 - 1) * A.y + ((e2e3 - e0e1) * 2) * A.z,
-                              ((e1e3 - e0e2) * 2) * A.x + ((e2e3 + e0e1) * 2) * A.y + ((e0e0 + e3e3) * 2 - 1) * A.z);
+        return ChVector<Real>(((e0e0 + e1e1) * 2 - 1) * A.x() + ((e1e2 - e0e3) * 2) * A.y() + ((e1e3 + e0e2) * 2) * A.z(),
+                              ((e1e2 + e0e3) * 2) * A.x() + ((e0e0 + e2e2) * 2 - 1) * A.y() + ((e2e3 - e0e1) * 2) * A.z(),
+                              ((e1e3 - e0e2) * 2) * A.x() + ((e2e3 + e0e1) * 2) * A.y() + ((e0e0 + e3e3) * 2 - 1) * A.z());
     }
 
     //
@@ -458,23 +458,23 @@ class ChQuaternion {
     /// defined in absolute coords. 
     /// If you need distinct axis and angle, use rather Q_from_AngAxis()
     void Q_from_Rotv(const ChVector<Real>& angle_axis) {
-        const Real theta_squared = angle_axis.x * angle_axis.x + angle_axis.y * angle_axis.y + angle_axis.z * angle_axis.z;
+        const Real theta_squared = angle_axis.x() * angle_axis.x() + angle_axis.y() * angle_axis.y() + angle_axis.z() * angle_axis.z();
         // For non-zero rotation:
         if (theta_squared > Real(0.0)) {
             const Real theta = sqrt(theta_squared);
             const Real half_theta = theta * Real(0.5);
             const Real k = sin(half_theta) / theta;
             this->e0 = cos(half_theta);
-            this->e1 = angle_axis.x * k;
-            this->e2 = angle_axis.y * k;
-            this->e3 = angle_axis.z * k;
+            this->e1 = angle_axis.x() * k;
+            this->e2 = angle_axis.y() * k;
+            this->e3 = angle_axis.z() * k;
         } else {
             // For almost zero rotation:
             const Real k(0.5);
             this->e0 = Real(1.0);
-            this->e1 = angle_axis.x * k;
-            this->e2 = angle_axis.y * k;
-            this->e3 = angle_axis.z * k;
+            this->e1 = angle_axis.x() * k;
+            this->e2 = angle_axis.y() * k;
+            this->e3 = angle_axis.z() * k;
         }
     }
 
@@ -488,15 +488,15 @@ class ChQuaternion {
         if (sin_squared > Real(0.0)) {
             const Real sin_theta = sqrt(sin_squared);
             const Real k = Real(2.0) * atan2(sin_theta, e0) / sin_theta;
-            angle_axis.x = e1 * k;
-            angle_axis.y = e2 * k;
-            angle_axis.z = e3 * k;
+            angle_axis.x() = e1 * k;
+            angle_axis.y() = e2 * k;
+            angle_axis.z() = e3 * k;
         } else {
             // For almost zero rotation
             const Real k(2.0);
-            angle_axis.x = e1 * k;
-            angle_axis.y = e2 * k;
-            angle_axis.z = e3 * k;
+            angle_axis.x() = e1 * k;
+            angle_axis.y() = e2 * k;
+            angle_axis.z() = e3 * k;
         }
         return angle_axis;
     }
@@ -509,9 +509,9 @@ class ChQuaternion {
         Real halfang = ((Real)0.5 * angle);
         Real sinhalf = sin(halfang);
         this->e0 = cos(halfang);
-        this->e1 = axis.x * sinhalf;
-        this->e2 = axis.y * sinhalf;
-        this->e3 = axis.z * sinhalf;
+        this->e1 = axis.x() * sinhalf;
+        this->e2 = axis.y() * sinhalf;
+        this->e3 = axis.z() * sinhalf;
     }
 
 	/// Sets the quaternion from an agle of rotation about X axis
@@ -532,14 +532,14 @@ class ChQuaternion {
             arg = acos(e0);
             a_angle = 2 * arg;
             invsine = 1 / sin(arg);
-            a_axis.x = invsine * e1;
-            a_axis.y = invsine * e2;
-            a_axis.z = invsine * e3;
+            a_axis.x() = invsine * e1;
+            a_axis.y() = invsine * e2;
+            a_axis.z() = invsine * e3;
             a_axis.Normalize();
         } else {
-            a_axis.x = 1;
-            a_axis.y = 0;
-            a_axis.z = 0;
+            a_axis.x() = 1;
+            a_axis.y() = 0;
+            a_axis.z() = 0;
             a_angle = 0;
         }
     }
@@ -547,12 +547,12 @@ class ChQuaternion {
     /// Sets the quaternion from three angles (NASA angle set) heading,
     /// bank and attitude
     void Q_from_NasaAngles(const ChVector<Real>& mang) {
-        Real c1 = cos(mang.z / 2);
-        Real s1 = sin(mang.z / 2);
-        Real c2 = cos(mang.x / 2);
-        Real s2 = sin(mang.x / 2);
-        Real c3 = cos(mang.y / 2);
-        Real s3 = sin(mang.y / 2);
+        Real c1 = cos(mang.z() / 2);
+        Real s1 = sin(mang.z() / 2);
+        Real c2 = cos(mang.x() / 2);
+        Real s2 = sin(mang.x() / 2);
+        Real c3 = cos(mang.y() / 2);
+        Real s3 = sin(mang.y() / 2);
 
         Real c1c2 = c1 * c2;
         Real s1s2 = s1 * s2;
@@ -572,11 +572,11 @@ class ChQuaternion {
         Real sqy = e2 * e2;
         Real sqz = e3 * e3;
         // heading
-        mnasa.z = atan2(2 * (e1 * e2 + e3 * e0), (sqx - sqy - sqz + sqw));
+        mnasa.z() = atan2(2 * (e1 * e2 + e3 * e0), (sqx - sqy - sqz + sqw));
         // bank
-        mnasa.y = atan2(2 * (e2 * e3 + e1 * e0), (-sqx - sqy + sqz + sqw));
+        mnasa.y() = atan2(2 * (e2 * e3 + e1 * e0), (-sqx - sqy + sqz + sqw));
         // attitude
-        mnasa.x = asin(-2 * (e1 * e3 - e2 * e0));
+        mnasa.x() = asin(-2 * (e1 * e3 - e2 * e0));
         return mnasa;
     }
 

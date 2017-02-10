@@ -622,10 +622,10 @@ ChVector2<> pv_set(double x, double y) {
     return mpv;
 }
 
-ChVector2<> pv_set(Vector mv) {
+ChVector2<> pv_set(ChVector<> mv) {
     ChVector2<> mpv;
-    mpv.x = mv.x;
-    mpv.y = mv.y;
+    mpv.x = mv.x();
+    mpv.y = mv.y();
     return mpv;
 }
 

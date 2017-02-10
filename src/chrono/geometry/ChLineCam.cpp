@@ -167,9 +167,9 @@ void ChLineCam::EvaluateCamPoint(double par, ChVector<>& res, double& g, double&
         }
     }
 
-    res.z = 0;
-    res.x = this->center.x + r * cos(f + phase);
-    res.y = this->center.y + r * sin(f + phase);
+    res.z() = 0;
+    res.x() = this->center.x() + r * cos(f + phase);
+    res.y() = this->center.y() + r * sin(f + phase);
 }
 
 void ChLineCam::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {

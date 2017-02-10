@@ -497,15 +497,15 @@ void ChLinkMasked::UpdateForces(double mytime) {
     m_force = VNULL;
 
     if (force_X && force_X->Get_active()) {
-        m_force.x = force_X->Get_Force(relM.pos.x, relM_dt.pos.x, ChTime);
+        m_force.x() = force_X->Get_Force(relM.pos.x(), relM_dt.pos.x(), ChTime);
     }
 
     if (force_Y && force_Y->Get_active()) {
-        m_force.y = force_Y->Get_Force(relM.pos.y, relM_dt.pos.y, ChTime);
+        m_force.y() = force_Y->Get_Force(relM.pos.y(), relM_dt.pos.y(), ChTime);
     }
 
     if (force_Z && force_Z->Get_active()) {
-        m_force.z = force_Z->Get_Force(relM.pos.z, relM_dt.pos.z, ChTime);
+        m_force.z() = force_Z->Get_Force(relM.pos.z(), relM_dt.pos.z(), ChTime);
     }
 
     C_force = Vadd(C_force, m_force);
@@ -515,15 +515,15 @@ void ChLinkMasked::UpdateForces(double mytime) {
     m_torque = VNULL;
 
     if (force_Rx && force_Rx->Get_active()) {
-        m_torque.x = force_Rx->Get_Force(relRotaxis.x, relWvel.x, ChTime);
+        m_torque.x() = force_Rx->Get_Force(relRotaxis.x(), relWvel.x(), ChTime);
     }
 
     if (force_Ry && force_Ry->Get_active()) {
-        m_torque.y = force_Ry->Get_Force(relRotaxis.y, relWvel.y, ChTime);
+        m_torque.y() = force_Ry->Get_Force(relRotaxis.y(), relWvel.y(), ChTime);
     }
 
     if (force_Rz && force_Rz->Get_active()) {
-        m_torque.z = force_Rz->Get_Force(relRotaxis.z, relWvel.z, ChTime);
+        m_torque.z() = force_Rz->Get_Force(relRotaxis.z(), relWvel.z(), ChTime);
     }
 
     C_torque = Vadd(C_torque, m_torque);

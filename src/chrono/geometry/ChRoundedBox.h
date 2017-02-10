@@ -103,7 +103,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
+    double GetVolume() { return Size.x() * Size.y() * Size.z() * 8.0; };
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number

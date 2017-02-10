@@ -175,24 +175,24 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         ChVector<> Phi_r1 = -u12_abs;
         ChVector<> Phi_pi1 = Vcross(u12_loc1, m_pos1);
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(0) = Phi_r1.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(1) = Phi_r1.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(2) = Phi_r1.z;
+        m_cnstr_dist.Get_Cq_a()->ElementN(0) = Phi_r1.x();
+        m_cnstr_dist.Get_Cq_a()->ElementN(1) = Phi_r1.y();
+        m_cnstr_dist.Get_Cq_a()->ElementN(2) = Phi_r1.z();
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         ChVector<> Phi_r2 = u12_abs;
         ChVector<> Phi_pi2 = -Vcross(u12_loc2, m_pos2);
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(0) = Phi_r2.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(1) = Phi_r2.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(2) = Phi_r2.z;
+        m_cnstr_dist.Get_Cq_b()->ElementN(0) = Phi_r2.x();
+        m_cnstr_dist.Get_Cq_b()->ElementN(1) = Phi_r2.y();
+        m_cnstr_dist.Get_Cq_b()->ElementN(2) = Phi_r2.z();
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 
     // Cache violation of the dot constraint
@@ -204,24 +204,24 @@ void ChLinkRevoluteSpherical::Update(double time, bool update_assets) {
         ChVector<> Phi_r1 = -dir1_abs;
         ChVector<> Phi_pi1 = Vcross(m_dir1, m_pos1) - Vcross(u12_loc1, m_pos1);
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = Phi_r1.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = Phi_r1.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = Phi_r1.z;
+        m_cnstr_dot.Get_Cq_a()->ElementN(0) = Phi_r1.x();
+        m_cnstr_dot.Get_Cq_a()->ElementN(1) = Phi_r1.y();
+        m_cnstr_dot.Get_Cq_a()->ElementN(2) = Phi_r1.z();
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         ChVector<> Phi_r2 = dir1_abs;
         ChVector<> Phi_pi2 = -Vcross(dir1_loc2, m_pos2);
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = Phi_r2.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = Phi_r2.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = Phi_r2.z;
+        m_cnstr_dot.Get_Cq_b()->ElementN(0) = Phi_r2.x();
+        m_cnstr_dot.Get_Cq_b()->ElementN(1) = Phi_r2.y();
+        m_cnstr_dot.Get_Cq_b()->ElementN(2) = Phi_r2.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 }
 
@@ -252,13 +252,13 @@ void ChLinkRevoluteSpherical::IntStateScatterReactions(const unsigned int off_L,
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = lam_dist;
-    react_force.y = 0;
-    react_force.z = lam_dot;
+    react_force.x() = lam_dist;
+    react_force.y() = 0;
+    react_force.z() = lam_dot;
 
-    react_torque.x = 0;
-    react_torque.y = -m_cur_dist * lam_dot;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = -m_cur_dist * lam_dot;
+    react_torque.z() = 0;
 }
 
 void ChLinkRevoluteSpherical::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -367,13 +367,13 @@ void ChLinkRevoluteSpherical::ConstraintsFetch_react(double factor) {
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = lam_dist;
-    react_force.y = 0;
-    react_force.z = lam_dot;
+    react_force.x() = lam_dist;
+    react_force.y() = 0;
+    react_force.z() = lam_dot;
 
-    react_torque.x = 0;
-    react_torque.y = -m_cur_dist * lam_dot;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = -m_cur_dist * lam_dot;
+    react_torque.z() = 0;
 }
 
 // -----------------------------------------------------------------------------
