@@ -110,7 +110,7 @@ const ChVector<> M113a_Suspension::GetLocation(PointId which) {
     }
 
     if (m_side == RIGHT)
-        point.y *= -1;
+        point.y() *= -1;
 
     return point;
 }
