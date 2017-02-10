@@ -189,93 +189,93 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
             // Add part of the Jacobian stemming from elastic forces
             for (int inode = 0; inode < 2; ++inode) {
-                pos[inode].x += diff;
+                pos[inode].x() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
-                pos[inode].x -= diff;
+                pos[inode].x() -= diff;
 
-                pos[inode].y += diff;
+                pos[inode].y() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
-                pos[inode].y -= diff;
+                pos[inode].y() -= diff;
 
-                pos[inode].z += diff;
+                pos[inode].z() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
-                pos[inode].z -= diff;
+                pos[inode].z() -= diff;
 
-                D[inode].x += diff;
+                D[inode].x() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
-                D[inode].x -= diff;
+                D[inode].x() -= diff;
 
-                D[inode].y += diff;
+                D[inode].y() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
-                D[inode].y -= diff;
+                D[inode].y() -= diff;
 
-                D[inode].z += diff;
+                D[inode].z() += diff;
                 this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                  F1);
                 Kcolumn = (F0 - F1) * (1.0 / diff) * Kfactor;
                 this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
-                D[inode].z -= diff;
+                D[inode].z() -= diff;
             }
 
             // Add part of the Jacobian stemming from internal damping forces, if selected by user.
             if (m_use_damping) {
                 for (int inode = 0; inode < 2; ++inode) {
-                    pos_dt[inode].x += diff;
+                    pos_dt[inode].x() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 0 + inode * 6);
-                    pos_dt[inode].x -= diff;
+                    pos_dt[inode].x() -= diff;
 
-                    pos_dt[inode].y += diff;
+                    pos_dt[inode].y() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 1 + inode * 6);
-                    pos_dt[inode].y -= diff;
+                    pos_dt[inode].y() -= diff;
 
-                    pos_dt[inode].z += diff;
+                    pos_dt[inode].z() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 2 + inode * 6);
-                    pos_dt[inode].z -= diff;
+                    pos_dt[inode].z() -= diff;
 
-                    D_dt[inode].x += diff;
+                    D_dt[inode].x() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 3 + inode * 6);
-                    D_dt[inode].x -= diff;
+                    D_dt[inode].x() -= diff;
 
-                    D_dt[inode].y += diff;
+                    D_dt[inode].y() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 4 + inode * 6);
-                    D_dt[inode].y -= diff;
+                    D_dt[inode].y() -= diff;
 
-                    D_dt[inode].z += diff;
+                    D_dt[inode].z() += diff;
                     this->ComputeInternalForces_Impl(pos[0], D[0], pos[1], D[1], pos_dt[0], D_dt[0], pos_dt[1], D_dt[1],
                                                      F1);
                     Kcolumn = (F0 - F1) * (1.0 / diff) * Rfactor;
                     this->m_JacobianMatrix.PasteClippedMatrix(Kcolumn, 0, 0, 12, 1, 0, 5 + inode * 6);
-                    D_dt[inode].z -= diff;
+                    D_dt[inode].z() -= diff;
                 }
             }
         }
@@ -297,18 +297,18 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
             // this matrix will be used in both MyStiffnessAxial and MyStiffnessCurv integrators
             ChMatrixNM<double, 4, 3> d;
-            d(0, 0) = pA.x;
-            d(0, 1) = pA.y;
-            d(0, 2) = pA.z;
-            d(1, 0) = dA.x;
-            d(1, 1) = dA.y;
-            d(1, 2) = dA.z;
-            d(2, 0) = pB.x;
-            d(2, 1) = pB.y;
-            d(2, 2) = pB.z;
-            d(3, 0) = dB.x;
-            d(3, 1) = dB.y;
-            d(3, 2) = dB.z;
+            d(0, 0) = pA.x();
+            d(0, 1) = pA.y();
+            d(0, 2) = pA.z();
+            d(1, 0) = dA.x();
+            d(1, 1) = dA.y();
+            d(1, 2) = dA.z();
+            d(2, 0) = pB.x();
+            d(2, 1) = pB.y();
+            d(2, 2) = pB.z();
+            d(3, 0) = dB.x();
+            d(3, 1) = dB.y();
+            d(3, 2) = dB.z();
 
             /// 1)
             /// Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
@@ -608,33 +608,33 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
         // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
         ChMatrixNM<double, 4, 3> d;
-        d(0, 0) = pA.x;
-        d(0, 1) = pA.y;
-        d(0, 2) = pA.z;
-        d(1, 0) = dA.x;
-        d(1, 1) = dA.y;
-        d(1, 2) = dA.z;
-        d(2, 0) = pB.x;
-        d(2, 1) = pB.y;
-        d(2, 2) = pB.z;
-        d(3, 0) = dB.x;
-        d(3, 1) = dB.y;
-        d(3, 2) = dB.z;
+        d(0, 0) = pA.x();
+        d(0, 1) = pA.y();
+        d(0, 2) = pA.z();
+        d(1, 0) = dA.x();
+        d(1, 1) = dA.y();
+        d(1, 2) = dA.z();
+        d(2, 0) = pB.x();
+        d(2, 1) = pB.y();
+        d(2, 2) = pB.z();
+        d(3, 0) = dB.x();
+        d(3, 1) = dB.y();
+        d(3, 2) = dB.z();
 
         // this matrix will be used in both MyForcesAxial and MyForcesCurv integrators
         ChMatrixNM<double, 12, 1> vel_vector;
-        vel_vector(0, 0) = pA_dt.x;
-        vel_vector(1, 0) = pA_dt.y;
-        vel_vector(2, 0) = pA_dt.z;
-        vel_vector(3, 0) = dA_dt.x;
-        vel_vector(4, 0) = dA_dt.y;
-        vel_vector(5, 0) = dA_dt.z;
-        vel_vector(6, 0) = pB_dt.x;
-        vel_vector(7, 0) = pB_dt.y;
-        vel_vector(8, 0) = pB_dt.z;
-        vel_vector(9, 0) = dB_dt.x;
-        vel_vector(10, 0) = dB_dt.y;
-        vel_vector(11, 0) = dB_dt.z;
+        vel_vector(0, 0) = pA_dt.x();
+        vel_vector(1, 0) = pA_dt.y();
+        vel_vector(2, 0) = pA_dt.z();
+        vel_vector(3, 0) = dA_dt.x();
+        vel_vector(4, 0) = dA_dt.y();
+        vel_vector(5, 0) = dA_dt.z();
+        vel_vector(6, 0) = pB_dt.x();
+        vel_vector(7, 0) = pB_dt.y();
+        vel_vector(8, 0) = pB_dt.z();
+        vel_vector(9, 0) = dB_dt.x();
+        vel_vector(10, 0) = dB_dt.y();
+        vel_vector(11, 0) = dB_dt.z();
         /// 1)
         /// Integrate   (strainD'*strain)
 
@@ -857,17 +857,17 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         ChVector<> pB = this->nodes[1]->GetPos();
         ChVector<> dB = this->nodes[1]->GetD();
 
-        point.x = N(0) * pA.x + N(1) * dA.x + N(2) * pB.x + N(3) * dB.x;
-        point.y = N(0) * pA.y + N(1) * dA.y + N(2) * pB.y + N(3) * dB.y;
-        point.z = N(0) * pA.z + N(1) * dA.z + N(2) * pB.z + N(3) * dB.z;
+        point.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
+        point.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
+        point.z() = N(0) * pA.z() + N(1) * dA.z() + N(2) * pB.z() + N(3) * dB.z();
 
         this->ShapeFunctionsDerivatives(N, xi);
 
         ChVector<> Dx;
 
-        Dx.x = N(0) * pA.x + N(1) * dA.x + N(2) * pB.x + N(3) * dB.x;
-        Dx.y = N(0) * pA.y + N(1) * dA.y + N(2) * pB.y + N(3) * dB.y;
-        Dx.z = N(0) * pA.z + N(1) * dA.z + N(2) * pB.z + N(3) * dB.z;
+        Dx.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
+        Dx.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
+        Dx.z() = N(0) * pA.z() + N(1) * dA.z() + N(2) * pB.z() + N(3) * dB.z();
 
         // This element has no torsional dof, so once we have the Dx direction
         // of the line, we must compute the Dy and Dz directions by using a
@@ -958,8 +958,8 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
         double g1 = vr_x.Length();
         double g = pow(g1, 3);
 
-        StrainV.x = (pow(r_x(0), 2) + pow(r_x(1), 2) + pow(r_x(2), 2) - 1.0);
-        StrainV.y = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)
+        StrainV.x() = (pow(r_x(0), 2) + pow(r_x(1), 2) + pow(r_x(2), 2) - 1.0);
+        StrainV.y() = f / g;  // Bending strain measure (Gertmayer and Shabana, 2006)
     }
 
     /// Set structural damping.

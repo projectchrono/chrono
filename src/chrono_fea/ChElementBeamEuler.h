@@ -853,34 +853,34 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
         this->ShapeFunctions(N, eta);  // Evaluate compressed shape functions
         /*
-        u_displ.x = N(0) * displ(0) + N(6) * displ(6);      // x_a   x_b
-        u_displ.y = N(1) * displ(1) + N(7) * displ(7)       // y_a   y_b
+        u_displ.x() = N(0) * displ(0) + N(6) * displ(6);      // x_a   x_b
+        u_displ.y() = N(1) * displ(1) + N(7) * displ(7)       // y_a   y_b
                     + N(5) * displ(5) + N(11) * displ(11);  // Rz_a  Rz_b
-        u_displ.z = N(2) * displ(2) + N(8) * displ(8)       // z_a   z_b
+        u_displ.z() = N(2) * displ(2) + N(8) * displ(8)       // z_a   z_b
                     + N(4) * displ(4) + N(10) * displ(10);  // Ry_a  Ry_b
 
-        u_rotaz.x = N(3) * displ(3) + N(9) * displ(9);  // Rx_a  Rx_b
+        u_rotaz.x() = N(3) * displ(3) + N(9) * displ(9);  // Rx_a  Rx_b
 
         double dN_ua = (1. / (2. * this->GetRestLength())) *
                        (-3. + 3 * eta * eta);  // slope shape functions are computed here on-the-fly
         double dN_ub = (1. / (2. * this->GetRestLength())) * (3. - 3 * eta * eta);
         double dN_ra = (1. / 4.) * (-1. - 2 * eta + 3 * eta * eta);
         double dN_rb = -(1. / 4.) * (1. - 2 * eta - 3 * eta * eta);
-        u_rotaz.y = -dN_ua * displ(2) - dN_ub * displ(8) +  // z_a   z_b   note - sign
+        u_rotaz.y() = -dN_ua * displ(2) - dN_ub * displ(8) +  // z_a   z_b   note - sign
                     dN_ra * displ(4) + dN_rb * displ(10);   // Ry_a  Ry_b
-        u_rotaz.z = dN_ua * displ(1) + dN_ub * displ(7) +   // y_a   y_b
+        u_rotaz.z() = dN_ua * displ(1) + dN_ub * displ(7) +   // y_a   y_b
                     dN_ra * displ(5) + dN_rb * displ(11);   // Rz_a  Rz_b
         */
-        u_displ.x = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
-        u_displ.y = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
+        u_displ.x() = N(0) * displ(0) + N(3) * displ(6);     // x_a   x_b
+        u_displ.y() = N(1) * displ(1) + N(4) * displ(7)      // y_a   y_b
                     + N(2) * displ(5) + N(5) * displ(11);  // Rz_a  Rz_b
-        u_displ.z = N(1) * displ(2) + N(4) * displ(8)      // z_a   z_b
+        u_displ.z() = N(1) * displ(2) + N(4) * displ(8)      // z_a   z_b
                     - N(2) * displ(4) - N(5) * displ(10);  // Ry_a  Ry_b
 
-        u_rotaz.x = N(0) * displ(3) + N(3) * displ(9);    // Rx_a  Rx_b
-        u_rotaz.y = -N(6) * displ(2) - N(7) * displ(8) +  // z_a   z_b   note - sign
+        u_rotaz.x() = N(0) * displ(3) + N(3) * displ(9);    // Rx_a  Rx_b
+        u_rotaz.y() = -N(6) * displ(2) - N(7) * displ(8) +  // z_a   z_b   note - sign
                     N(8) * displ(4) + N(9) * displ(10);   // Ry_a  Ry_b
-        u_rotaz.z = N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
+        u_rotaz.z() = N(6) * displ(1) + N(7) * displ(7) +   // y_a   y_b
                     N(8) * displ(5) + N(9) * displ(11);   // Rz_a  Rz_b
     }
 
@@ -967,13 +967,13 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
         if (false)  // section->alpha ==0 && section->Cy ==0 && section->Cz==0 && section->Sy==0 && section->Sz==0)
         {
             // Fast computation:
-            Fforce.x = this->section->E * this->section->Area * sect_ek(0);
-            Fforce.y = this->section->E * this->section->Izz * sect_ek(1);
-            Fforce.z = this->section->E * this->section->Iyy * sect_ek(2);
+            Fforce.x() = this->section->E * this->section->Area * sect_ek(0);
+            Fforce.y() = this->section->E * this->section->Izz * sect_ek(1);
+            Fforce.z() = this->section->E * this->section->Iyy * sect_ek(2);
 
-            Mtorque.x = this->section->G * Jpolar * sect_ek(3);
-            Mtorque.y = this->section->E * this->section->Iyy * sect_ek(4);
-            Mtorque.z = this->section->E * this->section->Izz * sect_ek(5);
+            Mtorque.x() = this->section->G * Jpolar * sect_ek(3);
+            Mtorque.y() = this->section->E * this->section->Iyy * sect_ek(4);
+            Mtorque.z() = this->section->E * this->section->Izz * sect_ek(5);
         } else {
             // Generic computation, by rotating and translating the constitutive
             // matrix of the beam:

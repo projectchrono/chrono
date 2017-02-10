@@ -93,27 +93,27 @@ double ChVisualizationFEAmesh::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyz>
         case E_PLOT_NODE_DISP_NORM:
             return (mnode->GetPos() - mnode->GetX0()).Length();
         case E_PLOT_NODE_DISP_X:
-            return (mnode->GetPos() - mnode->GetX0()).x;
+            return (mnode->GetPos() - mnode->GetX0()).x();
         case E_PLOT_NODE_DISP_Y:
-            return (mnode->GetPos() - mnode->GetX0()).y;
+            return (mnode->GetPos() - mnode->GetX0()).y();
         case E_PLOT_NODE_DISP_Z:
-            return (mnode->GetPos() - mnode->GetX0()).z;
+            return (mnode->GetPos() - mnode->GetX0()).z();
         case E_PLOT_NODE_SPEED_NORM:
             return mnode->GetPos_dt().Length();
         case E_PLOT_NODE_SPEED_X:
-            return mnode->GetPos_dt().x;
+            return mnode->GetPos_dt().x();
         case E_PLOT_NODE_SPEED_Y:
-            return mnode->GetPos_dt().y;
+            return mnode->GetPos_dt().y();
         case E_PLOT_NODE_SPEED_Z:
-            return mnode->GetPos_dt().z;
+            return mnode->GetPos_dt().z();
         case E_PLOT_NODE_ACCEL_NORM:
             return mnode->GetPos_dtdt().Length();
         case E_PLOT_NODE_ACCEL_X:
-            return mnode->GetPos_dtdt().x;
+            return mnode->GetPos_dtdt().x();
         case E_PLOT_NODE_ACCEL_Y:
-            return mnode->GetPos_dtdt().y;
+            return mnode->GetPos_dtdt().y();
         case E_PLOT_NODE_ACCEL_Z:
-            return mnode->GetPos_dtdt().z;
+            return mnode->GetPos_dtdt().z();
         case E_PLOT_ELEM_STRAIN_VONMISES:
             if (auto mytetra = std::dynamic_pointer_cast<ChElementTetra_4>(melement)) {
                 return mytetra->GetStrain().GetEquivalentVonMises();
@@ -176,14 +176,14 @@ void TriangleNormalsCompute(ChVector<int> norm_indexes,
                             std::vector<ChVector<>>& normals,
                             std::vector<int>& accumul) {
     ChVector<> tnorm =
-        Vcross(vertexes[vert_indexes.y] - vertexes[vert_indexes.x], vertexes[vert_indexes.z] - vertexes[vert_indexes.x])
+        Vcross(vertexes[vert_indexes.y()] - vertexes[vert_indexes.x()], vertexes[vert_indexes.z()] - vertexes[vert_indexes.x()])
             .GetNormalized();
-    normals[norm_indexes.x] += tnorm;
-    normals[norm_indexes.y] += tnorm;
-    normals[norm_indexes.z] += tnorm;
-    accumul[norm_indexes.x] += 1;
-    accumul[norm_indexes.y] += 1;
-    accumul[norm_indexes.z] += 1;
+    normals[norm_indexes.x()] += tnorm;
+    normals[norm_indexes.y()] += tnorm;
+    normals[norm_indexes.z()] += tnorm;
+    accumul[norm_indexes.x()] += 1;
+    accumul[norm_indexes.y()] += 1;
+    accumul[norm_indexes.z()] += 1;
 }
 void TriangleNormalsSmooth(std::vector<ChVector<>>& normals, std::vector<int>& accumul) {
     for (unsigned int nn = 0; nn < normals.size(); ++nn) {
@@ -645,35 +645,35 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     switch (this->fem_data_type) {
                         case E_PLOT_ELEM_BEAM_MX:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresultB.x;
+                            sresult = vresultB.x();
                             break;
                         case E_PLOT_ELEM_BEAM_MY:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresultB.y;
+                            sresult = vresultB.y();
                             break;
                         case E_PLOT_ELEM_BEAM_MZ:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresultB.z;
+                            sresult = vresultB.z();
                             break;
                         case E_PLOT_ELEM_BEAM_TX:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresult.x;
+                            sresult = vresult.x();
                             break;
                         case E_PLOT_ELEM_BEAM_TY:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresult.y;
+                            sresult = vresult.y();
                             break;
                         case E_PLOT_ELEM_BEAM_TZ:
                             mybeam->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                            sresult = vresult.z;
+                            sresult = vresult.z();
                             break;
                         case E_PLOT_ANCF_BEAM_AX:
                             mybeam->EvaluateSectionStrain(eta, displ, vresult);
-                            sresult = vresult.x;
+                            sresult = vresult.x();
                             break;
                         case E_PLOT_ANCF_BEAM_BD:
                             mybeam->EvaluateSectionStrain(eta, displ, vresult);
-                            sresult = vresult.y;
+                            sresult = vresult.y();
                             break;
                     }
                     ChVector<float> mcol = ComputeFalseColor(sresult);
@@ -828,7 +828,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         {
                             case E_PLOT_ELEM_SHELL_blabla:
                                 myshell->EvaluateSectionForceTorque(eta, displ, vresult, vresultB);
-                                sresult = vresultB.x;
+                                sresult = vresultB.x();
                                 break;
 
                         }
@@ -899,9 +899,9 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     ChVector<> p2 = node2->GetPos();
 
                     // debug: offset 1 m to show it better..
-                    //    p0.x +=1;
-                    //    p1.x +=1;
-                    //    p2.x +=1;
+                    //    p0.x() +=1;
+                    //    p1.x() +=1;
+                    //    p2.x() +=1;
 
                     trianglemesh.getCoordsVertices()[i_verts] = p0;
                     ++i_verts;
