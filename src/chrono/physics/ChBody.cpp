@@ -122,7 +122,7 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
 }
 
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
-    bflag = other.bflag;
+    bflags = other.bflags;
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -502,7 +502,7 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    BFlagSet(BF_COULDSLEEP, false);
+    BFlagSet(BodyFlag::COULDSLEEP, false);
 
     if (this->GetUseSleeping()) {
         if (!this->IsActive())
@@ -512,7 +512,7 @@ bool ChBody::TrySleeping() {
         if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
-                BFlagSet(BF_COULDSLEEP, true);  // mark as sleep candidate
+                BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
                 return true;                    // could go to sleep!
             }
         } else {
@@ -670,29 +670,139 @@ void ChBody::Update(double mytime, bool update_assets) {
     Update(update_assets);
 }
 
-void ChBody::SetBodyFixed(bool mev) {
-    variables.SetDisabled(mev);
-    if (mev == BFlagGet(BF_FIXED))
+
+// ---------------------------------------------------------------------------
+// Body flags management
+void ChBody::BFlagsSetAllOFF() {
+    bflags = 0;
+}
+void ChBody::BFlagsSetAllON() {
+    bflags = 0;
+    bflags = ~bflags;
+}
+void ChBody::BFlagSetON(BodyFlag mask) {
+    bflags |= mask;
+}
+void ChBody::BFlagSetOFF(BodyFlag mask) {
+    bflags &= ~mask;
+}
+bool ChBody::BFlagGet(BodyFlag mask) const {
+    return (bflags & mask) != 0;
+};
+void ChBody::BFlagSet(BodyFlag mask, bool state) {
+    if (state)
+        bflags |= mask;
+    else
+        bflags &= ~mask;
+}
+
+void ChBody::SetBodyFixed(bool state) {
+    variables.SetDisabled(state);
+    if (state == BFlagGet(BodyFlag::FIXED))
         return;
-    BFlagSet(BF_FIXED, mev);
+    BFlagSet(BodyFlag::FIXED, state);
     // RecomputeCollisionModel(); // because one may use different model types for static or dynamic coll.shapes
 }
 
-// collision stuff
-void ChBody::SetCollide(bool mcoll) {
-    if (mcoll == BFlagGet(BF_COLLIDE))
+bool ChBody::GetBodyFixed() const { return BFlagGet(BodyFlag::FIXED); }
+
+void ChBody::SetEvalContactCn(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_CN, state);
+}
+
+bool ChBody::GetEvalContactCn() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_CN);
+}
+
+void ChBody::SetEvalContactCt(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_CT, state);
+}
+
+bool ChBody::GetEvalContactCt() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_CT);
+}
+
+void ChBody::SetEvalContactKf(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_KF, state);
+}
+
+bool ChBody::GetEvalContactKf() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_KF);
+}
+
+void ChBody::SetEvalContactSf(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_SF, state);
+}
+
+bool ChBody::GetEvalContactSf() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_SF);
+}
+
+void ChBody::SetShowCollisionMesh(bool state) {
+    BFlagSet(BodyFlag::SHOW_COLLMESH, state);
+}
+
+bool ChBody::GetShowCollisionMesh() const {
+    return BFlagGet(BodyFlag::SHOW_COLLMESH);
+}
+
+void ChBody::SetLimitSpeed(bool state) {
+    BFlagSet(BodyFlag::LIMITSPEED, state);
+}
+
+bool ChBody::GetLimitSpeed() const {
+    return BFlagGet(BodyFlag::LIMITSPEED);
+}
+
+void ChBody::SetNoGyroTorque(bool state) {
+    BFlagSet(BodyFlag::NOGYROTORQUE, state);
+}
+
+bool ChBody::GetNoGyroTorque() const {
+    return BFlagGet(BodyFlag::NOGYROTORQUE);
+}
+
+void ChBody::SetUseSleeping(bool state) {
+    BFlagSet(BodyFlag::USESLEEPING, state);
+}
+
+bool ChBody::GetUseSleeping() const {
+    return BFlagGet(BodyFlag::USESLEEPING);
+}
+
+void ChBody::SetSleeping(bool state) {
+    BFlagSet(BodyFlag::SLEEPING, state);
+}
+
+bool ChBody::GetSleeping() const {
+    return BFlagGet(BodyFlag::SLEEPING);
+}
+
+bool ChBody::IsActive() {
+    return !BFlagGet(BodyFlag::SLEEPING) && !BFlagGet(BodyFlag::FIXED);
+}
+
+// ---------------------------------------------------------------------------
+// Collision-related functions
+
+void ChBody::SetCollide(bool state) {
+    if (state == BFlagGet(BodyFlag::COLLIDE))
         return;
 
-    if (mcoll) {
+    if (state) {
         SyncCollisionModels();
-        BFlagSetON(BF_COLLIDE);
+        BFlagSetON(BodyFlag::COLLIDE);
         if (GetSystem())
             GetSystem()->GetCollisionSystem()->Add(collision_model.get());
     } else {
-        BFlagSetOFF(BF_COLLIDE);
+        BFlagSetOFF(BodyFlag::COLLIDE);
         if (GetSystem())
             GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
     }
+}
+
+bool ChBody::GetCollide() const {
+    return BFlagGet(BodyFlag::COLLIDE);
 }
 
 void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
@@ -735,6 +845,8 @@ void ChBody::RemoveCollisionModelsFromSystem() {
     if (this->GetCollide())
         this->GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
 }
+
+// ---------------------------------------------------------------------------
 
 void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     if (this->GetCollisionModel())
@@ -813,7 +925,8 @@ ChVector<> ChBody::GetContactTorque() {
     return GetSystem()->GetContactContainer()->GetContactableTorque(this);
 }
 
-//////// FILE I/O
+// ---------------------------------------------------------------------------
+// FILE I/O
 
 void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
@@ -826,19 +939,19 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    marchive << CHNVP(bflag);
+    marchive << CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
-    mflag = BFlagGet(BF_FIXED);
+    mflag = BFlagGet(BodyFlag::FIXED);
     marchive << CHNVP(mflag, "is_fixed");
-    mflag = BFlagGet(BF_COLLIDE);
+    mflag = BFlagGet(BodyFlag::COLLIDE);
     marchive << CHNVP(mflag, "collide");
-    mflag = BFlagGet(BF_LIMITSPEED);
+    mflag = BFlagGet(BodyFlag::LIMITSPEED);
     marchive << CHNVP(mflag, "limit_speed");
-    mflag = BFlagGet(BF_NOGYROTORQUE);
+    mflag = BFlagGet(BodyFlag::NOGYROTORQUE);
     marchive << CHNVP(mflag, "no_gyro_torque");
-    mflag = BFlagGet(BF_USESLEEPING);
+    mflag = BFlagGet(BodyFlag::USESLEEPING);
     marchive << CHNVP(mflag, "use_sleeping");
-    mflag = BFlagGet(BF_SLEEPING);
+    mflag = BFlagGet(BodyFlag::SLEEPING);
     marchive << CHNVP(mflag, "is_sleeping");
 
     // marchive << CHNVP(marklist);
@@ -892,20 +1005,20 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
 
-    marchive >> CHNVP(bflag);
+    marchive >> CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
     marchive >> CHNVP(mflag, "is_fixed");
-    BFlagSet(BF_FIXED, mflag);
+    BFlagSet(BodyFlag::FIXED, mflag);
     marchive >> CHNVP(mflag, "collide");
-    BFlagSet(BF_COLLIDE, mflag);
+    BFlagSet(BodyFlag::COLLIDE, mflag);
     marchive >> CHNVP(mflag, "limit_speed");
-    BFlagSet(BF_LIMITSPEED, mflag);
+    BFlagSet(BodyFlag::LIMITSPEED, mflag);
     marchive >> CHNVP(mflag, "no_gyro_torque");
-    BFlagSet(BF_NOGYROTORQUE, mflag);
+    BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
     marchive >> CHNVP(mflag, "use_sleeping");
-    BFlagSet(BF_USESLEEPING, mflag);
+    BFlagSet(BodyFlag::USESLEEPING, mflag);
     marchive >> CHNVP(mflag, "is_sleeping");
-    BFlagSet(BF_SLEEPING, mflag);
+    BFlagSet(BodyFlag::SLEEPING, mflag);
 
     // marchive >> CHNVP(marklist);
     // do rather a custom array load:
