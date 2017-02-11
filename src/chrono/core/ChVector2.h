@@ -87,8 +87,9 @@ class ChVector2 {
 
     // OPERATORS OVERLOADING
 
-    operator Real*() { return (Real*)this; }
-    operator const Real*() const { return (const Real*)this; }
+    /// Subscript operator.
+    Real& operator[](unsigned index);
+    const Real& operator[](unsigned index) const;
 
     /// Assignment operator (copy from another vector).
     ChVector2<Real>& operator=(const ChVector2<Real>& other);
@@ -224,6 +225,21 @@ template <class RealB>
 inline ChVector2<Real>::ChVector2(const ChVector2<RealB>& other) {
     data[0] = static_cast<Real>(other.data[0]);
     data[1] = static_cast<Real>(other.data[1]);
+}
+
+// -----------------------------------------------------------------------------
+// Subscript operators
+
+template <class Real>
+inline Real& ChVector<Real>::operator[](unsigned index) {
+    assert(index < 2);
+    return data[index];
+}
+
+template <class Real>
+inline const Real& ChVector<Real>::operator[](unsigned index) const {
+    assert(index < 2);
+    return data[index];
 }
 
 // -----------------------------------------------------------------------------

@@ -94,8 +94,9 @@ class ChVector {
     // may give slower results than a wise (less readable however) usage of
     // Dot(), Cross() etc.. Also pay attention to C++ operator precedence rules!
 
-    operator Real*() { return (Real*)this; }
-    operator const Real*() const { return (const Real*)this; }
+    /// Subscript operator.
+    Real& operator[](unsigned index);
+    const Real& operator[](unsigned index) const;
 
     /// Assignment operator (copy from another vector).
     ChVector<Real>& operator=(const ChVector<Real>& other);
@@ -274,6 +275,21 @@ inline ChVector<Real>::ChVector(const ChVector<RealB>& other) {
     data[0] = static_cast<Real>(other.data[0]);
     data[1] = static_cast<Real>(other.data[1]);
     data[2] = static_cast<Real>(other.data[2]);
+}
+
+// -----------------------------------------------------------------------------
+// Subscript operators
+
+template <class Real>
+inline Real& ChVector<Real>::operator[](unsigned index) {
+    assert(index < 3);
+    return data[index];
+}
+
+template <class Real>
+inline const Real& ChVector<Real>::operator[](unsigned index) const {
+    assert(index < 3);
+    return data[index];
 }
 
 // -----------------------------------------------------------------------------
