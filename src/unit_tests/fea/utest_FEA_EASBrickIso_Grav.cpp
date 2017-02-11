@@ -276,9 +276,9 @@ int main(int argc, char* argv[]) {
         while (my_system.GetChTime() < sim_time) {
             my_system.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
-            out << my_system.GetChTime() << nodetip->GetPos().z << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
-                     << nodetip->GetForce().z << "\t" << Iterations << "\n";
+            out << my_system.GetChTime() << nodetip->GetPos().z() << std::endl;
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+                     << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
         out.write_to_file("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
@@ -286,11 +286,11 @@ int main(int argc, char* argv[]) {
         double max_err = 0;
         for (unsigned int it = 0; it < num_steps_UT; it++) {
             my_system.DoStepDynamics(step_size);
-            std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << std::endl;
-            double err = abs(nodetip->GetPos().z - FileInputMat[it][1]);
+            std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << std::endl;
+            double err = abs(nodetip->GetPos().z() - FileInputMat[it][1]);
             max_err = std::max(max_err, err);
             if (err > precision) {
-                std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+                std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
                           << "  reference: " << FileInputMat[it][1] << std::endl;
                 return 1;
             }

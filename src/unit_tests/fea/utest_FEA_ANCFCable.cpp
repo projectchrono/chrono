@@ -212,14 +212,14 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(0.0001);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
-        double AbsVal = std::abs(hnodeancf3->GetPos().y - FileInputMat[it][4]);
-        double AbsVal2 = std::abs(hnodeancf5->GetPos().z - FileInputMat[it][6]);
+        double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat[it][4]);
+        double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat[it][6]);
 
         if (ChMax(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
-            std::cout << "  y position: " << hnodeancf3->GetPos().y << "  (reference: " << FileInputMat[it][4]
+            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat[it][4]
                       << "  diff: " << AbsVal << ")\n";
-            std::cout << "  z position: " << hnodeancf5->GetPos().z << "  (reference: " << FileInputMat[it][6]
+            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat[it][6]
                       << "  diff: " << AbsVal2 << ")\n";
             return 1;
         }
@@ -228,12 +228,12 @@ int main(int argc, char* argv[]) {
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = my_system.GetChTime();
-    m_data[1][it] = hnodeancf1->GetD().x,
-    m_data[2][it] = hnodeancf1->GetD().y;
-    m_data[3][it] = hnodeancf1->GetD().z;
-    m_data[4][it] = hnodeancf3->GetPos().y;
-    m_data[5][it] = hnodeancf5->GetPos().x;
-    m_data[6][it] = hnodeancf5->GetPos().z;
+    m_data[1][it] = hnodeancf1->GetD().x(),
+    m_data[2][it] = hnodeancf1->GetD().y();
+    m_data[3][it] = hnodeancf1->GetD().z();
+    m_data[4][it] = hnodeancf3->GetPos().y();
+    m_data[5][it] = hnodeancf5->GetPos().x();
+    m_data[6][it] = hnodeancf5->GetPos().z();
     csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << m_data[5][it] <<
     m_data[6][it] << std::endl;
     // Advance system state

@@ -202,10 +202,10 @@ void ChronoModel::Simulate(double step, int num_steps) {
     for (int it = 0; it < num_steps; it++) {
         // Save current state output information.
         m_data[0][it] = m_system->GetChTime();
-        m_data[1][it] = m_pend2->GetPos().x;
-        m_data[2][it] = m_pend2->GetPos().y;
-        m_data[3][it] = m_pend2->GetPos_dt().x;
-        m_data[4][it] = m_pend2->GetPos_dt().y;
+        m_data[1][it] = m_pend2->GetPos().x();
+        m_data[2][it] = m_pend2->GetPos().y();
+        m_data[3][it] = m_pend2->GetPos_dt().x();
+        m_data[4][it] = m_pend2->GetPos_dt().y();
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();

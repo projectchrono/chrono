@@ -32,7 +32,7 @@
 using namespace chrono;
 
 real3 ToReal3(const ChVector<real>& a) {
-    return real3(a.x, a.y, a.z);
+    return real3(a.x(), a.y(), a.z());
 }
 
 ChVector<real> ToChVector(const real3& a) {

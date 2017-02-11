@@ -258,9 +258,9 @@ int main(int argc, char* argv[]) {
         while (my_system.GetChTime() < sim_time) {
             my_system.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
-            out << my_system.GetChTime() << nodetip->GetPos().z << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
-                     << nodetip->GetForce().z << "\t" << Iterations << "\n";
+            out << my_system.GetChTime() << nodetip->GetPos().z() << std::endl;
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+                     << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
         out.write_to_file("../TEST_Brick/UT_EASBrickMR_Grav.txt");
@@ -273,8 +273,8 @@ int main(int argc, char* argv[]) {
         // Simulate to final time, while accumulating number of iterations.
         while (my_system.GetChTime() < sim_time_UT) {
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
+            AbsVal = abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;
