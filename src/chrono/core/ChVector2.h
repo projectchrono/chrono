@@ -231,13 +231,13 @@ inline ChVector2<Real>::ChVector2(const ChVector2<RealB>& other) {
 // Subscript operators
 
 template <class Real>
-inline Real& ChVector<Real>::operator[](unsigned index) {
+inline Real& ChVector2<Real>::operator[](unsigned index) {
     assert(index < 2);
     return data[index];
 }
 
 template <class Real>
-inline const Real& ChVector<Real>::operator[](unsigned index) const {
+inline const Real& ChVector2<Real>::operator[](unsigned index) const {
     assert(index < 2);
     return data[index];
 }
