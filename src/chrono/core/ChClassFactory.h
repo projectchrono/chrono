@@ -43,8 +43,12 @@
 #include <unordered_map>
 
 #include "chrono/core/ChLog.h"
+#include "chrono/core/ChTemplateExpressions.h"
 
 namespace chrono {
+
+// forward decl.
+class ChArchiveIn;
 
 
 /// Base class for all registration data of classes 
@@ -52,8 +56,13 @@ namespace chrono {
 
 class ChApi ChClassRegistrationBase {
 public:
-    /// The signature of create method for derived classes.
+    /// The signature of create method for derived classes. Calls new().
     virtual void* create() = 0;
+
+    /// Call the ArchiveInCreate(ChArchiveIn&) function if available (deserializes constructor params and return new()),
+    /// otherwise just call new().
+    virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
+
 };
 
 
@@ -109,6 +118,15 @@ class ChApi ChClassFactory {
         *ptr = reinterpret_cast<T*>(global_factory->_create(keyName));
     }
 
+    /// Create from tag name, for registered classes.
+    /// If a static T* ArchiveInCreate(ChArchiveIn&) function is available, call it instead.
+    /// The created object is returned in "ptr"
+    template <class T>
+    static void archive_in_create(std::string& keyName, ChArchiveIn& marchive, T** ptr) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
+    }
+
 private:
     /// Access the unique class factory here. It is unique even 
     /// between dll boundaries. It is allocated the 1st time it is called, if null.
@@ -147,10 +165,22 @@ private:
         }
         throw ("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n" );
     }
+    void* _archive_in_create(std::string& keyName, ChArchiveIn& marchive) {
+        const auto &it = class_map.find(keyName);
+        if (it != class_map.end()) {
+            return it->second->archive_in_create(marchive);
+        }
+        throw ("ChClassFactory::archive_in_create() cannot find the class with name " + keyName + ". Please register it.\n" );
+    }
 
 private:
     std::unordered_map<std::string, ChClassRegistrationBase*> class_map;
 };
+
+
+/// Macro to create a  ChDetect_ArchiveINconstructor  
+CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor)
+
 
 
 
@@ -195,7 +225,35 @@ class ChClassRegistration : public ChClassRegistrationBase {
     //
 
     virtual void* create() {
-        return (void*)(new t);
+        return _create();
+    }
+
+    virtual void* archive_in_create(ChArchiveIn& marchive) {
+        return _archive_in_create(marchive);
+    }
+ 
+protected:
+
+    template <class Tc=t>
+    typename enable_if< std::is_default_constructible<Tc>::value, void* >::type
+    _create() {
+        return reinterpret_cast<void*>(new Tc);
+    }
+    template <class Tc=t>
+    typename enable_if< !std::is_default_constructible<Tc>::value, void* >::type
+    _create() {
+        throw ("ChClassFactory::create() failed for class " + std::string(typeid(Tc).name())  + ": it has no default constructor.\n" );
+    }
+
+    template <class Tc=t>
+    typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void* >::type
+    _archive_in_create(ChArchiveIn& marchive) {
+        return reinterpret_cast<void*>(Tc::ArchiveINconstructor(marchive));
+    }
+    template <class Tc=t>
+    typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
+    _archive_in_create(ChArchiveIn& marchive) {
+        return reinterpret_cast<void*>(new Tc);
     }
 
 };
