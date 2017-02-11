@@ -340,14 +340,14 @@ int main(int argc, char* argv[]) {
             GetLog() << "Time: " << chronoTime << "\n"
                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
                      << "  accel: " << my_shaftA->GetPos_dtdt() << "\n"
-                     << "  Body B angular speed on z: " << my_bodyB->GetWvel_loc().z
-                     << "  accel on z: " << my_bodyB->GetWacc_loc().z << "\n"
+                     << "  Body B angular speed on z: " << my_bodyB->GetWvel_loc().z()
+                     << "  accel on z: " << my_bodyB->GetWacc_loc().z() << "\n"
                      << "  AC spring, torque on A side: " << my_shaft_torsionAC->GetTorqueReactionOn1()
                      << "  torque on C side: " << my_shaft_torsionAC->GetTorqueReactionOn2() << "\n"
                      << "  shafts/body reaction,  on shaft A: " << my_shaftbody_connection->GetTorqueReactionOnShaft()
-                     << " ,   on body (x y z): " << my_shaftbody_connection->GetTorqueReactionOnBody().x << " "
-                     << my_shaftbody_connection->GetTorqueReactionOnBody().y << " "
-                     << my_shaftbody_connection->GetTorqueReactionOnBody().z << " "
+                     << " ,   on body (x y z): " << my_shaftbody_connection->GetTorqueReactionOnBody().x() << " "
+                     << my_shaftbody_connection->GetTorqueReactionOnBody().y() << " "
+                     << my_shaftbody_connection->GetTorqueReactionOnBody().z() << " "
                      << "\n";
         }
     }

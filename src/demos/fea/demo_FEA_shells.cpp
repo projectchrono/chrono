@@ -533,8 +533,8 @@ int main(int argc, char* argv[]) {
         mtime += timestep;
 
         if(!application.GetPaused() && nodePlotA && nodePlotB) {
-            rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y);
-            rec_X.AddPoint( load_scale, nodePlotB->GetPos().y);
+            rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y());
+            rec_X.AddPoint( load_scale, nodePlotB->GetPos().y());
         }
 
         application.EndScene();

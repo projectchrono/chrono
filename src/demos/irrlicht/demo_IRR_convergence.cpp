@@ -107,7 +107,7 @@ void create_items(ChIrrAppInterface& application) {
             totmass += mrigidBody->GetMass();
         }
 
-        GetLog() << "Expected contact force at bottom F=" << (totmass * application.GetSystem()->Get_G_acc().y) << "\n";
+        GetLog() << "Expected contact force at bottom F=" << (totmass * application.GetSystem()->Get_G_acc().y()) << "\n";
     }
 
     if (do_wall)
@@ -146,7 +146,7 @@ void create_items(ChIrrAppInterface& application) {
         application.GetSystem()->Add(mrigidHeavy);
 
         GetLog() << "Expected contact deformation at side sphere="
-                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y) * material->GetCompliance() << "\n";
+                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -171,8 +171,8 @@ void align_spheres(ChIrrAppInterface& application) {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
         std::shared_ptr<ChBody> body = mspheres[i];
         ChVector<> mpos = body->GetPos();
-        mpos.x = 0.5;
-        mpos.z = 0.7;
+        mpos.x() = 0.5;
+        mpos.z() = 0.7;
         body->SetPos(mpos);
         body->SetRot(QUNIT);
     }

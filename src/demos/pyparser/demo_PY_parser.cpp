@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         if (!mbody) 
             throw ChException("Error. Could not find body from its name in SolidWorks exported file");
         else
-            GetLog() << "Found body  its name in SolidWorks exported file, pos.x=" << mbody->GetPos().x << "\n";
+            GetLog() << "Found body  its name in SolidWorks exported file, pos.x()=" << mbody->GetPos().x() << "\n";
 
 
     } catch (ChException myerror) {

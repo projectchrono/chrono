@@ -115,7 +115,7 @@ void test_1() {
     while (my_system.GetChTime() < 2) {
         my_system.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
+        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
     }
 }
 
@@ -199,7 +199,7 @@ void test_2() {
     while (my_system.GetChTime() < 0.2) {
         my_system.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
+        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
     }
 
     GetLog() << " Bar mass = " << melementA->GetMass() << "  restlength = " << melementA->GetRestLength() << "\n";
@@ -283,7 +283,7 @@ void test_2b() {
     while (my_system.GetChTime() < 0.2) {
         my_system.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y << "  \n";
+        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y() << "  \n";
     }
 }
 
@@ -379,7 +379,7 @@ void test_3() {
     while (my_system.GetChTime() < 0.1) {
         my_system.DoStepDynamics(timestep);
 
-        GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
+        GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << "  \n";
     }
 }
 
@@ -475,8 +475,8 @@ void test_4() {
     while (my_system.GetChTime() < 0.2) {
         my_system.DoStepDynamics(timestep);
 
-        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y=" << mnodeB->GetPos().y
-                 << "  nodeC pos.y=" << mnodeC->GetPos().y << "  \n";
+        GetLog() << " t=" << my_system.GetChTime() << "  nodeB pos.y()=" << mnodeB->GetPos().y()
+                 << "  nodeC pos.y()=" << mnodeC->GetPos().y() << "  \n";
     }
 }
 

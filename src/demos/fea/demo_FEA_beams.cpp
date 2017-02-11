@@ -315,17 +315,17 @@ int main(int argc, char* argv[])
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement1->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x() << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
 	}
 	GetLog()<< "\n";
 	belement2->GetStateBlock(displ);
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement2->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x() << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
 	}
 
-	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n\n";
+	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y() << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 	
 
 

@@ -320,8 +320,8 @@ int main(int argc, char* argv[]) {
 
             application.DoStep();
 
-            file_out1 << application.GetSystem()->GetChTime() << " " << node_mid->GetPos().z << " "
-                      << node_mid->GetWvel_par().x << "\n";
+            file_out1 << application.GetSystem()->GetChTime() << " " << node_mid->GetPos().z() << " "
+                      << node_mid->GetWvel_par().x() << "\n";
             if (application.GetSystem()->GetChTime() > 0.4)
                 break;
 
@@ -509,28 +509,28 @@ int main(int argc, char* argv[]) {
         // Output data
         chrono::ChStreamOutAsciiFile file_out1("benchmark_CE_princeton_L1.dat");
         for (int i = 0; i < endnodes[0].size(); ++i) {
-            double node_y = endnodes[0][i]->GetPos().y - 0 * y_spacing;
-            double node_z = endnodes[0][i]->GetPos().z - i * z_spacing;
+            double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
+            double node_z = endnodes[0][i]->GetPos().z() - i * z_spacing;
             double node_a =
-                atan2(endnodes[0][i]->GetA().Get_A_Yaxis().y, endnodes[0][i]->GetA().Get_A_Yaxis().z) - CH_C_PI_2;
+                atan2(endnodes[0][i]->GetA().Get_A_Yaxis().y(), endnodes[0][i]->GetA().Get_A_Yaxis().z()) - CH_C_PI_2;
             GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
             file_out1 << node_y << " " << node_z << " " << node_a << "\n";
         }
         chrono::ChStreamOutAsciiFile file_out2("benchmark_CE_princeton_L2.dat");
         for (int i = 0; i < endnodes[1].size(); ++i) {
-            double node_y = endnodes[1][i]->GetPos().y - 1 * y_spacing;
-            double node_z = endnodes[1][i]->GetPos().z - i * z_spacing;
+            double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
+            double node_z = endnodes[1][i]->GetPos().z() - i * z_spacing;
             double node_a =
-                atan2(endnodes[1][i]->GetA().Get_A_Yaxis().y, endnodes[1][i]->GetA().Get_A_Yaxis().z) - CH_C_PI_2;
+                atan2(endnodes[1][i]->GetA().Get_A_Yaxis().y(), endnodes[1][i]->GetA().Get_A_Yaxis().z()) - CH_C_PI_2;
             GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
             file_out2 << node_y << " " << node_z << " " << node_a << "\n";
         }
         chrono::ChStreamOutAsciiFile file_out3("benchmark_CE_princeton_L3.dat");
         for (int i = 0; i < endnodes[2].size(); ++i) {
-            double node_y = endnodes[2][i]->GetPos().y - 2 * y_spacing;
-            double node_z = endnodes[2][i]->GetPos().z - i * z_spacing;
+            double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;
+            double node_z = endnodes[2][i]->GetPos().z() - i * z_spacing;
             double node_a =
-                atan2(endnodes[2][i]->GetA().Get_A_Yaxis().y, endnodes[2][i]->GetA().Get_A_Yaxis().z) - CH_C_PI_2;
+                atan2(endnodes[2][i]->GetA().Get_A_Yaxis().y(), endnodes[2][i]->GetA().Get_A_Yaxis().z()) - CH_C_PI_2;
             GetLog() << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]\n";
             file_out3 << node_y << " " << node_z << " " << node_a << "\n";
         }

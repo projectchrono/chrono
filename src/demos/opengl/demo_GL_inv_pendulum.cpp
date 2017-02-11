@@ -101,11 +101,11 @@ MyController::MyController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody>
 
     // Initialize errors
     m_e_cart = 0;
-    m_ed_cart = m_cart->GetPos_dt().x;
+    m_ed_cart = m_cart->GetPos_dt().x();
     m_ei_cart = 0;
 
     m_e_pend = 0;
-    m_ed_pend = m_pend->GetWvel_loc().z;
+    m_ed_pend = m_pend->GetWvel_loc().z();
     m_ei_pend = 0;
 }
 
@@ -130,12 +130,12 @@ void MyController::SetTargetPendAngle(double a_pend) {
 }
 
 double MyController::GetCurrentCartLocation() {
-    return m_cart->GetPos().x;
+    return m_cart->GetPos().x();
 }
 
 double MyController::GetCurrentPendAngle() {
     ChVector<> dir = m_pend->TransformDirectionLocalToParent(ChVector<>(0, 1, 0));
-    return atan2(-dir.x, dir.y);
+    return atan2(-dir.x(), dir.y());
 }
 
 void MyController::Advance(double step) {
@@ -144,8 +144,8 @@ void MyController::Advance(double step) {
     double e_pend = GetCurrentPendAngle() - m_a_pend;
 
     // Calculate current error derivatives
-    m_ed_cart = m_cart->GetPos_dt().x;
-    m_ed_pend = m_pend->GetWvel_loc().z;
+    m_ed_cart = m_cart->GetPos_dt().x();
+    m_ed_pend = m_pend->GetWvel_loc().z();
 
     // Calculate current error integrals (trapezoidal rule)
     m_ei_cart += (m_e_cart + e_cart) * step / 2;

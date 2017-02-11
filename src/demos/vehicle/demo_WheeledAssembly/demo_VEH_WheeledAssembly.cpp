@@ -184,12 +184,12 @@ double CreateParticles(ChSystem* system) {
 
     while (gen.getTotalNumBodies() < num_particles) {
         gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-        center.z += 2 * r;
+        center.z() += 2 * r;
     }
 
     cout << "Created " << gen.getTotalNumBodies() << " particles." << endl;
 
-    return center.z;
+    return center.z();
 }
 
 // =============================================================================

@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
         double angle = e * (2 * CH_C_PI / 8.0);
-        hexpos.z = 0.3 * cos(angle);
-        hexpos.x = 0.3 * sin(angle);
+        hexpos.z() = 0.3 * cos(angle);
+        hexpos.x() = 0.3 * sin(angle);
         ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
 
         std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     // (for example, fix to ground all nodes which are near y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y < 0.01) {
+            if (mnode->GetPos().y() < 0.01) {
                 auto constraint = std::make_shared<ChLinkPointFrame>();
                 constraint->Initialize(mnode, truss);
                 my_system.Add(constraint);
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        //	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
+        //	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << "  \n";
 
         application.EndScene();
     }

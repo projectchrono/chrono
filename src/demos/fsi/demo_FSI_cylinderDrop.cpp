@@ -345,22 +345,22 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
     //    ChVector<> l_point = body->Point_World2Body(pointPar);
     //    ChVector<> velvel1 = body->RelPoint_AbsSpeed(l_point);
     //    printf("\n\n\n\n\n\n\n\n\n ***********   velocity1  %f %f %f
-    //    \n\n\n\n\n\n\n ", velvel1.x, velvel1.y,
-    //    velvel1.z);
+    //    \n\n\n\n\n\n\n ", velvel1.x(), velvel1.y(),
+    //    velvel1.z());
     //
     //    // method 2
     //    ChVector<> posLoc = ChTransform<>::TransformParentToLocal(pointPar,
     //    body->GetPos(), body->GetRot());
     //    ChVector<> velvel2 = body->PointSpeedLocalToParent(posLoc);
     //    printf("\n\n\n\n\n\n\n\n\n ***********   velocity 2 %f %f %f
-    //    \n\n\n\n\n\n\n ", velvel2.x, velvel2.y,
-    //    velvel2.z);
+    //    \n\n\n\n\n\n\n ", velvel2.x(), velvel2.y(),
+    //    velvel2.z());
     //
     //    // method 3
     //    ChVector<> velvel3 = body->GetPos_dt() + body->GetWvel_par() % pointRel;
     //    printf("\n\n\n\n\n\n\n\n\n ***********   velocity3  %f %f %f
-    //    \n\n\n\n\n\n\n ", velvel3.x, velvel3.y,
-    //    velvel3.z);
+    //    \n\n\n\n\n\n\n ", velvel3.x(), velvel3.y(),
+    //    velvel3.z());
     //    //
 
     int numRigidObjects = mphysicalSystem.Get_bodylist()->size();
@@ -533,7 +533,7 @@ int main(int argc, char* argv[]) {
                                                              fsi::ChFsiTypeConvert::Real3ToChVector(boxHalfDim));
     int numPart = points.size();
     for (int i = 0; i < numPart; i++) {
-        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR3(points[i].x, points[i].y, points[i].z), fsi::mR3(0),
+        myFsiSystem.GetDataManager()->AddSphMarker(fsi::mR3(points[i].x(), points[i].y(), points[i].z()), fsi::mR3(0),
                                                    fsi::mR4(paramsH->rho0, paramsH->BASEPRES, paramsH->mu0, -1));
     }
 

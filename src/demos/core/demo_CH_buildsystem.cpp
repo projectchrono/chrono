@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             GetLog() << "Time: " << chronoTime
-                     << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x
+                     << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoord().pos.x()
                      << "  Engine torque: " << my_link_AB->Get_mot_retorque() << "\n";
         }
     }

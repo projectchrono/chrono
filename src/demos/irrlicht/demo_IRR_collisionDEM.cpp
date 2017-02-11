@@ -71,7 +71,7 @@ void AddFallingItems(ChIrrApp& application) {
                 body->SetPos(ChVector<>(4.0 * ix, 6.0, 4.0 * iz));
 
                 body->GetCollisionModel()->ClearModel();
-                body->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z);
+                body->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
                 body->GetCollisionModel()->BuildModel();
                 body->SetCollide(true);
 
@@ -92,7 +92,7 @@ void AddContainerWall(std::shared_ptr<ChBody> body,
                       bool visible = true) {
     ChVector<> hsize = 0.5 * size;
 
-    body->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z, pos);
+    body->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z(), pos);
 
     if (visible) {
         auto box = std::make_shared<ChBoxShape>();
@@ -134,7 +134,7 @@ void AddContainer(ChIrrApp& application) {
     ChVector<> hsize(5, 2.75, 0.5);
 
     rotatingBody->GetCollisionModel()->ClearModel();
-    rotatingBody->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z);
+    rotatingBody->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
     rotatingBody->GetCollisionModel()->BuildModel();
 
     auto box = std::make_shared<ChBoxShape>();

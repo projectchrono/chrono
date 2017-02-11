@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Impose field on the base points:
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y < 0.01) {
+            if (mnode->GetPos().y() < 0.01) {
                 mnode->SetFixed(true);
                 mnode->SetP(10);  // field: temperature [K]
             }
@@ -201,8 +201,8 @@ int main(int argc, char* argv[]) {
     // Print some node temperatures..
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().x < 0.01) {
-                GetLog() << "Node at y=" << mnode->GetPos().y << " has T=" << mnode->GetP() << "\n";
+            if (mnode->GetPos().x() < 0.01) {
+                GetLog() << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
             }
         }
     }
