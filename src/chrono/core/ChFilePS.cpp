@@ -101,16 +101,16 @@ ChFile_ps::ChFile_ps(char m_name[], double x, double y, double w, double h, char
 
     // init vars..
     unit_scale = PS_SCALE_CENTIMETERS;
-    page_size.x = w;
-    page_size.y = h;
-    G_p.x = 3;
-    G_p.y = 3;
-    Gs_p.x = 16;
-    Gs_p.y = 16;
-    Gc_g.x = 0;
-    Gc_g.y = 0;
-    Gz.x = 1;
-    Gz.y = 1;
+    page_size.x() = w;
+    page_size.y() = h;
+    G_p.x() = 3;
+    G_p.y() = 3;
+    Gs_p.x() = 16;
+    Gs_p.y() = 16;
+    Gc_g.x() = 0;
+    Gc_g.y() = 0;
+    Gz.x() = 1;
+    Gz.y() = 1;
 
     // Write header and bounding box
     *this << "%%!PS-Adobe-2.0\n";
@@ -159,27 +159,27 @@ ChFile_ps::~ChFile_ps() {
 ChVector2<> ChFile_ps::To_page_from_graph(ChVector2<> mv_g) const {
     ChVector2<> v_p;
     ChVector2<> mGc_p;
-    mGc_p.x = G_p.x + (Gs_p.x) / 2;
-    mGc_p.y = G_p.y + (Gs_p.y) / 2;
-    v_p.x = mGc_p.x + (mv_g.x - Gc_g.x) * Gz.x;
-    v_p.y = mGc_p.y + (mv_g.y - Gc_g.y) * Gz.y;
+    mGc_p.x() = G_p.x() + (Gs_p.x()) / 2;
+    mGc_p.y() = G_p.y() + (Gs_p.y()) / 2;
+    v_p.x() = mGc_p.x() + (mv_g.x() - Gc_g.x()) * Gz.x();
+    v_p.y() = mGc_p.y() + (mv_g.y() - Gc_g.y()) * Gz.y();
     return v_p;
 }
 ChVector2<> ChFile_ps::To_graph_from_page(ChVector2<> mv_p) const {
     ChVector2<> v_g;
     ChVector2<> mGc_p;
-    mGc_p.x = G_p.x + (Gs_p.x) / 2;
-    mGc_p.y = G_p.y + (Gs_p.y) / 2;
-    v_g.x = (mv_p.x - mGc_p.x) * (1 / Gz.x) + Gc_g.x;
-    v_g.y = (mv_p.y - mGc_p.y) * (1 / Gz.y) + Gc_g.y;
+    mGc_p.x() = G_p.x() + (Gs_p.x()) / 2;
+    mGc_p.y() = G_p.y() + (Gs_p.y()) / 2;
+    v_g.x() = (mv_p.x() - mGc_p.x()) * (1 / Gz.x()) + Gc_g.x();
+    v_g.y() = (mv_p.y() - mGc_p.y()) * (1 / Gz.y()) + Gc_g.y();
     return v_g;
 }
 
 ChVector2<> ChFile_ps::TransPt(ChVector2<> mfrom, Space space) const {
-    if ((mfrom.x > 1.e+20) || (mfrom.x < -1.e+20))
-        mfrom.x = 0;
-    if ((mfrom.y > 1.e+20) || (mfrom.y < -1.e+20))
-        mfrom.y = 0;
+    if ((mfrom.x() > 1.e+20) || (mfrom.x() < -1.e+20))
+        mfrom.x() = 0;
+    if ((mfrom.y() > 1.e+20) || (mfrom.y() < -1.e+20))
+        mfrom.y() = 0;
 
     switch (space) {
         case Space::PAGE:
@@ -192,10 +192,10 @@ ChVector2<> ChFile_ps::TransPt(ChVector2<> mfrom, Space space) const {
 }
 
 void ChFile_ps::Set_ZoomPan_by_fit(double Xgmin, double Xgmax, double Ygmin, double Ygmax) {
-    Gz.x = Gs_p.x / (Xgmax - Xgmin);
-    Gz.y = Gs_p.y / (Ygmax - Ygmin);
-    Gc_g.x = Xgmin + (Xgmax - Xgmin) / 2;
-    Gc_g.y = Ygmin + (Ygmax - Ygmin) / 2;
+    Gz.x() = Gs_p.x() / (Xgmax - Xgmin);
+    Gz.y() = Gs_p.y() / (Ygmax - Ygmin);
+    Gc_g.x() = Xgmin + (Xgmax - Xgmin) / 2;
+    Gc_g.y() = Ygmin + (Ygmax - Ygmin) / 2;
 }
 
 void ChFile_ps::SetGray(double mf) {
@@ -223,16 +223,16 @@ void ChFile_ps::CustomPsCommand(char* mcommand) {
     *this << mcommand << "\n";
 }
 void ChFile_ps::MoveTo(ChVector2<> mp) {
-    *this << mp.x << " ";
-    *this << mp.y << " ";
+    *this << mp.x() << " ";
+    *this << mp.y() << " ";
     *this << "MT\n";
 }
 void ChFile_ps::StartLine() {
     *this << "NP\n";
 }
 void ChFile_ps::AddLinePoint(ChVector2<> mp) {
-    *this << mp.x << " ";
-    *this << mp.y << " ";
+    *this << mp.x() << " ";
+    *this << mp.y() << " ";
     *this << "LT\n";
 }
 void ChFile_ps::CloseLine() {
@@ -277,12 +277,12 @@ void ChFile_ps::DrawLine(ChVector2<> mfrom, ChVector2<> mto, Space space) {
 
 void ChFile_ps::DrawRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space, bool filled) {
     ChVector2<> mp1, mp2, mp3;
-    mp1.x = mfrom.x + mwh.x;
-    mp1.y = mfrom.y;
-    mp2.x = mfrom.x + mwh.x;
-    mp2.y = mfrom.y + mwh.y;
-    mp3.x = mfrom.x;
-    mp3.y = mfrom.y + mwh.y;
+    mp1.x() = mfrom.x() + mwh.x();
+    mp1.y() = mfrom.y();
+    mp2.x() = mfrom.x() + mwh.x();
+    mp2.y() = mfrom.y() + mwh.y();
+    mp3.x() = mfrom.x();
+    mp3.y() = mfrom.y() + mwh.y();
     GrSave();
     StartLine();
     MoveTo(TransPt(mfrom, space));
@@ -299,12 +299,12 @@ void ChFile_ps::DrawRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space, b
 
 void ChFile_ps::ClipRectangle(ChVector2<> mfrom, ChVector2<> mwh, Space space) {
     ChVector2<> mp1, mp2, mp3;
-    mp1.x = mfrom.x + mwh.x;
-    mp1.y = mfrom.y;
-    mp2.x = mfrom.x + mwh.x;
-    mp2.y = mfrom.y + mwh.y;
-    mp3.x = mfrom.x;
-    mp3.y = mfrom.y + mwh.y;
+    mp1.x() = mfrom.x() + mwh.x();
+    mp1.y() = mfrom.y();
+    mp2.x() = mfrom.x() + mwh.x();
+    mp2.y() = mfrom.y() + mwh.y();
+    mp3.x() = mfrom.x();
+    mp3.y() = mfrom.y() + mwh.y();
     StartLine();
     MoveTo(TransPt(mfrom, space));
     AddLinePoint(TransPt(mp1, space));
@@ -353,10 +353,10 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
     // some coords
     lole_g = To_graph_from_page(G_p);
-    cpt.x = G_p.x + Gs_p.x;
-    cpt.y = G_p.y + Gs_p.y;
+    cpt.x() = G_p.x() + Gs_p.x();
+    cpt.y() = G_p.y() + Gs_p.y();
     upri_g = To_graph_from_page(cpt);
-    org_g.x = org_g.y = 0;
+    org_g.x() = org_g.y() = 0;
     org_p = To_page_from_graph(org_g);
 
     // Set clip region
@@ -368,17 +368,17 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
     SetFont((char*)"/Helvetica", msetting->Xaxis.numbers_fontsize);
 
-    double stpx = ceil(lole_g.x / msetting->Xaxis.ticks_step) * msetting->Xaxis.ticks_step;
-    for (double w = stpx; w < upri_g.x; w += msetting->Xaxis.ticks_step) {
-        if ((upri_g.x - lole_g.x) / msetting->Xaxis.ticks_step > 200.0)
+    double stpx = ceil(lole_g.x() / msetting->Xaxis.ticks_step) * msetting->Xaxis.ticks_step;
+    for (double w = stpx; w < upri_g.x(); w += msetting->Xaxis.ticks_step) {
+        if ((upri_g.x() - lole_g.x()) / msetting->Xaxis.ticks_step > 200.0)
             break;
-        cpt.x = w;
-        cpt.y = 0;
+        cpt.x() = w;
+        cpt.y() = 0;
         if (msetting->gridx) {
             cp1 = cpt;
             cp2 = cp1;
-            cp1.y = lole_g.y;
-            cp2.y = upri_g.y;
+            cp1.y() = lole_g.y();
+            cp2.y() = upri_g.y();
             cp1 = To_page_from_graph(cp1);
             cp2 = To_page_from_graph(cp2);
             SetWidth(msetting->grid_width);
@@ -387,8 +387,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
         }
         if (msetting->Xaxis.ticks) {
             cp1 = To_page_from_graph(cpt);
-            cp2.x = cp1.x;
-            cp2.y = cp1.y + 0.10;
+            cp2.x() = cp1.x();
+            cp2.y() = cp1.y() + 0.10;
             SetWidth(msetting->Xaxis.ticks_width);
             SetRGB(msetting->Xaxis.axis_color);
             DrawLine(cp1, cp2, Space::PAGE);
@@ -397,8 +397,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             char numstr[20];
             SetRGB(msetting->Xaxis.numbers_color);
             cp1 = To_page_from_graph(cpt);
-            cp1.y = G_p.y + 0.16;
-            cp1.x = cp1.x + 0.1;
+            cp1.y() = G_p.y() + 0.16;
+            cp1.x() = cp1.x() + 0.1;
             double tw = w;
             if (fabs(w) < 1.e-15)
                 tw = 0;
@@ -412,17 +412,17 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
 
     SetFont((char*)"/Helvetica", msetting->Yaxis.numbers_fontsize);
 
-    double stpy = ceil(lole_g.y / msetting->Yaxis.ticks_step) * msetting->Yaxis.ticks_step;
-    for (double h = stpy; h < upri_g.y; h += msetting->Yaxis.ticks_step) {
-        if ((upri_g.y - lole_g.y) / msetting->Yaxis.ticks_step > 200.0)
+    double stpy = ceil(lole_g.y() / msetting->Yaxis.ticks_step) * msetting->Yaxis.ticks_step;
+    for (double h = stpy; h < upri_g.y(); h += msetting->Yaxis.ticks_step) {
+        if ((upri_g.y() - lole_g.y()) / msetting->Yaxis.ticks_step > 200.0)
             break;
-        cpt.x = 0;
-        cpt.y = h;
+        cpt.x() = 0;
+        cpt.y() = h;
         if (msetting->gridy) {
             cp1 = cpt;
             cp2 = cp1;
-            cp1.x = lole_g.x;
-            cp2.x = upri_g.x;
+            cp1.x() = lole_g.x();
+            cp2.x() = upri_g.x();
             cp1 = To_page_from_graph(cp1);
             cp2 = To_page_from_graph(cp2);
             SetWidth(msetting->grid_width);
@@ -431,8 +431,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
         }
         if (msetting->Yaxis.ticks) {
             cp1 = To_page_from_graph(cpt);
-            cp2.x = cp1.x + 0.10;
-            cp2.y = cp1.y;
+            cp2.x() = cp1.x() + 0.10;
+            cp2.y() = cp1.y();
             SetWidth(msetting->Yaxis.ticks_width);
             SetRGB(msetting->Yaxis.axis_color);
             DrawLine(cp1, cp2, Space::PAGE);
@@ -441,8 +441,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
             char numstr[20];
             SetRGB(msetting->Yaxis.numbers_color);
             cp1 = To_page_from_graph(cpt);
-            cp1.x = G_p.x + 0.16;
-            cp1.y = cp1.y + 0.1;
+            cp1.x() = G_p.x() + 0.16;
+            cp1.y() = cp1.y() + 0.1;
             double th = h;
             if (fabs(th) < 1.e-15)
                 th = 0;
@@ -456,8 +456,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     SetRGB(msetting->Xaxis.axis_color);
     cp1 = org_g;
     cp2 = org_g;
-    cp1.x = lole_g.x;
-    cp2.x = upri_g.x;
+    cp1.x() = lole_g.x();
+    cp2.x() = upri_g.x();
     DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw y axis line
@@ -465,21 +465,21 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     SetRGB(msetting->Yaxis.axis_color);
     cp1 = org_g;
     cp2 = org_g;
-    cp1.y = lole_g.y;
-    cp2.y = upri_g.y;
+    cp1.y() = lole_g.y();
+    cp2.y() = upri_g.y();
     DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw xy labels
     if (msetting->Xaxis.label) {
-        cp1.x = G_p.x + Gs_p.x - 0.4;
-        cp1.y = G_p.y + 0.4;
+        cp1.x() = G_p.x() + Gs_p.x() - 0.4;
+        cp1.y() = G_p.y() + 0.4;
         SetRGB(msetting->Xaxis.label_color);
         SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
         DrawText(cp1, msetting->Xaxis.label, Space::PAGE, Justification::RIGHT);
     }
     if (msetting->Yaxis.label) {
-        cp1.x = G_p.x + 0.7;
-        cp1.y = G_p.y + Gs_p.y - 0.3;
+        cp1.x() = G_p.x() + 0.7;
+        cp1.y() = G_p.y() + Gs_p.y() - 0.3;
         SetRGB(msetting->Yaxis.label_color);
         SetFont(ch_font_labels[msetting->Yaxis.label_fontname], msetting->Yaxis.label_fontsize);
         DrawText(cp1, msetting->Yaxis.label, Space::PAGE);
@@ -497,8 +497,8 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
         if (*msetting->title != 0) {
             SetFont(ch_font_labels[msetting->title_fontname], msetting->title_fontsize);
             SetRGB(msetting->title_color);
-            cpt.x = G_p.x + 0.0;
-            cpt.y = G_p.y + Gs_p.y + 0.4;
+            cpt.x() = G_p.x() + 0.0;
+            cpt.y() = G_p.y() + Gs_p.y() + 0.4;
             DrawText(cpt, msetting->title, Space::PAGE);
         }
 
@@ -522,8 +522,8 @@ void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, ChMatrix<>* Xvalues) {
 
     StartLine();
     for (int i = 0; i < points; i++) {
-        mp.x = Xvalues->GetElement(i, 0);
-        mp.y = Yvalues->GetElement(i, 0);
+        mp.x() = Xvalues->GetElement(i, 0);
+        mp.y() = Yvalues->GetElement(i, 0);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);
@@ -551,8 +551,8 @@ void ChFile_ps::DrawGraphXY(ChMatrix<>* Yvalues, double Xfrom, double Xstep) {
     StartLine();
     mx = Xfrom;
     for (int i = 0; i < points; i++) {
-        mp.x = mx;
-        mp.y = Yvalues->GetElement(i, 0);
+        mp.x() = mx;
+        mp.y() = Yvalues->GetElement(i, 0);
         mp = To_page_from_graph(mp);
         if (i == 0)
             MoveTo(mp);
@@ -576,16 +576,16 @@ void ChFile_ps::DrawGraphLabel(double dx,
     if (fontsize == 0)
         fontsize = 0.3;
     ChVector2<> mp1, mp2, mp3;
-    mp3.y = G_p.y + dy;
-    mp1.y = mp3.y + 0.0;
-    mp2.y = mp1.y;
-    mp1.x = G_p.x + dx;
-    mp2.x = G_p.x + dx + 0.6;
+    mp3.y() = G_p.y() + dy;
+    mp1.y() = mp3.y() + 0.0;
+    mp2.y() = mp1.y();
+    mp1.x() = G_p.x() + dx;
+    mp2.x() = G_p.x() + dx + 0.6;
     ChVector2<> mpa, mpb;
     mpa = mp1;
-    mpa.y -= fontsize * 0.7;
-    mpb.x = backwidth;
-    mpb.y = fontsize * 1.4;
+    mpa.y() -= fontsize * 0.7;
+    mpb.x() = backwidth;
+    mpb.y() = fontsize * 1.4;
 
     GrSave();
     ClipToGraph();
@@ -598,13 +598,13 @@ void ChFile_ps::DrawGraphLabel(double dx,
         GrRestore();
     }
     if (dolinesample) {
-        mp1.x += 0.08;
+        mp1.x() += 0.08;
         DrawLine(mp1, mp2, Space::PAGE);
-        mp3.x = mp2.x + 0.3;
+        mp3.x() = mp2.x() + 0.3;
     } else {
-        mp3.x = mp1.x;
+        mp3.x() = mp1.x();
     }
-    mp3.y = mp1.y - fontsize * 0.0;
+    mp3.y() = mp1.y() - fontsize * 0.0;
     SetGray(0.0);
     DrawText(mp3, label, Space::PAGE);
 
@@ -617,15 +617,15 @@ void ChFile_ps::DrawGraphLabel(double dx,
 
 ChVector2<> pv_set(double x, double y) {
     ChVector2<> mpv;
-    mpv.x = x;
-    mpv.y = y;
+    mpv.x() = x;
+    mpv.y() = y;
     return mpv;
 }
 
 ChVector2<> pv_set(ChVector<> mv) {
     ChVector2<> mpv;
-    mpv.x = mv.x();
-    mpv.y = mv.y();
+    mpv.x() = mv.x();
+    mpv.y() = mv.y();
     return mpv;
 }
 
