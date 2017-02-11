@@ -571,7 +571,7 @@ inline void ChVector<Real>::Scale(const Real s) {
 template <class Real>
 inline void ChVector<Real>::Cross(const ChVector<Real>& A, const ChVector<Real>& B) {
     data[0] = (A.data[1] * B.data[2]) - (A.data[2] * B.data[1]);
-    data[1] = (A.data[2] * B.data[0]) - (A.data[0] * B.data[1]);
+    data[1] = (A.data[2] * B.data[0]) - (A.data[0] * B.data[2]);
     data[2] = (A.data[0] * B.data[1]) - (A.data[1] * B.data[0]);
 }
 
