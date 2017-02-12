@@ -227,7 +227,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, const char* classname)  {
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -269,7 +269,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           ++nitems.top();
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, const char* classname)  {
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)

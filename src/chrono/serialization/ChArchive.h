@@ -509,21 +509,16 @@ class ChArchive {
     /// to avoid saving duplicates or deadlocks
     std::unordered_map<size_t, void*> objects_pointers;
 
-    /// container of pointers to not serialize if ever encountered
-    std::unordered_set<void*>  cut_pointers;
-
     bool cluster_class_versions;
     std::unordered_map<std::string, int> class_versions;
 
     bool use_versions;
-    bool cut_all_pointers;
 
     size_t currentID;
 
   public:
     ChArchive() {
         use_versions = true;
-        cut_all_pointers = false;
         cluster_class_versions = false;
         Init();
     }
@@ -533,7 +528,7 @@ class ChArchive {
     /// Reinitialize the vector of pointers to loaded/saved objects
     void Init() {
         objects_pointers.clear();
-        objects_pointers[0]=(0); // ID=0 for null pointer.
+        objects_pointers[0]=(0);  // ID=0 -> null pointer.
         currentID = 0;
     }
     /// Find a pointer in pointer map: eventually add it to map if it
@@ -565,27 +560,11 @@ class ChArchive {
     /// with version info, or not, do not mix because it could give problems in binary archives.).
     void SetUseVersions(bool muse) {this->use_versions = muse;}
 
-    /// If you enable  SetCutAllPointers(true), no serialization happens for 
-    /// objects referenced via pointers. This can be useful to save a single object, 
-    /// regardless of the fact that it contains pointers to other 'children' objects.
-    /// Cut pointers are turned into null pointers.
-    void SetCutAllPointers(bool mcut) {this->cut_all_pointers = mcut;}
-
     /// If true, the version number is not saved in each class: rather, 
     /// when << serialization happens, a 'silent' sweep through the serialized object (and sub
     /// objects) is done, storing the versions in a map that is saved once at the beginning 
     /// of the archive, before sweeping again for the true serialization. And viceversa for deserialization.
     void SetClusterClassVersions(bool mcl) {this->cluster_class_versions = mcl;}
-
-    /// Access the container of pointers that must not be serialized.
-    /// This is in case SetCutAllPointers(true) is too extreme. So you can 
-    /// selectively 'cut' the network of pointers when serializing an object that
-    /// has a network of sub objects. Works also for shared pointers, but remember to store
-    /// the embedded pointer, not the shared pointer itself. For instance:
-    ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
-    ///    myarchive.CutPointers().insert(my_shared_pointer.get());  // shared pointers
-    /// The cut pointers are serialized as null pointers.
-    std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
 };
 
 
@@ -598,11 +577,35 @@ class  ChArchiveOut : public ChArchive {
 
   protected:
 
-        /// container of pointers to not serialize and just mark with IDs
     std::unordered_map<void*, size_t>  external_ptr_id;
 
+    std::unordered_set<void*>  cut_pointers;
+
+    bool cut_all_pointers;
+
   public:
-      virtual ~ChArchiveOut() {};
+        ChArchiveOut() {
+            cut_all_pointers = false;
+        };
+
+        virtual ~ChArchiveOut() {};
+
+        /// If you enable  SetCutAllPointers(true), no serialization happens for 
+        /// objects referenced via pointers. This can be useful to save a single object, 
+        /// regardless of the fact that it contains pointers to other 'children' objects.
+        /// Cut pointers are turned into null pointers.
+        void SetCutAllPointers(bool mcut) {this->cut_all_pointers = mcut;}
+
+        /// Access the container of pointers that must not be serialized.
+        /// This is in case SetCutAllPointers(true) is too extreme. So you can 
+        /// selectively 'cut' the network of pointers when serializing an object that
+        /// has a network of sub objects. Works also for shared pointers, but remember to store
+        /// the embedded pointer, not the shared pointer itself. For instance:
+        ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
+        ///    myarchive.CutPointers().insert(my_shared_pointer.get());  // shared pointers
+        /// The cut pointers are serialized as null pointers.
+        std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
+
 
       //---------------------------------------------------
       // INTERFACES - to be implemented by children classes
@@ -621,13 +624,13 @@ class  ChArchiveOut : public ChArchive {
       virtual void out     (ChNameValue<ChEnumMapperBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) = 0;
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) = 0;
 
         // for pointed objects with polimorphic class system (i.e. supporting class factory)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) = 0;
       
         // for pointed objects without class polimorphism
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) = 0;
 
         // for wrapping arrays and lists
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) = 0;
@@ -720,13 +723,21 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, obj_ID);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          } 
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           const char* class_name;
           if (bVal.value())
@@ -736,7 +747,8 @@ class  ChArchiveOut : public ChArchive {
           this->out_ref_polimorphic(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
-              obj_ID, 
+              obj_ID,
+              ext_ID,
               class_name );
       }
 
@@ -744,18 +756,27 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, obj_ID);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          } 
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
-              obj_ID, 
+              obj_ID,
+              ext_ID,
               typeid(T).name() ); // note, this class name is not platform independent
       }
 
@@ -763,13 +784,21 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
       out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, obj_ID);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          } 
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           const char* class_name;
           if (bVal.value())
@@ -779,7 +808,8 @@ class  ChArchiveOut : public ChArchive {
           this->out_ref_polimorphic(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
-              obj_ID, 
+              obj_ID,
+              ext_ID,
               class_name ); // this class name is platform independent
       }
 
@@ -787,18 +817,27 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
       out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, obj_ID);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          } 
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               obj_ID, 
+              ext_ID,
               typeid(T).name() ); // note, this class name is not platform independent
       }
 
@@ -884,6 +923,9 @@ class  ChArchiveOut : public ChArchive {
 ///
 
 class  ChArchiveIn : public ChArchive {
+  protected:
+        /// container of pointers marker with external IDs to re-bind instead of de-serializing
+        std::unordered_map<size_t, void*>  external_id_ptr;
   public:
       virtual ~ChArchiveIn() {};
 

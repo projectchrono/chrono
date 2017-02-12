@@ -501,7 +501,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "\n"
              << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
-    
+
     //  Archives inherited from the base class ChArchiveOut can be
     // used to serialize objects, and streams inherited from ChArchiveIn
     // can be used to get them back. For example, file streams like
@@ -515,7 +515,6 @@ int main(int argc, char* argv[]) {
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
             //
 
-        
             ChStreamOutAsciiFile mfileo("foo_archive.txt");
 
             // Create a binary archive, that uses the binary file as storage.

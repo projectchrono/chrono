@@ -156,12 +156,17 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, const char* classname) 
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << obj_ID <<"\n";
+          (*ostream) << "->   [" << classname << "]  (polymorphic) ";
+          if (obj_ID)
+            (*ostream) << "  ID=" << obj_ID;
+          if (ext_ID)
+            (*ostream) << "  external_ID=" << ext_ID;
+          (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
               if (!bVal.value().IsNull()) {
@@ -174,12 +179,17 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           --tablevel;
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]   ID=" << obj_ID <<"\n";
+          (*ostream) << "->   [" << classname << "]";
+          if (obj_ID)
+            (*ostream) << "  ID=" << obj_ID;
+          if (ext_ID)
+            (*ostream) << "  external_ID=" << ext_ID;
+          (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
              if (!bVal.value().IsNull()) {
