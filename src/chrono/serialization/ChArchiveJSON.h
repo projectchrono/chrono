@@ -193,7 +193,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
             comma_cr();
             if (is_array.top()==false)
             {
@@ -210,7 +210,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             if(tracked) {
                 comma_cr();
                 indent();
-                (*ostream) << "\"_object_ID\"\t: "  << position;
+                (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
                 ++nitems.top();
             }
 
@@ -227,7 +227,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -241,13 +241,13 @@ class  ChArchiveOutJSON : public ChArchiveOut {
 
           comma_cr();
           indent();
-          (*ostream) << "\"type\"\t: "  << "\"" << classname << "\"";
+          (*ostream) << "\"_type\"\t: "  << "\"" << classname << "\"";
           ++nitems.top();
           
           if (!already_inserted) {
             comma_cr();
             indent();
-            (*ostream) << "\"_object_ID\"\t: "  << position;
+            (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
             ++nitems.top();
 
             // New Object, we have to full serialize it
@@ -256,7 +256,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           } else {
             comma_cr();
             indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << position;
+            (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
             ++nitems.top();
           }
           --tablevel;
@@ -269,7 +269,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           ++nitems.top();
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname)  {
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, const char* classname)  {
           comma_cr();
           indent();
           if (is_array.top()==false)
@@ -284,7 +284,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           if (!already_inserted) {
             comma_cr();
             indent();
-            (*ostream) << "\"_object_ID\"\t: "  << position;
+            (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
             ++nitems.top();
           
             // New Object, we have to full serialize it
@@ -293,7 +293,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           } else {
             comma_cr();
             indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << position;
+            (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
             ++nitems.top();
           }
           --tablevel;
@@ -443,8 +443,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
             if (bVal.flags() & NVP_TRACK_OBJECT){
-              bool already_stored; size_t pos;
-              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);  
+              bool already_stored; size_t obj_ID;
+              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);  
             }
             
             this->levels.push(mval);
@@ -468,9 +468,9 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.push(false);
             
             std::string cls_name = "";
-            if (level->HasMember("type")) {
-                if (!(*level)["type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
-                cls_name = (*level)["type"].GetString();
+            if (level->HasMember("_type")) {
+                if (!(*level)["_type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
+                cls_name = (*level)["_type"].GetString();
             }
             size_t ref_ID = 0;
             bool is_reference = false;
@@ -487,8 +487,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
                 if (bVal.value().CallGetRawPtr(*this)) {
-                    bool already_stored; size_t pos;
-                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
+                    bool already_stored; size_t obj_ID;
+                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
@@ -529,8 +529,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 bVal.value().CallArchiveInConstructor(*this, "");
             
                 if (bVal.value().CallGetRawPtr(*this)) {
-                    bool already_stored; size_t pos;
-                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
+                    bool already_stored; size_t obj_ID;
+                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {

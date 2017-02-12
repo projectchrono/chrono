@@ -142,13 +142,13 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "  "; 
             (*ostream) << "[" << classname << "]";
             if (tracked)
-                (*ostream) << " (tracked)   ID= " << position; 
+                (*ostream) << " (tracked)   ID= " << obj_ID; 
             (*ostream) << " \n";
             ++tablevel;
             bVal.value().CallArchiveOut(*this);
@@ -156,12 +156,12 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
          // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
+          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << obj_ID <<"\n";
           ++tablevel;
           if (!already_inserted) {
               if (!bVal.value().IsNull()) {
@@ -174,12 +174,12 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
           --tablevel;
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]   ID=" << position <<"\n";
+          (*ostream) << "->   [" << classname << "]   ID=" << obj_ID <<"\n";
           ++tablevel;
           if (!already_inserted) {
              if (!bVal.value().IsNull()) {

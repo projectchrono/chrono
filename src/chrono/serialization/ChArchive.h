@@ -536,25 +536,25 @@ class ChArchive {
         objects_pointers[0]=(0); // ID=0 for null pointer.
         currentID = 0;
     }
-    /// Find a pointer in pointer vector: eventually add it to vecor if it
+    /// Find a pointer in pointer map: eventually add it to map if it
     /// was not previously inserted. Returns already_stored=false if was
-    /// already inserted. Return 'pos' offset in vector in any case.
-    /// For null pointers, always return 'already_stored'=true, and 'pos'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& pos) {
+    /// already inserted. Return 'obj_ID' offset in vector in any case.
+    /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
+    void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
 
         for (const auto& elem: objects_pointers) {
             if (elem.second == object)
             {
                 already_stored = true;
-                pos = elem.first;
+                obj_ID = elem.first;
                 return;
             }
         }
 
         // wasn't in list.. add to it
         ++currentID;
-        pos = currentID;
-        objects_pointers[pos] = object;
+        obj_ID = currentID;
+        objects_pointers[obj_ID] = object;
         already_stored = false;
 
         return;
@@ -595,6 +595,12 @@ class ChArchive {
 ///
 
 class  ChArchiveOut : public ChArchive {
+
+  protected:
+
+        /// container of pointers to not serialize and just mark with IDs
+    std::unordered_map<void*, size_t>  external_ptr_id;
+
   public:
       virtual ~ChArchiveOut() {};
 
@@ -714,13 +720,13 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t pos;
+          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
+          PutPointer(mptr, already_stored, obj_ID);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           const char* class_name;
           if (bVal.value())
@@ -730,7 +736,7 @@ class  ChArchiveOut : public ChArchive {
           this->out_ref_polimorphic(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
-              pos, 
+              obj_ID, 
               class_name );
       }
 
@@ -738,18 +744,18 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
       out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t pos;
+          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
+          PutPointer(mptr, already_stored, obj_ID);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
-              pos, 
+              obj_ID, 
               typeid(T).name() ); // note, this class name is not platform independent
       }
 
@@ -757,13 +763,13 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
       out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t pos;
+          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
+          PutPointer(mptr, already_stored, obj_ID);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           const char* class_name;
           if (bVal.value())
@@ -773,7 +779,7 @@ class  ChArchiveOut : public ChArchive {
           this->out_ref_polimorphic(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
-              pos, 
+              obj_ID, 
               class_name ); // this class name is platform independent
       }
 
@@ -781,18 +787,18 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
       out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t pos;
+          bool already_stored; size_t obj_ID;
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
+          PutPointer(mptr, already_stored, obj_ID);
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
-              pos, 
+              obj_ID, 
               typeid(T).name() ); // note, this class name is not platform independent
       }
 
@@ -800,12 +806,12 @@ class  ChArchiveOut : public ChArchive {
       template<class T>
       void out (ChNameValue<T> bVal) {
           bool tracked = false;
-          size_t pos =0;
+          size_t obj_ID =0;
           if (bVal.flags() & NVP_TRACK_OBJECT)
           {
               bool already_stored; 
               T* mptr = &bVal.value();
-              PutPointer(mptr, already_stored, pos);
+              PutPointer(mptr, already_stored, obj_ID);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
               tracked = true;
@@ -814,7 +820,7 @@ class  ChArchiveOut : public ChArchive {
           this->out(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               typeid(T).name(),  // not platform independent, but not needed in this case
-              tracked, pos);
+              tracked, obj_ID);
       }
 
         /// Operator to allow easy serialization as   myarchive << mydata;
@@ -826,7 +832,7 @@ class  ChArchiveOut : public ChArchive {
 
       void VersionWrite(int mver) {
           if (use_versions) {
-                this->out(ChNameValue<int>("version",mver));
+                this->out(ChNameValue<int>("_version",mver));
           }
       }
       /*
@@ -861,7 +867,7 @@ class  ChArchiveOut : public ChArchive {
                 this->class_versions["test"]=mver;
             } else
             {
-                this->out(ChNameValue<int>("version",mver));
+                this->out(ChNameValue<int>("_version",mver));
             }
           }
       }
@@ -1058,7 +1064,7 @@ class  ChArchiveIn : public ChArchive {
       int VersionRead() {
           if (use_versions) {
               int mver;
-              this->in(ChNameValue<int>("version",mver));
+              this->in(ChNameValue<int>("_version",mver));
               return mver;
           }
           return 99999;

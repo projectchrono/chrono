@@ -72,12 +72,12 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
           bVal.value().CallArchiveOut(*this);
       }
 
         // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
@@ -86,26 +86,26 @@ class  ChArchiveOutBinary : public ChArchiveOut {
             bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
-            // Object already in list. Only store position as ID
-            std::string str("POS");
-            (*ostream) << str;       // serialize 'this was already saved' info
-            (*ostream) << position;  // serialize position in pointers vector as ID
+            // Object already in list. Only store obj_ID as ID
+            std::string str("oID");
+            (*ostream) << str;       // serialize 'this was already saved' info as "oID" string
+            (*ostream) << obj_ID;    // serialize obj_ID in pointers vector as ID
           }
       }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position,  const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID,  const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
-            std::string str("OBJ"); // not usable for class factory.
-            (*ostream) << str;    // serialize class type
+            std::string str(""); 
+            (*ostream) << str;    // not usable for class factory: serialize as "" class type
             bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
-            // Object already in list. Only store position
-            std::string str("POS");
+            // Object already in list. Only store obj_ID
+            std::string str("oID");
             (*ostream) << str;       // serialize 'this was already saved' info
-            (*ostream) << position;  // serialize position in pointers vector
+            (*ostream) << obj_ID;    // serialize obj_ID in pointers vector
           }
       }
 
@@ -172,8 +172,8 @@ class  ChArchiveInBinary : public ChArchiveIn {
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
           if (bVal.flags() & NVP_TRACK_OBJECT){
-              bool already_stored; size_t pos;
-              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
+              bool already_stored; size_t obj_ID;
+              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
           }
           bVal.value().CallArchiveIn(*this);
       }
@@ -184,15 +184,14 @@ class  ChArchiveInBinary : public ChArchiveIn {
           std::string cls_name;
           (*istream) >> cls_name;
 
-          if (!(cls_name == "POS")) {
-            // 2) Dynamically create using class factory
-            //bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
-              // call new(), or deserialize constructor params+call new():
+          if (!(cls_name == "oID")) {
+            // Dynamically create using class factory:
+            // call new(), or deserialize constructor params+call new():
             bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
             if (bVal.value().CallGetRawPtr(*this)) {
-                bool already_stored; size_t pos;
-                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
+                bool already_stored; size_t obj_ID;
+                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
@@ -200,11 +199,11 @@ class  ChArchiveInBinary : public ChArchiveIn {
             }
 
           } else {
-            size_t pos = 0;
+            size_t obj_ID = 0;
             // Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> pos;
+            (*istream) >> obj_ID;
 
-            bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);
+            bVal.value().CallSetRawPtr(*this, objects_pointers[obj_ID]);
           }
       }
 
@@ -213,15 +212,14 @@ class  ChArchiveInBinary : public ChArchiveIn {
           std::string cls_name;
           (*istream) >> cls_name;
 
-          if (!(cls_name == "POS")) {
-            // 2) Dynamically create - no class factory
-            //bVal.value().CallNew(*this);
-              // call new(), or deserialize constructor params+call new():
+          if (!(cls_name == "oID")) {
+            // Dynamically create (no class factory will be invoked for non-polimorphic obj):
+            // call new(), or deserialize constructor params+call new():
             bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
             if (bVal.value().CallGetRawPtr(*this)) {
-                bool already_stored; size_t pos;
-                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
+                bool already_stored; size_t obj_ID;
+                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
@@ -229,11 +227,11 @@ class  ChArchiveInBinary : public ChArchiveIn {
             }
 
           } else {
-            size_t pos = 0;
+            size_t obj_ID = 0;
             //  Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> pos;
+            (*istream) >> obj_ID;
 
-            bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);
+            bVal.value().CallSetRawPtr(*this, objects_pointers[obj_ID]);
           }
       }
 
