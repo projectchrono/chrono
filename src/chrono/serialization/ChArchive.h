@@ -514,7 +514,6 @@ class ChArchive {
     ChArchive() {
         use_versions = true;
         cluster_class_versions = false;
-        Init();
     }
 
     virtual ~ChArchive() {};
@@ -588,8 +587,8 @@ class  ChArchiveOut : public ChArchive {
         /// Note, there is no check on pointer types when doing re-linking.
         /// Works also for shared pointers, but remember to store
         /// the embedded pointer, not the shared pointer itself. For example:
-        ///    myarchive.ExternalPointers().insert(my_raw_pointer, 1234); // normal pointers
-        ///    myarchive.ExternalPointers().insert(my_shared_pointer.get(), 221);  // shared pointers
+        ///    myarchive.ExternalPointers()[my_raw_pointer] = 1234; // normal pointers
+        ///    myarchive.ExternalPointers()[my_shared_pointer.get()] = 221;  // shared pointers
         std::unordered_map<void*, size_t>&  ExternalPointers() {return external_ptr_id;}
 
      protected:
@@ -951,6 +950,18 @@ class  ChArchiveIn : public ChArchive {
 
         virtual ~ChArchiveIn() {};
 
+        /// Access the container of object IDs that must not be de-serialized
+        /// but rather be 're-linked' to already-existing external objects, given unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
+        /// Note, there is no check on pointer types when doing re-linking.
+        /// Works also for shared pointers, but remember to use
+        /// the embedded pointer, not the shared pointer itself. For example:
+        ///    myarchive.ExternalPointers()[1234] = my_raw_pointer; // normal pointers
+        ///    myarchive.ExternalPointers()[221] = my_shared_pointer.get();  // shared pointers
+        std::unordered_map<size_t, void*>&  ExternalPointers() {return external_id_ptr;}
+
+
   protected:
         /// Find a pointer in pointer map: eventually add it to map if it
         /// was not previously inserted. Returns already_stored=false if was
@@ -971,17 +982,6 @@ class  ChArchiveIn : public ChArchive {
             already_stored = false;
             return;
         }
-
-        /// Access the container of object IDs that must not be de-serialized
-        /// but rather be 're-linked' to already-existing external objects, given unique IDs.
-        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
-        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
-        /// Note, there is no check on pointer types when doing re-linking.
-        /// Works also for shared pointers, but remember to use
-        /// the embedded pointer, not the shared pointer itself. For example:
-        ///    myarchive.ExternalPointers().insert(1234, my_raw_pointer); // normal pointers
-        ///    myarchive.ExternalPointers().insert(221, my_shared_pointer.get());  // shared pointers
-        std::unordered_map<size_t, void*>&  ExternalPointers() {return external_id_ptr;}
 
   public:
 

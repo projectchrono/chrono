@@ -215,7 +215,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
             // Was an external object: just get the pointer to external
             (*istream) >> ext_ID;
 
-            if (this->internal_id_ptr.find(ext_ID) == this->internal_id_ptr.end()) 
+            if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
 
             bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
@@ -257,7 +257,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
             // Was an external object: just get the pointer to external
             (*istream) >> ext_ID;
 
-            if (this->internal_id_ptr.find(ext_ID) == this->internal_id_ptr.end()) 
+            if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
 
             bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);

@@ -254,10 +254,18 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
-            ++nitems.top();
+              if (obj_ID || bVal.value().IsNull() ) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
+                ++nitems.top();
+              }
+              if (ext_ID) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_external_ID\"\t: "  << ext_ID;
+                ++nitems.top();
+              }
           }
           --tablevel;
           nitems.pop();
@@ -291,10 +299,18 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
-            ++nitems.top();
+              if (obj_ID || bVal.value().IsNull() ) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
+                ++nitems.top();
+              }
+              if (ext_ID) {
+                comma_cr();
+                indent();
+                (*ostream) << "\"_external_ID\"\t: "  << ext_ID;
+                ++nitems.top();
+              }
           }
           --tablevel;
           nitems.pop();
@@ -472,11 +488,17 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 if (!(*level)["_type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
                 cls_name = (*level)["_type"].GetString();
             }
-            size_t ref_ID = 0;
             bool is_reference = false;
+            size_t ref_ID = 0;
             if (level->HasMember("_reference_ID")) {
                 if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
                 ref_ID = (*level)["_reference_ID"].GetUint64();
+                is_reference = true;
+            }
+            size_t ext_ID = 0;
+            if (level->HasMember("_external_ID")) {
+                if (!(*level)["_external_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
+                ext_ID = (*level)["_external_ID"].GetUint64();
                 is_reference = true;
             }
              
@@ -500,6 +522,13 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
                 bVal.value().CallSetRawPtr(*this, internal_id_ptr[ref_ID]);
+
+                if (ext_ID) {
+                    if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
+                        throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
+                    }
+                    bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
+                }
             }
             this->levels.pop();
             this->level = this->levels.top();
@@ -514,11 +543,17 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->level = this->levels.top();
             this->is_array.push(false);
 
-            size_t ref_ID = 0;
             bool is_reference = false;
+            size_t ref_ID = 0;
             if (level->HasMember("_reference_ID")) {
-			    if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
-			    ref_ID = (*level)["_reference_ID"].GetUint64();
+                if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
+                ref_ID = (*level)["_reference_ID"].GetUint64();
+                is_reference = true;
+            }
+            size_t ext_ID = 0;
+            if (level->HasMember("_external_ID")) {
+                if (!(*level)["_external_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
+                ext_ID = (*level)["_external_ID"].GetUint64();
                 is_reference = true;
             }
 
@@ -542,6 +577,13 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
                 bVal.value().CallSetRawPtr(*this, internal_id_ptr[ref_ID]);
+
+                if (ext_ID) {
+                    if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
+                        throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
+                    }
+                    bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
+                }
             }
             this->levels.pop();
             this->level = this->levels.top();
