@@ -368,6 +368,16 @@ void my_serialization_example(ChArchiveOut& marchive)
         myEmployeeCustomConstructor* mcustomconstr = new myEmployeeCustomConstructor(3,40);
         marchive << CHNVP(mcustomconstr); 
 
+        // Serialize an object where some pointers are un-linked as external, marking them with unique IDs
+        std::vector<ChVector<>*> vect_of_pointers;
+        ChVector<>* mvp1 = new ChVector<>(1,2,3);
+        ChVector<>* mvp2 = new ChVector<>(7,8,7);
+        vect_of_pointers.push_back(mvp1);
+        vect_of_pointers.push_back(mvp2);
+        // define that some object should not be serialized, but rather marked with ID for later rebinding
+        marchive.ExternalPointers()[mvp1] = 1001; // use unique identifier > 0
+        marchive << CHNVP(vect_of_pointers);
+
         delete a_boss;
 }
 
@@ -445,6 +455,14 @@ void my_deserialization_example(ChArchiveIn& marchive)
         myEmployeeCustomConstructor* mcustomconstr = 0;
         marchive >> CHNVP(mcustomconstr); 
 
+        // Deserialize an object where some pointers are re-linked from external pre-existing objects,
+        // marking them with unique IDs. Assume a ChVector is already here. 
+        std::vector<ChVector<>*> vect_of_pointers;
+        ChVector<>* mvp1 = new ChVector<>(5,6,7);
+        marchive.ExternalPointers()[1001] = mvp1; // use same unique identifier used in serializing!
+        marchive >> CHNVP(vect_of_pointers);
+
+
 
         // Just for safety, log some of the restored data:
 
@@ -478,6 +496,10 @@ void my_deserialization_example(ChArchiveIn& marchive)
             GetLog() << "\n\n We loaded a 5th object with non-default constructor with 2 parameters.\n";
             GetLog() << mcustomconstr;
         }
+        GetLog() << "\n\n We loaded a 6th object where sub-objects were unbind/rebind using IDs:\n";
+        GetLog() << vect_of_pointers;
+        GetLog() << *vect_of_pointers[0];
+        GetLog() << *vect_of_pointers[1];
 
             // By the way, now show how the CH_FACTORY_TAG macro has added
             // a static function  FactoryClassNameTag() and a virtual function
