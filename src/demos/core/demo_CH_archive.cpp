@@ -180,11 +180,96 @@ class myEmployeeBoss : public myEmployee {
             marchive >> CHNVP(slave);  // this added only from version >1
         }
     }
-
 };
 
 
 CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+
+
+
+// Finally, let's serialize a class that has no default constructor.
+// The archive system canno
+// How to manage the (de)serialization of the initialization parameters?
+// The trick is adding two optional 
+
+class myEmployeeCustomConstructor : public myEmployee {
+    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
+    // if you want to deserialize objects whose exact class is not known in advance:
+
+    CH_FACTORY_TAG(myEmployeeCustomConstructor) //*****  needed for advanced serialization
+
+  public:
+    double latitude;
+    int kids;
+    int legs;
+
+    myEmployeeCustomConstructor(int m_kids, double m_latitude)
+        : myEmployee(80, 4000), 
+        latitude(m_latitude),
+        kids(m_kids),
+        legs (2) {};
+
+    // MEMBER FUNCTIONS FOR BINARY I/O
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
+    {
+        // suggested: use versioning
+        marchive.VersionWrite(1);
+        // remember to serialize the parent class data too!!!
+        myEmployee::ArchiveOUT(marchive);
+        // stream out member data (except data used in constructor, already saved in ArchiveOUTconstructor)
+        marchive << CHNVP(legs);
+    }
+    virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead();
+        // remember to deserialize the parent class data too!!!
+        myEmployee::ArchiveIN(marchive);
+        // stream in member data (except data used in constructor, already saved in ArchiveOUTconstructor)
+        marchive >> CHNVP(legs);
+    }
+    
+    // Add a  ArchiveOUTconstructor  function to deserialize the parameters 
+    // of the non-default constructor!!!
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive)
+    {
+        // suggested: use versioning
+        marchive.VersionWrite(1);
+
+        // serialize the parameters of the constructor:
+        marchive << CHNVP(latitude);
+        marchive << CHNVP(kids);
+    }
+
+    // Add a  ArchiveINconstructor  static function to deserialize the parameters 
+    // of the non-default constructor!!!
+    static void* ArchiveINconstructor(ChArchiveIn& marchive)
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead();
+
+        // 1) Deserialize the parameters of the constructor:
+        // you need some auxiliary variables because this method is static 
+        // (the object will be created right after the >> parsing)
+        // Note, be sure that the names of those auxiliary vars are the same of member 
+        // variables of your class, or use  CHNVP(..., "myname") tags.
+        double latitude;   
+        int    kids;
+        marchive >> CHNVP(latitude);
+        marchive >> CHNVP(kids);
+
+        // 2) Important!!! Finally you MUST return an object of this class, 
+        // constructed with the parameters that you just deserialized:
+        return new myEmployeeCustomConstructor(kids, latitude);
+    }
+
+};
+
+CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  needed for advanced serialization
+
+
+
 
 
 //
@@ -279,6 +364,10 @@ void my_serialization_example(ChArchiveOut& marchive)
         std::shared_ptr<myEmployeeBoss> null_boss;
         marchive << CHNVP(null_boss); 
 
+        // Serialize an object with non-default constructor:
+        myEmployeeCustomConstructor* mcustomconstr = new myEmployeeCustomConstructor(3,40);
+        marchive << CHNVP(mcustomconstr); 
+
         delete a_boss;
 }
 
@@ -352,6 +441,10 @@ void my_deserialization_example(ChArchiveIn& marchive)
         std::shared_ptr<myEmployeeBoss> null_boss(0);
         marchive >> CHNVP(null_boss);
 
+        // Deserialize an object with non-default constructor:
+        myEmployeeCustomConstructor* mcustomconstr = 0;
+        marchive >> CHNVP(mcustomconstr); 
+
 
         // Just for safety, log some of the restored data:
 
@@ -380,6 +473,10 @@ void my_deserialization_example(ChArchiveIn& marchive)
         }
         if (!null_boss) {
             GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
+        }
+        if (mcustomconstr) {
+            GetLog() << "\n\n We loaded a 5th object with non-default constructor with 2 parameters.\n";
+            GetLog() << mcustomconstr;
         }
 
             // By the way, now show how the CH_FACTORY_TAG macro has added
@@ -478,7 +575,7 @@ int main(int argc, char* argv[]) {
             }
             
         }
- 
+
 
         GetLog() << "Serialization test ended with success.\n";
 
