@@ -496,10 +496,10 @@ class  ChArchiveInJSON : public ChArchiveIn {
             }
 
             } else {
-                if (ref_ID >= objects_pointers.size()) {
-                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is larger than pointer array" + std::to_string((int)objects_pointers.size())));
+                if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
-                bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
+                bVal.value().CallSetRawPtr(*this, internal_id_ptr[ref_ID]);
             }
             this->levels.pop();
             this->level = this->levels.top();
@@ -538,8 +538,10 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 }
 
             } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "Object _reference_ID is larger than pointer array"));}
-                bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
+                if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
+                }
+                bVal.value().CallSetRawPtr(*this, internal_id_ptr[ref_ID]);
             }
             this->levels.pop();
             this->level = this->levels.top();

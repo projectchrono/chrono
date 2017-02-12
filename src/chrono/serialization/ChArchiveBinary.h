@@ -205,12 +205,18 @@ class  ChArchiveInBinary : public ChArchiveIn {
             // Was a shared object: just get the pointer to already-retrieved
             (*istream) >> obj_ID;
 
-            bVal.value().CallSetRawPtr(*this, objects_pointers[obj_ID]);
+            if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
+
+            bVal.value().CallSetRawPtr(*this, internal_id_ptr[obj_ID]);
           } 
           else if (cls_name == "eID") {
             size_t ext_ID = 0;
             // Was an external object: just get the pointer to external
             (*istream) >> ext_ID;
+
+            if (this->internal_id_ptr.find(ext_ID) == this->internal_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
 
             bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
           } 
@@ -241,12 +247,18 @@ class  ChArchiveInBinary : public ChArchiveIn {
             //  Was a shared object: just get the pointer to already-retrieved
             (*istream) >> obj_ID;
 
-            bVal.value().CallSetRawPtr(*this, objects_pointers[obj_ID]);
+            if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
+
+            bVal.value().CallSetRawPtr(*this, internal_id_ptr[obj_ID]);
           }
           else if (cls_name == "eID") {
             size_t ext_ID = 0;
             // Was an external object: just get the pointer to external
             (*istream) >> ext_ID;
+
+            if (this->internal_id_ptr.find(ext_ID) == this->internal_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
 
             bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
           }

@@ -505,16 +505,10 @@ private:
 class ChArchive {
   protected:
 
-    /// vector of pointers to stored/retrieved objects,
-    /// to avoid saving duplicates or deadlocks
-    std::unordered_map<size_t, void*> objects_pointers;
-
     bool cluster_class_versions;
     std::unordered_map<std::string, int> class_versions;
 
     bool use_versions;
-
-    size_t currentID;
 
   public:
     ChArchive() {
@@ -525,35 +519,7 @@ class ChArchive {
 
     virtual ~ChArchive() {};
 
-    /// Reinitialize the vector of pointers to loaded/saved objects
-    void Init() {
-        objects_pointers.clear();
-        objects_pointers[0]=(0);  // ID=0 -> null pointer.
-        currentID = 0;
-    }
-    /// Find a pointer in pointer map: eventually add it to map if it
-    /// was not previously inserted. Returns already_stored=false if was
-    /// already inserted. Return 'obj_ID' offset in vector in any case.
-    /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
-
-        for (const auto& elem: objects_pointers) {
-            if (elem.second == object)
-            {
-                already_stored = true;
-                obj_ID = elem.first;
-                return;
-            }
-        }
-
-        // wasn't in list.. add to it
-        ++currentID;
-        obj_ID = currentID;
-        objects_pointers[obj_ID] = object;
-        already_stored = false;
-
-        return;
-    }
+    
 
     /// By default, version numbers are saved in archives
     /// Use this to turn off version info in archives (either save/load both
@@ -577,6 +543,9 @@ class  ChArchiveOut : public ChArchive {
 
   protected:
 
+    std::unordered_map<void*, size_t>  internal_ptr_id;
+    size_t currentID;
+
     std::unordered_map<void*, size_t>  external_ptr_id;
 
     std::unordered_set<void*>  cut_pointers;
@@ -585,10 +554,16 @@ class  ChArchiveOut : public ChArchive {
 
   public:
         ChArchiveOut() {
+
             cut_all_pointers = false;
+
+            internal_ptr_id.clear();
+            internal_ptr_id[0]=(0);  // ID=0 -> null pointer.
+            currentID = 0;
         };
 
         virtual ~ChArchiveOut() {};
+
 
         /// If you enable  SetCutAllPointers(true), no serialization happens for 
         /// objects referenced via pointers. This can be useful to save a single object, 
@@ -606,7 +581,39 @@ class  ChArchiveOut : public ChArchive {
         /// The cut pointers are serialized as null pointers.
         std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
 
+        /// Access the container of pointers that must not be serialized
+        /// but rather be be 'cut' and become identifiers to external objects, with unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be done when re-linking pointers in the ArchiveIN.
+        /// Note, there is no check on pointer types when doing re-linking.
+        /// Works also for shared pointers, but remember to store
+        /// the embedded pointer, not the shared pointer itself. For example:
+        ///    myarchive.ExternalPointers().insert(my_raw_pointer, 1234); // normal pointers
+        ///    myarchive.ExternalPointers().insert(my_shared_pointer.get(), 221);  // shared pointers
+        std::unordered_map<void*, size_t>&  ExternalPointers() {return external_ptr_id;}
 
+     protected:
+
+        /// Find a pointer in pointer map: eventually add it to map if it
+        /// was not previously inserted. Returns already_stored=false if was
+        /// already inserted. Return 'obj_ID' offset in vector in any case.
+        /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
+        void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
+            if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
+              already_stored = true;
+              obj_ID = internal_ptr_id[static_cast<void*>(object)];
+              return;
+            }
+
+            // wasn't in list.. add to it
+            ++currentID;
+            obj_ID = currentID;
+            internal_ptr_id[static_cast<void*>(object)] = obj_ID;
+            already_stored = false;
+            return;
+        }
+
+    public:
       //---------------------------------------------------
       // INTERFACES - to be implemented by children classes
       //
@@ -924,10 +931,59 @@ class  ChArchiveOut : public ChArchive {
 
 class  ChArchiveIn : public ChArchive {
   protected:
+
+        std::unordered_map<void*, size_t>  internal_ptr_id;
+        std::unordered_map<size_t, void*>  internal_id_ptr;
+        size_t currentID;
+
         /// container of pointers marker with external IDs to re-bind instead of de-serializing
         std::unordered_map<size_t, void*>  external_id_ptr;
   public:
-      virtual ~ChArchiveIn() {};
+
+         ChArchiveIn() {
+
+            internal_ptr_id.clear();
+            internal_ptr_id[0]=(0);  // null pointer -> ID=0.
+            internal_id_ptr.clear();
+            internal_id_ptr[0]=(0);  // ID=0 -> null pointer.
+            currentID = 0;
+        };
+
+        virtual ~ChArchiveIn() {};
+
+  protected:
+        /// Find a pointer in pointer map: eventually add it to map if it
+        /// was not previously inserted. Returns already_stored=false if was
+        /// already inserted. Return 'obj_ID' offset in vector in any case.
+        /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
+        void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
+            if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
+              already_stored = true;
+              obj_ID = internal_ptr_id[static_cast<void*>(object)];
+              return;
+            }
+
+            // wasn't in list.. add to it
+            ++currentID;
+            obj_ID = currentID;
+            internal_ptr_id[static_cast<void*>(object)] = obj_ID;
+            internal_id_ptr[obj_ID] = static_cast<void*>(object);
+            already_stored = false;
+            return;
+        }
+
+        /// Access the container of object IDs that must not be de-serialized
+        /// but rather be 're-linked' to already-existing external objects, given unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
+        /// Note, there is no check on pointer types when doing re-linking.
+        /// Works also for shared pointers, but remember to use
+        /// the embedded pointer, not the shared pointer itself. For example:
+        ///    myarchive.ExternalPointers().insert(1234, my_raw_pointer); // normal pointers
+        ///    myarchive.ExternalPointers().insert(221, my_shared_pointer.get());  // shared pointers
+        std::unordered_map<size_t, void*>&  ExternalPointers() {return external_id_ptr;}
+
+  public:
 
       //---------------------------------------------------
       // INTERFACES - to be implemented by children classes
