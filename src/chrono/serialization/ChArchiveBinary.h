@@ -76,37 +76,13 @@ class  ChArchiveOutBinary : public ChArchiveOut {
           bVal.value().CallArchiveOut(*this);
       }
 
-        // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID,  size_t ext_ID, const char* classname) 
-      {
-          if (!already_inserted) {
-            // New Object, we have to full serialize it
-            std::string str(classname);
-            (*ostream) << str;    // serialize class type as string (platform/compiler independent), for class factory later
-            bVal.value().CallArchiveOutConstructor(*this);
-            bVal.value().CallArchiveOut(*this);
-          } else {
-              if (obj_ID || bVal.value().IsNull() ) {
-                // Object already in list. Only store obj_ID as ID
-                std::string str("oID");
-                (*ostream) << str;       // serialize 'this was already saved' info as "oID" string
-                (*ostream) << obj_ID;    // serialize obj_ID in pointers vector as ID
-              }
-              if (ext_ID) {
-                // Object is external. Only store ref_ID as ID
-                std::string str("eID");
-                (*ostream) << str;       // serialize info as "eID" string
-                (*ostream) << ext_ID;    // serialize ext_ID in pointers vector as ID
-              }
-          }
-      }
 
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
-            std::string str(""); 
-            (*ostream) << str;    // not usable for class factory: serialize as "" class type
+            std::string str(classname); 
+            (*ostream) << str;    
             bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
@@ -194,49 +170,6 @@ class  ChArchiveInBinary : public ChArchiveIn {
           bVal.value().CallArchiveIn(*this);
       }
 
-      // for pointed objects 
-      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
-      {
-          std::string cls_name;
-          (*istream) >> cls_name;
-
-          if (cls_name == "oID") {
-            size_t obj_ID = 0;
-            // Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> obj_ID;
-
-            if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
-                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
-
-            bVal.value().CallSetRawPtr(*this, internal_id_ptr[obj_ID]);
-          } 
-          else if (cls_name == "eID") {
-            size_t ext_ID = 0;
-            // Was an external object: just get the pointer to external
-            (*istream) >> ext_ID;
-
-            if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
-                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
-
-            bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
-          } 
-          else {
-            // Dynamically create using class factory:
-            // call new(), or deserialize constructor params+call new():
-            bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
-
-            if (bVal.value().CallGetRawPtr(*this)) {
-                bool already_stored; size_t obj_ID;
-                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
-                // 3) Deserialize
-                bVal.value().CallArchiveIn(*this);
-            } else {
-                throw(ChExceptionArchive("Archive cannot create polymorphic object \'" + cls_name + "\' " ));
-            }
-
-          } 
-      }
-
       virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
           std::string cls_name;
@@ -273,7 +206,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
-                throw(ChExceptionArchive("Archive cannot create object"));
+                throw(ChExceptionArchive("Archive cannot create object" + cls_name + "\n"));
             }
           } 
 

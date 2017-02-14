@@ -155,36 +155,17 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             --tablevel;
       }
 
-         // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
-      {
-          indent();
-          if (!suppress_names) 
-                (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]  (polymorphic) ";
-          if (obj_ID)
-            (*ostream) << "  ID=" << obj_ID;
-          if (ext_ID)
-            (*ostream) << "  external_ID=" << ext_ID;
-          (*ostream) << "\n";
-          ++tablevel;
-          if (!already_inserted) {
-              if (!bVal.value().IsNull()) {
-                    // New Object, we have to full serialize it
-                    bVal.value().CallArchiveOut(*this);
-              } else {
-                  (*ostream) << "NULL\n";
-              }
-          }
-          --tablevel;
-      }
-
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]";
+          (*ostream) << "->";
+          if(strlen(classname)>0) {
+                (*ostream) << " [" << classname << "] (registered type)";
+          } else {
+                (*ostream) << " [" << bVal.value().GetTypeidName() << "]";
+          }
           if (obj_ID)
             (*ostream) << "  ID=" << obj_ID;
           if (ext_ID)

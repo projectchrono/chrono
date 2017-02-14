@@ -226,56 +226,6 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
       }
 
-         // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname)  {
-          comma_cr();
-          indent();
-          if (is_array.top()==false)
-            (*ostream) << "\"" << bVal.name() << "\"" << "\t: \n";
-          indent();
-          (*ostream) << "{ ";
-          
-          ++tablevel;
-          nitems.push(0);
-          is_array.push(false);  
-
-          comma_cr();
-          indent();
-          (*ostream) << "\"_type\"\t: "  << "\"" << classname << "\"";
-          ++nitems.top();
-          
-          if (!already_inserted) {
-            comma_cr();
-            indent();
-            (*ostream) << "\"_object_ID\"\t: "  << obj_ID;
-            ++nitems.top();
-
-            // New Object, we have to full serialize it
-            bVal.value().CallArchiveOutConstructor(*this);
-            bVal.value().CallArchiveOut(*this);
-          } else {
-              if (obj_ID || bVal.value().IsNull() ) {
-                comma_cr();
-                indent();
-                (*ostream) << "\"_reference_ID\"\t: "  << obj_ID;
-                ++nitems.top();
-              }
-              if (ext_ID) {
-                comma_cr();
-                indent();
-                (*ostream) << "\"_external_ID\"\t: "  << ext_ID;
-                ++nitems.top();
-              }
-          }
-          --tablevel;
-          nitems.pop();
-          is_array.pop();
-          
-          (*ostream) << "\n";
-          indent();
-          (*ostream) << "}";
-          ++nitems.top();
-      }
 
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname)  {
           comma_cr();
@@ -288,6 +238,13 @@ class  ChArchiveOutJSON : public ChArchiveOut {
           ++tablevel;
           nitems.push(0);
           is_array.push(false);
+
+          if(strlen(classname)>0) {
+              comma_cr();
+              indent();
+              (*ostream) << "\"_type\"\t: "  << "\"" << classname << "\"";
+              ++nitems.top();
+          }
           
           if (!already_inserted) {
             comma_cr();
@@ -474,67 +431,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.pop();
       }
 
-      // for pointed objects 
-      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
-      {
-            rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
-            if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
-            this->levels.push(mval);
-            this->level = this->levels.top();
-            this->is_array.push(false);
-            
-            std::string cls_name = "";
-            if (level->HasMember("_type")) {
-                if (!(*level)["_type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
-                cls_name = (*level)["_type"].GetString();
-            }
-            bool is_reference = false;
-            size_t ref_ID = 0;
-            if (level->HasMember("_reference_ID")) {
-                if (!(*level)["_reference_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
-                ref_ID = (*level)["_reference_ID"].GetUint64();
-                is_reference = true;
-            }
-            size_t ext_ID = 0;
-            if (level->HasMember("_external_ID")) {
-                if (!(*level)["_external_ID"].IsUint64()) {throw (ChExceptionArchive( "Invalid number after '"+std::string(bVal.name())+"'"));}
-                ext_ID = (*level)["_external_ID"].GetUint64();
-                is_reference = true;
-            }
-             
-            if (!is_reference) {
-                // 2) Dynamically create using class factory
-                //bVal.value().CallNewPolimorphic(*this, cls_name.c_str());
-                // call new(), or deserialize constructor params+call new():
-                bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
-
-                if (bVal.value().CallGetRawPtr(*this)) {
-                    bool already_stored; size_t obj_ID;
-                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
-                    // 3) Deserialize
-                    bVal.value().CallArchiveIn(*this);
-                } else {
-                    throw(ChExceptionArchive("Archive cannot create polimorphic object of class '" + cls_name + "'"));
-            }
-
-            } else {
-                if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
-                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
-                }
-                bVal.value().CallSetRawPtr(*this, internal_id_ptr[ref_ID]);
-
-                if (ext_ID) {
-                    if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) {
-                        throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _external_ID " + std::to_string((int)ext_ID) +" is not valid." ));
-                    }
-                    bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
-                }
-            }
-            this->levels.pop();
-            this->level = this->levels.top();
-            this->is_array.pop();
-      }
-
+        // for objects to construct
       virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
@@ -543,6 +440,13 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->level = this->levels.top();
             this->is_array.push(false);
 
+            std::string cls_name = "";
+            if (bVal.value().IsPolymorphic()) {
+                if (level->HasMember("_type")) {
+                    if (!(*level)["_type"].IsString()) {throw (ChExceptionArchive( "Invalid string after '"+std::string(bVal.name())+"'"));}
+                    cls_name = (*level)["_type"].GetString();
+                }
+            }
             bool is_reference = false;
             size_t ref_ID = 0;
             if (level->HasMember("_reference_ID")) {
@@ -561,7 +465,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 // 2) Dynamically create 
                 //bVal.value().CallNew(*this);
                 // call new(), or deserialize constructor params+call new():
-                bVal.value().CallArchiveInConstructor(*this, "");
+                bVal.value().CallArchiveInConstructor(*this, cls_name.c_str());
             
                 if (bVal.value().CallGetRawPtr(*this)) {
                     bool already_stored; size_t obj_ID;
@@ -569,7 +473,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
-                    throw(ChExceptionArchive("Archive cannot create object"));
+                    throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));
                 }
 
             } else {

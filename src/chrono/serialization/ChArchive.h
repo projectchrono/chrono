@@ -49,6 +49,10 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
 /// Macro to create a  ChDetect_ArchiveOUT 
 CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
 
+/// Macro to create a  ChDetect_ArchiveIN 
+CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
+
+
 
 /// Exceptions for archives should inherit from this
 class ChExceptionArchive : public ChException 
@@ -73,6 +77,15 @@ public:
         /// If ArchiveOUTconstructor is not provided, simply does nothing.
     virtual void CallArchiveOutConstructor(ChArchiveOut& marchive)=0;
     
+        /// Get registered name in class factory. If type is not previously registered, 
+        /// returns a "" string.
+    virtual std::string& GetRegisteredName() =0;
+
+        /// Get platform-dependent typeid name
+    virtual const char* GetTypeidName() =0;
+
+
+        /// Tell if it is a null pointer    
     virtual bool IsNull()=0;
 };
 
@@ -96,10 +109,22 @@ public:
           this->_archive_out_constructor(marchive);
         }
 
+      virtual std::string& GetRegisteredName() {
+          try {
+              return ChClassFactory::GetClassConventionalName(pt2Object);
+          }catch (ChException myex) {
+              static std::string nostring("");
+              return nostring;
+          }
+        }
+
+      virtual const char* GetTypeidName() {
+          return typeid(TClass).name();
+      }
+
       virtual bool IsNull()
         { return (pt2Object==0);};   
 
-     
 private:
 
         template <class Tc=TClass>
@@ -117,7 +142,7 @@ private:
 
 
 /// Functor to call the ArchiveIN function for unrelated classes that
-/// implemented them. This helps stripping out the templating, to make ChArchiveOut
+/// implemented them. This helps stripping out the templating, to make ChArchiveIn
 /// easier and equippable with virtual functions.
 
 class ChFunctorArchiveIn {
@@ -126,14 +151,17 @@ public:
     virtual void CallArchiveIn(ChArchiveIn& marchive)=0;
 
         /// Use this to call an (optional) static member function ArchiveINconstructor. This 
-        /// is expected to a) deserialize constructor parameters, b) create a new obj as new obj(params..).
-        /// If ArchiveINconstructor is not provided, simply creates a new object as new obj(), as in CallNew().
+        /// is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
+        /// If classname not registered, call T::ArchiveINconstructor()    
+        /// If ArchiveINconstructor() is not provided, simply creates a new object as new obj(), as in CallNewPolimorphic().
     virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)=0;
 
-    virtual void CallNew(ChArchiveIn& marchive) {};
+        /// Use this to create a new object as pt2Object = new myclass()
+        /// If classname not registered, throws exception
     virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname) {};
     virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) {};
     virtual void* CallGetRawPtr(ChArchiveIn& marchive) { return 0;};
+    virtual bool IsPolymorphic() = 0;
 };
 
 template <class TClass> 
@@ -153,13 +181,19 @@ public:
         { (*pt2Object.*fpt)(marchive);};             // execute member function
 
       virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)
-        { throw (ChExceptionArchive( "Cannot call CallArchiveInConstructor() for an object on heap.")); };
+        { throw (ChExceptionArchive( "Cannot call CallArchiveInConstructor() for a constructed object.")); };
+
+      virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname) 
+        { throw (ChExceptionArchive( "Cannot call CallNewPolimorphic() for a constructed object.")); };
 
       virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
-        { throw (ChExceptionArchive( "Cannot call CallSetRawPtr() for an object on heap.")); };
+        { throw (ChExceptionArchive( "Cannot call CallSetRawPtr() for a constructed object.")); };
 
       virtual void* CallGetRawPtr(ChArchiveIn& marchive) 
         { return static_cast<void*>(pt2Object); };
+
+      virtual bool IsPolymorphic() 
+        { throw (ChExceptionArchive( "Cannot call IsPolymorphic() for a constructed object.")); };
 };
 
 template <class TClass> 
@@ -179,10 +213,10 @@ public:
         { (**pt2Object.*fpt)(marchive);};             // execute member function
 
       virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname) 
-        { this->_archive_in_constructor(marchive); }
+        { this->_archive_in_constructor(marchive, classname); }
 
-      virtual void CallNew(ChArchiveIn& marchive)
-        { *pt2Object = new(TClass); }
+      virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname)  
+        { this->_new_polimorphic(marchive, classname);  }
 
       virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
         { *pt2Object = static_cast<TClass*>(mptr); };
@@ -190,62 +224,56 @@ public:
       virtual void* CallGetRawPtr(ChArchiveIn& marchive) 
         { return static_cast<void*>(*pt2Object); };
 
+      virtual bool IsPolymorphic() 
+        { return this->_is_polymorphic(); };
       
 private:
         template <class Tc=TClass>
         typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void >::type
-        _archive_in_constructor(ChArchiveIn& marchive) {
-            *pt2Object = Tc::ArchiveINconstructor(marchive);
+        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::archive_in_create(std::string(classname), marchive, pt2Object);
+            else
+                *pt2Object = static_cast<Tc*> (Tc::ArchiveINconstructor(marchive));
         }
         template <class Tc=TClass>
         typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void >::type 
-        _archive_in_constructor(ChArchiveIn& marchive) {
-            this->CallNew(marchive);
-        }
-};
-
-
-template <class TClass> 
-class ChFunctorArchiveInSpecificPtrPolimorphic : public ChFunctorArchiveIn
-{
-private:
-      void (TClass::*fpt)(ChArchiveIn&);   // pointer to member function
-      TClass** pt2Object;                    // pointer to object
-
-public:
-
-      // constructor - takes pointer to an object and pointer to a member 
-      ChFunctorArchiveInSpecificPtrPolimorphic(TClass** _pt2Object, void(TClass::*_fpt)(ChArchiveIn&))
-        { pt2Object = _pt2Object;  fpt=_fpt; };
-
-      virtual void CallArchiveIn(ChArchiveIn& marchive)
-        { (**pt2Object.*fpt)(marchive);};             // execute member function
-
-      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname) 
-        { this->_archive_in_constructor(marchive, classname); }
-
-      virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname) { 
-            std::string sclassname(classname);
-            ChClassFactory::create(sclassname, pt2Object); 
+        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+            this->CallNewPolimorphic(marchive, classname);
         }
 
-      virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
-        { *pt2Object = static_cast<TClass*>(mptr); };
-
-      virtual void* CallGetRawPtr(ChArchiveIn& marchive) 
-        { return static_cast<void*>(*pt2Object); };
-
-private:
-        //template <class Tc=TClass>
-        //typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void >::type
-        void _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
-            // Here class factory will either
-            // - call new(), with default constructor 
-            // - or call static ArchiveINconstructor(), if any (that deserializes parameters and then makes new())
-            std::string sclassname(classname);
-            ChClassFactory::archive_in_create(sclassname, marchive, pt2Object); 
+        template <class Tc=TClass>
+        typename enable_if< std::is_polymorphic<Tc>::value, bool >::type
+        _is_polymorphic() {
+            return true;
+        }
+        template <class Tc=TClass>
+        typename enable_if< !std::is_polymorphic<Tc>::value, bool >::type
+        _is_polymorphic() {
+            return false;
         }
 
+        template <class Tc=TClass>
+        typename enable_if< std::is_default_constructible<Tc>::value && !std::is_abstract<Tc>::value, void >::type
+        _new_polimorphic(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                *pt2Object = new(TClass);
+        }
+        template <class Tc=TClass>
+        typename enable_if< std::is_default_constructible<Tc>::value && std::is_abstract<Tc>::value, void >::type
+        _new_polimorphic(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                throw (ChExceptionArchive( "Cannot call CallNewPolimorphic(). Class not registered, and base is an abstract class."));
+        }
+        template <class Tc=TClass>
+        typename enable_if< !std::is_default_constructible<Tc>::value, void >::type
+        _new_polimorphic(ChArchiveIn& marchive, const char* classname) {
+            throw (ChExceptionArchive( "Cannot call CallNewPolimorphic() for an object without default constructor.")); 
+        }
 };
 
 
@@ -631,11 +659,8 @@ class  ChArchiveOut : public ChArchive {
 
         // for custom C++ objects - see 'wrapping' trick below
       virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) = 0;
-
-        // for pointed objects with polimorphic class system (i.e. supporting class factory)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) = 0;
-      
-        // for pointed objects without class polimorphism
+    
+        // for pointed objects
       virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) = 0;
 
         // for wrapping arrays and lists
@@ -723,12 +748,9 @@ class  ChArchiveOut : public ChArchive {
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
       }
      
-
-
-        // trick to call out_ref on ChSharedPointer, with class polimorphism:
+        // trick to call out_ref on ChSharedPointer
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
+      void out     (ChNameValue< std::shared_ptr<T> > bVal) {
           T* mptr = bVal.value().get();
           if (this->cut_all_pointers)
               mptr = 0;
@@ -743,53 +765,25 @@ class  ChArchiveOut : public ChArchive {
           }
           else {
               PutPointer(mptr, already_stored, obj_ID);
-          } 
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
-          const char* class_name;
-          if (bVal.value())
-              class_name = bVal.value()->FactoryNameTag().c_str();
-          else // null ptr
-              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
-          this->out_ref_polimorphic(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
-              already_stored, 
-              obj_ID,
-              ext_ID,
-              class_name );
-      }
-
-        // trick to call out_ref on ChSharedPointer, without class polimorphism:
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          T* mptr = bVal.value().get();
-          if (this->cut_all_pointers)
-              mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
-              mptr = 0;
-          bool already_stored = false;  
-          size_t obj_ID = 0; 
-          size_t ext_ID = 0;
-          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
-              already_stored = true;
-              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
           }
-          else {
-              PutPointer(mptr, already_stored, obj_ID);
-          } 
+          const char* class_name = "";
+          if (bVal.value()) {
+              try {
+                  class_name = ChClassFactory::GetClassConventionalName(*mptr).c_str(); // registered
+              } catch(ChException me) { }
+          }
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
               obj_ID,
               ext_ID,
-              typeid(T).name() ); // note, this class name is not platform independent
+              class_name ); // note, this class name is not platform independent
       }
 
-        // trick to call out_ref on plain pointers, with class polimorphism:
+         // trick to call out_ref on raw pointers:
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      out     (ChNameValue<T*> bVal) {
+      void out     (ChNameValue<T*> bVal) {
           T* mptr = bVal.value();
           if (this->cut_all_pointers)
               mptr = 0;
@@ -805,46 +799,19 @@ class  ChArchiveOut : public ChArchive {
           else {
               PutPointer(mptr, already_stored, obj_ID);
           } 
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
-          const char* class_name;
-          if (bVal.value())
-              class_name = bVal.value()->FactoryNameTag().c_str();
-          else // null ptr
-              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
-          this->out_ref_polimorphic(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
-              already_stored,
-              obj_ID,
-              ext_ID,
-              class_name ); // this class name is platform independent
-      }
-
-         // trick to call out_ref on plain pointers (no class polimorphism):
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
-      out     (ChNameValue<T*> bVal) {
-          T* mptr = bVal.value();
-          if (this->cut_all_pointers)
-              mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
-              mptr = 0;
-          bool already_stored = false;  
-          size_t obj_ID = 0; 
-          size_t ext_ID = 0;
-          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
-              already_stored = true;
-              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          const char* class_name = "";
+          if (bVal.value()) {
+              try {
+                  class_name = ChClassFactory::GetClassConventionalName(*mptr).c_str(); // registered
+              } catch(ChException mex) {}
           }
-          else {
-              PutPointer(mptr, already_stored, obj_ID);
-          } 
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
               obj_ID, 
               ext_ID,
-              typeid(T).name() ); // note, this class name is not platform independent
+              class_name ); // note, this class name is not platform independent
       }
 
        // trick to apply 'virtual out..' on remaining C++ object, that has a function "ArchiveOUT" 
@@ -880,43 +847,7 @@ class  ChArchiveOut : public ChArchive {
                 this->out(ChNameValue<int>("_version",mver));
           }
       }
-      /*
-      template<class T>
-      typename enable_if< ChDetect_ArchiveOUT<T>::value,ChArchiveOut& >::type 
-       operator<<(ChNameValue<T> bVal) {
-          if (cluster_class_versions) {
-            this->out(bVal);
-          }
-          else {
-            this->out(bVal);
-          }
-          return (*this);
-      }
 
-      template<class T>
-      typename enable_if< !ChDetect_ArchiveOUT<T>::value,ChArchiveOut& >::type 
-       operator<<(ChNameValue<T> bVal) {
-          if (cluster_class_versions) {
-            // skip saving 
-          }
-          else {
-            this->out(bVal);
-          }
-          return (*this);
-      }
-      
-
-      void VersionWrite(int mver) {
-          if (use_versions) {
-            if (cluster_class_versions){
-                this->class_versions["test"]=mver;
-            } else
-            {
-                this->out(ChNameValue<int>("_version",mver));
-            }
-          }
-      }
-      */
       
   protected:
       
@@ -1005,7 +936,7 @@ class  ChArchiveIn : public ChArchive {
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for pointed objects 
-      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+      //virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
       virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for wrapping arrays and lists
@@ -1105,22 +1036,9 @@ class  ChArchiveIn : public ChArchive {
           this->in_array_end(bVal.name());
       }
 
-
-        // trick to call in_ref on ChSharedPointer, with class polimorphism:
+         // trick to call in_ref on ChSharedPointer:
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type 
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
-          T* mptr;
-          ChFunctorArchiveInSpecificPtrPolimorphic<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
-          this->in_ref_polimorphic(mtmp);
-          bVal.value() = std::shared_ptr<T> ( mptr );
-      }
-
-         // trick to call in_ref on ChSharedPointer (no class polimorphism):
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
+      void in     (ChNameValue< std::shared_ptr<T> > bVal) {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
@@ -1128,18 +1046,10 @@ class  ChArchiveIn : public ChArchive {
           bVal.value() = std::shared_ptr<T> ( mptr );
       }
 
-        // trick to call in_ref on plain pointers, with class polimorphism:
+        // trick to call in_ref on raw pointers:
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
-          ChFunctorArchiveInSpecificPtrPolimorphic<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref_polimorphic(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
-      }
-
-        // trick to call in_ref on plain pointers (no class polimorphism):
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
+      //typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
+      void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value(), &T::ArchiveIN);
           this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
