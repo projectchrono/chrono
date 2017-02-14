@@ -31,6 +31,10 @@ namespace chrono {
 /// the case of an ideal constraint.
 
 class ChApi ChLinkBushing : public ChLinkLock {
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChLinkBushing)
+
   public:
     enum bushing_joint {
         Mount,      ///< Mount bushing: 6 compliant degrees of freedom

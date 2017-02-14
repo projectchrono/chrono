@@ -52,6 +52,10 @@ class ChApi ChContinuumMaterial {
 /// This is a base material with isotropic hookean elasticity.
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumElastic)
+
   private:
     double E;                              ///< Young Modulus
     double v;                              ///< Poisson ratio
