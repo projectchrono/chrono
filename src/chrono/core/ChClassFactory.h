@@ -40,6 +40,7 @@
 #include <cstdio>
 #include <string>
 #include <typeinfo>
+#include <typeindex>
 #include <unordered_map>
 
 #include "chrono/core/ChLog.h"
@@ -63,6 +64,11 @@ public:
     /// otherwise just call new().
     virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
 
+    /// Get the type_info of the class
+    virtual std::type_index  get_type_info() = 0;
+
+    /// Get the name used for registering
+    virtual std::string& get_conventional_name() = 0;
 };
 
 
@@ -110,6 +116,20 @@ class ChApi ChClassFactory {
             DisposeGlobalClassFactory();
     }
 
+    /// Tell if a class is registered, from its name
+    static bool IsClassRegistered(std::string& keyName) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_IsClassRegistered(keyName);
+    }
+
+    /// Tell the conventional name of a class of an object. 
+    /// This is the mnemonic name, given at registration, not the typeid.name().
+    template <class T>
+    static std::string& GetClassConventionalName(T& obj) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_GetClassConventionalName(obj);
+    }
+
     /// Create from tag name, for registered classes.
     /// The created object is returned in "ptr"
     template <class T>
@@ -138,11 +158,13 @@ private:
     void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
     {
        class_map[keyName] = mregistration;
-       //GetLog() << " register class: " << keyName << "\n";
+       class_map_typeids[mregistration->get_type_info()] = mregistration;
     }
 
     void _ClassUnregister(std::string& keyName)
     {
+       // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." << class_map_typeids.size() << "\n";
+       class_map_typeids.erase(class_map[keyName]->get_type_info());
        class_map.erase(keyName);
     }
 
@@ -154,6 +176,15 @@ private:
             return false;
     }
 
+    template <class T>
+    std::string& _GetClassConventionalName(T& obj) {
+        const auto &it = class_map_typeids.find(std::type_index(typeid(T)));
+        if (it != class_map_typeids.end()) {
+            return it->second->get_conventional_name();
+        }
+        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class of given object. Please register it.\n") );
+    }
+
     size_t _GetNumberOfRegisteredClasses() {
         return class_map.size();
     }
@@ -163,18 +194,19 @@ private:
         if (it != class_map.end()) {
             return it->second->create();
         }
-        throw ("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n" );
+        throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
     void* _archive_in_create(std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
             return it->second->archive_in_create(marchive);
         }
-        throw ("ChClassFactory::archive_in_create() cannot find the class with name " + keyName + ". Please register it.\n" );
+        throw ( ChException("ChClassFactory::archive_in_create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
 
 private:
     std::unordered_map<std::string, ChClassRegistrationBase*> class_map;
+    std::unordered_map<std::type_index, ChClassRegistrationBase*> class_map_typeids;
 };
 
 
@@ -232,6 +264,14 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _archive_in_create(marchive);
     }
  
+    virtual std::type_index get_type_info() {
+        return std::type_index(typeid(t));
+    }
+
+    virtual std::string& get_conventional_name() {
+        return _get_conventional_name();
+    }
+
 protected:
 
     template <class Tc=t>
@@ -254,6 +294,10 @@ protected:
     typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void* >::type 
     _archive_in_create(ChArchiveIn& marchive) {
         return reinterpret_cast<void*>(new Tc);
+    }
+
+    std::string& _get_conventional_name() {
+        return m_sConventionalName;
     }
 
 };
