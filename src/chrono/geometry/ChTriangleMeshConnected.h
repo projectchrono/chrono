@@ -32,6 +32,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChTriangleMeshConnected)
 
+  public:
     std::vector<ChVector<double>> m_vertices;
     std::vector<ChVector<double>> m_normals;
     std::vector<ChVector<double>> m_UV;
