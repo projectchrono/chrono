@@ -170,8 +170,10 @@ class  ChArchiveInBinary : public ChArchiveIn {
           bVal.value().CallArchiveIn(*this);
       }
 
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
+          void* new_ptr = nullptr;
+
           std::string cls_name;
           (*istream) >> cls_name;
 
@@ -208,8 +210,10 @@ class  ChArchiveInBinary : public ChArchiveIn {
             } else {
                 throw(ChExceptionArchive("Archive cannot create object" + cls_name + "\n"));
             }
+            new_ptr = bVal.value().GetRawPtr();
           } 
 
+          return new_ptr;
       }
 
   protected:

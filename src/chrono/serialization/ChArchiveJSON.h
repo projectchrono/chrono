@@ -431,9 +431,11 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.pop();
       }
 
-        // for objects to construct
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
+        // for objects to construct, return non-null ptr if new object, return null ptr if just reused obj
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
+            void* new_ptr = nullptr;
+
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
             this->levels.push(mval);
@@ -463,7 +465,6 @@ class  ChArchiveInJSON : public ChArchiveIn {
 
             if (!is_reference) {
                 // 2) Dynamically create 
-                //bVal.value().CallNew(*this);
                 // call new(), or deserialize constructor params+call new():
                 bVal.value().CallArchiveInConstructor(*this, cls_name.c_str());
             
@@ -475,8 +476,9 @@ class  ChArchiveInJSON : public ChArchiveIn {
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object " + std::string(bVal.name()) +"\n"));
                 }
-
-            } else {
+                new_ptr = bVal.value().GetRawPtr();
+            } 
+            else {
                 if (this->internal_id_ptr.find(ref_ID) == this->internal_id_ptr.end()) {
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is not a valid number." ));
                 }
@@ -492,6 +494,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->levels.pop();
             this->level = this->levels.top();
             this->is_array.pop();
+
+            return new_ptr;
       }
 
 

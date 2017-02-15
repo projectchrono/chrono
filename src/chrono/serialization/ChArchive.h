@@ -646,16 +646,22 @@ class  ChArchiveOut : public ChArchive {
         /// The cut pointers are serialized as null pointers.
         std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
 
-        /// Access the container of pointers that must not be serialized
-        /// but rather be be 'cut' and become identifiers to external objects, with unique IDs.
+
+        /// Use the following to declare pointer(s) that must not be de-serialized
+        /// but rather be 'unbind' and be saved just as unique IDs.
         /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
-        /// Note, the same IDs must be done when re-linking pointers in the ArchiveIN.
-        /// Note, there is no check on pointer types when doing re-linking.
-        /// Works also for shared pointers, but remember to store
-        /// the embedded pointer, not the shared pointer itself. For example:
-        ///    myarchive.ExternalPointers()[my_raw_pointer] = 1234; // normal pointers
-        ///    myarchive.ExternalPointers()[my_shared_pointer.get()] = 221;  // shared pointers
-        std::unordered_map<void*, size_t>&  ExternalPointers() {return external_ptr_id;}
+        /// Note, the same IDs must be used when de-serializing pointers in ArchiveIN.
+        void UnbindExternalPointer(void* mptr, size_t ID) {
+            external_ptr_id[mptr] = ID;
+        }
+        /// Use the following to declare pointer(s) that must not be de-serialized
+        /// but rather be 'unbind' and be saved just as unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when de-serializing pointers in ArchiveIN.
+        void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
+            external_ptr_id[mptr.get()] = ID;
+        }
+
 
      protected:
 
@@ -904,6 +910,8 @@ class  ChArchiveIn : public ChArchive {
         std::unordered_map<size_t, void*>  internal_id_ptr;
         size_t currentID;
 
+        std::unordered_map<void*, std::shared_ptr<void> >  shared_ptr_map;
+
         /// container of pointers marker with external IDs to re-bind instead of de-serializing
         std::unordered_map<size_t, void*>  external_id_ptr;
   public:
@@ -919,17 +927,24 @@ class  ChArchiveIn : public ChArchive {
 
         virtual ~ChArchiveIn() {};
 
-        /// Access the container of object IDs that must not be de-serialized
-        /// but rather be 're-linked' to already-existing external objects, given unique IDs.
+
+        /// Use the following to declare object IDs that must not be de-serialized
+        /// but rather be 'rebind' to already-existing external pointers, given unique IDs.
         /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
         /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
-        /// Note, there is no check on pointer types when doing re-linking.
-        /// Works also for shared pointers, but remember to use
-        /// the embedded pointer, not the shared pointer itself. For example:
-        ///    myarchive.ExternalPointers()[1234] = my_raw_pointer; // normal pointers
-        ///    myarchive.ExternalPointers()[221] = my_shared_pointer.get();  // shared pointers
-        std::unordered_map<size_t, void*>&  ExternalPointers() {return external_id_ptr;}
-
+        /// Note, there is no check on pointer types when rebinding!
+        void RebindExternalPointer(void* mptr, size_t ID) {
+            external_id_ptr[ID] = mptr;
+        }
+        /// Use the following to declare object IDs that must not be de-serialized
+        /// but rather be 'rebind' to already-existing external shared pointers, given unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
+        /// Note, there is no check on pointer types when rebinding!
+        void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
+            external_id_ptr[ID] = mptr.get();
+            shared_ptr_map[mptr.get()] = mptr;
+        }
 
   protected:
         /// Find a pointer in pointer map: eventually add it to map if it
@@ -973,9 +988,8 @@ class  ChArchiveIn : public ChArchive {
         // for custom C++ objects - see 'wrapping' trick below
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
-        // for pointed objects 
-      //virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+        // for pointed objects (return pointer of created object if new allocation, if reused just return null)
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) = 0;
@@ -1080,8 +1094,26 @@ class  ChArchiveIn : public ChArchive {
           T* mptr;
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
-          this->in_ref(mtmp);
-          bVal.value() = std::shared_ptr<T> ( mptr );
+          void* newptr = this->in_ref(mtmp);
+
+          // Some additional complication respect to raw pointers: 
+          // it must properly increment shared count of shared pointers.
+          if(newptr) {
+              // case A: new object, so just make a shared ptr with initial count=1
+              bVal.value() = std::shared_ptr<T> ( mptr ); 
+              this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
+          }
+          else {
+              if (this->shared_ptr_map.find(mptr) != this->shared_ptr_map.end()) {
+                  // case B1: preexisting object, previously referenced by a shared ptr, so increment ref count
+                  bVal.value() = std::static_pointer_cast<T>(shared_ptr_map[mptr]);
+              }
+              else {
+                  // case B2: preexisting object, but not referenced by shared ptr (maybe by some raw ptr) so just make a shared ptr with initial count=1
+                  bVal.value() = std::shared_ptr<T> ( mptr ); 
+                  this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
+              }
+          }
       }
 
         // trick to call in_ref on raw pointers:
@@ -1089,7 +1121,7 @@ class  ChArchiveIn : public ChArchive {
       //typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
       void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
-          this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+          void* newptr = this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":

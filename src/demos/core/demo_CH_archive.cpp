@@ -375,7 +375,7 @@ void my_serialization_example(ChArchiveOut& marchive)
         vect_of_pointers.push_back(mvp1);
         vect_of_pointers.push_back(mvp2);
         // define that some object should not be serialized, but rather marked with ID for later rebinding
-        marchive.ExternalPointers()[mvp1] = 1001; // use unique identifier > 0
+        marchive.UnbindExternalPointer(mvp1, 1001); // use unique identifier > 0
         marchive << CHNVP(vect_of_pointers);
 
         delete a_boss;
@@ -459,7 +459,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         // marking them with unique IDs. Assume a ChVector is already here. 
         std::vector<ChVector<>*> vect_of_pointers;
         ChVector<>* mvp1 = new ChVector<>(5,6,7);
-        marchive.ExternalPointers()[1001] = mvp1; // use same unique identifier used in serializing!
+        marchive.RebindExternalPointer(mvp1, 1001); // use unique identifier > 0
         marchive >> CHNVP(vect_of_pointers);
 
 
@@ -480,7 +480,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
             GetLog() << a_boss;
-
+        }
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
             GetLog() << a_boss2;
@@ -501,19 +501,11 @@ void my_deserialization_example(ChArchiveIn& marchive)
         GetLog() << *vect_of_pointers[0];
         GetLog() << *vect_of_pointers[1];
 
-            // By the way, now show how the CH_FACTORY_TAG macro has added
-            // a static function  FactoryClassNameTag() and a virtual function
-            // FactoryNameTag() that can be used to retrieve the class name 
-            // of an object in run time, as a string. Differently from the default
-            // C++ approach of typeid(myobject).name(), this is not depending on the
-            // compiler/platform.
 
-            GetLog() << "\n";
-            GetLog() << "loaded object is a myEmployee?     :" << (myEmployee::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
-            GetLog() << "loaded object is a myEmployeeBoss? :" << (myEmployeeBoss::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
-            GetLog() << "Ok! we loaded an object with compiler-independent class name: " << a_boss->FactoryNameTag() << "\n";
-            delete a_boss;
-        }
+        GetLog() << "\n";
+        GetLog() << "loaded object is a myEmployee?     :" << (dynamic_cast<myEmployee*>(a_boss) !=nullptr) << "\n";
+        GetLog() << "loaded object is a myEmployeeBoss? :" << (dynamic_cast<myEmployeeBoss*>(a_boss) !=nullptr) << "\n";
+        delete a_boss;
 }
 
 
