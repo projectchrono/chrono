@@ -60,12 +60,12 @@ public:
     /// The signature of create method for derived classes. Calls new().
     virtual void* create() = 0;
 
-    /// Call the ArchiveInCreate(ChArchiveIn&) function if available (deserializes constructor params and return new()),
+    /// Call the ArchiveINconstructor(ChArchiveIn&) function if available (deserializes constructor params and return new()),
     /// otherwise just call new().
-    virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
+    virtual void* create(ChArchiveIn& marchive) = 0;
 
     /// Get the type_info of the class
-    virtual std::type_index  get_type_info() = 0;
+    virtual std::type_index  get_type_index() = 0;
 
     /// Get the name used for registering
     virtual std::string& get_conventional_name() = 0;
@@ -139,10 +139,10 @@ class ChApi ChClassFactory {
     }
 
     /// Create from tag name, for registered classes.
-    /// If a static T* ArchiveInCreate(ChArchiveIn&) function is available, call it instead.
+    /// If a static T* ArchiveINconstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
-    static void archive_in_create(std::string& keyName, ChArchiveIn& marchive, T** ptr) {
+    static void create(std::string& keyName, ChArchiveIn& marchive, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
     }
@@ -158,13 +158,13 @@ private:
     void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
     {
        class_map[keyName] = mregistration;
-       class_map_typeids[mregistration->get_type_info()] = mregistration;
+       class_map_typeids[mregistration->get_type_index()] = mregistration;
     }
 
     void _ClassUnregister(std::string& keyName)
     {
        // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." << class_map_typeids.size() << "\n";
-       class_map_typeids.erase(class_map[keyName]->get_type_info());
+       class_map_typeids.erase(class_map[keyName]->get_type_index());
        class_map.erase(keyName);
     }
 
@@ -199,9 +199,9 @@ private:
     void* _archive_in_create(std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
-            return it->second->archive_in_create(marchive);
+            return it->second->create(marchive);
         }
-        throw ( ChException("ChClassFactory::archive_in_create() cannot find the class with name " + keyName + ". Please register it.\n") );
+        throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
 
 private:
@@ -260,11 +260,11 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _create();
     }
 
-    virtual void* archive_in_create(ChArchiveIn& marchive) {
+    virtual void* create(ChArchiveIn& marchive) {
         return _archive_in_create(marchive);
     }
  
-    virtual std::type_index get_type_info() {
+    virtual std::type_index get_type_index() {
         return std::type_index(typeid(t));
     }
 

@@ -165,7 +165,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
           if (bVal.flags() & NVP_TRACK_OBJECT){
               bool already_stored; size_t obj_ID;
-              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
+              PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
           }
           bVal.value().CallArchiveIn(*this);
       }
@@ -183,7 +183,7 @@ class  ChArchiveInBinary : public ChArchiveIn {
             if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
 
-            bVal.value().CallSetRawPtr(*this, internal_id_ptr[obj_ID]);
+            bVal.value().SetRawPtr(internal_id_ptr[obj_ID]);
           }
           else if (cls_name == "eID") {
             size_t ext_ID = 0;
@@ -193,16 +193,16 @@ class  ChArchiveInBinary : public ChArchiveIn {
             if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
                     throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
 
-            bVal.value().CallSetRawPtr(*this, external_id_ptr[ext_ID]);
+            bVal.value().SetRawPtr(external_id_ptr[ext_ID]);
           }
           else {
             // Dynamically create (no class factory will be invoked for non-polimorphic obj):
             // call new(), or deserialize constructor params+call new():
             bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
-            if (bVal.value().CallGetRawPtr(*this)) {
+            if (bVal.value().GetRawPtr()) {
                 bool already_stored; size_t obj_ID;
-                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, obj_ID);
+                PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
