@@ -66,7 +66,8 @@ Name: "{group}\Demos"; Filename: "{app}\src\demos\python\"
 Name: "{group}\Uninstall"; Filename: "{uninstallexe}"
 
 [Registry]
-Root: "HKCU"; Subkey: "Environment"; ValueType: string; ValueName: "PYTHONPATH"; ValueData: "{olddata};{app}"; Check: NeedsAddPath(ExpandConstant('{app}')); 
+Root: "HKCU"; Subkey: "Environment"; ValueType: string; ValueName: "PYTHONPATH"; ValueData: "{app}"; Flags: createvalueifdoesntexist;
+Root: "HKCU"; Subkey: "Environment"; ValueType: string; ValueName: "PYTHONPATH"; ValueData: "{olddata};{app}"; Flags: dontcreatekey; Check: NeedsAddPath(ExpandConstant('{app}'))
 
 [Code]
 var
@@ -365,7 +366,7 @@ begin
      Result := False;
   end;
 
-  MsgBox('NeedsAddPath returns:'#13#13 + IntToStr(Integer(Result)), mbInformation, MB_OK);
+  //MsgBox('NeedsAddPath returns:'#13#13 + IntToStr(Integer(Result)), mbInformation, MB_OK);
 end;
 
 

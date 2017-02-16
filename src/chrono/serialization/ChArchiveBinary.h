@@ -83,6 +83,7 @@ class  ChArchiveOutBinary : public ChArchiveOut {
             // New Object, we have to full serialize it
             std::string str(classname);
             (*ostream) << str;    // serialize class type as string (platform/compiler independent), for class factory later
+            bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
             // Object already in list. Only store position as ID
@@ -98,6 +99,7 @@ class  ChArchiveOutBinary : public ChArchiveOut {
             // New Object, we have to full serialize it
             std::string str("OBJ"); // not usable for class factory.
             (*ostream) << str;    // serialize class type
+            bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
             // Object already in list. Only store position
@@ -170,12 +172,13 @@ class  ChArchiveInBinary : public ChArchiveIn {
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
           if (bVal.flags() & NVP_TRACK_OBJECT){
-              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+              bool already_stored; size_t pos;
+              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
           }
           bVal.value().CallArchiveIn(*this);
       }
 
-      // for pointed objects (if position != -1 , pointer has been already serialized)
+      // for pointed objects 
       virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
           std::string cls_name;
@@ -183,10 +186,13 @@ class  ChArchiveInBinary : public ChArchiveIn {
 
           if (!(cls_name == "POS")) {
             // 2) Dynamically create using class factory
-            bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
+            //bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
+              // call new(), or deserialize constructor params+call new():
+            bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
             if (bVal.value().CallGetRawPtr(*this)) {
-                objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+                bool already_stored; size_t pos;
+                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {
@@ -208,11 +214,14 @@ class  ChArchiveInBinary : public ChArchiveIn {
           (*istream) >> cls_name;
 
           if (!(cls_name == "POS")) {
-            // 2) Dynamically create using class factory
-            bVal.value().CallNew(*this);
-            
+            // 2) Dynamically create - no class factory
+            //bVal.value().CallNew(*this);
+              // call new(), or deserialize constructor params+call new():
+            bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
+
             if (bVal.value().CallGetRawPtr(*this)) {
-                objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+                bool already_stored; size_t pos;
+                PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
                 // 3) Deserialize
                 bVal.value().CallArchiveIn(*this);
             } else {

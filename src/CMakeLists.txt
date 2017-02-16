@@ -436,5 +436,5 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                @ONLY)
 
 install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
-        DESTINATION cmake
+        DESTINATION lib64/cmake
         RENAME ChronoConfig.cmake)

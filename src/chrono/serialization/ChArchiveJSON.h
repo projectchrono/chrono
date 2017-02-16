@@ -251,6 +251,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
 
             // New Object, we have to full serialize it
+            bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
             comma_cr();
@@ -287,6 +288,7 @@ class  ChArchiveOutJSON : public ChArchiveOut {
             ++nitems.top();
           
             // New Object, we have to full serialize it
+            bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
             comma_cr();
@@ -441,7 +443,8 @@ class  ChArchiveInJSON : public ChArchiveIn {
             if (!mval->IsObject()) {throw (ChExceptionArchive( "Invalid object {...} after '"+std::string(bVal.name())+"'"));}
 
             if (bVal.flags() & NVP_TRACK_OBJECT){
-              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+              bool already_stored; size_t pos;
+              PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);  
             }
             
             this->levels.push(mval);
@@ -455,7 +458,7 @@ class  ChArchiveInJSON : public ChArchiveIn {
             this->is_array.pop();
       }
 
-      // for pointed objects (if position != -1 , pointer has been already serialized)
+      // for pointed objects 
       virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
       {
             rapidjson::Value* mval = GetValueFromNameOrArray(bVal.name());
@@ -479,10 +482,13 @@ class  ChArchiveInJSON : public ChArchiveIn {
              
             if (!is_reference) {
                 // 2) Dynamically create using class factory
-                bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
+                //bVal.value().CallNewPolimorphic(*this, cls_name.c_str());
+                // call new(), or deserialize constructor params+call new():
+                bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
 
                 if (bVal.value().CallGetRawPtr(*this)) {
-                    objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+                    bool already_stored; size_t pos;
+                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
@@ -490,7 +496,9 @@ class  ChArchiveInJSON : public ChArchiveIn {
             }
 
             } else {
-                if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID is larger than pointer array"));}
+                if (ref_ID >= objects_pointers.size()) {
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the _reference_ID " + std::to_string((int)ref_ID) +" is larger than pointer array" + std::to_string((int)objects_pointers.size())));
+                }
                 bVal.value().CallSetRawPtr(*this, objects_pointers[ref_ID]);
             }
             this->levels.pop();
@@ -516,15 +524,18 @@ class  ChArchiveInJSON : public ChArchiveIn {
 
             if (!is_reference) {
                 // 2) Dynamically create 
-                bVal.value().CallNew(*this);
+                //bVal.value().CallNew(*this);
+                // call new(), or deserialize constructor params+call new():
+                bVal.value().CallArchiveInConstructor(*this, "");
             
                 if (bVal.value().CallGetRawPtr(*this)) {
-                    objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+                    bool already_stored; size_t pos;
+                    PutPointer(bVal.value().CallGetRawPtr(*this), already_stored, pos);
                     // 3) Deserialize
                     bVal.value().CallArchiveIn(*this);
                 } else {
                     throw(ChExceptionArchive("Archive cannot create object"));
-            }
+                }
 
             } else {
                 if (ref_ID >= objects_pointers.size()) {throw (ChExceptionArchive( "Object _reference_ID is larger than pointer array"));}
