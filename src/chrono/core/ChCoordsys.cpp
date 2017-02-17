@@ -20,8 +20,8 @@ Coordsys Force2Dcsys(const Coordsys& cs) {
     Coordsys res;
     res = cs;
     res.pos.z() = 0;
-    res.rot.e1 = 0;
-    res.rot.e2 = 0;
+    res.rot.e1() = 0;
+    res.rot.e2() = 0;
     return (res);
 }
 

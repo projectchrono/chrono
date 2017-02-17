@@ -145,8 +145,8 @@ bool ChSystemParallel::Integrate_Y() {
 
             // update the position and rotation vectors
             pos_pointer[i] = (real3(bodylist[i]->GetPos().x(), bodylist[i]->GetPos().y(), bodylist[i]->GetPos().z()));
-            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2,
-                                         bodylist[i]->GetRot().e3));
+            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0(), bodylist[i]->GetRot().e1(),
+                                         bodylist[i]->GetRot().e2(), bodylist[i]->GetRot().e3()));
         }
     }
 
@@ -413,7 +413,7 @@ void ChSystemParallel::UpdateRigidBodies() {
         data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
 
         position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
-        rotation[i] = quaternion(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+        rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = bodylist[i]->IsActive();
         collide[i] = bodylist[i]->GetCollide();

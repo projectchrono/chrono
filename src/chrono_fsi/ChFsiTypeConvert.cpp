@@ -43,7 +43,7 @@ Real4 ChFsiTypeConvert::ChVectorRToReal4(chrono::ChVector<> v3, Real m) {
 }
 
 Real4 ChFsiTypeConvert::ChQuaternionToReal4(chrono::ChQuaternion<> q4) {
-  return mR4(q4.e0, q4.e1, q4.e2, q4.e3);
+  return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
 }
 
 } // end namespace fsi

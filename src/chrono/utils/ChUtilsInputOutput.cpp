@@ -179,8 +179,8 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Read body position, orientation, and their time derivatives
         ChVector<> bpos, bpos_dt;
         ChQuaternion<> brot, brot_dt;
-        iss1 >> bpos.x() >> bpos.y() >> bpos.z() >> brot.e0 >> brot.e1 >> brot.e2 >> brot.e3;
-        iss1 >> bpos_dt.x() >> bpos_dt.y() >> bpos_dt.z() >> brot_dt.e0 >> brot_dt.e1 >> brot_dt.e2 >> brot_dt.e3;
+        iss1 >> bpos.x() >> bpos.y() >> bpos.z() >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
+        iss1 >> bpos_dt.x() >> bpos_dt.y() >> bpos_dt.z() >> brot_dt.e0() >> brot_dt.e1() >> brot_dt.e2() >> brot_dt.e3();
 
         // Get the next line in the file (material properties)
         std::getline(ifile, line);
@@ -234,7 +234,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             // Get relative position and rotation
             ChVector<> apos;
             ChQuaternion<> arot;
-            iss >> apos.x() >> apos.y() >> apos.z() >> arot.e0 >> arot.e1 >> arot.e2 >> arot.e3;
+            iss >> apos.x() >> apos.y() >> apos.z() >> arot.e0() >> arot.e1() >> arot.e2() >> arot.e3();
 
             // Get visualization asset type and geometry data.
             // Create the appropriate shape (both visualization and contact).

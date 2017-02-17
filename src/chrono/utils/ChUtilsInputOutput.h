@@ -106,7 +106,7 @@ inline CSV_writer& operator<<(CSV_writer& out, const ChVector<T>& v) {
 
 template <typename T>
 inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<T>& q) {
-  out << q.e0 << q.e1 << q.e2 << q.e3;
+  out << q.e0() << q.e1() << q.e2() << q.e3();
   return out;
 }
 

@@ -600,10 +600,10 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 assets_file << "," << myobjshapeasset->GetBoxGeometry().Size.z() << ">\n";
 
                 ChQuaternion<> boxrot = myobjshapeasset->GetBoxGeometry().Rot.Get_A_quaternion();
-                assets_file << " quatRotation(<" << boxrot.e0;
-                assets_file << "," << boxrot.e1;
-                assets_file << "," << boxrot.e2;
-                assets_file << "," << boxrot.e3 << ">) \n";
+                assets_file << " quatRotation(<" << boxrot.e0();
+                assets_file << "," << boxrot.e1();
+                assets_file << "," << boxrot.e2();
+                assets_file << "," << boxrot.e3() << ">) \n";
                 assets_file << " translate  <" << myobjshapeasset->GetBoxGeometry().Pos.x();
                 assets_file << "," << myobjshapeasset->GetBoxGeometry().Pos.y();
                 assets_file << "," << myobjshapeasset->GetBoxGeometry().Pos.z() << "> \n";
@@ -744,10 +744,10 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
 
     // write the rotation and position
     if (!(parentframe.GetCoord() == CSYSNORM)) {
-        mfilepov << " quatRotation(<" << parentframe.GetRot().e0;
-        mfilepov << "," << parentframe.GetRot().e1;
-        mfilepov << "," << parentframe.GetRot().e2;
-        mfilepov << "," << parentframe.GetRot().e3 << ">) \n";
+        mfilepov << " quatRotation(<" << parentframe.GetRot().e0();
+        mfilepov << "," << parentframe.GetRot().e1();
+        mfilepov << "," << parentframe.GetRot().e2();
+        mfilepov << "," << parentframe.GetRot().e3() << ">) \n";
         mfilepov << " translate  <" << parentframe.GetPos().x();
         mfilepov << "," << parentframe.GetPos().y();
         mfilepov << "," << parentframe.GetPos().z() << "> \n";
@@ -816,16 +816,16 @@ void ChPovRay::ExportData(const std::string& filename) {
                     const ChCoordsys<>& cogcsys = mybody->GetFrame_COG_to_abs().GetCoord();
                     mfilepov << "sh_csysCOG(";
                     mfilepov << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
-                    mfilepov << cogcsys.rot.e0 << "," << cogcsys.rot.e1 << "," << cogcsys.rot.e2 << ","
-                             << cogcsys.rot.e3 << ",";
+                    mfilepov << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
+                             << cogcsys.rot.e3() << ",";
                     mfilepov << this->COGs_size << ")\n";
                 }
                 // Show body frame ref?
                 if (this->frames_show) {
                     mfilepov << "sh_csysFRM(";
                     mfilepov << assetcsys.pos.x() << "," << assetcsys.pos.y() << "," << assetcsys.pos.z() << ",";
-                    mfilepov << assetcsys.rot.e0 << "," << assetcsys.rot.e1 << "," << assetcsys.rot.e2 << ","
-                             << assetcsys.rot.e3 << ",";
+                    mfilepov << assetcsys.rot.e0() << "," << assetcsys.rot.e1() << "," << assetcsys.rot.e2() << ","
+                             << assetcsys.rot.e3() << ",";
                     mfilepov << this->frames_size << ")\n";
                 }
             }
@@ -856,10 +856,10 @@ void ChPovRay::ExportData(const std::string& filename) {
                     mfiledat << assetcsys.pos.x() << ", ";
                     mfiledat << assetcsys.pos.y() << ", ";
                     mfiledat << assetcsys.pos.z() << ", ";
-                    mfiledat << assetcsys.rot.e0 << ", ";
-                    mfiledat << assetcsys.rot.e1 << ", ";
-                    mfiledat << assetcsys.rot.e2 << ", ";
-                    mfiledat << assetcsys.rot.e3 << ", \n";
+                    mfiledat << assetcsys.rot.e0() << ", ";
+                    mfiledat << assetcsys.rot.e1() << ", ";
+                    mfiledat << assetcsys.rot.e2() << ", ";
+                    mfiledat << assetcsys.rot.e3() << ", \n";
                 }  // end loop on particles
             }
 
@@ -870,13 +870,13 @@ void ChPovRay::ExportData(const std::string& filename) {
                     ChFrame<> frBabs = mylinkmate->GetFrame2() >> *mylinkmate->GetBody2();
                     mfilepov << "sh_csysFRM(";
                     mfilepov << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
-                    mfilepov << frAabs.GetRot().e0 << "," << frAabs.GetRot().e1 << "," << frAabs.GetRot().e2 << ","
-                             << frAabs.GetRot().e3 << ",";
+                    mfilepov << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2() << ","
+                             << frAabs.GetRot().e3() << ",";
                     mfilepov << this->links_size * 0.7 << ")\n";  // smaller, as 'slave' csys.
                     mfilepov << "sh_csysFRM(";
                     mfilepov << frBabs.GetPos().x() << "," << frBabs.GetPos().y() << "," << frBabs.GetPos().z() << ",";
-                    mfilepov << frBabs.GetRot().e0 << "," << frBabs.GetRot().e1 << "," << frBabs.GetRot().e2 << ","
-                             << frBabs.GetRot().e3 << ",";
+                    mfilepov << frBabs.GetRot().e0() << "," << frBabs.GetRot().e1() << "," << frBabs.GetRot().e2() << ","
+                             << frBabs.GetRot().e3() << ",";
                     mfilepov << this->links_size << ")\n";
                 }
             }

@@ -175,8 +175,8 @@ class ChCoordsys {
     /// Force to z=0, and z rotation only. No normalization to quaternion, however.
     void Force2D() {
         pos.z() = 0;
-        rot.e1 = 0;
-        rot.e2 = 0;
+        rot.e1() = 0;
+        rot.e2() = 0;
     }
 
     /// Returns true if coordsys is identical to other coordsys

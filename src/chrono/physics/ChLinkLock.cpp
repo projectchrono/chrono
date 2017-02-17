@@ -787,11 +787,11 @@ void ChLinkLock::UpdateState() {
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(3, 0));
 
-        C->SetElement(index, 0, relC.rot.e0);
-        C_dt->SetElement(index, 0, relC_dt.rot.e0);
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e0);
+        C->SetElement(index, 0, relC.rot.e0());
+        C_dt->SetElement(index, 0, relC_dt.rot.e0());
+        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e0());
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e0);
+        Ct->SetElement(index, 0, Ct_temp.rot.e0());
 
         index++;
     }
@@ -803,11 +803,11 @@ void ChLinkLock::UpdateState() {
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(4, 0));
 
-        C->SetElement(index, 0, relC.rot.e1);
-        C_dt->SetElement(index, 0, relC_dt.rot.e1);
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e1);
+        C->SetElement(index, 0, relC.rot.e1());
+        C_dt->SetElement(index, 0, relC_dt.rot.e1());
+        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e1());
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e1);
+        Ct->SetElement(index, 0, Ct_temp.rot.e1());
 
         index++;
     }
@@ -819,11 +819,11 @@ void ChLinkLock::UpdateState() {
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(5, 0));
 
-        C->SetElement(index, 0, relC.rot.e2);
-        C_dt->SetElement(index, 0, relC_dt.rot.e2);
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e2);
+        C->SetElement(index, 0, relC.rot.e2());
+        C_dt->SetElement(index, 0, relC_dt.rot.e2());
+        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e2());
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e2);
+        Ct->SetElement(index, 0, Ct_temp.rot.e2());
 
         index++;
     }
@@ -835,11 +835,11 @@ void ChLinkLock::UpdateState() {
 
         Qc->SetElement(index, 0, Qc_temp->GetElement(6, 0));
 
-        C->SetElement(index, 0, relC.rot.e3);
-        C_dt->SetElement(index, 0, relC_dt.rot.e3);
-        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e3);
+        C->SetElement(index, 0, relC.rot.e3());
+        C_dt->SetElement(index, 0, relC_dt.rot.e3());
+        C_dtdt->SetElement(index, 0, relC_dtdt.rot.e3());
 
-        Ct->SetElement(index, 0, Ct_temp.rot.e3);
+        Ct->SetElement(index, 0, Ct_temp.rot.e3());
 
         index++;
     }
@@ -966,40 +966,40 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     Body1->SetMatrix_Gl(Gl_q2, q2);
 
     ChMatrixNM<double, 4, 4> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
-    Chi__q1p_barT(0, 0) = q1p.e0;
-    Chi__q1p_barT(0, 1) = q1p.e1;
-    Chi__q1p_barT(0, 2) = q1p.e2;
-    Chi__q1p_barT(0, 3) = q1p.e3;
-    Chi__q1p_barT(1, 0) = q1p.e1;
-    Chi__q1p_barT(1, 1) = -q1p.e0;
-    Chi__q1p_barT(1, 2) = q1p.e3;
-    Chi__q1p_barT(1, 3) = -q1p.e2;
-    Chi__q1p_barT(2, 0) = q1p.e2;
-    Chi__q1p_barT(2, 1) = -q1p.e3;
-    Chi__q1p_barT(2, 2) = -q1p.e0;
-    Chi__q1p_barT(2, 3) = q1p.e1;
-    Chi__q1p_barT(3, 0) = q1p.e3;
-    Chi__q1p_barT(3, 1) = q1p.e2;
-    Chi__q1p_barT(3, 2) = -q1p.e1;
-    Chi__q1p_barT(3, 3) = -q1p.e0;
+    Chi__q1p_barT(0, 0) = q1p.e0();
+    Chi__q1p_barT(0, 1) = q1p.e1();
+    Chi__q1p_barT(0, 2) = q1p.e2();
+    Chi__q1p_barT(0, 3) = q1p.e3();
+    Chi__q1p_barT(1, 0) = q1p.e1();
+    Chi__q1p_barT(1, 1) = -q1p.e0();
+    Chi__q1p_barT(1, 2) = q1p.e3();
+    Chi__q1p_barT(1, 3) = -q1p.e2();
+    Chi__q1p_barT(2, 0) = q1p.e2();
+    Chi__q1p_barT(2, 1) = -q1p.e3();
+    Chi__q1p_barT(2, 2) = -q1p.e0();
+    Chi__q1p_barT(2, 3) = q1p.e1();
+    Chi__q1p_barT(3, 0) = q1p.e3();
+    Chi__q1p_barT(3, 1) = q1p.e2();
+    Chi__q1p_barT(3, 2) = -q1p.e1();
+    Chi__q1p_barT(3, 3) = -q1p.e0();
 
     ChMatrixNM<double, 4, 4> qs_tilde;
-    qs_tilde(0, 0) = qs.e0;
-    qs_tilde(0, 1) = -qs.e1;
-    qs_tilde(0, 2) = -qs.e2;
-    qs_tilde(0, 3) = -qs.e3;
-    qs_tilde(1, 0) = qs.e1;
-    qs_tilde(1, 1) = qs.e0;
-    qs_tilde(1, 2) = -qs.e3;
-    qs_tilde(1, 3) = qs.e2;
-    qs_tilde(2, 0) = qs.e2;
-    qs_tilde(2, 1) = qs.e3;
-    qs_tilde(2, 2) = qs.e0;
-    qs_tilde(2, 3) = -qs.e1;
-    qs_tilde(3, 0) = qs.e3;
-    qs_tilde(3, 1) = -qs.e2;
-    qs_tilde(3, 2) = qs.e1;
-    qs_tilde(3, 3) = qs.e0;
+    qs_tilde(0, 0) = qs.e0();
+    qs_tilde(0, 1) = -qs.e1();
+    qs_tilde(0, 2) = -qs.e2();
+    qs_tilde(0, 3) = -qs.e3();
+    qs_tilde(1, 0) = qs.e1();
+    qs_tilde(1, 1) = qs.e0();
+    qs_tilde(1, 2) = -qs.e3();
+    qs_tilde(1, 3) = qs.e2();
+    qs_tilde(2, 0) = qs.e2();
+    qs_tilde(2, 1) = qs.e3();
+    qs_tilde(2, 2) = qs.e0();
+    qs_tilde(2, 3) = -qs.e1();
+    qs_tilde(3, 0) = qs.e3();
+    qs_tilde(3, 1) = -qs.e2();
+    qs_tilde(3, 2) = qs.e1();
+    qs_tilde(3, 3) = qs.e0();
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChMatrixNM<double, 3, 4> Ts;
@@ -1258,31 +1258,31 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
     }
     if (limit_Rx && limit_Rx->Get_active()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->Get_active()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->Get_active()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3()), -recovery_clamp);
             ++local_offset;
         }
     }
@@ -1642,21 +1642,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rx->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_lower.Set_b_i(limit_Rx->constr_lower.Get_b_i() +
-                                               factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1));
+                                               factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1()));
             } else {
                 limit_Rx->constr_lower.Set_b_i(
                     limit_Rx->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1), -recovery_clamp));
+                    ChMax(factor * (-sin(0.5 * limit_Rx->Get_min()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i() +
-                                               factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1));
+                                               factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1()));
             } else {
                 limit_Rx->constr_upper.Set_b_i(
                     limit_Rx->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1), -recovery_clamp));
+                    ChMax(factor * (sin(0.5 * limit_Rx->Get_max()) - relM.rot.e1()), -recovery_clamp));
             }
         }
     }
@@ -1664,21 +1664,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Ry->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_lower.Set_b_i(limit_Ry->constr_lower.Get_b_i() +
-                                               factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2));
+                                               factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2()));
             } else {
                 limit_Ry->constr_lower.Set_b_i(
                     limit_Ry->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2), -recovery_clamp));
+                    ChMax(factor * (-sin(0.5 * limit_Ry->Get_min()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i() +
-                                               factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2));
+                                               factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2()));
             } else {
                 limit_Ry->constr_upper.Set_b_i(
                     limit_Ry->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2), -recovery_clamp));
+                    ChMax(factor * (sin(0.5 * limit_Ry->Get_max()) - relM.rot.e2()), -recovery_clamp));
             }
         }
     }
@@ -1686,21 +1686,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (limit_Rz->constr_lower.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_lower.Set_b_i(limit_Rz->constr_lower.Get_b_i() +
-                                               factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3));
+                                               factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3()));
             } else {
                 limit_Rz->constr_lower.Set_b_i(
                     limit_Rz->constr_lower.Get_b_i() +
-                    ChMax(factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3), -recovery_clamp));
+                    ChMax(factor * (-sin(0.5 * limit_Rz->Get_min()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
             if (!do_clamp) {
                 limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i() +
-                                               factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3));
+                                               factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3()));
             } else {
                 limit_Rz->constr_upper.Set_b_i(
                     limit_Rz->constr_upper.Get_b_i() +
-                    ChMax(factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3), -recovery_clamp));
+                    ChMax(factor * (sin(0.5 * limit_Rz->Get_max()) - relM.rot.e3()), -recovery_clamp));
             }
         }
     }
@@ -1838,40 +1838,40 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     Body1->SetMatrix_Gl(Gl_q2, q2);
 
     ChMatrixNM<double, 4, 4> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
-    Chi__q1p_barT(0, 0) = q1p.e0;
-    Chi__q1p_barT(0, 1) = q1p.e1;
-    Chi__q1p_barT(0, 2) = q1p.e2;
-    Chi__q1p_barT(0, 3) = q1p.e3;
-    Chi__q1p_barT(1, 0) = q1p.e1;
-    Chi__q1p_barT(1, 1) = -q1p.e0;
-    Chi__q1p_barT(1, 2) = q1p.e3;
-    Chi__q1p_barT(1, 3) = -q1p.e2;
-    Chi__q1p_barT(2, 0) = q1p.e2;
-    Chi__q1p_barT(2, 1) = -q1p.e3;
-    Chi__q1p_barT(2, 2) = -q1p.e0;
-    Chi__q1p_barT(2, 3) = q1p.e1;
-    Chi__q1p_barT(3, 0) = q1p.e3;
-    Chi__q1p_barT(3, 1) = q1p.e2;
-    Chi__q1p_barT(3, 2) = -q1p.e1;
-    Chi__q1p_barT(3, 3) = -q1p.e0;
+    Chi__q1p_barT(0, 0) = q1p.e0();
+    Chi__q1p_barT(0, 1) = q1p.e1();
+    Chi__q1p_barT(0, 2) = q1p.e2();
+    Chi__q1p_barT(0, 3) = q1p.e3();
+    Chi__q1p_barT(1, 0) = q1p.e1();
+    Chi__q1p_barT(1, 1) = -q1p.e0();
+    Chi__q1p_barT(1, 2) = q1p.e3();
+    Chi__q1p_barT(1, 3) = -q1p.e2();
+    Chi__q1p_barT(2, 0) = q1p.e2();
+    Chi__q1p_barT(2, 1) = -q1p.e3();
+    Chi__q1p_barT(2, 2) = -q1p.e0();
+    Chi__q1p_barT(2, 3) = q1p.e1();
+    Chi__q1p_barT(3, 0) = q1p.e3();
+    Chi__q1p_barT(3, 1) = q1p.e2();
+    Chi__q1p_barT(3, 2) = -q1p.e1();
+    Chi__q1p_barT(3, 3) = -q1p.e0();
 
     ChMatrixNM<double, 4, 4> qs_tilde;
-    qs_tilde(0, 0) = qs.e0;
-    qs_tilde(0, 1) = -qs.e1;
-    qs_tilde(0, 2) = -qs.e2;
-    qs_tilde(0, 3) = -qs.e3;
-    qs_tilde(1, 0) = qs.e1;
-    qs_tilde(1, 1) = qs.e0;
-    qs_tilde(1, 2) = -qs.e3;
-    qs_tilde(1, 3) = qs.e2;
-    qs_tilde(2, 0) = qs.e2;
-    qs_tilde(2, 1) = qs.e3;
-    qs_tilde(2, 2) = qs.e0;
-    qs_tilde(2, 3) = -qs.e1;
-    qs_tilde(3, 0) = qs.e3;
-    qs_tilde(3, 1) = -qs.e2;
-    qs_tilde(3, 2) = qs.e1;
-    qs_tilde(3, 3) = qs.e0;
+    qs_tilde(0, 0) = qs.e0();
+    qs_tilde(0, 1) = -qs.e1();
+    qs_tilde(0, 2) = -qs.e2();
+    qs_tilde(0, 3) = -qs.e3();
+    qs_tilde(1, 0) = qs.e1();
+    qs_tilde(1, 1) = qs.e0();
+    qs_tilde(1, 2) = -qs.e3();
+    qs_tilde(1, 3) = qs.e2();
+    qs_tilde(2, 0) = qs.e2();
+    qs_tilde(2, 1) = qs.e3();
+    qs_tilde(2, 2) = qs.e0();
+    qs_tilde(2, 3) = -qs.e1();
+    qs_tilde(3, 0) = qs.e3();
+    qs_tilde(3, 1) = -qs.e2();
+    qs_tilde(3, 2) = qs.e1();
+    qs_tilde(3, 3) = qs.e0();
 
     // Ts = 0.5*CsT*G(q2)*Chi*(q1 qp)_barT*qs~*KT*lambda
     ChMatrixNM<double, 3, 4> Ts;

@@ -193,9 +193,9 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         // For small misalignment this effect is almost insignificant cause [Fp(q_resid)]=[I],
         // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
         mtempM.Set_X_matrix((aframe.GetRot().GetVector()) * 0.5);
-        mtempM(0, 0) = aframe.GetRot().e0;
-        mtempM(1, 1) = aframe.GetRot().e0;
-        mtempM(2, 2) = aframe.GetRot().e0;
+        mtempM(0, 0) = aframe.GetRot().e0();
+        mtempM(1, 1) = aframe.GetRot().e0();
+        mtempM(2, 2) = aframe.GetRot().e0();
         mtempQ.MatrTMultiply(mtempM, Jw1);
         Jw1 = mtempQ;
         mtempQ.MatrTMultiply(mtempM, Jw2);
@@ -228,7 +228,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            this->C->ElementN(nc) = aframe.GetRot().e1;
+            this->C->ElementN(nc) = aframe.GetRot().e1();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
@@ -236,7 +236,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            this->C->ElementN(nc) = aframe.GetRot().e2;
+            this->C->ElementN(nc) = aframe.GetRot().e2();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
@@ -244,7 +244,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            this->C->ElementN(nc) = aframe.GetRot().e3;
+            this->C->ElementN(nc) = aframe.GetRot().e3();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);

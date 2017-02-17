@@ -1075,17 +1075,17 @@ void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     mstream << this->coord.pos.x();
     mstream << this->coord.pos.y();
     mstream << this->coord.pos.z();
-    mstream << this->coord.rot.e0;
-    mstream << this->coord.rot.e1;
-    mstream << this->coord.rot.e2;
-    mstream << this->coord.rot.e3;
+    mstream << this->coord.rot.e0();
+    mstream << this->coord.rot.e1();
+    mstream << this->coord.rot.e2();
+    mstream << this->coord.rot.e3();
     mstream << this->coord_dt.pos.x();
     mstream << this->coord_dt.pos.y();
     mstream << this->coord_dt.pos.z();
-    mstream << this->coord_dt.rot.e0;
-    mstream << this->coord_dt.rot.e1;
-    mstream << this->coord_dt.rot.e2;
-    mstream << this->coord_dt.rot.e3;
+    mstream << this->coord_dt.rot.e0();
+    mstream << this->coord_dt.rot.e1();
+    mstream << this->coord_dt.rot.e2();
+    mstream << this->coord_dt.rot.e3();
 }
 
 void ChBody::StreamINstate(ChStreamInBinary& mstream) {
@@ -1095,18 +1095,18 @@ void ChBody::StreamINstate(ChStreamInBinary& mstream) {
     mstream >> this->coord.pos.x();
     mstream >> this->coord.pos.y();
     mstream >> this->coord.pos.z();
-    mstream >> this->coord.rot.e0;
-    mstream >> this->coord.rot.e1;
-    mstream >> this->coord.rot.e2;
-    mstream >> this->coord.rot.e3;
+    mstream >> this->coord.rot.e0();
+    mstream >> this->coord.rot.e1();
+    mstream >> this->coord.rot.e2();
+    mstream >> this->coord.rot.e3();
     this->SetCoord(coord);
     mstream >> this->coord_dt.pos.x();
     mstream >> this->coord_dt.pos.y();
     mstream >> this->coord_dt.pos.z();
-    mstream >> this->coord_dt.rot.e0;
-    mstream >> this->coord_dt.rot.e1;
-    mstream >> this->coord_dt.rot.e2;
-    mstream >> this->coord_dt.rot.e3;
+    mstream >> this->coord_dt.rot.e0();
+    mstream >> this->coord_dt.rot.e1();
+    mstream >> this->coord_dt.rot.e2();
+    mstream >> this->coord_dt.rot.e3();
     this->SetCoord_dt(coord_dt);
 
     this->Update();

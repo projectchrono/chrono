@@ -362,16 +362,16 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
     /// to the rotation expressed by the quaternion 'quat'.
     template <class RealB>
     void Set_A_quaternion(const ChQuaternion<RealB>& quat) {
-        Real e0e0 = (Real)(quat.e0 * quat.e0);
-        Real e1e1 = (Real)(quat.e1 * quat.e1);
-        Real e2e2 = (Real)(quat.e2 * quat.e2);
-        Real e3e3 = (Real)(quat.e3 * quat.e3);
-        Real e0e1 = (Real)(quat.e0 * quat.e1);
-        Real e0e2 = (Real)(quat.e0 * quat.e2);
-        Real e0e3 = (Real)(quat.e0 * quat.e3);
-        Real e1e2 = (Real)(quat.e1 * quat.e2);
-        Real e1e3 = (Real)(quat.e1 * quat.e3);
-        Real e2e3 = (Real)(quat.e2 * quat.e3);
+        Real e0e0 = (Real)(quat.e0() * quat.e0());
+        Real e1e1 = (Real)(quat.e1() * quat.e1());
+        Real e2e2 = (Real)(quat.e2() * quat.e2());
+        Real e3e3 = (Real)(quat.e3() * quat.e3());
+        Real e0e1 = (Real)(quat.e0() * quat.e1());
+        Real e0e2 = (Real)(quat.e0() * quat.e2());
+        Real e0e3 = (Real)(quat.e0() * quat.e3());
+        Real e1e2 = (Real)(quat.e1() * quat.e2());
+        Real e1e3 = (Real)(quat.e1() * quat.e3());
+        Real e2e3 = (Real)(quat.e2() * quat.e3());
 
         this->Set33Element(0, 0, (e0e0 + e1e1) * 2 - 1);
         this->Set33Element(0, 1, (e1e2 - e0e3) * 2);
@@ -582,11 +582,11 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
 
         if (tr >= 0) {
             s = sqrt(tr + 1);
-            q.e0 = half * s;
+            q.e0() = half * s;
             s = half / s;
-            q.e1 = (m21 - m12) * s;
-            q.e2 = (m02 - m20) * s;
-            q.e3 = (m10 - m01) * s;
+            q.e1() = (m21 - m12) * s;
+            q.e2() = (m02 - m20) * s;
+            q.e3() = (m10 - m01) * s;
         } else {
             int i = 0;
 
@@ -602,27 +602,27 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
             switch (i) {
                 case 0:
                     s = sqrt(m00 - m11 - m22 + 1);
-                    q.e1 = half * s;
+                    q.e1() = half * s;
                     s = half / s;
-                    q.e2 = (m01 + m10) * s;
-                    q.e3 = (m20 + m02) * s;
-                    q.e0 = (m21 - m12) * s;
+                    q.e2() = (m01 + m10) * s;
+                    q.e3() = (m20 + m02) * s;
+                    q.e0() = (m21 - m12) * s;
                     break;
                 case 1:
                     s = sqrt(m11 - m22 - m00 + 1);
-                    q.e2 = half * s;
+                    q.e2() = half * s;
                     s = half / s;
-                    q.e3 = (m12 + m21) * s;
-                    q.e1 = (m01 + m10) * s;
-                    q.e0 = (m02 - m20) * s;
+                    q.e3() = (m12 + m21) * s;
+                    q.e1() = (m01 + m10) * s;
+                    q.e0() = (m02 - m20) * s;
                     break;
                 case 2:
                     s = sqrt(m22 - m00 - m11 + 1);
-                    q.e3 = half * s;
+                    q.e3() = half * s;
                     s = half / s;
-                    q.e1 = (m20 + m02) * s;
-                    q.e2 = (m12 + m21) * s;
-                    q.e0 = (m10 - m01) * s;
+                    q.e1() = (m20 + m02) * s;
+                    q.e2() = (m12 + m21) * s;
+                    q.e0() = (m10 - m01) * s;
                     break;
             }
         }
@@ -767,9 +767,9 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         ChQuaternion<Real> qtemp;
         qtemp = Get_A_quaternion();
         // warning: infinite results may happen..
-        rod.x() = qtemp.e1 / qtemp.e0;
-        rod.y() = qtemp.e2 / qtemp.e0;
-        rod.z() = qtemp.e3 / qtemp.e0;
+        rod.x() = qtemp.e1() / qtemp.e0();
+        rod.y() = qtemp.e2() / qtemp.e0();
+        rod.z() = qtemp.e3() / qtemp.e0();
 
         return rod;
     }

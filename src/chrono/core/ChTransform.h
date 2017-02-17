@@ -106,16 +106,16 @@ class ChTransform {
         ) {
         // It could be simply "return alignment.RotateBack(parent-origin);"
         // but for faster execution do this:
-        Real e0e0 = alignment.e0 * alignment.e0;
-        Real e1e1 = alignment.e1 * alignment.e1;
-        Real e2e2 = alignment.e2 * alignment.e2;
-        Real e3e3 = alignment.e3 * alignment.e3;
-        Real e0e1 = -alignment.e0 * alignment.e1;
-        Real e0e2 = -alignment.e0 * alignment.e2;
-        Real e0e3 = -alignment.e0 * alignment.e3;
-        Real e1e2 = alignment.e1 * alignment.e2;
-        Real e1e3 = alignment.e1 * alignment.e3;
-        Real e2e3 = alignment.e2 * alignment.e3;
+        Real e0e0 = alignment.e0() * alignment.e0();
+        Real e1e1 = alignment.e1() * alignment.e1();
+        Real e2e2 = alignment.e2() * alignment.e2();
+        Real e3e3 = alignment.e3() * alignment.e3();
+        Real e0e1 = -alignment.e0() * alignment.e1();
+        Real e0e2 = -alignment.e0() * alignment.e2();
+        Real e0e3 = -alignment.e0() * alignment.e3();
+        Real e1e2 = alignment.e1() * alignment.e2();
+        Real e1e3 = alignment.e1() * alignment.e3();
+        Real e2e3 = alignment.e2() * alignment.e3();
         Real dx = parent.x() - origin.x();
         Real dy = parent.y() - origin.y();
         Real dz = parent.z() - origin.z();
@@ -138,16 +138,16 @@ class ChTransform {
         ) {
         // It could be simply: "return origin+alignment.Rotate(local);"
         // but for faster execution, do this:
-        Real e0e0 = alignment.e0 * alignment.e0;
-        Real e1e1 = alignment.e1 * alignment.e1;
-        Real e2e2 = alignment.e2 * alignment.e2;
-        Real e3e3 = alignment.e3 * alignment.e3;
-        Real e0e1 = alignment.e0 * alignment.e1;
-        Real e0e2 = alignment.e0 * alignment.e2;
-        Real e0e3 = alignment.e0 * alignment.e3;
-        Real e1e2 = alignment.e1 * alignment.e2;
-        Real e1e3 = alignment.e1 * alignment.e3;
-        Real e2e3 = alignment.e2 * alignment.e3;
+        Real e0e0 = alignment.e0() * alignment.e0();
+        Real e1e1 = alignment.e1() * alignment.e1();
+        Real e2e2 = alignment.e2() * alignment.e2();
+        Real e3e3 = alignment.e3() * alignment.e3();
+        Real e0e1 = alignment.e0() * alignment.e1();
+        Real e0e2 = alignment.e0() * alignment.e2();
+        Real e0e3 = alignment.e0() * alignment.e3();
+        Real e1e2 = alignment.e1() * alignment.e2();
+        Real e1e3 = alignment.e1() * alignment.e3();
+        Real e2e3 = alignment.e2() * alignment.e3();
         return ChVector<Real>(origin.x() + ((e0e0 + e1e1) * 2. - 1.) * local.x() + ((e1e2 - e0e3) * 2.) * local.y() +
                                   ((e1e3 + e0e2) * 2.) * local.z(),
                               origin.y() + ((e1e2 + e0e3) * 2.) * local.x() + ((e0e0 + e2e2) * 2. - 1.) * local.y() +
