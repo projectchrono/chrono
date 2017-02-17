@@ -52,7 +52,7 @@ ChFrame<> ChIndexedParticles::GetAssetsFrame(unsigned int nclone) {
 
 void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChIndexedParticles>();
 
     // serialize parent class too
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -62,7 +62,7 @@ void ChIndexedParticles::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChIndexedParticles::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChIndexedParticles>();
 
     // deserialize parent class too
     ChPhysicsItem::ArchiveIN(marchive);

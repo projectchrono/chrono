@@ -264,6 +264,9 @@ class ChApi ChShaft : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChShaft,0)
+
+
 }  // end namespace chrono
 
 #endif

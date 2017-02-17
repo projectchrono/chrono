@@ -199,7 +199,7 @@ class ChSolverMKL : public ChSolver {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChSolverMKL>();
         // serialize parent class
         ChSolver::ArchiveOUT(marchive);
         // serialize all member data:
@@ -211,7 +211,7 @@ class ChSolverMKL : public ChSolver {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChSolverMKL>();
         // deserialize parent class
         ChSolver::ArchiveIN(marchive);
         // stream in all member data:

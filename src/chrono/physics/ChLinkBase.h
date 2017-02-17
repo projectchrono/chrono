@@ -102,6 +102,8 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkBase,0)
+
 }  // end namespace
 
 #endif

@@ -361,6 +361,11 @@ void my_serialization_example(ChArchiveOut& marchive)
         auto s_boss = std::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
+        // Serialize a shared pointer pointing to the same shared resource of s_boss. 
+        // Note, base class works fine too, as polymorphic object.
+        std::shared_ptr<myEmployee> s_boss_b(s_boss);
+        marchive << CHNVP(s_boss_b);
+
         // Serialize null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss;
         marchive << CHNVP(null_boss); 
@@ -442,11 +447,18 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(a_boss2); 
 
 
-        // Also store c++ objects referenced by shared pointers.
+        // Deserialize c++ objects referenced by shared pointers.
         // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
         std::shared_ptr<myEmployeeBoss> s_boss(0);
         marchive >> CHNVP(s_boss);
+
+        // Deserialize a shared pointer pointing to the same resource of s_boss.
+        // Since the two pointers s_boss and s_boss_b were serialized when pointing to 
+        // the same object instance, do not create new, but just point to the same of s_boss. 
+        // Also, the shared pointer reference count is increased automatically.
+        std::shared_ptr<myEmployeeBoss> s_boss_b(0);
+        marchive >> CHNVP(s_boss_b);
 
         // Deserialize a null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss(0);
@@ -489,6 +501,7 @@ void my_deserialization_example(ChArchiveIn& marchive)
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
             GetLog() << s_boss;
+            GetLog() << "(This object is handled by shared pointers, with ref.count=" << (int)s_boss.use_count() << ")\n";
         }
         if (!null_boss) {
             GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
@@ -538,7 +551,7 @@ int main(int argc, char* argv[]) {
             my_serialization_example(marchiveout);
         }
 
-/*
+
         {
             //
             // Example: SERIALIZE TO/FROM BINARY:
@@ -562,7 +575,7 @@ int main(int argc, char* argv[]) {
                 my_deserialization_example(marchivein);
             }
         }
-*/
+
 
         {
             //

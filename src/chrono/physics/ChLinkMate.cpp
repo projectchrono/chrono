@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChLinkMate)
 
 void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMate>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -35,7 +35,7 @@ void ChLinkMate::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMate::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMate>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);
@@ -592,7 +592,7 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
 void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMateGeneric>();
 
     // serialize parent class
     ChLinkMate::ArchiveOUT(marchive);
@@ -611,7 +611,7 @@ void ChLinkMateGeneric::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMateGeneric::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMateGeneric>();
 
     // deserialize parent class
     ChLinkMate::ArchiveIN(marchive);
@@ -679,7 +679,7 @@ void ChLinkMatePlane::Update(double mtime, bool update_assets) {
 
 void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMatePlane>();
 
     // serialize parent class
     ChLinkMateGeneric::ArchiveOUT(marchive);
@@ -692,7 +692,7 @@ void ChLinkMatePlane::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMatePlane::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMatePlane>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -743,7 +743,7 @@ void ChLinkMateCoaxial::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 
 void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMateCoaxial>();
 
     // serialize parent class
     ChLinkMateGeneric::ArchiveOUT(marchive);
@@ -755,7 +755,7 @@ void ChLinkMateCoaxial::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMateCoaxial::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMateCoaxial>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -807,7 +807,7 @@ void ChLinkMateXdistance::Update(double mtime, bool update_assets) {
 
 void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMateXdistance>();
 
     // serialize parent class
     ChLinkMateGeneric::ArchiveOUT(marchive);
@@ -819,7 +819,7 @@ void ChLinkMateXdistance::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMateXdistance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMateXdistance>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -869,7 +869,7 @@ void ChLinkMateParallel::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
 
 void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMateParallel>();
 
     // serialize parent class
     ChLinkMateGeneric::ArchiveOUT(marchive);
@@ -881,7 +881,7 @@ void ChLinkMateParallel::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMateParallel::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMateParallel>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);
@@ -987,7 +987,7 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
 
 void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMateOrthogonal>();
 
     // serialize parent class
     ChLinkMateGeneric::ArchiveOUT(marchive);
@@ -1000,7 +1000,7 @@ void ChLinkMateOrthogonal::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMateOrthogonal::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMateOrthogonal>();
 
     // deserialize parent class
     ChLinkMateGeneric::ArchiveIN(marchive);

@@ -66,7 +66,7 @@ class ChApi ChVisualization : public ChAsset {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVisualization>();
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
@@ -81,7 +81,7 @@ class ChApi ChVisualization : public ChAsset {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVisualization>();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
@@ -92,6 +92,8 @@ class ChApi ChVisualization : public ChAsset {
         marchive >> CHNVP(fading);
     }
 };
+
+CH_CLASS_VERSION(ChVisualization,0)
 
 }  // end namespace chrono
 

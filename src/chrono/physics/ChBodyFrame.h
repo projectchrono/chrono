@@ -59,6 +59,9 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChBodyFrame,0)
+
+
 }  // end namespace chrono
 
 #endif

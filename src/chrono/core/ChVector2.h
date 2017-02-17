@@ -256,7 +256,7 @@ class ChVector2 {
     /// Method to allow serialization of transient data in archives.
     void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVector2<double>>(); // must use specialized template (any)
         // stream out all member data
         marchive << CHNVP(x);
         marchive << CHNVP(y);
@@ -265,12 +265,16 @@ class ChVector2 {
     /// Method to allow de serialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVector2<double>>(); // must use specialized template (any)
         // stream in all member data
         marchive >> CHNVP(x);
         marchive >> CHNVP(y);
     }
 };
+
+
+CH_CLASS_VERSION(ChVector2<double>,0)
+
 
 /// Operator for scaling the vector by a scalar value, as s*V
 template <class Real>

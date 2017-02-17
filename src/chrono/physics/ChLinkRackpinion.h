@@ -123,6 +123,8 @@ class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkRackpinion,0)
+
 }  // end namespace chrono
 
 #endif

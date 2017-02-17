@@ -107,7 +107,7 @@ void ChLinkTrajectory::Initialize(std::shared_ptr<ChBody> mbody1,
 
 void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkTrajectory>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -120,7 +120,7 @@ void ChLinkTrajectory::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkTrajectory::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkTrajectory>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

@@ -261,7 +261,7 @@ class ChCoordsys {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
         marchive << CHNVP(pos);
         marchive << CHNVP(rot);
@@ -271,13 +271,16 @@ class ChCoordsys {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
     }
 
 };
+
+CH_CLASS_VERSION(ChCoordsys<double>,0)
+
 
 //
 // MIXED ARGUMENT OPERATORS

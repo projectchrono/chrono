@@ -562,7 +562,7 @@ void ChLinkMasked::Update(double time, bool update_assets) {
 
 void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMasked>();
 
     // serialize parent class
     ChLinkMarkers::ArchiveOUT(marchive);
@@ -583,7 +583,7 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMasked>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

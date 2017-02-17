@@ -43,7 +43,7 @@ struct material_option {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<material_option>();
         // serialize all member data:
         marchive << CHNVP(type);
         marchive << CHNVP(parameter);
@@ -53,13 +53,17 @@ struct material_option {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<material_option>();
         // deserialize all member data:
         marchive >> CHNVP(type);
         marchive >> CHNVP(parameter);
         marchive >> CHNVP(value);
     }
 };
+
+CH_CLASS_VERSION(ChMaterialOption,0)
+
+
 
 class ChApi ChMaterial {
   public:
@@ -109,7 +113,7 @@ class ChApi ChMaterial {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChMaterial>();
 
         // serialize all member data:
         marchive << CHNVP(color);
@@ -124,7 +128,7 @@ class ChApi ChMaterial {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChMaterial>();
 
         // stream in all member data:
         marchive >> CHNVP(color);
@@ -136,6 +140,8 @@ class ChApi ChMaterial {
     }
 
 };
+
+CH_CLASS_VERSION(ChMaterial,0)
 
 }  // end namespace chrono
 

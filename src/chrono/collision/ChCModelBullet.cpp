@@ -815,7 +815,7 @@ bool ChModelBullet::SetSphereRadius(double coll_radius, double out_envelope) {
 void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChModelBullet>();
     // serialize parent class
     ChCollisionModel::ArchiveOUT(marchive);
 
@@ -846,7 +846,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 void ChModelBullet::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChModelBullet>();
     // deserialize parent class
     ChCollisionModel::ArchiveIN(marchive);
 

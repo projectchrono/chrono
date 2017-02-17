@@ -210,7 +210,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChTriangleMeshConnected>();
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
@@ -228,7 +228,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChTriangleMeshConnected>();
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
@@ -245,6 +245,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChTriangleMeshConnected,0)
+
 }  // end namespace chrono
 
 #endif

@@ -714,7 +714,7 @@ class ChQuaternion {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChQuaternion<double>>(); // must use specialized template (any)
         // stream out all member data
         marchive << CHNVP(e0);
         marchive << CHNVP(e1);
@@ -726,7 +726,7 @@ class ChQuaternion {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChQuaternion<double>>(); // must use specialized template (any)
         // stream in all member data
         marchive >> CHNVP(e0);
         marchive >> CHNVP(e1);
@@ -734,6 +734,8 @@ class ChQuaternion {
         marchive >> CHNVP(e3);
     }
 };
+
+CH_CLASS_VERSION(ChQuaternion<double>,0)
 
 /// Shortcut for faster use of typical double-precision quaternion.
 ///  Instead of writing    "ChQuaternion<double> foo;"   you can write

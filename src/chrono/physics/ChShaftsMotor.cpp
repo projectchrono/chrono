@@ -217,7 +217,7 @@ class my_enum_mappers : public ChShaftsMotor {
 
 void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsMotor>();
 
     // serialize parent class
     ChShaftsCouple::ArchiveOUT(marchive);
@@ -233,7 +233,7 @@ void ChShaftsMotor::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsMotor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsMotor>();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);

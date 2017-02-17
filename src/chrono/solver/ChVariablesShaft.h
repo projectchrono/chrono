@@ -93,7 +93,7 @@ class ChApi ChVariablesShaft : public ChVariables {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVariablesShaft>();
         // serialize parent class
         ChVariables::ArchiveOUT(marchive);
         // serialize all member data:
@@ -103,7 +103,7 @@ class ChApi ChVariablesShaft : public ChVariables {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVariablesShaft>();
         // deserialize parent class
         ChVariables::ArchiveIN(marchive);
         // stream in all member data:

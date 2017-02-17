@@ -87,6 +87,8 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChIndexedParticles,0)
+
 }  // end namespace chrono
 
 #endif

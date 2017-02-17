@@ -223,7 +223,7 @@ void ChNodeFEAxyzDD::ComputeNF(
 
 void ChNodeFEAxyzDD::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeFEAxyzDD>();
     // serialize parent class
     ChNodeFEAxyzD::ArchiveOUT(marchive);
     // serialize all member data:
@@ -234,7 +234,7 @@ void ChNodeFEAxyzDD::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyzDD::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeFEAxyzDD>();
     // deserialize parent class
     ChNodeFEAxyzD::ArchiveIN(marchive);
     // stream in all member data:

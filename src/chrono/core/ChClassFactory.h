@@ -376,7 +376,7 @@ namespace class_factory {
 
 #define CH_CLASS_VERSION(classname, m_version)                  \
     template<>                                                  \
-    class chrono::class_factory::ChClassVersion<classname> {    \
+    class chrono::class_factory::ChClassVersion<classname> {  \
     public:                                                     \
         static const int version = m_version;                   \
     };                                                          \

@@ -107,6 +107,8 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkSpringCB,0)
+
 }  // end namespace chrono
 
 #endif

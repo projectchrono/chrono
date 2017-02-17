@@ -458,7 +458,7 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
 
 void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRevolute>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -471,7 +471,7 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRevolute>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

@@ -48,6 +48,7 @@ class ChApi ChContinuumMaterial {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+
 /// Class for the basic properties of materials in an elastic continuum.
 /// This is a base material with isotropic hookean elasticity.
 
@@ -140,6 +141,7 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+
 // -----------------------------------------------------------------------------
 
 /// Class for all elastic materials that can undergo plastic flow.
@@ -179,6 +181,7 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
 
 // -----------------------------------------------------------------------------
 
@@ -243,6 +246,7 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
 
 // -----------------------------------------------------------------------------
 
@@ -331,6 +335,15 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
 };
 
 }  // end namespace fea
+
+
+CH_CLASS_VERSION(fea::ChContinuumMaterial,0)
+CH_CLASS_VERSION(fea::ChContinuumElastic,0)
+CH_CLASS_VERSION(fea::ChContinuumElastoplastic,0)
+CH_CLASS_VERSION(fea::ChContinuumPlasticVonMises,0)
+CH_CLASS_VERSION(fea::ChContinuumDruckerPrager,0)
+
+
 }  // end namespace chrono
 
 #endif

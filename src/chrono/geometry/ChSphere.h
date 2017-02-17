@@ -59,7 +59,7 @@ class ChApi ChSphere : public ChGeometry {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChSphere>();
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
@@ -80,6 +80,9 @@ class ChApi ChSphere : public ChGeometry {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChSphere,0)
+
 }  // end namespace chrono
 
 #endif

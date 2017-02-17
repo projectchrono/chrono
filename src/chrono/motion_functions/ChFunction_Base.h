@@ -172,6 +172,8 @@ class ChApi ChFunction {
 
 /// @} chrono_functions
 
+CH_CLASS_VERSION(ChFunction,0)
+
 }  // end namespace chrono
 
 #endif

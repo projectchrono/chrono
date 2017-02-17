@@ -51,7 +51,7 @@ class ChApi ChFseqNode {
     /// Method to allow serialization of transient data to archives.
     void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFseqNode>();
 
         // serialize all member data:
         marchive << CHNVP(fx);
@@ -70,7 +70,7 @@ class ChApi ChFseqNode {
     /// Method to allow deserialization of transient data from archives.
     void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFseqNode>();
 
         // stream in all member data:
         marchive >> CHNVP(fx);
@@ -86,6 +86,9 @@ class ChApi ChFseqNode {
         marchive >> CHNVP(ydtdt_cont);
     }
 };
+
+CH_CLASS_VERSION(ChFseqNode,0)
+
 
 /// Sequence function:
 ///   y = sequence_of_functions(f1(y), f2(y), f3(y))
@@ -178,7 +181,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFunction_Sequence>();
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
@@ -189,7 +192,7 @@ class ChApi ChFunction_Sequence : public ChFunction {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFunction_Sequence>();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:

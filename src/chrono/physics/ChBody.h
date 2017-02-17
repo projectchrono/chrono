@@ -826,10 +826,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     friend class ChSystem;
 };
 
+CH_CLASS_VERSION(ChBody,0)
+
 const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space
 const int BODY_QDOF = 7;  ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;   ///< rotational dof in Newton dynamics
 
 }  // end namespace chrono
+
 
 #endif
