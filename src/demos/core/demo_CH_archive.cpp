@@ -103,7 +103,7 @@ class myEmployee {
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<myEmployee>();
         // stream out all member data
         marchive << CHNVP(age);
         marchive << CHNVP(wages);
@@ -113,7 +113,7 @@ class myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployee>();
         // stream in all member data
         marchive >> CHNVP(age);
         marchive >> CHNVP(wages);
@@ -159,7 +159,7 @@ class myEmployeeBoss : public myEmployee {
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite(2);
+        marchive.VersionWrite<myEmployeeBoss>();
         // remember to serialize the parent class data too!!!
         myEmployee::ArchiveOUT(marchive);
 
@@ -170,7 +170,7 @@ class myEmployeeBoss : public myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployeeBoss>();
         // remember to deserialize the parent class data too!!!
         myEmployee::ArchiveIN(marchive);
 
@@ -184,7 +184,7 @@ class myEmployeeBoss : public myEmployee {
 
 
 CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
-
+CH_CLASS_VERSION(myEmployeeBoss, 2)
 
 
 // Finally, let's serialize a class that has no default constructor.
@@ -214,7 +214,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<myEmployeeCustomConstructor>();
         // remember to serialize the parent class data too!!!
         myEmployee::ArchiveOUT(marchive);
         // stream out member data (except data used in constructor, already saved in ArchiveOUTconstructor)
@@ -223,7 +223,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
         // remember to deserialize the parent class data too!!!
         myEmployee::ArchiveIN(marchive);
         // stream in member data (except data used in constructor, already saved in ArchiveOUTconstructor)
@@ -235,7 +235,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     virtual void ArchiveOUTconstructor(ChArchiveOut& marchive)
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<myEmployeeCustomConstructor>();
 
         // serialize the parameters of the constructor:
         marchive << CHNVP(latitude);
@@ -247,7 +247,7 @@ class myEmployeeCustomConstructor : public myEmployee {
     static void* ArchiveINconstructor(ChArchiveIn& marchive)
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
 
         // 1) Deserialize the parameters of the constructor:
         // you need some auxiliary variables because this method is static 
@@ -269,6 +269,7 @@ class myEmployeeCustomConstructor : public myEmployee {
 CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  needed for advanced serialization
 
 
+                              
 
 
 
@@ -537,7 +538,7 @@ int main(int argc, char* argv[]) {
             my_serialization_example(marchiveout);
         }
 
-
+/*
         {
             //
             // Example: SERIALIZE TO/FROM BINARY:
@@ -545,23 +546,23 @@ int main(int argc, char* argv[]) {
 
             {
                 ChStreamOutBinaryFile mfileo("foo_archive.dat");
-
+                
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutBinary marchiveout(mfileo);
-        
+
                 my_serialization_example(marchiveout);
             }
 
             {
                 ChStreamInBinaryFile mfilei("foo_archive.dat");
-
+                
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInBinary marchivein(mfilei);
 
-                 my_deserialization_example(marchivein);
+                my_deserialization_example(marchivein);
             }
         }
-
+*/
 
         {
             //

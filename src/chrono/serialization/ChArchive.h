@@ -84,6 +84,8 @@ public:
         /// Get platform-dependent typeid name
     virtual const char* GetTypeidName() =0;
 
+        /// Get class version, if class version is registered, otherwise defaults 0
+    virtual int GetClassVersion() =0;
 
         /// Tell if it is a null pointer    
     virtual bool IsNull()=0;
@@ -111,7 +113,7 @@ public:
 
       virtual std::string& GetRegisteredName() {
           try {
-              return ChClassFactory::GetClassConventionalName(pt2Object);
+              return ChClassFactory::GetClassTagName(typeid(pt2Object));
           }catch (ChException myex) {
               static std::string nostring("");
               return nostring;
@@ -119,11 +121,16 @@ public:
         }
 
       virtual const char* GetTypeidName() {
-          return typeid(TClass).name();
+          return typeid(pt2Object).name();
       }
 
       virtual bool IsNull()
         { return (pt2Object==0);};   
+
+              
+      virtual int GetClassVersion() {
+          return chrono::class_factory::ChClassVersion<TClass>::version;
+        }
 
 private:
 
@@ -572,14 +579,15 @@ class ChArchive {
   protected:
 
     bool cluster_class_versions;
-    std::unordered_map<std::string, int> class_versions;
+    
+    std::unordered_map<std::type_index, int> class_versions;
 
     bool use_versions;
 
   public:
     ChArchive() {
         use_versions = true;
-        cluster_class_versions = false;
+        cluster_class_versions = true;
     }
 
     virtual ~ChArchive() {};
@@ -592,9 +600,8 @@ class ChArchive {
     void SetUseVersions(bool muse) {this->use_versions = muse;}
 
     /// If true, the version number is not saved in each class: rather, 
-    /// when << serialization happens, a 'silent' sweep through the serialized object (and sub
-    /// objects) is done, storing the versions in a map that is saved once at the beginning 
-    /// of the archive, before sweeping again for the true serialization. And viceversa for deserialization.
+    /// it is saved only the first time that class is encountered. 
+    /// The same setting must be used for both serialization and deserialization.
     void SetClusterClassVersions(bool mcl) {this->cluster_class_versions = mcl;}
 };
 
@@ -661,7 +668,6 @@ class  ChArchiveOut : public ChArchive {
         void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
             external_ptr_id[mptr.get()] = ID;
         }
-
 
      protected:
 
@@ -795,7 +801,16 @@ class  ChArchiveOut : public ChArchive {
         // trick to call out_ref on ChSharedPointer
       template<class T>
       void out     (ChNameValue< std::shared_ptr<T> > bVal) {
+          
           T* mptr = bVal.value().get();
+
+          const char* class_name = "";
+          if (mptr) {
+              try {
+                  class_name = ChClassFactory::GetClassTagName(typeid(*mptr)).c_str(); // registered
+              } catch(ChException mex) {}
+          }
+
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
@@ -810,12 +825,6 @@ class  ChArchiveOut : public ChArchive {
           else {
               PutPointer(mptr, already_stored, obj_ID);
           }
-          const char* class_name = "";
-          if (bVal.value()) {
-              try {
-                  class_name = ChClassFactory::GetClassConventionalName(*mptr).c_str(); // registered
-              } catch(ChException me) { }
-          }
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
@@ -828,7 +837,16 @@ class  ChArchiveOut : public ChArchive {
          // trick to call out_ref on raw pointers:
       template<class T>
       void out     (ChNameValue<T*> bVal) {
+          
           T* mptr = bVal.value();
+
+          const char* class_name = "";
+          if (mptr) {
+              try {
+                  class_name = ChClassFactory::GetClassTagName(typeid(*mptr)).c_str(); // registered
+              } catch(ChException mex) {}
+          }
+
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
@@ -843,12 +861,6 @@ class  ChArchiveOut : public ChArchive {
           else {
               PutPointer(mptr, already_stored, obj_ID);
           } 
-          const char* class_name = "";
-          if (bVal.value()) {
-              try {
-                  class_name = ChClassFactory::GetClassConventionalName(*mptr).c_str(); // registered
-              } catch(ChException mex) {}
-          }
           ChFunctorArchiveOutSpecific<T> specFuncA(mptr);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
@@ -886,14 +898,42 @@ class  ChArchiveOut : public ChArchive {
           return (*this);
       }
 
-      void VersionWrite(int mver) {
+      // for backward compatibility
+      void VersionWrite(int iv) {
           if (use_versions) {
-                this->out(ChNameValue<int>("_version",mver));
+            this->out(ChNameValue<int>("_version", iv));
+          }
+      }
+
+      template<class T>
+      void VersionWrite() {
+          if (!use_versions)
+              return;
+          if (this->cluster_class_versions) {
+              if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
+                this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = chrono::class_factory::ChClassVersion<T>::version;
+              } 
+          } 
+          else {
+              this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
           }
       }
 
       
   protected:
+
+      virtual void out_version(int mver, const std::type_info& mtype) {
+          if (use_versions) {
+              const char* class_name = "";
+                  try {
+                      class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
+                  } catch(ChException mex) {   
+                      class_name = mtype.name();
+                  }
+              this->out(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+          }
+      }
       
 };
 
@@ -1139,6 +1179,7 @@ class  ChArchiveIn : public ChArchive {
           return (*this);
       }
       
+      // For backward compatibility
       int VersionRead() {
           if (use_versions) {
               int mver;
@@ -1148,8 +1189,36 @@ class  ChArchiveIn : public ChArchive {
           return 99999;
       }
 
-  protected:
+      template<class T>
+      int VersionRead() {
+          int iv = 99999;
+          if (!use_versions)
+              return iv;
+          if (this->cluster_class_versions) {
+              if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
+                int iv = this->in_version(typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = iv;
+                return iv;
+              } 
+          } 
+          else {
+              return this->in_version(typeid(T));
+          }
+          return iv;
+      }
 
+  protected:
+      virtual int in_version(const std::type_info& mtype) {
+            int mver;
+            const char* class_name = "";
+            try {
+                class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
+            } catch(ChException mex) {   
+                class_name = mtype.name();
+            }
+          this->in(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+          return mver;
+      }
 };
 
 /// @} chrono_serialization

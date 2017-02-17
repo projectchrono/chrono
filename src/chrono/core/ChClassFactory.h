@@ -68,7 +68,7 @@ public:
     virtual std::type_index  get_type_index() = 0;
 
     /// Get the name used for registering
-    virtual std::string& get_conventional_name() = 0;
+    virtual std::string& get_tag_name() = 0;
 };
 
 
@@ -122,12 +122,11 @@ class ChApi ChClassFactory {
         return global_factory->_IsClassRegistered(keyName);
     }
 
-    /// Tell the conventional name of a class of an object. 
+    /// Tell the tag name of a class. 
     /// This is the mnemonic name, given at registration, not the typeid.name().
-    template <class T>
-    static std::string& GetClassConventionalName(T& obj) {
+    static std::string& GetClassTagName(const std::type_info& mtype) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        return global_factory->_GetClassConventionalName(obj);
+        return global_factory->_GetClassTagName(mtype);
     }
 
     /// Create from tag name, for registered classes.
@@ -176,13 +175,12 @@ private:
             return false;
     }
 
-    template <class T>
-    std::string& _GetClassConventionalName(T& obj) {
-        const auto &it = class_map_typeids.find(std::type_index(typeid(T)));
+    std::string& _GetClassTagName(const std::type_info& mtype) {
+        const auto &it = class_map_typeids.find(std::type_index(mtype));
         if (it != class_map_typeids.end()) {
-            return it->second->get_conventional_name();
+            return it->second->get_tag_name();
         }
-        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class of given object. Please register it.\n") );
+        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class. Please register it.\n") );
     }
 
     size_t _GetNumberOfRegisteredClasses() {
@@ -227,7 +225,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     //
 
     /// Name of the class for dynamic creation
-    std::string m_sConventionalName;
+    std::string m_sTagName;
 
   public:
     //
@@ -236,12 +234,12 @@ class ChClassRegistration : public ChClassRegistrationBase {
 
     /// Creator (adds this to the global list of
     /// ChClassRegistration<t> objects).
-    ChClassRegistration(const char* mconventional_name) {
+    ChClassRegistration(const char* mtag_name) {
         // set name using the 'fake' RTTI system of Chrono
-        this->m_sConventionalName = mconventional_name; //t::FactoryClassNameTag();
+        this->m_sTagName = mtag_name; //t::FactoryClassNameTag();
 
         // register in global class factory
-        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+        ChClassFactory::ClassRegister(this->m_sTagName, this);
     }
 
     /// Destructor (removes this from the global list of
@@ -249,7 +247,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     virtual ~ChClassRegistration() {
 
         // register in global class factory
-        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+        ChClassFactory::ClassUnregister(this->m_sTagName);
     }
 
     //
@@ -268,8 +266,8 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return std::type_index(typeid(t));
     }
 
-    virtual std::string& get_conventional_name() {
-        return _get_conventional_name();
+    virtual std::string& get_tag_name() {
+        return _get_tag_name();
     }
 
 protected:
@@ -296,8 +294,8 @@ protected:
         return reinterpret_cast<void*>(new Tc);
     }
 
-    std::string& _get_conventional_name() {
-        return m_sConventionalName;
+    std::string& _get_tag_name() {
+        return m_sTagName;
     }
 
 };
@@ -358,6 +356,32 @@ namespace class_factory {                                                       
 namespace class_factory {                                                       \
     static ChClassRegistration< classname > classname ## _factory_registration(#classname); \
 }  
+
+
+// Class version registration 
+
+// Default version=0 for class whose version is not registered.
+namespace class_factory {
+    template<class T>
+    class ChClassVersion {
+    public:
+        static const int version = 0;
+    };
+}
+
+
+/// Call this macro to register a custom version for a class "classname". 
+/// If you do not do this, the default version for all classes is 0.
+/// The m_version parameter should be an integer greater than 0.
+
+#define CH_CLASS_VERSION(classname, m_version)                  \
+    template<>                                                  \
+    class chrono::class_factory::ChClassVersion<classname> {    \
+    public:                                                     \
+        static const int version = m_version;                   \
+    };                                                          \
+
+
 
 }  // end namespace chrono
 

@@ -149,6 +149,8 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << "[" << classname << "]";
             if (tracked)
                 (*ostream) << " (tracked)   ID= " << obj_ID; 
+            if (this->use_versions)
+                (*ostream) << " version=" << bVal.value().GetClassVersion();
             (*ostream) << " \n";
             ++tablevel;
             bVal.value().CallArchiveOut(*this);
@@ -170,6 +172,8 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
             (*ostream) << "  ID=" << obj_ID;
           if (ext_ID)
             (*ostream) << "  external_ID=" << ext_ID;
+          if (this->use_versions)
+            (*ostream) << " version=" << bVal.value().GetClassVersion();
           (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
@@ -206,6 +210,7 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     // this avoids printing too much except the object:
     marchive.SetCutAllPointers(true);
     marchive.SetSuppressNames(true);
+    marchive.SetUseVersions(false);
     marchive << CHNVP(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;
