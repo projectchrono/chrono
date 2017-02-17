@@ -67,19 +67,13 @@ CH_ENUM_MAPPER_END(myEnum);
 //
 // The statements marked with //***** are needed only if you want to
 // take advantage of Chrono advanced serialization mechanism, that is the
-// abstract class creation (class factory) which can load an
+// polymorphic creation (class factory) which can load an
 // object from stream even if the object class is not known in advance.
 // This more advanced feature requires a 'class factory' registration
-// of your object type by means of the CH_FACTORY_REGISTER macro (in
-// its turn, it requires that your class has also enabled the Chrono 
-// compiler-independent type name, that is the CH_FACTORY_TAG macro.
+// of your object type by means of the CH_FACTORY_REGISTER macro
 //
 
 class myEmployee {
-    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
-    // if you want to deserialize objects whose exact class is not known in advance:
-
-    CH_FACTORY_TAG(myEmployee)  //*****  needed for advanced serialization 
 
   public:
     int age;
@@ -124,9 +118,8 @@ class myEmployee {
 };
 
 
-// Somewhere in your .cpp code (not in .h headers!) you should put the
-// 'class factory' registration of your class, assuming you marked a class 
-// with the CH_FACTORY_TAG macro, if you want to deserialize
+// Somewhere in your .cpp code (not in .h headers) you should put the
+// 'class factory' registration of your class if you want to deserialize
 // objects whose exact class is not known in advance:
 
 CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
@@ -136,10 +129,6 @@ CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
 // Note the CH_FACTORY_TAG macro. 
 
 class myEmployeeBoss : public myEmployee {
-    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
-    // if you want to deserialize objects whose exact class is not known in advance:
-
-    CH_FACTORY_TAG(myEmployeeBoss) //*****  needed for advanced serialization
 
   public:
     bool is_dumb;
@@ -182,10 +171,13 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-namespace chrono {
 CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+
+// Use the following to mark a class version:
+namespace chrono {
 CH_CLASS_VERSION(myEmployeeBoss, 2)
 }
+
 
 // Finally, let's serialize a class that has no default constructor.
 // The archive system canno
@@ -193,10 +185,6 @@ CH_CLASS_VERSION(myEmployeeBoss, 2)
 // The trick is adding two optional 
 
 class myEmployeeCustomConstructor : public myEmployee {
-    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
-    // if you want to deserialize objects whose exact class is not known in advance:
-
-    CH_FACTORY_TAG(myEmployeeCustomConstructor) //*****  needed for advanced serialization
 
   public:
     double latitude;

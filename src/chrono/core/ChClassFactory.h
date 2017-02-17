@@ -308,49 +308,15 @@ protected:
 /// MACRO TO MARK CLASSES FOR CLASS FACTORY
 /// Different compilers use different name decorations, so typeid(ptr).name() is 
 /// not guaranteed to be the same across different platforms/compilers. 
-/// The solution is adding a static function FactoryClassNameTag() in classes, 
-/// that return a unique string.
-/// Use this macro inside the body of a class declaration, better if just
-/// at the beginning, for example:
-///
-/// class my_class {
-///     CH_FACTORY_TAG(my_class)
-/// }
-///
-/// NOTE! to support polimorphism, for ChArchive, an additional FactoryNameTag()  is made
-/// virtual: a side effect is that the class and its children will be promoted VIRTUAL, keep this
-/// in mind if you care about extreme performance with small objects (ex. 3d vectors, etc.).
-/// This not a big issue anyway, as class factories in ChArchive are needed mostly when 
-/// polimorphism comes into play (serialization of polimorphic objects, for example).
-/*
-#define CH_FACTORY_TAG(classname)                           \
-  public:                                                   \
-    static const std::string& FactoryClassNameTag() {       \
-        static std::string mtag(#classname);                \
-        return mtag;                                        \
-    }                                                       \
-    virtual const std::string& FactoryNameTag() const {     \
-        static std::string mtag(#classname);                \
-        return mtag;                                        \
-    }                                                       \
-*/
+/// ***obsolete***?
 #define CH_FACTORY_TAG(classname) \
 
-/*
-static ChClassRegistration< classname > classname ## _factory_registration("classname"); \
-*/
 
 /// MACRO TO REGISTER A CLASS INTO THE GLOBAL CLASS FACTORY 
 /// - Put this macro into a .cpp, where you prefer, but not into a .h header!
 /// - Use it as 
 ///      CH_FACTORY_REGISTER(my_class)
-/// - Note that my_class must be marked with the CH_FACTORY_TAG macro (see above)
-/*
-#define CH_FACTORY_REGISTER(classname)                                          \
-namespace class_factory {                                                       \
-    static ChClassRegistration< classname > classname ## _factory_registration; \
-}                                                                               \
-*/
+
 
 #define CH_FACTORY_REGISTER(classname)                                          \
 namespace class_factory {                                                       \

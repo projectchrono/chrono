@@ -35,21 +35,20 @@ class ChArchiveOut;
 class ChArchiveIn;
 
 
-/// Macro to create a  ChDetect_FactoryNameTag  detector that can be used in 
-/// templates, to select which specialized template to use depending if the
-/// FactoryNameTag function is present in the class of type T.
-CH_CREATE_MEMBER_DETECTOR(FactoryNameTag)
-
-/// Macro to create a  ChDetect_ArchiveINconstructor  
+/// Macro to create a  ChDetect_ArchiveINconstructor that can be used in 
+/// templates, to select which specialized template to use
 //CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor) already defined in ChClassFactory
 
-/// Macro to create a  ChDetect_ArchiveOUTconstructor 
+/// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
+/// templates, to select which specialized template to use
 CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
 
-/// Macro to create a  ChDetect_ArchiveOUT 
+/// Macro to create a  ChDetect_ArchiveOUT that can be used in 
+/// templates, to select which specialized template to use
 CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
 
-/// Macro to create a  ChDetect_ArchiveIN 
+/// Macro to create a  ChDetect_ArchiveIN that can be used in 
+/// templates, to select which specialized template to use
 CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
 
 
@@ -1158,7 +1157,6 @@ class  ChArchiveIn : public ChArchive {
 
         // trick to call in_ref on raw pointers:
       template<class T>
-      //typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
       void in     (ChNameValue<T*> bVal) {
           ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
           void* newptr = this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
