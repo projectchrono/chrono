@@ -44,7 +44,7 @@ ChQuaternion<real> ToChQuaternion(const quaternion& a) {
 }
 
 quaternion ToQuaternion(const ChQuaternion<real>& a) {
-    return quaternion(a.e0, a.e1, a.e2, a.e3);
+    return quaternion(a.e0(), a.e1(), a.e2(), a.e3());
 }
 
 ChMatrix33<real> ToChMatrix33(const Mat33& a) {

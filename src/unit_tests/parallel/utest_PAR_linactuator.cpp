@@ -115,8 +115,8 @@ bool VerifySolution(double time,                                     // current 
 
     ChQuaternion<> quat_delta = quat - quat_an;
     if (quat_delta.Length() > quat_tol) {
-        std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
-                  << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
+        std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0() << "  " << quat_delta.e1()
+                  << "  " << quat_delta.e2() << "  " << quat_delta.e3() << std::endl;
         return false;
     }
 
