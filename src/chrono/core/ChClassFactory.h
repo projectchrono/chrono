@@ -99,7 +99,7 @@ class ChApi ChClassFactory {
     /// Register a class into the global class factory.
     /// Provide an unique name and a ChClassRegistration object.
     /// If multiple registrations with the same name are attempted, only one is done.
-    static void ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration) {
+    static void ClassRegister(const std::string& keyName, ChClassRegistrationBase* mregistration) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
 
         global_factory->_ClassRegister(keyName, mregistration);
@@ -107,7 +107,7 @@ class ChApi ChClassFactory {
     
     /// Unregister a class from the global class factory.
     /// Provide an unique name.
-    static void ClassUnregister(std::string& keyName) {
+    static void ClassUnregister(const std::string& keyName) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
 
         global_factory->_ClassUnregister(keyName);
@@ -117,7 +117,7 @@ class ChApi ChClassFactory {
     }
 
     /// Tell if a class is registered, from its name
-    static bool IsClassRegistered(std::string& keyName) {
+    static bool IsClassRegistered(const std::string& keyName) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         return global_factory->_IsClassRegistered(keyName);
     }
@@ -132,7 +132,7 @@ class ChApi ChClassFactory {
     /// Create from tag name, for registered classes.
     /// The created object is returned in "ptr"
     template <class T>
-    static void create(std::string& keyName, T** ptr) {
+    static void create(const std::string& keyName, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(global_factory->_create(keyName));
     }
@@ -141,7 +141,7 @@ class ChApi ChClassFactory {
     /// If a static T* ArchiveINconstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
-    static void create(std::string& keyName, ChArchiveIn& marchive, T** ptr) {
+    static void create(const std::string& keyName, ChArchiveIn& marchive, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
     }
@@ -154,20 +154,20 @@ private:
     /// Delete the global class factory
     static void DisposeGlobalClassFactory();
 
-    void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
+    void _ClassRegister(const std::string& keyName, ChClassRegistrationBase* mregistration)
     {
        class_map[keyName] = mregistration;
        class_map_typeids[mregistration->get_type_index()] = mregistration;
     }
 
-    void _ClassUnregister(std::string& keyName)
+    void _ClassUnregister(const std::string& keyName)
     {
        // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." << class_map_typeids.size() << "\n";
        class_map_typeids.erase(class_map[keyName]->get_type_index());
        class_map.erase(keyName);
     }
 
-    bool _IsClassRegistered(std::string& keyName) {
+    bool _IsClassRegistered(const std::string& keyName) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end())
             return true;
@@ -187,14 +187,14 @@ private:
         return class_map.size();
     }
 
-    void* _create(std::string& keyName) {
+    void* _create(const std::string& keyName) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
             return it->second->create();
         }
         throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
-    void* _archive_in_create(std::string& keyName, ChArchiveIn& marchive) {
+    void* _archive_in_create(const std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
             return it->second->create(marchive);
