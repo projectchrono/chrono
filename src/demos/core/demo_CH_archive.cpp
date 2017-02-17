@@ -182,10 +182,10 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-
+namespace chrono {
 CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
 CH_CLASS_VERSION(myEmployeeBoss, 2)
-
+}
 
 // Finally, let's serialize a class that has no default constructor.
 // The archive system canno

@@ -369,20 +369,23 @@ namespace class_factory {
     };
 }
 
+}  // end namespace chrono
+
+
 
 /// Call this macro to register a custom version for a class "classname". 
 /// If you do not do this, the default version for all classes is 0.
 /// The m_version parameter should be an integer greater than 0.
 
 #define CH_CLASS_VERSION(classname, m_version)                  \
-    template<>                                                  \
-    class chrono::class_factory::ChClassVersion<classname> {  \
-    public:                                                     \
+     namespace class_factory {                                  \
+      template<>                                                \
+      class ChClassVersion<classname> {                         \
+      public:                                                   \
         static const int version = m_version;                   \
+      };                                                        \
     };                                                          \
 
 
-
-}  // end namespace chrono
 
 #endif
