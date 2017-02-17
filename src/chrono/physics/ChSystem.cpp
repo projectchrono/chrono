@@ -1989,7 +1989,7 @@ bool ChSystem::DoFullAssembly() {
 
 void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChSystem>();
 
     // serialize parent class
     ChAssembly::ArchiveOUT(marchive);
@@ -2032,7 +2032,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChSystem>();
 
     // deserialize parent class
     ChAssembly::ArchiveIN(marchive);

@@ -59,7 +59,7 @@ class ChApi ChSharedMassBody {
 
     void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChSharedMassBody>();
 
         // serialize all member data:
         marchive << CHNVP(mass);
@@ -68,7 +68,7 @@ class ChApi ChSharedMassBody {
 
     void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChSharedMassBody>();
 
         // stream in all member data:
         marchive >> CHNVP(mass);
@@ -157,7 +157,7 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVariablesBodySharedMass>();
         // serialize parent class
         ChVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
@@ -167,7 +167,7 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVariablesBodySharedMass>();
         // deserialize parent class
         ChVariablesBody::ArchiveIN(marchive);
         // stream in all member data:

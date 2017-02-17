@@ -119,6 +119,9 @@ class ChApi ChLinkLimit {
     void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChLinkLimit,0)
+
+
 }  // end namespace chrono
 
 #endif

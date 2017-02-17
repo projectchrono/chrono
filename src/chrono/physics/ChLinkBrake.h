@@ -69,6 +69,8 @@ class ChApi ChLinkBrake : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChLinkBrake,0)
+
 }  // end namespace chrono
 
 #endif

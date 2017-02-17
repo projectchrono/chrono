@@ -115,6 +115,9 @@ class ChApi ChLinkMask {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChLinkMask,0)
+
+
 // -----------------------------------------------------------------------------
 
 /// Specialized ChLinkMask class, for constraint equations of
@@ -154,6 +157,9 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkMaskLF,0)
+
 
 }  // end namespace chrono
 

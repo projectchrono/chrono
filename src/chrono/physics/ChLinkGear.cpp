@@ -278,7 +278,7 @@ void ChLinkGear::UpdateTime(double mytime) {
 
 void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkGear>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -301,7 +301,7 @@ void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkGear>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

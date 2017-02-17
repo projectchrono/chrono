@@ -728,7 +728,7 @@ class my_enum_mappers : public ChLinkEngine {
 
 void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkEngine>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -752,7 +752,7 @@ void ChLinkEngine::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkEngine::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkEngine>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

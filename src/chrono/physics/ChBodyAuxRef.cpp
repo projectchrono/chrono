@@ -85,7 +85,7 @@ void ChBodyAuxRef::Update(bool update_assets) {
 
 void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChBodyAuxRef>();
 
     // serialize parent class
     ChBody::ArchiveOUT(marchive);
@@ -98,7 +98,7 @@ void ChBodyAuxRef::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBodyAuxRef::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChBodyAuxRef>();
 
     // deserialize parent class
     ChBody::ArchiveIN(marchive);

@@ -130,7 +130,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkGear.cpp
     physics/ChLinkPulley.cpp
     physics/ChLinkLinActuator.cpp
-    #physics/ChLinkPneumaticActuator.cpp
     physics/ChLinkScrew.cpp
     physics/ChLinkSpring.cpp
     physics/ChLinkSpringCB.cpp
@@ -220,7 +219,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkMarkers.h
     physics/ChLinkMask.h
     physics/ChLinkMasked.h
-    #physics/ChLinkPneumaticActuator.h
     physics/ChLinkPointSpline.h
     physics/ChLinkPulley.h
     physics/ChLinksAll.h

@@ -415,6 +415,8 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChPhysicsItem,0)
+
 }  // end namespace chrono
 
 #endif

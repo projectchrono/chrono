@@ -38,14 +38,14 @@ ChNodeBase& ChNodeBase::operator=(const ChNodeBase& other) {
 
 void ChNodeBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeBase>();
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChNodeBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeBase>();
     // deserialize all member data:
 }
 

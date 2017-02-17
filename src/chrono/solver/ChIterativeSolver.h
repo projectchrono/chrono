@@ -161,7 +161,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChIterativeSolver>();
         // serialize parent class
         ChSolver::ArchiveOUT(marchive);
         // serialize all member data:
@@ -176,7 +176,7 @@ class ChApi ChIterativeSolver : public ChSolver {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChIterativeSolver>();
         // deserialize parent class
         ChSolver::ArchiveIN(marchive);
         // stream in all member data:

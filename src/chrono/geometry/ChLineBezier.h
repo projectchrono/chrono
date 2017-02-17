@@ -54,7 +54,7 @@ class ChApi ChLineBezier : public ChLine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLineBezier>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -65,7 +65,7 @@ class ChApi ChLineBezier : public ChLine {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLineBezier>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -79,6 +79,9 @@ class ChApi ChLineBezier : public ChLine {
 };
 
 }  // end of namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLineBezier,0)
+
 }  // end of namespace chrono
 
 #endif

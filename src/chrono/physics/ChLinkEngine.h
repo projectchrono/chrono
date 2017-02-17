@@ -261,6 +261,8 @@ class ChApi ChLinkEngine : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkEngine,0)
+
 }  // end namespace chrono
 
 #endif

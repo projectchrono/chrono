@@ -81,7 +81,7 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChTriangleMeshShape>();
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
@@ -96,7 +96,7 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChTriangleMeshShape>();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
@@ -107,6 +107,8 @@ class ChApi ChTriangleMeshShape : public ChVisualization {
         marchive >> CHNVP(scale);
     }
 };
+
+CH_CLASS_VERSION(ChTriangleMeshShape,0)
 
 }  // end namespace chrono
 

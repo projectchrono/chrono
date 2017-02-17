@@ -198,6 +198,8 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     }
 };
 
+CH_CLASS_VERSION(ChContactContainerBase,0)
+
 }  // end namespace chrono
 
 #endif

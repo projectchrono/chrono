@@ -1263,7 +1263,7 @@ void ChAssembly::ShowHierarchy(ChStreamOutAscii& m_file, int level) {
 
 void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChAssembly>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -1300,7 +1300,7 @@ void ChAssembly::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChAssembly::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChAssembly>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

@@ -156,11 +156,11 @@ class ChApi ChCollisionSystem {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCollisionSystem>();
     }
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCollisionSystem>();
     }
 
   protected:
@@ -168,7 +168,11 @@ class ChApi ChCollisionSystem {
     ChNarrowPhaseCallback* narrow_callback;  // user callback for each contact
 };
 
+
 }  // end namespace collision
+
+CH_CLASS_VERSION(collision::ChCollisionSystem,0)
+
 }  // end namespace chrono
 
 #endif

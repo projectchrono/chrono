@@ -294,7 +294,11 @@ class ChApi ChModelBullet : public ChCollisionModel {
     void onFamilyChange();
 };
 
+
 }  // end namespace collision
+
+CH_CLASS_VERSION(collision::ChModelBullet,0)
+
 }  // end namespace chrono
 
 #endif

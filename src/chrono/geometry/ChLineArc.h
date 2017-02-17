@@ -73,7 +73,7 @@ class ChApi ChLineArc : public ChLine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLineArc>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -87,7 +87,7 @@ class ChApi ChLineArc : public ChLine {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLineArc>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -100,6 +100,9 @@ class ChApi ChLineArc : public ChLine {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLineArc,0)
+
 }  // end namespace chrono
 
 #endif

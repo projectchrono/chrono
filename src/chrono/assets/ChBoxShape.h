@@ -56,7 +56,7 @@ class ChApi ChBoxShape : public ChVisualization {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChBoxShape>();
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
@@ -67,13 +67,16 @@ class ChApi ChBoxShape : public ChVisualization {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChBoxShape>();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(gbox);
     }
 };
+
+CH_CLASS_VERSION(ChBoxShape,0)
+
 
 }  // end namespace chrono
 

@@ -28,7 +28,7 @@ ChLinkBase::ChLinkBase(const ChLinkBase& other) : ChPhysicsItem(other) {
 
 void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkBase>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -41,7 +41,7 @@ void ChLinkBase::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkBase>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

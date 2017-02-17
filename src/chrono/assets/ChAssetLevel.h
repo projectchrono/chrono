@@ -82,7 +82,7 @@ class ChApi ChAssetLevel : public ChAsset {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChAssetLevel>();
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
@@ -94,7 +94,7 @@ class ChApi ChAssetLevel : public ChAsset {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChAssetLevel>();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
@@ -102,6 +102,8 @@ class ChApi ChAssetLevel : public ChAsset {
         marchive >> CHNVP(assets);
     }
 };
+
+CH_CLASS_VERSION(ChAssetLevel,0)
 
 }  // end namespace chrono
 

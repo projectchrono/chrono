@@ -157,6 +157,8 @@ class ChApi ChLinkRevolute : public ChLink {
     double m_multipliers[5];
 };
 
+CH_CLASS_VERSION(ChLinkRevolute,0)
+
 }  // end namespace chrono
 
 #endif

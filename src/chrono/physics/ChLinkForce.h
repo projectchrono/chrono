@@ -81,6 +81,8 @@ class ChApi ChLinkForce {
     void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChLinkForce,0)
+
 }  // end namespace chrono
 
 #endif

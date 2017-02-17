@@ -141,7 +141,8 @@ double ChLinkForce::Get_Force(double x, double x_dt, double t) const {
 
 void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkForce>();
+
     // serialize parent class too
 
     // stream out all member data
@@ -156,7 +157,8 @@ void ChLinkForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkForce>();
+
     // deserialize parent class too
 
     // stream in all member data

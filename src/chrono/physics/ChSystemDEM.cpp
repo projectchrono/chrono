@@ -96,7 +96,7 @@ public:
 void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChSystemDEM>();
 
     // serialize parent class
     ChSystem::ArchiveOUT(marchive);
@@ -118,7 +118,7 @@ void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChSystemDEM>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

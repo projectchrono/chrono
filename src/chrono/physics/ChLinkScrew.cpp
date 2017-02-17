@@ -120,7 +120,7 @@ void ChLinkScrew::UpdateState() {
 
 void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkScrew>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -132,7 +132,7 @@ void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkScrew>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

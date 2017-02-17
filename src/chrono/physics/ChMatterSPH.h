@@ -178,6 +178,10 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 /// Class for SPH fluid material, with basic property of uncompressible fluid.
 
 class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumSPH)
+
   private:
     double viscosity;
     double surface_tension;

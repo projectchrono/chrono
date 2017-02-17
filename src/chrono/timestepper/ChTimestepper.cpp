@@ -42,7 +42,7 @@ class my_enum_mappers : public ChTimestepper {
 
 void ChTimestepper::ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChTimestepper>();
         // method type:
         my_enum_mappers::Type_mapper typemapper;
         Type type = GetType();
@@ -55,7 +55,7 @@ void ChTimestepper::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTimestepper::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChTimestepper>();
     // method type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();
@@ -895,7 +895,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
 
 void ChTimestepperNewmark::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChTimestepperNewmark>();
     // serialize parent class:
     ChTimestepperIIorder::ArchiveOUT(marchive);
     ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
@@ -906,7 +906,7 @@ void ChTimestepperNewmark::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChTimestepperNewmark::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChTimestepperNewmark>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(marchive);
     ChImplicitIterativeTimestepper::ArchiveIN(marchive);

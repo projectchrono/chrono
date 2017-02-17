@@ -66,7 +66,7 @@ void ChLinkSpringCB::UpdateForces(double time) {
 
 void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkSpringCB>();
 
     // serialize parent class
     ChLinkMarkers::ArchiveOUT(marchive);
@@ -78,7 +78,7 @@ void ChLinkSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

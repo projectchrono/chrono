@@ -186,7 +186,7 @@ void ChLinkClearance::UpdateTime(double mytime) {
 
 void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkClearance>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -203,7 +203,7 @@ void ChLinkClearance::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkClearance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkClearance>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

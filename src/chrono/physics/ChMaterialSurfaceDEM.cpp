@@ -58,7 +58,7 @@ void ChMaterialSurfaceDEM::SetFriction(float val) {
 
 void ChMaterialSurfaceDEM::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChMaterialSurfaceDEM>();
 
     // serialize parent class
     ChMaterialSurfaceBase::ArchiveOUT(marchive);
@@ -79,7 +79,7 @@ void ChMaterialSurfaceDEM::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChMaterialSurfaceDEM::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChMaterialSurfaceDEM>();
 
     // deserialize parent class
     ChMaterialSurfaceBase::ArchiveIN(marchive);
