@@ -37,7 +37,7 @@ class ChVector {
 
     ChVector();
     ChVector(Real x, Real y, Real z);
-    ChVector(const Real a);
+    ChVector(Real a);
     ChVector(const ChVector<Real>& other);
 
     /// Copy constructor with type change.
@@ -55,13 +55,13 @@ class ChVector {
     // SET FUNCTIONS
 
     /// Set the three values of the vector at once.
-    void Set(const Real x, const Real y, const Real z);
+    void Set(Real x, Real y, Real z);
 
     /// Set the vector as a copy of another vector.
     void Set(const ChVector<Real>& v);
 
     /// Set all the vector components ts to the same scalar.
-    void Set(const Real s);
+    void Set(Real s);
 
     /// Set the vector to the null vector.
     void SetNull();
@@ -83,8 +83,7 @@ class ChVector {
     /// Compute the squared euclidean norm of the vector.
     Real Length2() const;
 
-    /// Compute the infinite norm of the vector, 
-    /// that is the maximum absolute value of one of its elements.
+    /// Compute the infinity norm of the vector, that is the maximum absolute value of one of its elements.
     Real LengthInf() const;
 
     // OPERATORS OVERLOADING
@@ -129,12 +128,12 @@ class ChVector {
     ChVector<Real>& operator/=(const ChVector<Real>& other);
 
     /// Operator for scaling the vector by a scalar value, as V*s
-    ChVector<Real> operator*(const Real s) const;
-    ChVector<Real>& operator*=(const Real s);
+    ChVector<Real> operator*(Real s) const;
+    ChVector<Real>& operator*=(Real s);
 
     /// Operator for scaling the vector by inverse of a scalar value, as v/s
-    ChVector<Real> operator/(const Real v) const;
-    ChVector<Real>& operator/=(const Real v);
+    ChVector<Real> operator/(Real v) const;
+    ChVector<Real>& operator/=(Real v);
 
     /// Operator for dot product: A^B means the scalar dot-product A*B
     /// Note: pay attention to operator low precedence (see C++ precedence rules!)
@@ -162,10 +161,10 @@ class ChVector {
     void Sub(const ChVector<Real>& A, const ChVector<Real>& B);
 
     /// Set this vector to the product of a vector A and scalar s: this = A * s
-    void Mul(const ChVector<Real>& A, const Real s);
+    void Mul(const ChVector<Real>& A, Real s);
 
     /// Scale this vector by a scalar: this *= s
-    void Scale(const Real s);
+    void Scale(Real s);
 
     /// Set this vector to the cross product of A and B: this = A x B
     void Cross(const ChVector<Real>& A, const ChVector<Real>& B);
@@ -178,7 +177,7 @@ class ChVector {
 
     /// Normalize this vector in place, so that its euclidean length is 1.
     /// Return false if the original vector had zero length (in which case the vector
-    /// set to [1,0,0]) and return true otherwise.
+    /// is set to [1,0,0]) and return true otherwise.
     bool Normalize();
 
     /// Return a normalized copy of this vector, with euclidean length = 1.
@@ -223,522 +222,34 @@ class ChVector {
 // -----------------------------------------------------------------------------
 
 /// Shortcut for faster use of typical double-precision vectors.
+/// <pre>
 /// Instead of writing
 ///    ChVector<double> foo;
 /// or
 ///    ChVector<> foo;
 /// you can use the shorter version
 ///    Vector foo;
+/// </pre>
 typedef ChVector<double> Vector;
 
 /// Shortcut for faster use of typical single-precision vectors.
+/// <pre>
 /// Instead of writing
 ///    ChVector<float> foo;
 /// you can use the shorter version
 ///    Vector foo;
+/// </pre>
 typedef ChVector<float> VectorF;
 
 // -----------------------------------------------------------------------------
-// Constructors
+// CONSTANTS
 
-template <class Real>
-inline ChVector<Real>::ChVector() {
-    data[0] = 0;
-    data[1] = 0;
-    data[2] = 0;
-}
-
-template <class Real>
-inline ChVector<Real>::ChVector(Real a) {
-    data[0] = a;
-    data[1] = a;
-    data[2] = a;
-}
-
-template <class Real>
-inline ChVector<Real>::ChVector(Real x, Real y, Real z) {
-    data[0] = x;
-    data[1] = y;
-    data[2] = z;
-}
-
-template <class Real>
-inline ChVector<Real>::ChVector(const ChVector<Real>& other) {
-    data[0] = other.data[0];
-    data[1] = other.data[1];
-    data[2] = other.data[2];
-}
-
-template <class Real>
-template <class RealB>
-inline ChVector<Real>::ChVector(const ChVector<RealB>& other) {
-    data[0] = static_cast<Real>(other.data[0]);
-    data[1] = static_cast<Real>(other.data[1]);
-    data[2] = static_cast<Real>(other.data[2]);
-}
+ChApi extern const ChVector<double> VNULL;
+ChApi extern const ChVector<double> VECT_X;
+ChApi extern const ChVector<double> VECT_Y;
+ChApi extern const ChVector<double> VECT_Z;
 
 // -----------------------------------------------------------------------------
-// Subscript operators
-
-template <class Real>
-inline Real& ChVector<Real>::operator[](unsigned index) {
-    assert(index < 3);
-    return data[index];
-}
-
-template <class Real>
-inline const Real& ChVector<Real>::operator[](unsigned index) const {
-    assert(index < 3);
-    return data[index];
-}
-
-// -----------------------------------------------------------------------------
-// Assignments
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator=(const ChVector<Real>& other) {
-    if (&other == this)
-        return *this;
-    data[0] = other.data[0];
-    data[1] = other.data[1];
-    data[2] = other.data[2];
-    return *this;
-}
-
-template <class Real>
-template <class RealB>
-inline ChVector<Real>& ChVector<Real>::operator=(const ChVector<RealB>& other) {
-    data[0] = static_cast<Real>(other.data[0]);
-    data[1] = static_cast<Real>(other.data[1]);
-    data[2] = static_cast<Real>(other.data[2]);
-    return *this;
-}
-
-// -----------------------------------------------------------------------------
-// Sign operators
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator+() const {
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator-() const {
-    return ChVector<Real>(-data[0], -data[1], -data[2]);
-}
-
-// -----------------------------------------------------------------------------
-// Arithmetic operations
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator+(const ChVector<Real>& other) const {
-    ChVector<Real> v;
-
-    v.data[0] = data[0] + other.data[0];
-    v.data[1] = data[1] + other.data[1];
-    v.data[2] = data[2] + other.data[2];
-
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator-(const ChVector<Real>& other) const {
-    ChVector<Real> v;
-
-    v.data[0] = data[0] - other.data[0];
-    v.data[1] = data[1] - other.data[1];
-    v.data[2] = data[2] - other.data[2];
-
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator*(const ChVector<Real>& other) const {
-    ChVector<Real> v;
-
-    v.data[0] = data[0] * other.data[0];
-    v.data[1] = data[1] * other.data[1];
-    v.data[2] = data[2] * other.data[2];
-
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator/(const ChVector<Real>& other) const {
-    ChVector<Real> v;
-
-    v.data[0] = data[0] / other.data[0];
-    v.data[1] = data[1] / other.data[1];
-    v.data[2] = data[2] / other.data[2];
-
-    return v;
-}
-
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator*(Real s) const {
-    ChVector<Real> v;
-
-    v.data[0] = data[0] * s;
-    v.data[1] = data[1] * s;
-    v.data[2] = data[2] * s;
-
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::operator/(Real s) const {
-    Real oos = 1 / s;
-    ChVector<Real> v;
-
-    v.data[0] = data[0] * oos;
-    v.data[1] = data[1] * oos;
-    v.data[2] = data[2] * oos;
-
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator+=(const ChVector<Real>& other) {
-    data[0] += other.data[0];
-    data[1] += other.data[1];
-    data[2] += other.data[2];
-
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator-=(const ChVector<Real>& other) {
-    data[0] -= other.data[0];
-    data[1] -= other.data[1];
-    data[2] -= other.data[2];
-
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator*=(const ChVector<Real>& other) {
-    data[0] *= other.data[0];
-    data[1] *= other.data[1];
-    data[2] *= other.data[2];
-
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator/=(const ChVector<Real>& other) {
-    data[0] /= other.data[0];
-    data[1] /= other.data[1];
-    data[2] /= other.data[2];
-
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator*=(Real s) {
-    data[0] *= s;
-    data[1] *= s;
-    data[2] *= s;
-
-    return *this;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator/=(Real s) {
-    Real oos = 1 / s;
-
-    data[0] *= oos;
-    data[1] *= oos;
-    data[2] *= oos;
-
-    return *this;
-}
-
-// -----------------------------------------------------------------------------
-// Vector operations
-
-template <class Real>
-inline Real ChVector<Real>::operator^(const ChVector<Real>& other) const {
-    return this->Dot(other);
-}
-
-template <class Real>
-ChVector<Real> ChVector<Real>::operator%(const ChVector<Real>& other) const {
-    ChVector<Real> v;
-    v.Cross(*this, other);
-    return v;
-}
-
-template <class Real>
-inline ChVector<Real>& ChVector<Real>::operator%=(const ChVector<Real>& other) {
-    this->Cross(*this, other);
-    return *this;
-}
-
-// -----------------------------------------------------------------------------
-// Comparison operations
-
-template <class Real>
-inline bool ChVector<Real>::operator<=(const ChVector<Real>& other) const {
-    return data[0] <= other.data[0] && data[1] <= other.data[1] && data[2] <= other.data[2];
-}
-
-template <class Real>
-inline bool ChVector<Real>::operator>=(const ChVector<Real>& other) const {
-    return data[0] >= other.data[0] && data[1] >= other.data[1] && data[2] >= other.data[2];
-}
-
-template <class Real>
-inline bool ChVector<Real>::operator<(const ChVector<Real>& other) const {
-    return data[0] < other.data[0] && data[1] < other.data[1] && data[2] < other.data[2];
-}
-
-template <class Real>
-inline bool ChVector<Real>::operator>(const ChVector<Real>& other) const {
-    return data[0] > other.data[0] && data[1] > other.data[1] && data[2] > other.data[2];
-}
-
-template <class Real>
-inline bool ChVector<Real>::operator==(const ChVector<Real>& other) const {
-    return other.data[0] == data[0] && other.data[1] == data[1] && other.data[2] == data[2];
-}
-
-template <class Real>
-inline bool ChVector<Real>::operator!=(const ChVector<Real>& other) const {
-    return !(*this == other);
-}
-
-// -----------------------------------------------------------------------------
-// Functions
-
-template <class Real>
-inline void ChVector<Real>::Set(const Real x, const Real y, const Real z) {
-    data[0] = x;
-    data[1] = y;
-    data[2] = z;
-}
-
-template <class Real>
-inline void ChVector<Real>::Set(const ChVector<Real>& v) {
-    data[0] = v.data[0];
-    data[1] = v.data[1];
-    data[2] = v.data[2];
-}
-
-template <class Real>
-inline void ChVector<Real>::Set(const Real s) {
-    data[0] = s;
-    data[1] = s;
-    data[2] = s;
-}
-
-/// Sets the vector as a null vector
-template <class Real>
-inline void ChVector<Real>::SetNull() {
-    data[0] = 0;
-    data[1] = 0;
-    data[2] = 0;
-}
-
-template <class Real>
-inline bool ChVector<Real>::IsNull() const {
-    return data[0] == 0 && data[1] == 0 && data[2] == 0;
-}
-
-template <class Real>
-inline bool ChVector<Real>::Equals(const ChVector<Real>& other) const {
-    return (other.data[0] == data[0]) && (other.data[1] == data[1]) && (other.data[2] == data[2]);
-}
-
-template <class Real>
-inline bool ChVector<Real>::Equals(const ChVector<Real>& other, Real tol) const {
-    return (fabs(other.data[0] - data[0]) < tol) && (fabs(other.data[1] - data[1]) < tol) &&
-           (fabs(other.data[2] - data[2]) < tol);
-}
-
-template <class Real>
-inline void ChVector<Real>::Add(const ChVector<Real>& A, const ChVector<Real>& B) {
-    data[0] = A.data[0] + B.data[0];
-    data[1] = A.data[1] + B.data[1];
-    data[2] = A.data[2] + B.data[2];
-}
-
-template <class Real>
-inline void ChVector<Real>::Sub(const ChVector<Real>& A, const ChVector<Real>& B) {
-    data[0] = A.data[0] - B.data[0];
-    data[1] = A.data[1] - B.data[1];
-    data[2] = A.data[2] - B.data[2];
-}
-
-template <class Real>
-inline void ChVector<Real>::Mul(const ChVector<Real>& A, const Real s) {
-    data[0] = A.data[0] * s;
-    data[1] = A.data[1] * s;
-    data[2] = A.data[2] * s;
-}
-
-template <class Real>
-inline void ChVector<Real>::Scale(const Real s) {
-    data[0] *= s;
-    data[1] *= s;
-    data[2] *= s;
-}
-
-template <class Real>
-inline void ChVector<Real>::Cross(const ChVector<Real>& A, const ChVector<Real>& B) {
-    data[0] = (A.data[1] * B.data[2]) - (A.data[2] * B.data[1]);
-    data[1] = (A.data[2] * B.data[0]) - (A.data[0] * B.data[2]);
-    data[2] = (A.data[0] * B.data[1]) - (A.data[1] * B.data[0]);
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::Cross(const ChVector<Real> other) const {
-    ChVector<Real> v;
-    v.Cross(*this, other);
-    return v;
-}
-
-template <class Real>
-inline Real ChVector<Real>::Dot(const ChVector<Real>& B) const {
-    return (data[0] * B.data[0]) + (data[1] * B.data[1]) + (data[2] * B.data[2]);
-}
-
-template <class Real>
-inline Real ChVector<Real>::Length() const {
-    return sqrt(Length2());
-}
-
-template <class Real>
-inline Real ChVector<Real>::Length2() const {
-    return this->Dot(*this);
-}
-
-template <class Real>
-inline Real ChVector<Real>::LengthInf() const {
-    return ChMax(ChMax(fabs(data[0]), fabs(data[1])), fabs(data[2]));
-}
-
-template <class Real>
-inline bool ChVector<Real>::Normalize() {
-    Real length = this->Length();
-    if (length < CH_NANOTOL) {
-        data[0] = 1;
-        data[1] = 0;
-        data[2] = 0;
-        return false;
-    }
-    this->Scale(1 / length);
-    return true;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::GetNormalized() const {
-    ChVector<Real> v(*this);
-    v.Normalize();
-    return v;
-}
-
-template <class Real>
-inline void ChVector<Real>::SetLength(Real s) {
-    Normalize();
-    Scale(s);
-}
-
-template <class Real>
-inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
-                                        ChVector<Real>& Vy,
-                                        ChVector<Real>& Vz,
-                                        const ChVector<Real>& Vsingular) const {
-    // set Vx.
-    if (this->IsNull())
-        Vx = ChVector<Real>(1, 0, 0);
-    else
-        Vx = this->GetNormalized();
-
-    Vz.Cross(Vx, Vsingular);
-    Real zlen = Vz.Length();
-
-    // if near singularity, change the singularity reference vector.
-    if (zlen < 0.0001) {
-        ChVector<Real> mVsingular;
-
-        if (fabs(Vsingular.data[0]) < 0.9)
-            mVsingular = ChVector<Real>(1, 0, 0);
-        else if (fabs(Vsingular.data[1]) < 0.9)
-            mVsingular = ChVector<Real>(0, 1, 0);
-        else if (fabs(Vsingular.data[2]) < 0.9)
-            mVsingular = ChVector<Real>(0, 0, 1);
-
-        Vz.Cross(Vx, mVsingular);
-        zlen = Vz.Length();  // now should be nonzero length.
-    }
-
-    // normalize Vz.
-    Vz.Scale(1.0 / zlen);
-
-    // compute Vy.
-    Vy.Cross(Vz, Vx);
-}
-
-template <class Real>
-inline int ChVector<Real>::GetMaxComponent() const {
-    int idx = 0;
-    Real max = fabs(data[0]);
-    if (fabs(data[1]) > max) { idx = 1; max = data[1]; }
-    if (fabs(data[2]) > max) { idx = 2; max = data[2]; }
-    return idx;
-}
-
-template <class Real>
-inline ChVector<Real> ChVector<Real>::GetOrthogonalVector() const {
-    int idx1 = this->GetMaxComponent();
-    int idx2 = (idx1 + 1) % 3;  // cycle to the next component
-    int idx3 = (idx2 + 1) % 3;  // cycle to the next component
-
-    // Construct v2 by rotating in the plane containing the maximum component
-    ChVector<Real> v2(-data[idx2], data[idx1], data[idx3]);
-
-    // Construct the normal vector
-    ChVector<Real> ortho = Cross(v2);
-    ortho.Normalize();
-    return ortho;
-}
-
-// -----------------------------------------------------------------------------
-// Streaming operations
-
-template <class Real>
-inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive)
-{
-    // suggested: use versioning
-    marchive.VersionWrite(1);
-    // stream out all member data
-    marchive << CHNVP(data[0]);
-    marchive << CHNVP(data[1]);
-    marchive << CHNVP(data[2]);
-}
-
-template <class Real>
-inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive)
-{
-    // suggested: use versioning
-    int version = marchive.VersionRead();
-    // stream in all member data
-    marchive >> CHNVP(data[0]);
-    marchive >> CHNVP(data[1]);
-    marchive >> CHNVP(data[2]);
-}
-
-// -----------------------------------------------------------------------------
-// Reversed operators
-
-/// Operator for scaling the vector by a scalar value, as s*V
-template <class Real>
-ChVector<Real> operator*(const Real s, const ChVector<Real>& V) {
-    return ChVector<Real>(V.x() * s, V.y() * s, V.z() * s);
-}
-
-//
 // STATIC VECTOR MATH OPERATIONS
 //
 // These functions are here for people which prefer to use static
@@ -900,12 +411,512 @@ void XdirToDxDyDz(const ChVector<RealA>& Vxdir,
     Vy = Vcross(Vz, Vx);
 }
 
-// CONSTANTS
+// =============================================================================
+// IMPLEMENTATION OF ChQuaternion<Real> methods
+// =============================================================================
 
-ChApi extern const ChVector<double> VNULL;
-ChApi extern const ChVector<double> VECT_X;
-ChApi extern const ChVector<double> VECT_Y;
-ChApi extern const ChVector<double> VECT_Z;
+// -----------------------------------------------------------------------------
+// Constructors
+
+template <class Real>
+inline ChVector<Real>::ChVector() {
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 0;
+}
+
+template <class Real>
+inline ChVector<Real>::ChVector(Real a) {
+    data[0] = a;
+    data[1] = a;
+    data[2] = a;
+}
+
+template <class Real>
+inline ChVector<Real>::ChVector(Real x, Real y, Real z) {
+    data[0] = x;
+    data[1] = y;
+    data[2] = z;
+}
+
+template <class Real>
+inline ChVector<Real>::ChVector(const ChVector<Real>& other) {
+    data[0] = other.data[0];
+    data[1] = other.data[1];
+    data[2] = other.data[2];
+}
+
+template <class Real>
+template <class RealB>
+inline ChVector<Real>::ChVector(const ChVector<RealB>& other) {
+    data[0] = static_cast<Real>(other.data[0]);
+    data[1] = static_cast<Real>(other.data[1]);
+    data[2] = static_cast<Real>(other.data[2]);
+}
+
+// -----------------------------------------------------------------------------
+// Subscript operators
+
+template <class Real>
+inline Real& ChVector<Real>::operator[](unsigned index) {
+    assert(index < 3);
+    return data[index];
+}
+
+template <class Real>
+inline const Real& ChVector<Real>::operator[](unsigned index) const {
+    assert(index < 3);
+    return data[index];
+}
+
+// -----------------------------------------------------------------------------
+// Assignments
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator=(const ChVector<Real>& other) {
+    if (&other == this)
+        return *this;
+    data[0] = other.data[0];
+    data[1] = other.data[1];
+    data[2] = other.data[2];
+    return *this;
+}
+
+template <class Real>
+template <class RealB>
+inline ChVector<Real>& ChVector<Real>::operator=(const ChVector<RealB>& other) {
+    data[0] = static_cast<Real>(other.data[0]);
+    data[1] = static_cast<Real>(other.data[1]);
+    data[2] = static_cast<Real>(other.data[2]);
+    return *this;
+}
+
+// -----------------------------------------------------------------------------
+// Sign operators
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator+() const {
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator-() const {
+    return ChVector<Real>(-data[0], -data[1], -data[2]);
+}
+
+// -----------------------------------------------------------------------------
+// Arithmetic operations
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator+(const ChVector<Real>& other) const {
+    ChVector<Real> v;
+
+    v.data[0] = data[0] + other.data[0];
+    v.data[1] = data[1] + other.data[1];
+    v.data[2] = data[2] + other.data[2];
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator-(const ChVector<Real>& other) const {
+    ChVector<Real> v;
+
+    v.data[0] = data[0] - other.data[0];
+    v.data[1] = data[1] - other.data[1];
+    v.data[2] = data[2] - other.data[2];
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator*(const ChVector<Real>& other) const {
+    ChVector<Real> v;
+
+    v.data[0] = data[0] * other.data[0];
+    v.data[1] = data[1] * other.data[1];
+    v.data[2] = data[2] * other.data[2];
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator/(const ChVector<Real>& other) const {
+    ChVector<Real> v;
+
+    v.data[0] = data[0] / other.data[0];
+    v.data[1] = data[1] / other.data[1];
+    v.data[2] = data[2] / other.data[2];
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator*(Real s) const {
+    ChVector<Real> v;
+
+    v.data[0] = data[0] * s;
+    v.data[1] = data[1] * s;
+    v.data[2] = data[2] * s;
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::operator/(Real s) const {
+    Real oos = 1 / s;
+    ChVector<Real> v;
+
+    v.data[0] = data[0] * oos;
+    v.data[1] = data[1] * oos;
+    v.data[2] = data[2] * oos;
+
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator+=(const ChVector<Real>& other) {
+    data[0] += other.data[0];
+    data[1] += other.data[1];
+    data[2] += other.data[2];
+
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator-=(const ChVector<Real>& other) {
+    data[0] -= other.data[0];
+    data[1] -= other.data[1];
+    data[2] -= other.data[2];
+
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator*=(const ChVector<Real>& other) {
+    data[0] *= other.data[0];
+    data[1] *= other.data[1];
+    data[2] *= other.data[2];
+
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator/=(const ChVector<Real>& other) {
+    data[0] /= other.data[0];
+    data[1] /= other.data[1];
+    data[2] /= other.data[2];
+
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator*=(Real s) {
+    data[0] *= s;
+    data[1] *= s;
+    data[2] *= s;
+
+    return *this;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator/=(Real s) {
+    Real oos = 1 / s;
+
+    data[0] *= oos;
+    data[1] *= oos;
+    data[2] *= oos;
+
+    return *this;
+}
+
+// -----------------------------------------------------------------------------
+// Vector operations
+
+template <class Real>
+inline Real ChVector<Real>::operator^(const ChVector<Real>& other) const {
+    return this->Dot(other);
+}
+
+template <class Real>
+ChVector<Real> ChVector<Real>::operator%(const ChVector<Real>& other) const {
+    ChVector<Real> v;
+    v.Cross(*this, other);
+    return v;
+}
+
+template <class Real>
+inline ChVector<Real>& ChVector<Real>::operator%=(const ChVector<Real>& other) {
+    this->Cross(*this, other);
+    return *this;
+}
+
+// -----------------------------------------------------------------------------
+// Comparison operations
+
+template <class Real>
+inline bool ChVector<Real>::operator<=(const ChVector<Real>& other) const {
+    return data[0] <= other.data[0] && data[1] <= other.data[1] && data[2] <= other.data[2];
+}
+
+template <class Real>
+inline bool ChVector<Real>::operator>=(const ChVector<Real>& other) const {
+    return data[0] >= other.data[0] && data[1] >= other.data[1] && data[2] >= other.data[2];
+}
+
+template <class Real>
+inline bool ChVector<Real>::operator<(const ChVector<Real>& other) const {
+    return data[0] < other.data[0] && data[1] < other.data[1] && data[2] < other.data[2];
+}
+
+template <class Real>
+inline bool ChVector<Real>::operator>(const ChVector<Real>& other) const {
+    return data[0] > other.data[0] && data[1] > other.data[1] && data[2] > other.data[2];
+}
+
+template <class Real>
+inline bool ChVector<Real>::operator==(const ChVector<Real>& other) const {
+    return other.data[0] == data[0] && other.data[1] == data[1] && other.data[2] == data[2];
+}
+
+template <class Real>
+inline bool ChVector<Real>::operator!=(const ChVector<Real>& other) const {
+    return !(*this == other);
+}
+
+// -----------------------------------------------------------------------------
+// Functions
+
+template <class Real>
+inline void ChVector<Real>::Set(Real x, Real y, Real z) {
+    data[0] = x;
+    data[1] = y;
+    data[2] = z;
+}
+
+template <class Real>
+inline void ChVector<Real>::Set(const ChVector<Real>& v) {
+    data[0] = v.data[0];
+    data[1] = v.data[1];
+    data[2] = v.data[2];
+}
+
+template <class Real>
+inline void ChVector<Real>::Set(Real s) {
+    data[0] = s;
+    data[1] = s;
+    data[2] = s;
+}
+
+/// Sets the vector as a null vector
+template <class Real>
+inline void ChVector<Real>::SetNull() {
+    data[0] = 0;
+    data[1] = 0;
+    data[2] = 0;
+}
+
+template <class Real>
+inline bool ChVector<Real>::IsNull() const {
+    return data[0] == 0 && data[1] == 0 && data[2] == 0;
+}
+
+template <class Real>
+inline bool ChVector<Real>::Equals(const ChVector<Real>& other) const {
+    return (other.data[0] == data[0]) && (other.data[1] == data[1]) && (other.data[2] == data[2]);
+}
+
+template <class Real>
+inline bool ChVector<Real>::Equals(const ChVector<Real>& other, Real tol) const {
+    return (fabs(other.data[0] - data[0]) < tol) && (fabs(other.data[1] - data[1]) < tol) &&
+           (fabs(other.data[2] - data[2]) < tol);
+}
+
+template <class Real>
+inline void ChVector<Real>::Add(const ChVector<Real>& A, const ChVector<Real>& B) {
+    data[0] = A.data[0] + B.data[0];
+    data[1] = A.data[1] + B.data[1];
+    data[2] = A.data[2] + B.data[2];
+}
+
+template <class Real>
+inline void ChVector<Real>::Sub(const ChVector<Real>& A, const ChVector<Real>& B) {
+    data[0] = A.data[0] - B.data[0];
+    data[1] = A.data[1] - B.data[1];
+    data[2] = A.data[2] - B.data[2];
+}
+
+template <class Real>
+inline void ChVector<Real>::Mul(const ChVector<Real>& A, Real s) {
+    data[0] = A.data[0] * s;
+    data[1] = A.data[1] * s;
+    data[2] = A.data[2] * s;
+}
+
+template <class Real>
+inline void ChVector<Real>::Scale(Real s) {
+    data[0] *= s;
+    data[1] *= s;
+    data[2] *= s;
+}
+
+template <class Real>
+inline void ChVector<Real>::Cross(const ChVector<Real>& A, const ChVector<Real>& B) {
+    data[0] = (A.data[1] * B.data[2]) - (A.data[2] * B.data[1]);
+    data[1] = (A.data[2] * B.data[0]) - (A.data[0] * B.data[2]);
+    data[2] = (A.data[0] * B.data[1]) - (A.data[1] * B.data[0]);
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::Cross(const ChVector<Real> other) const {
+    ChVector<Real> v;
+    v.Cross(*this, other);
+    return v;
+}
+
+template <class Real>
+inline Real ChVector<Real>::Dot(const ChVector<Real>& B) const {
+    return (data[0] * B.data[0]) + (data[1] * B.data[1]) + (data[2] * B.data[2]);
+}
+
+template <class Real>
+inline Real ChVector<Real>::Length() const {
+    return sqrt(Length2());
+}
+
+template <class Real>
+inline Real ChVector<Real>::Length2() const {
+    return this->Dot(*this);
+}
+
+template <class Real>
+inline Real ChVector<Real>::LengthInf() const {
+    return ChMax(ChMax(fabs(data[0]), fabs(data[1])), fabs(data[2]));
+}
+
+template <class Real>
+inline bool ChVector<Real>::Normalize() {
+    Real length = this->Length();
+    if (length < CH_NANOTOL) {
+        data[0] = 1;
+        data[1] = 0;
+        data[2] = 0;
+        return false;
+    }
+    this->Scale(1 / length);
+    return true;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::GetNormalized() const {
+    ChVector<Real> v(*this);
+    v.Normalize();
+    return v;
+}
+
+template <class Real>
+inline void ChVector<Real>::SetLength(Real s) {
+    Normalize();
+    Scale(s);
+}
+
+template <class Real>
+inline void ChVector<Real>::DirToDxDyDz(ChVector<Real>& Vx,
+                                        ChVector<Real>& Vy,
+                                        ChVector<Real>& Vz,
+                                        const ChVector<Real>& Vsingular) const {
+    // set Vx.
+    if (this->IsNull())
+        Vx = ChVector<Real>(1, 0, 0);
+    else
+        Vx = this->GetNormalized();
+
+    Vz.Cross(Vx, Vsingular);
+    Real zlen = Vz.Length();
+
+    // if near singularity, change the singularity reference vector.
+    if (zlen < 0.0001) {
+        ChVector<Real> mVsingular;
+
+        if (fabs(Vsingular.data[0]) < 0.9)
+            mVsingular = ChVector<Real>(1, 0, 0);
+        else if (fabs(Vsingular.data[1]) < 0.9)
+            mVsingular = ChVector<Real>(0, 1, 0);
+        else if (fabs(Vsingular.data[2]) < 0.9)
+            mVsingular = ChVector<Real>(0, 0, 1);
+
+        Vz.Cross(Vx, mVsingular);
+        zlen = Vz.Length();  // now should be nonzero length.
+    }
+
+    // normalize Vz.
+    Vz.Scale(1.0 / zlen);
+
+    // compute Vy.
+    Vy.Cross(Vz, Vx);
+}
+
+template <class Real>
+inline int ChVector<Real>::GetMaxComponent() const {
+    int idx = 0;
+    Real max = fabs(data[0]);
+    if (fabs(data[1]) > max) {
+        idx = 1;
+        max = data[1];
+    }
+    if (fabs(data[2]) > max) {
+        idx = 2;
+        max = data[2];
+    }
+    return idx;
+}
+
+template <class Real>
+inline ChVector<Real> ChVector<Real>::GetOrthogonalVector() const {
+    int idx1 = this->GetMaxComponent();
+    int idx2 = (idx1 + 1) % 3;  // cycle to the next component
+    int idx3 = (idx2 + 1) % 3;  // cycle to the next component
+
+    // Construct v2 by rotating in the plane containing the maximum component
+    ChVector<Real> v2(-data[idx2], data[idx1], data[idx3]);
+
+    // Construct the normal vector
+    ChVector<Real> ortho = Cross(v2);
+    ortho.Normalize();
+    return ortho;
+}
+
+// -----------------------------------------------------------------------------
+// Streaming operations
+
+template <class Real>
+inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
+    // suggested: use versioning
+    marchive.VersionWrite(1);
+    // stream out all member data
+    marchive << CHNVP(data[0]);
+    marchive << CHNVP(data[1]);
+    marchive << CHNVP(data[2]);
+}
+
+template <class Real>
+inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
+    // suggested: use versioning
+    int version = marchive.VersionRead();
+    // stream in all member data
+    marchive >> CHNVP(data[0]);
+    marchive >> CHNVP(data[1]);
+    marchive >> CHNVP(data[2]);
+}
+
+// -----------------------------------------------------------------------------
+// Reversed operators
+
+/// Operator for scaling the vector by a scalar value, as s*V
+template <class Real>
+ChVector<Real> operator*(Real s, const ChVector<Real>& V) {
+    return ChVector<Real>(V.x() * s, V.y() * s, V.z() * s);
+}
 
 }  // end namespace chrono
 
