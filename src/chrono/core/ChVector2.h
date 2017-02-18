@@ -196,6 +196,66 @@ class ChVector2 {
 CH_CLASS_VERSION(ChVector2<double>, 0)
 
 // -----------------------------------------------------------------------------
+// STATIC VECTOR MATH OPERATIONS
+
+template <class RealA, class RealB>
+RealA Vdot(const ChVector2<RealA> va, const ChVector2<RealB> vb) {
+    return (RealA)(va.x() * vb.x() + va.y() * vb.y());
+}
+
+template <class RealA>
+void Vset(ChVector2<RealA>& v, RealA mx, RealA my) {
+    v.x() = mx;
+    v.y() = my;
+}
+
+template <class RealA, class RealB>
+ChVector2<RealA> Vadd(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
+    return ChVector2<RealA>(va.x() + vb.x(), va.y() + vb.y());
+}
+
+template <class RealA, class RealB>
+ChVector2<RealA> Vsub(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
+    return ChVector2<RealA>(va.x() - vb.x(), va.y() - vb.y());
+}
+
+template <class RealA, class RealB>
+ChVector2<RealA> Vmul(const ChVector2<RealA>& va, RealB fact) {
+    return ChVector2<RealA>(va.x() * (RealA)fact, va.y() * (RealA)fact);
+}
+
+template <class RealA>
+RealA Vlength(const ChVector2<RealA>& va) {
+    return (RealA)va.Length();
+}
+
+template <class RealA>
+ChVector2<RealA> Vnorm(const ChVector2<RealA>& va) {
+    return va.GetNormalized();
+}
+
+template <class RealA, class RealB>
+bool Vequal(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
+    return (va == vb);
+}
+
+template <class RealA>
+bool Vnotnull(const ChVector2<RealA>& va) {
+    return (va.x() != 0 || va.y() != 0);
+}
+
+template <class RealA, class RealB>
+ChVector2<RealA> Vrot(const ChVector2<RealA>& v, RealB angle) {
+    ChVector2<RealA> tmp(v);
+    tmp.Rotate((RealA)angle);
+    return tmp;
+}
+
+// =============================================================================
+// IMPLEMENTATION OF ChVector2<Real> methods
+// =============================================================================
+
+// -----------------------------------------------------------------------------
 // Constructors
 
 template <class Real>
@@ -560,7 +620,9 @@ inline int ChVector2<Real>::GetMaxComponent() const {
 
 template <class Real>
 inline ChVector2<Real> ChVector2<Real>::GetOrthogonalVector() const {
-    //// TODO
+    ChVector2<Real> ortho(-data[1], data[0]);
+    ortho.Normalize();
+    return ortho;
 }
 
 // -----------------------------------------------------------------------------
@@ -591,63 +653,6 @@ inline void ChVector2<Real>::ArchiveIN(ChArchiveIn& marchive) {
 template <class Real>
 ChVector2<Real> operator*(const Real s, const ChVector2<Real>& V) {
     return ChVector2<Real>(V.x() * s, V.y() * s);
-}
-
-//
-// STATIC VECTOR MATH OPERATIONS
-//
-
-template <class RealA, class RealB>
-RealA Vdot(const ChVector2<RealA> va, const ChVector2<RealB> vb) {
-    return (RealA)(va.x() * vb.x() + va.y() * vb.y());
-}
-
-template <class RealA>
-void Vset(ChVector2<RealA>& v, RealA mx, RealA my) {
-    v.x() = mx;
-    v.y() = my;
-}
-
-template <class RealA, class RealB>
-ChVector2<RealA> Vadd(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
-    return ChVector2<RealA>(va.x() + vb.x(), va.y() + vb.y());
-}
-
-template <class RealA, class RealB>
-ChVector2<RealA> Vsub(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
-    return ChVector2<RealA>(va.x() - vb.x(), va.y() - vb.y());
-}
-
-template <class RealA, class RealB>
-ChVector2<RealA> Vmul(const ChVector2<RealA>& va, RealB fact) {
-    return ChVector2<RealA>(va.x() * (RealA)fact, va.y() * (RealA)fact);
-}
-
-template <class RealA>
-RealA Vlength(const ChVector2<RealA>& va) {
-    return (RealA)va.Length();
-}
-
-template <class RealA>
-ChVector2<RealA> Vnorm(const ChVector2<RealA>& va) {
-    return va.GetNormalized();
-}
-
-template <class RealA, class RealB>
-bool Vequal(const ChVector2<RealA>& va, const ChVector2<RealB>& vb) {
-    return (va == vb);
-}
-
-template <class RealA>
-bool Vnotnull(const ChVector2<RealA>& va) {
-    return (va.x() != 0 || va.y() != 0);
-}
-
-template <class RealA, class RealB>
-ChVector2<RealA> Vrot(const ChVector2<RealA>& v, RealB angle) {
-    ChVector2<RealA> tmp(v);
-    tmp.Rotate((RealA)angle);
-    return tmp;
 }
 
 }  // end namespace chrono
