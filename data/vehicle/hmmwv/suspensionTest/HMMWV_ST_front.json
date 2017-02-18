@@ -11,6 +11,8 @@
     "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json"
   },
 
+  "Displacement Limit":     0.15,
+
   "Steering":
   {
     "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",

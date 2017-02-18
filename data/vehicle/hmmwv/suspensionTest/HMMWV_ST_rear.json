@@ -9,5 +9,7 @@
     "Location":     [1.688965, 0, 0],
     "Left Wheel Input File":   "hmmwv/wheel/HMMWV_Wheel_RearLeft.json",
     "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json"
-  }
+  },
+
+  "Displacement Limit":     0.15
 }
