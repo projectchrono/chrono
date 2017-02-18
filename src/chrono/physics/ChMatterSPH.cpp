@@ -127,7 +127,7 @@ ChPhysicsItem* ChNodeSPH::GetPhysicsItem() {
 
 void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeSPH>();
 
     // serialize parent class
     ChNodeXYZ::ArchiveOUT(marchive);
@@ -146,7 +146,7 @@ void ChNodeSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChNodeSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeSPH>();
 
     // deserialize parent class
     ChNodeXYZ::ArchiveIN(marchive);
@@ -177,7 +177,7 @@ ChContinuumSPH::ChContinuumSPH(const ChContinuumSPH& other) : fea::ChContinuumMa
 
 void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumSPH>();
 
     // serialize parent class
     ChContinuumMaterial::ArchiveOUT(marchive);
@@ -191,7 +191,7 @@ void ChContinuumSPH::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumSPH>();
 
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
@@ -664,7 +664,7 @@ void ChMatterSPH::UpdateParticleCollisionModels() {
 
 void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChMatterSPH>();
 
     // serialize parent class
     ChIndexedNodes::ArchiveOUT(marchive);
@@ -679,7 +679,7 @@ void ChMatterSPH::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMatterSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChMatterSPH>();
 
     // deserialize parent class
     ChIndexedNodes::ArchiveIN(marchive);

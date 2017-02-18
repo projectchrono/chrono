@@ -865,6 +865,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 };
 
+CH_CLASS_VERSION(ChSystem,0)
+
 }  // end namespace chrono
 
 #endif

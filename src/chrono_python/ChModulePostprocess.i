@@ -117,7 +117,7 @@ using namespace chrono::postprocess;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 //  core/  classes
-%import "../chrono/core/ChClassFactory.h"
+%import  "ChClassFactory.i"
 %import  "ChAsset.i"
 %import  "ChColor.i"
 

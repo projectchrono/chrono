@@ -95,7 +95,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChSolverPMINRES>();
         // serialize parent class
         ChIterativeSolver::ArchiveOUT(marchive);
         // serialize all member data:
@@ -108,7 +108,7 @@ class ChApi ChSolverPMINRES : public ChIterativeSolver {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChSolverPMINRES>();
         // deserialize parent class
         ChIterativeSolver::ArchiveIN(marchive);
         // stream in all member data:

@@ -234,6 +234,9 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChMarker,0)
+
+
 }  // end namespace chrono
 
 #endif

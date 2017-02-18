@@ -242,13 +242,6 @@ class ChQuaternion {
     /// Return the dot product with another quaternion: result = this ^ B.
     Real Dot(const ChQuaternion<Real>& B) const;
 
-    //////   TODO:  REMOVE
-    /// The result is dot product of the two quaternion A and B:
-    /// result=A*B. This kind of product is not used a lot, anyway...
-    //////Real Dot(const ChQuaternion<Real>& A, const ChQuaternion<Real>& B) const {
-    //////    return (A.e0 * B.e0) + (A.e1 * B.e1) + (A.e2 * B.e2) + (A.e3 * B.e3);
-    //////};
-
     /// Set this quaternion to the product of a quaternion A and scalar s: this = A * s.
     void Mul(const ChQuaternion<Real>& A, Real s);
 
@@ -387,6 +380,8 @@ class ChQuaternion {
     template <typename RealB>
     friend class ChQuaternion;
 };
+
+CH_CLASS_VERSION(ChQuaternion<double>, 0)
 
 // -----------------------------------------------------------------------------
 
@@ -1217,7 +1212,7 @@ inline void ChQuaternion<Real>::ImmQ_dtdt_complete(const ChQuaternion<Real>& q,
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChQuaternion<double>>();  // must use specialized template (any)
     // stream out all member data
     marchive << CHNVP(data[0]);
     marchive << CHNVP(data[1]);
@@ -1228,7 +1223,7 @@ inline void ChQuaternion<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChQuaternion<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChQuaternion<double>>();  // must use specialized template (any)
     // stream in all member data
     marchive >> CHNVP(data[0]);
     marchive >> CHNVP(data[1]);

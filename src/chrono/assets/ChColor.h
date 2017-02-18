@@ -59,7 +59,7 @@ class ChApi ChColor {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChColor>();
 
         // serialize all member data:
         marchive << CHNVP(R);
@@ -72,7 +72,7 @@ class ChApi ChColor {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChColor>();
 
         // stream in all member data:
         marchive >> CHNVP(R);
@@ -83,6 +83,8 @@ class ChApi ChColor {
 
 
 };
+
+CH_CLASS_VERSION(ChColor,0)
 
 }  // end namespace chrono
 

@@ -40,6 +40,7 @@
 #include <cstdio>
 #include <string>
 #include <typeinfo>
+#include <typeindex>
 #include <unordered_map>
 
 #include "chrono/core/ChLog.h"
@@ -59,10 +60,15 @@ public:
     /// The signature of create method for derived classes. Calls new().
     virtual void* create() = 0;
 
-    /// Call the ArchiveInCreate(ChArchiveIn&) function if available (deserializes constructor params and return new()),
+    /// Call the ArchiveINconstructor(ChArchiveIn&) function if available (deserializes constructor params and return new()),
     /// otherwise just call new().
-    virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
+    virtual void* create(ChArchiveIn& marchive) = 0;
 
+    /// Get the type_info of the class
+    virtual std::type_index  get_type_index() = 0;
+
+    /// Get the name used for registering
+    virtual std::string& get_tag_name() = 0;
 };
 
 
@@ -93,7 +99,7 @@ class ChApi ChClassFactory {
     /// Register a class into the global class factory.
     /// Provide an unique name and a ChClassRegistration object.
     /// If multiple registrations with the same name are attempted, only one is done.
-    static void ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration) {
+    static void ClassRegister(const std::string& keyName, ChClassRegistrationBase* mregistration) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
 
         global_factory->_ClassRegister(keyName, mregistration);
@@ -101,7 +107,7 @@ class ChApi ChClassFactory {
     
     /// Unregister a class from the global class factory.
     /// Provide an unique name.
-    static void ClassUnregister(std::string& keyName) {
+    static void ClassUnregister(const std::string& keyName) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
 
         global_factory->_ClassUnregister(keyName);
@@ -110,19 +116,32 @@ class ChApi ChClassFactory {
             DisposeGlobalClassFactory();
     }
 
+    /// Tell if a class is registered, from its name
+    static bool IsClassRegistered(const std::string& keyName) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_IsClassRegistered(keyName);
+    }
+
+    /// Tell the tag name of a class. 
+    /// This is the mnemonic name, given at registration, not the typeid.name().
+    static std::string& GetClassTagName(const std::type_info& mtype) {
+        ChClassFactory* global_factory = GetGlobalClassFactory();
+        return global_factory->_GetClassTagName(mtype);
+    }
+
     /// Create from tag name, for registered classes.
     /// The created object is returned in "ptr"
     template <class T>
-    static void create(std::string& keyName, T** ptr) {
+    static void create(const std::string& keyName, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(global_factory->_create(keyName));
     }
 
     /// Create from tag name, for registered classes.
-    /// If a static T* ArchiveInCreate(ChArchiveIn&) function is available, call it instead.
+    /// If a static T* ArchiveINconstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
-    static void archive_in_create(std::string& keyName, ChArchiveIn& marchive, T** ptr) {
+    static void create(const std::string& keyName, ChArchiveIn& marchive, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(global_factory->_archive_in_create(keyName, marchive));
     }
@@ -135,18 +154,20 @@ private:
     /// Delete the global class factory
     static void DisposeGlobalClassFactory();
 
-    void _ClassRegister(std::string& keyName, ChClassRegistrationBase* mregistration)
+    void _ClassRegister(const std::string& keyName, ChClassRegistrationBase* mregistration)
     {
        class_map[keyName] = mregistration;
-       //GetLog() << " register class: " << keyName << "\n";
+       class_map_typeids[mregistration->get_type_index()] = mregistration;
     }
 
-    void _ClassUnregister(std::string& keyName)
+    void _ClassUnregister(const std::string& keyName)
     {
+       // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." << class_map_typeids.size() << "\n";
+       class_map_typeids.erase(class_map[keyName]->get_type_index());
        class_map.erase(keyName);
     }
 
-    bool _IsClassRegistered(std::string& keyName) {
+    bool _IsClassRegistered(const std::string& keyName) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end())
             return true;
@@ -154,27 +175,36 @@ private:
             return false;
     }
 
+    std::string& _GetClassTagName(const std::type_info& mtype) {
+        const auto &it = class_map_typeids.find(std::type_index(mtype));
+        if (it != class_map_typeids.end()) {
+            return it->second->get_tag_name();
+        }
+        throw ( ChException("ChClassFactory::GetClassTagName() cannot find the class. Please register it.\n") );
+    }
+
     size_t _GetNumberOfRegisteredClasses() {
         return class_map.size();
     }
 
-    void* _create(std::string& keyName) {
+    void* _create(const std::string& keyName) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
             return it->second->create();
         }
-        throw ("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n" );
+        throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
-    void* _archive_in_create(std::string& keyName, ChArchiveIn& marchive) {
+    void* _archive_in_create(const std::string& keyName, ChArchiveIn& marchive) {
         const auto &it = class_map.find(keyName);
         if (it != class_map.end()) {
-            return it->second->archive_in_create(marchive);
+            return it->second->create(marchive);
         }
-        throw ("ChClassFactory::archive_in_create() cannot find the class with name " + keyName + ". Please register it.\n" );
+        throw ( ChException("ChClassFactory::create() cannot find the class with name " + keyName + ". Please register it.\n") );
     }
 
 private:
     std::unordered_map<std::string, ChClassRegistrationBase*> class_map;
+    std::unordered_map<std::type_index, ChClassRegistrationBase*> class_map_typeids;
 };
 
 
@@ -195,7 +225,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     //
 
     /// Name of the class for dynamic creation
-    std::string m_sConventionalName;
+    std::string m_sTagName;
 
   public:
     //
@@ -204,12 +234,12 @@ class ChClassRegistration : public ChClassRegistrationBase {
 
     /// Creator (adds this to the global list of
     /// ChClassRegistration<t> objects).
-    ChClassRegistration() {
+    ChClassRegistration(const char* mtag_name) {
         // set name using the 'fake' RTTI system of Chrono
-        this->m_sConventionalName = t::FactoryClassNameTag();
+        this->m_sTagName = mtag_name; //t::FactoryClassNameTag();
 
         // register in global class factory
-        ChClassFactory::ClassRegister(this->m_sConventionalName, this);
+        ChClassFactory::ClassRegister(this->m_sTagName, this);
     }
 
     /// Destructor (removes this from the global list of
@@ -217,7 +247,7 @@ class ChClassRegistration : public ChClassRegistrationBase {
     virtual ~ChClassRegistration() {
 
         // register in global class factory
-        ChClassFactory::ClassUnregister(this->m_sConventionalName);
+        ChClassFactory::ClassUnregister(this->m_sTagName);
     }
 
     //
@@ -228,10 +258,18 @@ class ChClassRegistration : public ChClassRegistrationBase {
         return _create();
     }
 
-    virtual void* archive_in_create(ChArchiveIn& marchive) {
+    virtual void* create(ChArchiveIn& marchive) {
         return _archive_in_create(marchive);
     }
  
+    virtual std::type_index get_type_index() {
+        return std::type_index(typeid(t));
+    }
+
+    virtual std::string& get_tag_name() {
+        return _get_tag_name();
+    }
+
 protected:
 
     template <class Tc=t>
@@ -256,6 +294,10 @@ protected:
         return reinterpret_cast<void*>(new Tc);
     }
 
+    std::string& _get_tag_name() {
+        return m_sTagName;
+    }
+
 };
 
 
@@ -266,44 +308,50 @@ protected:
 /// MACRO TO MARK CLASSES FOR CLASS FACTORY
 /// Different compilers use different name decorations, so typeid(ptr).name() is 
 /// not guaranteed to be the same across different platforms/compilers. 
-/// The solution is adding a static function FactoryClassNameTag() in classes, 
-/// that return a unique string.
-/// Use this macro inside the body of a class declaration, better if just
-/// at the beginning, for example:
-///
-/// class my_class {
-///     CH_FACTORY_TAG(my_class)
-/// }
-///
-/// NOTE! to support polimorphism, for ChArchive, an additional FactoryNameTag()  is made
-/// virtual: a side effect is that the class and its children will be promoted VIRTUAL, keep this
-/// in mind if you care about extreme performance with small objects (ex. 3d vectors, etc.).
-/// This not a big issue anyway, as class factories in ChArchive are needed mostly when 
-/// polimorphism comes into play (serialization of polimorphic objects, for example).
-
-#define CH_FACTORY_TAG(classname)                           \
-  public:                                                   \
-    static const std::string& FactoryClassNameTag() {       \
-        static std::string mtag(#classname);                \
-        return mtag;                                        \
-    }                                                       \
-    virtual const std::string& FactoryNameTag() const {     \
-        static std::string mtag(#classname);                \
-        return mtag;                                        \
-    }                                                       \
+/// ***obsolete***?
+#define CH_FACTORY_TAG(classname) \
 
 
 /// MACRO TO REGISTER A CLASS INTO THE GLOBAL CLASS FACTORY 
 /// - Put this macro into a .cpp, where you prefer, but not into a .h header!
 /// - Use it as 
 ///      CH_FACTORY_REGISTER(my_class)
-/// - Note that my_class must be marked with the CH_FACTORY_TAG macro (see above)
+
 
 #define CH_FACTORY_REGISTER(classname)                                          \
 namespace class_factory {                                                       \
-    static ChClassRegistration< classname > classname ## _factory_registration; \
-}                                                                               \
+    static ChClassRegistration< classname > classname ## _factory_registration(#classname); \
+}  
+
+
+// Class version registration 
+
+// Default version=0 for class whose version is not registered.
+namespace class_factory {
+    template<class T>
+    class ChClassVersion {
+    public:
+        static const int version = 0;
+    };
+}
 
 }  // end namespace chrono
+
+
+
+/// Call this macro to register a custom version for a class "classname". 
+/// If you do not do this, the default version for all classes is 0.
+/// The m_version parameter should be an integer greater than 0.
+
+#define CH_CLASS_VERSION(classname, m_version)                  \
+     namespace class_factory {                                  \
+      template<>                                                \
+      class ChClassVersion<classname> {                         \
+      public:                                                   \
+        static const int version = m_version;                   \
+      };                                                        \
+    };                                                          \
+
+
 
 #endif

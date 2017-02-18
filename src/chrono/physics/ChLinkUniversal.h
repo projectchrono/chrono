@@ -157,6 +157,9 @@ class ChApi ChLinkUniversal : public ChLink {
     double m_multipliers[4];  ///< Lagrange multipliers
 };
 
+CH_CLASS_VERSION(ChLinkUniversal,0)
+
+
 }  // end namespace chrono
 
 #endif

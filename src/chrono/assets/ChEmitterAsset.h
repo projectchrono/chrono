@@ -66,7 +66,7 @@ class ChApi ChEmitterAsset : public ChAsset {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChEmitterAsset>();
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
@@ -77,13 +77,15 @@ class ChApi ChEmitterAsset : public ChAsset {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChEmitterAsset>();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
        // marchive >> CHNVP(memitter); //***TODO***
     }
 };
+
+CH_CLASS_VERSION(ChEmitterAsset,0)
 
 }  // end namespace chrono
 

@@ -58,6 +58,8 @@ class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChShaftsTorque,0)
+
 }  // end namespace chrono
 
 #endif

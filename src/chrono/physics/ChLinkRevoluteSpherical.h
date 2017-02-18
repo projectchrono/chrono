@@ -180,6 +180,8 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     double m_multipliers[2];  ///< Lagrange multipliers
 };
 
+CH_CLASS_VERSION(ChLinkRevoluteSpherical,0)
+
 }  // end namespace chrono
 
 #endif

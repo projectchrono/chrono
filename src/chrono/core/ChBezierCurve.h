@@ -142,7 +142,7 @@ class ChApi ChBezierCurve {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChBezierCurve>();
 
         // serialize all member data:
         marchive << CHNVP(m_points);
@@ -158,7 +158,7 @@ class ChApi ChBezierCurve {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChBezierCurve>();
 
         // stream in all member data:
         marchive >> CHNVP(m_points);
@@ -230,6 +230,8 @@ class ChApi ChBezierCurveTracker {
     double m_curParam;      ///< parameter for current closest point
     bool m_isClosedPath;    ///< treat the path as a closed loop curve
 };
+
+CH_CLASS_VERSION(ChBezierCurve,0)
 
 }  // end of namespace chrono
 

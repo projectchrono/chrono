@@ -288,6 +288,10 @@ class ChApi ChLinkLock : public ChLinkMasked {
     void BuildLinkType(LinkType link_type);
 };
 
+CH_CLASS_VERSION(ChLinkLock,0)
+
+
+
 // ---------------------------------------------------------------------------------------
 // SOME WRAPPER CLASSES, TO MAKE 'LINK LOCK' CREATION EASIER...
 // ---------------------------------------------------------------------------------------

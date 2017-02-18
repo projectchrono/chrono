@@ -398,6 +398,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nbodies_fixed;  ///< number of bodies that are fixed
 };
 
+
+CH_CLASS_VERSION(ChAssembly,0)
+
+
 }  // end namespace chrono
 
 #endif

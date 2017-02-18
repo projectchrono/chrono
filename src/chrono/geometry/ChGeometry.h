@@ -139,19 +139,22 @@ class ChApi ChGeometry {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChGeometry>();
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChGeometry>();
     }
 };
 
 /// @} chrono_geometry
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChGeometry,0)
+
 }  // end namespace chrono
 
 #endif

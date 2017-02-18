@@ -569,7 +569,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
 
 void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRevoluteTranslational>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -586,7 +586,7 @@ void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

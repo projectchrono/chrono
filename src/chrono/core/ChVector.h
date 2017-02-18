@@ -219,6 +219,8 @@ class ChVector {
     friend class ChVector;
 };
 
+CH_CLASS_VERSION(ChVector<double>, 0)
+
 // -----------------------------------------------------------------------------
 
 /// Shortcut for faster use of typical double-precision vectors.
@@ -892,7 +894,7 @@ inline ChVector<Real> ChVector<Real>::GetOrthogonalVector() const {
 template <class Real>
 inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // suggested: use versioning
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChVector<double>>();  // must use specialized template (any)
     // stream out all member data
     marchive << CHNVP(data[0]);
     marchive << CHNVP(data[1]);
@@ -902,7 +904,7 @@ inline void ChVector<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChVector<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChVector<double>>();  // must use specialized template (any)
     // stream in all member data
     marchive >> CHNVP(data[0]);
     marchive >> CHNVP(data[1]);

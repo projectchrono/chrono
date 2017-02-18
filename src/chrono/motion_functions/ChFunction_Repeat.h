@@ -70,7 +70,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFunction_Repeat>();
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
@@ -83,7 +83,7 @@ class ChApi ChFunction_Repeat : public ChFunction {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFunction_Repeat>();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
@@ -93,6 +93,8 @@ class ChApi ChFunction_Repeat : public ChFunction {
         marchive >> CHNVP(window_phase);
     }
 };
+
+CH_CLASS_VERSION(ChFunction_Repeat,0)
 
 }  // end namespace chrono
 

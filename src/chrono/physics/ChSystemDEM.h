@@ -142,6 +142,8 @@ class ChApi ChSystemDEM : public ChSystem {
     double m_characteristicVelocity;             ///< characteristic impact velocity (Hooke model)
 };
 
+CH_CLASS_VERSION(ChSystemDEM,0)
+
 }  // end namespace chrono
 
 #endif

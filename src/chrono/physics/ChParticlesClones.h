@@ -384,6 +384,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChParticlesClones,0)
+
 }  // end namespace chrono
 
 #endif

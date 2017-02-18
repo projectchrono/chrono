@@ -44,14 +44,17 @@ class ChApi ChMaterialSurfaceBase {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number:
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChMaterialSurfaceBase>();
     }
 
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number:
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChMaterialSurfaceBase>();
     }
 };
+
+CH_CLASS_VERSION(ChMaterialSurfaceBase,0)
+
 
 }  // end namespace chrono
 

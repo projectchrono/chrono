@@ -220,6 +220,9 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkMarkers,0)
+
+
 }  // end namespace chrono
 
 #endif

@@ -161,7 +161,7 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -175,7 +175,7 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

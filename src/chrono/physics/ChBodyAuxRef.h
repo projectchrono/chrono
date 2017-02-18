@@ -89,6 +89,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+
+CH_CLASS_VERSION(ChBodyAuxRef,0)
+
+
 }  // end namespace chrono
 
 #endif

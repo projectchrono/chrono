@@ -135,6 +135,8 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     ChVector<> pos_dtdt;
 };
 
+CH_CLASS_VERSION(ChNodeXYZ,0)
+
 }  // end namespace chrono
 
 #endif

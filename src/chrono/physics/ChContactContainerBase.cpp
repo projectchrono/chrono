@@ -42,7 +42,7 @@ ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactab
 
 void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContactContainerBase>();
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
     // serialize all member data:
@@ -50,7 +50,7 @@ void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContactContainerBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContactContainerBase>();
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
     // stream in all member data:

@@ -102,7 +102,7 @@ class ChApi ChBox : public ChGeometry {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChBox>();
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
@@ -115,7 +115,7 @@ class ChApi ChBox : public ChGeometry {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChBox>();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
@@ -128,6 +128,9 @@ class ChApi ChBox : public ChGeometry {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChBox,0)
+
 }  // end namespace chrono
 
 #endif

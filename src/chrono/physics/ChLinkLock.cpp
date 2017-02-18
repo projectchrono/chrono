@@ -2029,7 +2029,7 @@ class my_enum_mappers : public ChLinkLock {
 
 void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkLock>();
 
     // serialize parent class
     ChLinkMasked::ArchiveOUT(marchive);
@@ -2059,7 +2059,7 @@ void ChLinkLock::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLock::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkLock>();
 
     // deserialize parent class
     ChLinkMasked::ArchiveIN(marchive);

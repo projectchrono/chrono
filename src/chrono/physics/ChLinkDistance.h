@@ -151,6 +151,9 @@ class ChApi ChLinkDistance : public ChLink {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkDistance,0)
+
+
 }  // end namespace chrono
 
 #endif

@@ -193,6 +193,8 @@ class ChVector2 {
     friend class ChVector2;
 };
 
+CH_CLASS_VERSION(ChVector2<double>, 0)
+
 // -----------------------------------------------------------------------------
 // Constructors
 
@@ -567,7 +569,7 @@ inline ChVector2<Real> ChVector2<Real>::GetOrthogonalVector() const {
 template <class Real>
 inline void ChVector2<Real>::ArchiveOUT(ChArchiveOut& marchive) {
     // suggested: use versioning
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChVector2<double>>();  // must use specialized template (any)
     // stream out all member data
     marchive << CHNVP(data[0]);
     marchive << CHNVP(data[1]);
@@ -576,7 +578,7 @@ inline void ChVector2<Real>::ArchiveOUT(ChArchiveOut& marchive) {
 template <class Real>
 inline void ChVector2<Real>::ArchiveIN(ChArchiveIn& marchive) {
     // suggested: use versioning
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChVector2<double>>();  // must use specialized template (any)
     // stream in all member data
     marchive >> CHNVP(data[0]);
     marchive >> CHNVP(data[1]);

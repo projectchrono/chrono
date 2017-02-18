@@ -297,7 +297,7 @@ void ChForce::Update(double mytime) {
 
 void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChForce>();
 
     // serialize parent class too
     ChObj::ArchiveOUT(marchive);
@@ -328,7 +328,7 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChForce>();
 
     // deserialize parent class too
     ChObj::ArchiveIN(marchive);

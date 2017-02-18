@@ -497,7 +497,7 @@ class ChFrame {
     /// Method to allow serialization of transient data in archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFrame<double>>();
         // stream out all member data
         marchive << CHNVP(coord);
     }
@@ -505,12 +505,15 @@ class ChFrame {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFrame<double>>();
         // stream in all member data
         marchive >> CHNVP(coord);
         Amatrix.Set_A_quaternion(coord.rot);
     }
 };
+
+CH_CLASS_VERSION(ChFrame<double>,0)
+
 
 //
 // MIXED ARGUMENT OPERATORS

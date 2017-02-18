@@ -45,6 +45,7 @@
 // Include C++ headers this way...
 
 %{
+#include <typeindex>
 #include <cstddef>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
@@ -233,8 +234,8 @@ using namespace chrono::geometry;
 
 //  core/  classes
 %include "ChException.i"
-%include "../chrono/core/ChClassFactory.h"
-%include "ChArchive.i"
+%include "ChClassFactory.i"
+//%include "ChArchive.i"
 %include "ChVector.i" 
 #define Vector ChVector<double>
 %include "ChQuaternion.i"

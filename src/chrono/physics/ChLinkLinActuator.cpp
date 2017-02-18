@@ -187,7 +187,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
 void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkLinActuator>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -207,7 +207,7 @@ void ChLinkLinActuator::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLinActuator::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkLinActuator>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

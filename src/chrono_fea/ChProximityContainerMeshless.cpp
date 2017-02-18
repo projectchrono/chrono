@@ -250,7 +250,7 @@ void ChProximityContainerMeshless::AccumulateStep2() {
 
 void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChProximityContainerMeshless>();
     // serialize parent class
     ChProximityContainerBase::ArchiveOUT(marchive);
     // serialize all member data:
@@ -259,7 +259,7 @@ void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChProximityContainerMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChProximityContainerMeshless>();
     // deserialize parent class
     ChProximityContainerBase::ArchiveIN(marchive);
     // stream in all member data:

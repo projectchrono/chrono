@@ -37,7 +37,7 @@ class my_enum_mappers : public ChSolver {
 
 void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChSolver>();
     // solver type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();
@@ -48,7 +48,7 @@ void ChSolver::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChSolver::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChSolver>();
     // solver type:
     my_enum_mappers::Type_mapper typemapper;
     Type type = GetType();

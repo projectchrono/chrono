@@ -357,7 +357,7 @@ class ChApi ChCollisionModel {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCollisionModel>();
 
         // serialize all member data:
         marchive << CHNVP(model_envelope);
@@ -368,7 +368,7 @@ class ChApi ChCollisionModel {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCollisionModel>();
 
         // stream in all member data:
         marchive >> CHNVP(model_envelope);
@@ -394,6 +394,9 @@ class ChApi ChCollisionModel {
 };
 
 }  // end namespace collision
+
+CH_CLASS_VERSION(collision::ChCollisionModel,0)
+
 }  // end namespace chrono
 
 #endif

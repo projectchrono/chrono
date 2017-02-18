@@ -61,7 +61,7 @@ class ChApi ChPathShape : public ChVisualization {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChPathShape>();
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
@@ -72,13 +72,15 @@ class ChApi ChPathShape : public ChVisualization {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChPathShape>();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(gpath);
     }
 };
+
+CH_CLASS_VERSION(ChPathShape,0)
 
 }  // end namespace chrono
 

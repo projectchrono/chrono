@@ -225,7 +225,7 @@ void ChLinkPulley::UpdateTime(double mytime) {
 
 void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkPulley>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -245,7 +245,7 @@ void ChLinkPulley::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkPulley::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkPulley>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

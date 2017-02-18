@@ -187,6 +187,8 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChConveyor,0)
+
 }  // end namespace chrono
 
 #endif

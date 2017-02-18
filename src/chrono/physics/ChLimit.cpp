@@ -139,7 +139,7 @@ void ChLinkLimit::SetPolar_Max(ChFunction* m_funct) {
 
 void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkLimit>();
     // serialize parent class too
 
     // stream out all member data
@@ -166,7 +166,7 @@ void ChLinkLimit::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChLinkLimit::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkLimit>();
     // deserialize parent class too
 
     // stream in all member data

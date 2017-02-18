@@ -121,7 +121,7 @@ class ChApi ChGlyphs : public ChVisualization {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChGlyphs>();
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
@@ -139,7 +139,7 @@ class ChApi ChGlyphs : public ChVisualization {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChGlyphs>();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
@@ -153,6 +153,8 @@ class ChApi ChGlyphs : public ChVisualization {
         marchive >> CHNVP(zbuffer_hide);
     }
 };
+
+CH_CLASS_VERSION(ChGlyphs,0)
 
 }  // end namespace chrono
 

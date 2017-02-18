@@ -221,7 +221,7 @@ void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
 
 void ChNodeFEAcurv::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeFEAcurv>();
     // serialize parent class
     ChNodeFEAbase::ArchiveOUT(marchive);
 
@@ -239,7 +239,7 @@ void ChNodeFEAcurv::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAcurv::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeFEAcurv>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
 
