@@ -23,7 +23,7 @@
 			char *__str__() 
 					{
 						static char temp[256];
-						sprintf(temp,"[ %g, %g, %g, %g ]", $self->e0,$self->e1,$self->e2,$self->e3);
+						sprintf(temp,"[ %g, %g, %g, %g ]", $self->e0(),$self->e1(),$self->e2(),$self->e3());
 						return &temp[0];
 					}
 					// operator  ~  as ! in c++ 
