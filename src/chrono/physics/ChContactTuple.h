@@ -110,7 +110,7 @@ class ChContactTuple {
     ChCoordsys<> GetContactCoords() const {
         ChCoordsys<> mcsys;
         ChQuaternion<> mrot = this->contact_plane.Get_A_quaternion();
-        mcsys.rot.Set(mrot.e0, mrot.e1, mrot.e2, mrot.e3);
+        mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
         mcsys.pos = this->p2;
         return mcsys;
     }
