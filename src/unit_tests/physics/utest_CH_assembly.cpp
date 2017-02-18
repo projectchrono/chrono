@@ -105,14 +105,14 @@ int main(int argc, char* argv[]) {
     std::cout.setf(std::ios::scientific | std::ios::showpos);
     std::cout.precision(6);
 
-    std::cout << "Position:      " << pos.x << "  " << pos.y << "  " << pos.z << std::endl;
-    std::cout << "Orientation:   " << rot.e0 << "  " << rot.e1 << "  " << rot.e2 << "  " << rot.e3 << std::endl;
-    std::cout << "Lin. vel.:     " << lin_vel.x << "  " << lin_vel.y << "  " << lin_vel.z << std::endl;
-    std::cout << "Ang. vel.:     " << ang_vel.x << "  " << ang_vel.y << "  " << ang_vel.z << std::endl;
-    std::cout << "Lin. acc.:     " << lin_acc.x << "  " << lin_acc.y << "  " << lin_acc.z << std::endl;
-    std::cout << "Ang. acc.:     " << ang_acc.x << "  " << ang_acc.y << "  " << ang_acc.z << std::endl;
-    std::cout << "React. force:  " << rfrc.x << "  " << rfrc.y << "  " << rfrc.z << std::endl;
-    std::cout << "React. torque: " << rtrq.x << "  " << rtrq.y << "  " << rtrq.z << std::endl;
+    std::cout << "Position:      " << pos.x() << "  " << pos.y() << "  " << pos.z() << std::endl;
+    std::cout << "Orientation:   " << rot.e0() << "  " << rot.e1() << "  " << rot.e2() << "  " << rot.e3() << std::endl;
+    std::cout << "Lin. vel.:     " << lin_vel.x() << "  " << lin_vel.y() << "  " << lin_vel.z() << std::endl;
+    std::cout << "Ang. vel.:     " << ang_vel.x() << "  " << ang_vel.y() << "  " << ang_vel.z() << std::endl;
+    std::cout << "Lin. acc.:     " << lin_acc.x() << "  " << lin_acc.y() << "  " << lin_acc.z() << std::endl;
+    std::cout << "Ang. acc.:     " << ang_acc.x() << "  " << ang_acc.y() << "  " << ang_acc.z() << std::endl;
+    std::cout << "React. force:  " << rfrc.x() << "  " << rfrc.y() << "  " << rfrc.z() << std::endl;
+    std::cout << "React. torque: " << rtrq.x() << "  " << rtrq.y() << "  " << rtrq.z() << std::endl;
 
     // Analytical solution
 
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     ChVector<> ang_vel_ref(0, 0, 0);
 
     // Angular acceleration (expressed in local frame)
-    double omg_z = -0.5 * mass * g * length * std::sin(jointAngle) / (inertiaXX.z + 0.25 * mass * length * length);
+    double omg_z = -0.5 * mass * g * length * std::sin(jointAngle) / (inertiaXX.z() + 0.25 * mass * length * length);
 
     // Angular acceleration (expressed in absolute frame)
     ChVector<> ang_acc_ref(0, -std::sin(jointAngle) * omg_z, std::cos(jointAngle) * omg_z);
@@ -145,15 +145,19 @@ int main(int argc, char* argv[]) {
     ChVector<> rtrq_ref(lambda_5, -std::cos(jointAngle) * lambda_4, -std::sin(jointAngle) * lambda_4);
 
     std::cout << std::endl << "Analytical solution" << std::endl;
-    std::cout << "Position:      " << pos_ref.x << "  " << pos_ref.y << "  " << pos_ref.z << std::endl;
-    std::cout << "Orientation:   " << rot_ref.e0 << "  " << rot_ref.e1 << "  " << rot_ref.e2 << "  " << rot_ref.e3
+    std::cout << "Position:      " << pos_ref.x() << "  " << pos_ref.y() << "  " << pos_ref.z() << std::endl;
+    std::cout << "Orientation:   " << rot_ref.e0() << "  " << rot_ref.e1() << "  " << rot_ref.e2() << "  "
+              << rot_ref.e3() << std::endl;
+    std::cout << "Lin. vel.:     " << lin_vel_ref.x() << "  " << lin_vel_ref.y() << "  " << lin_vel_ref.z()
               << std::endl;
-    std::cout << "Lin. vel.:     " << lin_vel_ref.x << "  " << lin_vel_ref.y << "  " << lin_vel_ref.z << std::endl;
-    std::cout << "Ang. vel.:     " << ang_vel_ref.x << "  " << ang_vel_ref.y << "  " << ang_vel_ref.z << std::endl;
-    std::cout << "Lin. acc.:     " << lin_acc_ref.x << "  " << lin_acc_ref.y << "  " << lin_acc_ref.z << std::endl;
-    std::cout << "Ang. acc.:     " << ang_acc_ref.x << "  " << ang_acc_ref.y << "  " << ang_acc_ref.z << std::endl;
-    std::cout << "React. force:  " << rfrc_ref.x << "  " << rfrc_ref.y << "  " << rfrc_ref.z << std::endl;
-    std::cout << "React. torque: " << rtrq_ref.x << "  " << rtrq_ref.y << "  " << rtrq_ref.z << std::endl;
+    std::cout << "Ang. vel.:     " << ang_vel_ref.x() << "  " << ang_vel_ref.y() << "  " << ang_vel_ref.z()
+              << std::endl;
+    std::cout << "Lin. acc.:     " << lin_acc_ref.x() << "  " << lin_acc_ref.y() << "  " << lin_acc_ref.z()
+              << std::endl;
+    std::cout << "Ang. acc.:     " << ang_acc_ref.x() << "  " << ang_acc_ref.y() << "  " << ang_acc_ref.z()
+              << std::endl;
+    std::cout << "React. force:  " << rfrc_ref.x() << "  " << rfrc_ref.y() << "  " << rfrc_ref.z() << std::endl;
+    std::cout << "React. torque: " << rtrq_ref.x() << "  " << rtrq_ref.y() << "  " << rtrq_ref.z() << std::endl;
 
     // Compare simulation and analytical solution
     bool passed = true;

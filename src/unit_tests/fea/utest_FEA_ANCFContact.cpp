@@ -184,8 +184,8 @@ class MyContactContainer : public ChContactContainerDEM {
             double CD = (*iter)->GetContactDistance();
 
             if (print) {
-                printf("P1=[%f %f %f]\n", p1.x, p1.y, p1.z);
-                printf("P2=[%f %f %f]\n", p2.x, p2.y, p2.z);
+                printf("P1=[%f %f %f]\n", p1.x(), p1.y(), p1.z());
+                printf("P2=[%f %f %f]\n", p2.x(), p2.y(), p2.z());
                 printf("Contact Distance=%f\n\n", CD);
             }
             num_contact++;

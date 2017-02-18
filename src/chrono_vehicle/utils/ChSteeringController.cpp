@@ -98,14 +98,14 @@ double ChSteeringController::Advance(const ChVehicle& vehicle, double step) {
     // The "error" vector is the projection onto the horizontal plane (z=0) of
     // the vector between sentinel and target.
     ChVector<> err_vec = m_target - m_sentinel;
-    err_vec.z = 0;
+    err_vec.z() = 0;
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
     ChVector<> sentinel_vec = m_sentinel - vehicle.GetVehiclePos();
-    sentinel_vec.z = 0;
+    sentinel_vec.z() = 0;
     ChVector<> target_vec = m_target - vehicle.GetVehiclePos();
-    target_vec.z = 0;
+    target_vec.z() = 0;
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChVector<>(0, 0, 1));
 

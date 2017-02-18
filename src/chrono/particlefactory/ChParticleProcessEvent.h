@@ -133,10 +133,10 @@ class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent {
         assert(std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor));
 
         if (auto mrectangleprocessor = std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor)) {
-            int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
+            int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x());
             if (irow >= mmass.GetRows())
                 irow = mmass.GetRows() - 1;
-            int icol = (int)floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y);
+            int icol = (int)floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y());
             if (icol >= mmass.GetColumns())
                 icol = mmass.GetColumns() - 1;
 

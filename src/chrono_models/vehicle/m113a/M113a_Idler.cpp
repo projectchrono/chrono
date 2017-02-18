@@ -120,7 +120,7 @@ const ChVector<> M113a_Idler::GetLocation(PointId which) {
     }
 
     if (GetVehicleSide() == RIGHT)
-        point.y *= -1;
+        point.y() *= -1;
 
     return point;
 }

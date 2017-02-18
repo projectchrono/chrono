@@ -157,9 +157,9 @@ void ChShaftsGearbox::ConstraintsLoadJacobians() {
     constraint.Get_Cq_c()->ElementN(0) = 0;
     constraint.Get_Cq_c()->ElementN(1) = 0;
     constraint.Get_Cq_c()->ElementN(2) = 0;
-    constraint.Get_Cq_c()->ElementN(3) = jacw.x * r3;
-    constraint.Get_Cq_c()->ElementN(4) = jacw.y * r3;
-    constraint.Get_Cq_c()->ElementN(5) = jacw.z * r3;
+    constraint.Get_Cq_c()->ElementN(3) = jacw.x() * r3;
+    constraint.Get_Cq_c()->ElementN(4) = jacw.y() * r3;
+    constraint.Get_Cq_c()->ElementN(5) = jacw.z() * r3;
 }
 
 void ChShaftsGearbox::ConstraintsFetch_react(double factor) {

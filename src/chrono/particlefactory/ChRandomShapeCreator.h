@@ -220,20 +220,20 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         double hsizey = 0;
         double hsizez = 0;
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x = ChRandom();
-            points[ip].y = ChRandom();
-            points[ip].z = ChRandom();
-            if (fabs(points[ip].x) > hsizex)
-                hsizex = fabs(points[ip].x);
-            if (fabs(points[ip].y) > hsizey)
-                hsizey = fabs(points[ip].y);
-            if (fabs(points[ip].z) > hsizez)
-                hsizez = fabs(points[ip].z);
+            points[ip].x() = ChRandom();
+            points[ip].y() = ChRandom();
+            points[ip].z() = ChRandom();
+            if (fabs(points[ip].x()) > hsizex)
+                hsizex = fabs(points[ip].x());
+            if (fabs(points[ip].y()) > hsizey)
+                hsizey = fabs(points[ip].y());
+            if (fabs(points[ip].z()) > hsizez)
+                hsizez = fabs(points[ip].z());
         }
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x *= 0.5 * mchord / hsizex;
-            points[ip].y *= msizeratioYZ * (0.5 * mchord / hsizey);
-            points[ip].z *= msizeratioYZ * (0.5 * mchord / hsizez) * msizeratioZ;
+            points[ip].x() *= 0.5 * mchord / hsizex;
+            points[ip].y() *= msizeratioYZ * (0.5 * mchord / hsizey);
+            points[ip].z() *= msizeratioYZ * (0.5 * mchord / hsizez) * msizeratioZ;
         }
         auto mbody = std::make_shared<ChBodyEasyConvexHull>(points, density->GetRandom(), this->add_collision_shape, this->add_visualization_asset);
         mbody->SetCoord(mcoords);

@@ -100,13 +100,13 @@ class ChApi CSV_writer {
 
 template <typename T>
 inline CSV_writer& operator<<(CSV_writer& out, const ChVector<T>& v) {
-  out << v.x << v.y << v.z;
+  out << v.x() << v.y() << v.z();
   return out;
 }
 
 template <typename T>
 inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<T>& q) {
-  out << q.e0 << q.e1 << q.e2 << q.e3;
+  out << q.e0() << q.e1() << q.e2() << q.e3();
   return out;
 }
 

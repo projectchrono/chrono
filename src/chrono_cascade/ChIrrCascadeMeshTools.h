@@ -99,8 +99,8 @@ class ChIrrCascadeMeshTools {
                     nor*= -1;
 
                 buffer->Vertices[ivert] =
-                    irr::video::S3DVertex((irr::f32)pos.x, (irr::f32)pos.y, (irr::f32)pos.z, (irr::f32)nor.x,
-                                          (irr::f32)nor.y, (irr::f32)nor.z, clr, 0, 0);
+                    irr::video::S3DVertex((irr::f32)pos.x(), (irr::f32)pos.y(), (irr::f32)pos.z(), (irr::f32)nor.x(),
+                                          (irr::f32)nor.y(), (irr::f32)nor.z(), clr, 0, 0);
                 ivert++;
             }
 

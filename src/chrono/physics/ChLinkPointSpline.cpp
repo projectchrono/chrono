@@ -60,21 +60,21 @@ void ChLinkPointSpline::UpdateTime(double time) {
         vpoint = Body2->TransformPointParentToLocal(vpoint);
         trajectory_line->FindNearestLinePoint(vpoint, mu, 0, ((ChSystem*)GetSystem())->GetTol());
 
-        param.y = 0;
-        param.z = 0;
-        param.x = mu;
-        trajectory_line->Evaluate(ptang, param.x);
+        param.y() = 0;
+        param.z() = 0;
+        param.x() = mu;
+        trajectory_line->Evaluate(ptang, param.x());
 
-        if (param.x < 0)
-            param.x = 0;
-        trajectory_line->Derive(vdir, param.x);
+        if (param.x() < 0)
+            param.x() = 0;
+        trajectory_line->Derive(vdir, param.x());
 
-        param.x = mu + BDF_STEP_HIGH;
-        if (param.x > 1)
-            param.x = 1;
-        trajectory_line->Evaluate(ptang2, param.x);
+        param.x() = mu + BDF_STEP_HIGH;
+        if (param.x() > 1)
+            param.x() = 1;
+        trajectory_line->Evaluate(ptang2, param.x());
 
-        trajectory_line->Derive(vdir2, param.x);
+        trajectory_line->Derive(vdir2, param.x());
 
         ChMatrix33<> ma;
 
@@ -110,10 +110,10 @@ void ChLinkPointSpline::UpdateTime(double time) {
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;
-        deltaC_dtdt.pos.x = 0;  // csys X axis aligned to vdir: just
-        deltaC_dtdt.pos.y = 0;  // impose centripetal acceleration
-        // deltaC_dtdt.pos.z =   pow(Vdot(this->GetRelM_dt().pos, vdir), 2) / mrad;
-        deltaC_dtdt.pos.z = pow(GetRelM_dt().pos.x, 2) / mrad;
+        deltaC_dtdt.pos.x() = 0;  // csys X axis aligned to vdir: just
+        deltaC_dtdt.pos.y() = 0;  // impose centripetal acceleration
+        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelM_dt().pos, vdir), 2) / mrad;
+        deltaC_dtdt.pos.z() = pow(GetRelM_dt().pos.x(), 2) / mrad;
 
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;

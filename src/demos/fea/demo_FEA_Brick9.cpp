@@ -154,9 +154,9 @@ void DPCapPress() {
 	material->Set_RayleighDampingK(0.0);
 	material->Set_RayleighDampingM(0.0);
 	material->Set_density(rho);
-	material->Set_E(E.x);
-	// material->Set_G(G.x);
-	material->Set_v(nu.x);
+	material->Set_E(E.x());
+	// material->Set_G(G.x());
+	material->Set_v(nu.x());
 
 	// Read hardening parameter look-up table
 	FILE* inputfile;
@@ -377,9 +377,9 @@ void DPCapPress() {
 			inc = inc / 2;
 			for (int ii = 0; ii < N_x; ii++) {
 				auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(offset_top + offset_mid + N_y*inc + ii));
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().x);
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().y);
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().z);
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().x());
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().y());
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().z());
 			}
 			fprintf(outputfile, "\n  ");
 		}
@@ -512,9 +512,9 @@ void ShellBrickContact() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     double rhoS = 8000;
     ChVector<> ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
@@ -694,9 +694,9 @@ void ShellBrickContact() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -726,19 +726,19 @@ void ShellBrickContact() {
         GetLog() << "t = " << my_system.GetChTime() << "\n";
         GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
         // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        GetLog() << nodetip1->GetPos().x << "\n";
-        GetLog() << nodetip1->GetPos().y << "\n";
-        GetLog() << nodetip1->GetPos().z << "\n";
-        GetLog() << nodetip1->GetPos_dt().z << "\n";
+        GetLog() << nodetip1->GetPos().x() << "\n";
+        GetLog() << nodetip1->GetPos().y() << "\n";
+        GetLog() << nodetip1->GetPos().z() << "\n";
+        GetLog() << nodetip1->GetPos_dt().z() << "\n";
         if (!application.GetPaused() && timecount % 100 == 0) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             for (int in = 0; in < XYNumNodes; in++) {
                 auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
             }
-            // fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
+            // fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
             fprintf(outputfile, "\n  ");
         }
         timecount++;
@@ -840,9 +840,9 @@ void SimpleBoxContact() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
@@ -1009,9 +1009,9 @@ void SimpleBoxContact() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -1032,19 +1032,19 @@ void SimpleBoxContact() {
         // GetLog() << "Plate Pos: " << Plate->GetPos();
         // GetLog() << "Plate Vel: " << Plate->GetPos_dt();
         // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        // GetLog() << nodetip1->GetPos().x << "\n";
-        // GetLog() << nodetip1->GetPos().y << "\n";
-        // GetLog() << nodetip1->GetPos().z << "\n";
-        // GetLog() << nodetip1->GetPos_dt().z << "\n";
+        // GetLog() << nodetip1->GetPos().x() << "\n";
+        // GetLog() << nodetip1->GetPos().y() << "\n";
+        // GetLog() << nodetip1->GetPos().z() << "\n";
+        // GetLog() << nodetip1->GetPos_dt().z() << "\n";
         if (!application.GetPaused() && timecount % 100 == 0) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             for (int in = 0; in < XYNumNodes; in++) {
                 auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
             }
-            fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
+            fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
             fprintf(outputfile, "\n  ");
         }
         timecount++;
@@ -1150,9 +1150,9 @@ void SoilBin() {
 	material->Set_RayleighDampingK(0.0);
 	material->Set_RayleighDampingM(0.0);
 	material->Set_density(rho);
-	material->Set_E(E.x);
-	// material->Set_G(G.x);
-	material->Set_v(nu.x);
+	material->Set_E(E.x());
+	// material->Set_G(G.x());
+	material->Set_v(nu.x());
 	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
 	my_surfacematerial->SetKn(0.2e4);//0.2e6
 	my_surfacematerial->SetKt(0.2e4);//0.2e6
@@ -1345,9 +1345,9 @@ void SoilBin() {
 	fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
 	for (int ii = 0; ii < N_x; ii++) {
 		auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
 	}
 	fprintf(outputfile, "\n  ");
 
@@ -1375,21 +1375,21 @@ void SoilBin() {
 		GetLog() << "Plate Rot: " << Plate->GetRot();
 		GetLog() << "Plate Rot_v: " << Plate->GetRot_dt();
 		GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-		GetLog() << nodecenter->GetPos().x << "\n";
-		GetLog() << nodecenter->GetPos().y << "\n";
-		GetLog() << nodecenter->GetPos().z << "\n";
+		GetLog() << nodecenter->GetPos().x() << "\n";
+		GetLog() << nodecenter->GetPos().y() << "\n";
+		GetLog() << nodecenter->GetPos().z() << "\n";
 		if (!application.GetPaused()) {
 			fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
 			for (int ii = 0; ii < N_x; ii++) {
 				auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
 			}
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().x);
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().y);
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
-			fprintf(outputfile, "%15.7e  ", Plate->GetPos().z);
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().x());
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().y());
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
+			fprintf(outputfile, "%15.7e  ", Plate->GetPos().z());
 			fprintf(outputfile, "\n  ");
 		}
 	}
@@ -1498,9 +1498,9 @@ void AxialDynamics() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
@@ -1629,9 +1629,9 @@ void AxialDynamics() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -1654,9 +1654,9 @@ void AxialDynamics() {
         // GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         // if (!application.GetPaused()) {
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
         fprintf(outputfile, "\n  ");
         //}
     }
@@ -1754,9 +1754,9 @@ void BendingQuasiStatic() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -1876,9 +1876,9 @@ void BendingQuasiStatic() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double force = 0.0;
@@ -1895,15 +1895,15 @@ void BendingQuasiStatic() {
 
             nodetip->SetForce(ChVector<>(0.0, 0.0, force));
 
-            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " "
-                     << nodetip->GetPos().z << "\n";
+            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                     << nodetip->GetPos().z() << "\n";
         }
         application.DoStep();
         GetLog() << "Force: " << force << "\n";
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
         application.EndScene();
     }
@@ -1999,9 +1999,9 @@ void SwingingShell() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -2121,9 +2121,9 @@ void SwingingShell() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -2132,14 +2132,14 @@ void SwingingShell() {
         application.DrawAll();
         application.DoStep();
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
         application.EndScene();
         if (!application.GetPaused()) {
-            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " "
-                     << nodetip->GetPos().z << "\n";
+            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                     << nodetip->GetPos().z() << "\n";
         }
     }
 }

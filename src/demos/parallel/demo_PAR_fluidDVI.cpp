@@ -108,14 +108,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
 
 #else
     ChVector<> hdim(.5, .5, .5);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z), hdim);
-// vol = hdim.x * hdim.y * hdim.z / real(points.size());
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z()), hdim);
+// vol = hdim.x() * hdim.y() * hdim.z() / real(points.size());
 #endif
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(0, 0, 0);
     }
 

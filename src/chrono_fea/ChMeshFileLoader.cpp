@@ -639,7 +639,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
         // Add node to mesh
         mesh->AddNode(node);
         if (printNodes) {
-            GetLog() << node->GetPos().x << "  " << node->GetPos().y << "  " << node->GetPos().z << "\n";
+            GetLog() << node->GetPos().x() << "  " << node->GetPos().y() << "  " << node->GetPos().z() << "\n";
         }
     }
     GetLog() << "-----------------------------------------------------------\n";

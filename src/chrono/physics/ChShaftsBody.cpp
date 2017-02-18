@@ -147,9 +147,9 @@ void ChShaftsBody::ConstraintsLoadJacobians() {
     constraint.Get_Cq_b()->ElementN(0) = 0;
     constraint.Get_Cq_b()->ElementN(1) = 0;
     constraint.Get_Cq_b()->ElementN(2) = 0;
-    constraint.Get_Cq_b()->ElementN(3) = jacw.x;
-    constraint.Get_Cq_b()->ElementN(4) = jacw.y;
-    constraint.Get_Cq_b()->ElementN(5) = jacw.z;
+    constraint.Get_Cq_b()->ElementN(3) = jacw.x();
+    constraint.Get_Cq_b()->ElementN(4) = jacw.y();
+    constraint.Get_Cq_b()->ElementN(5) = jacw.z();
 }
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {

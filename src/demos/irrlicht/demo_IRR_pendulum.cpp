@@ -61,9 +61,9 @@ void apply_fan_force(ChSystem* msystem,       // contains all bodies
         // calculate the position of body COG in fan coordinates:
         ChVector<> mrelpos = fan_csys.TransformParentToLocal(abody->GetPos());
         ChVector<> mrelpos_ondisc = mrelpos;
-        mrelpos_ondisc.z = 0;
+        mrelpos_ondisc.z() = 0;
 
-        if (mrelpos.z > 0)  // if not behind fan..
+        if (mrelpos.z() > 0)  // if not behind fan..
             if (mrelpos_ondisc.Length() < aradius) {
                 // OK! we are inside wind stream cylinder..
                 // wind is directed as normal to the fan disc

@@ -309,13 +309,13 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         ChVector<> contact_force = ground->GetContactForce();
         GetLog() << "t = " << system->GetChTime() << " num contacts = " <<
         system->GetContactContainer()->GetNcontacts()
-                 << "  force =  " << contact_force.y << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y << "\n";
+                 << "  force =  " << contact_force.y() << "\n";
+        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y() << "\n";
         GetLog() << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system->GetChTime() > start_time) {
-            if (std::abs(1 - std::abs(contact_force.y) / total_weight) > rtol) {
-                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y << "\n";
+            if (std::abs(1 - std::abs(contact_force.y()) / total_weight) > rtol) {
+                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y() << "\n";
                 passed = false;
                 break;
             }

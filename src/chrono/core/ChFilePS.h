@@ -204,8 +204,8 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
     void Set_Gc_g(ChVector2<> mv) { Gc_g = mv; };
     /// Set viewport graph zoom factor:
     void Set_Gz(double mz) {
-        Gz.x = mz;
-        Gz.y = mz;
+        Gz.x() = mz;
+        Gz.y() = mz;
     }
     /// Set viewport graph zoom factor:
     void Set_Gz(ChVector2<> mz) { Gz = mz; }
@@ -295,7 +295,7 @@ class ChApi ChFile_ps : public ChStreamOutAsciiFile {
 };
 
 extern ChApi ChVector2<> pv_set(double x, double y);
-extern ChApi ChVector2<> pv_set(Vector mv);
+extern ChApi ChVector2<> pv_set(ChVector<> mv);
 
 
 }  // end namespace chrono

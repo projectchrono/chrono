@@ -35,15 +35,15 @@ chrono::ChQuaternion<> ChFsiTypeConvert::Real4ToChQuaternion(Real4 q4) {
 }
 
 Real3 ChFsiTypeConvert::ChVectorToReal3(chrono::ChVector<> v3) {
-  return mR3(v3.x, v3.y, v3.z);
+  return mR3(v3.x(), v3.y(), v3.z());
 }
 
 Real4 ChFsiTypeConvert::ChVectorRToReal4(chrono::ChVector<> v3, Real m) {
-  return mR4(v3.x, v3.y, v3.z, m);
+  return mR4(v3.x(), v3.y(), v3.z(), m);
 }
 
 Real4 ChFsiTypeConvert::ChQuaternionToReal4(chrono::ChQuaternion<> q4) {
-  return mR4(q4.e0, q4.e1, q4.e2, q4.e3);
+  return mR4(q4.e0(), q4.e1(), q4.e2(), q4.e3());
 }
 
 } // end namespace fsi

@@ -129,20 +129,20 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
     // xmin
     mp = m_file->Get_G_p();
     mp = m_file->To_graph_from_page(mp);
-    xmin = mp.x;
+    xmin = mp.x();
     // xmax
     mp = m_file->Get_G_p();
-    mp.x = mp.x + m_file->Get_Gs_p().x;
+    mp.x() = mp.x() + m_file->Get_Gs_p().x();
     mp = m_file->To_graph_from_page(mp);
-    xmax = mp.x;
+    xmax = mp.x();
 
     if (plotY) {
         mx = xmin;
         for (int j = 0; j < mresol; j++) {
-            mp.x = mx;
-            mp.y = this->Get_y(mx);
-            xf.SetElement(j, 0, mp.x);
-            yf.SetElement(j, 0, mp.y);
+            mp.x() = mx;
+            mp.y() = this->Get_y(mx);
+            xf.SetElement(j, 0, mp.x());
+            yf.SetElement(j, 0, mp.y());
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(&yf, &xf);
@@ -150,10 +150,10 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
     if (plotDY) {
         mx = xmin;
         for (int j = 0; j < mresol; j++) {
-            mp.x = mx;
-            mp.y = this->Get_y_dx(mx);
-            xf.SetElement(j, 0, mp.x);
-            yf.SetElement(j, 0, mp.y);
+            mp.x() = mx;
+            mp.y() = this->Get_y_dx(mx);
+            xf.SetElement(j, 0, mp.x());
+            yf.SetElement(j, 0, mp.y());
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(&yf, &xf);
@@ -161,10 +161,10 @@ int ChFunction::FilePostscriptPlot(ChFile_ps* m_file, int plotY, int plotDY, int
     if (plotDDY) {
         mx = xmin;
         for (int j = 0; j < mresol; j++) {
-            mp.x = mx;
-            mp.y = this->Get_y_dxdx(mx);
-            xf.SetElement(j, 0, mp.x);
-            yf.SetElement(j, 0, mp.y);
+            mp.x() = mx;
+            mp.y() = this->Get_y_dxdx(mx);
+            xf.SetElement(j, 0, mp.x());
+            yf.SetElement(j, 0, mp.y());
             mx += ((xmax - xmin) / ((double)mresol - 1.0));
         }
         m_file->DrawGraphXY(&yf, &xf);

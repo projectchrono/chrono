@@ -101,15 +101,15 @@ bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_inte
     mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
     // start a line, move cursor to beginning
     mfle->StartLine();
-    mp1.x = Get_point(0).x;
-    mp1.y = Get_point(0).y;
+    mp1.x() = Get_point(0).x();
+    mp1.y() = Get_point(0).y();
     mp1 = mfle->To_page_from_graph(mp1);
     mfle->MoveTo(mp1);
     // add points into line
     for (int i = 1; i < this->Get_numpoints(); i++) {
         mv1 = Get_point(i);
-        mp1.x = mv1.x;
-        mp1.y = mv1.y;
+        mp1.x() = mv1.x();
+        mp1.y() = mv1.y();
         mp1 = mfle->To_page_from_graph(mp1);
         mfle->AddLinePoint(mp1);
     }

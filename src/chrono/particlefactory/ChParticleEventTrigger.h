@@ -65,7 +65,7 @@ class ChParticleEventTriggerBox : public ChParticleEventTrigger {
 
         ChVector<> localpos = mbox.Pos + mbox.Rot * particle_pos;
 
-        if (((fabs(localpos.x) < mbox.Size.x) && (fabs(localpos.y) < mbox.Size.y) && (fabs(localpos.z) < mbox.Size.z)) ^
+        if (((fabs(localpos.x()) < mbox.Size.x()) && (fabs(localpos.y()) < mbox.Size.y()) && (fabs(localpos.z()) < mbox.Size.z())) ^
             invert_volume)  // XOR
             return true;
         else
@@ -112,25 +112,25 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
         ChVector<> localpos = rectangle_csys.TransformParentToLocal(mbody->GetPos());
 
         // Is in lower part of rectangle?
-        if ((localpos.z <= 0) && (-localpos.z < margin) && (fabs(localpos.x) < 0.5 * Xsize + margin) &&
-            (fabs(localpos.y) < 0.5 * Ysize + margin)) {
+        if ((localpos.z() <= 0) && (-localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
+            (fabs(localpos.y()) < 0.5 * Ysize + margin)) {
             // Was it in the upper part, at last iteration?
             std::unordered_map<size_t, _particle_last_pos>::iterator mcached = last_positions.find((size_t)mbody.get());
             if (mcached != last_positions.end()) {
                 ChVector<> pA = (*mcached).second.mpos;
                 ChVector<> pB = localpos;
                 ChVector<> pColl;
-                double tb = pA.z / (pA.z - pB.z);
-                double ta = -pB.z / (pA.z - pB.z);
-                if ((pA.z == 0) && (pB.z == 0))
+                double tb = pA.z() / (pA.z() - pB.z());
+                double ta = -pB.z() / (pA.z() - pB.z());
+                if ((pA.z() == 0) && (pB.z() == 0))
                     pColl = pA;
                 else
                     pColl = pA * ta + pB * tb;
 
-                if ((fabs(pColl.x) < 0.5 * Xsize) && (fabs(pColl.y) < 0.5 * Ysize)) {
-                    last_intersectionUV.x = (pColl.x + 0.5 * Xsize) / Xsize;
-                    last_intersectionUV.y = (pColl.y + 0.5 * Ysize) / Ysize;
-                    last_intersectionUV.z = 0;
+                if ((fabs(pColl.x()) < 0.5 * Xsize) && (fabs(pColl.y()) < 0.5 * Ysize)) {
+                    last_intersectionUV.x() = (pColl.x() + 0.5 * Xsize) / Xsize;
+                    last_intersectionUV.y() = (pColl.y() + 0.5 * Ysize) / Ysize;
+                    last_intersectionUV.z() = 0;
                     return true;
                 }
             }
@@ -145,8 +145,8 @@ class ChParticleEventFlowInRectangle : public ChParticleEventTrigger {
         ChSystem::IteratorBodies myiter = msystem.IterBeginBodies();
         while (myiter != msystem.IterEndBodies()) {
             ChVector<> localpos = rectangle_csys.TransformParentToLocal((*myiter)->GetPos());
-            if ((localpos.z > 0) && (localpos.z < margin) && (fabs(localpos.x) < 0.5 * Xsize + margin) &&
-                (fabs(localpos.y) < 0.5 * Ysize + margin)) {
+            if ((localpos.z() > 0) && (localpos.z() < margin) && (fabs(localpos.x()) < 0.5 * Xsize + margin) &&
+                (fabs(localpos.y()) < 0.5 * Ysize + margin)) {
                 // ok, was in the upper part Z>0 of the triangle.. store in hash table for next
                 // run, so that one will know if the particle crossed the rectangle into Z<0
                 _particle_last_pos mlastpos((*myiter), localpos);

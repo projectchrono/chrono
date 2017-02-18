@@ -181,18 +181,18 @@ void ChProximityContainerMeshless::AccumulateStep1() {
         ChVector<> m_inc_AB = (-d_BA) * W_AB;
 
         ChVector<> dwg;  // increment the J matrix
-        dwg = m_inc_BA * g_BA.x;
+        dwg = m_inc_BA * g_BA.x();
         mnodeA->J.PasteSumVector(dwg, 0, 0);
-        dwg = m_inc_BA * g_BA.y;
+        dwg = m_inc_BA * g_BA.y();
         mnodeA->J.PasteSumVector(dwg, 0, 1);
-        dwg = m_inc_BA * g_BA.z;
+        dwg = m_inc_BA * g_BA.z();
         mnodeA->J.PasteSumVector(dwg, 0, 2);
 
-        dwg = m_inc_AB * (-g_BA.x);  // increment the J matrix
+        dwg = m_inc_AB * (-g_BA.x());  // increment the J matrix
         mnodeB->J.PasteSumVector(dwg, 0, 0);
-        dwg = m_inc_AB * (-g_BA.y);
+        dwg = m_inc_AB * (-g_BA.y());
         mnodeB->J.PasteSumVector(dwg, 0, 1);
-        dwg = m_inc_AB * (-g_BA.z);
+        dwg = m_inc_AB * (-g_BA.z());
         mnodeB->J.PasteSumVector(dwg, 0, 2);
 
         ++iterproximity;

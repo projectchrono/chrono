@@ -363,12 +363,12 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
 
             // Huygens-Steiner parallel axis theorem:
             ChVector<> dist = positions[i] - baricenter;
-            totinertia(0, 0) += sphinertia + sphmass * (dist.Length2() - dist.x * dist.x);
-            totinertia(1, 1) += sphinertia + sphmass * (dist.Length2() - dist.y * dist.y);
-            totinertia(2, 2) += sphinertia + sphmass * (dist.Length2() - dist.z * dist.z);
-            totinertia(0, 1) += sphmass * (-dist.x * dist.y);
-            totinertia(0, 2) += sphmass * (-dist.x * dist.z);
-            totinertia(1, 2) += sphmass * (-dist.y * dist.z);
+            totinertia(0, 0) += sphinertia + sphmass * (dist.Length2() - dist.x() * dist.x());
+            totinertia(1, 1) += sphinertia + sphmass * (dist.Length2() - dist.y() * dist.y());
+            totinertia(2, 2) += sphinertia + sphmass * (dist.Length2() - dist.z() * dist.z());
+            totinertia(0, 1) += sphmass * (-dist.x() * dist.y());
+            totinertia(0, 2) += sphmass * (-dist.x() * dist.z());
+            totinertia(1, 2) += sphmass * (-dist.y() * dist.z());
             totinertia(1, 0) = totinertia(0, 1);
             totinertia(2, 0) = totinertia(0, 2);
             totinertia(2, 1) = totinertia(1, 2);

@@ -122,7 +122,7 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     Vector my = ma.Get_A_Yaxis();
     if (Vequal(mx, my)) {
-        if (mx.x == 1.0)
+        if (mx.x() == 1.0)
             my = VECT_Y;
         else
             my = VECT_X;
@@ -144,20 +144,20 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;
-    deltaC.pos.x = dist_funct->Get_y(ChTime) + offset;  // distance is always on M2 'X' axis
+    deltaC.pos.x() = dist_funct->Get_y(ChTime) + offset;  // distance is always on M2 'X' axis
 
     deltaC_dt.pos = VNULL;
-    deltaC_dt.pos.x = dist_funct->Get_y_dx(ChTime);  // distance speed
+    deltaC_dt.pos.x() = dist_funct->Get_y_dx(ChTime);  // distance speed
 
     deltaC_dtdt.pos = VNULL;
-    deltaC_dtdt.pos.x = dist_funct->Get_y_dxdx(ChTime);  // distance acceleration
+    deltaC_dtdt.pos.x() = dist_funct->Get_y_dxdx(ChTime);  // distance acceleration
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
     Vector tang_speed = GetRelM_dt().pos;
-    tang_speed.x = 0;                       // only z-y coords in relative tang speed vector
+    tang_speed.x() = 0;                       // only z-y coords in relative tang speed vector
     double len_absdist = Vlength(absdist);  // don't divide by zero
     if (len_absdist > 1E-6)
-        deltaC_dtdt.pos.x -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
+        deltaC_dtdt.pos.x() -= pow(Vlength(tang_speed), 2) / Vlength(absdist);  // An = Adelta -(Vt^2 / r)
 
     deltaC.rot = QUNIT;  // no relative rotations imposed!
     deltaC_dt.rot = QNULL;
@@ -166,12 +166,12 @@ void ChLinkLinActuator::UpdateTime(double mytime) {
     // Compute motor variables
     // double m_rotation;
     // double m_torque;
-    mot_rerot = (deltaC.pos.x - offset) / mot_tau;
-    mot_rerot_dt = deltaC_dt.pos.x / mot_tau;
-    mot_rerot_dtdt = deltaC_dtdt.pos.x / mot_tau;
-    mot_retorque = mot_rerot_dtdt * mot_inertia + (react_force.x * mot_tau) / mot_eta;
-    //  m_rotation = (deltaC.pos.x - offset) / mot_tau;
-    //  m_torque =  (deltaC_dtdt.pos.x / mot_tau) * mot_inertia + (react_force.x * mot_tau) / mot_eta;
+    mot_rerot = (deltaC.pos.x() - offset) / mot_tau;
+    mot_rerot_dt = deltaC_dt.pos.x() / mot_tau;
+    mot_rerot_dtdt = deltaC_dtdt.pos.x() / mot_tau;
+    mot_retorque = mot_rerot_dtdt * mot_inertia + (react_force.x() * mot_tau) / mot_eta;
+    //  m_rotation = (deltaC.pos.x() - offset) / mot_tau;
+    //  m_torque =  (deltaC_dtdt.pos.x() / mot_tau) * mot_inertia + (react_force.x() * mot_tau) / mot_eta;
 
     if (learn_torque_rotation) {
         if (mot_torque->Get_Type() != ChFunction::FUNCT_RECORDER)

@@ -194,28 +194,28 @@ int main(int argc, char* argv[]) {
             ChVector<> pos_1 = pend_1->GetPos();
             ChVector<> pos_2 = pend_2->GetPos();
             GetLog() << "t = " << system.GetChTime() << "\n";
-            GetLog() << "      " << pos_1.x << "  " << pos_1.y << "\n";
-            GetLog() << "      " << pos_2.x << "  " << pos_2.y << "\n";
+            GetLog() << "      " << pos_1.x() << "  " << pos_1.y() << "\n";
+            GetLog() << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
             // But it's quite likely that, for the second pendulum, waht we want is
             // the position of the body reference frame.  This is available with:
             ChFrame<> frame_2 = pend_2->GetFrame_REF_to_abs();
             pos_2 = frame_2.GetPos();
-            GetLog() << "      " << pos_2.x << "  " << pos_2.y << "\n";
+            GetLog() << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
             // OK, what about velocities? Here again, GetPos_dt() returns the linear
             // velocity of the body COG (expressed in the global frame) for both
             // pendulums:
             ChVector<> lin_vel_1 = pend_1->GetPos_dt();
             ChVector<> lin_vel_2 = pend_2->GetPos_dt();
-            GetLog() << "      " << lin_vel_1.x << "  " << lin_vel_1.y << "\n";
-            GetLog() << "      " << lin_vel_2.x << "  " << lin_vel_2.y << "\n";
+            GetLog() << "      " << lin_vel_1.x() << "  " << lin_vel_1.y() << "\n";
+            GetLog() << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             // To obtain the absolute linear velocity of the body reference frame,
             // we use again GetPos_dt(), but this time for the reference frame,
             // using GetFrame_REF_to_abs() similarly for what we did for positions:
             lin_vel_2 = pend_2->GetFrame_REF_to_abs().GetPos_dt();
-            GetLog() << "      " << lin_vel_2.x << "  " << lin_vel_2.y << "\n";
+            GetLog() << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             log_info = false;
         }

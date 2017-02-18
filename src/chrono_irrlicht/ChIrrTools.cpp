@@ -45,9 +45,9 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const C
     irrMat[9] = (irr::f32)chMat.GetElementN(5);
     irrMat[10] = (irr::f32)chMat.GetElementN(8);
 
-    irrMat[12] = (irr::f32)mcoords.pos.x;
-    irrMat[13] = (irr::f32)mcoords.pos.y;
-    irrMat[14] = (irr::f32)mcoords.pos.z;
+    irrMat[12] = (irr::f32)mcoords.pos.x();
+    irrMat[13] = (irr::f32)mcoords.pos.y();
+    irrMat[14] = (irr::f32)mcoords.pos.z();
 
     // Clear the last column to 0 and set low-right corner to 1
     // as in Denavitt-Hartemberg matrices, transposed.
@@ -93,7 +93,7 @@ class _draw_reporter_class : public ChReportContactCallback {
                 mcol = irr::video::SColor(200, 0, 100, 255);
                 break;
             case ChIrrTools::CONTACT_FORCES_N:
-                v2 = pA + vn * clen * react_forces.x;
+                v2 = pA + vn * clen * react_forces.x();
                 break;
             case ChIrrTools::CONTACT_FORCES:
                 v2 = pA + (mplanecoord * (react_forces * clen));
@@ -152,7 +152,7 @@ class _label_reporter_class : public ChReportContactCallback {
                                        ChContactable* modA,
                                        ChContactable* modB) override {
         char buffer[25];
-        irr::core::vector3df mpos((irr::f32)pA.x, (irr::f32)pA.y, (irr::f32)pA.z);
+        irr::core::vector3df mpos((irr::f32)pA.x(), (irr::f32)pA.y(), (irr::f32)pA.z());
         irr::core::position2d<s32> spos =
             this->cdevice->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
         gui::IGUIFont* font = this->cdevice->getGUIEnvironment()->getBuiltInFont();
@@ -162,10 +162,10 @@ class _label_reporter_class : public ChReportContactCallback {
                 sprintf(buffer, "% 6.3g", distance);
                 break;
             case ChIrrTools::CONTACT_FORCES_N_VAL:
-                sprintf(buffer, "% 6.3g", react_forces.x);
+                sprintf(buffer, "% 6.3g", react_forces.x());
                 break;
             case ChIrrTools::CONTACT_FORCES_T_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y, react_forces.z).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(0, react_forces.y(), react_forces.z()).Length());
                 break;
             case ChIrrTools::CONTACT_FORCES_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(react_forces).Length());
@@ -174,10 +174,10 @@ class _label_reporter_class : public ChReportContactCallback {
                 sprintf(buffer, "% 6.3g", ChVector<>(react_torques).Length());
                 break;
             case ChIrrTools::CONTACT_TORQUES_S_VAL:
-                sprintf(buffer, "% 6.3g", react_torques.x);
+                sprintf(buffer, "% 6.3g", react_torques.x());
                 break;
             case ChIrrTools::CONTACT_TORQUES_R_VAL:
-                sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y, react_torques.z).Length());
+                sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
         }
 
@@ -274,8 +274,8 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
             ChCoordsys<> mlinkframe = mylink->GetLinkAbsoluteCoords();  // GetAssetsFrame();
 
             char buffer[25];
-            irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x, (irr::f32)mlinkframe.pos.y,
-                                      (irr::f32)mlinkframe.pos.z);
+            irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x(), (irr::f32)mlinkframe.pos.y(),
+                                      (irr::f32)mlinkframe.pos.z());
             irr::core::position2d<s32> spos =
                 device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
             gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
@@ -285,25 +285,25 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
                     sprintf(buffer, "% 6.3g", mylink->Get_react_force().Length());
                     break;
                 case ChIrrTools::LINK_REACT_FORCE_X:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().x);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().x());
                     break;
                 case ChIrrTools::LINK_REACT_FORCE_Y:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().y);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().y());
                     break;
                 case ChIrrTools::LINK_REACT_FORCE_Z:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().z);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_force().z());
                     break;
                 case ChIrrTools::LINK_REACT_TORQUE_VAL:
                     sprintf(buffer, "% 6.3g", mylink->Get_react_torque().Length());
                     break;
                 case ChIrrTools::LINK_REACT_TORQUE_X:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().x);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().x());
                     break;
                 case ChIrrTools::LINK_REACT_TORQUE_Y:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().y);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().y());
                     break;
                 case ChIrrTools::LINK_REACT_TORQUE_Z:
-                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().z);
+                    sprintf(buffer, "% 6.3g", mylink->Get_react_torque().z());
                     break;
             }
 
@@ -338,24 +338,24 @@ int ChIrrTools::drawAllBoundingBoxes(ChSystem& mphysicalSystem, irr::video::IVid
             ChVector<> hi = VNULL;
             ChVector<> lo = VNULL;
             abody->GetTotalAABB(lo, hi);
-            ChVector<> p1(hi.x, lo.y, lo.z);
-            ChVector<> p2(lo.x, hi.y, lo.z);
-            ChVector<> p3(lo.x, lo.y, hi.z);
-            ChVector<> p4(hi.x, hi.y, lo.z);
-            ChVector<> p5(lo.x, hi.y, hi.z);
-            ChVector<> p6(hi.x, lo.y, hi.z);
-            ChVector<> p7(lo.x, lo.y, hi.z);
-            ChVector<> p8(lo.x, lo.y, hi.z);
-            ChVector<> p9(lo.x, hi.y, lo.z);
-            ChVector<> p10(lo.x, hi.y, lo.z);
-            ChVector<> p11(hi.x, lo.y, lo.z);
-            ChVector<> p12(hi.x, lo.y, lo.z);
-            ChVector<> p14(hi.x, lo.y, hi.z);
-            ChVector<> p15(lo.x, hi.y, hi.z);
-            ChVector<> p16(lo.x, hi.y, hi.z);
-            ChVector<> p17(hi.x, hi.y, lo.z);
-            ChVector<> p18(hi.x, lo.y, hi.z);
-            ChVector<> p19(hi.x, hi.y, lo.z);
+            ChVector<> p1(hi.x(), lo.y(), lo.z());
+            ChVector<> p2(lo.x(), hi.y(), lo.z());
+            ChVector<> p3(lo.x(), lo.y(), hi.z());
+            ChVector<> p4(hi.x(), hi.y(), lo.z());
+            ChVector<> p5(lo.x(), hi.y(), hi.z());
+            ChVector<> p6(hi.x(), lo.y(), hi.z());
+            ChVector<> p7(lo.x(), lo.y(), hi.z());
+            ChVector<> p8(lo.x(), lo.y(), hi.z());
+            ChVector<> p9(lo.x(), hi.y(), lo.z());
+            ChVector<> p10(lo.x(), hi.y(), lo.z());
+            ChVector<> p11(hi.x(), lo.y(), lo.z());
+            ChVector<> p12(hi.x(), lo.y(), lo.z());
+            ChVector<> p14(hi.x(), lo.y(), hi.z());
+            ChVector<> p15(lo.x(), hi.y(), hi.z());
+            ChVector<> p16(lo.x(), hi.y(), hi.z());
+            ChVector<> p17(hi.x(), hi.y(), lo.z());
+            ChVector<> p18(hi.x(), lo.y(), hi.z());
+            ChVector<> p19(hi.x(), hi.y(), lo.z());
             driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p1), mcol);
             driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p2), mcol);
             driver->draw3DLine(irr::core::vector3dfCH(lo), irr::core::vector3dfCH(p3), mcol);

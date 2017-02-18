@@ -231,22 +231,22 @@ int main(int argc, char* argv[]) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
             const ChVector<>& c_pos = vehicle.GetVehiclePos();
-            cout << "      chassis:    " << c_pos.x << "  " << c_pos.y << "  " << c_pos.z << endl;
+            cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
                 const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
                 ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
                 ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-                cout << "      L idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-                cout << "      L sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+                cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
+                cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
             {
                 const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
                 const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
                 ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
                 ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
-                cout << "      R idler:    " << i_pos_rel.x << "  " << i_pos_rel.y << "  " << i_pos_rel.z << endl;
-                cout << "      R sprocket: " << s_pos_rel.x << "  " << s_pos_rel.y << "  " << s_pos_rel.z << endl;
+                cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
+                cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
         }
 

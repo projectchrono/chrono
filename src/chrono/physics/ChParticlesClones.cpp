@@ -570,34 +570,34 @@ void ChParticlesClones::SetInertia(const ChMatrix33<>& newXInertia) {
 }
 
 void ChParticlesClones::SetInertiaXX(const ChVector<>& iner) {
-    particle_mass.GetBodyInertia().SetElement(0, 0, iner.x);
-    particle_mass.GetBodyInertia().SetElement(1, 1, iner.y);
-    particle_mass.GetBodyInertia().SetElement(2, 2, iner.z);
+    particle_mass.GetBodyInertia().SetElement(0, 0, iner.x());
+    particle_mass.GetBodyInertia().SetElement(1, 1, iner.y());
+    particle_mass.GetBodyInertia().SetElement(2, 2, iner.z());
     particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
-    particle_mass.GetBodyInertia().SetElement(0, 1, iner.x);
-    particle_mass.GetBodyInertia().SetElement(0, 2, iner.y);
-    particle_mass.GetBodyInertia().SetElement(1, 2, iner.z);
-    particle_mass.GetBodyInertia().SetElement(1, 0, iner.x);
-    particle_mass.GetBodyInertia().SetElement(2, 0, iner.y);
-    particle_mass.GetBodyInertia().SetElement(2, 1, iner.z);
+    particle_mass.GetBodyInertia().SetElement(0, 1, iner.x());
+    particle_mass.GetBodyInertia().SetElement(0, 2, iner.y());
+    particle_mass.GetBodyInertia().SetElement(1, 2, iner.z());
+    particle_mass.GetBodyInertia().SetElement(1, 0, iner.x());
+    particle_mass.GetBodyInertia().SetElement(2, 0, iner.y());
+    particle_mass.GetBodyInertia().SetElement(2, 1, iner.z());
     particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 
 ChVector<> ChParticlesClones::GetInertiaXX() const {
     ChVector<> iner;
-    iner.x = particle_mass.GetBodyInertia().GetElement(0, 0);
-    iner.y = particle_mass.GetBodyInertia().GetElement(1, 1);
-    iner.z = particle_mass.GetBodyInertia().GetElement(2, 2);
+    iner.x() = particle_mass.GetBodyInertia().GetElement(0, 0);
+    iner.y() = particle_mass.GetBodyInertia().GetElement(1, 1);
+    iner.z() = particle_mass.GetBodyInertia().GetElement(2, 2);
     return iner;
 }
 
 ChVector<> ChParticlesClones::GetInertiaXY() const {
     ChVector<> iner;
-    iner.x = particle_mass.GetBodyInertia().GetElement(0, 1);
-    iner.y = particle_mass.GetBodyInertia().GetElement(0, 2);
-    iner.z = particle_mass.GetBodyInertia().GetElement(1, 2);
+    iner.x() = particle_mass.GetBodyInertia().GetElement(0, 1);
+    iner.y() = particle_mass.GetBodyInertia().GetElement(0, 2);
+    iner.z() = particle_mass.GetBodyInertia().GetElement(1, 2);
     return iner;
 }
 

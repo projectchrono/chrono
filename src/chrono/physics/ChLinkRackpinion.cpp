@@ -132,7 +132,7 @@ void ChLinkRackpinion::UpdateTime(double mytime) {
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 
     // rotate link frame on its Z because of alpha
-    if (this->react_force.x < 0)
+    if (this->react_force.x() < 0)
         mrot.Set_A_Rxyz(ChVector<>(0, 0, this->alpha));
     else
         mrot.Set_A_Rxyz(ChVector<>(0, 0, -this->alpha));

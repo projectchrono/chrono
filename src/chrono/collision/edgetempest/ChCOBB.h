@@ -67,7 +67,7 @@ class CHOBB {
     inline int GetSecondChildIndex() { return first_child + 1; }
 
     /// Returns the size of the OBB (as sphere radius)
-    double GetSize() { return (d.x * d.x + d.y * d.y + d.z * d.z); }
+    double GetSize() { return (d.x() * d.x() + d.y() * d.y() + d.z() * d.z()); }
 
     /// Given a rotation matrix O which tells the direction of the
     /// axis, and a list of geometric object, this function recomputes the

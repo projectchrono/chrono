@@ -161,8 +161,8 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // Find the lowest road-wheel.
     double zmin = 100;
     for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i) {
-        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z < zmin)
-            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z;
+        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z() < zmin)
+            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z();
     }
 
     double idler_radius = m_track->GetIdler()->GetWheelRadius();
@@ -175,10 +175,10 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     double post_height = 0.1;
     double post_width = 0.4;
-    double post_length = std::abs(sprocket_pos.x - idler_pos.x) + 3 * idler_radius;
+    double post_length = std::abs(sprocket_pos.x() - idler_pos.x()) + 3 * idler_radius;
 
     m_post_pos = 0.5 * (sprocket_pos + idler_pos);
-    m_post_pos.z = zmin - (rw_radius + shoe_height + post_height / 2.0);
+    m_post_pos.z() = zmin - (rw_radius + shoe_height + post_height / 2.0);
 
     m_post = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post->SetPos(m_post_pos);
@@ -197,7 +197,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Post actuator
     ChVector<> m1 = m_post_pos;
-    m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
+    m1.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_linact = std::make_shared<ChLinkLinActuator>();
     m_post_linact->SetNameString("Post_linActuator");
     m_post_linact->Initialize(m_chassis->GetBody(), m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
@@ -223,7 +223,7 @@ double ChTrackTestRig::GetActuatorDisp() {
 }
 
 double ChTrackTestRig::GetActuatorForce() {
-    return m_post_linact->Get_react_force().x;
+    return m_post_linact->Get_react_force().x();
 }
 
 double ChTrackTestRig::GetActuatorMarkerDist() {

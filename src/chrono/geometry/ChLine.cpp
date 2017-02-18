@@ -266,16 +266,16 @@ bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpol
     // start a line, move cursor to beginning
     mfle->StartLine();
     this->Evaluate(mv1, 0.0);
-    mp1.x = mv1.x;
-    mp1.y = mv1.y;
+    mp1.x() = mv1.x();
+    mp1.y() = mv1.y();
     mp1 = mfle->To_page_from_graph(mp1);
     mfle->MoveTo(mp1);
     double maxpoints = this->Get_complexity() * 10;
     // add points into line
     for (int i = 1; i <= maxpoints; i++) {
         this->Evaluate(mv1, ((double)i) / ((double)maxpoints));
-        mp1.x = mv1.x;
-        mp1.y = mv1.y;
+        mp1.x() = mv1.x();
+        mp1.y() = mv1.y();
         mp1 = mfle->To_page_from_graph(mp1);
         mfle->AddLinePoint(mp1);
     }

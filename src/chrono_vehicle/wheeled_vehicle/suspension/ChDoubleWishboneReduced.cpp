@@ -56,7 +56,7 @@ void ChDoubleWishboneReduced::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 

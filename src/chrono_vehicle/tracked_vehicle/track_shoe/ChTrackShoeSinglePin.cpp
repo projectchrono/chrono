@@ -87,18 +87,18 @@ void ChTrackShoeSinglePin::AddShoeContact() {
     const ChVector<>& pad_dims = GetPadBoxDimensions();
     const ChVector<>& guide_dims = GetGuideBoxDimensions();
 
-    double p0y = 2.1 * (pad_dims.y / 2);
-    double p1y = 1.5 * (pad_dims.y / 2);
+    double p0y = 2.1 * (pad_dims.y() / 2);
+    double p1y = 1.5 * (pad_dims.y() / 2);
 
     m_shoe->GetCollisionModel()->ClearModel();
 
-    m_shoe->GetCollisionModel()->AddBox(pad_dims.x / 2, pad_dims.y / 2, pad_dims.z / 2, GetPadBoxLocation());
+    m_shoe->GetCollisionModel()->AddBox(pad_dims.x() / 2, pad_dims.y() / 2, pad_dims.z() / 2, GetPadBoxLocation());
 
-    m_shoe->GetCollisionModel()->AddBox(guide_dims.x / 2, guide_dims.y / 2, guide_dims.z / 2, GetGuideBoxLocation());
+    m_shoe->GetCollisionModel()->AddBox(guide_dims.x() / 2, guide_dims.y() / 2, guide_dims.z() / 2, GetGuideBoxLocation());
 
-    m_shoe->GetCollisionModel()->AddBox((pitch - 2 * cyl_radius) / 2, 0.95 * (p0y - p1y) / 2, pad_dims.z / 6,
+    m_shoe->GetCollisionModel()->AddBox((pitch - 2 * cyl_radius) / 2, 0.95 * (p0y - p1y) / 2, pad_dims.z() / 6,
                                         ChVector<>(0, +0.95 * (p0y + p1y) / 2, 0));
-    m_shoe->GetCollisionModel()->AddBox((pitch - 2 * cyl_radius) / 2, 0.95 * (p0y - p1y) / 2, pad_dims.z / 6,
+    m_shoe->GetCollisionModel()->AddBox((pitch - 2 * cyl_radius) / 2, 0.95 * (p0y - p1y) / 2, pad_dims.z() / 6,
                                         ChVector<>(0, -0.95 * (p0y + p1y) / 2, 0));
 
     m_shoe->GetCollisionModel()->BuildModel();
@@ -119,9 +119,9 @@ void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
     const ChVector<>& pad_box_dims = GetPadBoxDimensions();
     const ChVector<>& guide_box_dims = GetGuideBoxDimensions();
 
-    double p0y = 2.1 * (pad_box_dims.y / 2);
-    double p1y = 1.5 * (pad_box_dims.y / 2);
-    double p2y = 0.5 * (pad_box_dims.y / 2);
+    double p0y = 2.1 * (pad_box_dims.y() / 2);
+    double p1y = 1.5 * (pad_box_dims.y() / 2);
+    double p2y = 0.5 * (pad_box_dims.y() / 2);
 
     // Render the revolute pin
     auto rev_axis = std::make_shared<ChCylinderShape>();
@@ -132,12 +132,12 @@ void ChTrackShoeSinglePin::AddVisualizationAssets(VisualizationType vis) {
 
     // Render boxes between pins
     auto box_L = std::make_shared<ChBoxShape>();
-    box_L->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z / 3));
+    box_L->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
     box_L->GetBoxGeometry().Pos = ChVector<>(0, +0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_L);
 
     auto box_R = std::make_shared<ChBoxShape>();
-    box_R->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z / 3));
+    box_R->GetBoxGeometry().SetLengths(ChVector<>(pitch - 1.5 * cyl_radius, 0.95 * (p0y - p1y), pad_box_dims.z() / 3));
     box_R->GetBoxGeometry().Pos = ChVector<>(0, -0.95 * (p0y + p1y) / 2, 0);
     m_shoe->AddAsset(box_R);
 

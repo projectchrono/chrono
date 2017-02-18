@@ -193,9 +193,9 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         // For small misalignment this effect is almost insignificant cause [Fp(q_resid)]=[I],
         // but otherwise it is needed (if you want to use the stabilization term - if not, you can live without).
         mtempM.Set_X_matrix((aframe.GetRot().GetVector()) * 0.5);
-        mtempM(0, 0) = aframe.GetRot().e0;
-        mtempM(1, 1) = aframe.GetRot().e0;
-        mtempM(2, 2) = aframe.GetRot().e0;
+        mtempM(0, 0) = aframe.GetRot().e0();
+        mtempM(1, 1) = aframe.GetRot().e0();
+        mtempM(2, 2) = aframe.GetRot().e0();
         mtempQ.MatrTMultiply(mtempM, Jw1);
         Jw1 = mtempQ;
         mtempQ.MatrTMultiply(mtempM, Jw2);
@@ -204,7 +204,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         int nc = 0;
 
         if (c_x) {
-            this->C->ElementN(nc) = aframe.GetPos().x;
+            this->C->ElementN(nc) = aframe.GetPos().x();
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 0, 0, 1, 3, 0, 3);
             this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 0, 0, 1, 3, 0, 0);
@@ -212,7 +212,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_y) {
-            this->C->ElementN(nc) = aframe.GetPos().y;
+            this->C->ElementN(nc) = aframe.GetPos().y();
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 1, 0, 1, 3, 0, 3);
             this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 1, 0, 1, 3, 0, 0);
@@ -220,7 +220,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_z) {
-            this->C->ElementN(nc) = aframe.GetPos().z;
+            this->C->ElementN(nc) = aframe.GetPos().z();
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jr1, 2, 0, 1, 3, 0, 3);
             this->mask->Constr_N(nc).Get_Cq_b()->PasteClippedMatrix(Jx2, 2, 0, 1, 3, 0, 0);
@@ -228,7 +228,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rx) {
-            this->C->ElementN(nc) = aframe.GetRot().e1;
+            this->C->ElementN(nc) = aframe.GetRot().e1();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 0, 0, 1, 3, 0, 3);
@@ -236,7 +236,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_ry) {
-            this->C->ElementN(nc) = aframe.GetRot().e2;
+            this->C->ElementN(nc) = aframe.GetRot().e2();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 1, 0, 1, 3, 0, 3);
@@ -244,7 +244,7 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
             nc++;
         }
         if (c_rz) {
-            this->C->ElementN(nc) = aframe.GetRot().e3;
+            this->C->ElementN(nc) = aframe.GetRot().e3();
             this->mask->Constr_N(nc).Get_Cq_a()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_b()->FillElem(0);
             this->mask->Constr_N(nc).Get_Cq_a()->PasteClippedMatrix(Jw1, 2, 0, 1, 3, 0, 3);
@@ -253,11 +253,11 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         }
         /*
                 if (this->c_x)
-                    GetLog()<< "err.x ="<< aframe.GetPos().x << "\n";
+                    GetLog()<< "err.x() ="<< aframe.GetPos().x() << "\n";
                 if (this->c_y)
-                    GetLog()<< "err.y ="<< aframe.GetPos().y << "\n";
+                    GetLog()<< "err.y() ="<< aframe.GetPos().y() << "\n";
                 if (this->c_z)
-                    GetLog()<< "err.z ="<< aframe.GetPos().z << "\n";
+                    GetLog()<< "err.z() ="<< aframe.GetPos().z() << "\n";
                 if (this->c_x || this->c_y || this->c_z)
                         GetLog()<< *this->C << "\n";
         */
@@ -349,32 +349,32 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
     int nc = 0;
     if (c_x) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.x;
+            L(off_L + nc) = -react_force.x();
         nc++;
     }
     if (c_y) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.y;
+            L(off_L + nc) = -react_force.y();
         nc++;
     }
     if (c_z) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_force.z;
+            L(off_L + nc) = -react_force.z();
         nc++;
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_torque.x;
+            L(off_L + nc) = -react_torque.x();
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_torque.y;
+            L(off_L + nc) = -react_torque.y();
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            L(off_L + nc) = -react_torque.z;
+            L(off_L + nc) = -react_torque.z();
         nc++;
     }
 }
@@ -389,32 +389,32 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     int nc = 0;
     if (c_x) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.x = -L(off_L + nc);
+            react_force.x() = -L(off_L + nc);
         nc++;
     }
     if (c_y) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.y = -L(off_L + nc);
+            react_force.y() = -L(off_L + nc);
         nc++;
     }
     if (c_z) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.z = -L(off_L + nc);
+            react_force.z() = -L(off_L + nc);
         nc++;
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = -L(off_L + nc);
+            react_torque.x() = -L(off_L + nc);
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = -L(off_L + nc);
+            react_torque.y() = -L(off_L + nc);
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = -L(off_L + nc);
+            react_torque.z() = -L(off_L + nc);
         nc++;
     }
 }
@@ -560,32 +560,32 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     int nc = 0;
     if (c_x) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.x = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_force.x() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_y) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.y = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_force.y() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_z) {
         if (mask->Constr_N(nc).IsActive())
-            react_force.z = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_force.z() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rx) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.x = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.x() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.y = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.y() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask->Constr_N(nc).IsActive())
-            react_torque.z = -mask->Constr_N(nc).Get_l_i() * factor;
+            react_torque.z() = -mask->Constr_N(nc).Get_l_i() * factor;
         nc++;
     }
 }
@@ -948,11 +948,11 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
         // Ops.. parallel directions? -> fallback to singularity handling
         if (fabs(xlen) < 1e-20) {
             ChVector<> ortho_gen;
-            if (fabs(mabsD1.z) < 0.9)
+            if (fabs(mabsD1.z()) < 0.9)
                 ortho_gen = VECT_Z;
-            if (fabs(mabsD1.y) < 0.9)
+            if (fabs(mabsD1.y()) < 0.9)
                 ortho_gen = VECT_Y;
-            if (fabs(mabsD1.x) < 0.9)
+            if (fabs(mabsD1.x()) < 0.9)
                 ortho_gen = VECT_X;
             mX = Vcross(mabsD1, ortho_gen);
             xlen = Vlength(mX);

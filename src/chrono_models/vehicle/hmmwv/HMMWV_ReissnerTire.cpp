@@ -130,9 +130,9 @@ HMMWV_ReissnerTire::HMMWV_ReissnerTire(const std::string& name) : ChReissnerTire
     // Create the vector of orthotropic layer materials
     // Initialize with (density, E_x, E_y,nu_xy, Gxy, Gxz, Gyz)
     m_materials.resize(3);
-    m_materials[0] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_0, m_E_0.x, m_E_0.y, m_nu_0, m_G_0.x, m_G_0.y, m_G_0.z);
-    m_materials[1] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_1, m_E_1.x, m_E_1.y, m_nu_1, m_G_1.x, m_G_1.y, m_G_1.z);
-    m_materials[2] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_2, m_E_2.x, m_E_2.y, m_nu_2, m_G_2.x, m_G_2.y, m_G_2.z);
+    m_materials[0] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_0, m_E_0.x(), m_E_0.y(), m_nu_0, m_G_0.x(), m_G_0.y(), m_G_0.z());
+    m_materials[1] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_1, m_E_1.x(), m_E_1.y(), m_nu_1, m_G_1.x(), m_G_1.y(), m_G_1.z());
+    m_materials[2] = std::make_shared<ChMaterialShellReissnerOrthotropic>(m_rho_2, m_E_2.x(), m_E_2.y(), m_nu_2, m_G_2.x(), m_G_2.y(), m_G_2.z());
 
     // Set the profile
     m_profile_t.resize(m_num_points);

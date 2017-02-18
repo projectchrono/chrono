@@ -184,9 +184,9 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
                           ) override {
         if ((F.GetRows() == 3) || (F.GetRows() == 6) || (F.GetRows() == 9)) {
             // only for force or wrench fields
-            F(0) = G_acc.x * loadable->GetDensity();
-            F(1) = G_acc.y * loadable->GetDensity();
-            F(2) = G_acc.z * loadable->GetDensity();
+            F(0) = G_acc.x() * loadable->GetDensity();
+            F(1) = G_acc.y() * loadable->GetDensity();
+            F(2) = G_acc.z() * loadable->GetDensity();
         }
     }
     /// Sets the number of integration points for gravity (assumed, for now, same number per direction)

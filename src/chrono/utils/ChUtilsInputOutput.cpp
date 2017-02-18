@@ -129,10 +129,10 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
                 csv << collision::CAPSULE << geom.rad << geom.hlen;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                csv << collision::CYLINDER << geom.rad << (geom.p1.y - geom.p2.y) / 2;
+                csv << collision::CYLINDER << geom.rad << (geom.p1.y() - geom.p2.y()) / 2;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
-                csv << collision::CONE << geom.rad.x << geom.rad.y;
+                csv << collision::CONE << geom.rad.x() << geom.rad.y();
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
                 csv << collision::ROUNDEDBOX << geom.Size << geom.radsphere;
@@ -174,13 +174,13 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Read body mass and inertia
         double mass;
         ChVector<> inertiaXX;
-        iss1 >> mass >> inertiaXX.x >> inertiaXX.y >> inertiaXX.z;
+        iss1 >> mass >> inertiaXX.x() >> inertiaXX.y() >> inertiaXX.z();
 
         // Read body position, orientation, and their time derivatives
         ChVector<> bpos, bpos_dt;
         ChQuaternion<> brot, brot_dt;
-        iss1 >> bpos.x >> bpos.y >> bpos.z >> brot.e0 >> brot.e1 >> brot.e2 >> brot.e3;
-        iss1 >> bpos_dt.x >> bpos_dt.y >> bpos_dt.z >> brot_dt.e0 >> brot_dt.e1 >> brot_dt.e2 >> brot_dt.e3;
+        iss1 >> bpos.x() >> bpos.y() >> bpos.z() >> brot.e0() >> brot.e1() >> brot.e2() >> brot.e3();
+        iss1 >> bpos_dt.x() >> bpos_dt.y() >> bpos_dt.z() >> brot_dt.e0() >> brot_dt.e1() >> brot_dt.e2() >> brot_dt.e3();
 
         // Get the next line in the file (material properties)
         std::getline(ifile, line);
@@ -234,7 +234,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
             // Get relative position and rotation
             ChVector<> apos;
             ChQuaternion<> arot;
-            iss >> apos.x >> apos.y >> apos.z >> arot.e0 >> arot.e1 >> arot.e2 >> arot.e3;
+            iss >> apos.x() >> apos.y() >> apos.z() >> arot.e0() >> arot.e1() >> arot.e2() >> arot.e3();
 
             // Get visualization asset type and geometry data.
             // Create the appropriate shape (both visualization and contact).
@@ -249,12 +249,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 } break;
                 case collision::ELLIPSOID: {
                     ChVector<> size;
-                    iss >> size.x >> size.y >> size.z;
+                    iss >> size.x() >> size.y() >> size.z();
                     AddEllipsoidGeometry(body, size, apos, arot);
                 } break;
                 case collision::BOX: {
                     ChVector<> size;
-                    iss >> size.x >> size.y >> size.z;
+                    iss >> size.x() >> size.y() >> size.z();
                     AddBoxGeometry(body, size, apos, arot);
                 } break;
                 case collision::CAPSULE: {
@@ -275,7 +275,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                 case collision::ROUNDEDBOX: {
                     ChVector<> size;
                     double srad;
-                    iss >> size.x >> size.y >> size.z >> srad;
+                    iss >> size.x() >> size.y() >> size.z() >> srad;
                     AddRoundedBoxGeometry(body, size, srad, apos, arot);
                 } break;
                 case collision::ROUNDEDCYL: {
@@ -391,11 +391,11 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
                 a_count++;
             } else if (auto ellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(visual_asset)) {
                 const Vector& size = ellipsoid->GetEllipsoidGeometry().rad;
-                gss << ELLIPSOID << delim << size.x << delim << size.y << delim << size.z;
+                gss << ELLIPSOID << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto box = std::dynamic_pointer_cast<ChBoxShape>(visual_asset)) {
                 const Vector& size = box->GetBoxGeometry().Size;
-                gss << BOX << delim << size.x << delim << size.y << delim << size.z;
+                gss << BOX << delim << size.x() << delim << size.y() << delim << size.z();
                 a_count++;
             } else if (auto capsule = std::dynamic_pointer_cast<ChCapsuleShape>(visual_asset)) {
                 const geometry::ChCapsule& geom = capsule->GetCapsuleGeometry();
@@ -403,16 +403,16 @@ void WriteShapesPovray(ChSystem* system, const std::string& filename, bool body_
                 a_count++;
             } else if (auto cylinder = std::dynamic_pointer_cast<ChCylinderShape>(visual_asset)) {
                 const geometry::ChCylinder& geom = cylinder->GetCylinderGeometry();
-                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x << delim << geom.p1.y << delim << geom.p1.z
-                    << delim << geom.p2.x << delim << geom.p2.y << delim << geom.p2.z;
+                gss << CYLINDER << delim << geom.rad << delim << geom.p1.x() << delim << geom.p1.y() << delim << geom.p1.z()
+                    << delim << geom.p2.x() << delim << geom.p2.y() << delim << geom.p2.z();
                 a_count++;
             } else if (auto cone = std::dynamic_pointer_cast<ChConeShape>(visual_asset)) {
                 const geometry::ChCone& geom = cone->GetConeGeometry();
-                gss << CONE << delim << geom.rad.x << delim << geom.rad.y;
+                gss << CONE << delim << geom.rad.x() << delim << geom.rad.y();
                 a_count++;
             } else if (auto rbox = std::dynamic_pointer_cast<ChRoundedBoxShape>(visual_asset)) {
                 const geometry::ChRoundedBox& geom = rbox->GetRoundedBoxGeometry();
-                gss << ROUNDEDBOX << delim << geom.Size.x << delim << geom.Size.y << delim << geom.Size.z << delim
+                gss << ROUNDEDBOX << delim << geom.Size.x() << delim << geom.Size.y() << delim << geom.Size.z() << delim
                     << geom.radsphere;
                 a_count++;
             } else if (auto rcyl = std::dynamic_pointer_cast<ChRoundedCylinderShape>(visual_asset)) {
@@ -537,7 +537,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
     ofile << trimesh.m_vertices.size();
     for (unsigned int i = 0; i < trimesh.m_vertices.size(); i++) {
         ChVector<> v = trimesh.m_vertices[i];
-        ofile << ",\n<" << v.x << ", " << v.z << ", " << v.y << ">";
+        ofile << ",\n<" << v.x() << ", " << v.z() << ", " << v.y() << ">";
     }
     ofile << "\n}" << std::endl;
 
@@ -547,7 +547,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
         ofile << trimesh.m_normals.size();
         for (unsigned int i = 0; i < trimesh.m_normals.size(); i++) {
             ChVector<> n = trimesh.m_normals[i];
-            ofile << ",\n<" << n.x << ", " << n.z << ", " << n.y << ">";
+            ofile << ",\n<" << n.x() << ", " << n.z() << ", " << n.y() << ">";
         }
         ofile << "\n}" << std::endl;
     }
@@ -557,7 +557,7 @@ void WriteMeshPovray(geometry::ChTriangleMeshConnected trimesh,
     ofile << trimesh.m_face_v_indices.size();
     for (int i = 0; i < trimesh.m_face_v_indices.size(); i++) {
         ChVector<int> face = trimesh.m_face_v_indices[i];
-        ofile << ",\n<" << face.x << ", " << face.y << ", " << face.z << ">";
+        ofile << ",\n<" << face.x() << ", " << face.y() << ", " << face.z() << ">";
     }
     ofile << "\n}" << std::endl;
 
@@ -614,12 +614,12 @@ void WriteCurvePovray(const ChBezierCurve& curve,
     ofile << "    linear_spline " << nP* nS + 1 << "," << std::endl;
 
     ChVector<> v = curve.eval(0, 0.0);
-    ofile << "        <" << v.x << ", " << v.z << ", " << v.x << "> ," << radius << std::endl;
+    ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;
 
     for (int iS = 0; iS < nS; iS++) {
         for (int iP = 1; iP <= nP; iP++) {
             v = curve.eval(iS, iP * dt);
-            ofile << "        <" << v.x << ", " << v.z << ", " << v.y << "> ," << radius << std::endl;
+            ofile << "        <" << v.x() << ", " << v.z() << ", " << v.y() << "> ," << radius << std::endl;
         }
     }
 

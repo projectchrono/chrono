@@ -226,10 +226,10 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(time_step);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking tip Z displacement
-        double err = std::abs(nodetip->pos.z - FileInputMat[it][1]);
+        double err = std::abs(nodetip->pos.z() - FileInputMat[it][1]);
         max_err = std::max(max_err, err);
         if (err > precision) {
-            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
                       << "  reference: " << FileInputMat[it][1] << std::endl;
             return 1;
         }

@@ -267,9 +267,9 @@ int main(int argc, char* argv[]) {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
             my_system.DoStepDynamics(step_size);
-            out << my_system.GetChTime() << nodetip->GetPos().z << nodetip->GetForce().z << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
-                     << nodetip->GetForce().z << "\n";
+            out << my_system.GetChTime() << nodetip->GetPos().z() << nodetip->GetForce().z() << std::endl;
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+                     << nodetip->GetForce().z() << "\n";
         }
         // Write results to output file.
         out.write_to_file("../TEST_Brick/tip_position.txt");
@@ -288,8 +288,8 @@ int main(int argc, char* argv[]) {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
+            AbsVal = abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;

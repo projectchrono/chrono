@@ -37,7 +37,7 @@ using namespace irr::io;
 using namespace irr::gui;
 
 void AddWall(std::shared_ptr<ChBody> body, const ChVector<>& dim, const ChVector<>& loc) {
-    body->GetCollisionModel()->AddBox(dim.x, dim.y, dim.z, loc);
+    body->GetCollisionModel()->AddBox(dim.x(), dim.y(), dim.z(), loc);
 
     auto box = std::make_shared<ChBoxShape>();
     box->GetBoxGeometry().Size = dim;

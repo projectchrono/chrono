@@ -57,9 +57,9 @@ class ChTransform {
         const ChMatrix33<Real>&
             alignment  ///< rotation of local frame with respect to parent, expressed in parent coords.
         ) {
-        Real mx = parent.x - origin.x;
-        Real my = parent.y - origin.y;
-        Real mz = parent.z - origin.z;
+        Real mx = parent.x() - origin.x();
+        Real my = parent.y() - origin.y();
+        Real mz = parent.z() - origin.z();
         return ChVector<Real>(((alignment.Get33Element(0, 0)) * mx) + ((alignment.Get33Element(1, 0)) * my) +
                                   ((alignment.Get33Element(2, 0)) * mz),
                               ((alignment.Get33Element(0, 1)) * mx) + ((alignment.Get33Element(1, 1)) * my) +
@@ -82,12 +82,12 @@ class ChTransform {
         const ChVector<Real>& origin,      ///< origin of frame respect to parent, in parent coords,
         const ChMatrix33<Real>& alignment  ///< rotation of frame respect to parent, in parent coords.
         ) {
-        return ChVector<Real>(((alignment.Get33Element(0, 0)) * local.x) + ((alignment.Get33Element(0, 1)) * local.y) +
-                                  ((alignment.Get33Element(0, 2)) * local.z) + origin.x,
-                              ((alignment.Get33Element(1, 0)) * local.x) + ((alignment.Get33Element(1, 1)) * local.y) +
-                                  ((alignment.Get33Element(1, 2)) * local.z) + origin.y,
-                              ((alignment.Get33Element(2, 0)) * local.x) + ((alignment.Get33Element(2, 1)) * local.y) +
-                                  ((alignment.Get33Element(2, 2)) * local.z) + origin.z);
+        return ChVector<Real>(((alignment.Get33Element(0, 0)) * local.x()) + ((alignment.Get33Element(0, 1)) * local.y()) +
+                                  ((alignment.Get33Element(0, 2)) * local.z()) + origin.x(),
+                              ((alignment.Get33Element(1, 0)) * local.x()) + ((alignment.Get33Element(1, 1)) * local.y()) +
+                                  ((alignment.Get33Element(1, 2)) * local.z()) + origin.y(),
+                              ((alignment.Get33Element(2, 0)) * local.x()) + ((alignment.Get33Element(2, 1)) * local.y()) +
+                                  ((alignment.Get33Element(2, 2)) * local.z()) + origin.z());
     }
 
     // TRANSFORMATIONS, USING POSITION AND ROTATION QUATERNION
@@ -106,19 +106,19 @@ class ChTransform {
         ) {
         // It could be simply "return alignment.RotateBack(parent-origin);"
         // but for faster execution do this:
-        Real e0e0 = alignment.e0 * alignment.e0;
-        Real e1e1 = alignment.e1 * alignment.e1;
-        Real e2e2 = alignment.e2 * alignment.e2;
-        Real e3e3 = alignment.e3 * alignment.e3;
-        Real e0e1 = -alignment.e0 * alignment.e1;
-        Real e0e2 = -alignment.e0 * alignment.e2;
-        Real e0e3 = -alignment.e0 * alignment.e3;
-        Real e1e2 = alignment.e1 * alignment.e2;
-        Real e1e3 = alignment.e1 * alignment.e3;
-        Real e2e3 = alignment.e2 * alignment.e3;
-        Real dx = parent.x - origin.x;
-        Real dy = parent.y - origin.y;
-        Real dz = parent.z - origin.z;
+        Real e0e0 = alignment.e0() * alignment.e0();
+        Real e1e1 = alignment.e1() * alignment.e1();
+        Real e2e2 = alignment.e2() * alignment.e2();
+        Real e3e3 = alignment.e3() * alignment.e3();
+        Real e0e1 = -alignment.e0() * alignment.e1();
+        Real e0e2 = -alignment.e0() * alignment.e2();
+        Real e0e3 = -alignment.e0() * alignment.e3();
+        Real e1e2 = alignment.e1() * alignment.e2();
+        Real e1e3 = alignment.e1() * alignment.e3();
+        Real e2e3 = alignment.e2() * alignment.e3();
+        Real dx = parent.x() - origin.x();
+        Real dy = parent.y() - origin.y();
+        Real dz = parent.z() - origin.z();
         return ChVector<Real>(((e0e0 + e1e1) * 2. - 1.) * dx + ((e1e2 - e0e3) * 2.) * dy + ((e1e3 + e0e2) * 2.) * dz,
                               ((e1e2 + e0e3) * 2.) * dx + ((e0e0 + e2e2) * 2. - 1.) * dy + ((e2e3 - e0e1) * 2.) * dz,
                               ((e1e3 - e0e2) * 2.) * dx + ((e2e3 + e0e1) * 2.) * dy + ((e0e0 + e3e3) * 2. - 1.) * dz);
@@ -138,22 +138,22 @@ class ChTransform {
         ) {
         // It could be simply: "return origin+alignment.Rotate(local);"
         // but for faster execution, do this:
-        Real e0e0 = alignment.e0 * alignment.e0;
-        Real e1e1 = alignment.e1 * alignment.e1;
-        Real e2e2 = alignment.e2 * alignment.e2;
-        Real e3e3 = alignment.e3 * alignment.e3;
-        Real e0e1 = alignment.e0 * alignment.e1;
-        Real e0e2 = alignment.e0 * alignment.e2;
-        Real e0e3 = alignment.e0 * alignment.e3;
-        Real e1e2 = alignment.e1 * alignment.e2;
-        Real e1e3 = alignment.e1 * alignment.e3;
-        Real e2e3 = alignment.e2 * alignment.e3;
-        return ChVector<Real>(origin.x + ((e0e0 + e1e1) * 2. - 1.) * local.x + ((e1e2 - e0e3) * 2.) * local.y +
-                                  ((e1e3 + e0e2) * 2.) * local.z,
-                              origin.y + ((e1e2 + e0e3) * 2.) * local.x + ((e0e0 + e2e2) * 2. - 1.) * local.y +
-                                  ((e2e3 - e0e1) * 2.) * local.z,
-                              origin.z + ((e1e3 - e0e2) * 2.) * local.x + ((e2e3 + e0e1) * 2.) * local.y +
-                                  ((e0e0 + e3e3) * 2. - 1.) * local.z);
+        Real e0e0 = alignment.e0() * alignment.e0();
+        Real e1e1 = alignment.e1() * alignment.e1();
+        Real e2e2 = alignment.e2() * alignment.e2();
+        Real e3e3 = alignment.e3() * alignment.e3();
+        Real e0e1 = alignment.e0() * alignment.e1();
+        Real e0e2 = alignment.e0() * alignment.e2();
+        Real e0e3 = alignment.e0() * alignment.e3();
+        Real e1e2 = alignment.e1() * alignment.e2();
+        Real e1e3 = alignment.e1() * alignment.e3();
+        Real e2e3 = alignment.e2() * alignment.e3();
+        return ChVector<Real>(origin.x() + ((e0e0 + e1e1) * 2. - 1.) * local.x() + ((e1e2 - e0e3) * 2.) * local.y() +
+                                  ((e1e3 + e0e2) * 2.) * local.z(),
+                              origin.y() + ((e1e2 + e0e3) * 2.) * local.x() + ((e0e0 + e2e2) * 2. - 1.) * local.y() +
+                                  ((e2e3 - e0e1) * 2.) * local.z(),
+                              origin.z() + ((e1e3 - e0e2) * 2.) * local.x() + ((e2e3 + e0e1) * 2.) * local.y() +
+                                  ((e0e0 + e3e3) * 2. - 1.) * local.z());
     }
 };
 

@@ -69,7 +69,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
 
     if (mesh)
         child_mesh = mgr->addAnimatedMeshSceneNode(mesh, this, -1,
-                                                   core::vector3df(-(f32)offset.x, -(f32)offset.y, -(f32)offset.z));
+                                                   core::vector3df(-(f32)offset.x(), -(f32)offset.y(), -(f32)offset.z()));
 
     if (child_mesh)
         child_mesh->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
@@ -158,9 +158,9 @@ void ChBodySceneNode::OnAnimate(u32 timeMs) {
             irrMat[9] = (irr::f32)chMat.GetElementN(5);
             irrMat[10] = (irr::f32)chMat.GetElementN(8);
 
-            irrMat[12] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().x;
-            irrMat[13] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().y;
-            irrMat[14] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().z;
+            irrMat[12] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().x();
+            irrMat[13] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().y();
+            irrMat[14] = (irr::f32)GetBody()->GetFrame_REF_to_abs().GetPos().z();
 
             // Clear the last column to 0 and set low-right corner to 1 as in
             // Denavitt-Hartemberg matrices, transposed.

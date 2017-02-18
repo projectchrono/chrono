@@ -244,19 +244,19 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Checking tip Z displacement
-        double err = std::abs(nodetip->pos.z - FileInputMat[it][1]);
+        double err = std::abs(nodetip->pos.z() - FileInputMat[it][1]);
         max_err = std::max(max_err, err);
         if (err > precision) {
-            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
                       << "  reference: " << FileInputMat[it][1] << std::endl;
             return 1;
         }
         /*
         // Code snippet to generate golden file
         m_data[0][it] = my_system.GetChTime();
-        m_data[1][it] = nodetip->pos.z; // Note that z component is the second row
-        m_data[2][it] = nodetip->pos.x;
-        m_data[3][it] = nodetip->pos.y;
+        m_data[1][it] = nodetip->pos.z(); // Note that z component is the second row
+        m_data[2][it] = nodetip->pos.x();
+        m_data[3][it] = nodetip->pos.y();
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
         csv.write_to_file("UT_ANCFShellLam.txt");*/
     }

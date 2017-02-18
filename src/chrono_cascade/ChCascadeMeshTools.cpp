@@ -270,9 +270,9 @@ void ChCascadeMeshTools::fillObjFileFromCascade(ChStreamOutAscii& objfile,
                     nor*= -1;
 
                 char buff[200];
-                sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x, pos.y, pos.z);
+                sprintf(buff, "v %0.9f %0.9f %0.9f\r\n", pos.x(), pos.y(), pos.z());
                 objfile << buff;
-                sprintf(buff, "vn %0.9f %0.9f %0.9f\r\n", nor.x, nor.y, nor.z);
+                sprintf(buff, "vn %0.9f %0.9f %0.9f\r\n", nor.x(), nor.y(), nor.z());
                 objfile << buff;
                 vertface++;
 

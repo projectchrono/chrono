@@ -338,7 +338,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
     ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z -= (m_tires[LEFT]->GetRadius() + post_height / 2.0);
+    post_L_pos.z() -= (m_tires[LEFT]->GetRadius() + post_height / 2.0);
 
     m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_L->SetPos(post_L_pos);
@@ -348,7 +348,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
     ChVector<> post_R_pos = spindle_R_pos;
-    post_R_pos.z -= (m_tires[RIGHT]->GetRadius() + post_height / 2.0);
+    post_R_pos.z() -= (m_tires[RIGHT]->GetRadius() + post_height / 2.0);
 
     m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_R->SetPos(post_R_pos);
@@ -372,7 +372,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
 
     // Post actuators
     ChVector<> m1_L = post_L_pos;
-    m1_L.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
+    m1_L.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_L_linact = std::make_shared<ChLinkLinActuator>();
     m_post_L_linact->SetNameString("L_post_linActuator");
     m_post_L_linact->Initialize(m_chassis->GetBody(), m_post_L, false, ChCoordsys<>(m1_L, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
@@ -383,7 +383,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     m_system->AddLink(m_post_L_linact);
 
     ChVector<> m1_R = post_R_pos;
-    m1_R.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
+    m1_R.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_R_linact = std::make_shared<ChLinkLinActuator>();
     m_post_R_linact->SetNameString("R_post_linActuator");
     m_post_R_linact->Initialize(m_chassis->GetBody(), m_post_R, false, ChCoordsys<>(m1_R, QUNIT), ChCoordsys<>(post_R_pos, QUNIT));
@@ -432,7 +432,7 @@ WheelState ChSuspensionTestRig::GetWheelState(VehicleSide side) const {
     state.ang_vel = ChVector<>(0, 0, 0);
 
     ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y;
+    state.omega = ang_vel_loc.y();
 
     return state;
 }
@@ -461,9 +461,9 @@ double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
 
 double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
     if (side == LEFT)
-        return m_post_L_linact->Get_react_force().x;
+        return m_post_L_linact->Get_react_force().x();
     else
-        return m_post_R_linact->Get_react_force().x;
+        return m_post_R_linact->Get_react_force().x();
 }
 
 double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {

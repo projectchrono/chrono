@@ -144,9 +144,9 @@ bool ChSystemParallel::Integrate_Y() {
             bodylist[i]->Update(ChTime);
 
             // update the position and rotation vectors
-            pos_pointer[i] = (real3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2,
-                                         bodylist[i]->GetRot().e3));
+            pos_pointer[i] = (real3(bodylist[i]->GetPos().x(), bodylist[i]->GetPos().y(), bodylist[i]->GetPos().z()));
+            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0(), bodylist[i]->GetRot().e1(),
+                                         bodylist[i]->GetRot().e2(), bodylist[i]->GetRot().e3()));
         }
     }
 
@@ -281,12 +281,12 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     for (int i = 0; i < num_nodes; i++) {
         if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
-            positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
-            velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
+            positions[i] = real3(node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
+            velocities[i] = real3(node->GetPos_dt().x(), node->GetPos_dt().y(), node->GetPos_dt().z());
             // Offset the element index by the current number of nodes at the start
             node->SetIndex(i);
 
-            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
+            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
         }
     }
     ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
@@ -314,7 +314,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
             // elem = Sort(elem);
 
-            // printf("%d %d %d %d \n", elem.x, elem.y, elem.z, elem.w);
+            // printf("%d %d %d %d \n", elem.x(), elem.y(), elem.z(), elem.w);
             // Offset once we have swapped
             elem.x += current_nodes;
             elem.y += current_nodes;
@@ -412,8 +412,8 @@ void ChSystemParallel::UpdateRigidBodies() {
         data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
         data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
 
-        position[i] = real3(body_pos.x, body_pos.y, body_pos.z);
-        rotation[i] = quaternion(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+        position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
+        rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = bodylist[i]->IsActive();
         collide[i] = bodylist[i]->GetCollide();
@@ -591,7 +591,7 @@ void ChSystemParallel::Setup() {
     // Cache the integration step size and calculate the tolerance at impulse level.
     data_manager->settings.step_size = step;
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
-    data_manager->settings.gravity = real3(G_acc.x, G_acc.y, G_acc.z);
+    data_manager->settings.gravity = real3(G_acc.x(), G_acc.y(), G_acc.z());
 
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).

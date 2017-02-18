@@ -152,15 +152,15 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     //
 
     virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-        L(off_L) = react_force.x;
-        L(off_L + 1) = react_force.y;
-        L(off_L + 2) = react_force.z;
+        L(off_L) = react_force.x();
+        L(off_L + 1) = react_force.y();
+        L(off_L + 2) = react_force.z();
     }
 
     virtual void ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-        react_force.x = L(off_L);
-        react_force.y = L(off_L + 1);
-        react_force.z = L(off_L + 2);
+        react_force.x() = L(off_L);
+        react_force.y() = L(off_L + 1);
+        react_force.z() = L(off_L + 2);
     }
 
     virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -194,7 +194,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
-                double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
+                double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
                 if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
@@ -291,7 +291,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
                 double h = 1.0 / factor;  // inverse timestep is factor
 
-                double neg_rebounce_speed = Vrel_cplane.x * this->restitution;
+                double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
                 if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
@@ -337,9 +337,9 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
 
     virtual void ConstraintsFetch_react(double factor) {
         // From constraints to react vector:
-        react_force.x = Nx.Get_l_i() * factor;
-        react_force.y = Tu.Get_l_i() * factor;
-        react_force.z = Tv.Get_l_i() * factor;
+        react_force.x() = Nx.Get_l_i() * factor;
+        react_force.y() = Tu.Get_l_i() * factor;
+        react_force.z() = Tv.Get_l_i() * factor;
     }
 };
 
