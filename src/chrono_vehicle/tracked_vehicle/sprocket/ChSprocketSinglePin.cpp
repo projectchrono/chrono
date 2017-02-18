@@ -147,7 +147,7 @@ void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> s
     ChVector<> dirC = m_sprocket->GetGearBody()->TransformDirectionParentToLocal(dirC_abs);
 
     // Sanity check: the cylinder must intersect the gear planes.
-    assert(dirC.y != 0);
+    assert(dirC.y() != 0);
 
     // Working in the sprocket frame, intersect the contact cylinder with the two
     // ("positive" and "negative") gear planes.
