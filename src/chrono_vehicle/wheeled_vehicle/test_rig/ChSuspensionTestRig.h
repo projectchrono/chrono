@@ -36,10 +36,17 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
+/**
+    @addtogroup vehicle_wheeled
+    @{
+        @defgroup vehicle_wheeled_test_rig Suspension test rig classes
+    @}
+*/
+
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_utils
+/// @addtogroup vehicle_wheeled_test_rig
 /// @{
 
 /// Definition of a suspension test rig.
@@ -49,6 +56,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChSuspensionTestRig(
         const std::string& filename,         ///< JSON file with vehicle specification
         int axle_index,                      ///< index of the suspension to be tested
+        double displ_limit,                  ///< limits for post displacement
         std::shared_ptr<ChTire> tire_left,   ///< left tire
         std::shared_ptr<ChTire> tire_right,  ///< right tire
         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
@@ -65,10 +73,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Destructor
     ~ChSuspensionTestRig() {}
 
-    /// Set the actuator function on the left wheel
+    /// Set the limits for post displacement.
+    /// Each post will move between [-val, +val].
+    void SetDisplacementLimit(double val) { m_displ_limit = val; }
+
+    /// Set the actuator function on the left wheel (currently NOT USED)
     void SetActuator_func_L(const std::shared_ptr<ChFunction>& funcL) { m_actuator_L = funcL; }
 
-    /// Set the actuator function on the right wheel
+    /// Set the actuator function on the right wheel (currently NOT USED)
     void SetActuator_func_R(const std::shared_ptr<ChFunction>& funcR) { m_actuator_R = funcR; }
 
     /// Get a handle to the specified wheel body.
@@ -94,7 +106,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double GetActuatorMarkerDist(VehicleSide side);
 
     /// Return true if a steering system is attached.
-    bool HasSteering() const { return m_steering != 0; }
+    bool HasSteering() const { return m_steering != nullptr; }
 
     /// Get the rig total mass.
     /// This includes the mass of the suspension and wheels, and (if present) the mass of the
@@ -161,6 +173,8 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChFunction> m_actuator_L;  ///< actuator function applied to left wheel
     std::shared_ptr<ChFunction> m_actuator_R;  ///< actuator function applied to right wheel
 
+    double m_displ_limit;  ///< scale factor for post displacement
+
     double m_steer;    ///< cached steering driver input
     double m_displ_L;  ///< cached left post displacement
     double m_displ_R;  ///< cached right post displacement
@@ -170,7 +184,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     ChQuaternion<> m_steeringRot;
 };
 
-/// @} vehicle_wheeled_utils
+/// @} vehicle_wheeled_test_rig
 
 }  // end namespace vehicle
 }  // end namespace chrono

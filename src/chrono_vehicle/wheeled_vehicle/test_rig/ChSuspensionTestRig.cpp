@@ -27,7 +27,7 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 
-#include "chrono_vehicle/wheeled_vehicle/utils/ChSuspensionTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
@@ -193,13 +193,12 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 // -----------------------------------------------------------------------------
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          int axle_index,
+                                         double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
-    // ---------------------------------------------------------------
+    : ChVehicle(contact_method), m_displ_limit(displ_limit) {
     // Open and parse the input file (vehicle JSON specification file)
-    // ---------------------------------------------------------------
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -257,10 +256,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurfaceBase::ContactMethod contact_method)
     : ChVehicle(contact_method) {
-    // -----------------------------------------------------------
     // Open and parse the input file (rig JSON specification file)
-    // -----------------------------------------------------------
-
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -288,6 +284,10 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
     LoadWheel(vehicle::GetDataFile(file_name), LEFT);
     file_name = d["Suspension"]["Right Wheel Input File"].GetString();
     LoadWheel(vehicle::GetDataFile(file_name), RIGHT);
+
+    // Read displacement limit
+    assert(d.HasMember("Displacement Limit"));
+    m_displ_limit = d["Displacement Limit"].GetDouble();
 
     // Create the steering subsystem, if specified
     if (d.HasMember("Steering")) {
@@ -487,9 +487,9 @@ void ChSuspensionTestRig::Synchronize(double time,
 
     // Apply the displacements to the left/right post actuators
     if (auto func_L = std::dynamic_pointer_cast<ChFunction_Const>(m_post_L_linact->Get_dist_funct()))
-        func_L->Set_yconst(disp_L);
+        func_L->Set_yconst(disp_L * m_displ_limit);
     if (auto func_R = std::dynamic_pointer_cast<ChFunction_Const>(m_post_R_linact->Get_dist_funct()))
-        func_R->Set_yconst(disp_R);
+        func_R->Set_yconst(disp_R * m_displ_limit);
 
     // Apply tire forces to spindle bodies.
     m_suspension->Synchronize(LEFT, tire_forces[0]);

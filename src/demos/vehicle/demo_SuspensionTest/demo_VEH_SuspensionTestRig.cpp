@@ -21,8 +21,8 @@
 #include "chrono_vehicle/terrain/FlatTerrain.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChSuspensionTestRig.h"
-#include "chrono_vehicle/wheeled_vehicle/utils/ChIrrGuiDriverSTR.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 using namespace chrono;
@@ -31,20 +31,19 @@ using namespace chrono::vehicle;
 // =============================================================================
 // USER SETTINGS
 // =============================================================================
-double post_limit = 0.2;
 
 // Simulation step size
 double step_size = 1e-3;
 double render_step_size = 1.0 / 50;  // Time interval between two render frames
 
-// =============================================================================
 // JSON file for suspension test rig
-std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
-// std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
+////std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_front.json");
+std::string suspensionTest_file("hmmwv/suspensionTest/HMMWV_ST_rear.json");
 
 // JSON file for vehicle and axle index
 std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 int axle_index = 0;
+double post_limit = 0.15;
 
 // JSON files for tire models (rigid)
 std::string rigidtire_file("hmmwv/tire/HMMWV_RigidTire.json");
@@ -56,8 +55,10 @@ int main(int argc, char* argv[]) {
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(rigidtire_file));
 
     // Create and initialize the testing mechanism.
-    ////ChSuspensionTestRig rig(vehicle::GetDataFile(suspensionTest_file));
-    ChSuspensionTestRig rig(vehicle::GetDataFile(vehicle_file), axle_index, tire_L, tire_R);
+    // (1) From a suspension test rig JSON specification file
+    ////ChSuspensionTestRig rig(vehicle::GetDataFile(suspensionTest_file), tire_L, tire_R);
+    // (2) From a vehicle JSON specification file (selecting a particular axle)
+    ChSuspensionTestRig rig(vehicle::GetDataFile(vehicle_file), axle_index, post_limit, tire_L, tire_R);
 
     // Flat rigid terrain, height = 0.
     FlatTerrain flat_terrain(0);
@@ -68,8 +69,10 @@ int main(int argc, char* argv[]) {
     tire_R->Initialize(rig.GetWheelBody(RIGHT), RIGHT);
 
     rig.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
-    rig.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     rig.SetWheelVisualizationType(VisualizationType::PRIMITIVES);
+    if (rig.HasSteering()) {
+        rig.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    }
     tire_L->SetVisualizationType(VisualizationType::MESH);
     tire_R->SetVisualizationType(VisualizationType::MESH);
 
@@ -83,11 +86,11 @@ int main(int argc, char* argv[]) {
     app.AssetUpdateAll();
 
     // Create the driver system and set the time response for keyboard inputs.
-    ChIrrGuiDriverSTR driver(app, post_limit);
+    ChIrrGuiDriverSTR driver(app);
     double steering_time = 1.0;      // time to go from 0 to max
     double displacement_time = 2.0;  // time to go from 0 to max applied post motion
     driver.SetSteeringDelta(render_step_size / steering_time);
-    driver.SetDisplacementDelta(render_step_size / displacement_time * post_limit);
+    driver.SetDisplacementDelta(render_step_size / displacement_time);
     driver.Initialize();
 
     // ---------------

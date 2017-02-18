@@ -170,6 +170,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
 
     friend class ChCameraEventReceiver;
     friend class ChIrrGuiDriver;
+    friend class ChIrrGuiDriverSTR;
 };
 
 // @} vehicle_utils
