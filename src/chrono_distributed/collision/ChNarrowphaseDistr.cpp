@@ -15,9 +15,11 @@
 #include "chrono_distributed/collision/ChNarrowphaseDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
 
+#include <memory>
+
 namespace chrono {
 
-ChNarrowphaseDistr::ChNarrowphaseDistr(ChSystemDistr *my_sys) {
+ChNarrowphaseDistr::ChNarrowphaseDistr(std::shared_ptr<ChSystemDistr> my_sys) {
 	this->my_sys = my_sys;
 }
 

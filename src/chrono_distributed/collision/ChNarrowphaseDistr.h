@@ -17,16 +17,18 @@
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
 
+#include <memory>
+
 namespace chrono {
 
 class ChNarrowphaseDistr {
 public:
-	ChNarrowphaseDistr(ChSystemDistr *my_sys);
+	ChNarrowphaseDistr(std::shared_ptr<ChSystemDistr> my_sys);
 	virtual ~ChNarrowphaseDistr();
 	// TODO: Outline interface
 
 protected:
-	ChSystemDistr *my_sys;
+	std::shared_ptr<ChSystemDistr> my_sys;
 };
 
 } /* namespace chrono */

@@ -16,18 +16,25 @@
 #define CHRONO_DISTRIBUTED_COLLISION_CHBROADPHASEDISTR_H_
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/collision/ChDataManagerDistr.h"
+
+#include <memory>
 
 namespace chrono {
 
+// Forward Declaration
+class ChDataManagerDistr;
+
 class ChBroadphaseDistr {
 public:
-	ChBroadphaseDistr(ChSystemDistr *my_sys);
+	ChBroadphaseDistr(std::shared_ptr<ChSystemDistr> my_sys);
 	virtual ~ChBroadphaseDistr();
 
 	virtual void DetectPossibleCollisions() = 0;
 
 protected:
-	ChSystemDistr *my_sys;
+	std::shared_ptr<ChSystemDistr> my_sys;
+	std::shared_ptr<ChDataManagerDistr> data;
 
 // TODO: Interface
 

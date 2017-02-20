@@ -16,15 +16,22 @@
 #define CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/physics/ChBodyDistr.h"
+
+#include "chrono/physics/ChBody.h"
+
+#include "chrono_parallel/ChDataManager.h"
+
+
+#include <memory>
 
 namespace chrono {
+
 
 class ChSystemDistr;
 
 class ChCommDistr {
 public:
-	ChCommDistr(ChSystemDistr *my_sys);
+	ChCommDistr(std::shared_ptr<ChSystemDistr> my_sys);
 	virtual ~ChCommDistr();
 
 	// Locate each body that has left the subdomain,
@@ -38,17 +45,20 @@ public:
 	// list before sending.
 	// Packages the body into buf.
 	// Returns the number of elements which the body took in the buffer
-	int PackSphere(double *buf, ChBodyDistr *sphere_body);
+	int PackExchange(double *buf, int index);
 
 	// Unpacks a sphere body from the buffer into body.
 	// Note: body is meant to be a ptr into the data structure
 	// where the body should be unpacks.
-	void UnpackSphere(double *buf, ChBodyDistr *body);
+	void UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
 
+	int PackUpdate(double *buf, int index);
+	void UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
 
+	ChParallelDataManager* data_manager;
 
 protected:
-	ChSystemDistr *my_sys;\
+	std::shared_ptr<ChSystemDistr> my_sys;
 	double *send_buf;
 	int num_send;
 
@@ -58,7 +68,6 @@ protected:
 	int doubles_per_body;
 
 private:
-	void SendAll(double *buf, int size);
 };
 
 } /* namespace chrono */

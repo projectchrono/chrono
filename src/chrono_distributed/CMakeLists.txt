@@ -51,13 +51,13 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
 # Collect all additional include directories necessary for the PARALLEL module
 # ------------------------------------------------------------------------------
 
-#SET(CH_DISTRIBUTED_INCLUDES
-#    ${BLAZE_DIR}
-#    ${BOOST_DIR}
-#    ${THRUST_INCLUDE_DIR}
-#)
+SET(CH_DISTRIBUTED_INCLUDES
+    ${BLAZE_DIR}
+    ${BOOST_DIR}
+    ${THRUST_INCLUDE_DIR}
+)
 
-#INCLUDE_DIRECTORIES(${CH_DISTRIBUTED_INCLUDES})
+INCLUDE_DIRECTORIES(${CH_DISTRIBUTED_INCLUDES})
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
@@ -80,28 +80,29 @@ SET(ChronoEngine_Distributed_PHYSICS
     physics/ChSystemDistr.h
     physics/ChDomainDistr.h
     physics/ChDomainDistrLong.h
-    physics/ChBodyDistr.h
     physics/ChSystemDistr.cpp
 	physics/ChDomainDistr.cpp
 	physics/ChDomainDistrLong.cpp
-	physics/ChBodyDistr.cpp
     )
     
 SOURCE_GROUP(physics FILES ${ChronoEngine_Distributed_PHYSICS})
 
 SET(ChronoEngine_Distributed_COLLISION
-	collision/ChBroadphaseDistr.h
-	collision/ChBroadphaseDistrBasic.h
+	#collision/ChBroadphaseDistr.h
+	#collision/ChBroadphaseDistrBasic.h
 	collision/ChCollisionSystemDistr.h
-	collision/ChDataManagerDistr.h
-	collision/ChNarrowphaseDistr.h
-	collision/ChNarrowphaseDistrBasic.h
-	collision/ChBroadphaseDistr.cpp
-	collision/ChBroadphaseDistrBasic.cpp
+	collision/ChCollision.h
+	#collision/ChNarrowphaseDistr.h
+	#collision/ChNarrowphaseDistrBasic.h
+	collision/ChCollisionModelDistr.h
+	
+	#collision/ChBroadphaseDistr.cpp
+	#collision/ChBroadphaseDistrBasic.cpp
 	collision/ChCollisionSystemDistr.cpp
-	collision/ChDataManagerDistr.cpp
-	collision/ChNarrowphaseDistr.cpp
-	collision/ChNarrowphaseDistrBasic.cpp
+	#collision/ChNarrowphaseDistr.cpp
+	#collision/ChNarrowphaseDistrBasic.cpp
+	collision/ChCollisionModelDistr.cpp
+	collision/ChAABBGenerator.cpp
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_Distributed_COLLISION})
@@ -120,6 +121,11 @@ SET(ChronoEngine_Distributed_COSIMULATION
 
 SOURCE_GROUP(cosimulation FILES ${ChronoEngine_Distributed_COSIMULATION})
 
+SET(ChronoEngine_Distributed_SOLVER
+	)
+
+SOURCE_GROUP(solver FILES ${ChronoEngine_Distributed_SOLVER})
+	
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_Distributed library
 # ------------------------------------------------------------------------------
@@ -131,7 +137,9 @@ ADD_LIBRARY(ChronoEngine_Distributed SHARED
 			${ChronoEngine_Distributed_COLLISION}
 			${ChronoEngine_Distributed_COMM}
 			${ChronoEngine_Distributed_COSIMULATION}
+			${ChronoEngine_Distributed_SOLVER}
 			)
+			
 SET(CHRONO_DISTRIBUTED_LINKED_LIBRARIES ChronoEngine ${MPI_LIBRARIES})
 
  

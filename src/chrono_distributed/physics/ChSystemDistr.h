@@ -19,48 +19,37 @@
 #include <string>
 #include <memory>
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/comm/ChCommDistr.h"
-#include "chrono_distributed/physics/ChBodyDistr.h"
-#include "chrono_distributed/cosimulation/ChCosimulationDistr.h"
-#include "chrono_distributed/collision/ChCollisionSystemDistr.h"
-#include "chrono_distributed/collision/ChDataManagerDistr.h"
+//#include "chrono_distributed/collision/ChCollisionSystemDistr.h"
+
+#include "chrono_parallel/physics/ChSystemParallel.h"
+#include "chrono_parallel/ChDataManager.h"
+#include "chrono_parallel/ChSettings.h"
+#include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
+#include "chrono_parallel/math/real3.h"
+#include "chrono_parallel/math/other_types.h"
 
 namespace chrono {
 
 class ChDomainDistr;
 class ChCommDistr;
-class ChCosimulationDistr;
-class ChDataManagerDistr;
-class ChCollisionSystemDistr;
 
-
-class ChSystemDistr : public ChSystem {
+class ChSystemDistr : public ChSystemParallel {
 
 public:
-	ChSystemDistr(MPI_Comm world, unsigned int max_local = 16000, unsigned int max_ghost = 10000);
+	ChSystemDistr(MPI_Comm world, double ghost_layer = 0.1);
 	virtual ~ChSystemDistr();
 
 	int GetRanks() {return num_ranks;}
 	int GetMyRank() {return my_rank;}
 
-	// Get counts of bodies
-	int GetNumLocal() {return num_local;}
-	int GetNumShared() {return num_shared;}
-	int GetNumGhost() {return num_ghost;}
-	int GetNumTotal() {return num_total;}
-	int GetMaxLocal() {return max_local;}
-	int GetMaxShared() {return max_shared;}
-	int GetMaxGhost() {return max_ghost;}
-
-	ChDomainDistr* GetDomain() {return domain;}
-	ChCollisionSystemDistr* GetCollisionSystem() {return collision_system;}
-
-	// Set how often MPI ranks communicate exchanges
-	void SetExchangeFreq(int exchange_every) { if (exchange_every > 0) this->exchange_every = exchange_every; }
+	std::shared_ptr<ChDomainDistr> GetDomain() {return domain;}
+	
+	ChParallelDataManager* GetDataManager() {return data_manager;}
 
 	// Set the distance from the subdomain within which a body will be kept as a ghost
 	void SetGhostLayer(double thickness) { if (ghost_layer > 0) ghost_layer = thickness; }
@@ -71,58 +60,76 @@ public:
 	// TODO:
 	void ReadBodies(std::string filename);
 
-	void AddBody(std::shared_ptr<ChBody> newbody);
-	void RemoveBody(int global_id);
+	virtual void AddBody(std::shared_ptr<ChBody> newbody);
+	void RemoveBody(int global_id);//TODO
 
-	void SetDomainImpl(ChDomainDistr *dom);
+	void Update();
+	void ClearForceVariables();
+	void UpdateRigidBodies();
+
+	void SetDomainImpl(std::shared_ptr<ChDomainDistr> dom);
 	void ErrorAbort(std::string msg);
 
-protected:
+	int Integrate_Y();
+	void RecomputeThreads();
+
+	void PrintStepStats();
+	int GetNumContacts();
+	double GetTimerStep();
+	double GetTimerSolver();
+	double GetTimerCollisionBroad();
+	double GetTimerCollisionNarrow();
+	double GetTimerUpdate();
+	double GetTimerCollision();
+	settings_container* GetSettings();
+
+	// DEM
+	ChBody* NewBody();
+	void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody);
+	void UpdateMaterialSurfaceData(int index, ChBody* body);
+	void Setup();
+	real3 GetBodyContactForce(uint body_id) const;
+	real3 GetBodyContactTorque(uint body_id) const;
+
+
+	// A running count of the number of global bodies for
+	// identification purposes
+	int num_bodies_global;
+
+	double ghost_layer;
+
 	// MPI
 	int num_ranks;
 	int my_rank;
 
-	// Number of local bodies.
-	int num_local;
+	// TODO
+	ChParallelDataManager *data_manager;
 
-	// Number of shared bodies.
-	// ie bodies that are integrated on this rank, but exist as
-	// a ghost on another rank.
-	int num_shared;
-
-	// Number of ghost bodies.
-	int num_ghost;
-
-	// Number of total bodies across the global domain.
-	int num_total;
-
-	int max_local;
-	int max_shared;
-	int max_ghost;
+protected:
 
 	// World of MPI ranks for the simulation
 	MPI_Comm world;
 
 	// Class for domain decomposition
-	ChDomainDistr *domain;
+	std::shared_ptr<ChDomainDistr> domain;
 
 	// Class for MPI communication
-	ChCommDistr *comm;
-
-	// Class for sending and receiving cosimulation data
-	ChCosimulationDistr *cosim;
+	std::shared_ptr<ChCommDistr> comm;
 
 	// Class for collision detection
-	ChCollisionSystemDistr *collision_system;
-
-	// TODO
-	ChDataManagerDistr *data;
-
-	// Number of timesteps between exchanges (1 ==> exchange every timestep)
-	int exchange_every;
+	collision::ChCollisionSystem *collision_system;
 
 	// A body whose center is this far from the subdomain will be kept as a ghost.
-	double ghost_layer;
+
+
+    COLLISIONSYSTEMTYPE collision_system_type;
+    uint frame_threads, frame_bins, counter;
+    std::vector<double> timer_accumulator, cd_accumulator;
+    double old_timer, old_timer_cd;
+    bool detect_optimal_threads;
+    bool detect_optimal_bins;
+    int current_threads;
+
 };
 
 } /* namespace chrono */

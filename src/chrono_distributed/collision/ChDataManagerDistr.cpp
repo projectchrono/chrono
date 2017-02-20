@@ -14,19 +14,33 @@
 
 #include "chrono_distributed/collision/ChDataManagerDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/physics/ChBodyDistr.h"
+#include "chrono/physics/ChBody.h"
+
+#include <memory>
 
 namespace chrono {
 
-ChDataManagerDistr::ChDataManagerDistr(ChSystemDistr *my_sys) {
+ChDataManagerDistr::ChDataManagerDistr(std::shared_ptr<ChSystemDistr> my_sys, int max_triangles, int max_local, int max_ghost) {
 	this->my_sys = my_sys;
 
-	// The bodies lists are initialized to null
-	local_bodylist = new ChBodyDistr* [my_sys->GetMaxLocal()]();
-	shared_bodylist = new ChBodyDistr* [my_sys->GetMaxShared()]();
-	ghost_bodylist = new ChBodyDistr* [my_sys->GetMaxGhost()]();
+	num_local = 0;
+	num_shared = 0;
+	num_ghost = 0;
+	num_total = 0;
+
+	this->max_triangles = max_triangles;
+	this->max_local = max_local;
+	this->max_shared = max_ghost;
+	this->max_ghost = max_ghost;
 }
 
 ChDataManagerDistr::~ChDataManagerDistr() {}
+
+// Copies memory for a new local body
+void ChDataManagerDistr::AddLocal(std::shared_ptr<ChBody> body)
+{
+	local_bodylist.push_back(body);
+	num_local++;
+}
 
 } /* namespace chrono */

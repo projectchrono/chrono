@@ -16,22 +16,26 @@
 #define CHRONO_DISTRIBUTED_PHYSICS_CHDOMAINDISTRLONG_H_
 
 #include <forward_list>
+#include <memory>
 
 #include "chrono_distributed/physics/ChDomainDistr.h"
-#include "chrono_distributed/physics/ChBodyDistr.h"
+#include "chrono/physics/ChBody.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
 class ChDomainDistrLong : public ChDomainDistr {
 public:
-	ChDomainDistrLong(ChSystemDistr *my_sys) : ChDomainDistr(my_sys) {}
+	ChDomainDistrLong(std::shared_ptr<ChSystemDistr> my_sys) : ChDomainDistr(my_sys) {}
 	virtual ~ChDomainDistrLong() {}
 	
 	void SplitDomain();
-	bool HasLeft(ChBodyDistr *body);
+	bool HasLeft(std::shared_ptr<ChBody> body);
+	bool InSub(std::shared_ptr<ChBody> body);
+	bool InGhost(std::shared_ptr<ChBody> body);
 	typename std::forward_list<int>::iterator GetNeighItr();
 
+	void PrintDomain();
 };
 }
 #endif
