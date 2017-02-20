@@ -150,7 +150,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     void LoadSuspension(const std::string& filename);
     void LoadWheel(const std::string& filename, int side);
     static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
-        std::shared_ptr<ChBody> ground_body,
+                                  std::shared_ptr<ChBody> ground_body,
                                   double height,
                                   double rad,
                                   const ChColor& color);

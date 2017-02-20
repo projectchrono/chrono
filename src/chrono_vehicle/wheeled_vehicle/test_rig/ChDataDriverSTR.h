@@ -14,21 +14,22 @@
 //
 // A driver model based on user inputs provided as time series. If provided as a
 // text file, each line in the file must contain 4 values:
-//   time steering throttle braking
+//   time left_post right_post steering
 // It is assumed that the time values are unique.
 // If the time values are not sorted, this must be specified at construction.
+// Inputs for post_left, post_right, and steering are assumed to be in [-1,1].
 // Driver inputs at intermediate times are obtained through linear interpolation.
 //
 // =============================================================================
 
-#ifndef CH_DATADRIVER_H
-#define CH_DATADRIVER_H
+#ifndef CH_DATADRIVER_STR_H
+#define CH_DATADRIVER_STR_H
 
 #include <string>
 #include <vector>
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
@@ -36,39 +37,42 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_test_rig
 /// @{
 
-/// Driver inputs from data file.
+/// Driver inputs for a suspension test rig from data file.
 /// A driver model based on user inputs provided as time series. If provided as a
 /// text file, each line in the file must contain 4 values:
-///   time steering throttle braking
+/// <pre>
+///   time  left_post  right_post  steering
+/// </pre>
 /// It is assumed that the time values are unique.
 /// If the time values are not sorted, this must be specified at construction.
+/// Inputs for post_left, post_right, and steering are assumed to be in [-1,1].
 /// Driver inputs at intermediate times are obtained through linear interpolation.
-class CH_VEHICLE_API ChDataDriver : public ChDriver {
+class CH_VEHICLE_API ChDataDriverSTR : public ChDriverSTR {
   public:
     /// Definition of driver inputs at a given time.
     struct Entry {
         Entry() {}
-        Entry(double time, double steering, double throttle, double braking)
-            : m_time(time), m_steering(steering), m_throttle(throttle), m_braking(braking) {}
+        Entry(double time, double displLeft, double displRight, double steering)
+            : m_time(time), m_displLeft(displLeft), m_displRight(displRight), m_steering(steering) {}
         double m_time;
+        double m_displLeft;
+        double m_displRight;
         double m_steering;
-        double m_throttle;
-        double m_braking;
     };
 
     /// Construct using data from the specified file.
-    ChDataDriver(ChVehicle& vehicle,           ///< associated vehicle
-                 const std::string& filename,  ///< name of data file
-                 bool sorted = true            ///< indicate whether entries are sorted by time stamps
-                 );
+    ChDataDriverSTR(ChSuspensionTestRig& rig,     ///< associated test rig
+                    const std::string& filename,  ///< name of data file
+                    bool sorted = true            ///< indicate whether entries are sorted by time stamps
+                    );
 
     /// Construct using data from the specified data entries.
-    ChDataDriver(ChVehicle& vehicle,              ///< associated vehicle
-                 const std::vector<Entry>& data,  ///< vector of data entries
-                 bool sorted = true               ///< indicate whether entries are sorted by time stamps
-                 );
+    ChDataDriverSTR(ChSuspensionTestRig& rig,        ///< associated test rig
+                    const std::vector<Entry>& data,  ///< vector of data entries
+                    bool sorted = true               ///< indicate whether entries are sorted by time stamps
+                    );
 
-    ~ChDataDriver() {}
+    ~ChDataDriverSTR() {}
 
     /// Update the driver system at the specified time.
     /// The driver inputs are obtained through linear interpolation between the

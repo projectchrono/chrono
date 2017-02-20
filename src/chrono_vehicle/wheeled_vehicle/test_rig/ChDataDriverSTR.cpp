@@ -14,9 +14,10 @@
 //
 // A driver model based on user inputs provided as time series. If provided as a
 // text file, each line in the file must contain 4 values:
-//   time steering throttle braking
+//   time left_post right_post steering
 // It is assumed that the time values are unique.
 // If the time values are not sorted, this must be specified at construction.
+// Inputs for post_left, post_right, and steering are assumed to be in [-1,1].
 // Driver inputs at intermediate times are obtained through linear interpolation.
 //
 // =============================================================================
@@ -27,14 +28,15 @@
 #include <vector>
 #include <algorithm>
 
-#include "chrono_vehicle/driver/ChDataDriver.h"
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChDataDriverSTR.h"
 
 namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool sorted) : ChDriver(vehicle) {
+ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::string& filename, bool sorted)
+    : ChDriverSTR(rig) {
     std::ifstream ifile(filename.c_str());
     std::string line;
 
@@ -54,42 +56,42 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     ifile.close();
 
     if (!sorted)
-        std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
+        std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
 
     GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
 }
 
-ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted)
-    : ChDriver(vehicle), m_data(data) {
+ChDataDriverSTR::ChDataDriverSTR(ChSuspensionTestRig& rig, const std::vector<Entry>& data, bool sorted)
+    : ChDriverSTR(rig), m_data(data) {
     if (!sorted)
-        std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
+        std::sort(m_data.begin(), m_data.end(), ChDataDriverSTR::compare);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChDataDriver::Synchronize(double time) {
+void ChDataDriverSTR::Synchronize(double time) {
     if (time <= m_data[0].m_time) {
+        m_displLeft = m_data[0].m_displLeft;
+        m_displRight = m_data[0].m_displRight;
         m_steering = m_data[0].m_steering;
-        m_throttle = m_data[0].m_throttle;
-        m_braking = m_data[0].m_braking;
         return;
     } else if (time >= m_data.back().m_time) {
+        m_displLeft = m_data.back().m_displLeft;
+        m_displRight = m_data.back().m_displRight;
         m_steering = m_data.back().m_steering;
-        m_throttle = m_data.back().m_throttle;
-        m_braking = m_data.back().m_braking;
         return;
     }
 
     std::vector<Entry>::iterator right =
-        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), ChDataDriver::compare);
+        std::lower_bound(m_data.begin(), m_data.end(), Entry(time, 0, 0, 0), ChDataDriverSTR::compare);
 
     std::vector<Entry>::iterator left = right - 1;
 
     double tbar = (time - left->m_time) / (right->m_time - left->m_time);
 
+    m_displLeft = left->m_displLeft + tbar * (right->m_displLeft - left->m_displLeft);
+    m_displRight = left->m_displRight + tbar * (right->m_displRight - left->m_displRight);
     m_steering = left->m_steering + tbar * (right->m_steering - left->m_steering);
-    m_throttle = left->m_throttle + tbar * (right->m_throttle - left->m_throttle);
-    m_braking = left->m_braking + tbar * (right->m_braking - left->m_braking);
 }
 
 }  // end namespace vehicle
