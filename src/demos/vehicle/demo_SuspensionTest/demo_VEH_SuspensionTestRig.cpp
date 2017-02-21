@@ -12,6 +12,36 @@
 // Authors: Radu Serban
 // =============================================================================
 //
+// Demonstration program for a suspension test rig.
+//
+// A test rig can be instantiated either from a vehicle JSON specification file
+// (by indicating the axle to be used in the rig), or from a test rig JSON
+// specification file (with or without a steering mechanism).
+//
+// Driver inputs for a suspension test rig include left/right post displacements
+// and steering input (the latter being ignored if the tested suspension is not
+// attached to a steering mechanism).  These driver inputs can be obtained from
+// an interactive driver system (of type ChIrrGuiDriverSTR) or from a data file
+// (using a driver system of type ChDataDriverSTR).
+//
+// If data collection is enabled, an output file named 'output.dat' will be
+// generated in the directory specified by the variable out_dir. This ASCII file
+// contains one line per output time, each with the following information:
+//  [col  1]     time
+//  [col  2]     left post input, a value in [-1,1]
+//  [col  3]     right post input, a value in [-1,1]
+//  [col  4]     steering input, a value in [-1,1]
+//  [col  5]     actual left post dispalcement
+//  [col  6]     actual right post displacement
+//  [col  7- 9]  application point for left tire force
+//  [col 10-12]  left tire force
+//  [col 13-15]  left tire moment
+//  [col 16-18]  application point for right tire force
+//  [col 19-21]  right tire force
+//  [col 22-24]  right tire moment
+//
+// Tire forces are expressed in the global frame, as applied to the center of
+// the associated wheel.
 //
 // =============================================================================
 
@@ -19,7 +49,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
-#include "chrono_vehicle/terrain/FlatTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/RigidTire.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChIrrGuiDriverSTR.h"
@@ -35,6 +64,7 @@ using namespace chrono::vehicle;
 
 // Simulation step size
 double step_size = 1e-3;
+
 // Time interval between two render frames (1/FPS)
 double render_step_size = 1.0 / 50;
 
@@ -74,29 +104,27 @@ int main(int argc, char* argv[]) {
     auto tire_L = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
     auto tire_R = std::make_shared<RigidTire>(vehicle::GetDataFile(tire_file));
 
-    // Create the testing mechanism.
+    // Create the suspension test rig.
     std::unique_ptr<ChSuspensionTestRig> rig;
-
     if (use_vehicle_file) {
-        // (2) From a vehicle JSON specification file (selecting a particular axle)
-        rig = std::unique_ptr<ChSuspensionTestRig>(new ChSuspensionTestRig(vehicle::GetDataFile(vehicle_file), axle_index, post_limit, tire_L, tire_R));
+        // From a vehicle JSON specification file (selecting a particular axle)
+        rig = std::unique_ptr<ChSuspensionTestRig>(
+            new ChSuspensionTestRig(vehicle::GetDataFile(vehicle_file), axle_index, post_limit, tire_L, tire_R));
     } else {
-        // (1) From a suspension test rig JSON specification file
-        rig = std::unique_ptr<ChSuspensionTestRig>(new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
+        // From a suspension test rig JSON specification file
+        rig = std::unique_ptr<ChSuspensionTestRig>(
+            new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
     }
 
-    // Initialize subsystems
+    // Initialize suspension test rig (this automatically initializes tires).
     rig->Initialize(ChCoordsys<>());
-    tire_L->Initialize(rig->GetWheelBody(LEFT), LEFT);
-    tire_R->Initialize(rig->GetWheelBody(RIGHT), RIGHT);
 
     rig->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     rig->SetWheelVisualizationType(VisualizationType::PRIMITIVES);
     if (rig->HasSteering()) {
         rig->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     }
-    tire_L->SetVisualizationType(VisualizationType::MESH);
-    tire_R->SetVisualizationType(VisualizationType::MESH);
+    rig->SetTireVisualizationType(VisualizationType::MESH);
 
     // Create the vehicle Irrlicht application.
     ChVehicleIrrApp app(rig.get(), NULL, L"Suspension Test Rig");
@@ -107,14 +135,14 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
-    // Create the driver system and set the time response for keyboard inputs.
+    // Create and initialize the driver system.
     std::unique_ptr<ChDriverSTR> driver;
-
     if (use_data_driver) {
+        // Driver with inputs from file
         auto data_driver = new ChDataDriverSTR(*rig, vehicle::GetDataFile(driver_file));
         driver = std::unique_ptr<ChDriverSTR>(data_driver);
-    }
-    else {
+    } else {
+        // Interactive driver
         auto irr_driver = new ChIrrGuiDriverSTR(app);
         double steering_time = 1.0;      // time to go from 0 to max
         double displacement_time = 2.0;  // time to go from 0 to max applied post motion
@@ -124,9 +152,7 @@ int main(int argc, char* argv[]) {
     }
     driver->Initialize();
 
-    // -----------------
     // Initialize output
-    // -----------------
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -137,10 +163,6 @@ int main(int argc, char* argv[]) {
     // ---------------
     // Simulation loop
     // ---------------
-
-    // Inter-module communication data
-    TireForces tire_forces(2);
-    WheelStates wheel_states(2);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -165,17 +187,10 @@ int main(int argc, char* argv[]) {
         double left_input = driver->GetDisplacementLeft();
         double right_input = driver->GetDisplacementRight();
 
-        tire_forces[0] = tire_L->GetTireForce();
-        tire_forces[1] = tire_R->GetTireForce();
-        wheel_states[0] = rig->GetWheelState(LEFT);
-        wheel_states[1] = rig->GetWheelState(RIGHT);
-
         // Update modules (process inputs from other modules)
         double time = rig->GetChTime();
         driver->Synchronize(time);
-        tire_L->Synchronize(time, wheel_states[0], rig->GetTerrain());
-        tire_R->Synchronize(time, wheel_states[1], rig->GetTerrain());
-        rig->Synchronize(time, steering_input, left_input, right_input, tire_forces);
+        rig->Synchronize(time, steering_input, left_input, right_input);
         app.Synchronize("", steering_input, 0, 0);
 
         // Write output data
@@ -193,8 +208,6 @@ int main(int argc, char* argv[]) {
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver->Advance(step);
-        tire_L->Advance(step);
-        tire_R->Advance(step);
         rig->Advance(step);
         app.Advance(step);
 

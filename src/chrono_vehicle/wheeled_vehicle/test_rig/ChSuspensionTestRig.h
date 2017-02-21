@@ -52,17 +52,6 @@ namespace vehicle {
 /// Definition of a suspension test rig.
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
-    /// Definition of a terrain object for use by a suspension test rig.
-    class Terrain : public ChTerrain {
-      private:
-        Terrain();
-        virtual double GetHeight(double x, double y) const override;
-        virtual ChVector<> GetNormal(double x, double y) const override;
-        double m_height_L;
-        double m_height_R;
-        friend class ChSuspensionTestRig;
-    };
-
     /// Construct a test rig for a specified axle of a given vehicle.
     ChSuspensionTestRig(
         const std::string& filename,         ///< JSON file with vehicle specification
@@ -88,13 +77,10 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
 
-    /// Set the actuator function on the specified post (currently NOT USED)
-    void SetActuatorFunction(VehicleSide side, const std::shared_ptr<ChFunction>& func) { m_actuator_func[side] = func; }
-
-    /// Get a handle to the "terrain" object for a suspension test rig.
-    /// This is an object of ChTerrain type, suitable to be passed to the tire Synchronize() functions.
-    /// It reports a height corresponding to the current post position.
-    const Terrain& GetTerrain() const { return m_terrain; }
+    /// Set the actuator function on the specified post (currently NOT USED).
+    void SetActuatorFunction(VehicleSide side, const std::shared_ptr<ChFunction>& func) {
+        m_actuator_func[side] = func;
+    }
 
     /// Get a handle to the specified wheel body.
     std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
@@ -152,27 +138,42 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Set visualization type for the wheel subsystems.
     void SetWheelVisualizationType(VisualizationType vis);
 
+    /// Set visualization type for the tire subsystems.
+    void SetTireVisualizationType(VisualizationType vis);
+
     /// Update the state at the current time.
     /// steering between -1 and +1, and no force need be applied if using external actuation
-    void Synchronize(double time,                   ///< [in] current time
-                     double steering,               ///< [in] current steering input [-1,+1]
-                     double disp_L,                 ///< [in] left post displacement
-                     double disp_R,                 ///< [in] right post displacement
-                     const TireForces& tire_forces  ///< [in] tires force to apply to wheel
+    void Synchronize(double time,      ///< [in] current time
+                     double steering,  ///< [in] current steering input [-1,+1]
+                     double disp_L,    ///< [in] left post displacement
+                     double disp_R     ///< [in] right post displacement
                      );
+
+    /// Advance the state of the suspension test rig by the specified time step.
+    /// Note that this function also advances the tire states.
+    virtual void Advance(double step) override;
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations() override;
 
   private:
+    /// Definition of a terrain object for use by a suspension test rig.
+    class Terrain : public ChTerrain {
+      public:
+        Terrain();
+        virtual double GetHeight(double x, double y) const override;
+        virtual ChVector<> GetNormal(double x, double y) const override;
+        double m_height_L;
+        double m_height_R;
+    };
+
+    /// Utility functions to load subsystems from JSON files.
     void LoadSteering(const std::string& filename);
     void LoadSuspension(const std::string& filename);
     void LoadWheel(const std::string& filename, int side);
-    static void AddVisualize_post(std::shared_ptr<ChBody> post_body,
-                                  std::shared_ptr<ChBody> ground_body,
-                                  double height,
-                                  double rad,
-                                  const ChColor& color);
+
+    /// Utility function to add visualization to post bodies.
+    void AddVisualize_post(VehicleSide side, const ChColor& color);
 
     std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
     std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
@@ -186,10 +187,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChFunction> m_actuator_func[2];            ///< actuator functions applied to left/right posts
 
     double m_displ_limit;  ///< scale factor for post displacement
-
-    double m_steer;    ///< cached steering driver input
-    double m_displ_L;  ///< cached left post displacement
-    double m_displ_R;  ///< cached right post displacement
 
     Terrain m_terrain;  ///< terrain object to provide height to the tires
 
