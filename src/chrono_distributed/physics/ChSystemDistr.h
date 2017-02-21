@@ -60,37 +60,12 @@ public:
 	// TODO:
 	void ReadBodies(std::string filename);
 
-	virtual void AddBody(std::shared_ptr<ChBody> newbody);
+	virtual void AddBody(std::shared_ptr<ChBody> newbody); // TODO: Needs to overwrite Chrono::Parallel
 	void RemoveBody(int global_id);//TODO
 
-	void Update();
-	void ClearForceVariables();
-	void UpdateRigidBodies();
-
+	int Integrate_Y(); //TODO
 	void SetDomainImpl(std::shared_ptr<ChDomainDistr> dom);
 	void ErrorAbort(std::string msg);
-
-	int Integrate_Y();
-	void RecomputeThreads();
-
-	void PrintStepStats();
-	int GetNumContacts();
-	double GetTimerStep();
-	double GetTimerSolver();
-	double GetTimerCollisionBroad();
-	double GetTimerCollisionNarrow();
-	double GetTimerUpdate();
-	double GetTimerCollision();
-	settings_container* GetSettings();
-
-	// DEM
-	ChBody* NewBody();
-	void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody);
-	void UpdateMaterialSurfaceData(int index, ChBody* body);
-	void Setup();
-	real3 GetBodyContactForce(uint body_id) const;
-	real3 GetBodyContactTorque(uint body_id) const;
-
 
 	// A running count of the number of global bodies for
 	// identification purposes
@@ -119,15 +94,6 @@ public:
 	collision::ChCollisionSystem *collision_system;
 
 	// A body whose center is this far from the subdomain will be kept as a ghost.
-
-protected:
-    COLLISIONSYSTEMTYPE collision_system_type;
-    uint frame_threads, frame_bins, counter;
-    std::vector<double> timer_accumulator, cd_accumulator;
-    double old_timer, old_timer_cd;
-    bool detect_optimal_threads;
-    bool detect_optimal_bins;
-    int current_threads;
 
 };
 

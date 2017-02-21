@@ -111,7 +111,7 @@ int ChCommDistr::PackExchange(double *buf, int index, std::shared_ptr<ChBody> bo
 	int dof = data_manager->num_dof;
 
 	// Global Id //TODO??
-	buf[m++] = (double) body->gid;
+	buf[m++] = (double) body->GetGid();
 
 	// Position and rotation
 	real3 pos = data_manager->host_data.pos_rigid[index];
@@ -173,7 +173,7 @@ void ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	int m = 1;
 
 	// Global Id //TODO??
-	body->gid = buf[m++];
+	body->SetGid((int)buf[m++]);
 
 	//buf[m++] = data_manager->body_list->at(index)->identifier;
 
@@ -269,7 +269,7 @@ int ChCommDistr::PackUpdate(double *buf, int index, std::shared_ptr<ChBody> body
 	int dof = data_manager->num_dof;
 
 	// Global Id
-	buf[m++] = (double) body->gid;
+	buf[m++] = (double) body->GetGid();
 
 	// Position
 	buf[m++] = data_manager->host_data.pos_rigid[index].x;
@@ -306,7 +306,7 @@ void ChCommDistr::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 	int dof = data_manager->num_dof;
 
 	// Global Id
-	body->gid = (unsigned int) buf[m++];
+	body->SetGid((int)buf[m++]);
 
 	// buf[m++] = (double) data_manager->body_list->at(index)->gid;
 
