@@ -1,6 +1,6 @@
 #--------------------------------------------------------------
 set(DISTRIBUTED_TESTS
-    test_DISTR_system
+    #test_DISTR_system
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
