@@ -189,7 +189,7 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 
     // Create the wheel using the appropriate template.
     if (subtype.compare("Wheel") == 0) {
-        m_wheels[side] = std::make_shared<Wheel>(d);
+        m_wheel[side] = std::make_shared<Wheel>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -235,8 +235,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
         steering_index = d["Axles"][axle_index]["Steering Index"].GetInt();
     }
 
-    m_wheels.resize(2);
-
     file_name = d["Axles"][axle_index]["Left Wheel Input File"].GetString();
     LoadWheel(vehicle::GetDataFile(file_name), LEFT);
     file_name = d["Axles"][axle_index]["Right Wheel Input File"].GetString();
@@ -252,9 +250,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
-    m_tires.resize(2);
-    m_tires[LEFT] = tire_left;
-    m_tires[RIGHT] = tire_right;
+    m_tire[LEFT] = tire_left;
+    m_tire[RIGHT] = tire_right;
 }
 
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
@@ -280,7 +277,6 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     // Create the suspension and wheel subsystems.
     assert(d.HasMember("Suspension"));
-    m_wheels.resize(2);
 
     std::string file_name = d["Suspension"]["Input File"].GetString();
     LoadSuspension(vehicle::GetDataFile(file_name));
@@ -305,9 +301,8 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 
-    m_tires.resize(2);
-    m_tires[LEFT] = tire_left;
-    m_tires[RIGHT] = tire_right;
+    m_tire[LEFT] = tire_left;
+    m_tire[RIGHT] = tire_right;
 }
 
 void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
@@ -331,8 +326,8 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     }
 
     // Initialize the two wheels
-    m_wheels[0]->Initialize(m_suspension->GetSpindle(LEFT));
-    m_wheels[1]->Initialize(m_suspension->GetSpindle(RIGHT));
+    m_wheel[LEFT]->Initialize(m_suspension->GetSpindle(LEFT));
+    m_wheel[RIGHT]->Initialize(m_suspension->GetSpindle(RIGHT));
 
     // --------------------------------------------
     // Create and initialize the shaker post bodies
@@ -344,72 +339,72 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
     ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z() -= (m_tires[LEFT]->GetRadius() + m_post_height / 2.0);
+    post_L_pos.z() -= (m_tire[LEFT]->GetRadius() + m_post_height / 2.0);
 
-    m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
-    m_post_L->SetPos(post_L_pos);
-    m_post_L->SetMass(100);
-    m_post_L->SetCollide(true);
-    m_system->Add(m_post_L);
-    AddVisualize_post(m_post_L, m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.1f, 0.8f, 0.15f));
+    m_post[LEFT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_post[LEFT]->SetPos(post_L_pos);
+    m_post[LEFT]->SetMass(100);
+    m_post[LEFT]->SetCollide(true);
+    m_system->Add(m_post[LEFT]);
+    AddVisualize_post(m_post[LEFT], m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.1f, 0.8f, 0.15f));
 
-    m_post_L->GetCollisionModel()->ClearModel();
-    m_post_L->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
-    m_post_L->GetCollisionModel()->BuildModel();
+    m_post[LEFT]->GetCollisionModel()->ClearModel();
+    m_post[LEFT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
+    m_post[LEFT]->GetCollisionModel()->BuildModel();
 
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
     ChVector<> post_R_pos = spindle_R_pos;
-    post_R_pos.z() -= (m_tires[RIGHT]->GetRadius() + m_post_height / 2.0);
+    post_R_pos.z() -= (m_tire[RIGHT]->GetRadius() + m_post_height / 2.0);
 
-    m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
-    m_post_R->SetPos(post_R_pos);
-    m_post_R->SetMass(100);
-    m_post_R->SetCollide(true);
-    m_system->Add(m_post_R);
-    AddVisualize_post(m_post_R, m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.8f, 0.1f, 0.1f));
+    m_post[RIGHT] = std::shared_ptr<ChBody>(m_system->NewBody());
+    m_post[RIGHT]->SetPos(post_R_pos);
+    m_post[RIGHT]->SetMass(100);
+    m_post[RIGHT]->SetCollide(true);
+    m_system->Add(m_post[RIGHT]);
+    AddVisualize_post(m_post[RIGHT], m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.8f, 0.1f, 0.1f));
 
-    m_post_R->GetCollisionModel()->ClearModel();
-    m_post_R->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
-    m_post_R->GetCollisionModel()->BuildModel();
+    m_post[RIGHT]->GetCollisionModel()->ClearModel();
+    m_post[RIGHT]->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
+    m_post[RIGHT]->GetCollisionModel()->BuildModel();
 
     // ------------------------------------------
     // Create and initialize joints and actuators
     // ------------------------------------------
 
     // Prismatic joints to force vertical translation
-    m_post_L_prismatic = std::make_shared<ChLinkLockPrismatic>();
-    m_post_L_prismatic->SetNameString("L_post_prismatic");
-    m_post_L_prismatic->Initialize(m_chassis->GetBody(), m_post_L, ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
-    m_system->AddLink(m_post_L_prismatic);
+    m_post_prismatic[LEFT] = std::make_shared<ChLinkLockPrismatic>();
+    m_post_prismatic[LEFT]->SetNameString("L_post_prismatic");
+    m_post_prismatic[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT], ChCoordsys<>(ChVector<>(post_L_pos), QUNIT));
+    m_system->AddLink(m_post_prismatic[LEFT]);
 
-    m_post_R_prismatic = std::make_shared<ChLinkLockPrismatic>();
-    m_post_R_prismatic->SetNameString("R_post_prismatic");
-    m_post_R_prismatic->Initialize(m_chassis->GetBody(), m_post_R, ChCoordsys<>(ChVector<>(post_R_pos), QUNIT));
-    m_system->AddLink(m_post_R_prismatic);
+    m_post_prismatic[RIGHT] = std::make_shared<ChLinkLockPrismatic>();
+    m_post_prismatic[RIGHT]->SetNameString("R_post_prismatic");
+    m_post_prismatic[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT], ChCoordsys<>(ChVector<>(post_R_pos), QUNIT));
+    m_system->AddLink(m_post_prismatic[RIGHT]);
 
     // Post actuators
     ChVector<> m1_L = post_L_pos;
     m1_L.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
-    m_post_L_linact = std::make_shared<ChLinkLinActuator>();
-    m_post_L_linact->SetNameString("L_post_linActuator");
-    m_post_L_linact->Initialize(m_chassis->GetBody(), m_post_L, false, ChCoordsys<>(m1_L, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
-    m_post_L_linact->Set_lin_offset(1.0);
+    m_post_linact[LEFT] = std::make_shared<ChLinkLinActuator>();
+    m_post_linact[LEFT]->SetNameString("L_post_linActuator");
+    m_post_linact[LEFT]->Initialize(m_chassis->GetBody(), m_post[LEFT], false, ChCoordsys<>(m1_L, QUNIT), ChCoordsys<>(post_L_pos, QUNIT));
+    m_post_linact[LEFT]->Set_lin_offset(1.0);
 
     auto func_L = std::make_shared<ChFunction_Const>(0);
-    m_post_L_linact->Set_dist_funct(func_L);
-    m_system->AddLink(m_post_L_linact);
+    m_post_linact[LEFT]->Set_dist_funct(func_L);
+    m_system->AddLink(m_post_linact[LEFT]);
 
     ChVector<> m1_R = post_R_pos;
     m1_R.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
-    m_post_R_linact = std::make_shared<ChLinkLinActuator>();
-    m_post_R_linact->SetNameString("R_post_linActuator");
-    m_post_R_linact->Initialize(m_chassis->GetBody(), m_post_R, false, ChCoordsys<>(m1_R, QUNIT), ChCoordsys<>(post_R_pos, QUNIT));
-    m_post_R_linact->Set_lin_offset(1.0);
+    m_post_linact[RIGHT] = std::make_shared<ChLinkLinActuator>();
+    m_post_linact[RIGHT]->SetNameString("R_post_linActuator");
+    m_post_linact[RIGHT]->Initialize(m_chassis->GetBody(), m_post[RIGHT], false, ChCoordsys<>(m1_R, QUNIT), ChCoordsys<>(post_R_pos, QUNIT));
+    m_post_linact[RIGHT]->Set_lin_offset(1.0);
 
     auto func_R = std::make_shared<ChFunction_Const>(0);
-    m_post_R_linact->Set_dist_funct(func_R);
-    m_system->AddLink(m_post_R_linact);
+    m_post_linact[RIGHT]->Set_dist_funct(func_R);
+    m_system->AddLink(m_post_linact[RIGHT]);
 }
 
 // -----------------------------------------------------------------------------
@@ -424,8 +419,8 @@ void ChSuspensionTestRig::SetSteeringVisualizationType(VisualizationType vis) {
 }
 
 void ChSuspensionTestRig::SetWheelVisualizationType(VisualizationType vis) {
-    m_wheels[0]->SetVisualizationType(vis);
-    m_wheels[1]->SetVisualizationType(vis);
+    m_wheel[LEFT]->SetVisualizationType(vis);
+    m_wheel[RIGHT]->SetVisualizationType(vis);
 }
 
 // -----------------------------------------------------------------------------
@@ -450,8 +445,7 @@ double ChSuspensionTestRig::GetVehicleMass() const {
     double mass = m_suspension->GetMass();
     if (HasSteering())
         mass += m_steering->GetMass();
-    for (size_t i = 0; i < m_wheels.size(); i++)
-        mass += m_wheels[i]->GetMass();
+    mass += m_wheel[LEFT]->GetMass() + m_wheel[RIGHT]->GetMass();
 
     return mass;
 }
@@ -460,24 +454,15 @@ double ChSuspensionTestRig::GetVehicleMass() const {
 // -----------------------------------------------------------------------------
 double ChSuspensionTestRig::GetActuatorDisp(VehicleSide side) {
     double time = GetSystem()->GetChTime();
-    if (side == LEFT)
-        return m_post_L_linact->Get_dist_funct()->Get_y(time);
-    else
-        return m_post_R_linact->Get_dist_funct()->Get_y(time);
+    return m_post_linact[side]->Get_dist_funct()->Get_y(time);
 }
 
 double ChSuspensionTestRig::GetActuatorForce(VehicleSide side) {
-    if (side == LEFT)
-        return m_post_L_linact->Get_react_force().x();
-    else
-        return m_post_R_linact->Get_react_force().x();
+    return m_post_linact[side]->Get_react_force().x();
 }
 
 double ChSuspensionTestRig::GetActuatorMarkerDist(VehicleSide side) {
-    if (side == LEFT)
-        return m_post_L_linact->GetDist();
-    else
-        return m_post_R_linact->GetDist();
+    return m_post_linact[side]->GetDist();
 }
 
 // -----------------------------------------------------------------------------
@@ -493,9 +478,9 @@ void ChSuspensionTestRig::Synchronize(double time,
     }
 
     // Apply the displacements to the left/right post actuators
-    if (auto func_L = std::dynamic_pointer_cast<ChFunction_Const>(m_post_L_linact->Get_dist_funct()))
+    if (auto func_L = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact[LEFT]->Get_dist_funct()))
         func_L->Set_yconst(disp_L * m_displ_limit);
-    if (auto func_R = std::dynamic_pointer_cast<ChFunction_Const>(m_post_R_linact->Get_dist_funct()))
+    if (auto func_R = std::dynamic_pointer_cast<ChFunction_Const>(m_post_linact[RIGHT]->Get_dist_funct()))
         func_R->Set_yconst(disp_R * m_displ_limit);
 
     // Apply tire forces to spindle bodies.
@@ -504,8 +489,8 @@ void ChSuspensionTestRig::Synchronize(double time,
 
     // Udpate the height of the underlying "terrain" object, using the current z positions
     // of the post bodies.
-    m_terrain.m_height_L = m_post_L->GetPos().z() + m_post_height / 2;
-    m_terrain.m_height_R = m_post_R->GetPos().z() + m_post_height / 2;
+    m_terrain.m_height_L = m_post[LEFT]->GetPos().z() + m_post_height / 2;
+    m_terrain.m_height_R = m_post[RIGHT]->GetPos().z() + m_post_height / 2;
 
     // Cache driver inputs.
     m_steer = steering;

@@ -88,11 +88,8 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     /// Each post will move between [-val, +val].
     void SetDisplacementLimit(double val) { m_displ_limit = val; }
 
-    /// Set the actuator function on the left wheel (currently NOT USED)
-    void SetActuator_func_L(const std::shared_ptr<ChFunction>& funcL) { m_actuator_L = funcL; }
-
-    /// Set the actuator function on the right wheel (currently NOT USED)
-    void SetActuator_func_R(const std::shared_ptr<ChFunction>& funcR) { m_actuator_R = funcR; }
+    /// Set the actuator function on the specified post (currently NOT USED)
+    void SetActuatorFunction(VehicleSide side, const std::shared_ptr<ChFunction>& func) { m_actuator_func[side] = func; }
 
     /// Get a handle to the "terrain" object for a suspension test rig.
     /// This is an object of ChTerrain type, suitable to be passed to the tire Synchronize() functions.
@@ -116,6 +113,12 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Get the complete state for the specified wheel.
     WheelState GetWheelState(VehicleSide side) const;
+
+    /// Get a handle to the specified post body.
+    std::shared_ptr<ChBody> GetPostBody(VehicleSide side) const { return m_post[side]; }
+
+    /// Get the global location of the specified post body.
+    const ChVector<>& GetPostPos(VehicleSide side) const { return m_post[side]->GetPos(); }
 
     double GetActuatorDisp(VehicleSide side);
     double GetActuatorForce(VehicleSide side);
@@ -174,18 +177,13 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChSuspension> m_suspension;  ///< handle to suspension subsystem
     std::shared_ptr<ChSteering> m_steering;      ///< handle to the steering subsystem
     std::shared_ptr<ChShaft> m_dummy_shaft;      ///< dummy driveshaft
-    ChWheelList m_wheels;                        ///< list of handles to wheel subsystems
-    ChTireList m_tires;                          ///< list of handles to tire subsystems
+    std::shared_ptr<ChWheel> m_wheel[2];         ///< handles to wheel subsystems
+    std::shared_ptr<ChTire> m_tire[2];           ///< handles to tire subsystems
 
-    std::shared_ptr<ChBody> m_post_L;                         ///< left shaker post
-    std::shared_ptr<ChBody> m_post_R;                         ///< right shaker post
-    std::shared_ptr<ChLinkLockPrismatic> m_post_L_prismatic;  ///< left post prismatic joint
-    std::shared_ptr<ChLinkLockPrismatic> m_post_R_prismatic;  ///< right post prismatic joint
-    std::shared_ptr<ChLinkLinActuator> m_post_L_linact;       ///< actuate left post
-    std::shared_ptr<ChLinkLinActuator> m_post_R_linact;       ///< actuate right post
-
-    std::shared_ptr<ChFunction> m_actuator_L;  ///< actuator function applied to left wheel
-    std::shared_ptr<ChFunction> m_actuator_R;  ///< actuator function applied to right wheel
+    std::shared_ptr<ChBody> m_post[2];                         ///< handles to post bodies
+    std::shared_ptr<ChLinkLockPrismatic> m_post_prismatic[2];  ///< handles to post prismatic joints
+    std::shared_ptr<ChLinkLinActuator> m_post_linact[2];       ///< handles to post linear actuators
+    std::shared_ptr<ChFunction> m_actuator_func[2];            ///< actuator functions applied to left/right posts
 
     double m_displ_limit;  ///< scale factor for post displacement
 
