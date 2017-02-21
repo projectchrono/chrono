@@ -24,9 +24,8 @@
 #include "chrono_distributed/physics/ChSystemDistr.h"
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/physics/ChDomainDistrLong.h"
-//#include "chrono_distributed/collision/ChCollisionSystemDistr.h"
-//#include "chrono_distributed/collision/ChDataManagerDistr.h"
 
+#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
@@ -34,12 +33,10 @@
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/other_types.h"
 
-class ChDataParallelManager;
-
 namespace chrono {
 
-ChSystemDistr::ChSystemDistr(MPI_Comm world, double ghost_layer) :
-		ChSystem()
+ChSystemDistr::ChSystemDistr(MPI_Comm world, double ghost_layer, int max_objects) :
+		ChSystemParallel(max_objects)
 {
 	this->world = world;
 

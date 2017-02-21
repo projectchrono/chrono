@@ -21,8 +21,8 @@
 
 #include "chrono_parallel/ChDataManager.h"
 
-
 #include <memory>
+
 
 namespace chrono {
 
@@ -45,14 +45,17 @@ public:
 	// list before sending.
 	// Packages the body into buf.
 	// Returns the number of elements which the body took in the buffer
-	int PackExchange(double *buf, int index);
+	int PackExchange(double *buf, int index, std::shared_ptr<ChBody> body);
 
 	// Unpacks a sphere body from the buffer into body.
 	// Note: body is meant to be a ptr into the data structure
 	// where the body should be unpacks.
 	void UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
 
-	int PackUpdate(double *buf, int index);
+	// Packs a body to be sent to update its ghost on another rank
+	int PackUpdate(double *buf, int index, std::shared_ptr<ChBody> body);
+	
+	// Unpacks an incoming body to update a ghost
 	void UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
 
 	ChParallelDataManager* data_manager;
@@ -65,9 +68,6 @@ protected:
 	double *recv_buf;
 	int num_recv;
 
-	int doubles_per_body;
-
-private:
 };
 
 } /* namespace chrono */

@@ -94,7 +94,7 @@ SET(ChronoEngine_Distributed_COLLISION
 	#collision/ChNarrowphaseDistr.h
 	#collision/ChNarrowphaseDistrBasic.h
 	#collision/ChCollisionModelDistr.h
-	
+
 	#collision/ChBroadphaseDistr.cpp
 	#collision/ChBroadphaseDistrBasic.cpp
 	collision/ChCollisionSystemDistr.cpp
@@ -112,13 +112,6 @@ SET(ChronoEngine_Distributed_COMM
 	)
 
 SOURCE_GROUP(comm FILES ${ChronoEngine_Distributed_COMM})
-
-SET(ChronoEngine_Distributed_COSIMULATION
-	cosimulation/ChCosimulationDistr.h
-	cosimulation/ChCosimulationDistr.cpp
-	)
-
-SOURCE_GROUP(cosimulation FILES ${ChronoEngine_Distributed_COSIMULATION})
 
 SET(ChronoEngine_Distributed_SOLVER
 	)
@@ -148,7 +141,7 @@ SET_TARGET_PROPERTIES(ChronoEngine_Distributed PROPERTIES
 
 TARGET_LINK_LIBRARIES(ChronoEngine_Distributed
                       ChronoEngine
-                      ChronoEngine_Parallel
+                      ChronoEngine_parallel
                       ${MPI_CXX_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_Distributed

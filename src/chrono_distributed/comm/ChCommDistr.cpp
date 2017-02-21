@@ -17,7 +17,6 @@
 
 #include "chrono_distributed/comm/ChCommDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/collision/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
 
@@ -47,7 +46,6 @@ ChCommDistr::ChCommDistr(std::shared_ptr<ChSystemDistr> my_sys)
 	num_send = 0;
 	recv_buf = new double[1000000];
 	num_recv = 0;
-	doubles_per_body = 15;
 }
 
 ChCommDistr::~ChCommDistr()
@@ -68,26 +66,26 @@ void ChCommDistr::Exchange()
 	// Identify bodies that need to be updated.
 
 	int num_elements = 0;
-	ChDomainDistr *domain = my_sys->domain;
+	std::shared_ptr<ChDomainDistr> domain = my_sys->domain;
 
 	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
 	{
 		// Skip inactive bodies
-		if (data_manager->host_data.active_rigid == 0)
+		if (data_manager->host_data.active_rigid[i] == 0)
 		{
 			continue;
 		}
 
 		// If a body has passed into the ghost
 		// region mark it as a shared
-		if(domain->InGhost(my_sys->bodylist[i]))
+		if(domain->InGhost(data_manager->body_list->at(i)))
 		{
 			// TODO: No need to send now, this could be done with the ghost update
-			my_sys->bodylist[i]->SetId(comm::SHARED);
+			data_manager->body_list->at(i)->SetId(comm::SHARED);
 		}
 
 		// The body has completely left
-		else if (domain->InSub(my_sys->bodylist[i]))
+		else if (domain->InSub(data_manager->body_list->at(i)))
 		{
 
 		}
@@ -105,7 +103,7 @@ void ChCommDistr::Exchange()
 // list after this function is called.
 // Packages the body into buf.
 // Returns the number of elements which the body took in the buffer
-int ChCommDistr::PackExchange(double *buf, int index)
+int ChCommDistr::PackExchange(double *buf, int index, std::shared_ptr<ChBody> body)
 {
 	int m = 1; // Number of doubles being packed (will be place in the front of the buffer
 			   // once packing is done
@@ -113,7 +111,7 @@ int ChCommDistr::PackExchange(double *buf, int index)
 	int dof = data_manager->num_dof;
 
 	// Global Id //TODO??
-	buf[m++] = (double) data_manager->body_list->at(index)->gid;
+	buf[m++] = (double) body->gid;
 
 	// Position and rotation
 	real3 pos = data_manager->host_data.pos_rigid[index];
@@ -136,10 +134,10 @@ int ChCommDistr::PackExchange(double *buf, int index)
 
 	// Angular Velocity
 	data_manager->host_data.v[index*dof + 3];
-	buf[m++] = 	data_manager->host_data.v[index*dof + 3];
-	buf[m++] = 	data_manager->host_data.v[index*dof + 4];
-	buf[m++] = 	data_manager->host_data.v[index*dof + 5];
-	buf[m++] = 	data_manager->host_data.v[index*dof + 6];
+	buf[m++] = data_manager->host_data.v[index*dof + 3];
+	buf[m++] = data_manager->host_data.v[index*dof + 4];
+	buf[m++] = data_manager->host_data.v[index*dof + 5];
+	buf[m++] = data_manager->host_data.v[index*dof + 6];
 
 	// Mass
 	buf[m++] = data_manager->host_data.mass_rigid[index];
@@ -156,7 +154,7 @@ int ChCommDistr::PackExchange(double *buf, int index)
 	buf[m++] = data_manager->host_data.adhesionMultDMT_data[index];
 
 	// Fixed
-	buf[m++] = (double) data_manager->body_list->at(index)->GetBodyFixed();;
+	buf[m++] = (double) body->GetBodyFixed();
 
 	// Contact Goemetries
 	// TODO how to get at the geometry in data manager??
@@ -263,7 +261,7 @@ void ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 }
 
 // Only packs the essentials for a body update
-int ChCommDistr::PackUpdate(double *buf, int index)
+int ChCommDistr::PackUpdate(double *buf, int index, std::shared_ptr<ChBody> body)
 {
 	int m = 1;
 
@@ -271,7 +269,7 @@ int ChCommDistr::PackUpdate(double *buf, int index)
 	int dof = data_manager->num_dof;
 
 	// Global Id
-	buf[m++] = (double) data_manager->body_list->at(index)->gid;
+	buf[m++] = (double) body->gid;
 
 	// Position
 	buf[m++] = data_manager->host_data.pos_rigid[index].x;
@@ -301,7 +299,7 @@ int ChCommDistr::PackUpdate(double *buf, int index)
 	return m;
 }
 
-void ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
+void ChCommDistr::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 {
 	int m = 1;
 

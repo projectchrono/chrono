@@ -41,7 +41,7 @@ class ChCommDistr;
 class ChSystemDistr : public ChSystemParallel {
 
 public:
-	ChSystemDistr(MPI_Comm world, double ghost_layer = 0.1);
+	ChSystemDistr(MPI_Comm world, double ghost_layer, int max_objects);
 	virtual ~ChSystemDistr();
 
 	int GetRanks() {return num_ranks;}
@@ -105,7 +105,6 @@ public:
 	// TODO
 	ChParallelDataManager *data_manager;
 
-protected:
 
 	// World of MPI ranks for the simulation
 	MPI_Comm world;
@@ -121,7 +120,7 @@ protected:
 
 	// A body whose center is this far from the subdomain will be kept as a ghost.
 
-
+protected:
     COLLISIONSYSTEMTYPE collision_system_type;
     uint frame_threads, frame_bins, counter;
     std::vector<double> timer_accumulator, cd_accumulator;
