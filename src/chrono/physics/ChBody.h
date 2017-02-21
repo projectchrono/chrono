@@ -52,6 +52,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< Pointer to the collision model
 
     unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
+    unsigned int gid;      ///< global body identifier (internal use only)
 
     std::vector<std::shared_ptr<ChMarker> > marklist;  ///< list of child markers
     std::vector<std::shared_ptr<ChForce> > forcelist;  ///< list of child forces
@@ -191,6 +192,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Set body id for indexing (used only internally)
     unsigned int GetId() { return body_id; }
+
+    /// Set global body index (internal use only)
+    void SetGid(unsigned int id) { gid = id; }
+
+    /// Get the global body index (internal use only)
+    unsigned int GetGid() const { return gid; }
 
     //
     // FUNCTIONS
