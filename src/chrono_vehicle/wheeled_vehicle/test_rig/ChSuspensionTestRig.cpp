@@ -95,6 +95,12 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 }
 
 // -----------------------------------------------------------------------------
+// Static variables
+// -----------------------------------------------------------------------------
+const double ChSuspensionTestRig::m_post_height = 0.1;
+const double ChSuspensionTestRig::m_post_radius = 0.4;
+
+// -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSuspensionTestRig::LoadSteering(const std::string& filename) {
     FILE* fp = fopen(filename.c_str(), "r");
@@ -332,28 +338,40 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Create and initialize the shaker post bodies
     // --------------------------------------------
 
-    double post_height = 0.1;
-    double post_rad = 0.4;
+    // Rotation by 90 degrees about x
+    ChMatrix33<> y2z(chrono::Q_from_AngX(CH_C_PI / 2));
 
     // Left post body (green)
     ChVector<> spindle_L_pos = m_suspension->GetSpindlePos(LEFT);
     ChVector<> post_L_pos = spindle_L_pos;
-    post_L_pos.z() -= (m_tires[LEFT]->GetRadius() + post_height / 2.0);
+    post_L_pos.z() -= (m_tires[LEFT]->GetRadius() + m_post_height / 2.0);
 
     m_post_L = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_L->SetPos(post_L_pos);
+    m_post_L->SetMass(100);
+    m_post_L->SetCollide(true);
     m_system->Add(m_post_L);
-    AddVisualize_post(m_post_L, m_chassis->GetBody(), post_height, post_rad, ChColor(0.1f, 0.8f, 0.15f));
+    AddVisualize_post(m_post_L, m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.1f, 0.8f, 0.15f));
+
+    m_post_L->GetCollisionModel()->ClearModel();
+    m_post_L->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
+    m_post_L->GetCollisionModel()->BuildModel();
 
     // Right post body (red)
     ChVector<> spindle_R_pos = m_suspension->GetSpindlePos(RIGHT);
     ChVector<> post_R_pos = spindle_R_pos;
-    post_R_pos.z() -= (m_tires[RIGHT]->GetRadius() + post_height / 2.0);
+    post_R_pos.z() -= (m_tires[RIGHT]->GetRadius() + m_post_height / 2.0);
 
     m_post_R = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post_R->SetPos(post_R_pos);
+    m_post_R->SetMass(100);
+    m_post_R->SetCollide(true);
     m_system->Add(m_post_R);
-    AddVisualize_post(m_post_R, m_chassis->GetBody(), post_height, post_rad, ChColor(0.8f, 0.1f, 0.1f));
+    AddVisualize_post(m_post_R, m_chassis->GetBody(), m_post_height, m_post_radius, ChColor(0.8f, 0.1f, 0.1f));
+
+    m_post_R->GetCollisionModel()->ClearModel();
+    m_post_R->GetCollisionModel()->AddCylinder(m_post_radius, m_post_radius, m_post_height / 2, ChVector<>(0), y2z);
+    m_post_R->GetCollisionModel()->BuildModel();
 
     // ------------------------------------------
     // Create and initialize joints and actuators
@@ -392,17 +410,6 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     auto func_R = std::make_shared<ChFunction_Const>(0);
     m_post_R_linact->Set_dist_funct(func_R);
     m_system->AddLink(m_post_R_linact);
-
-    // Constrain spindles in a horizontal plane (based on current post location)
-    m_post_L_ptPlane = std::make_shared<ChLinkLockPointPlane>();
-    m_post_L_ptPlane->SetNameString("L_post_pointPlane");
-    m_post_L_ptPlane->Initialize(m_suspension->GetSpindle(LEFT), m_post_L, ChCoordsys<>(spindle_L_pos, QUNIT));
-    m_system->AddLink(m_post_L_ptPlane);
-
-    m_post_R_ptPlane = std::make_shared<ChLinkLockPointPlane>();
-    m_post_R_ptPlane->SetNameString("R_post_pointPlane");
-    m_post_R_ptPlane->Initialize(m_suspension->GetSpindle(RIGHT), m_post_R, ChCoordsys<>(spindle_R_pos, QUNIT));
-    m_system->AddLink(m_post_R_ptPlane);
 }
 
 // -----------------------------------------------------------------------------
@@ -495,6 +502,11 @@ void ChSuspensionTestRig::Synchronize(double time,
     m_suspension->Synchronize(LEFT, tire_forces[0]);
     m_suspension->Synchronize(RIGHT, tire_forces[1]);
 
+    // Udpate the height of the underlying "terrain" object, using the current z positions
+    // of the post bodies.
+    m_terrain.m_height_L = m_post_L->GetPos().z() + m_post_height / 2;
+    m_terrain.m_height_R = m_post_R->GetPos().z() + m_post_height / 2;
+
     // Cache driver inputs.
     m_steer = steering;
     m_displ_L = disp_L;
@@ -553,6 +565,18 @@ void ChSuspensionTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);
     cyl->GetCylinderGeometry().p2 = post_body->GetPos() - ChVector<>(0, 0, 16 * height);
     ground_body->AddAsset(cyl);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChSuspensionTestRig::Terrain::Terrain() : m_height_L(0), m_height_R(0) {}
+
+double ChSuspensionTestRig::Terrain::GetHeight(double x, double y) const {
+    return (y < 0) ? m_height_L : m_height_R;
+}
+
+ChVector<> ChSuspensionTestRig::Terrain::GetNormal(double x, double y) const {
+    return ChVector<>(0, 0, 1);
 }
 
 }  // end namespace vehicle

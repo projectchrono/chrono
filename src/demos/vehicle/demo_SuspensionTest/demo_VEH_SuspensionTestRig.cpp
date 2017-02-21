@@ -64,7 +64,7 @@ std::string driver_file("hmmwv/suspensionTest/ST_inputs.dat");
 std::string tire_file("hmmwv/tire/HMMWV_RigidTire.json");
 
 // Output collection
-bool collect_output = true;
+bool collect_output = false;
 std::string out_dir = "../SUSPENSION_TEST_RIG";
 double out_step_size = 1.0 / 100;
 
@@ -84,9 +84,6 @@ int main(int argc, char* argv[]) {
         // (1) From a suspension test rig JSON specification file
         rig = std::unique_ptr<ChSuspensionTestRig>(new ChSuspensionTestRig(vehicle::GetDataFile(str_file), tire_L, tire_R));
     }
-
-    // Flat rigid terrain, height = 0.
-    FlatTerrain flat_terrain(0);
 
     // Initialize subsystems
     rig->Initialize(ChCoordsys<>());
@@ -176,9 +173,8 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         double time = rig->GetChTime();
         driver->Synchronize(time);
-        flat_terrain.Synchronize(time);
-        tire_L->Synchronize(time, wheel_states[0], flat_terrain);
-        tire_R->Synchronize(time, wheel_states[1], flat_terrain);
+        tire_L->Synchronize(time, wheel_states[0], rig->GetTerrain());
+        tire_R->Synchronize(time, wheel_states[1], rig->GetTerrain());
         rig->Synchronize(time, steering_input, left_input, right_input, tire_forces);
         app.Synchronize("", steering_input, 0, 0);
 
@@ -190,13 +186,13 @@ int main(int argc, char* argv[]) {
             out_csv << time << left_input << right_input << steering_input;
             out_csv << rig->GetActuatorDisp(VehicleSide::LEFT) << rig->GetActuatorDisp(VehicleSide::RIGHT);
             out_csv << tire_force_L.point << tire_force_L.force << tire_force_L.moment;
+            out_csv << tire_force_R.point << tire_force_R.force << tire_force_R.moment;
             out_csv << std::endl;
         }
 
         // Advance simulation for one timestep for all modules
         double step = realtime_timer.SuggestSimulationStep(step_size);
         driver->Advance(step);
-        flat_terrain.Advance(step);
         tire_L->Advance(step);
         tire_R->Advance(step);
         rig->Advance(step);

@@ -52,6 +52,17 @@ namespace vehicle {
 /// Definition of a suspension test rig.
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
+    /// Definition of a terrain object for use by a suspension test rig.
+    class Terrain : public ChTerrain {
+      private:
+        Terrain();
+        virtual double GetHeight(double x, double y) const override;
+        virtual ChVector<> GetNormal(double x, double y) const override;
+        double m_height_L;
+        double m_height_R;
+        friend class ChSuspensionTestRig;
+    };
+
     /// Construct a test rig for a specified axle of a given vehicle.
     ChSuspensionTestRig(
         const std::string& filename,         ///< JSON file with vehicle specification
@@ -82,6 +93,11 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
 
     /// Set the actuator function on the right wheel (currently NOT USED)
     void SetActuator_func_R(const std::shared_ptr<ChFunction>& funcR) { m_actuator_R = funcR; }
+
+    /// Get a handle to the "terrain" object for a suspension test rig.
+    /// This is an object of ChTerrain type, suitable to be passed to the tire Synchronize() functions.
+    /// It reports a height corresponding to the current post position.
+    const Terrain& GetTerrain() const { return m_terrain; }
 
     /// Get a handle to the specified wheel body.
     std::shared_ptr<ChBody> GetWheelBody(VehicleSide side) const { return m_suspension->GetSpindle(side); }
@@ -167,8 +183,6 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     std::shared_ptr<ChLinkLockPrismatic> m_post_R_prismatic;  ///< right post prismatic joint
     std::shared_ptr<ChLinkLinActuator> m_post_L_linact;       ///< actuate left post
     std::shared_ptr<ChLinkLinActuator> m_post_R_linact;       ///< actuate right post
-    std::shared_ptr<ChLinkLockPointPlane> m_post_L_ptPlane;   ///< actuate L suspension to a specified height
-    std::shared_ptr<ChLinkLockPointPlane> m_post_R_ptPlane;   ///< actuate R suspension to a specified height
 
     std::shared_ptr<ChFunction> m_actuator_L;  ///< actuator function applied to left wheel
     std::shared_ptr<ChFunction> m_actuator_R;  ///< actuator function applied to right wheel
@@ -179,9 +193,14 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
     double m_displ_L;  ///< cached left post displacement
     double m_displ_R;  ///< cached right post displacement
 
+    Terrain m_terrain;  ///< terrain object to provide height to the tires
+
     ChVector<> m_suspLoc;
     ChVector<> m_steeringLoc;
     ChQuaternion<> m_steeringRot;
+
+    static const double m_post_radius;  ///< radius of the post cylindrical platform
+    static const double m_post_height;  ///< height of the post cylindrical platform
 };
 
 /// @} vehicle_wheeled_test_rig
