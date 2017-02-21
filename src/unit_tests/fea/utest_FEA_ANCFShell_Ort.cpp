@@ -200,17 +200,14 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-        my_system.ChangeSolverStab(mkl_solver_stab);
-        my_system.ChangeSolverSpeed(mkl_solver_speed);
-        mkl_solver_speed->SetSparsityPatternLock(true);
-        mkl_solver_stab->SetSparsityPatternLock(true);
-        mkl_solver_speed->SetVerbose(true);
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        mkl_solver->SetSparsityPatternLock(true);
+        mkl_solver->SetVerbose(true);
+        my_system.SetSolver(mkl_solver);
 #endif
     } else {
-        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        my_system.SetSolverType(ChSolver::Type::MINRES);
+        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
         msolver->SetDiagonalPreconditioning(true);
         my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
         my_system.SetMaxItersSolverSpeed(100);
@@ -219,7 +216,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(100);
@@ -247,19 +244,19 @@ int main(int argc, char* argv[]) {
         // std::cout << "nodetip->pos.z = " << nodetip->pos.z << "\n";
         // std::cout << "mystepper->GetNumIterations()= " << mystepper->GetNumIterations() << "\n";
         // Checking tip Z displacement
-        double err = std::abs(nodetip->pos.z - FileInputMat[it][1]);
+        double err = std::abs(nodetip->pos.z() - FileInputMat[it][1]);
         max_err = std::max(max_err, err);
         if (err > precision) {
-            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z
+            std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()
                       << "  reference: " << FileInputMat[it][1] << std::endl;
             return 1;
         }
         /*
         // Code snippet to generate golden file
         m_data[0][it] = my_system.GetChTime();
-        m_data[1][it] = nodetip->pos.z; // Note that z component is the second row
-        m_data[2][it] = nodetip->pos.x;
-        m_data[3][it] = nodetip->pos.y;
+        m_data[1][it] = nodetip->pos.z(); // Note that z component is the second row
+        m_data[2][it] = nodetip->pos.x();
+        m_data[3][it] = nodetip->pos.y();
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
         csv.write_to_file("UT_ANCFShellLam.txt");*/
     }

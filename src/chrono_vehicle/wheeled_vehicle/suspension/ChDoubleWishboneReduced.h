@@ -59,10 +59,10 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     virtual ~ChDoubleWishboneReduced() {}
 
     /// Specify whether or not this suspension can be steered.
-    virtual bool IsSteerable() const override { return true; }
+    virtual bool IsSteerable() const final override { return true; }
 
     /// Specify whether or not this is an independent suspension.
-    virtual bool IsIndependent() const override { return true; }
+    virtual bool IsIndependent() const final override { return true; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified

@@ -105,19 +105,19 @@ void ChMaterialShellReissnerIsothropic::ComputeStress(
         double D = C * h * h / 12.;
         double F = G * h * h * h / 12.;
 
-        n_u.x = eps_u.x * C + eps_v.y * m_nu * C;
-        n_u.y = eps_u.y * 2 * G * h;
-        n_u.z = eps_u.z * m_alpha * G * h;
-        n_v.x = eps_v.x * 2 * G * h;
-        n_v.y = eps_v.y * C + eps_u.x * m_nu * C;
-        n_v.z = eps_v.z * m_alpha * G * h;
+        n_u.x() = eps_u.x() * C + eps_v.y() * m_nu * C;
+        n_u.y() = eps_u.y() * 2 * G * h;
+        n_u.z() = eps_u.z() * m_alpha * G * h;
+        n_v.x() = eps_v.x() * 2 * G * h;
+        n_v.y() = eps_v.y() * C + eps_u.x() * m_nu * C;
+        n_v.z() = eps_v.z() * m_alpha * G * h;
 
-        m_u.x = kur_u.x * 2 * F;
-        m_u.y = kur_u.y * D + kur_v.x * (-m_nu * D);
-        m_u.z = kur_u.z * m_beta * F;
-        m_v.x = kur_v.x * D + kur_u.y * (-m_nu * D);
-        m_v.y = kur_v.y * 2 * F;
-        m_v.z = kur_v.z * m_beta * F;
+        m_u.x() = kur_u.x() * 2 * F;
+        m_u.y() = kur_u.y() * D + kur_v.x() * (-m_nu * D);
+        m_u.z() = kur_u.z() * m_beta * F;
+        m_v.x() = kur_v.x() * D + kur_u.y() * (-m_nu * D);
+        m_v.y() = kur_v.y() * 2 * F;
+        m_v.z() = kur_v.z() * m_beta * F;
     } else {
         // throw ChException("ComputeTangentC not yet implemented for non-centered layers");
         double G = m_E / (2. * (1. + m_nu));
@@ -132,19 +132,19 @@ void ChMaterialShellReissnerIsothropic::ComputeStress(
         double h2 = 0.5 * (pow(z_sup, 2) - pow(z_inf, 2));
         double h3 = (1. / 3.) * (pow(z_sup, 3) - pow(z_inf, 3));
 
-        n_u.x = h1 * (eps_u.x * Q11 + eps_v.y * Q12) + h2 * (kur_u.y * Q11 + kur_v.x * Q12);
-        n_u.y = h1 * (eps_u.y * Q33) + h2 * (kur_u.x * Q33);
-        n_u.z = h1 * (eps_u.z * Qss);
-        n_v.x = h1 * (eps_v.x * Q44) + h2 * (kur_v.y * Q44);
-        n_v.y = h1 * (eps_u.x * Q12 + eps_v.y * Q22) + h2 * (kur_u.y * Q12 + kur_v.x * Q22);
-        n_v.z = h1 * (eps_v.z * Qss);
+        n_u.x() = h1 * (eps_u.x() * Q11 + eps_v.y() * Q12) + h2 * (kur_u.y() * Q11 + kur_v.x() * Q12);
+        n_u.y() = h1 * (eps_u.y() * Q33) + h2 * (kur_u.x() * Q33);
+        n_u.z() = h1 * (eps_u.z() * Qss);
+        n_v.x() = h1 * (eps_v.x() * Q44) + h2 * (kur_v.y() * Q44);
+        n_v.y() = h1 * (eps_u.x() * Q12 + eps_v.y() * Q22) + h2 * (kur_u.y() * Q12 + kur_v.x() * Q22);
+        n_v.z() = h1 * (eps_v.z() * Qss);
 
-        m_u.x = h2 * (eps_u.y * Q33) + h3 * (kur_u.x * Q33);
-        m_u.y = h2 * (eps_u.x * Q11 + eps_v.y * Q12) + h3 * (kur_u.y * Q11 + kur_v.x * Q12);
-        m_u.z = h3 * (eps_u.z * Qdd);
-        m_v.x = h2 * (eps_u.x * Q12 + eps_v.y * Q22) + h3 * (kur_u.y * Q12 + kur_v.x * Q22);
-        m_v.y = h2 * (eps_v.x * Q44) + h3 * (kur_v.y * Q44);
-        m_v.z = h3 * (eps_v.z * Qdd);
+        m_u.x() = h2 * (eps_u.y() * Q33) + h3 * (kur_u.x() * Q33);
+        m_u.y() = h2 * (eps_u.x() * Q11 + eps_v.y() * Q12) + h3 * (kur_u.y() * Q11 + kur_v.x() * Q12);
+        m_u.z() = h3 * (eps_u.z() * Qdd);
+        m_v.x() = h2 * (eps_u.x() * Q12 + eps_v.y() * Q22) + h3 * (kur_u.y() * Q12 + kur_v.x() * Q22);
+        m_v.y() = h2 * (eps_v.x() * Q44) + h3 * (kur_v.y() * Q44);
+        m_v.z() = h3 * (eps_v.z() * Qdd);
     }
 }
 

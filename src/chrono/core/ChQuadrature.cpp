@@ -11,9 +11,9 @@
 //
 // File author: Alessandro Tasora
 
-#include <stdlib.h>
-#include <math.h>
-#include <float.h>
+#include <cstdlib>
+#include <cmath>
+#include <cfloat>
 
 #include "chrono/core/ChQuadrature.h"
 #include "chrono/core/ChMatrixDynamic.h"

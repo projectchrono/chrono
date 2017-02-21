@@ -100,9 +100,8 @@ void test_1() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(40);
@@ -203,9 +202,8 @@ void test_2() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -323,9 +321,8 @@ void test_3() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -448,9 +445,8 @@ void test_4() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -609,9 +605,8 @@ void test_5() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);

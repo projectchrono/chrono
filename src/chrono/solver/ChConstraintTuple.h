@@ -736,6 +736,7 @@ class ChVariableTupleCarrier_1vars {
   public:
     typedef ChConstraintTuple_1vars<ChVariableTupleCarrier_1vars<N1> > type_constraint_tuple;
     static const int nvars1 = N1;
+    ////virtual ~ChVariableTupleCarrier_1vars() {}
     virtual ChVariables* GetVariables1() = 0;
 };
 
@@ -745,6 +746,7 @@ class ChVariableTupleCarrier_2vars {
     typedef ChConstraintTuple_3vars<ChVariableTupleCarrier_2vars<N1, N2> > type_constraint_tuple;
     static int const nvars1 = N1;
     static int const nvars2 = N2;
+    virtual ~ChVariableTupleCarrier_2vars() {}
     virtual ChVariables* GetVariables1() = 0;
     virtual ChVariables* GetVariables2() = 0;
 };
@@ -756,6 +758,7 @@ class ChVariableTupleCarrier_3vars {
     static int const nvars1 = N1;
     static int const nvars2 = N2;
     static int const nvars3 = N3;
+    virtual ~ChVariableTupleCarrier_3vars() {}
     virtual ChVariables* GetVariables1() = 0;
     virtual ChVariables* GetVariables2() = 0;
     virtual ChVariables* GetVariables3() = 0;
@@ -769,6 +772,7 @@ class ChVariableTupleCarrier_4vars {
     static int const nvars2 = N2;
     static int const nvars3 = N3;
     static int const nvars4 = N4;
+    virtual ~ChVariableTupleCarrier_4vars() {}
     virtual ChVariables* GetVariables1() = 0;
     virtual ChVariables* GetVariables2() = 0;
     virtual ChVariables* GetVariables3() = 0;

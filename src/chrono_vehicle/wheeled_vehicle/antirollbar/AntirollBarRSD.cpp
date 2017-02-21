@@ -46,7 +46,7 @@ AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

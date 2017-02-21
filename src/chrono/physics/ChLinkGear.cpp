@@ -31,9 +31,6 @@ ChLinkGear::ChLinkGear()
       r1(0),
       r2(0),
       contact_pt(VNULL) {
-    // initializes type
-    type = LNK_GEAR;
-
     local_shaft1.SetIdentity();
     local_shaft2.SetIdentity();
 
@@ -129,14 +126,14 @@ void ChLinkGear::UpdateTime(double mytime) {
 
     // compute actual rotation of the two wheels (relative to truss).
     ChVector<> md1 = abs_shaft1.GetA().MatrT_x_Vect(-vbdist);
-    md1.z = 0;
+    md1.z() = 0;
     md1 = Vnorm(md1);
     ChVector<> md2 = abs_shaft2.GetA().MatrT_x_Vect(-vbdist);
-    md2.z = 0;
+    md2.z() = 0;
     md2 = Vnorm(md2);
 
-    double periodic_a1 = ChAtan2(md1.x, md1.y);
-    double periodic_a2 = ChAtan2(md2.x, md2.y);
+    double periodic_a1 = ChAtan2(md1.x(), md1.y());
+    double periodic_a2 = ChAtan2(md2.x(), md2.y());
     double old_a1 = a1;
     double old_a2 = a2;
     double turns_a1 = floor(old_a1 / CH_C_2PI);
@@ -173,19 +170,19 @@ void ChLinkGear::UpdateTime(double mytime) {
     ma1.Set_A_axis(mx, my, mz);
 
     // rotate csys because of beta
-    vrota.x = 0.0;
-    vrota.y = beta;
-    vrota.z = 0.0;
+    vrota.x() = 0.0;
+    vrota.y() = beta;
+    vrota.z() = 0.0;
     mrotma.Set_A_Rxyz(vrota);
     marot_beta.MatrMultiply(ma1, mrotma);
     // rotate csys because of alpha
-    vrota.x = 0.0;
-    vrota.y = 0.0;
-    vrota.z = alpha;
-    if (react_force.x < 0)
-        vrota.z = alpha;
+    vrota.x() = 0.0;
+    vrota.y() = 0.0;
+    vrota.z() = alpha;
+    if (react_force.x() < 0)
+        vrota.z() = alpha;
     else
-        vrota.z = -alpha;
+        vrota.z() = -alpha;
     mrotma.Set_A_Rxyz(vrota);
     ma1.MatrMultiply(marot_beta, mrotma);
 
@@ -243,8 +240,8 @@ void ChLinkGear::UpdateTime(double mytime) {
         if (m_delta < -(CH_C_PI / 4.0))
             m_delta = -(CH_C_PI / 4.0);
 
-        vrota.x = vrota.y = 0.0;
-        vrota.z = -m_delta;
+        vrota.x() = vrota.y() = 0.0;
+        vrota.z() = -m_delta;
         mrotma.Set_A_Rxyz(vrota);  // rotate about Z of shaft to correct
         mmark1 = abs_shaft1.GetA().MatrT_x_Vect(Vsub(mmark1, Get_shaft_pos1()));
         mmark1 = mrotma.Matr_x_Vect(mmark1);
@@ -281,7 +278,7 @@ void ChLinkGear::UpdateTime(double mytime) {
 
 void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkGear>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -304,7 +301,7 @@ void ChLinkGear::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkGear::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkGear>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

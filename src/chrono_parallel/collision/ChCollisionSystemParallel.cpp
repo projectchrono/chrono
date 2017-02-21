@@ -92,26 +92,94 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
     }
 }
 
+#define ERASE_MACRO(x, y) x.erase(x.begin() + y);
+#define ERASE_MACRO_LEN(x, y, z) x.erase(x.begin() + y, x.begin() + y + z);
+
+
 void ChCollisionSystemParallel::Remove(ChCollisionModel* model) {
-    //            ChCollisionModelGPU *body = (ChCollisionModelGPU *) model;
-    //            int body_id = ((ChBodyGPU *) body->GetBody())->id;
-    //
-    //            //for (int j = 0; j < body->GetNObjects(); j++) {
-    //            for (int i = 0; i < data_manager->host_typ_data.size(); i++) {
-    //                if (data_manager->host_typ_data[i].z == body_id) {
-    //                    data_manager->host_ObA_data.erase(data_manager->host_ObA_data.begin() + i);
-    //                    data_manager->host_ObB_data.erase(data_manager->host_ObB_data.begin() + i);
-    //                    data_manager->host_ObC_data.erase(data_manager->host_ObC_data.begin() + i);
-    //                    data_manager->host_ObR_data.erase(data_manager->host_ObR_data.begin() + i);
-    //                    data_manager->host_fam_data.erase(data_manager->host_fam_data.begin() + i);
-    //                    data_manager->host_typ_data.erase(data_manager->host_typ_data.begin() + i);
-    //                    data_manager->num_models--;
-    //                    return;
-    //                }
-    //            }
-    //
-    //            //}
+#if 0
+	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+	int body_id = pmodel->GetBody()->GetId();
+	//loop over the models we nned to remove
+	//std::cout << "removing: " << pmodel->GetNObjects() << " objects" << std::endl;
+	for (int j = 0; j < pmodel->GetNObjects(); j++) {
+		//find a model to remove
+		bool removed = false;
+		for (int i = 0; i < data_manager->shape_data.id_rigid.size(); i++) {
+			if (data_manager->shape_data.id_rigid[i] == body_id) {
+				int index = i;
+				data_manager->num_rigid_shapes--;
+
+				int start = data_manager->shape_data.start_rigid[index];
+				int length = data_manager->shape_data.length_rigid[index];
+				int type = data_manager->shape_data.typ_rigid[index];
+
+				//std::cout << "removing: type " << type << " " << start<< " " <<j << std::endl;
+
+
+				switch (type) {
+				case chrono::collision::SPHERE:
+					ERASE_MACRO_LEN(data_manager->shape_data.sphere_rigid, start, length);
+					break;
+				case chrono::collision::ELLIPSOID:
+					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+					break;
+				case chrono::collision::BOX:
+					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+					break;
+				case chrono::collision::CYLINDER:
+					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+					break;
+				case chrono::collision::CONE:
+					ERASE_MACRO_LEN(data_manager->shape_data.box_like_rigid, start, length);
+					break;
+				case chrono::collision::CAPSULE:
+					ERASE_MACRO_LEN(data_manager->shape_data.capsule_rigid, start, length);
+					break;
+				case chrono::collision::ROUNDEDBOX:
+					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+					break;
+				case chrono::collision::ROUNDEDCYL:
+					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+					break;
+				case chrono::collision::ROUNDEDCONE:
+					ERASE_MACRO_LEN(data_manager->shape_data.rbox_like_rigid, start, length);
+					break;
+				case chrono::collision::CONVEX:
+					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, length);
+					break;
+				case chrono::collision::TRIANGLEMESH:
+					ERASE_MACRO_LEN(data_manager->shape_data.convex_rigid, start, 3);
+					break;
+				}
+
+				ERASE_MACRO(data_manager->shape_data.ObA_rigid, index);
+				ERASE_MACRO(data_manager->shape_data.ObR_rigid, index);
+				ERASE_MACRO(data_manager->shape_data.start_rigid, index);
+				ERASE_MACRO(data_manager->shape_data.length_rigid, index);
+
+				ERASE_MACRO(data_manager->shape_data.fam_rigid, index);
+				ERASE_MACRO(data_manager->shape_data.typ_rigid, index);
+				ERASE_MACRO(data_manager->shape_data.id_rigid, index);
+				removed = true;
+				break;
+			}
+		}
+		//std::cout << "decrement start "<< std::endl;
+		if (removed) {
+			//we removed a model, all of the starts are off by one, decrement all starts before removing a second model
+			for (int i = 0; i < data_manager->shape_data.start_rigid.size(); i++) {
+				if (data_manager->shape_data.start_rigid[i] != 0) {
+					data_manager->shape_data.start_rigid[i] -= 1;
+				}
+			}
+		}
+
+	}
+#endif
 }
+#undef ERASE_MACRO
+#undef ERASE_MACRO_LEN
 
 void ChCollisionSystemParallel::Run() {
     LOG(INFO) << "ChCollisionSystemParallel::Run()";
@@ -124,7 +192,7 @@ void ChCollisionSystemParallel::Run() {
 
 #pragma omp parallel for
         for (int i = 0; i < data_manager->host_data.active_rigid.size(); i++) {
-            if (data_manager->host_data.active_rigid[i] == true && data_manager->host_data.collide_rigid[i] == true) {
+            if (data_manager->host_data.active_rigid[i] != 0 && data_manager->host_data.collide_rigid[i] != 0) {
                 data_manager->host_data.active_rigid[i] = body_active[i];
             }
         }

@@ -216,9 +216,9 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par1.Get_Cq_a()->ElementN(1) = 0;
         m_cnstr_par1.Get_Cq_a()->ElementN(2) = 0;
 
-        m_cnstr_par1.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_par1.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_par1.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_par1.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_par1.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_par1.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, z1_2);
@@ -227,9 +227,9 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par1.Get_Cq_b()->ElementN(1) = 0;
         m_cnstr_par1.Get_Cq_b()->ElementN(2) = 0;
 
-        m_cnstr_par1.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_par1.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_par1.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_par1.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_par1.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_par1.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 
     // Second constraint (par2)
@@ -244,9 +244,9 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par2.Get_Cq_a()->ElementN(1) = 0;
         m_cnstr_par2.Get_Cq_a()->ElementN(2) = 0;
 
-        m_cnstr_par2.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_par2.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_par2.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_par2.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_par2.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_par2.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_y2, z1_2);
@@ -255,9 +255,9 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         m_cnstr_par2.Get_Cq_b()->ElementN(1) = 0;
         m_cnstr_par2.Get_Cq_b()->ElementN(2) = 0;
 
-        m_cnstr_par2.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_par2.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_par2.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_par2.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_par2.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_par2.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 
     // Third constraint (dot)
@@ -268,24 +268,24 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = Vcross(m_z1, d12_1) - Vcross(m_p1, m_z1);
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(0) = -z1_abs.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(1) = -z1_abs.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(2) = -z1_abs.z;
+        m_cnstr_dot.Get_Cq_a()->ElementN(0) = -z1_abs.x();
+        m_cnstr_dot.Get_Cq_a()->ElementN(1) = -z1_abs.y();
+        m_cnstr_dot.Get_Cq_a()->ElementN(2) = -z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dot.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_p2, z1_2);
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(0) = z1_abs.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(1) = z1_abs.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(2) = z1_abs.z;
+        m_cnstr_dot.Get_Cq_b()->ElementN(0) = z1_abs.x();
+        m_cnstr_dot.Get_Cq_b()->ElementN(1) = z1_abs.y();
+        m_cnstr_dot.Get_Cq_b()->ElementN(2) = z1_abs.z();
 
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dot.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 
     // Fourth constraint (dist)
@@ -296,24 +296,24 @@ void ChLinkRevoluteTranslational::Update(double time, bool update_assets) {
         // Set Jacobian w.r.t. states of Body 1
         ChVector<> Phi_pi1 = -Vcross(m_p1, x2_1);
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(0) = -x2_abs.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(1) = -x2_abs.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(2) = -x2_abs.z;
+        m_cnstr_dist.Get_Cq_a()->ElementN(0) = -x2_abs.x();
+        m_cnstr_dist.Get_Cq_a()->ElementN(1) = -x2_abs.y();
+        m_cnstr_dist.Get_Cq_a()->ElementN(2) = -x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x;
-        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y;
-        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z;
+        m_cnstr_dist.Get_Cq_a()->ElementN(3) = Phi_pi1.x();
+        m_cnstr_dist.Get_Cq_a()->ElementN(4) = Phi_pi1.y();
+        m_cnstr_dist.Get_Cq_a()->ElementN(5) = Phi_pi1.z();
 
         // Set Jacobian w.r.t. states of Body 2
         ChVector<> Phi_pi2 = Vcross(m_x2, d12_2) + Vcross(m_p2, m_x2);
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(0) = x2_abs.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(1) = x2_abs.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(2) = x2_abs.z;
+        m_cnstr_dist.Get_Cq_b()->ElementN(0) = x2_abs.x();
+        m_cnstr_dist.Get_Cq_b()->ElementN(1) = x2_abs.y();
+        m_cnstr_dist.Get_Cq_b()->ElementN(2) = x2_abs.z();
 
-        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x;
-        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y;
-        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z;
+        m_cnstr_dist.Get_Cq_b()->ElementN(3) = Phi_pi2.x();
+        m_cnstr_dist.Get_Cq_b()->ElementN(4) = Phi_pi2.y();
+        m_cnstr_dist.Get_Cq_b()->ElementN(5) = Phi_pi2.z();
     }
 }
 
@@ -353,13 +353,13 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = 0;
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = 0;
+    react_force.y() = 0;
+    react_force.z() = 0;
 
-    react_torque.x = 0;
-    react_torque.y = 0;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = 0;
+    react_torque.z() = 0;
 }
 
 void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  ///< offset in L multipliers
@@ -497,13 +497,13 @@ void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
     //  which is defined on body 1, the x-axis is along the vector from the
     //  point on body 1 to the point on body 2.  The z axis is along the revolute
     //  axis defined for the joint)
-    react_force.x = 0;
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = 0;
+    react_force.y() = 0;
+    react_force.z() = 0;
 
-    react_torque.x = 0;
-    react_torque.y = 0;
-    react_torque.z = 0;
+    react_torque.x() = 0;
+    react_torque.y() = 0;
+    react_torque.z() = 0;
 }
 
 // -----------------------------------------------------------------------------
@@ -569,7 +569,7 @@ ChVector<> ChLinkRevoluteTranslational::Get_react_torque_body2() {
 
 void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRevoluteTranslational>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -586,7 +586,7 @@ void ChLinkRevoluteTranslational::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteTranslational::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

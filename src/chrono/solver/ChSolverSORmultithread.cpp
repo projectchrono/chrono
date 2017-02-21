@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "chrono/parallel/ChThreadsSync.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
@@ -251,7 +251,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
 // When the solver object is created, threads are also
 // created and initialized, in 'wait' mode.
 
-ChSolverSORmultithread::ChSolverSORmultithread(char* uniquename,
+ChSolverSORmultithread::ChSolverSORmultithread(const char* uniquename,
                                                int nthreads,
                                                int mmax_iters,
                                                bool mwarm_start,

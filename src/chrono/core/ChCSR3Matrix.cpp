@@ -236,7 +236,7 @@ namespace chrono {
 		{
 			for (auto trail_i = leadIndex[lead_i]; trail_i<leadIndex[lead_i+1]; ++trail_i)
 			{
-				if (initialized_element[trail_i] && abs(values[trail_i])>pruning_threshold)
+				if (initialized_element[trail_i] && std::abs(values[trail_i])>pruning_threshold)
 				{
 					values[trail_i] = values[trail_i_dest];
 					trailIndex[trail_i] = trailIndex[trail_i_dest];

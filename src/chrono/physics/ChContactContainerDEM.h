@@ -147,6 +147,8 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChContactContainerDEM,0)
+
 }  // end namespace chrono
 
 #endif

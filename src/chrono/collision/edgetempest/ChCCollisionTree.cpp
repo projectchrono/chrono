@@ -9,8 +9,8 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 
 #include "chrono/collision/edgetempest/ChCMatVec.h"
 #include "chrono/collision/edgetempest/ChCGetTime.h"
@@ -108,12 +108,12 @@ void ChCollisionTree::UpdateAbsoluteAABB(double envelope) {
 
     GetBoundingBox(xmin, xmax, ymin, ymax, zmin, zmax, &at);
 
-    m_absoluteAABB.m_beginX.m_value = xmin - envelope + m_body->GetPos().x;
-    m_absoluteAABB.m_endX.m_value = xmax + envelope + m_body->GetPos().x;
-    m_absoluteAABB.m_beginY.m_value = ymin - envelope + m_body->GetPos().y;
-    m_absoluteAABB.m_endY.m_value = ymax + envelope + m_body->GetPos().y;
-    m_absoluteAABB.m_beginZ.m_value = zmin - envelope + m_body->GetPos().z;
-    m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z;
+    m_absoluteAABB.m_beginX.m_value = xmin - envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_endX.m_value = xmax + envelope + m_body->GetPos().x();
+    m_absoluteAABB.m_beginY.m_value = ymin - envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_endY.m_value = ymax + envelope + m_body->GetPos().y();
+    m_absoluteAABB.m_beginZ.m_value = zmin - envelope + m_body->GetPos().z();
+    m_absoluteAABB.m_endZ.m_value = zmax + envelope + m_body->GetPos().z();
 }
 
 }  // end namespace collision

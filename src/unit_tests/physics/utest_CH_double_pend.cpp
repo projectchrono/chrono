@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include <math.h>
+#include <cmath>
 #include <valarray>
 
 #include "chrono/physics/ChSystem.h"
@@ -202,10 +202,10 @@ void ChronoModel::Simulate(double step, int num_steps) {
     for (int it = 0; it < num_steps; it++) {
         // Save current state output information.
         m_data[0][it] = m_system->GetChTime();
-        m_data[1][it] = m_pend2->GetPos().x;
-        m_data[2][it] = m_pend2->GetPos().y;
-        m_data[3][it] = m_pend2->GetPos_dt().x;
-        m_data[4][it] = m_pend2->GetPos_dt().y;
+        m_data[1][it] = m_pend2->GetPos().x();
+        m_data[2][it] = m_pend2->GetPos().y();
+        m_data[3][it] = m_pend2->GetPos_dt().x();
+        m_data[4][it] = m_pend2->GetPos_dt().y();
 
         // Save current constraint violations.
         m_cnstr_data[0][it] = m_system->GetChTime();
@@ -247,10 +247,10 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
     std::shared_ptr<ChSystem> system = model.GetSystem();
 
     // Set integrator and modify parameters.
-    system->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     // Set verbose solver and integrator (for debugging).
-    ////system->GetSolverSpeed()->SetVerbose(true);
+    ////system->GetSolver()->SetVerbose(true);
     ////system->GetTimestepper()->SetVerbose(true);
 
     // Simulate the model for the specified number of steps.
@@ -288,18 +288,18 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     ////system->SetMaxItersSolverStab(200);
     ////system->SetTolForce(1e-5);
 
-    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
-    ////ChSolverMINRES* solver = static_cast<ChSolverMINRES*>(system->GetSolverSpeed());
+    ////system->SetSolverType(ChSolver::Type::MINRES);
+    ////auto solver = std::static_pointer_cast<ChSolverMINRES>(system.GetSolver());
 
     // Set integrator and modify parameters.
-    system->SetIntegrationType(ChSystem::INT_HHT);
+    system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(0);
     integrator->SetMaxiters(20);
     integrator->SetAbsTolerances(1e-6);
 
     // Set verbose solver and integrator (for debugging).
-    ////system->GetSolverSpeed()->SetVerbose(true);
+    ////system->GetSolver()->SetVerbose(true);
     ////system->GetTimestepper()->SetVerbose(true);
 
     // Simulate the model for the specified number of steps.

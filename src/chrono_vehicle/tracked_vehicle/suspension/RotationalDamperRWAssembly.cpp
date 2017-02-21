@@ -52,7 +52,7 @@ void RotationalDamperRWAssembly::LoadRoadWheel(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a road-wheel specification file.
     assert(d.HasMember("Type"));
@@ -85,7 +85,7 @@ RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filena
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

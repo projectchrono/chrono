@@ -174,9 +174,9 @@ class ChCoordsys {
 
     /// Force to z=0, and z rotation only. No normalization to quaternion, however.
     void Force2D() {
-        pos.z = 0;
-        rot.e1 = 0;
-        rot.e2 = 0;
+        pos.z() = 0;
+        rot.e1() = 0;
+        rot.e2() = 0;
     }
 
     /// Returns true if coordsys is identical to other coordsys
@@ -261,7 +261,7 @@ class ChCoordsys {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
         marchive << CHNVP(pos);
         marchive << CHNVP(rot);
@@ -271,13 +271,16 @@ class ChCoordsys {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
     }
 
 };
+
+CH_CLASS_VERSION(ChCoordsys<double>,0)
+
 
 //
 // MIXED ARGUMENT OPERATORS
@@ -398,12 +401,10 @@ typedef ChCoordsys<float> CoordsysF;
 /// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
 ChApi Coordsys Force2Dcsys(const Coordsys& cs);
 
-//
 // CONSTANTS
-//
 
-#define CSYSNULL ChCoordsys<double>(VNULL,QNULL)
-#define CSYSNORM ChCoordsys<double>(VNULL,QUNIT)
+ChApi extern const ChCoordsys<double> CSYSNULL;
+ChApi extern const ChCoordsys<double> CSYSNORM;
 
 }  // end namespace chrono
 

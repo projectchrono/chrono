@@ -323,7 +323,7 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback*
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->ReportContactCallback(
-            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), *(*itercontact)->GetContactPlane(),
+            (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
             (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
             VNULL,  // no react torques
             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
@@ -422,7 +422,7 @@ void ChContactContainerDEM::ConstraintsFbLoadForces(double factor) {
 
 void ChContactContainerDEM::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContactContainerDEM>();
     // serialize parent class
     ChContactContainerBase::ArchiveOUT(marchive);
     // serialize all member data:
@@ -432,7 +432,7 @@ void ChContactContainerDEM::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChContactContainerDEM::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContactContainerDEM>();
     // deserialize parent class
     ChContactContainerBase::ArchiveIN(marchive);
     // stream in all member data:

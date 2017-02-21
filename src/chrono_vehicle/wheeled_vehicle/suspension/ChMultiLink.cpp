@@ -82,14 +82,14 @@ void ChMultiLink::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
         ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
         m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-        rel_dir.y = -rel_dir.y;
+        rel_dir.y() = -rel_dir.y();
         m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
@@ -305,7 +305,7 @@ void ChMultiLink::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -408,6 +408,12 @@ void ChMultiLink::AddVisualizationAssets(VisualizationType vis) {
 
     m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+
+    // Add visualization for the tie-rods
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 void ChMultiLink::RemoveVisualizationAssets() {
@@ -424,6 +430,15 @@ void ChMultiLink::RemoveVisualizationAssets() {
 
     m_trailingLink[LEFT]->GetAssets().clear();
     m_trailingLink[RIGHT]->GetAssets().clear();
+
+    m_spring[LEFT]->GetAssets().clear();
+    m_spring[RIGHT]->GetAssets().clear();
+
+    m_shock[LEFT]->GetAssets().clear();
+    m_shock[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

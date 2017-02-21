@@ -94,11 +94,11 @@ int main(int argc, char* argv[]) {
   system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  system->GetSettings()->solver.solver_mode = SLIDING;
+  system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
   system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
   system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-  system->ChangeSolverType(APGD);
+  system->ChangeSolverType(SolverType::APGD);
 
   // Define a couple of rotations for later use
   ChQuaternion<> y2x;
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   // Create the ground body
   // ----------------------
 
-  auto ground = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto ground = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   ground->SetBodyFixed(true);
   system->AddBody(ground);
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
   // Create a pendulum modeled using ChBody
   // --------------------------------------
 
-  auto pend_1 = std::make_shared<ChBody>(new ChCollisionModelParallel);
+  auto pend_1 = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
   system->AddBody(pend_1);
   pend_1->SetIdentifier(1);
   pend_1->SetBodyFixed(false);
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
   // Create a pendulum modeled using ChBodyAuxRef
   // --------------------------------------------
 
-  auto pend_2 = std::make_shared<ChBodyAuxRef>(new ChCollisionModelParallel);
+  auto pend_2 = std::make_shared<ChBodyAuxRef>(std::make_shared<ChCollisionModelParallel>());
   system->Add(pend_2);
   pend_2->SetIdentifier(2);
   pend_2->SetBodyFixed(false);
@@ -249,19 +249,19 @@ bool VerifySolution(double time,                           // current time
   ChQuaternion<> quat_1 = pend_1->GetRot();
   ChQuaternion<> quat_2 = pend_2->GetRot();
 
-  if (std::abs(pos_1.x - pos_2.x) > pos_tol) {
-    std::cout << "   at t = " << time << "   pos_1.x - pos_2.x = " << pos_1.x - pos_2.x << std::endl;
+  if (std::abs(pos_1.x() - pos_2.x()) > pos_tol) {
+    std::cout << "   at t = " << time << "   pos_1.x - pos_2.x = " << pos_1.x() - pos_2.x() << std::endl;
     return false;
   }
-  if (std::abs(pos_1.z - pos_2.z) > pos_tol) {
-    std::cout << "   at t = " << time << "   pos_1.z - pos_2.z = " << pos_1.z - pos_2.z << std::endl;
+  if (std::abs(pos_1.z() - pos_2.z()) > pos_tol) {
+    std::cout << "   at t = " << time << "   pos_1.z - pos_2.z = " << pos_1.z() - pos_2.z() << std::endl;
     return false;
   }
 
   ChQuaternion<> quat_delta = quat_1 - quat_2;
   if (quat_delta.Length() > quat_tol) {
-    std::cout << "   at t = " << time << "   quat_1 - quat_2 = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
-              << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
+    std::cout << "   at t = " << time << "   quat_1 - quat_2 = " << quat_delta.e0() << "  " << quat_delta.e1() << "  "
+              << quat_delta.e2() << "  " << quat_delta.e3() << std::endl;
     return false;
   }
 
@@ -273,15 +273,15 @@ bool VerifySolution(double time,                           // current time
 
   ChVector<> vel_delta = vel_1 - vel_2;
   if (vel_delta.Length() > vel_tol) {
-    std::cout << "   at t = " << time << "   vel_1 - vel_2 = " << vel_delta.x << "  " << vel_delta.y << "  "
-              << vel_delta.z << std::endl;
+    std::cout << "   at t = " << time << "   vel_1 - vel_2 = " << vel_delta.x() << "  " << vel_delta.y() << "  "
+              << vel_delta.z() << std::endl;
     return false;
   }
 
   ChVector<> avel_delta = avel_1 - avel_2;
   if (avel_delta.Length() > avel_tol) {
-    std::cout << "   at t = " << time << "   avel_1 - avel_2 = " << avel_delta.x << "  " << avel_delta.y << "  "
-              << avel_delta.z << std::endl;
+    std::cout << "   at t = " << time << "   avel_1 - avel_2 = " << avel_delta.x() << "  " << avel_delta.y() << "  "
+              << avel_delta.z() << std::endl;
     return false;
   }
 
@@ -293,15 +293,15 @@ bool VerifySolution(double time,                           // current time
 
   ChVector<> acc_delta = acc_1 - acc_2;
   if (acc_delta.Length() > acc_tol) {
-    std::cout << "   at t = " << time << "   acc_1 - acc_2 = " << acc_delta.x << "  " << acc_delta.y << "  "
-              << acc_delta.z << std::endl;
+    std::cout << "   at t = " << time << "   acc_1 - acc_2 = " << acc_delta.x() << "  " << acc_delta.y() << "  "
+              << acc_delta.z() << std::endl;
     return false;
   }
 
   ChVector<> aacc_delta = aacc_1 - aacc_2;
   if (aacc_delta.Length() > aacc_tol) {
-    std::cout << "   at t = " << time << "   aacc_1 - aacc_2 = " << aacc_delta.x << "  " << aacc_delta.y << "  "
-              << aacc_delta.z << std::endl;
+    std::cout << "   at t = " << time << "   aacc_1 - aacc_2 = " << aacc_delta.x() << "  " << aacc_delta.y() << "  "
+              << aacc_delta.z() << std::endl;
     return false;
   }
 

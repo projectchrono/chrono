@@ -74,11 +74,11 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
 
   if (cm == ChMaterialSurfaceBase::DVI) {
     ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
-    systemDVI->GetSettings()->solver.solver_mode = SLIDING;
+    systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(APGD);
+    systemDVI->ChangeSolverType(SolverType::APGD);
   }
 
   return system;
@@ -288,7 +288,7 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
       std::abs(shaftA->GetPos_dtdt() - accA) > tol_acc)
     passed = false;
 
-  if (std::abs(bodyB->GetWvel_loc().z - avelB) > tol_acc || std::abs(bodyB->GetWacc_loc().z - aaccB) > tol_acc)
+  if (std::abs(bodyB->GetWvel_loc().z() - avelB) > tol_acc || std::abs(bodyB->GetWacc_loc().z() - aaccB) > tol_acc)
     passed = false;
 
   if (std::abs(shaft_torsionAC->GetTorqueReactionOn1() - spring_trqA) > tol_trq ||
@@ -296,7 +296,7 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
     passed = false;
 
   if (std::abs(shaftbody_connection->GetTorqueReactionOnShaft() - trqA) > tol_trq ||
-      std::abs(shaftbody_connection->GetTorqueReactionOnBody().z - trqB) > tol_trq)
+      std::abs(shaftbody_connection->GetTorqueReactionOnBody().z() - trqB) > tol_trq)
     passed = false;
 
   std::cout << (passed ? "PASSED" : "FAILED") << std::endl;
@@ -304,14 +304,14 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
   std::cout << "Time: " << time << "\n"
             << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPos_dt()
             << "  accel: " << shaftA->GetPos_dtdt() << "\n"
-            << "  body B angular speed on z: " << bodyB->GetWvel_loc().z << "  accel on z: " << bodyB->GetWacc_loc().z
+            << "  body B angular speed on z: " << bodyB->GetWvel_loc().z() << "  accel on z: " << bodyB->GetWacc_loc().z()
             << "\n"
             << "  AC spring, torque on A side: " << shaft_torsionAC->GetTorqueReactionOn1()
             << "  torque on C side: " << shaft_torsionAC->GetTorqueReactionOn2() << "\n"
             << "  torque on shaft A: " << shaftbody_connection->GetTorqueReactionOnShaft() << "\n"
-            << "  torque on body B: " << shaftbody_connection->GetTorqueReactionOnBody().x << " "
-            << shaftbody_connection->GetTorqueReactionOnBody().y << " "
-            << shaftbody_connection->GetTorqueReactionOnBody().z << " "
+            << "  torque on body B: " << shaftbody_connection->GetTorqueReactionOnBody().x() << " "
+            << shaftbody_connection->GetTorqueReactionOnBody().y() << " "
+            << shaftbody_connection->GetTorqueReactionOnBody().z() << " "
             << "\n\n\n";
 
   // Delete the system

@@ -12,24 +12,28 @@
 #include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkDistance.h"
+#include "chrono/physics/ChLinkRevoluteSpherical.h"
 
 namespace chrono {
 
 void ChPointPointDrawing::Update(ChPhysicsItem* updater, const ChCoordsys<>& coords) {
-	// Extract two positions from updater if it has any, and then update line geometry from these positions.
-	if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
-		UpdateLineGeometry(
-			coords.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos)
-			, coords.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoord().pos));
-	}
-	else if (auto link = dynamic_cast<ChLink*>(updater)) {
-		UpdateLineGeometry(
-			coords.TransformPointParentToLocal(link->GetBody1()->GetPos())
-			, coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));
-	}
+    // Extract two positions from updater if it has any, and then update line geometry from these positions.
+    if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoord().pos),
+                           coords.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoord().pos));
+    } else if (auto link_dist = dynamic_cast<ChLinkDistance*>(updater)) {
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
+                           coords.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));
+    } else if (auto link_rs = dynamic_cast<ChLinkRevoluteSpherical*>(updater)) {
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link_rs->GetPoint1Abs()),
+                           coords.TransformPointParentToLocal(link_rs->GetPoint2Abs()));
+    } else if (auto link = dynamic_cast<ChLink*>(updater)) {
+        UpdateLineGeometry(coords.TransformPointParentToLocal(link->GetBody1()->GetPos()),
+                           coords.TransformPointParentToLocal(link->GetBody2()->GetPos()));
+    }
 
-	// Inherit patent class (ChLineShape)
-	ChLineShape::Update(updater, coords);
+    // Inherit patent class (ChLineShape)
+    ChLineShape::Update(updater, coords);
 }
 
 // Set line geometry as a segment between two end point

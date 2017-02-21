@@ -15,7 +15,7 @@
 #ifndef CHC_ROUNDEDBOX_H
 #define CHC_ROUNDEDBOX_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
 
@@ -103,11 +103,11 @@ class ChApi ChRoundedBox : public ChGeometry {
     ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() { return Size.x * Size.y * Size.z * 8.0; };
+    double GetVolume() { return Size.x() * Size.y() * Size.z() * 8.0; };
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChRoundedBox>();
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
@@ -121,7 +121,7 @@ class ChApi ChRoundedBox : public ChGeometry {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChRoundedBox>();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
@@ -135,6 +135,9 @@ class ChApi ChRoundedBox : public ChGeometry {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChRoundedBox,0)
+
 }  // end namespace chrono
 
 #endif

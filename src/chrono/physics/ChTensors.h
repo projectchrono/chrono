@@ -15,7 +15,7 @@
 #ifndef CHTENSORS_H
 #define CHTENSORS_H
 
-#include <stdlib.h>
+#include <cstdlib>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMath.h"

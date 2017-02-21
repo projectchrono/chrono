@@ -485,7 +485,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // Revolute -------
-        #case (8)
+        #case (0)
             #read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
                   <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
@@ -496,7 +496,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // Prismatic -------
-        #case (5)
+        #case (2)
             #read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
                   <px-prismatic_halflen*dx,  pz-prismatic_halflen*dz, py-prismatic_halflen*dy>, 
@@ -507,7 +507,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // Universal ----
-        #case (16)
+        #case (3)
             #read (MyDataFile, px, py, pz, ux, uy, uz, vx, vy, vz)
             cylinder {
                   <px-revolute_halflen*ux,  pz-revolute_halflen*uz, py-revolute_halflen*uy>, 
@@ -524,7 +524,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // Linkspring ------
-        #case (25)
+        #case (6)
             #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
             cylinder {
               <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius
@@ -536,7 +536,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
     
         // LinkspringCB ------
-        #case (30)
+        #case (7)
             #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
             cylinder {
               <p1x,p1z,p1y>, <p2x,p2z,p2y>, spring_radius 
@@ -548,7 +548,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // LinkEngine ------
-        #case (31)
+        #case (5)
             #read (MyDataFile, px, py, pz, dx, dy, dz)
             cylinder {
                   <px-revolute_halflen*dx,  pz-revolute_halflen*dz, py-revolute_halflen*dy>, 
@@ -559,7 +559,7 @@ global_settings { ambient_light rgb<1, 1, 1> }
         #break
   
         // Distance constraint -------
-        #case (37)
+        #case (4)
             #read (MyDataFile, p1x, p1y, p1z, p2x, p2y, p2z)
             cylinder {
               <p1x,p1z,p1y>, <p2x,p2z,p2y>, distance_cnstr_radius

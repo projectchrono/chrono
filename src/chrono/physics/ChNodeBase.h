@@ -137,6 +137,9 @@ class ChApi ChNodeBase {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChNodeBase,0)
+
+
 }  // end namespace chrono
 
 #endif

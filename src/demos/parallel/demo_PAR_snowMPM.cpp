@@ -24,7 +24,7 @@
 // generated for post-processing with POV-Ray.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 
@@ -67,7 +67,7 @@ void AddBody(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(100);
@@ -79,8 +79,8 @@ void AddBody(ChSystemParallelDVI* sys) {
     ChVector<> hdim(.5, .5, 0.05);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, -hdim.z));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, hdim.z*10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, -hdim.z()));
+    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -99,7 +99,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -111,8 +111,8 @@ void AddContainer(ChSystemParallelDVI* sys) {
     ChVector<> hdim(.1, .1, .1);
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, 0));
-    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x, hdim.y, hdim.z), ChVector<>(0, 0, hdim.z*10));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, 0));
+    // utils::AddBoxGeometry(bin.get_ptr(), ChVector<>(hdim.x(), hdim.y(), hdim.z()), ChVector<>(0, 0, hdim.z()*10));
     bin->GetCollisionModel()->SetFamily(1);
     bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
     bin->GetCollisionModel()->BuildModel();
@@ -195,7 +195,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(0, 0, -5);
     }
     mpm_container->UpdatePosition(0);
@@ -206,7 +206,7 @@ void AddFluid(ChSystemParallelDVI* sys) {
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(-6, 0, 0);
     }
 // mpm_container->AddNodes(pos_fluid, vel_fluid);
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.solver_mode = SLIDING;
+    msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystem.GetSettings()->solver.max_iteration_normal = 0;
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
@@ -268,15 +268,15 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.use_full_inertia_tensor = false;
     msystem.GetSettings()->solver.contact_recovery_speed = 100;
     msystem.GetSettings()->solver.cache_step_length = true;
-    msystem.ChangeSolverType(BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    msystem.ChangeSolverType(SolverType::BB);
+    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
     AddFluid(&msystem);
 
     msystem.GetSettings()->collision.collision_envelope = (mpm_container->kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    msystem.SetLoggingLevel(LOG_TRACE, true);
-    msystem.SetLoggingLevel(LOG_INFO, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
 
@@ -290,7 +290,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "snowMPM", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1);
+    gl_window.SetCamera(ChVector<>(0, -.4, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .1f);
     gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.

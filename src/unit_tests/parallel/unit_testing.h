@@ -15,11 +15,11 @@
 // ChronoParallel unit testing common functions
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 #include <iostream>
-#include <float.h>
+#include <cfloat>
 
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChQuaternion.h"
@@ -32,7 +32,7 @@
 using namespace chrono;
 
 real3 ToReal3(const ChVector<real>& a) {
-    return real3(a.x, a.y, a.z);
+    return real3(a.x(), a.y(), a.z());
 }
 
 ChVector<real> ToChVector(const real3& a) {
@@ -44,7 +44,7 @@ ChQuaternion<real> ToChQuaternion(const quaternion& a) {
 }
 
 quaternion ToQuaternion(const ChQuaternion<real>& a) {
-    return quaternion(a.e0, a.e1, a.e2, a.e3);
+    return quaternion(a.e0(), a.e1(), a.e2(), a.e3());
 }
 
 ChMatrix33<real> ToChMatrix33(const Mat33& a) {
@@ -167,7 +167,7 @@ void WeakEqual(const SymMat22& a, const SymMat22& b, real COMPARE_EPS = C_EPSILO
     WeakEqual(a.x22, b.x22, COMPARE_EPS);
 }
 void OutputRowMatrix(const ChMatrixDynamic<real>& x) {
-    for (unsigned int ic = 0; ic < x.GetRows(); ic++) {
+    for (int ic = 0; ic < x.GetRows(); ic++) {
         std::cout << x(ic, 0) << std::endl;
     }
 }

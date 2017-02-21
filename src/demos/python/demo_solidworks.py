@@ -117,7 +117,7 @@ pov_exporter.AddAll()
 pov_exporter.ExportScript()
 
  # Configure the solver, if needed
-my_system.SetSolverType(chrono.ChSystem.SOLVER_BARZILAIBORWEIN)
+my_system.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 my_system.SetMaxItersSolverSpeed(40)
 my_system.SetMaxPenetrationRecoverySpeed(0.002)
 my_system.Set_G_acc(chrono.ChVectorD(0,-9.8,-9.80))

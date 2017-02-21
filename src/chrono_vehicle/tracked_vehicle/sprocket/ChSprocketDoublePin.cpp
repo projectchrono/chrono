@@ -154,14 +154,14 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
 
     // (2) Broadphase collision test: no contact if the connector's center is too far from the
     // center of the gear (test perfomed in the sprocket's x-z plane).
-    if (loc.x * loc.x + loc.z * loc.z > m_R_sum * m_R_sum)
+    if (loc.x() * loc.x() + loc.z() * loc.z() > m_R_sum * m_R_sum)
         return;
 
     // (3) Working in the frame of the sprocket, find the candidate tooth space.
     // This is the closest tooth space to the connector center point.
 
     // Angle formed by 'locC' and the line z>0
-    double angle = std::atan2(loc.x, loc.z);
+    double angle = std::atan2(loc.x(), loc.z());
     // Find angle of closest tooth space
     double alpha = m_beta * std::round(angle / m_beta);
     // Convert to degrees
@@ -169,15 +169,15 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
 
     // (4) Calculate the points that define the current tooth space.
     // Note that all these points will have Y = locC.y
-    ChVector<> p0L(-(m_gear_RT - m_gear_D) * m_sbeta, loc.y, (m_gear_RT - m_gear_D) * m_cbeta);
-    ChVector<> p0R(+(m_gear_RT - m_gear_D) * m_sbeta, loc.y, (m_gear_RT - m_gear_D) * m_cbeta);
+    ChVector<> p0L(-(m_gear_RT - m_gear_D) * m_sbeta, loc.y(), (m_gear_RT - m_gear_D) * m_cbeta);
+    ChVector<> p0R(+(m_gear_RT - m_gear_D) * m_sbeta, loc.y(), (m_gear_RT - m_gear_D) * m_cbeta);
 
     ChVector<> p1L = p0L + ChVector<>(+m_gear_D * m_cbeta, 0, m_gear_D * m_sbeta);
     ChVector<> p1R = p0R + ChVector<>(-m_gear_D * m_cbeta, 0, m_gear_D * m_sbeta);
 
-    ChVector<> p2L = ChVector<>(-m_gear_C * m_sbeta, loc.y, m_gear_C * m_cbeta) +
+    ChVector<> p2L = ChVector<>(-m_gear_C * m_sbeta, loc.y(), m_gear_C * m_cbeta) +
                      ChVector<>(+m_gear_D * m_cbeta, 0, m_gear_D * m_sbeta);
-    ChVector<> p2R = ChVector<>(+m_gear_C * m_sbeta, loc.y, m_gear_C * m_cbeta) +
+    ChVector<> p2R = ChVector<>(+m_gear_C * m_sbeta, loc.y(), m_gear_C * m_cbeta) +
                      ChVector<>(-m_gear_D * m_cbeta, 0, m_gear_D * m_sbeta);
 
     ChVector<> p3L = p2L + ChVector<>(+m_gear_R * m_cbeta, 0, m_gear_R * m_sbeta);
@@ -280,8 +280,8 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
-    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel();
-    contact.modelB = connector->GetCollisionModel();
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
+    contact.modelB = connector->GetCollisionModel().get();
     contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
@@ -320,8 +320,8 @@ void SprocketDoublePinContactCB::CheckCircleSegment(std::shared_ptr<ChBody> conn
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
-    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel();
-    contact.modelB = connector->GetCollisionModel();
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
+    contact.modelB = connector->GetCollisionModel().get();
     contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);

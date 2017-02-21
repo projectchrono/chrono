@@ -41,17 +41,17 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
         ConstSubVectorType E_n = subvector(E, 0, num_rigid_contacts);
 
         switch (data_manager->settings.solver.local_solver_mode) {
-            case BILATERAL: {
+            case SolverMode::BILATERAL: {
                 o_b = D_b_T * (M_invD_b * x_b) + E_b * x_b;
             } break;
 
-            case NORMAL: {
+            case SolverMode::NORMAL: {
                 blaze::DynamicVector<real> tmp = M_invD_b * x_b + M_invD_n * x_n;
                 o_b = D_b_T * tmp + E_b * x_b;
                 o_n = D_n_T * tmp + E_n * x_n;
             } break;
 
-            case SLIDING: {
+            case SolverMode::SLIDING: {
                 const SubMatrixType& D_t_T = _DTT_;
                 const SubMatrixType& M_invD_t = _MINVDT_;
                 SubVectorType o_t = subvector(output, num_rigid_contacts, num_rigid_contacts * 2);
@@ -65,7 +65,7 @@ void ChShurProduct::operator()(const DynamicVector<real>& x, DynamicVector<real>
 
             } break;
 
-            case SPINNING: {
+            case SolverMode::SPINNING: {
                 const SubMatrixType& D_t_T = _DTT_;
                 const SubMatrixType& D_s_T = _DST_;
                 const SubMatrixType& M_invD_t = _MINVDT_;

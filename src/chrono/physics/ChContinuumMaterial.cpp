@@ -28,7 +28,7 @@ CH_FACTORY_REGISTER(ChContinuumMaterial)
 
 void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumMaterial>();
     // serialize parent class
     // serialize all member data:
     marchive << CHNVP(density, "density");
@@ -36,7 +36,7 @@ void ChContinuumMaterial::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumMaterial::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumMaterial>();
     // deserialize parent class
     // stream in all member data:
     marchive >> CHNVP(density, "density");
@@ -128,7 +128,7 @@ void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& mstrain, const C
 
 void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumElastic>();
     // serialize parent class
     ChContinuumMaterial::ArchiveOUT(marchive);
     // serialize all member data:
@@ -140,7 +140,7 @@ void ChContinuumElastic::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumElastic>();
     // deserialize parent class
     ChContinuumMaterial::ArchiveIN(marchive);
     // stream in all member data:
@@ -155,7 +155,7 @@ void ChContinuumElastic::ArchiveIN(ChArchiveIn& marchive) {
 
 void ChContinuumElastoplastic::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumElastoplastic>();
     // serialize parent class
     ChContinuumElastic::ArchiveOUT(marchive);
     // serialize all member data:
@@ -163,7 +163,7 @@ void ChContinuumElastoplastic::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumElastoplastic::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumElastoplastic>();
     // deserialize parent class
     ChContinuumElastic::ArchiveIN(marchive);
     // stream in all member data:
@@ -226,7 +226,7 @@ void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mpla
 
 void ChContinuumPlasticVonMises::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumPlasticVonMises>();
     // serialize parent class
     ChContinuumElastoplastic::ArchiveOUT(marchive);
     // serialize all member data:
@@ -237,7 +237,7 @@ void ChContinuumPlasticVonMises::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumPlasticVonMises::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumPlasticVonMises>();
     // deserialize parent class
     ChContinuumElastoplastic::ArchiveIN(marchive);
     // stream in all member data:
@@ -386,7 +386,7 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
 
 void ChContinuumDruckerPrager::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChContinuumDruckerPrager>();
     // serialize parent class
     ChContinuumElastoplastic::ArchiveOUT(marchive);
     // serialize all member data:
@@ -400,7 +400,7 @@ void ChContinuumDruckerPrager::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChContinuumDruckerPrager::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChContinuumDruckerPrager>();
     // deserialize parent class
     ChContinuumElastoplastic::ArchiveIN(marchive);
     // stream in all member data:

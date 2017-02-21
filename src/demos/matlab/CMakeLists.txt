@@ -7,8 +7,8 @@ INCLUDE_DIRECTORIES(${CH_MATLABINC})
 # List all matlab demos
 
 SET(DEMOS
-  demo_matlab
-  demo_chfunctions_plot
+  demo_MTLB_matlab
+  demo_MTLB_functions_plot
 )
 
 MESSAGE(STATUS "Demo programs for MATLAB module...")

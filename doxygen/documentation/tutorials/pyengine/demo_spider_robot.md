@@ -35,9 +35,9 @@ if __name__ == '__main__':
 
 import os
 import math
-import ChronoEngine_PYTHON_core as chrono
-import ChronoEngine_PYTHON_postprocess as postprocess
-import ChronoEngine_PYTHON_irrlicht as chronoirr
+import ChronoEngine_python_core as chrono
+import ChronoEngine_python_postprocess as postprocess
+import ChronoEngine_python_irrlicht as chronoirr
 
 print ("Load a model exported by SolidWorks");
 
@@ -337,7 +337,7 @@ myapplication.AddShadowAll();
 
 mysystem.SetMaxItersSolverSpeed(600);
 mysystem.SetSolverWarmStarting(True);
-mysystem.SetSolverType(chrono.ChSystem.SOLVERSOLVER_BARZILAIBORWEIN);
+mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 myapplication.SetTimestep(0.002):
 
 

@@ -73,24 +73,24 @@ int ChParallelDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::st
 
 int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
     int offset = 0;
-    if (settings.solver.solver_mode == NORMAL) {
+    if (settings.solver.solver_mode == SolverMode::NORMAL) {
         offset = num_rigid_contacts;
-    } else if (settings.solver.solver_mode == SLIDING) {
+    } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
         offset = 3 * num_rigid_contacts;
-    } else if (settings.solver.solver_mode == SPINNING) {
+    } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
         offset = 6 * num_rigid_contacts;
     }
 
     // fill in the information for constraints and friction
     DynamicVector<real> fric(num_constraints, -2.0);
     for (int i = 0; i < num_rigid_contacts; i++) {
-        if (settings.solver.solver_mode == NORMAL) {
+        if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
-        } else if (settings.solver.solver_mode == SLIDING) {
+        } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
             fric[3 * i] = host_data.fric_rigid_rigid[i].x;
             fric[3 * i + 1] = -1;
             fric[3 * i + 2] = -1;
-        } else if (settings.solver.solver_mode == SPINNING) {
+        } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
             fric[6 * i] = host_data.fric_rigid_rigid[i].x;
             fric[6 * i + 1] = -1;
             fric[6 * i + 2] = -1;

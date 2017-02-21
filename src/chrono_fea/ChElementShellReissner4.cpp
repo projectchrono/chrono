@@ -819,8 +819,8 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         sh2(0, 3) = (1. + xi_i[i][0]) * 0.5;
         sh2(0, 1) = (1. - xi_i[i][0]) * 0.5;
 
-        eps_tilde_1_i[i].z = sh1(0, 0) * eps_tilde_1_A[0].z + sh1(0, 2) * eps_tilde_1_A[2].z;
-        eps_tilde_2_i[i].z = sh2(0, 1) * eps_tilde_2_A[1].z + sh2(0, 3) * eps_tilde_2_A[3].z;
+        eps_tilde_1_i[i].z() = sh1(0, 0) * eps_tilde_1_A[0].z() + sh1(0, 2) * eps_tilde_1_A[2].z();
+        eps_tilde_2_i[i].z() = sh2(0, 1) * eps_tilde_2_A[1].z() + sh2(0, 3) * eps_tilde_2_A[3].z();
 
         tmp_B_ANS.MatrMultiply(sh1, B_overline_3_ABCD);
 

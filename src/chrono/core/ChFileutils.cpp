@@ -10,15 +10,15 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <math.h>
-#include <string.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstring>
+#include <cstdio>
 
 #include "chrono/core/ChFileutils.h"
 
 #if defined(_WIN32) || defined(__WIN32__) || defined(__CYGWIN__)
 #include <direct.h>
-#include <errno.h>
+#include <cerrno>
 #else
 #include <sys/types.h>
 #include <sys/stat.h>

@@ -15,9 +15,9 @@
 #ifndef CHOBJECT_H
 #define CHOBJECT_H
 
-#include <float.h>
-#include <math.h>
-#include <stdlib.h>
+#include <cfloat>
+#include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -95,6 +95,9 @@ class ChApi ChObj {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
+
+CH_CLASS_VERSION(ChObj,0)
+
 
 // Functions to manipulate STL containers of ChObj objects
 

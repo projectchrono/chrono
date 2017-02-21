@@ -51,7 +51,7 @@ class collision_settings {
         // NOTE!!! this really depends on the architecture that you run on and how
         // many cores you are using.
         bins_per_axis = vec3(20, 20, 20);
-        narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+        narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
         grid_density = 5;
         fixed_bins = true;
     }
@@ -78,7 +78,7 @@ class collision_settings {
     // There are multiple narrowphase algorithms implemented in the collision
     // detection code. The narrowphase_algorithm parameter can be used to change
     // the type of narrowphase used at runtime.
-    NARROWPHASETYPE narrowphase_algorithm;
+    NarrowPhaseType narrowphase_algorithm;
     real grid_density;
     // use fixed number of bins instead of tuning them
     bool fixed_bins;
@@ -107,9 +107,9 @@ class solver_settings {
         max_iteration_spinning = 0;
         max_iteration_bilateral = 100;
         max_iteration_fem = 0;
-        solver_type = APGD;
-        solver_mode = SLIDING;
-        local_solver_mode = NORMAL;
+        solver_type = SolverType::APGD;
+        solver_mode = SolverMode::SLIDING;
+        local_solver_mode = SolverMode::NORMAL;
 
         contact_force_model = ChSystemDEM::Hertz;
         adhesion_force_model = ChSystemDEM::Constant;
@@ -127,7 +127,7 @@ class solver_settings {
 
     // The solver type variable defines name of the solver that will be used to
     // solve the DVI problem
-    SOLVERTYPE solver_type;
+    SolverType solver_type;
     // There are three possible solver modes
     // NORMAL will only solve for the normal and bilateral constraints.
     // SLIDING will only solve for the normal, sliding and bilateral constraints.
@@ -137,11 +137,11 @@ class solver_settings {
     // friction and sliding friction so this is how you can improve performance
     // when you know that you don't need spinning/rolling friction or want to solve
     // a problem frictionless
-    SOLVERMODE solver_mode;
+    SolverMode solver_mode;
 
     // This should not be set by the user, depending on how the iterations are set
     // The variable is used to specify what type of solve is currently being done
-    SOLVERMODE local_solver_mode;
+    SolverMode local_solver_mode;
 
     // this parameter is a constant used when solving a problem with compliance
     real alpha;
@@ -228,7 +228,7 @@ class settings_container {
         // I don't really check to see if max_threads is > than min_threads
         // not sure if that is a huge issue
         perform_thread_tuning = ((min_threads == max_threads) ? false : true);
-        system_type = SYSTEM_DVI;
+        system_type = SystemType::SYSTEM_DVI;
         step_size = .01;
     }
 
@@ -255,7 +255,7 @@ class settings_container {
     real3 gravity;
     // The system type defines if the system is solving the DVI frictional contact
     // problem or a DEM penalty based
-    SYSTEMTYPE system_type;
+    SystemType system_type;
 };
 
 /// @} parallel_module

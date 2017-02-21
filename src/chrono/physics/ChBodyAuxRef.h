@@ -41,7 +41,7 @@ class ChApi ChBodyAuxRef : public ChBody {
   public:
     ChBodyAuxRef(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
         : ChBody(contact_method) {}
-    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model,
+    ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model,
                  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
         : ChBody(new_coll_model, contact_method) {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
@@ -88,6 +88,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+
+CH_CLASS_VERSION(ChBodyAuxRef,0)
+
 
 }  // end namespace chrono
 

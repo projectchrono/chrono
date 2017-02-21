@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChNlsolver.h"
 #include "chrono/core/ChLinearAlgebra.h"
@@ -65,7 +65,7 @@ double ChNonlinearSolver::NewtonRaphson(void (*m_func)(ChMatrix<>* mx, ChMatrix<
 
     int iters = 0;
 
-    while (TRUE) {
+    while (true) {
         if (iters >= maxiters)
             break;
 

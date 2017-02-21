@@ -40,7 +40,7 @@ class CH_VEHICLE_API ChSingleRoadWheel : public ChRoadWheel {
     virtual ~ChSingleRoadWheel() {}
 
     /// Return the type of track shoe consistent with this road wheel.
-    virtual GuidePinType GetType() const override { return GuidePinType::LATERAL_PIN; }
+    virtual GuidePinType GetType() const final override { return GuidePinType::LATERAL_PIN; }
 
     /// Initialize this road wheel subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body

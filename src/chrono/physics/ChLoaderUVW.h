@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHLOADERUVW_H
 #define CHLOADERUVW_H
@@ -16,8 +17,7 @@
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableUVW objects (which support
-/// volume loads).
+/// Class of loaders for ChLoadableUVW objects (which support volume loads).
 
 class ChLoaderUVW : public ChLoader {
   public:
@@ -25,7 +25,8 @@ class ChLoaderUVW : public ChLoader {
 
     std::shared_ptr<ChLoadableUVW> loadable;
 
-    ChLoaderUVW(std::shared_ptr<ChLoadableUVW> mloadable) : loadable(mloadable){};
+    ChLoaderUVW(std::shared_ptr<ChLoadableUVW> mloadable) : loadable(mloadable) {}
+    virtual ~ChLoaderUVW() {}
 
     /// Children classes must provide this function that evaluates F = F(u,v,w)
     /// This will be evaluated during ComputeQ() to perform integration over the domain.
@@ -38,7 +39,7 @@ class ChLoaderUVW : public ChLoader {
                           ) = 0;
 
     void SetLoadable(std::shared_ptr<ChLoadableUVW> mloadable) { loadable = mloadable; }
-    virtual std::shared_ptr<ChLoadable> GetLoadable() { return loadable; }
+    virtual std::shared_ptr<ChLoadable> GetLoadable() override { return loadable; }
     std::shared_ptr<ChLoadableUVW> GetLoadableUVW() { return loadable; }
 };
 
@@ -48,7 +49,8 @@ class ChLoaderUVW : public ChLoader {
 
 class ChLoaderUVWdistributed : public ChLoaderUVW {
   public:
-    ChLoaderUVWdistributed(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVW(mloadable){};
+    ChLoaderUVWdistributed(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVW(mloadable) {}
+    virtual ~ChLoaderUVWdistributed() {}
 
     virtual int GetIntegrationPointsU() = 0;
     virtual int GetIntegrationPointsV() = 0;
@@ -57,7 +59,7 @@ class ChLoaderUVWdistributed : public ChLoaderUVW {
     /// Computes Q = integral (N'*F*detJ dudvdz)
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) {
+                          ) override {
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
 
@@ -130,12 +132,13 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     double Pw;
 
     ChLoaderUVWatomic(std::shared_ptr<ChLoadableUVW> mloadable, const double mU, const double mV, const double mW)
-        : ChLoaderUVW(mloadable){};
+        : ChLoaderUVW(mloadable) {}
+    virtual ~ChLoaderUVWatomic() {}
 
     /// Computes Q = N'*F
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                          ) {
+                          ) override {
         Q.Reset(loadable->LoadableGet_ndof_w());
         ChVectorDynamic<> mF(loadable->Get_field_ncoords());
 
@@ -156,12 +159,10 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     }
 };
 
-
 //--------------------------------------------------------------------------------
 // BASIC UVW LOADERS
 //
 // Some ready-to use basic loaders
-
 
 /// A very usual type of volume loader: the constant gravitational load on Y
 
@@ -180,26 +181,26 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
                           ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-                          ) {
+                          ) override {
         if ((F.GetRows() == 3) || (F.GetRows() == 6) || (F.GetRows() == 9)) {
             // only for force or wrench fields
-            F(0) = G_acc.x * loadable->GetDensity();
-            F(1) = G_acc.y * loadable->GetDensity();
-            F(2) = G_acc.z * loadable->GetDensity();
+            F(0) = G_acc.x() * loadable->GetDensity();
+            F(1) = G_acc.y() * loadable->GetDensity();
+            F(2) = G_acc.z() * loadable->GetDensity();
         }
     }
-	/// Sets the number of integration points for gravity (assumed, for now, same number per direction)
-	void SetNumIntPoints(int val){ num_int_points = val; }
-	/// Gets the number of integration points for gravity
-	int GetNumIntPoints() const { return num_int_points; }
+    /// Sets the number of integration points for gravity (assumed, for now, same number per direction)
+    void SetNumIntPoints(int val) { num_int_points = val; }
+    /// Gets the number of integration points for gravity
+    int GetNumIntPoints() const { return num_int_points; }
     /// Sets the G (gravity) acceleration vector affecting the loadable object
     void Set_G_acc(ChVector<> m_acc) { G_acc = m_acc; }
     /// Gets the G (gravity) acceleration vector affecting the loadable object
     ChVector<> Get_G_acc() { return G_acc; }
 
-    virtual int GetIntegrationPointsU() { return num_int_points; }
-    virtual int GetIntegrationPointsV() { return num_int_points; }
-    virtual int GetIntegrationPointsW() { return num_int_points; }
+    virtual int GetIntegrationPointsU() override { return num_int_points; }
+    virtual int GetIntegrationPointsV() override { return num_int_points; }
+    virtual int GetIntegrationPointsW() override { return num_int_points; }
 };
 
 }  // end namespace chrono

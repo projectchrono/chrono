@@ -130,7 +130,7 @@ WheelState ChWheeledVehicle::GetWheelState(const WheelID& wheel_id) const {
     state.ang_vel = GetWheelAngVel(wheel_id);
 
     ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y;
+    state.omega = ang_vel_loc.y();
 
     return state;
 }

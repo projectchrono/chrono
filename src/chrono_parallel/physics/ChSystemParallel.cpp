@@ -28,11 +28,11 @@ INITIALIZE_EASYLOGGINGPP
 ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
     data_manager = new ChParallelDataManager();
 
-    descriptor = new ChSystemDescriptorParallel(data_manager);
+    descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
-    collision_system = new ChCollisionSystemParallel(data_manager);
+    collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
 
-    collision_system_type = COLLSYS_PARALLEL;
+    collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;
     counter = 0;
     timer_accumulator.resize(10, 0);
     cd_accumulator.resize(10, 0);
@@ -71,7 +71,7 @@ ChSystemParallel::~ChSystemParallel() {
     delete data_manager;
 }
 
-int ChSystemParallel::Integrate_Y() {
+bool ChSystemParallel::Integrate_Y() {
     LOG(INFO) << "ChSystemParallel::Integrate_Y() Time: " << ChTime;
     // Get the pointer for the system descriptor and store it into the data manager
     data_manager->system_descriptor = this->descriptor;
@@ -99,7 +99,7 @@ int ChSystemParallel::Integrate_Y() {
     data_manager->system_timer.stop("collision");
 
     data_manager->system_timer.start("solver");
-    ((ChIterativeSolverParallel*)(solver_speed))->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallel>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
 
     data_manager->system_timer.start("update");
@@ -130,7 +130,7 @@ int ChSystemParallel::Integrate_Y() {
 
 #pragma omp parallel for
     for (int i = 0; i < bodylist.size(); i++) {
-        if (data_manager->host_data.active_rigid[i] == true) {
+        if (data_manager->host_data.active_rigid[i] != 0) {
             bodylist[i]->Variables().Get_qb().SetElement(0, 0, velocities[i * 6 + 0]);
             bodylist[i]->Variables().Get_qb().SetElement(1, 0, velocities[i * 6 + 1]);
             bodylist[i]->Variables().Get_qb().SetElement(2, 0, velocities[i * 6 + 2]);
@@ -144,9 +144,9 @@ int ChSystemParallel::Integrate_Y() {
             bodylist[i]->Update(ChTime);
 
             // update the position and rotation vectors
-            pos_pointer[i] = (real3(bodylist[i]->GetPos().x, bodylist[i]->GetPos().y, bodylist[i]->GetPos().z));
-            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0, bodylist[i]->GetRot().e1, bodylist[i]->GetRot().e2,
-                                         bodylist[i]->GetRot().e3));
+            pos_pointer[i] = (real3(bodylist[i]->GetPos().x(), bodylist[i]->GetPos().y(), bodylist[i]->GetPos().z()));
+            rot_pointer[i] = (quaternion(bodylist[i]->GetRot().e0(), bodylist[i]->GetRot().e1(),
+                                         bodylist[i]->GetRot().e2(), bodylist[i]->GetRot().e3()));
         }
     }
 
@@ -176,7 +176,7 @@ int ChSystemParallel::Integrate_Y() {
         RecomputeThreads();
     }
 
-    return 1;
+    return true;
 }
 
 //
@@ -281,12 +281,12 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     for (int i = 0; i < num_nodes; i++) {
         if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
-            positions[i] = real3(node->GetPos().x, node->GetPos().y, node->GetPos().z);
-            velocities[i] = real3(node->GetPos_dt().x, node->GetPos_dt().y, node->GetPos_dt().z);
+            positions[i] = real3(node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
+            velocities[i] = real3(node->GetPos_dt().x(), node->GetPos_dt().y(), node->GetPos_dt().z());
             // Offset the element index by the current number of nodes at the start
             node->SetIndex(i);
 
-            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x, node->GetPos().y, node->GetPos().z);
+            // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
         }
     }
     ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
@@ -314,7 +314,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
             // elem = Sort(elem);
 
-            // printf("%d %d %d %d \n", elem.x, elem.y, elem.z, elem.w);
+            // printf("%d %d %d %d \n", elem.x(), elem.y(), elem.z(), elem.w);
             // Offset once we have swapped
             elem.x += current_nodes;
             elem.y += current_nodes;
@@ -412,8 +412,8 @@ void ChSystemParallel::UpdateRigidBodies() {
         data_manager->host_data.hf[i * 6 + 4] = body_fb.ElementN(4);
         data_manager->host_data.hf[i * 6 + 5] = body_fb.ElementN(5);
 
-        position[i] = real3(body_pos.x, body_pos.y, body_pos.z);
-        rotation[i] = quaternion(body_rot.e0, body_rot.e1, body_rot.e2, body_rot.e3);
+        position[i] = real3(body_pos.x(), body_pos.y(), body_pos.z());
+        rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = bodylist[i]->IsActive();
         collide[i] = bodylist[i]->GetCollide();
@@ -479,7 +479,7 @@ void ChSystemParallel::UpdateLinks() {
         linklist[i]->InjectConstraints(*descriptor);
 
         for (int j = 0; j < linklist[i]->GetDOC_c(); j++)
-            data_manager->host_data.bilateral_type.push_back(BODY_BODY);
+            data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
 
@@ -488,26 +488,26 @@ void ChSystemParallel::UpdateLinks() {
 // specified physics item. Return UNKNOWN if the item has no associated
 // bilateral constraints or if it is unsupported.
 //
-BILATERALTYPE GetBilateralType(ChPhysicsItem* item) {
+BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (item->GetDOC_c() == 0)
-        return UNKNOWN;
+        return BilateralType::UNKNOWN;
 
     if (dynamic_cast<ChShaftsCouple*>(item))
-        return SHAFT_SHAFT;
+        return BilateralType::SHAFT_SHAFT;
 
     if (dynamic_cast<ChShaftsPlanetary*>(item))
-        return SHAFT_SHAFT_SHAFT;
+        return BilateralType::SHAFT_SHAFT_SHAFT;
 
     if (dynamic_cast<ChShaftsGearbox*>(item) || dynamic_cast<ChShaftsGearboxAngled*>(item))
-        return SHAFT_SHAFT_BODY;
+        return BilateralType::SHAFT_SHAFT_BODY;
 
     if (dynamic_cast<ChShaftsBody*>(item))
-        return SHAFT_BODY;
+        return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?
     assert(item->GetDOC_c() == 0);
 
-    return UNKNOWN;
+    return BilateralType::UNKNOWN;
 }
 
 //
@@ -535,9 +535,9 @@ void ChSystemParallel::UpdateOtherPhysics() {
         otherphysicslist[i]->VariablesFbLoadForces(GetStep());
         otherphysicslist[i]->VariablesQbLoadSpeed();
 
-        BILATERALTYPE type = GetBilateralType(otherphysicslist[i].get());
+        BilateralType type = GetBilateralType(otherphysicslist[i].get());
 
-        if (type == UNKNOWN)
+        if (type == BilateralType::UNKNOWN)
             continue;
 
         otherphysicslist[i]->InjectConstraints(*descriptor);
@@ -559,19 +559,19 @@ void ChSystemParallel::UpdateBilaterals() {
         if (mconstraints[ic]->IsActive()) {
             data_manager->host_data.bilateral_mapping.push_back(ic);
             switch (data_manager->host_data.bilateral_type[ic]) {
-                case BODY_BODY:
+                case BilateralType::BODY_BODY:
                     data_manager->nnz_bilaterals += 12;
                     break;
-                case SHAFT_SHAFT:
+                case BilateralType::SHAFT_SHAFT:
                     data_manager->nnz_bilaterals += 2;
                     break;
-                case SHAFT_SHAFT_SHAFT:
+                case BilateralType::SHAFT_SHAFT_SHAFT:
                     data_manager->nnz_bilaterals += 3;
                     break;
-                case SHAFT_BODY:
+                case BilateralType::SHAFT_BODY:
                     data_manager->nnz_bilaterals += 7;
                     break;
-                case SHAFT_SHAFT_BODY:
+                case BilateralType::SHAFT_SHAFT_BODY:
                     data_manager->nnz_bilaterals += 8;
                     break;
             }
@@ -591,7 +591,7 @@ void ChSystemParallel::Setup() {
     // Cache the integration step size and calculate the tolerance at impulse level.
     data_manager->settings.step_size = step;
     data_manager->settings.solver.tol_speed = step * data_manager->settings.solver.tolerance;
-    data_manager->settings.gravity = real3(G_acc.x, G_acc.y, G_acc.z);
+    data_manager->settings.gravity = real3(G_acc.x(), G_acc.y(), G_acc.z());
 
     // Calculate the total number of degrees of freedom (6 per rigid body and 1
     // for each shaft element).
@@ -659,42 +659,40 @@ void ChSystemParallel::RecomputeThreads() {
 #endif
 }
 
-void ChSystemParallel::ChangeCollisionSystem(COLLISIONSYSTEMTYPE type) {
+void ChSystemParallel::ChangeCollisionSystem(CollisionSystemType type) {
     assert(GetNbodies() == 0);
-
-    delete collision_system;
 
     collision_system_type = type;
 
     switch (type) {
-        case COLLSYS_PARALLEL:
-            collision_system = new ChCollisionSystemParallel(data_manager);
+        case CollisionSystemType::COLLSYS_PARALLEL:
+            collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
             break;
-        case COLLSYS_BULLET_PARALLEL:
-            collision_system = new ChCollisionSystemBulletParallel(data_manager);
+        case CollisionSystemType::COLLSYS_BULLET_PARALLEL:
+            collision_system = std::make_shared<ChCollisionSystemBulletParallel>(data_manager);
             break;
     }
 }
 
-void ChSystemParallel::SetLoggingLevel(LOGGINGLEVEL level, bool state) {
+void ChSystemParallel::SetLoggingLevel(LoggingLevel level, bool state) {
 #ifdef LOGGINGENABLED
 
     std::string value = state ? "true" : "false";
 
     switch (level) {
-        case LOG_NONE:
+        case LoggingLevel::LOG_NONE:
             el::Loggers::reconfigureAllLoggers(el::ConfigurationType::ToStandardOutput, "false");
             break;
-        case LOG_INFO:
+        case LoggingLevel::LOG_INFO:
             el::Loggers::reconfigureAllLoggers(el::Level::Info, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_TRACE:
+        case LoggingLevel::LOG_TRACE:
             el::Loggers::reconfigureAllLoggers(el::Level::Trace, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_WARNING:
+        case LoggingLevel::LOG_WARNING:
             el::Loggers::reconfigureAllLoggers(el::Level::Warning, el::ConfigurationType::ToStandardOutput, value);
             break;
-        case LOG_ERROR:
+        case LoggingLevel::LOG_ERROR:
             el::Loggers::reconfigureAllLoggers(el::Level::Error, el::ConfigurationType::ToStandardOutput, value);
             break;
     }

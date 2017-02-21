@@ -34,6 +34,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 
@@ -83,7 +84,7 @@ void WheeledVehicle::LoadChassis(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a chassis specification file.
     assert(d.HasMember("Type"));
@@ -113,7 +114,7 @@ void WheeledVehicle::LoadSteering(const std::string& filename, int which) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a steering specification file.
     assert(d.HasMember("Type"));
@@ -145,7 +146,7 @@ void WheeledVehicle::LoadDriveline(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a driveline specification file.
     assert(d.HasMember("Type"));
@@ -179,7 +180,7 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a suspension specification file.
     assert(d.HasMember("Type"));
@@ -201,6 +202,8 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
         m_suspensions[axle] = std::make_shared<MultiLink>(d);
     } else if (subtype.compare("MacPhersonStrut") == 0) {
         m_suspensions[axle] = std::make_shared<MacPhersonStrut>(d);
+    } else if (subtype.compare("SemiTrailingArm") == 0) {
+        m_suspensions[axle] = std::make_shared<SemiTrailingArm>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
@@ -217,7 +220,7 @@ void WheeledVehicle::LoadAntirollbar(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is an antirollbar specification file.
     assert(d.HasMember("Type"));
@@ -246,7 +249,7 @@ void WheeledVehicle::LoadWheel(const std::string& filename, int axle, int side) 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a wheel specification file.
     assert(d.HasMember("Type"));
@@ -276,7 +279,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a brake specification file.
     assert(d.HasMember("Type"));
@@ -320,7 +323,7 @@ void WheeledVehicle::Create(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));

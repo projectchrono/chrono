@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     //
 /*
         // Change the timestepper to HHT: 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(8);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
     integrator->SetVerbose(true);
 */
 /*
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 */
     application.SetTimestep(0.002);
 

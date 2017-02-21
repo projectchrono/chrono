@@ -15,7 +15,7 @@
 #ifndef CHC_LINEPOLY_H
 #define CHC_LINEPOLY_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 
@@ -56,7 +56,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) override;
 
     /// Gets the number of control points
     size_t Get_numpoints() const;
@@ -69,12 +69,12 @@ class ChApi ChLinePoly : public ChLine {
     ChVector<> Get_point(size_t mnum) const;
 
     /// Set the n-th control point
-    int Set_point(int mnum, ChVector<> mpoint);
+    bool Set_point(int mnum, ChVector<> mpoint);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLinePoly>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -85,7 +85,7 @@ class ChApi ChLinePoly : public ChLine {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLinePoly>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -95,6 +95,9 @@ class ChApi ChLinePoly : public ChLine {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLinePoly,0)
+
 }  // end namespace chrono
 
 #endif

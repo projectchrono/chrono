@@ -59,8 +59,8 @@ void PerformEsternalCosimulation(   const std::vector<ChVector<>>& input_vert_po
     // simple example: scan through all vertexes in the mesh, see if they sink below zero,
     // apply a penalty upward spring force if so.
     for (int iv = 0; iv < input_vert_pos.size(); ++iv) {
-        if (input_vert_pos[iv].y < 0) {
-            double yforce = - ky * input_vert_pos[iv].y - ry * input_vert_vel[iv].y;
+        if (input_vert_pos[iv].y() < 0) {
+            double yforce = - ky * input_vert_pos[iv].y() - ry * input_vert_vel[iv].y();
             if (yforce > 0) {
                 vert_output_forces.push_back(ChVector<>(0 ,yforce, 0));
                 vert_output_indexes.push_back(iv);
@@ -80,14 +80,14 @@ void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& ver
     for (int it= 0;it < triangles.size(); ++it) {
         bool vert_hit = false;
         for (int io = 0; io < vert_indexes.size(); ++io) {
-            if (triangles[it].x == vert_indexes[io] || triangles[it].y == vert_indexes[io] || triangles[it].z == vert_indexes[io])
+            if (triangles[it].x() == vert_indexes[io] || triangles[it].y() == vert_indexes[io] || triangles[it].z() == vert_indexes[io])
                 vert_hit = true;
         }
         if (vert_hit == true) {
-            std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x], 
-                                                            vert_pos[triangles[it].y], 
-                                                            vert_pos[triangles[it].z],
-                                                            vert_pos[triangles[it].x]};
+            std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x()], 
+                                                            vert_pos[triangles[it].y()], 
+                                                            vert_pos[triangles[it].z()],
+                                                            vert_pos[triangles[it].x()]};
             ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255,240,200,0), true); 
         }
     }
@@ -265,14 +265,14 @@ int main(int argc, char* argv[]) {
         // Change solver to embedded MINRES
         // NOTE! it is strongly advised that you compile the optional MKL module 
         // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);     
+    my_system.SetSolverType(ChSolver::Type::MINRES);     
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);  
     
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 
     application.SetTimestep(0.005);

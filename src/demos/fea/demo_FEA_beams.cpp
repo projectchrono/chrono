@@ -254,29 +254,28 @@ int main(int argc, char* argv[])
 	// 
 	// THE SOFT-REAL-TIME CYCLE
     //
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(460);
     my_system.SetMaxItersSolverStab(460);
     my_system.SetTolForce(1e-13);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 	
     /*
 	    // TEST: The Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChMatlabSolver* matlab_solver_stab  = new ChMatlabSolver(matlab_engine);
-    ChMatlabSolver* matlab_solver_speed = new ChMatlabSolver(matlab_engine);
-    my_system.ChangeSolverStab (matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
-    application.GetSystem()->Update();
+    auto matlab_solver = ats::make_shared<ChMatlabSolver>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
+    my_system.Update();
     application.SetPaused(true);
     */
 
 	
 	// Change type of integrator: 
-	my_system.SetIntegrationType(chrono::ChSystem::INT_HHT); 
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT); 
 	
 	// if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
@@ -287,7 +286,7 @@ int main(int argc, char* argv[])
         mystepper->SetStepControl(false);
 	}
 
-	my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED); 
+	my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED); 
 
 	application.SetTimestep(0.001);
 
@@ -316,17 +315,17 @@ int main(int argc, char* argv[])
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement1->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+		GetLog() << "  b1_at " << eta <<  " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x() << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
 	}
 	GetLog()<< "\n";
 	belement2->GetStateBlock(displ);
 	for (double eta = -1; eta <= 1; eta += 0.4)
 	{	
 		belement2->EvaluateSectionForceTorque(eta, displ, F, M);
-		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x << " My=" << M.y << " Mz=" << M.z << " Tx=" << F.x << " Ty=" << F.y << " Tz=" << F.z << "\n";
+		GetLog() << "  b2_at " << eta <<  " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x() << " Ty=" << F.y() << " Tz=" << F.z() << "\n";
 	}
 
-	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x << "    y=" << hnode3->Frame().GetPos().y << "    z=" << hnode3->Frame().GetPos().z << "\n\n";
+	GetLog() << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y() << "    z=" << hnode3->Frame().GetPos().z() << "\n\n";
 	
 
 

@@ -84,7 +84,7 @@ ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
 
 void ChLinkDistance::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
-    ChLink::UpdateTime(mytime);
+    ChLink::Update(mytime, update_assets);
 
     // compute jacobians
     ChVector<> AbsDist = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
@@ -99,19 +99,19 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     ChVector<> CqAr = -Vcross(D2relA, pos1);
     ChVector<> CqBr = Vcross(D2relB, pos2);
 
-    Cx.Get_Cq_a()->ElementN(0) = CqAx.x;
-    Cx.Get_Cq_a()->ElementN(1) = CqAx.y;
-    Cx.Get_Cq_a()->ElementN(2) = CqAx.z;
-    Cx.Get_Cq_a()->ElementN(3) = CqAr.x;
-    Cx.Get_Cq_a()->ElementN(4) = CqAr.y;
-    Cx.Get_Cq_a()->ElementN(5) = CqAr.z;
+    Cx.Get_Cq_a()->ElementN(0) = CqAx.x();
+    Cx.Get_Cq_a()->ElementN(1) = CqAx.y();
+    Cx.Get_Cq_a()->ElementN(2) = CqAx.z();
+    Cx.Get_Cq_a()->ElementN(3) = CqAr.x();
+    Cx.Get_Cq_a()->ElementN(4) = CqAr.y();
+    Cx.Get_Cq_a()->ElementN(5) = CqAr.z();
 
-    Cx.Get_Cq_b()->ElementN(0) = CqBx.x;
-    Cx.Get_Cq_b()->ElementN(1) = CqBx.y;
-    Cx.Get_Cq_b()->ElementN(2) = CqBx.z;
-    Cx.Get_Cq_b()->ElementN(3) = CqBr.x;
-    Cx.Get_Cq_b()->ElementN(4) = CqBr.y;
-    Cx.Get_Cq_b()->ElementN(5) = CqBr.z;
+    Cx.Get_Cq_b()->ElementN(0) = CqBx.x();
+    Cx.Get_Cq_b()->ElementN(1) = CqBx.y();
+    Cx.Get_Cq_b()->ElementN(2) = CqBx.z();
+    Cx.Get_Cq_b()->ElementN(3) = CqBr.x();
+    Cx.Get_Cq_b()->ElementN(4) = CqBr.y();
+    Cx.Get_Cq_b()->ElementN(5) = CqBr.z();
 
     //***TO DO***  C_dt? C_dtdt? (may be never used..)
 }
@@ -119,13 +119,13 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkDistance::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = -react_force.x;
+    L(off_L) = -react_force.x();
 }
 
 void ChLinkDistance::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    react_force.x = -L(off_L);
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = -L(off_L);
+    react_force.y() = 0;
+    react_force.z() = 0;
 
     react_torque = VNULL;
 }
@@ -209,16 +209,16 @@ void ChLinkDistance::ConstraintsLoadJacobians() {
 
 void ChLinkDistance::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react_force.x = -Cx.Get_l_i() * factor;
-    react_force.y = 0;
-    react_force.z = 0;
+    react_force.x() = -Cx.Get_l_i() * factor;
+    react_force.y() = 0;
+    react_force.z() = 0;
 
     react_torque = VNULL;
 }
 
 void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkDistance>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -232,7 +232,7 @@ void ChLinkDistance::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkDistance::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkDistance>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

@@ -413,9 +413,19 @@ void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol,
     }
 }
 
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers : public ChTimestepperHHT {
+public:
+    CH_ENUM_MAPPER_BEGIN(HHT_Mode);
+    CH_ENUM_VAL(ACCELERATION);
+    CH_ENUM_VAL(POSITION);
+    CH_ENUM_MAPPER_END(HHT_Mode);
+};
+
 void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChTimestepperHHT>();
     // serialize parent class:
     ChTimestepperIIorder::ArchiveOUT(marchive);
     ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
@@ -424,13 +434,13 @@ void ChTimestepperHHT::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(beta);
     marchive << CHNVP(gamma);
     marchive << CHNVP(scaling);
-    HHT_Mode_mapper modemapper;
+    my_enum_mappers::HHT_Mode_mapper modemapper;
     marchive << CHNVP(modemapper(mode), "mode");
 }
 
 void ChTimestepperHHT::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChTimestepperHHT>();
     // deserialize parent class:
     ChTimestepperIIorder::ArchiveIN(marchive);
     ChImplicitIterativeTimestepper::ArchiveIN(marchive);
@@ -439,7 +449,7 @@ void ChTimestepperHHT::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(beta);
     marchive >> CHNVP(gamma);
     marchive >> CHNVP(scaling);
-    HHT_Mode_mapper modemapper;
+    my_enum_mappers::HHT_Mode_mapper modemapper;
     marchive >> CHNVP(modemapper(mode), "mode");
 }
 

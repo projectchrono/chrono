@@ -45,6 +45,8 @@ class ChApi ChSolverDEM : public ChIterativeSolver {
 
     ~ChSolverDEM() {}
 
+    virtual Type GetType() const override { return Type::SOLVER_DEM; }
+
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd) override;

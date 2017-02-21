@@ -24,6 +24,8 @@ namespace chrono {
 
 class ChSpringForceCallback {
   public:
+    virtual ~ChSpringForceCallback() {}
+
     virtual double operator()(double time,         ///< current time
                               double rest_length,  ///< undeformed length
                               double length,       ///< current length
@@ -51,8 +53,6 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
-
-    virtual int GetType() const override { return LNK_SPRING_CALLBACK; }
 
     // data fetch/store
     double Get_SpringRestLength() const { return m_rest_length; }
@@ -106,6 +106,8 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkSpringCB,0)
 
 }  // end namespace chrono
 

@@ -15,7 +15,7 @@
 // ChronoParallel unit test for narrow phase type R collision detection
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 

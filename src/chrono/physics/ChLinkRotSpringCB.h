@@ -24,6 +24,8 @@ namespace chrono {
 
 class ChRotSpringTorqueCallback {
   public:
+    virtual ~ChRotSpringTorqueCallback() {}
+
     virtual double operator()(double time,   ///< current time
                               double angle,  ///< relative angle of rotation
                               double vel     ///< relative angular speed
@@ -53,9 +55,6 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkRotSpringCB* Clone() const override { return new ChLinkRotSpringCB(*this); }
 
-    /// Get the link type.
-    virtual int GetType() const override { return LNK_ROT_SPRING_CALLBACK; }
-
     /// Get the current relative angle about the common rotation axis.
     double Get_RotSpringAngle() const { return relAngle; }
 
@@ -77,6 +76,9 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkRotSpringCB,0)
+
 
 }  // end namespace chrono
 

@@ -20,13 +20,13 @@ using namespace chrono;
 
 void ChIterativeSolverParallelDVI::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
-    if (data_manager->settings.solver.solver_mode == NORMAL) {
+    if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
         data_manager->rigid_rigid->offset = 1;
         data_manager->num_unilaterals = 1 * data_manager->num_rigid_contacts;
-    } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+    } else if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING) {
         data_manager->rigid_rigid->offset = 3;
         data_manager->num_unilaterals = 3 * data_manager->num_rigid_contacts;
-    } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+    } else if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         data_manager->rigid_rigid->offset = 6;
         data_manager->num_unilaterals = 6 * data_manager->num_rigid_contacts;
     }
@@ -87,10 +87,11 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
 
     PerformStabilization();
 
-    if (data_manager->settings.solver.solver_mode == NORMAL || data_manager->settings.solver.solver_mode == SLIDING ||
-        data_manager->settings.solver.solver_mode == SPINNING) {
+    if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL ||
+        data_manager->settings.solver.solver_mode == SolverMode::SLIDING ||
+        data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
-            data_manager->settings.solver.local_solver_mode = NORMAL;
+            data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
             LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Normal";
             data_manager->measures.solver.total_iteration +=
@@ -102,9 +103,10 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
                               data_manager->host_data.gamma);                      //
         }
     }
-    if (data_manager->settings.solver.solver_mode == SLIDING || data_manager->settings.solver.solver_mode == SPINNING) {
+    if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING ||
+        data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
-            data_manager->settings.solver.local_solver_mode = SLIDING;
+            data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
             LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Sliding";
             data_manager->measures.solver.total_iteration +=
@@ -116,9 +118,9 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
                               data_manager->host_data.gamma);                       //
         }
     }
-    if (data_manager->settings.solver.solver_mode == SPINNING) {
+    if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
-            data_manager->settings.solver.local_solver_mode = SPINNING;
+            data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
             LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Spinning";
             data_manager->measures.solver.total_iteration +=
@@ -218,16 +220,16 @@ void ChIterativeSolverParallelDVI::ComputeD() {
     int num_rows = num_bilaterals + num_fluid_fluid + num_fem;
 
     switch (data_manager->settings.solver.solver_mode) {
-        case NORMAL:
+        case SolverMode::NORMAL:
             nnz_total += nnz_normal;
             num_rows += num_normal;
             break;
-        case SLIDING:
+        case SolverMode::SLIDING:
             nnz_total += nnz_normal + nnz_tangential;
             num_rows += num_normal + num_tangential;
 
             break;
-        case SPINNING:
+        case SolverMode::SPINNING:
             nnz_total += nnz_normal + nnz_tangential + nnz_spinning;
             num_rows += num_normal + num_tangential + num_spinning;
             break;
@@ -353,20 +355,20 @@ void ChIterativeSolverParallelDVI::SetR() {
             subvector(R_full, num_unilaterals + num_bilaterals + num_rigid_fluid, num_fluid_bodies);
 
         switch (data_manager->settings.solver.local_solver_mode) {
-            case BILATERAL: {
+            case SolverMode::BILATERAL: {
             } break;
 
-            case NORMAL: {
+            case SolverMode::NORMAL: {
                 subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
             } break;
 
-            case SLIDING: {
+            case SolverMode::SLIDING: {
                 subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
                 subvector(R, num_rigid_contacts, num_rigid_contacts * 2) =
                     subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
             } break;
 
-            case SPINNING: {
+            case SolverMode::SPINNING: {
                 subvector(R, 0, num_rigid_contacts) = subvector(R_full, 0, num_rigid_contacts);
                 subvector(R, num_rigid_contacts, num_rigid_contacts * 2) =
                     subvector(R_full, num_rigid_contacts, num_rigid_contacts * 2);
@@ -400,29 +402,29 @@ void ChIterativeSolverParallelDVI::PreSolve() {
     // Currently not supported, might be added back in the future
 }
 
-void ChIterativeSolverParallelDVI::ChangeSolverType(SOLVERTYPE type) {
+void ChIterativeSolverParallelDVI::ChangeSolverType(SolverType type) {
     data_manager->settings.solver.solver_type = type;
 
     if (this->solver) {
         delete (this->solver);
     }
     switch (type) {
-        case APGD:
+        case SolverType::APGD:
             solver = new ChSolverParallelAPGD();
             break;
-        case APGDREF:
+        case SolverType::APGDREF:
             solver = new ChSolverParallelAPGDREF();
             break;
-        case BB:
+        case SolverType::BB:
             solver = new ChSolverParallelBB();
             break;
-        case SPGQP:
+        case SolverType::SPGQP:
             solver = new ChSolverParallelSPGQP();
             break;
-        case JACOBI:
+        case SolverType::JACOBI:
             solver = new ChSolverParallelJacobi();
             break;
-        case GAUSS_SEIDEL:
+        case SolverType::GAUSS_SEIDEL:
             solver = new ChSolverParallelGS();
             break;
     }

@@ -206,7 +206,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() const { return do_collide; }
+    virtual bool GetCollide() const override { return do_collide; }
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
@@ -383,6 +383,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChParticlesClones,0)
 
 }  // end namespace chrono
 

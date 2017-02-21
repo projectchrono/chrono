@@ -38,13 +38,14 @@ using namespace collision;
 namespace opengl {
 using namespace glm;
 
-#define LEFT -.98
-#define TOP .95
-#define BOTTOM -.95
-#define RIGHT .55
-#define CENTER 0
-#define SPACING sy * 45.0
-#define SCALE .0007
+#define LEFT -.98f
+#define TOP .95f
+#define BOTTOM -.95f
+#define RIGHT .55f
+#define CENTER 0.0f
+#define SPACING sy * 45.0f
+#define SCALE .0007f
+
 ChOpenGLHUD::ChOpenGLHUD() : ChOpenGLBase() {
     time_total = time_text = time_geometry = 0;
     fps = 0;
@@ -72,11 +73,11 @@ bool ChOpenGLHUD::Initialize(ChOpenGLCamera* camera, ChTimer<>* t_render, ChTime
 }
 
 void ChOpenGLHUD::Update(const glm::ivec2& window_size,
-                         const float& dpi,
-                         const float& frame_per_sec,
-                         const float& t_geometry,
-                         const float& t_text,
-                         const float& t_total) {
+                         const double& dpi,
+                         const double& frame_per_sec,
+                         const double& t_geometry,
+                         const double& t_text,
+                         const double& t_total) {
     int screen_width = window_size.x;
     int screen_height = window_size.y;
 
@@ -183,7 +184,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         num_contacts = parallel_system->GetNcontacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
     } else {
-        ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+        auto collision_system = std::static_pointer_cast<ChCollisionSystemBullet>(physics_system->GetCollisionSystem());
         num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
         num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
         num_contacts = physics_system->GetNcontacts();
@@ -275,10 +276,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
-    const std::vector<double>& vhist = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
+    double iters = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetTotalIterations();
+    const std::vector<double>& vhist =
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
-        ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 

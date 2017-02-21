@@ -12,7 +12,7 @@
 #ifndef CHNLSOLVER_H
 #define CHNLSOLVER_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"

@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <algorithm>
 
 #include "chrono/collision/ChCModelBullet.h"
@@ -220,9 +220,9 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
                                const bool do_centeredcube,
                                const double kernel_sfactor,
                                const double randomness) {
-    int samples_x = (int)(size.x / spacing);
-    int samples_y = (int)(size.y / spacing);
-    int samples_z = (int)(size.z / spacing);
+    int samples_x = (int)(size.x() / spacing);
+    int samples_y = (int)(size.y() / spacing);
+    int samples_z = (int)(size.z() / spacing);
     int totsamples = 0;
 
     double mrandomness = randomness;
@@ -232,7 +232,7 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector<> pos(ix * spacing - 0.5 * size.x, iy * spacing - 0.5 * size.y, iz * spacing - 0.5 * size.z);
+                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
                 pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                   mrandomness * ChRandom() * spacing);
                 AddNode(boxcoords.TransformLocalToParent(pos));
@@ -247,7 +247,7 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
                 }
             }
 
-    double mtotvol = size.x * size.y * size.z;
+    double mtotvol = size.x() * size.y() * size.z();
     double mtotmass = mtotvol * initial_density;
     double nodemass = mtotmass / (double)totsamples;
     double kernelrad = kernel_sfactor * spacing;

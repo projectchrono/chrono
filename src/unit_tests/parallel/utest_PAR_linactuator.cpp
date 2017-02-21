@@ -82,22 +82,22 @@ bool VerifySolution(double time,                                     // current 
 
     ChVector<> pos_delta = pos - pos_an;
     if (pos_delta.Length() > pos_tol) {
-        std::cout << "   at t = " << time << "   pos - pos_an = " << pos_delta.x << "  " << pos_delta.y << "  "
-                  << pos_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   pos - pos_an = " << pos_delta.x() << "  " << pos_delta.y() << "  "
+                  << pos_delta.z() << std::endl;
         return false;
     }
 
     ChVector<> vel_delta = vel - vel_an;
     if (vel_delta.Length() > vel_tol) {
-        std::cout << "   at t = " << time << "   vel - vel_an = " << vel_delta.x << "  " << vel_delta.y << "  "
-                  << vel_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   vel - vel_an = " << vel_delta.x() << "  " << vel_delta.y() << "  "
+                  << vel_delta.z() << std::endl;
         return false;
     }
 
     ChVector<> acc_delta = acc - acc_an;
     if (acc_delta.Length() > acc_tol) {
-        std::cout << "   at t = " << time << "   acc - acc_an = " << acc_delta.x << "  " << acc_delta.y << "  "
-                  << acc_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   acc - acc_an = " << acc_delta.x() << "  " << acc_delta.y() << "  "
+                  << acc_delta.z() << std::endl;
         return false;
     }
 
@@ -115,22 +115,22 @@ bool VerifySolution(double time,                                     // current 
 
     ChQuaternion<> quat_delta = quat - quat_an;
     if (quat_delta.Length() > quat_tol) {
-        std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0 << "  " << quat_delta.e1 << "  "
-                  << quat_delta.e2 << "  " << quat_delta.e3 << std::endl;
+        std::cout << "   at t = " << time << "   quat - quat_an = " << quat_delta.e0() << "  " << quat_delta.e1()
+                  << "  " << quat_delta.e2() << "  " << quat_delta.e3() << std::endl;
         return false;
     }
 
     ChVector<> avel_delta = avel - avel_an;
     if (avel_delta.Length() > avel_tol) {
-        std::cout << "   at t = " << time << "   avel - avel_an = " << avel_delta.x << "  " << avel_delta.y << "  "
-                  << avel_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   avel - avel_an = " << avel_delta.x() << "  " << avel_delta.y() << "  "
+                  << avel_delta.z() << std::endl;
         return false;
     }
 
     ChVector<> aacc_delta = aacc - aacc_an;
     if (aacc_delta.Length() > aacc_tol) {
-        std::cout << "   at t = " << time << "   aacc - aacc_an = " << aacc_delta.x << "  " << aacc_delta.y << "  "
-                  << aacc_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   aacc - aacc_an = " << aacc_delta.x() << "  " << aacc_delta.y() << "  "
+                  << aacc_delta.z() << std::endl;
         return false;
     }
 
@@ -151,8 +151,8 @@ bool VerifySolution(double time,                                     // current 
     ChVector<> rforceP_an = gravity - Vdot(gravity, axis) * axis;
     ChVector<> rforceP_delta = rforceP_ground - rforceP_an;
     if (rforceP_delta.Length() > rforce_tol) {
-        std::cout << "   at t = " << time << "   rforceP - rforceP_an = " << rforceP_delta.x << "  " << rforceP_delta.y
-                  << "  " << rforceP_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   rforceP - rforceP_an = " << rforceP_delta.x() << "  " << rforceP_delta.y()
+                  << "  " << rforceP_delta.z() << std::endl;
         return false;
     }
 
@@ -161,8 +161,8 @@ bool VerifySolution(double time,                                     // current 
     ChVector<> rtorqueP_an = Vcross(pos_an, rforceP_an);
     ChVector<> rtorqueP_delta = rtorqueP_ground - rtorqueP_an;
     if (rtorqueP_delta.Length() > rtorque_tol) {
-        std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x << "  "
-                  << rtorqueP_delta.y << "  " << rtorqueP_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   rtorqueP - rtorqueP_an = " << rtorqueP_delta.x() << "  "
+                  << rtorqueP_delta.y() << "  " << rtorqueP_delta.z() << std::endl;
         return false;
     }
 
@@ -179,9 +179,9 @@ bool VerifySolution(double time,                                     // current 
     // Analytically, the driving force can be obtained from a force diagram along
     // the translation axis.
     double rforceA_an = mass * Vdot(acc_an - gravity, axis);
-    double rforceA_delta = (-rforceA.x) - rforceA_an;
+    double rforceA_delta = (-rforceA.x()) - rforceA_an;
     if (std::abs(rforceA_delta) > rforce_tol) {
-        std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x << "  "
+        std::cout << "   at t = " << time << "   rforceA = " << -rforceA.x() << "  "
                   << "   rforceA_an = " << rforceA_an << "  "
                   << "   rforceA - rforceA_an = " << rforceA_delta << std::endl;
         return false;
@@ -190,8 +190,8 @@ bool VerifySolution(double time,                                     // current 
     ChVector<> rtorqueA_an = ChVector<>(0, 0, 0);
     ChVector<> rtorqueA_delta = rtorqueA - rtorqueA_an;
     if (rtorqueA_delta.Length() > rtorque_tol) {
-        std::cout << "   at t = " << time << "   rtorqueA - rtorqueA_an = " << rtorqueA_delta.x << "  "
-                  << rtorqueA_delta.y << "  " << rtorqueA_delta.z << std::endl;
+        std::cout << "   at t = " << time << "   rtorqueA - rtorqueA_an = " << rtorqueA_delta.x() << "  "
+                  << rtorqueA_delta.y() << "  " << rtorqueA_delta.z() << std::endl;
         return false;
     }
 
@@ -283,11 +283,11 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
 
   if (cm == ChMaterialSurfaceBase::DVI) {
     ChSystemParallelDVI* msystemDVI = static_cast<ChSystemParallelDVI*>(msystem);
-    msystemDVI->GetSettings()->solver.solver_mode = SLIDING;
+    msystemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     msystemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     msystemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    msystemDVI->ChangeSolverType(APGD);
+    msystemDVI->ChangeSolverType(SolverType::APGD);
   }
 
   // Create the ground body.

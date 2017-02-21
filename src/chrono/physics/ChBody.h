@@ -15,7 +15,7 @@
 #ifndef CHBODY_H
 #define CHBODY_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChContactable.h"
@@ -34,23 +34,6 @@ namespace chrono {
 
 class ChSystem;
 
-// --------------------------
-// Define body specific flags
-
-#define BF_COLLIDE (1L << 0)          // detects collisions
-#define BF_CDINVISIBLE (1L << 1)      // collision detection invisible
-#define BF_EVAL_CONTACT_CN (1L << 2)  // evaluate CONTACT_CN channel (normal restitution)
-#define BF_EVAL_CONTACT_CT (1L << 3)  // evaluate CONTACT_CT channel (tangential rest.)
-#define BF_EVAL_CONTACT_KF (1L << 4)  // evaluate CONTACT_KF channel (kinetic friction coeff)
-#define BF_EVAL_CONTACT_SF (1L << 5)  // evaluate CONTACT_SF channel (static friction coeff)
-#define BF_SHOW_COLLMESH (1L << 6)    // show collision mesh - obsolete
-#define BF_FIXED (1L << 7)            // body is fixed to ground
-#define BF_LIMITSPEED (1L << 8)       // body angular and linar speed is limited (clamped)
-#define BF_SLEEPING (1L << 9)         // body is sleeping [internal]
-#define BF_USESLEEPING (1L << 10)     // if body remains in same place for too long time, it will be frozen
-#define BF_NOGYROTORQUE (1L << 11)    // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
-#define BF_COULDSLEEP (1L << 12)      // if body remains in same place for too long time, it will be frozen
-
 /// Class for rigid bodies. A rigid body is an entity which
 /// can move in 3D space, and can be constrained to other rigid
 /// bodies using ChLink objects. Rigid bodies can contain auxiliary
@@ -66,10 +49,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     CH_FACTORY_TAG(ChBody)
 
   protected:
-    collision::ChCollisionModel* collision_model;  ///< Pointer to the collision model
+    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< Pointer to the collision model
 
-  protected:
-    int bflag;             ///< body-specific flags.
     unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
 
     std::vector<std::shared_ptr<ChMarker> > marklist;  ///< list of child markers
@@ -109,7 +90,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     /// Build a rigid body with a different collision model.
-    ChBody(collision::ChCollisionModel* new_collision_model,
+    ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
            ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
 
     ChBody(const ChBody& other);
@@ -126,78 +107,89 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Sets the 'fixed' state of the body. If true, it does not move
     /// respect to the absolute world, despite constraints, forces, etc.
-    void SetBodyFixed(bool mev);
-    bool GetBodyFixed() { return BFlagGet(BF_FIXED); }
+    void SetBodyFixed(bool state);
+    /// Return true if this body is fixed to ground.
+    bool GetBodyFixed() const;
 
-    /// If true, the normal restitution coefficient is evaluated
-    /// from painted material channel.
-    void SetEvalContactCn(bool mev) { BFlagSet(BF_EVAL_CONTACT_CN, mev); }
-    bool GetEvalContactCn() { return BFlagGet(BF_EVAL_CONTACT_CN); }
+    /// If true, the normal restitution coefficient is evaluated from painted material channel.
+    void SetEvalContactCn(bool state);
+    bool GetEvalContactCn() const;
 
-    /// If true, the tangential restitution coefficient is evaluated
-    /// from painted material channel.
-    void SetEvalContactCt(bool mev) { BFlagSet(BF_EVAL_CONTACT_CT, mev); }
-    bool GetEvalContactCt() { return BFlagGet(BF_EVAL_CONTACT_CT); }
+    /// If true, the tangential restitution coefficient is evaluated from painted material channel.
+    void SetEvalContactCt(bool state);
+    bool GetEvalContactCt() const;
 
-    /// If true, the kinetic friction coefficient is evaluated
-    /// from painted material channel.
-    void SetEvalContactKf(bool mev) { BFlagSet(BF_EVAL_CONTACT_KF, mev); }
-    bool GetEvalContactKf() { return BFlagGet(BF_EVAL_CONTACT_KF); }
+    /// If true, the kinetic friction coefficient is evaluated from painted material channel.
+    void SetEvalContactKf(bool state);
+    bool GetEvalContactKf() const;
 
     /// If true, the static friction coefficient is evaluated
     /// from painted material channel.
-    void SetEvalContactSf(bool mev) { BFlagSet(BF_EVAL_CONTACT_SF, mev); }
-    bool GetEvalContactSf() { return BFlagGet(BF_EVAL_CONTACT_SF); }
+    void SetEvalContactSf(bool state);
+    bool GetEvalContactSf() const;
 
     /// Enable/disable the collision for this rigid body.
     /// (After setting ON, you may need RecomputeCollisionModel()
     /// before anim starts, if you added an external object
     /// that implements onAddCollisionGeometries(), ex. in a plugin for a CAD)
-    void SetCollide(bool mcoll);
-    bool GetCollide() { return BFlagGet(BF_COLLIDE); }
+    void SetCollide(bool state);
+
+    /// Return true if collision is enabled for this body.
+    virtual bool GetCollide() const override;
 
     /// Show collision mesh in 3D views.
-    void SetShowCollisionMesh(bool mcoll) { BFlagSet(BF_SHOW_COLLMESH, mcoll); }
-    bool GetShowCollisionMesh() { return BFlagGet(BF_SHOW_COLLMESH); }
+    void SetShowCollisionMesh(bool state);
 
-    /// Set the maximum linear speed (beyond this limit it will be clamped).
+    /// Return true if collision mesh is shown in 3D views.
+    bool GetShowCollisionMesh() const;
+
+    /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
     /// it reduces the risk of bad collision detection.
     /// The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed(bool mlimit) { BFlagSet(BF_LIMITSPEED, mlimit); }
-    bool GetLimitSpeed() { return BFlagGet(BF_LIMITSPEED); }
+    void SetLimitSpeed(bool state);
+
+    /// Return true if maximum linear speed is limited.
+    bool GetLimitSpeed() const;
 
     /// Deactivate the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time
     /// simulations, where objects that spin too fast with non-uniform inertia
     /// tensors (ex thin cylinders) might cause the integration to diverge quickly.
     /// The realism is limited, but the simulation is more stable.
-    void SetNoGyroTorque(bool mnogyro) { BFlagSet(BF_NOGYROTORQUE, mnogyro); }
-    bool GetNoGyroTorque() { return BFlagGet(BF_NOGYROTORQUE); }
+    void SetNoGyroTorque(bool state);
+
+    /// Return true if gyroscopic torque is deactivated.
+    bool GetNoGyroTorque() const;
 
     /// Enable/disable option for setting bodies to "sleep".
-    /// If use sleeping= true, bodies which stay in same place
+    /// If use sleeping = true, bodies which stay in same place
     /// for long enough time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
-    void SetUseSleeping(bool ms) { BFlagSet(BF_USESLEEPING, ms); }
-    bool GetUseSleeping() { return BFlagGet(BF_USESLEEPING); }
+    void SetUseSleeping(bool state);
+
+    /// Return true if 'sleep' mode is activated.
+    bool GetUseSleeping() const;
 
     /// Force the body in sleeping mode or not (usually this state change is not
     /// handled by users, anyway, because it is mostly automatic).
-    void SetSleeping(bool ms) { BFlagSet(BF_SLEEPING, ms); }
-    bool GetSleeping() { return BFlagGet(BF_SLEEPING); }
+    void SetSleeping(bool state);
+
+    /// Return true if this body is currently in 'sleep' mode.
+    bool GetSleeping() const;
 
     /// Test if a body could go in sleeping state if requirements are satisfied.
     /// Return true if state could be changed from no sleep to sleep.
     bool TrySleeping();
 
-    /// Tell if the body is active, i.e. it is neither fixed to ground nor
-    /// it is in sleep mode.
-    bool IsActive() { return !BFlagGet(BF_SLEEPING | BF_FIXED); }
+    /// Return true if the body is active; i.e. it is neither fixed to ground
+    /// nor is it in "sleep" mode. Return false otherwise.
+    bool IsActive();
 
     /// Set body id for indexing (used only internally)
     void SetId(int id) { body_id = id; }
-    /// Set body id for indxing (used only internally)
+
+    /// Set body id for indexing (used only internally)
     unsigned int GetId() { return body_id; }
 
     //
@@ -298,20 +290,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
-    /// Instantiate the collision model
-    virtual collision::ChCollisionModel* InstanceCollisionModel();
-
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration();
 
     /// Change the collision model.
-    void ChangeCollisionModel(collision::ChCollisionModel* new_collision_model);
+    void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
 
     /// Acess the collision model for the collision engine.
     /// To get a non-null pointer, remember to SetCollide(true), before.
-    collision::ChCollisionModel* GetCollisionModel() { return collision_model; }
+    std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
 
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
     virtual void SyncCollisionModels();
@@ -320,7 +309,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Update the optimization structures (OOBB, ABB, etc.)
     /// of the collision model, from the associated geometry in some external object (es.CAD).
-    int RecomputeCollisionModel();
+    bool RecomputeCollisionModel();
 
     /// Gets the last position when the collision detection was
     /// performed last time (i.e. last time SynchronizeLastCollPos() was used)
@@ -535,12 +524,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Transform and adds a cartesian force to a generic 7x1 vector of body lagrangian forces mQf .
     /// The carthesian force must be passed as vector and application point, and vcan be either in local
-    /// (local = TRUE) or absolute reference (local = FALSE)
+    /// (local = true) or absolute reference (local = false)
     void Add_as_lagrangian_force(const ChVector<>& force,
                                  const ChVector<>& appl_point,
-                                 int local,
+                                 bool local,
                                  ChMatrixNM<double, 7, 1>* mQf);
-    void Add_as_lagrangian_torque(const ChVector<>& torque, int local, ChMatrixNM<double, 7, 1>* mQf);
+    void Add_as_lagrangian_torque(const ChVector<>& torque, bool local, ChMatrixNM<double, 7, 1>* mQf);
 
     //
     // UTILITIES FOR FORCES/TORQUES:
@@ -552,8 +541,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// integration step. Useful to apply forces to bodies without needing to
     /// add ChForce() objects. If local=true, force,appl.point or torque are considered
     /// expressed in body coordinates, otherwise are considered in absolute coordinates.
-    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
-    void Accumulate_torque(const ChVector<>& torque, int local);
+    void Accumulate_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
+    void Accumulate_torque(const ChVector<>& torque, bool local);
     void Empty_forces_accumulators() {
         Force_acc = VNULL;
         Torque_acc = VNULL;
@@ -568,8 +557,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
     void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
     void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
-    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, int local);
-    void Accumulate_script_torque(const ChVector<>& torque, int local);
+    void Accumulate_script_force(const ChVector<>& force, const ChVector<>& appl_point, bool local);
+    void Accumulate_script_torque(const ChVector<>& torque, bool local);
 
     /// Return the gyroscopic torque.
     const ChVector<>& Get_gyro() const { return gyro; }
@@ -581,22 +570,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This does not include the gyroscopic torque.
     const ChVector<>& Get_Xtorque() const { return Xtorque; }
 
-    // Body-specific flag handling
-
-    void BFlagsSetAllOFF() { bflag = 0; }
-    void BFlagsSetAllON() {
-        bflag = 0;
-        bflag = ~bflag;
-    }
-    void BFlagSetON(int mask) { bflag |= mask; }
-    void BFlagSetOFF(int mask) { bflag &= ~mask; }
-    bool BFlagGet(int mask) { return (bflag & mask) != 0; };
-    void BFlagSet(int mask, bool state) {
-        if (state)
-            bflag |= mask;
-        else
-            bflag &= ~mask;
-    }
 
     //
     // UPDATE FUNCTIONS
@@ -817,12 +790,49 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  private:
+    /// Instantiate the collision model
+    virtual std::shared_ptr<collision::ChCollisionModel> InstanceCollisionModel();
+
+    /// Bit flags
+    enum BodyFlag {
+        COLLIDE = (1L << 0),          // detects collisions
+        CDINVISIBLE = (1L << 1),      // collision detection invisible
+        EVAL_CONTACT_CN = (1L << 2),  // evaluate CONTACT_CN channel (normal restitution)
+        EVAL_CONTACT_CT = (1L << 3),  // evaluate CONTACT_CT channel (tangential rest.)
+        EVAL_CONTACT_KF = (1L << 4),  // evaluate CONTACT_KF channel (kinetic friction coeff)
+        EVAL_CONTACT_SF = (1L << 5),  // evaluate CONTACT_SF channel (static friction coeff)
+        SHOW_COLLMESH = (1L << 6),    // show collision mesh - obsolete
+        FIXED = (1L << 7),            // body is fixed to ground
+        LIMITSPEED = (1L << 8),       // body angular and linar speed is limited (clamped)
+        SLEEPING = (1L << 9),         // body is sleeping [internal]
+        USESLEEPING = (1L << 10),     // if body remains in same place for too long time, it will be frozen
+        NOGYROTORQUE = (1L << 11),    // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
+        COULDSLEEP = (1L << 12)       // if body remains in same place for too long time, it will be frozen
+    };
+
+    int bflags;  ///< encoding for all body flags
+
+    /// Flags handling functions
+    void BFlagsSetAllOFF();
+    void BFlagsSetAllON();
+    void BFlagSetON(BodyFlag mask);
+    void BFlagSetOFF(BodyFlag mask);
+    void BFlagSet(BodyFlag mask, bool state);
+    bool BFlagGet(BodyFlag mask) const;
+
+    // Give private access
+    friend class ChSystem;
 };
+
+CH_CLASS_VERSION(ChBody,0)
 
 const int BODY_DOF = 6;   ///< degrees of freedom of body in 3d space
 const int BODY_QDOF = 7;  ///< degrees of freedom with quaternion rotation state
 const int BODY_ROT = 3;   ///< rotational dof in Newton dynamics
 
 }  // end namespace chrono
+
 
 #endif

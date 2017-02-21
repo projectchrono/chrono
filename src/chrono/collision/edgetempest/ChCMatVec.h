@@ -12,8 +12,8 @@
 #ifndef CHC_MATVEC_H
 #define CHC_MATVEC_H
 
-#include <math.h>
-#include <stdio.h>
+#include <cmath>
+#include <cstdio>
 
 #include "chrono/collision/edgetempest/ChCCompile.h"
 

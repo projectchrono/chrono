@@ -13,7 +13,7 @@
 
 #define DWORD unsigned int
 
-#include <stdio.h>
+#include <cstdio>
 #include "chrono/parallel/ChThreadsPOSIX.h"
 
 #define checkPThreadFunction(returnValue)                                                       \

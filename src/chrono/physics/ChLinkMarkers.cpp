@@ -310,7 +310,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // relAngle and relAxis
     Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
-    if (relAxis.z < 0) {
+    if (relAxis.z() < 0) {
         relAxis = Vmul(relAxis, -1);
         relAngle = -relAngle;
     }
@@ -363,7 +363,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R re
         if (Body2->Variables().IsActive()) {
             Body2->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                      FALSE,                       // from abs. space
+                                      false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.PasteSumVector(mbody_force * -c, Body2->Variables().GetOffset(), 0);
             R.PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -c,
@@ -373,7 +373,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off,  // offset in R re
         if (Body1->Variables().IsActive()) {
             Body1->To_abs_forcetorque(m_abs_force,
                                       marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                      FALSE,                       // from abs. space
+                                      false,                       // from abs. space
                                       mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
             R.PasteSumVector(mbody_force * c, Body1->Variables().GetOffset(), 0);
             R.PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * c,
@@ -406,7 +406,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         Vector m_abs_force = Body2->GetA().Matr_x_Vect(marker2->GetA().Matr_x_Vect(C_force));
         Body2->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
+                                  false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
         Body2->Variables().Get_fb().PasteSumVector(mbody_force * -factor, 0, 0);
         Body2->Variables().Get_fb().PasteSumVector(Body2->TransformDirectionParentToLocal(mbody_torque) * -factor, 3,
@@ -414,7 +414,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
 
         Body1->To_abs_forcetorque(m_abs_force,
                                   marker1->GetAbsCoord().pos,  // absolute application point is always marker1
-                                  FALSE,                       // from abs. space
+                                  false,                       // from abs. space
                                   mbody_force, mbody_torque);  // resulting force-torque, both in abs coords
         Body1->Variables().Get_fb().PasteSumVector(mbody_force * factor, 0, 0);
         Body1->Variables().Get_fb().PasteSumVector(Body1->TransformDirectionParentToLocal(mbody_torque) * factor, 3, 0);
@@ -430,7 +430,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
 
 void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMarkers>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -443,7 +443,7 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMarkers>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

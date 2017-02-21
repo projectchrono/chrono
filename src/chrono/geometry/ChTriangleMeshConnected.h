@@ -15,7 +15,7 @@
 #ifndef CHC_TRIANGLEMESHCONNECTED_H
 #define CHC_TRIANGLEMESHCONNECTED_H
 
-#include <math.h>
+#include <cmath>
 #include <array>
 #include <map>
 
@@ -32,6 +32,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChTriangleMeshConnected)
 
+  public:
     std::vector<ChVector<double>> m_vertices;
     std::vector<ChVector<double>> m_normals;
     std::vector<ChVector<double>> m_UV;
@@ -89,8 +90,8 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Access the n-th triangle in mesh
     virtual ChTriangle getTriangle(int index) const {
-        return ChTriangle(m_vertices[m_face_v_indices[index].x], m_vertices[m_face_v_indices[index].y],
-                          m_vertices[m_face_v_indices[index].z]);
+        return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
+                          m_vertices[m_face_v_indices[index].z()]);
     }
 
     /// Clear all data
@@ -177,10 +178,12 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Class to be used optionally in RefineMeshEdges()
     class ChRefineEdgeCriterion {
-    public:
-        // Compute lenght of an edge or more in general a 
+      public:
+        virtual ~ChRefineEdgeCriterion() {}
+
+        // Compute lenght of an edge or more in general a
         // merit function - the higher, the more likely the edge must be cut
-        virtual double ComputeLength(const int vert_a, const int  vert_b, ChTriangleMeshConnected* mmesh) = 0;
+        virtual double ComputeLength(const int vert_a, const int vert_b, ChTriangleMeshConnected* mmesh) = 0;
     };
 
     /// Performs mesh refinement using Rivara LEPP long-edge bisection algorithm.
@@ -207,7 +210,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChTriangleMeshConnected>();
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
@@ -225,7 +228,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChTriangleMeshConnected>();
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
@@ -242,6 +245,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChTriangleMeshConnected,0)
+
 }  // end namespace chrono
 
 #endif

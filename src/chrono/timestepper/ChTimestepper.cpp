@@ -20,6 +20,53 @@ namespace chrono {
 
 // -----------------------------------------------------------------------------
 
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+class my_enum_mappers : public ChTimestepper {
+  public:
+    CH_ENUM_MAPPER_BEGIN(Type);
+    CH_ENUM_VAL(Type::EULER_IMPLICIT);
+    CH_ENUM_VAL(Type::EULER_IMPLICIT_LINEARIZED);
+    CH_ENUM_VAL(Type::EULER_IMPLICIT_PROJECTED);
+    CH_ENUM_VAL(Type::TRAPEZOIDAL);
+    CH_ENUM_VAL(Type::TRAPEZOIDAL_LINEARIZED);
+    CH_ENUM_VAL(Type::HHT);
+    CH_ENUM_VAL(Type::HEUN);
+    CH_ENUM_VAL(Type::RUNGEKUTTA45);
+    CH_ENUM_VAL(Type::EULER_EXPLICIT);
+    CH_ENUM_VAL(Type::LEAPFROG);
+    CH_ENUM_VAL(Type::NEWMARK);
+    CH_ENUM_VAL(Type::CUSTOM);
+    CH_ENUM_MAPPER_END(Type);
+};
+
+void ChTimestepper::ArchiveOUT(ChArchiveOut& marchive) {
+        // version number
+        marchive.VersionWrite<ChTimestepper>();
+        // method type:
+        my_enum_mappers::Type_mapper typemapper;
+        Type type = GetType();
+        marchive << CHNVP(typemapper(type), "timestepper_type");
+        // serialize all member data:
+        marchive << CHNVP(verbose);
+        marchive << CHNVP(Qc_do_clamp);
+        marchive << CHNVP(Qc_clamping);
+    }
+
+void ChTimestepper::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChTimestepper>();
+    // method type:
+    my_enum_mappers::Type_mapper typemapper;
+    Type type = GetType();
+    marchive >> CHNVP(typemapper(type), "timestepper_type");
+    // stream in all member data:
+    marchive >> CHNVP(verbose);
+    marchive >> CHNVP(Qc_do_clamp);
+    marchive >> CHNVP(Qc_clamping);
+}
+// -----------------------------------------------------------------------------
+
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperEulerExpl)
 
@@ -747,6 +794,20 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTimestepperNewmark)
 
+// Set the numerical damping parameter gamma and the beta parameter.
+void ChTimestepperNewmark::SetGammaBeta(double mgamma, double mbeta) {
+    gamma = mgamma;
+    if (gamma < 0.5)
+        gamma = 0.5;
+    if (gamma > 1)
+        gamma = 1;
+    beta = mbeta;
+    if (beta < 0)
+        beta = 0;
+    if (beta > 1)
+        beta = 1;
+}
+
 // Performs a step of Newmark constrained implicit for II order DAE systems
 void ChTimestepperNewmark::Advance(const double dt) {
     // downcast
@@ -830,6 +891,28 @@ void ChTimestepperNewmark::Advance(const double dt) {
     mintegrable->StateScatter(X, V, T);        // state -> system
     mintegrable->StateScatterAcceleration(A);  // -> system auxiliary data
     mintegrable->StateScatterReactions(L);     // -> system auxiliary data
+}
+
+void ChTimestepperNewmark::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChTimestepperNewmark>();
+    // serialize parent class:
+    ChTimestepperIIorder::ArchiveOUT(marchive);
+    ChImplicitIterativeTimestepper::ArchiveOUT(marchive);
+    // serialize all member data:
+    marchive << CHNVP(beta);
+    marchive << CHNVP(gamma);
+}
+
+void ChTimestepperNewmark::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChTimestepperNewmark>();
+    // deserialize parent class:
+    ChTimestepperIIorder::ArchiveIN(marchive);
+    ChImplicitIterativeTimestepper::ArchiveIN(marchive);
+    // stream in all member data:
+    marchive >> CHNVP(beta);
+    marchive >> CHNVP(gamma);
 }
 
 }  // end namespace chrono

@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 1996, 2008, 2010 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHLINEARALGEBRA_H
 #define CHLINEARALGEBRA_H
@@ -19,12 +20,6 @@
 #define ACCEPT_PIVOT 0.001
 #define MIN_PIVOT 0.00000001
 #define INFINITE_PIVOT 1.e+34
-
-#define EIG_ROTATE(a, i, j, k, l)                 \
-    g = a->Get33Element(i, j);                    \
-    h = a->Get33Element(k, l);                    \
-    a->Set33Element(i, j, g - s * (h + g * tau)); \
-    a->Set33Element(k, l, h + s * (g - h * tau));
 
 namespace chrono {
 
@@ -203,13 +198,14 @@ class ChLinearAlgebra {
         int err = 0;
         int rows = A.GetRows();
 
-        if (pivarray)  // initialize pivot index array
-        {
+        if (pivarray) {
+            // initialize pivot index array
             for (int ind = 0; ind < rows; ind++) {
                 pivarray[ind] = ind;
             }
-        } else
-            return TRUE;  // error: no pivot array.
+        } else {
+            return 1;  // error: no pivot array.
+        }
 
         *det = 1;
 
@@ -229,15 +225,16 @@ class ChLinearAlgebra {
                 pivot = A.GetElement((k - 1), (k - 1));  // fetch new pivot
             }
 
-            if (fabs(pivot) <= MIN_PIVOT)  // was unable to find better pivot: force solution to zero.and go ahead
-            {
+            if (fabs(pivot) <= MIN_PIVOT) {
+                // was unable to find better pivot: force solution to zero.and go ahead
                 *det = 0;
                 pivot = INFINITE_PIVOT;
                 A.SetElement(k - 1, k - 1, pivot);
                 if (!err)
                     err = (1 + rows - k);  // report deficiency
-            } else
+            } else {
                 *det = *det * pivot;
+            }
 
             for (i = k; i < rows; i++) {
                 r = (A.GetElement(i, (k - 1))) / pivot;  // compute multiplier
@@ -259,7 +256,7 @@ class ChLinearAlgebra {
             pivot = INFINITE_PIVOT;
             A.SetElement(rows - 1, rows - 1, pivot);
             if (!err)
-                err = (1);  // report deficiency
+                err = 1;  // report deficiency
         } else
             *det = *det * pivot;
 
@@ -268,7 +265,7 @@ class ChLinearAlgebra {
 
     /// After LU decomposition, with Decompose_LU(),
     /// call this to solve [A]X=B, as [L][U]X=B
-    static int Solve_LU(ChMatrix<>& A, ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
+    static void Solve_LU(ChMatrix<>& A, ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
         int k, j;
         double sum, x;
         int rows = A.GetRows();
@@ -298,12 +295,10 @@ class ChLinearAlgebra {
             x = (X->GetElement(k, 0) - sum) / A.GetElement(k, k);
             X->SetElement(k, 0, x);
         }
-
-        return TRUE;
     }
 
     /// From this matrix, decomposed 'in place' with Decompose_LU(), fills the separate [L] and [U]
-    static int Extract_LU(ChMatrix<>& A, ChMatrix<>* mL, ChMatrix<>* mU) {
+    static void Extract_LU(ChMatrix<>& A, ChMatrix<>* mL, ChMatrix<>* mU) {
         int i, j;
         int rows = A.GetRows();
         int columns = A.GetColumns();
@@ -322,7 +317,6 @@ class ChLinearAlgebra {
                 for (j = i; j < columns; j++)
                     mU->SetElement(i, j, A.GetElement(i, j));
         }
-        return TRUE;
     }
 
     /// LDLt decomposition: [A]=[L][D][L]', i.e. diagonal values [D], triangular matrix [L] and
@@ -338,13 +332,14 @@ class ChLinearAlgebra {
         int err = 0;
         int rows = A.GetRows();
 
-        if (pivarray)  // initialize pivot index array
-        {
+        if (pivarray) {
+            // initialize pivot index array
             for (int ind = 0; ind < rows; ind++) {
                 pivarray[ind] = ind;
             }
-        } else
-            return TRUE;  // error: no pivot array.
+        } else {
+            return 1;  // error: no pivot array.
+        }
 
         *det = 1;
 
@@ -364,25 +359,25 @@ class ChLinearAlgebra {
                 pivot = A.GetElement((k - 1), (k - 1));
             }
 
-            if (fabs(pivot) <= MIN_PIVOT)  // was unable to find better pivot: force solution to zero.and go ahead
-            {
+            if (fabs(pivot) <= MIN_PIVOT) {
+                // was unable to find better pivot: force solution to zero.and go ahead
                 *det = 0.0;
                 pivot = INFINITE_PIVOT;
                 A.SetElement(k - 1, k - 1, pivot);
                 if (!err)
                     err = (1 + rows - k);  // report deficiency
-            } else
+            } else {
                 *det = *det * pivot;
+            }
 
             for (i = k; i < rows; i++) {
                 leader = A.GetElement((k - 1), i);
                 if (leader) {
                     r = (leader / pivot);  // compute multiplier (mirror look A)
 
-                    for (j = i; j < rows; j++)  // only upper right part
-                    {
-                        aj =
-                            A.GetElement(i, j) - r * A.GetElement((k - 1), j);  // fill the remaining part (upper right)
+                    for (j = i; j < rows; j++) {
+                        // fill the remaining part (upper right)
+                        aj = A.GetElement(i, j) - r * A.GetElement((k - 1), j);
                         A.SetElement(i, j, aj);
                     }
 
@@ -397,15 +392,17 @@ class ChLinearAlgebra {
             pivot = INFINITE_PIVOT;
             A.SetElement(rows - 1, rows - 1, pivot);
             if (!err)
-                err = (1);  // report deficiency
-        } else
+                err = 1;  // report deficiency
+        } else {
             *det = *det * pivot;
+        }
 
         return err;
     }
+
     /// After LDL decomposition with Decompose_LDL(),
     /// call this to solve [A]X=B, as [L][D][L]'X=B
-    static int Solve_LDL(ChMatrix<>& A, ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
+    static void Solve_LDL(ChMatrix<>& A, ChMatrix<>* B, ChMatrix<>* X, int* pivarray) {
         double sum, x;
         int j, k;
         int rows = A.GetRows();
@@ -436,12 +433,10 @@ class ChLinearAlgebra {
             x = (X->GetElement(pivarray[k], 0) - sum);  // .../ GetElement(k,k); -> ../1 ;
             X->SetElement(pivarray[k], 0, x);
         }
-
-        return TRUE;
     }
 
     /// From this matrix, decomposed 'in place' with Decompose_LDL(), fills the separate upper [L]' and [D]
-    static int Extract_LDL(ChMatrix<>& A, ChMatrix<>* L, ChMatrix<>* D, ChMatrix<>* Lu) {
+    static void Extract_LDL(ChMatrix<>& A, ChMatrix<>* L, ChMatrix<>* D, ChMatrix<>* Lu) {
         int i, j;
         int rows = A.GetRows();
         int columns = A.GetColumns();
@@ -467,7 +462,6 @@ class ChLinearAlgebra {
                 for (j = i + 1; j < columns; j++)
                     Lu->SetElement(i, j, A.GetElement(i, j));
         }
-        return TRUE;
     }
 
     /// Gets the determinant (0 if singular, or rows not equal to columns)

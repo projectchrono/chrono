@@ -59,7 +59,7 @@ ChAdaptiveSpeedController::ChAdaptiveSpeedController(const std::string& filename
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     m_Kp = d["Gains"]["Kp"].GetDouble();
     m_Ki = d["Gains"]["Ki"].GetDouble();

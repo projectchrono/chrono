@@ -123,6 +123,9 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChShaftsGear,0)
+
+
 }  // end namespace chrono
 
 #endif

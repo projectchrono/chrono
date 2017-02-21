@@ -19,6 +19,8 @@
 #include <algorithm>
 
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChContactContainerBase.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -142,6 +144,49 @@ void ChRigidTire::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+// Callback class to process contacts on a rigid tire.
+// Accumulate contact forces and torques on the associated wheel body.
+// Express them in the global frame, as applied to the wheel center.
+class RigidTireContactReporter : public ChReportContactCallback {
+  public:
+    RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
+
+    // Accumulated force, expressed in global frame, applied to wheel center.
+    const ChVector<>& GetAccumulatedForce() const { return m_force; }
+
+    // Accumulated torque, expressed in global frame.
+    const ChVector<>& GetAccumulatedTorque() const { return m_torque; }
+
+  private:
+    virtual bool ReportContactCallback(const ChVector<>& pA,
+                                       const ChVector<>& pB,
+                                       const ChMatrix33<>& plane_coord,
+                                       const double& distance,
+                                       const ChVector<>& rforce,
+                                       const ChVector<>& rtorque,
+                                       ChContactable* modA,
+                                       ChContactable* modB) override {
+        // Filter contacts that involve the tire body.
+        if (modA == m_body.get() || modB == m_body.get()) {
+            // Express current contact force and torque in global frame
+            ChVector<> force = plane_coord * rforce;
+            ChVector<> torque = plane_coord * rtorque;
+            // Wheel center in global frame
+            const ChVector<>& center = m_body->GetPos();
+            // Accumulate
+            m_force += force;
+            m_torque += torque + Vcross(Vsub(pA, center), force);
+        }
+
+        return true;
+    }
+
+    std::shared_ptr<ChBody> m_body;
+    ChVector<> m_force;
+    ChVector<> m_torque;
+};
+
 TireForce ChRigidTire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
@@ -149,20 +194,24 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
     // force and moment. In this case, the tire forces are automatically applied
     // to the associated wheel through Chrono's frictional contact system.
     if (!cosim) {
-      tire_force.force = ChVector<>(0, 0, 0);
-      tire_force.point = ChVector<>(0, 0, 0);
-      tire_force.moment = ChVector<>(0, 0, 0);
+        tire_force.point = ChVector<>(0, 0, 0);
+        tire_force.force = ChVector<>(0, 0, 0);
+        tire_force.moment = ChVector<>(0, 0, 0);
 
-      return tire_force;
+        return tire_force;
     }
 
     // If the tire is co-simulated, calculate and return the resultant of the
-    // contact forces acting on the tire.
+    // contact forces acting on the tire.  The resulting tire force and moment
+    // are expressed in global frame, as applied at the center of the associated
+    // wheel body.
+    RigidTireContactReporter reporter(m_wheel);
+    
+    m_wheel->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
 
-    //// TODO
-    tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
-    tire_force.moment = ChVector<>(0, 0, 0);
+    tire_force.point = m_wheel->GetPos();
+    tire_force.force = reporter.GetAccumulatedForce();
+    tire_force.moment = reporter.GetAccumulatedTorque();
 
     return tire_force;
 }
@@ -171,12 +220,12 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
 // -----------------------------------------------------------------------------
 unsigned int ChRigidTire::GetNumVertices() const {
     assert(m_use_contact_mesh);
-    return m_trimesh->getCoordsVertices().size();
+    return static_cast<unsigned int>(m_trimesh->getCoordsVertices().size());
 }
 
 unsigned int ChRigidTire::GetNumTriangles() const {
     assert(m_use_contact_mesh);
-    return m_trimesh->getIndicesVertexes().size();
+    return static_cast<unsigned int>(m_trimesh->getIndicesVertexes().size());
 }
 
 const std::vector<ChVector<int>>& ChRigidTire::GetMeshConnectivity() const {

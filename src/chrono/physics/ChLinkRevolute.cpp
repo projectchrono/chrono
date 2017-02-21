@@ -112,9 +112,9 @@ void ChLinkRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_v1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Yaxis());
     m_w2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Zaxis());
 
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x - frame1_abs.coord.pos.x);
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y - frame1_abs.coord.pos.y);
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z - frame1_abs.coord.pos.z);
+    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
+    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
+    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
     m_C->SetElement(3, 0, Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Zaxis()));
     m_C->SetElement(4, 0, Vdot(frame1_abs.GetA().Get_A_Yaxis(), frame2_abs.GetA().Get_A_Zaxis()));
 }
@@ -132,9 +132,9 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
 
     // Calculate violations and Jacobians of the spherical constraints
     //    pos2_abs - pos1_abs = 0
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x - frame1_abs.coord.pos.x);
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y - frame1_abs.coord.pos.y);
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z - frame1_abs.coord.pos.z);
+    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
+    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
+    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
 
     {
         ChMatrix33<> tilde1;
@@ -200,16 +200,16 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
         m_cnstr_uw.Get_Cq_a()->ElementN(0) = 0;
         m_cnstr_uw.Get_Cq_a()->ElementN(1) = 0;
         m_cnstr_uw.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_uw.Get_Cq_a()->ElementN(3) = -Phi_pi1.x;
-        m_cnstr_uw.Get_Cq_a()->ElementN(4) = -Phi_pi1.y;
-        m_cnstr_uw.Get_Cq_a()->ElementN(5) = -Phi_pi1.z;
+        m_cnstr_uw.Get_Cq_a()->ElementN(3) = -Phi_pi1.x();
+        m_cnstr_uw.Get_Cq_a()->ElementN(4) = -Phi_pi1.y();
+        m_cnstr_uw.Get_Cq_a()->ElementN(5) = -Phi_pi1.z();
 
         m_cnstr_uw.Get_Cq_b()->ElementN(0) = 0;
         m_cnstr_uw.Get_Cq_b()->ElementN(1) = 0;
         m_cnstr_uw.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_uw.Get_Cq_b()->ElementN(3) = -Phi_pi2.x;
-        m_cnstr_uw.Get_Cq_b()->ElementN(4) = -Phi_pi2.y;
-        m_cnstr_uw.Get_Cq_b()->ElementN(5) = -Phi_pi2.z;
+        m_cnstr_uw.Get_Cq_b()->ElementN(3) = -Phi_pi2.x();
+        m_cnstr_uw.Get_Cq_b()->ElementN(4) = -Phi_pi2.y();
+        m_cnstr_uw.Get_Cq_b()->ElementN(5) = -Phi_pi2.z();
     }
 
     // Calculate violation and Jacobians of the dot constraint (v1,w2)
@@ -227,16 +227,16 @@ void ChLinkRevolute::Update(double time, bool update_assets) {
         m_cnstr_vw.Get_Cq_a()->ElementN(0) = 0;
         m_cnstr_vw.Get_Cq_a()->ElementN(1) = 0;
         m_cnstr_vw.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_vw.Get_Cq_a()->ElementN(3) = -Phi_pi1.x;
-        m_cnstr_vw.Get_Cq_a()->ElementN(4) = -Phi_pi1.y;
-        m_cnstr_vw.Get_Cq_a()->ElementN(5) = -Phi_pi1.z;
+        m_cnstr_vw.Get_Cq_a()->ElementN(3) = -Phi_pi1.x();
+        m_cnstr_vw.Get_Cq_a()->ElementN(4) = -Phi_pi1.y();
+        m_cnstr_vw.Get_Cq_a()->ElementN(5) = -Phi_pi1.z();
 
         m_cnstr_vw.Get_Cq_b()->ElementN(0) = 0;
         m_cnstr_vw.Get_Cq_b()->ElementN(1) = 0;
         m_cnstr_vw.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_vw.Get_Cq_b()->ElementN(3) = -Phi_pi2.x;
-        m_cnstr_vw.Get_Cq_b()->ElementN(4) = -Phi_pi2.y;
-        m_cnstr_vw.Get_Cq_b()->ElementN(5) = -Phi_pi2.z;
+        m_cnstr_vw.Get_Cq_b()->ElementN(3) = -Phi_pi2.x();
+        m_cnstr_vw.Get_Cq_b()->ElementN(4) = -Phi_pi2.y();
+        m_cnstr_vw.Get_Cq_b()->ElementN(5) = -Phi_pi2.z();
     }
 }
 
@@ -458,7 +458,7 @@ void ChLinkRevolute::ConstraintsFetch_react(double factor) {
 
 void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRevolute>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -471,7 +471,7 @@ void ChLinkRevolute::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevolute::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRevolute>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

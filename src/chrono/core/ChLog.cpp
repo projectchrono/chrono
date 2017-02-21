@@ -9,10 +9,10 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
-#include <string.h>
-#include <stdarg.h>
+#include <cstring>
+#include <cstdarg>
 
 #include "chrono/core/ChLog.h"
 

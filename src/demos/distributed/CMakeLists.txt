@@ -1,0 +1,33 @@
+#--------------------------------------------------------------
+set(DISTRIBUTED_TESTS
+    #demo_DISTR_system
+)
+
+set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
+set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
+set(LIBRARIES
+    ChronoEngine
+    ChronoEngine_parallel
+    ChronoEngine_Distributed)
+
+include_directories(${CH_DISTRIBUTED_INCLUDES})
+
+message(STATUS "Additional test programs for DISTRIBUTED module...")
+
+#--------------------------------------------------------------
+
+foreach(PROGRAM ${DISTRIBUTED_TESTS})
+    message(STATUS "...add ${PROGRAM}")
+
+    add_executable(${PROGRAM}  "${PROGRAM}.cpp")
+    source_group(""  FILES  "${PROGRAM}.cpp")
+
+    set_target_properties(${PROGRAM} PROPERTIES
+        FOLDER tests
+        COMPILE_FLAGS "${COMPILER_FLAGS}"
+        LINK_FLAGS "${LINKER_FLAGS}"
+    )
+
+    target_link_libraries(${PROGRAM} ${LIBRARIES})
+
+endforeach()

@@ -1,4 +1,4 @@
-Creating A System In Chrono (demo_buildsystem.cpp) {#tutorial_demo_buildsystem}
+Creating A System In Chrono (demo_CH_buildsystem.cpp) {#tutorial_demo_buildsystem}
 ==========================
 
-\include demo_buildsystem.cpp
+\include demo_CH_buildsystem.cpp

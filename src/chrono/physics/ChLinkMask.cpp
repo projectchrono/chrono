@@ -72,14 +72,14 @@ void ChLinkMask::SetTwoBodiesVariables(ChVariables* var1, ChVariables* var2) {
         constraints[i]->SetVariables(var1, var2);
 }
 
-int ChLinkMask::IsEqual(ChLinkMask& mask2) {
+bool ChLinkMask::IsEqual(ChLinkMask& mask2) {
     if (nconstr != mask2.nconstr)
-        return FALSE;
+        return false;
     for (int j = 0; j < nconstr; j++) {
         if (!(Constr_N(j) == mask2.Constr_N(j)))
-            return FALSE;
+            return false;
     }
-    return TRUE;
+    return true;
 }
 
 bool ChLinkMask::IsUnilateral(int i) {

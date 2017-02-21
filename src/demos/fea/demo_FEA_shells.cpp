@@ -475,31 +475,29 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
     // Change solver to MKL
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    mkl_solver->SetSparsityPatternLock(true);
+    my_system.SetSolver(mkl_solver);
+
     /*
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES); // <- NEEDED THIS or Matlab or MKL solver
+    my_system.SetSolverType(ChSolver::Type::MINRES); // <- NEEDED THIS or Matlab or MKL solver
 	my_system.SetSolverWarmStarting(true); // this helps a lot to speedup convergence in this class of problems
 	my_system.SetMaxItersSolverSpeed(200);
 	my_system.SetMaxItersSolverStab(200);
 	my_system.SetTolForce(1e-13);
-	ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+	auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
 	msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
     */
 
     // Change type of integrator:
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT); 
-    //my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    //my_system.SetIntegrationType(ChSystem::INT_NEWMARK);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT); 
+    //my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+    //my_system.SetTimestepperType(ChTimestepper::NEWMARK);
 
-    if (auto msol =  dynamic_cast<ChImplicitIterativeTimestepper*>(my_system.GetSolverSpeed())) {
-        msol->SetMaxiters(5);
-        msol->SetAbsTolerances(1e-12, 1e-12);
+    if (auto mint =  std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(my_system.GetTimestepper())) {
+        mint->SetMaxiters(5);
+        mint->SetAbsTolerances(1e-12, 1e-12);
     }
 
     double timestep = 0.1;
@@ -535,8 +533,8 @@ int main(int argc, char* argv[]) {
         mtime += timestep;
 
         if(!application.GetPaused() && nodePlotA && nodePlotB) {
-            rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y);
-            rec_X.AddPoint( load_scale, nodePlotB->GetPos().y);
+            rec_Y.AddPoint( load_scale, nodePlotA->GetPos().y());
+            rec_X.AddPoint( load_scale, nodePlotB->GetPos().y());
         }
 
         application.EndScene();

@@ -80,11 +80,11 @@ inline double CalcSphereVolume(double radius) {
 }
 
 inline double CalcEllipsoidVolume(const ChVector<>& hdims) {
-    return (4.0 / 3.0) * CH_C_PI * hdims.x * hdims.y * hdims.z;
+    return (4.0 / 3.0) * CH_C_PI * hdims.x() * hdims.y() * hdims.z();
 }
 
 inline double CalcBoxVolume(const ChVector<>& hdims) {
-    return 8.0 * hdims.x * hdims.y * hdims.z;
+    return 8.0 * hdims.x() * hdims.y() * hdims.z();
 }
 
 inline double CalcBiSphereVolume(double radius, double cDist) {
@@ -113,7 +113,7 @@ inline double CalcRoundedCylinderVolume(double radius, double hlen, double srad)
 }
 
 inline double CalcRoundedBoxVolume(const ChVector<>& hdims, double srad) {
-    return 8 * hdims.x * hdims.y * hdims.z + 2 * srad * (hdims.x * hdims.y + hdims.y * hdims.z + hdims.z * hdims.x) +
+    return 8 * hdims.x() * hdims.y() * hdims.z() + 2 * srad * (hdims.x() * hdims.y() + hdims.y() * hdims.z() + hdims.z() * hdims.x()) +
            (4.0 * CH_C_PI / 3.0) * srad * srad * srad;
 }
 
@@ -156,9 +156,9 @@ inline ChMatrix33<> CalcEllipsoidGyration(const ChVector<>& hdims,
                                           const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
 
-    J.SetElement(0, 0, (1.0 / 5.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-    J.SetElement(1, 1, (1.0 / 5.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-    J.SetElement(2, 2, (1.0 / 5.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+    J.SetElement(0, 0, (1.0 / 5.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z()));
+    J.SetElement(1, 1, (1.0 / 5.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x()));
+    J.SetElement(2, 2, (1.0 / 5.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y()));
 
     TransformGyration(J, pos, rot);
 
@@ -171,9 +171,9 @@ inline ChMatrix33<> CalcBoxGyration(const ChVector<>& hdims,
                                     const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0)) {
     ChMatrix33<> J;
 
-    J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y * hdims.y + hdims.z * hdims.z));
-    J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z * hdims.z + hdims.x * hdims.x));
-    J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x * hdims.x + hdims.y * hdims.y));
+    J.SetElement(0, 0, (1.0 / 3.0) * (hdims.y() * hdims.y() + hdims.z() * hdims.z()));
+    J.SetElement(1, 1, (1.0 / 3.0) * (hdims.z() * hdims.z() + hdims.x() * hdims.x()));
+    J.SetElement(2, 2, (1.0 / 3.0) * (hdims.x() * hdims.x() + hdims.y() * hdims.y()));
 
     TransformGyration(J, pos, rot);
 
@@ -297,9 +297,9 @@ inline ChMatrix33<> CalcRoundedBoxGyration(const ChVector<>& hdims,
 
     ChVector<> modifiedHdims = hdims + ChVector<>(srad, srad, srad);
     //// TODO: for now, use the gyration of the offset box
-    J.SetElement(0, 0, (1.0 / 3.0) * (modifiedHdims.y * modifiedHdims.y + modifiedHdims.z * modifiedHdims.z));
-    J.SetElement(1, 1, (1.0 / 3.0) * (modifiedHdims.z * modifiedHdims.z + modifiedHdims.x * modifiedHdims.x));
-    J.SetElement(2, 2, (1.0 / 3.0) * (modifiedHdims.x * modifiedHdims.x + modifiedHdims.y * modifiedHdims.y));
+    J.SetElement(0, 0, (1.0 / 3.0) * (modifiedHdims.y() * modifiedHdims.y() + modifiedHdims.z() * modifiedHdims.z()));
+    J.SetElement(1, 1, (1.0 / 3.0) * (modifiedHdims.z() * modifiedHdims.z() + modifiedHdims.x() * modifiedHdims.x()));
+    J.SetElement(2, 2, (1.0 / 3.0) * (modifiedHdims.x() * modifiedHdims.x() + modifiedHdims.y() * modifiedHdims.y()));
 
     TransformGyration(J, pos, rot);
 

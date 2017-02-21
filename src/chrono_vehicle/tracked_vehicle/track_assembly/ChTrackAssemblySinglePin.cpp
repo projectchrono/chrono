@@ -59,9 +59,9 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     ChVector<> rear_wheel_pos = front_wheel_pos;
     for (size_t i = 1; i < num_wheels; i++) {
         const ChVector<>& wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
-        if (wheel_pos.x > front_wheel_pos.x)
+        if (wheel_pos.x() > front_wheel_pos.x())
             front_wheel_pos = wheel_pos;
-        if (wheel_pos.x < rear_wheel_pos.x)
+        if (wheel_pos.x() < rear_wheel_pos.x())
             rear_wheel_pos = wheel_pos;
     }
 
@@ -75,7 +75,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Decide whether we wrap counter-clockwise (sprocket in front of idler) or
     // clockwise (sprocket behind idler).
-    bool ccw = sprocket_pos.x > idler_pos.x;
+    bool ccw = sprocket_pos.x() > idler_pos.x();
     double sign = ccw ? -1 : +1;
     const ChVector<>& wheel_sprocket_pos = ccw ? front_wheel_pos : rear_wheel_pos;
     const ChVector<>& wheel_idler_pos = ccw ? rear_wheel_pos : front_wheel_pos;
@@ -110,12 +110,12 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     //    track shoe's height and stop when we reach the idler location.
 
     // Calculate the constant pitch angle.
-    double dz = (sprocket_pos.z + sprocket_radius) - (idler_pos.z + idler_radius);
-    double dx = sprocket_pos.x - idler_pos.x;
+    double dz = (sprocket_pos.z() + sprocket_radius) - (idler_pos.z() + idler_radius);
+    double dx = sprocket_pos.x() - idler_pos.x();
     angle = ccw ? -CH_C_PI - std::atan2(dz, dx) : CH_C_PI + std::atan2(dz, -dx);
 
     // Create track shoes with constant orientation
-    while (sign * (idler_pos.x - p2.x + shoe_pitch) > 0 && index < num_shoes) {
+    while (sign * (idler_pos.x() - p2.x() + shoe_pitch) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
@@ -142,12 +142,12 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     //    to a line connecting bottom points on idler and wheel. Stop when passing
     //    the wheel position.
 
-    dz = (idler_pos.z - idler_radius) - (wheel_idler_pos.z - wheel_radius);
-    dx = idler_pos.x - wheel_idler_pos.x;
+    dz = (idler_pos.z() - idler_radius) - (wheel_idler_pos.z() - wheel_radius);
+    dx = idler_pos.x() - wheel_idler_pos.x();
     angle = ccw ? -CH_C_2PI + std::atan2(dz, -dx) : -CH_C_PI - std::atan2(dz, dx);
 
     // Create track shoes with constant orientation
-    while (sign * (p2.x - wheel_idler_pos.x) > 0 && index < num_shoes) {
+    while (sign * (p2.x() - wheel_idler_pos.x()) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
@@ -160,7 +160,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     angle = ccw ? 0 : CH_C_2PI;
 
-    while (sign * (p2.x - wheel_sprocket_pos.x) > 0 && index < num_shoes) {
+    while (sign * (p2.x() - wheel_sprocket_pos.x()) > 0 && index < num_shoes) {
         p2 = p1 + shoe_pitch * ChVector<>(-sign * std::cos(angle), 0, sign * std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
@@ -201,7 +201,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     //    Form an isosceles triangle connecting the last initialized shoe with
     //    the very first one under the sprocket.
 
-    double alpha = std::atan2(p0.z - p2.z, p0.x - p2.x);
+    double alpha = std::atan2(p0.z() - p2.z(), p0.x() - p2.x());
     double beta = std::acos(gap / (shoe_pitch * num_left));
 
     // Create half of the remaining shoes (with a pitch angle = alpha-beta).

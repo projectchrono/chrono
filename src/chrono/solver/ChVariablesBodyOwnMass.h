@@ -97,7 +97,7 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVariablesBodyOwnMass>();
         // serialize parent class
         ChVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
@@ -108,7 +108,7 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVariablesBodyOwnMass>();
         // deserialize parent class
         ChVariablesBody::ArchiveIN(marchive);
         // stream in all member data:

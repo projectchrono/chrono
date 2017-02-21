@@ -12,7 +12,7 @@
 #ifndef CHC_AABB_H
 #define CHC_AABB_H
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "chrono/geometry/ChGeometry.h"
@@ -64,7 +64,7 @@ class CHAABB {
     inline int GetSecondChildIndex() { return first_child + 1; }
 
     /// Returns the size of the bounding box (sphere radius)
-    double GetSize() { return (d.x * d.x + d.y * d.y + d.z * d.z); }
+    double GetSize() { return (d.x() * d.x() + d.y() * d.y() + d.z() * d.z()); }
 
     /// Given  a list of geometric object, this function recomputes the
     /// bounding box in order to enclose 'ngeos' geometries,

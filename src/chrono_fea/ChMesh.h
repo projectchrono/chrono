@@ -15,7 +15,7 @@
 #ifndef CHMESH_H
 #define CHMESH_H
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <cmath>
 
 #include "chrono/core/ChTimer.h"
@@ -100,7 +100,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual int GetDOF_w() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem
-    virtual bool GetCollide() override { return true; }
+    virtual bool GetCollide() const override { return true; }
 
     /// Reset counters for internal force and Jacobian evaluations.
     void ResetCounters() {

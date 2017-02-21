@@ -36,7 +36,7 @@ TrackBrakeSimple::TrackBrakeSimple(const std::string& filename) : ChTrackBrakeSi
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

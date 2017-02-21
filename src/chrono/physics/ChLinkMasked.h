@@ -316,6 +316,8 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     static void Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBodyFrame* mbody);
 };
 
+CH_CLASS_VERSION(ChLinkMasked,0)
+
 }  // end namespace chrono
 
 #endif

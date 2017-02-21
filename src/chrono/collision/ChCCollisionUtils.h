@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCOLLISIONUTILS_H
 #define CHCOLLISIONUTILS_H
@@ -30,9 +31,9 @@ class ChApi ChCollisionUtils {
     /// two lines P1P2 and P3P4. Calculate also the values of mua and mub where
     ///    Pa = P1 + mua (P2 - P1)
     ///    Pb = P3 + mub (P4 - P3)
-    /// Return FALSE if no solution exists.
+    /// Return false if no solution exists.
 
-    static int
+    static bool
     LineLineIntersect(Vector p1, Vector p2, Vector p3, Vector p4, Vector* pa, Vector* pb, double* mua, double* mub);
 
     /// Calculate distance between a point p and a line identified

@@ -183,18 +183,18 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc) {
         uC2T = rot.Rotate(m_chassis->GetA().Get_A_Xaxis());
     }
 
-    uC2T.z = 0;
+    uC2T.z() = 0;
     uC2T.Normalize();
 
     desCamLoc = targetLoc - m_mult * m_dist * uC2T;
-    desCamLoc.z = targetLoc.z + m_mult * m_height;
+    desCamLoc.z() = targetLoc.z() + m_mult * m_height;
 
     // Calculate the derivative vector (RHS of filter ODEs).
     ChVector<> deriv;
 
-    deriv.x = m_horizGain * (desCamLoc.x - m_loc.x);
-    deriv.y = m_horizGain * (desCamLoc.y - m_loc.y);
-    deriv.z = m_vertGain * (desCamLoc.z - m_loc.z);
+    deriv.x() = m_horizGain * (desCamLoc.x() - m_loc.x());
+    deriv.y() = m_horizGain * (desCamLoc.y() - m_loc.y());
+    deriv.z() = m_vertGain * (desCamLoc.z() - m_loc.z());
 
     return deriv;
 }

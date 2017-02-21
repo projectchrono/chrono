@@ -24,7 +24,7 @@
 // generated for post-processing with POV-Ray.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 
@@ -87,7 +87,6 @@ void AddFluid(ChSystemParallelDVI* sys) {
     real dens = 30;
     real3 num_fluid = real3(10, 10, 10);
     real3 origin(0, 0, -.2);
-    real vol;
 
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
@@ -100,14 +99,14 @@ void AddFluid(ChSystemParallelDVI* sys) {
 
 #else
     ChVector<> hdim(.5, .5, .5);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z), hdim);
-// vol = hdim.x * hdim.y * hdim.z / real(points.size());
+    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z()), hdim);
+// vol = hdim.x() * hdim.y() * hdim.z() / real(points.size());
 #endif
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x, points[i].y, points[i].z) + origin;
+        pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
         vel_fluid[i] = real3(0, 0, 0);
     }
 
@@ -148,7 +147,7 @@ int main(int argc, char* argv[]) {
     msystem.Set_G_acc(ChVector<>(0, 0, -gravity));
 
     // Set solver parameters
-    msystem.GetSettings()->solver.solver_mode = SLIDING;
+    msystem.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystem.GetSettings()->solver.max_iteration_normal = 0;
     msystem.GetSettings()->solver.max_iteration_sliding = 40;
     msystem.GetSettings()->solver.max_iteration_spinning = 0;
@@ -159,15 +158,15 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.contact_recovery_speed = 100000;
     msystem.GetSettings()->solver.cache_step_length = true;
 
-    msystem.ChangeSolverType(BB);
-    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    msystem.ChangeSolverType(SolverType::BB);
+    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
     AddFluid(&msystem);
 
     msystem.GetSettings()->collision.collision_envelope = (fluid_container->kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
-    msystem.SetLoggingLevel(LOG_TRACE, true);
-    msystem.SetLoggingLevel(LOG_INFO, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
+    msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
     // Create the fixed and moving bodies
     // ----------------------------------
     AddContainer(&msystem);
@@ -178,7 +177,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "fluidDVI", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2);
+    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
     gl_window.Pause();
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.

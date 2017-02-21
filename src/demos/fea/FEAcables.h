@@ -181,8 +181,8 @@ void model3(ChSystem& system, std::shared_ptr<ChMesh> mesh) {
     builder.BuildBeam(mesh,             // mesh where to put the created nodes and elements
       msection_cable2,  // ChBeamSectionCable to use for the ChElementBeamANCF elements
       1 + (6 - j),      // number of ChElementBeamANCF to create
-      ChVector<>(mbox->GetPos().x + 0.1, 0, -0.1 * j),  // point A (beginning of beam)
-      ChVector<>(mbox->GetPos().x + 0.1 + 0.1 * (6 - j), 0, -0.1 * j)  // point B (end of beam)
+      ChVector<>(mbox->GetPos().x() + 0.1, 0, -0.1 * j),  // point A (beginning of beam)
+      ChVector<>(mbox->GetPos().x() + 0.1 + 0.1 * (6 - j), 0, -0.1 * j)  // point B (end of beam)
       );
 
     auto constraint_pos2 = std::make_shared<ChLinkPointFrame>();

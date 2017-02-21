@@ -47,6 +47,8 @@ class ChApi ChSolverSymmSOR : public ChIterativeSolver {
 
     virtual ~ChSolverSymmSOR() {}
 
+    virtual Type GetType() const override { return Type::SYMMSOR; }
+
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
     virtual double Solve(ChSystemDescriptor& sysd  ///< system description with constraints and variables

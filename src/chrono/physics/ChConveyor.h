@@ -164,7 +164,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Other functions
 
-    virtual bool GetCollide() override { return true; }
+    virtual bool GetCollide() const override { return true; }
     virtual void SyncCollisionModels() override;
     virtual void AddCollisionModelsToSystem() override;
     virtual void RemoveCollisionModelsFromSystem() override;
@@ -186,6 +186,8 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChConveyor,0)
 
 }  // end namespace chrono
 

@@ -276,10 +276,10 @@ void StoreData(ChSystem& my_system,
     ChVector<> ConstraintPos = tip - NodeFirstPos;
 
     m_data[0][it] = my_system.GetChTime();
-    m_data[1][it] = ConstraintPos.x;  // Checks rigid body-ANCF body position constraint
-    m_data[2][it] = ConstraintPos.y;  // Checks rigid body-ANCF body position constraint
-    m_data[3][it] = ConstraintPos.z;  // Checks rigid body-ANCF body position constraint
-    m_data[4][it] = dot;              // Checks rigid body-ANCF body direction constraint
+    m_data[1][it] = ConstraintPos.x();  // Checks rigid body-ANCF body position constraint
+    m_data[2][it] = ConstraintPos.y();  // Checks rigid body-ANCF body position constraint
+    m_data[3][it] = ConstraintPos.z();  // Checks rigid body-ANCF body position constraint
+    m_data[4][it] = dot;                // Checks rigid body-ANCF body direction constraint
     m_data[5][it] = (*C12).GetElement(0, 0);
     m_data[6][it] = (*C12).GetElement(1, 0);
     m_data[7][it] = (*C12).GetElement(2, 0);
@@ -313,17 +313,17 @@ int main(int argc, char* argv[]) {
     AddConstraints(my_system);
 
     // Set up linear solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(2000);
     my_system.SetMaxItersSolverStab(2000);
     my_system.SetTolForce(1e-7);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
     // Set up integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(1000);
@@ -354,27 +354,27 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(time_step);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         if (include_bodies) {
-            printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x, Body_2->coord.pos.y,
-                   Body_2->coord.pos.z);
-            printf("Body_3 position: %12.4e  %12.4e  %12.4e\n", Body_3->coord.pos.x, Body_3->coord.pos.y,
-                   Body_3->coord.pos.z);
+            printf("Body_2 position: %12.4e  %12.4e  %12.4e\n", Body_2->coord.pos.x(), Body_2->coord.pos.y(),
+                   Body_2->coord.pos.z());
+            printf("Body_3 position: %12.4e  %12.4e  %12.4e\n", Body_3->coord.pos.x(), Body_3->coord.pos.y(),
+                   Body_3->coord.pos.z());
             tip = Body_3->TransformPointLocalToParent(ChVector<>(0.25, 0, 0));
-            printf("Body_3 tip:      %12.4e  %12.4e  %12.4e\n", tip.x, tip.y, tip.z);
+            printf("Body_3 tip:      %12.4e  %12.4e  %12.4e\n", tip.x(), tip.y(), tip.z());
         }
 
         if (include_mesh) {
             // std::cout << "nodetip->pos.z = " << Node4->pos.z << "\n";
-            printf("Node position:   %12.4e  %12.4e  %12.4e\n", NodeFirst->pos.x, NodeFirst->pos.y, NodeFirst->pos.z);
-            printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", NodeFirst->D.x, NodeFirst->D.y, NodeFirst->D.z);
+            printf("Node position:   %12.4e  %12.4e  %12.4e\n", NodeFirst->pos.x(), NodeFirst->pos.y(), NodeFirst->pos.z());
+            printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", NodeFirst->D.x(), NodeFirst->D.y(), NodeFirst->D.z());
         }
 
         if (include_constraints) {
             // Get direction of constraint (in body local frame) and convert to global frame
             ChVector<> dirB = Body_3->TransformDirectionLocalToParent(constraintDir->GetDirection());
-            printf("Direction on body:  %12.4e  %12.4e  %12.4e\n", dirB.x, dirB.y, dirB.z);
+            printf("Direction on body:  %12.4e  %12.4e  %12.4e\n", dirB.x(), dirB.y(), dirB.z());
             // Direction along the body
             ChVector<> body_axis = Body_3->TransformDirectionLocalToParent(ChVector<>(0.25, 0, 0));
-            printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x, body_axis.y, body_axis.z);
+            printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x(), body_axis.y(), body_axis.z());
             // Body axis should always be perpendicular to node normal
             dot = Vdot(body_axis, NodeFirst->D);
             printf("Dot product = %e\n", dot);

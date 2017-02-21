@@ -154,9 +154,9 @@ void DPCapPress() {
 	material->Set_RayleighDampingK(0.0);
 	material->Set_RayleighDampingM(0.0);
 	material->Set_density(rho);
-	material->Set_E(E.x);
-	// material->Set_G(G.x);
-	material->Set_v(nu.x);
+	material->Set_E(E.x());
+	// material->Set_G(G.x());
+	material->Set_v(nu.x());
 
 	// Read hardening parameter look-up table
 	FILE* inputfile;
@@ -322,16 +322,13 @@ void DPCapPress() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-	my_system.ChangeSolverStab(mkl_solver_stab);
-	my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
+	auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+	my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
 	my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(25);//20
@@ -380,9 +377,9 @@ void DPCapPress() {
 			inc = inc / 2;
 			for (int ii = 0; ii < N_x; ii++) {
 				auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(offset_top + offset_mid + N_y*inc + ii));
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().x);
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().y);
-				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().z);
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().x());
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().y());
+				fprintf(outputfile, "%15.7e  ", nodeforce->GetPos().z());
 			}
 			fprintf(outputfile, "\n  ");
 		}
@@ -515,9 +512,9 @@ void ShellBrickContact() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     double rhoS = 8000;
     ChVector<> ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
@@ -676,16 +673,13 @@ void ShellBrickContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -700,9 +694,9 @@ void ShellBrickContact() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -732,19 +726,19 @@ void ShellBrickContact() {
         GetLog() << "t = " << my_system.GetChTime() << "\n";
         GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n";
         // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        GetLog() << nodetip1->GetPos().x << "\n";
-        GetLog() << nodetip1->GetPos().y << "\n";
-        GetLog() << nodetip1->GetPos().z << "\n";
-        GetLog() << nodetip1->GetPos_dt().z << "\n";
+        GetLog() << nodetip1->GetPos().x() << "\n";
+        GetLog() << nodetip1->GetPos().y() << "\n";
+        GetLog() << nodetip1->GetPos().z() << "\n";
+        GetLog() << nodetip1->GetPos_dt().z() << "\n";
         if (!application.GetPaused() && timecount % 100 == 0) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             for (int in = 0; in < XYNumNodes; in++) {
                 auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
             }
-            // fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
+            // fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
             fprintf(outputfile, "\n  ");
         }
         timecount++;
@@ -846,9 +840,9 @@ void SimpleBoxContact() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
@@ -994,16 +988,13 @@ void SimpleBoxContact() {
     application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1018,9 +1009,9 @@ void SimpleBoxContact() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -1041,19 +1032,19 @@ void SimpleBoxContact() {
         // GetLog() << "Plate Pos: " << Plate->GetPos();
         // GetLog() << "Plate Vel: " << Plate->GetPos_dt();
         // GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-        // GetLog() << nodetip1->GetPos().x << "\n";
-        // GetLog() << nodetip1->GetPos().y << "\n";
-        // GetLog() << nodetip1->GetPos().z << "\n";
-        // GetLog() << nodetip1->GetPos_dt().z << "\n";
+        // GetLog() << nodetip1->GetPos().x() << "\n";
+        // GetLog() << nodetip1->GetPos().y() << "\n";
+        // GetLog() << nodetip1->GetPos().z() << "\n";
+        // GetLog() << nodetip1->GetPos_dt().z() << "\n";
         if (!application.GetPaused() && timecount % 100 == 0) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
             for (int in = 0; in < XYNumNodes; in++) {
                 auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+                fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
             }
-            fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
+            fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
             fprintf(outputfile, "\n  ");
         }
         timecount++;
@@ -1159,9 +1150,9 @@ void SoilBin() {
 	material->Set_RayleighDampingK(0.0);
 	material->Set_RayleighDampingM(0.0);
 	material->Set_density(rho);
-	material->Set_E(E.x);
-	// material->Set_G(G.x);
-	material->Set_v(nu.x);
+	material->Set_E(E.x());
+	// material->Set_G(G.x());
+	material->Set_v(nu.x());
 	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
 	my_surfacematerial->SetKn(0.2e4);//0.2e6
 	my_surfacematerial->SetKt(0.2e4);//0.2e6
@@ -1331,16 +1322,13 @@ void SoilBin() {
 	application.AssetUpdateAll();
 
 	// Use the MKL Solver
-	ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-	ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-	my_system.ChangeSolverStab(mkl_solver_stab);
-	my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(true);
-	mkl_solver_speed->SetSparsityPatternLock(true);
-	my_system.Update();
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
+    my_system.Update();
 
 	// Set the time integrator parameters
-	my_system.SetIntegrationType(ChSystem::INT_HHT);
+	my_system.SetTimestepperType(ChTimestepper::Type::HHT);
 	auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
 	mystepper->SetAlpha(0.0);
 	mystepper->SetMaxiters(20);
@@ -1357,9 +1345,9 @@ void SoilBin() {
 	fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
 	for (int ii = 0; ii < N_x; ii++) {
 		auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+		fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
 	}
 	fprintf(outputfile, "\n  ");
 
@@ -1370,7 +1358,7 @@ void SoilBin() {
 	application.SetPaused(true);
 	while (application.GetDevice()->run() && (my_system.GetChTime() <= 1.0)) {
 		Plate->Empty_forces_accumulators();
-		Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0*sin(my_system.GetChTime()*CH_C_PI)), Plate->GetPos(), 0);
+		Plate->Accumulate_force(ChVector<>(0.0, 0.0, -1500.0*sin(my_system.GetChTime()*CH_C_PI)), Plate->GetPos(), false);
 		Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
 		application.BeginScene();
@@ -1387,21 +1375,21 @@ void SoilBin() {
 		GetLog() << "Plate Rot: " << Plate->GetRot();
 		GetLog() << "Plate Rot_v: " << Plate->GetRot_dt();
 		GetLog() << "Body Contact F: " << Plate->GetContactForce() << "\n";
-		GetLog() << nodecenter->GetPos().x << "\n";
-		GetLog() << nodecenter->GetPos().y << "\n";
-		GetLog() << nodecenter->GetPos().z << "\n";
+		GetLog() << nodecenter->GetPos().x() << "\n";
+		GetLog() << nodecenter->GetPos().y() << "\n";
+		GetLog() << nodecenter->GetPos().z() << "\n";
 		if (!application.GetPaused()) {
 			fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
 			for (int ii = 0; ii < N_x; ii++) {
 				auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(N_x*N_y*numDiv_z + N_x*(numDiv_y / 2) + ii));
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x);
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y);
-				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z);
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().x());
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().y());
+				fprintf(outputfile, "%15.7e  ", nodetest->GetPos().z());
 			}
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().x);
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().y);
-			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z);
-			fprintf(outputfile, "%15.7e  ", Plate->GetPos().z);
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().x());
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().y());
+			fprintf(outputfile, "%15.7e  ", Plate->GetContactForce().z());
+			fprintf(outputfile, "%15.7e  ", Plate->GetPos().z());
 			fprintf(outputfile, "\n  ");
 		}
 	}
@@ -1510,9 +1498,9 @@ void AxialDynamics() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    // material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    // material->Set_G(G.x());
+    material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
@@ -1620,16 +1608,13 @@ void AxialDynamics() {
     // application.AssetUpdateAll();
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -1644,9 +1629,9 @@ void AxialDynamics() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -1669,9 +1654,9 @@ void AxialDynamics() {
         // GetLog() << "Last it: " << mystepper->GetNumIterations() << "\n\n";
         // if (!application.GetPaused()) {
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
         fprintf(outputfile, "\n  ");
         //}
     }
@@ -1769,9 +1754,9 @@ void BendingQuasiStatic() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -1863,24 +1848,20 @@ void BendingQuasiStatic() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
-    //                                                   // handle stiffness matrices
-    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // my_system.SetSolverType(ChSolver::Type::MINRES);
+    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(2000);
@@ -1895,9 +1876,9 @@ void BendingQuasiStatic() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double force = 0.0;
@@ -1914,15 +1895,15 @@ void BendingQuasiStatic() {
 
             nodetip->SetForce(ChVector<>(0.0, 0.0, force));
 
-            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " "
-                     << nodetip->GetPos().z << "\n";
+            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                     << nodetip->GetPos().z() << "\n";
         }
         application.DoStep();
         GetLog() << "Force: " << force << "\n";
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
         application.EndScene();
     }
@@ -2018,9 +1999,9 @@ void SwingingShell() {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -2112,24 +2093,20 @@ void SwingingShell() {
     // ----------------------------------
 
     // Set up solver
-    // my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
-    //                                                   // handle stiffness matrices
-    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // my_system.SetSolverType(ChSolver::Type::MINRES);
+    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetDiagonalPreconditioning(true);
     // my_system.SetMaxItersSolverSpeed(100);
     // my_system.SetTolForce(1e-10);
 
     // Use the MKL Solver
-    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    mkl_solver_stab->SetSparsityPatternLock(true);
-    mkl_solver_speed->SetSparsityPatternLock(true);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    my_system.SetSolver(mkl_solver);
+    mkl_solver->SetSparsityPatternLock(true);
     my_system.Update();
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
@@ -2144,9 +2121,9 @@ void SwingingShell() {
 
     outputfile = fopen("SolidBenchmark.txt", "w");
     fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+    fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
     fprintf(outputfile, "\n  ");
 
     double ChTime = 0.0;
@@ -2155,14 +2132,14 @@ void SwingingShell() {
         application.DrawAll();
         application.DoStep();
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
         application.EndScene();
         if (!application.GetPaused()) {
-            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x << " " << nodetip->GetPos().y << " "
-                     << nodetip->GetPos().z << "\n";
+            GetLog() << my_system.GetChTime() << " " << nodetip->GetPos().x() << " " << nodetip->GetPos().y() << " "
+                     << nodetip->GetPos().z() << "\n";
         }
     }
 }

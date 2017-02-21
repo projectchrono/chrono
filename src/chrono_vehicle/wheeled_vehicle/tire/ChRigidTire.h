@@ -88,7 +88,8 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// automatically applied to the associated wheel through Chrono's frictional
     /// contact system). If the tire is co-simulated, the tire force and moments
     /// encapsulate the tire-terrain forces (i.e. the resultant of all contact
-    /// forces acting on the tire).
+    /// forces acting on the tire); in this case, the force and moment are expressed
+    /// in global frame, as applied to the center of the associated wheel.
     virtual TireForce GetTireForce(bool cosim = false) const override;
 
     /// Initialize this tire system.

@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
         double angle = e * (2 * CH_C_PI / 8.0);
-        hexpos.z = 0.3 * cos(angle);
-        hexpos.x = 0.3 * sin(angle);
+        hexpos.z() = 0.3 * cos(angle);
+        hexpos.x() = 0.3 * sin(angle);
         ChMatrix33<> hexrot(Q_from_AngAxis(angle, VECT_Y));
 
         std::shared_ptr<ChNodeFEAxyz> hnode1_lower;
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     // (for example, fix to ground all nodes which are near y=0
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y < 0.01) {
+            if (mnode->GetPos().y() < 0.01) {
                 auto constraint = std::make_shared<ChLinkPointFrame>();
                 constraint->Initialize(mnode, truss);
                 my_system.Add(constraint);
@@ -221,23 +221,21 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetTimestepperType(chrono::ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
+
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(40);
     my_system.SetTolForce(1e-10);
-    // ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    // auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     // msolver->SetVerbose(true);
     // msolver->SetDiagonalPreconditioning(true);
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     /*
     //// TEST
     ChMatlabEngine matlab_engine;
-    ChSolverMatlab* matlab_solver_stab  = new ChSolverMatlab(matlab_engine);
-    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeSolverStab (matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
+    auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
     */
     application.SetTimestep(0.001);
 
@@ -248,7 +246,7 @@ int main(int argc, char* argv[]) {
 
         application.DoStep();
 
-        //	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y=" << mnode3->GetPos().y << "  \n";
+        //	GetLog() << " t =" << my_system.GetChTime() << "  mnode3 pos.y()=" << mnode3->GetPos().y() << "  \n";
 
         application.EndScene();
     }

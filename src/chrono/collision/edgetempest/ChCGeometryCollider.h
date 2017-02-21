@@ -12,7 +12,7 @@
 #ifndef CHC_GEOMETRYCOLLIDER_H
 #define CHC_GEOMETRYCOLLIDER_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/collision/edgetempest/ChCNarrowPhaseCollider.h"
 #include "chrono/geometry/ChGeometry.h"

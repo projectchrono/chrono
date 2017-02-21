@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "chrono/assets/ChCylinderShape.h"
+#include "chrono/assets/ChPointPointDrawing.h"
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/wheeled_vehicle/steering/ChPitmanArm.h"
@@ -194,11 +195,15 @@ void ChPitmanArm::AddVisualizationAssets(VisualizationType vis) {
         col->SetColor(ChColor(0.7f, 0.7f, 0.2f));
         m_arm->AddAsset(col);
     }
+
+    // Visualization for rev-sph link
+    m_revsph->AddAsset(std::make_shared<ChPointPointSegment>());
 }
 
 void ChPitmanArm::RemoveVisualizationAssets() {
     m_link->GetAssets().clear();
     m_arm->GetAssets().clear();
+    m_revsph->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

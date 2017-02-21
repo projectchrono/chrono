@@ -15,7 +15,7 @@
 // ChronoParallel unit test for MPR collision detection
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 

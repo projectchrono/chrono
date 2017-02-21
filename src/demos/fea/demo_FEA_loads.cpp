@@ -219,8 +219,8 @@ void test_1() {
                 double y_force = 0;
                 
                 // Store the computed generalized forces in this->load_Q, same x,y,z order as in state_w
-                F(0) = x_force -Kx*(node_pos.x - x_offset) -Dx*node_vel.x; // Fx component of force
-                F(1) = y_force -Ky*(node_pos.y - y_offset) -Dy*node_vel.y; // Fy component of force
+                F(0) = x_force -Kx*(node_pos.x() - x_offset) -Dx*node_vel.x(); // Fx component of force
+                F(1) = y_force -Ky*(node_pos.y() - y_offset) -Dy*node_vel.y(); // Fy component of force
                 F(2) = 0; // Fz component of force
             }
 
@@ -280,8 +280,8 @@ void test_1() {
                 double y_force = 0;
                 
                 // Store the computed generalized forces in this->load_Q, same x,y,z order as in state_w
-                this->load_Q(0) = x_force -Kx*(node_pos.x - x_offset) -Dx*node_vel.x; 
-                this->load_Q(1) = y_force -Ky*(node_pos.y - y_offset) -Dy*node_vel.y; 
+                this->load_Q(0) = x_force -Kx*(node_pos.x() - x_offset) -Dx*node_vel.x(); 
+                this->load_Q(1) = y_force -Ky*(node_pos.y() - y_offset) -Dy*node_vel.y(); 
                 this->load_Q(2) = 0; 
             }
 
@@ -363,24 +363,24 @@ void test_1() {
                 double Dy1 = 0.2;
                 double E_x_offset = 2;
                 double E_y_offset = 10;
-                ChVector<> spring1 (-Kx1*(Enode_pos.x - E_x_offset) -Dx1*Enode_vel.x, 
-                                    -Ky1*(Enode_pos.y - E_y_offset) -Dy1*Enode_vel.y, 
+                ChVector<> spring1 (-Kx1*(Enode_pos.x() - E_x_offset) -Dx1*Enode_vel.x(), 
+                                    -Ky1*(Enode_pos.y() - E_y_offset) -Dy1*Enode_vel.y(), 
                                     0);
                     // ... from node F to node E, 
                 double Ky2 = 10;
                 double Dy2 = 0.2;
                 double EF_dist = 1;
                 ChVector<> spring2 (0, 
-                                    -Ky2*(Fnode_pos.y - Enode_pos.y - EF_dist) -Dy2*(Enode_vel.y - Fnode_vel.y), 
+                                    -Ky2*(Fnode_pos.y() - Enode_pos.y() - EF_dist) -Dy2*(Enode_vel.y() - Fnode_vel.y()), 
                                     0);
                 double Fforcey = 2;
                 // store generalized forces as a contiguous vector in this->load_Q, with same order of state_w
-                this->load_Q(0) = spring1.x - spring2.x; // Fx component of force on 1st node
-                this->load_Q(1) = spring1.y - spring2.y; // Fy component of force on 1st node
-                this->load_Q(2) = spring1.z - spring2.z; // Fz component of force on 1st node
-                this->load_Q(3) = spring2.x         ; // Fx component of force on 2nd node
-                this->load_Q(4) = spring2.y +Fforcey; // Fy component of force on 2nd node
-                this->load_Q(5) = spring2.z         ; // Fz component of force on 2nd node
+                this->load_Q(0) = spring1.x() - spring2.x(); // Fx component of force on 1st node
+                this->load_Q(1) = spring1.y() - spring2.y(); // Fy component of force on 1st node
+                this->load_Q(2) = spring1.z() - spring2.z(); // Fz component of force on 1st node
+                this->load_Q(3) = spring2.x()         ; // Fx component of force on 2nd node
+                this->load_Q(4) = spring2.y() +Fforcey; // Fy component of force on 2nd node
+                this->load_Q(5) = spring2.z()         ; // Fz component of force on 2nd node
             }
 
             // OPTIONAL: if you want to provide an analytical jacobian, just implement the following:
@@ -407,14 +407,13 @@ void test_1() {
 
     // Setup a MINRES solver. For FEA one cannot use the default SOR type solver.
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED THIS or MKL because other solvers can't handle stiffness matrices
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-13);
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
-	msolver->SetVerbose(false);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
+    msolver->SetVerbose(false);
 	msolver->SetDiagonalPreconditioning(true);
 
     // Perform a static analysis:

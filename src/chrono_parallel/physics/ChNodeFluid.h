@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/solver/ChVariablesNode.h"

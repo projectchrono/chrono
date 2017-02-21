@@ -18,7 +18,7 @@ namespace chrono {
 
 void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
                                      const ChVector<>& appl_point,
-                                     int local,
+                                     bool local,
                                      ChVector<>& resultforce,
                                      ChVector<>& resulttorque) {
     if (local) {
@@ -33,7 +33,7 @@ void ChBodyFrame::To_abs_forcetorque(const ChVector<>& force,
     }
 }
 
-void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque) {
+void ChBodyFrame::To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque) {
     if (local) {
         // local space
         resulttorque = this->TransformDirectionLocalToParent(torque);
@@ -45,19 +45,17 @@ void ChBodyFrame::To_abs_torque(const ChVector<>& torque, int local, ChVector<>&
 
 void ChBodyFrame::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChBodyFrame>();
 
     // serialize parent class
     ChFrameMoving<double>::ArchiveOUT(marchive);
-    // serialize parent class
-    // ChBodyFrame::ArchiveOUT(marchive);
 
     // serialize all member data:
 }
 
 void ChBodyFrame::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChBodyFrame>();
 
     // deserialize parent class
     ChFrameMoving<double>::ArchiveIN(marchive);

@@ -57,14 +57,14 @@ void draw_affected_triangles(ChIrrApp& application, std::vector<ChVector<>>& ver
   for (int it= 0;it < triangles.size(); ++it) {
     bool vert_hit = false;
     for (int io = 0; io < vert_indexes.size(); ++io) {
-      if (triangles[it].x == vert_indexes[io] || triangles[it].y == vert_indexes[io] || triangles[it].z == vert_indexes[io])
+      if (triangles[it].x() == vert_indexes[io] || triangles[it].y() == vert_indexes[io] || triangles[it].z() == vert_indexes[io])
         vert_hit = true;
     }
     if (vert_hit == true) {
-      std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x],
-          vert_pos[triangles[it].y],
-          vert_pos[triangles[it].z],
-          vert_pos[triangles[it].x]};
+      std::vector<chrono::ChVector<> > fourpoints = { vert_pos[triangles[it].x()],
+          vert_pos[triangles[it].y()],
+          vert_pos[triangles[it].z()],
+          vert_pos[triangles[it].x()]};
       ChIrrTools::drawPolyline(application.GetVideoDriver(), fourpoints, irr::video::SColor(255,240,200,0), true);
     }
   }
@@ -105,9 +105,11 @@ int main(int argc, char* argv[]) {
   application.AddTypicalLogo();
   application.AddTypicalSky();
   application.AddTypicalLights();
-  application.AddTypicalCamera(core::vector3df(3, (f32)1.4, -3.2), core::vector3df(0, 0, 0));
-  application.AddLightWithShadow(core::vector3df(1.5, 5.5, -2.5), core::vector3df(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-      video::SColorf(0.8, 0.8, 1));
+  application.AddTypicalCamera(core::vector3dfCH(ChVector<>(3, 1.4, -3.2)),
+                               core::vector3dfCH(ChVector<>(0, 0, 0)));
+
+  application.AddLightWithShadow(core::vector3dfCH(ChVector<>(1.5, 5.5, -2.5)), core::vector3df(0, 0, 0), 3, 2.2, 7.2,
+                                 40, 512, video::SColorf((f32)0.8, (f32)0.8, (f32)1.0));
 #endif
   //
   // CREATE A FINITE ELEMENT MESH
@@ -237,13 +239,13 @@ int main(int argc, char* argv[]) {
   // Change solver to embedded MINRES
   // NOTE! it is strongly advised that you compile the optional MKL module
   // if you need higher precision, and switch to its MKL solver - see demos for FEA & MKL.
-  my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+  my_system.SetSolverType(ChSolver::Type::MINRES);
   my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
   my_system.SetMaxItersSolverSpeed(40);
   my_system.SetTolForce(1e-10);
 
   // Change type of integrator:
-  my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+  my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
 #ifndef CHRONO_OPENGL
   application.SetTimestep(time_step);
@@ -256,7 +258,7 @@ int main(int argc, char* argv[]) {
   systemG->Set_G_acc(my_system.Get_G_acc());
 
   // Set solver parameters
-  systemG->GetSettings()->solver.solver_mode = SLIDING;
+  systemG->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
   systemG->GetSettings()->solver.max_iteration_normal = max_iteration / 3;
   systemG->GetSettings()->solver.max_iteration_sliding = max_iteration / 3;
   systemG->GetSettings()->solver.max_iteration_spinning = 0;
@@ -264,8 +266,8 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->solver.tolerance = tolerance;
   systemG->GetSettings()->solver.alpha = 0;
   systemG->GetSettings()->solver.contact_recovery_speed = 10000;
-  systemG->ChangeSolverType(APGD);
-  systemG->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+  systemG->ChangeSolverType(SolverType::APGD);
+  systemG->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
   systemG->GetSettings()->collision.collision_envelope = 0.01;
   systemG->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
@@ -300,13 +302,13 @@ int main(int argc, char* argv[]) {
 
   int triId = 0;
   for (int i = 0; i < triangles.size(); i++) {
-      auto triangle = std::make_shared<ChBody>(new ChCollisionModelParallel);
+      auto triangle = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>());
       triangle->SetMaterialSurface(triMat);
       triangle->SetIdentifier(triId++);
       triangle->SetMass(mass);
       triangle->SetInertiaXX(inertia);
-      pos = (vert_pos[triangles[i].x] + vert_pos[triangles[i].y] + vert_pos[triangles[i].z]) / 3.0;
-      vel = (vert_vel[triangles[i].x] + vert_vel[triangles[i].y] + vert_vel[triangles[i].z]) / 3.0;
+      pos = (vert_pos[triangles[i].x()] + vert_pos[triangles[i].y()] + vert_pos[triangles[i].z()]) / 3.0;
+      vel = (vert_vel[triangles[i].x()] + vert_vel[triangles[i].y()] + vert_vel[triangles[i].z()]) / 3.0;
       triangle->SetPos(pos);
       triangle->SetPos_dt(vel);
       triangle->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -316,8 +318,8 @@ int main(int argc, char* argv[]) {
       triangle->GetCollisionModel()->ClearModel();
       // utils::AddSphereGeometry(triangle.get(), radius);
       std::string name = "tri" + std::to_string(triId);
-      utils::AddTriangle(triangle.get(), vert_pos[triangles[i].x] - pos, vert_pos[triangles[i].y] - pos,
-                         vert_pos[triangles[i].z] - pos, name);
+      utils::AddTriangle(triangle.get(), vert_pos[triangles[i].x()] - pos, vert_pos[triangles[i].y()] - pos,
+                         vert_pos[triangles[i].z()] - pos, name);
       triangle->GetCollisionModel()->SetFamily(1);
       triangle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
       triangle->GetCollisionModel()->BuildModel();
@@ -381,7 +383,7 @@ int main(int argc, char* argv[]) {
         utils::CSV_writer csv(delim);
         csv << triangles.size() << std::endl;
         for(int i=0; i<triangles.size();i++) {
-          csv << systemG->Get_bodylist()->at(i)->GetPos() << vert_pos[triangles[i].x] << vert_pos[triangles[i].y] << vert_pos[triangles[i].z] << std::endl;
+          csv << systemG->Get_bodylist()->at(i)->GetPos() << vert_pos[triangles[i].x()] << vert_pos[triangles[i].y()] << vert_pos[triangles[i].z()] << std::endl;
         }
         sprintf(filename, "../POVRAY/triangles_%d.dat", frameIndex);
         csv.write_to_file(filename);
@@ -404,9 +406,9 @@ int main(int argc, char* argv[]) {
         torque = systemG->GetBodyContactTorque(i);
 
         // TODO: Calculate force based on the position in the triangle
-        vert_forces[triangles[i].x] += ChVector<>(force.x, force.y, force.z)/3;
-        vert_forces[triangles[i].y] += ChVector<>(force.x, force.y, force.z)/3;
-        vert_forces[triangles[i].z] += ChVector<>(force.x, force.y, force.z)/3;
+        vert_forces[triangles[i].x()] += ChVector<>(force.x, force.y, force.z)/3;
+        vert_forces[triangles[i].y()] += ChVector<>(force.x, force.y, force.z)/3;
+        vert_forces[triangles[i].z()] += ChVector<>(force.x, force.y, force.z)/3;
       }
       mrigidmeshload->InputSimpleForces(vert_forces, vert_indexes);
       // END STEP 2
@@ -437,9 +439,9 @@ int main(int argc, char* argv[]) {
 
       for(int i=0; i<triangles.size(); i++) {
         std::shared_ptr<ChBody> triBody = systemG->Get_bodylist()->at(i);
-        pos = (vert_pos[triangles[i].x]+vert_pos[triangles[i].y]+vert_pos[triangles[i].z])/3.0;
+        pos = (vert_pos[triangles[i].x()]+vert_pos[triangles[i].y()]+vert_pos[triangles[i].z()])/3.0;
         triBody->SetPos(pos);
-        vel = (vert_vel[triangles[i].x]+vert_vel[triangles[i].y]+vert_vel[triangles[i].z])/3.0;
+        vel = (vert_vel[triangles[i].x()]+vert_vel[triangles[i].y()]+vert_vel[triangles[i].z()])/3.0;
         triBody->SetPos_dt(vel);
 
         //            // Update visual assets TODO: chrono_opengl cannot handle dynamic meshes yet
@@ -447,17 +449,17 @@ int main(int argc, char* argv[]) {
         //              std::shared_ptr<ChAsset> asset = triBody->GetAssets()[j];
         //              if (std::dynamic_pointer_cast<ChTriangleMeshShape>(asset)) {
         //                //std::cout << j << std::endl;
-        //                //std::cout << vert_pos[triangles[i].x].x << " " << vert_pos[triangles[i].x].y << " " << vert_pos[triangles[i].x].z << std::endl;
-        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x];
-        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y];
-        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z];
+        //                //std::cout << vert_pos[triangles[i].x()].x() << " " << vert_pos[triangles[i].x()].y() << " " << vert_pos[triangles[i].x()].z() << std::endl;
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[0] = vert_pos[triangles[i].x()];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[1] = vert_pos[triangles[i].y()];
+        //                ((ChTriangleMeshShape*)(asset.get()))->GetMesh().m_vertices[2] = ChVector<>(0);//vert_pos[triangles[i].z()];
         //              }
         //            }
 
         // Update collision information
-        systemG->data_manager->shape_data.triangle_rigid[3 * i + 0] = real3(vert_pos[triangles[i].x].x - pos.x, vert_pos[triangles[i].x].y - pos.y, vert_pos[triangles[i].x].z - pos.z);
-        systemG->data_manager->shape_data.triangle_rigid[3 * i + 1] = real3(vert_pos[triangles[i].y].x - pos.x, vert_pos[triangles[i].y].y - pos.y, vert_pos[triangles[i].y].z - pos.z);
-        systemG->data_manager->shape_data.triangle_rigid[3 * i + 2] = real3(vert_pos[triangles[i].z].x - pos.x, vert_pos[triangles[i].z].y - pos.y, vert_pos[triangles[i].z].z - pos.z);
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 0] = real3(vert_pos[triangles[i].x()].x() - pos.x(), vert_pos[triangles[i].x()].y() - pos.y(), vert_pos[triangles[i].x()].z() - pos.z());
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 1] = real3(vert_pos[triangles[i].y()].x() - pos.x(), vert_pos[triangles[i].y()].y() - pos.y(), vert_pos[triangles[i].y()].z() - pos.z());
+        systemG->data_manager->shape_data.triangle_rigid[3 * i + 2] = real3(vert_pos[triangles[i].z()].x() - pos.x(), vert_pos[triangles[i].z()].y() - pos.y(), vert_pos[triangles[i].z()].z() - pos.z());
       }
       // END STEP 4
 

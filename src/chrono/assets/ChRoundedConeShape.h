@@ -57,7 +57,7 @@ class ChApi ChRoundedConeShape : public ChVisualization {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChRoundedConeShape>();
         // serialize parent class
         ChVisualization::ArchiveOUT(marchive);
         // serialize all member data:
@@ -68,13 +68,15 @@ class ChApi ChRoundedConeShape : public ChVisualization {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChRoundedConeShape>();
         // deserialize parent class
         ChVisualization::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(groundedcone);
     }
 };
+
+CH_CLASS_VERSION(ChRoundedConeShape,0)
 
 }  // end namespace chrono
 

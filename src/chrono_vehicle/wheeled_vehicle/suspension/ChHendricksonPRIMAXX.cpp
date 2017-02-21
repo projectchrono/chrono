@@ -79,9 +79,9 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
     ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
-    ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
+    ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     m_outerL = suspension_to_abs.TransformPointLocalToParent(outer_local);
-    outer_local.y = -outer_local.y;
+    outer_local.y() = -outer_local.y();
     m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axlehousing body.
@@ -103,14 +103,14 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
         ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
         m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-        rel_dir.y = -rel_dir.y;
+        rel_dir.y() = -rel_dir.y();
         m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
@@ -305,7 +305,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -411,6 +411,12 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
 
     m_shockAH[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
     m_shockAH[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    // Add visualization for the tie-rods
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
@@ -427,6 +433,15 @@ void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
 
     m_lowerbeam[LEFT]->GetAssets().clear();
     m_lowerbeam[RIGHT]->GetAssets().clear();
+
+    m_shockLB[LEFT]->GetAssets().clear();
+    m_shockLB[RIGHT]->GetAssets().clear();
+
+    m_shockAH[LEFT]->GetAssets().clear();
+    m_shockAH[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

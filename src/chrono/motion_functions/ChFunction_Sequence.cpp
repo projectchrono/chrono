@@ -25,7 +25,7 @@ ChFseqNode::ChFseqNode() {
     t_start = 0;
     t_end = t_start + duration;
     Iy = Iydt = Iydtdt = 0.0;
-    y_cont = ydt_cont = ydtdt_cont = FALSE;
+    y_cont = ydt_cont = ydtdt_cont = false;
 }
 
 ChFseqNode::ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur) {
@@ -35,7 +35,7 @@ ChFseqNode::ChFseqNode(std::shared_ptr<ChFunction> myfx, double mdur) {
     t_start = 0;
     t_end = t_start + duration;
     Iy = Iydt = Iydtdt = 0.0;
-    y_cont = ydt_cont = ydtdt_cont = FALSE;
+    y_cont = ydt_cont = ydtdt_cont = false;
 }
 
 ChFseqNode::ChFseqNode(const ChFseqNode& other) {
@@ -69,24 +69,24 @@ ChFunction_Sequence::ChFunction_Sequence(const ChFunction_Sequence& other) {
     functions = other.functions;
 }
 
-int ChFunction_Sequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
-                                     double duration,
-                                     double weight,
-                                     bool c0,
-                                     bool c1,
-                                     bool c2,
-                                     int position) {
+bool ChFunction_Sequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
+                                      double duration,
+                                      double weight,
+                                      bool c0,
+                                      bool c1,
+                                      bool c2,
+                                      int position) {
     ChFseqNode mfxsegment(myfx, duration);
     mfxsegment.y_cont = c0;
     mfxsegment.ydt_cont = c1;
     mfxsegment.ydtdt_cont = c2;
     mfxsegment.weight = weight;
 
-    int inserted = FALSE;
+    bool inserted = false;
 
     if (position == -1) {
         functions.push_back(mfxsegment);
-        inserted = TRUE;
+        inserted = true;
     }
     if (!inserted) {
         std::list<ChFseqNode>::iterator iter;
@@ -94,7 +94,7 @@ int ChFunction_Sequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
         for (iter = functions.begin(); iter != functions.end(); ++iter, ++i) {
             if (i == position) {
                 functions.insert(iter, mfxsegment);
-                inserted = TRUE;
+                inserted = true;
                 break;
             }
         }
@@ -107,16 +107,16 @@ int ChFunction_Sequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
     return inserted;
 }
 
-int ChFunction_Sequence::KillFunct(int position) {
+bool ChFunction_Sequence::KillFunct(int position) {
     if (functions.size() == 0)
-        return FALSE;
+        return false;
     if ((position == -1) || (position > functions.size())) {
         functions.erase(functions.end());
-        return TRUE;
+        return true;
     }
     if (position == 0) {
         functions.erase(functions.begin());
-        return TRUE;
+        return true;
     }
     std::list<ChFseqNode>::iterator iter;
     size_t i = 1;
@@ -124,12 +124,12 @@ int ChFunction_Sequence::KillFunct(int position) {
         if (i == position) {
             functions.erase(iter);
             this->Setup();
-            return TRUE;
+            return true;
         }
     }
 
     this->Setup();
-    return FALSE;
+    return false;
 }
 
 std::shared_ptr<ChFunction> ChFunction_Sequence::GetNthFunction(int position) {
@@ -273,13 +273,13 @@ int ChFunction_Sequence::HandleNumber() const {
     return tot;
 }
 
-int ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool set_mode) {
+bool ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool set_mode) {
     if (handle_id == 0) {
         if (!set_mode)
             mx = Get_start();
         else
             Set_start(mx);
-        return TRUE;
+        return true;
     }
     int tot = 1;
     for (auto iter = functions.begin(); iter != functions.end(); ++iter) {
@@ -290,11 +290,11 @@ int ChFunction_Sequence::HandleAccess(int handle_id, double mx, double my, bool 
                 iter->SetTend(mx);
                 Setup();
             }
-            return TRUE;
+            return true;
         }
     }
 
-    return FALSE;
+    return false;
 }
 
 }  // end namespace chrono

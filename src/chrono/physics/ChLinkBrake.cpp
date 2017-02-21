@@ -22,8 +22,6 @@ CH_FACTORY_REGISTER(ChLinkBrake)
 
 ChLinkBrake::ChLinkBrake()
     : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
-    type = LNK_BRAKE;  // initializes type
-
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     // because this class inherited from LinkLock.
     ((ChLinkMaskLF*)mask)->SetLockMask(false, false, false, false, false, false, false);
@@ -103,7 +101,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
                 Vector mv_force = Vmul(VECT_X, this->brake_torque);
                 mdir = 0;  // F-->  rear motion: frontfacing break force
 
-                if (this->relM_dt.pos.x > 0.0) {
+                if (this->relM_dt.pos.x() > 0.0) {
                     mv_force = Vmul(mv_force, -1.0);  // break force always opposed to speed
                     mdir = 1;                         // F<-- backfacing breakforce for front motion
                 }
@@ -125,7 +123,7 @@ void ChLinkBrake::UpdateForces(double mytime) {
 
 void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkBrake>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -139,7 +137,7 @@ void ChLinkBrake::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkBrake::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkBrake>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

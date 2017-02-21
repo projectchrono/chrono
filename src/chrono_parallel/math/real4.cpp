@@ -9,7 +9,7 @@
 #include "chrono_parallel/math/simd_non.h"
 #endif
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace chrono {
 

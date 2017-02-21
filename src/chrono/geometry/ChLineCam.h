@@ -15,7 +15,7 @@
 #ifndef CHC_LINECAM_H
 #define CHC_LINECAM_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChLine.h"
 #include "chrono/motion_functions/ChFunction.h"
@@ -63,8 +63,8 @@ class ChApi ChLineCam : public ChLine {
     double e;  ///< eccentricity of sliding follower
     double s;  ///< distance of sliding follower
 
-    int negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
-    int internal;  ///< follower roller is inside the cam
+    bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
+    bool internal;  ///< follower roller is inside the cam
 
     ChVector<> center;  ///< center of cam in space (def.alignment on xy plane)
 
@@ -108,12 +108,12 @@ class ChApi ChLineCam : public ChLine {
     ChVector<> Get_center() const { return center; }
 
     /// If true, creates a negative cam.
-    void Set_Negative(int mne) { negative = mne; }
-    int Get_Negative() const { return negative; }
+    void Set_Negative(bool val) { negative = val; }
+    bool Get_Negative() const { return negative; }
 
     /// If true, creates an internal cam.
-    void Set_Internal(int min) { internal = min; }
-    int Get_Internal() const { return internal; }
+    void Set_Internal(bool val) { internal = val; }
+    bool Get_Internal() const { return internal; }
 
     /// Sets the data for the rotating follower (length, distance from cam center, initial phase mb0)
     void Set_rotating_follower(double mp, double md, double mb0);
@@ -151,7 +151,7 @@ class ChApi ChLineCam : public ChLine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLineCam>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -175,7 +175,7 @@ class ChApi ChLineCam : public ChLine {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLineCam>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -197,6 +197,9 @@ class ChApi ChLineCam : public ChLine {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLineCam,0)
+
 }  // end namespace chrono
 
 #endif

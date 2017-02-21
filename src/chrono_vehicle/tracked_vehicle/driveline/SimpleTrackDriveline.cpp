@@ -36,7 +36,7 @@ SimpleTrackDriveline::SimpleTrackDriveline(const std::string& filename) : ChSimp
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

@@ -86,19 +86,17 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Change solver to MKL
-    auto mkl_solver_stab = new ChSolverMKL<>;
-    auto mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(false);
-	mkl_solver_speed->SetSparsityPatternLock(false);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    mkl_solver->SetSparsityPatternLock(false);
+    my_system.SetSolver(mkl_solver);
+
     // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
     // Look at ChCSR3Matrix::SetElement comments to further details.
-    application.GetSystem()->Update();
+    my_system.Update();
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {

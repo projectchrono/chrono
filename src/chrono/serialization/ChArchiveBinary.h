@@ -72,38 +72,32 @@ class  ChArchiveOutBinary : public ChArchiveOut {
 
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
           bVal.value().CallArchiveOut(*this);
       }
 
-        // for pointed objects (if pointer hasn't been already serialized, otherwise save offset)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
-      {
-          if (!already_inserted) {
-            // New Object, we have to full serialize it
-            std::string str(classname);
-            (*ostream) << str;    // serialize class type as string (platform/compiler independent), for class factory later
-            bVal.value().CallArchiveOut(*this);
-          } else {
-            // Object already in list. Only store position as ID
-            std::string str("POS");
-            (*ostream) << str;       // serialize 'this was already saved' info
-            (*ostream) << position;  // serialize position in pointers vector as ID
-          }
-      }
 
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position,  const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           if (!already_inserted) {
             // New Object, we have to full serialize it
-            std::string str("OBJ"); // not usable for class factory.
-            (*ostream) << str;    // serialize class type
+            std::string str(classname); 
+            (*ostream) << str;    
+            bVal.value().CallArchiveOutConstructor(*this);
             bVal.value().CallArchiveOut(*this);
           } else {
-            // Object already in list. Only store position
-            std::string str("POS");
-            (*ostream) << str;       // serialize 'this was already saved' info
-            (*ostream) << position;  // serialize position in pointers vector
+              if (obj_ID || bVal.value().IsNull() ) {
+                // Object already in list. Only store obj_ID as ID
+                std::string str("oID");
+                (*ostream) << str;       // serialize 'this was already saved' info as "oID" string
+                (*ostream) << obj_ID;    // serialize obj_ID in pointers vector as ID
+              }
+              if (ext_ID) {
+                // Object is external. Only store ref_ID as ID
+                std::string str("eID");
+                (*ostream) << str;       // serialize info as "eID" string
+                (*ostream) << ext_ID;    // serialize ext_ID in pointers vector as ID
+              }
           }
       }
 
@@ -170,62 +164,56 @@ class  ChArchiveInBinary : public ChArchiveIn {
         //  for custom c++ objects:
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) {
           if (bVal.flags() & NVP_TRACK_OBJECT){
-              objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
+              bool already_stored; size_t obj_ID;
+              PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
           }
           bVal.value().CallArchiveIn(*this);
       }
 
-      // for pointed objects (if position != -1 , pointer has been already serialized)
-      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) 
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
       {
+          void* new_ptr = nullptr;
+
           std::string cls_name;
           (*istream) >> cls_name;
 
-          if (!(cls_name == "POS")) {
-            // 2) Dynamically create using class factory
-            bVal.value().CallNewPolimorphic(*this, cls_name.c_str()); 
-
-            if (bVal.value().CallGetRawPtr(*this)) {
-                objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
-                // 3) Deserialize
-                bVal.value().CallArchiveIn(*this);
-            } else {
-                throw(ChExceptionArchive("Archive cannot create polimorphic object \'" + cls_name + "\' " ));
-            }
-
-          } else {
-            size_t pos = 0;
-            // Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> pos;
-
-            bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);
-          }
-      }
-
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal)
-      {
-          std::string cls_name;
-          (*istream) >> cls_name;
-
-          if (!(cls_name == "POS")) {
-            // 2) Dynamically create using class factory
-            bVal.value().CallNew(*this);
-            
-            if (bVal.value().CallGetRawPtr(*this)) {
-                objects_pointers.push_back(bVal.value().CallGetRawPtr(*this));
-                // 3) Deserialize
-                bVal.value().CallArchiveIn(*this);
-            } else {
-                throw(ChExceptionArchive("Archive cannot create object"));
-            }
-
-          } else {
-            size_t pos = 0;
+          if (cls_name == "oID") {
+            size_t obj_ID = 0;
             //  Was a shared object: just get the pointer to already-retrieved
-            (*istream) >> pos;
+            (*istream) >> obj_ID;
 
-            bVal.value().CallSetRawPtr(*this, objects_pointers[pos]);
+            if (this->internal_id_ptr.find(obj_ID) == this->internal_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the reference ID " + std::to_string((int)obj_ID) +" is not a valid number." ));
+
+            bVal.value().SetRawPtr(internal_id_ptr[obj_ID]);
           }
+          else if (cls_name == "eID") {
+            size_t ext_ID = 0;
+            // Was an external object: just get the pointer to external
+            (*istream) >> ext_ID;
+
+            if (this->external_id_ptr.find(ext_ID) == this->external_id_ptr.end()) 
+                    throw (ChExceptionArchive( "In object '" + std::string(bVal.name()) +"' the external reference ID " + std::to_string((int)ext_ID) +" cannot be rebuilt." ));
+
+            bVal.value().SetRawPtr(external_id_ptr[ext_ID]);
+          }
+          else {
+            // Dynamically create (no class factory will be invoked for non-polimorphic obj):
+            // call new(), or deserialize constructor params+call new():
+            bVal.value().CallArchiveInConstructor(*this, cls_name.c_str()); 
+
+            if (bVal.value().GetRawPtr()) {
+                bool already_stored; size_t obj_ID;
+                PutPointer(bVal.value().GetRawPtr(), already_stored, obj_ID);
+                // 3) Deserialize
+                bVal.value().CallArchiveIn(*this);
+            } else {
+                throw(ChExceptionArchive("Archive cannot create object" + cls_name + "\n"));
+            }
+            new_ptr = bVal.value().GetRawPtr();
+          } 
+
+          return new_ptr;
       }
 
   protected:

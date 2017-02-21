@@ -66,9 +66,6 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
   public:
-    /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() const override { return LNK_BASE; }
-
     /// Return the 1st referenced marker (the 'slave' marker, owned by 1st body)
     ChMarker* GetMarker1() { return marker1; }
     /// Return the 2nd referenced marker (the 'master' marker, owned by 2nd body)
@@ -201,10 +198,10 @@ class ChApi ChLinkMarkers : public ChLink {
     /// To get & set the 'script' force buffers(only accessed by
     /// external scripts, so it's up to the script to remember
     /// to set& reset them -link class just add them to C_force etc.
-    ChVector<>* Get_Scr_force() { return &Scr_force; };
-    ChVector<>* Get_Scr_torque() { return &Scr_torque; };
-    void Set_Scr_force(ChVector<> mf) { Scr_force = mf; };
-    void Set_Scr_torque(ChVector<> mf) { Scr_torque = mf; };
+    const ChVector<>& Get_Scr_force() const { return Scr_force; }
+    const ChVector<>& Get_Scr_torque() const { return Scr_torque; }
+    void Set_Scr_force(const ChVector<>& mf) { Scr_force = mf; }
+    void Set_Scr_torque(const ChVector<>& mf) { Scr_torque = mf; }
 
     /// Get the total applied force accumulators (force, momentum) in link coords.
     /// These forces might be affected by additional springs, dampers, etc. but they do not
@@ -222,6 +219,9 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkMarkers,0)
+
 
 }  // end namespace chrono
 

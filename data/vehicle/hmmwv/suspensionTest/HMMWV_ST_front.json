@@ -11,23 +11,13 @@
     "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_FrontRight.json"
   },
 
+  "Displacement Limit":     0.15,
+
   "Steering":
   {
     "Input File":           "hmmwv/steering/HMMWV_PitmanArm.json",
     "Location":             [1.24498, 0, 0.101322],
     "Orientation":          [0.98699637, 0, 0.16074256, 0],
     "Suspension Index":     0
-  },
-
-  "Driver Position":
-  {
-    "Location":     [0, 0.5, 1.2],
-    "Orientation":  [1, 0, 0, 0]
-  },
-
-  "Visualization":
-  {
-    "Mesh Filename":  "hmmwv/hmmwv_chassis.obj",
-    "Mesh Name":      "hmmwv_chassis_POV_geom"
   }
 }

@@ -165,9 +165,9 @@ void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
     constraint.Get_Cq_c()->ElementN(0) = 0;
     constraint.Get_Cq_c()->ElementN(1) = 0;
     constraint.Get_Cq_c()->ElementN(2) = 0;
-    constraint.Get_Cq_c()->ElementN(3) = jacw.x;
-    constraint.Get_Cq_c()->ElementN(4) = jacw.y;
-    constraint.Get_Cq_c()->ElementN(5) = jacw.z;
+    constraint.Get_Cq_c()->ElementN(3) = jacw.x();
+    constraint.Get_Cq_c()->ElementN(4) = jacw.y();
+    constraint.Get_Cq_c()->ElementN(5) = jacw.z();
 }
 
 void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
@@ -179,7 +179,7 @@ void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
 
 void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsGearboxAngled>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -196,7 +196,7 @@ void ChShaftsGearboxAngled::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsGearboxAngled::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsGearboxAngled>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

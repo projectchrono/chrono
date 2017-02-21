@@ -1,6 +1,5 @@
-Archives and serialization in Chrono (demo_archive.cpp) {#tutorial_demo_stream}
+Archives and serialization in Chrono (demo_CH_archive.cpp) {#tutorial_demo_archive}
 ====================================
-
 
 Tutorial on serialization. Learn how to 
 write serializa C++ classes in various formats:
@@ -14,7 +13,4 @@ pointer serialization, and other features. Look at the code.
 
 No GUI: only text output. 
 
-
-
-\include demo_archive.cpp
-
+\include demo_CH_archive.cpp

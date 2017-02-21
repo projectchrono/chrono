@@ -20,9 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkScrew)
 
 ChLinkScrew::ChLinkScrew() {
-    // initializes type
-    type = LNK_SCREW;
-
     Set_thread(0.05);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
@@ -48,15 +45,15 @@ void ChLinkScrew::UpdateState() {
     ChMatrixNM<double, 1, 7> scr_Cq2;
     double Crz;
 
-    if (fabs(relC.rot.e0) < 0.707) {
-        Crz = relC.rot.e0;  // cos(alpha/2)
+    if (fabs(relC.rot.e0()) < 0.707) {
+        Crz = relC.rot.e0();  // cos(alpha/2)
         msign = +1;
         zangle = acos(Crz);
-        if (relC.rot.e3 < 0) {
+        if (relC.rot.e3() < 0) {
             zangle = -zangle;  // a/2 = -acos(Crz);
             msign = -1;
         }
-        double mrelz = relC.pos.z;
+        double mrelz = relC.pos.z();
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
@@ -68,10 +65,10 @@ void ChLinkScrew::UpdateState() {
         coeffa = +2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
         coeffb = +2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
 
-        scr_C_dt = relC_dt.pos.z + relC_dt.rot.e0 * coeffa;
-        scr_C_dtdt = relC_dtdt.pos.z + relC_dt.rot.e0 * coeffb + relC_dtdt.rot.e0 * coeffa;
-        scr_Ct = Ct_temp.pos.z + coeffa * Ct_temp.rot.e0;
-        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(3, 0) - relC_dt.rot.e0 * coeffb;
+        scr_C_dt = relC_dt.pos.z() + relC_dt.rot.e0() * coeffa;
+        scr_C_dtdt = relC_dtdt.pos.z() + relC_dt.rot.e0() * coeffb + relC_dtdt.rot.e0() * coeffa;
+        scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e0();
+        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(3, 0) - relC_dt.rot.e0() * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();
         scr_Cq1.PasteClippedMatrix(*Cq1_temp, 3, 3, 1, 4, 0, 3);
@@ -79,14 +76,14 @@ void ChLinkScrew::UpdateState() {
         scr_Cq1.MatrScale(coeffa);
         scr_Cq2.MatrScale(coeffa);
     } else {
-        Crz = relC.rot.e3;  // Zz*sin(alpha/2)
+        Crz = relC.rot.e3();  // Zz*sin(alpha/2)
         msign = +1;
         zangle = asin(Crz);
-        if (relC.rot.e0 < 0) {
+        if (relC.rot.e0() < 0) {
             zangle = CH_C_PI - zangle;
             msign = -1;
         }
-        double mrelz = relC.pos.z;  // fmod (relC.pos.z , (tau * 2 * CH_C_PI));
+        double mrelz = relC.pos.z();  // fmod (relC.pos.z() , (tau * 2 * CH_C_PI));
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
@@ -98,10 +95,10 @@ void ChLinkScrew::UpdateState() {
         coeffa = -2.0 * tau * msign * 1 / (sqrt(1 - pow(Crz, 2.0)));
         coeffb = -2.0 * tau * msign * Crz / (pow((1 - pow(Crz, 2)), 3.0 / 2.0));
 
-        scr_C_dt = relC_dt.pos.z + relC_dt.rot.e3 * coeffa;
-        scr_C_dtdt = relC_dtdt.pos.z + relC_dt.rot.e3 * coeffb + relC_dtdt.rot.e3 * coeffa;
-        scr_Ct = Ct_temp.pos.z + coeffa * Ct_temp.rot.e3;
-        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(6, 0) - relC_dt.rot.e3 * coeffb;
+        scr_C_dt = relC_dt.pos.z() + relC_dt.rot.e3() * coeffa;
+        scr_C_dtdt = relC_dtdt.pos.z() + relC_dt.rot.e3() * coeffb + relC_dtdt.rot.e3() * coeffa;
+        scr_Ct = Ct_temp.pos.z() + coeffa * Ct_temp.rot.e3();
+        scr_Qc = Qc_temp->GetElement(2, 0) + coeffa * Qc_temp->GetElement(6, 0) - relC_dt.rot.e3() * coeffb;
         scr_Cq1.Reset();
         scr_Cq2.Reset();
         scr_Cq1.PasteClippedMatrix(*Cq1_temp, 6, 3, 1, 4, 0, 3);
@@ -123,7 +120,7 @@ void ChLinkScrew::UpdateState() {
 
 void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkScrew>();
 
     // serialize parent class
     ChLinkLock::ArchiveOUT(marchive);
@@ -135,7 +132,7 @@ void ChLinkScrew::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkScrew::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkScrew>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIN(marchive);

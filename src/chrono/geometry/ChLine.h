@@ -15,10 +15,10 @@
 #ifndef CHC_LINE_H
 #define CHC_LINE_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/geometry/ChGeometry.h"
-#include "chrono/physics/ChFilePS.h"
+#include "chrono/core/ChFilePS.h"
 
 namespace chrono {
 namespace geometry {
@@ -59,7 +59,7 @@ class ChApi ChLine : public ChGeometry {
     virtual int GetManifoldDimension() const override { return 1; }
 
     /// Find the parameter resU for the nearest point on curve to "point".
-    int FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const;
+    bool FindNearestLinePoint(ChVector<>& point, double& resU, double approxU, double tol) const;
 
     /// Returns curve length. Typical sampling 1..5 (1 already gives correct result with degree1 curves)
     virtual double Length(int sampling) const;
@@ -99,11 +99,11 @@ class ChApi ChLine : public ChGeometry {
     double CurveSegmentDistMax(ChLine* complinesegm, int samples) const;
 
     /// Draw into the current graph viewport of a ChFile_ps file
-    virtual int DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
+    virtual bool DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate);
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLine>();
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
@@ -114,7 +114,7 @@ class ChApi ChLine : public ChGeometry {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLine>();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
@@ -124,6 +124,9 @@ class ChApi ChLine : public ChGeometry {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLine,0)
+
 }  // end namespace chrono
 
 #endif

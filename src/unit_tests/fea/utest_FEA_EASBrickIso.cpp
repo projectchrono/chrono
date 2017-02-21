@@ -226,14 +226,13 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_mesh);
 
     // Perform a dynamic time integration:
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(10000);
     my_system.SetTolForce(1e-09);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10000);
@@ -268,9 +267,9 @@ int main(int argc, char* argv[]) {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
             my_system.DoStepDynamics(step_size);
-            out << my_system.GetChTime() << nodetip->GetPos().z << nodetip->GetForce().z << std::endl;
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\t"
-                     << nodetip->GetForce().z << "\n";
+            out << my_system.GetChTime() << nodetip->GetPos().z() << nodetip->GetForce().z() << std::endl;
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+                     << nodetip->GetForce().z() << "\n";
         }
         // Write results to output file.
         out.write_to_file("../TEST_Brick/tip_position.txt");
@@ -289,8 +288,8 @@ int main(int argc, char* argv[]) {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z - FileInputMat[stepNo][1]);
-            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z << "\n";
+            AbsVal = abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;

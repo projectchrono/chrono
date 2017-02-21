@@ -58,7 +58,7 @@
 #else
 #include <winsock2.h>
 #endif
-#include <stdio.h>
+#include <cstdio>
 
 namespace chrono {
 namespace cosimul {

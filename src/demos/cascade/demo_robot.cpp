@@ -448,7 +448,7 @@ int main(int argc, char* argv[]) {
     // So switch to a more precise solver; this SOLVER_MINRES is fast
     // and precise (although it is not fit for frictional collisions):
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetMaxItersSolverSpeed(44);
 
     //

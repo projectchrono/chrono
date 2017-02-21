@@ -25,15 +25,15 @@ Let's see a first program.
 -   First of all, you should use the **import** keyword to specify which
     Python modules must be load and used in your program. Most of the
     core functionalities of Chrono::Engine are in a module called
-    **ChronoEngine\_PYTHON\_core**, hence write:
+    **ChronoEngine\_python\_core**, hence write:
 
 ~~~~~~~~~~~~~~~{.py}
-import ChronoEngine_PYTHON_core as chrono
+import ChronoEngine_python_core as chrono
 ~~~~~~~~~~~~~~~
 
 Note that the *as chrono* is optional: but if you avoid it you must call
 all Chrono::Engine functions using the long syntax
-ChronoEngine\_PYTHON\_core.ChClassFoo..., whereas if you use *as chrono*
+ChronoEngine\_python\_core.ChClassFoo..., whereas if you use *as chrono*
 you simply rename the namespace and you can type more shortly:
 chrono.ChClassFoo...
 
@@ -273,7 +273,7 @@ echoed in the interpreter window as:
 
 ~~~~~~~~~~~~~~~{.py}
 my_system.Get_G_acc()
-<ChronoEngine_PYTHON_core.ChVectorD; 
+<ChronoEngine_python_core.ChVectorD; 
 proxy of <Swig Object of type 'chrono::ChVector< double > *' at 0x03EDCEA8> >
 ~~~~~~~~~~~~~~~
 

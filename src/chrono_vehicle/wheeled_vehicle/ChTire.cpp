@@ -43,7 +43,7 @@ void ChTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ////state.lin_vel = wheel->GetPos_dt();
     ////state.ang_vel = wheel->GetWvel_par();
     ////ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    ////state.omega = ang_vel_loc.y;
+    ////state.omega = ang_vel_loc.y();
 }
 
 // -----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
     ChVector<> wheel_normal = state.rot.GetYaxis();
 
     // Terrain normal at wheel location (expressed in global frame)
-    ChVector<> Z_dir = terrain.GetNormal(state.pos.x, state.pos.y);
+    ChVector<> Z_dir = terrain.GetNormal(state.pos.x(), state.pos.y());
 
     // Longitudinal (heading) and lateral directions, in the terrain plane
     ChVector<> X_dir = Vcross(wheel_normal, Z_dir);
@@ -73,15 +73,15 @@ void ChTire::CalculateKinematics(double time, const WheelState& state, const ChT
     ChVector<> n = tire_csys.TransformDirectionParentToLocal(wheel_normal);
 
     // Slip angle
-    double abs_Vx = std::abs(V.x);
+    double abs_Vx = std::abs(V.x());
     double zero_Vx = 1e-4;
-    m_slip_angle = (abs_Vx > zero_Vx) ? std::atan(V.y / abs_Vx) : 0;
+    m_slip_angle = (abs_Vx > zero_Vx) ? std::atan(V.y() / abs_Vx) : 0;
 
     // Longitudinal slip
-    m_longitudinal_slip = (abs_Vx > zero_Vx) ? -(V.x - state.omega * GetRadius()) / abs_Vx : 0;
+    m_longitudinal_slip = (abs_Vx > zero_Vx) ? -(V.x() - state.omega * GetRadius()) / abs_Vx : 0;
 
     // Camber angle
-    m_camber_angle = std::atan2(n.z, n.y);
+    m_camber_angle = std::atan2(n.z(), n.y());
 }
 
 // -----------------------------------------------------------------------------
@@ -100,8 +100,8 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
                                   double& depth) {
     // Find terrain height below disc center. There is no contact if the disc
     // center is below the terrain or farther away by more than its radius.
-    double hc = terrain.GetHeight(disc_center.x, disc_center.y);
-    if (disc_center.z <= hc || disc_center.z >= hc + disc_radius)
+    double hc = terrain.GetHeight(disc_center.x(), disc_center.y());
+    if (disc_center.z() <= hc || disc_center.z() >= hc + disc_radius)
         return false;
 
     // Find the lowest point on the disc. There is no contact if the disc is
@@ -117,14 +117,14 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
 
     // Find terrain height at lowest point. No contact if lowest point is above
     // the terrain.
-    double hp = terrain.GetHeight(ptD.x, ptD.y);
+    double hp = terrain.GetHeight(ptD.x(), ptD.y());
 
-    if (ptD.z > hp)
+    if (ptD.z() > hp)
         return false;
 
     // Approximate the terrain with a plane. Define the projection of the lowest
     // point onto this plane as the contact point on the terrain.
-    ChVector<> normal = terrain.GetNormal(ptD.x, ptD.y);
+    ChVector<> normal = terrain.GetNormal(ptD.x(), ptD.y());
     ChVector<> longitudinal = Vcross(disc_normal, normal);
     longitudinal.Normalize();
     ChVector<> lateral = Vcross(normal, longitudinal);
@@ -134,7 +134,7 @@ bool ChTire::disc_terrain_contact(const ChTerrain& terrain,
     contact.pos = ptD;
     contact.rot = rot.Get_A_quaternion();
 
-    depth = Vdot(ChVector<>(0, 0, hp - ptD.z), normal);
+    depth = Vdot(ChVector<>(0, 0, hp - ptD.z()), normal);
     assert(depth > 0);
 
     return true;

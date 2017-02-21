@@ -124,11 +124,11 @@ ISceneNode* addChBodySceneNode_easyBox(ChSystem* asystem,
 
     ChVector<> hsize = size * 0.5;
 
-    core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
+    core::vector3df irrsize((f32)hsize.x(), (f32)hsize.y(), (f32)hsize.z());
     rigidBodyZ->setScale(irrsize);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddBox(hsize.x, hsize.y, hsize.z);
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddBox(hsize.x(), hsize.y(), hsize.z());
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 
@@ -156,11 +156,11 @@ ISceneNode* addChBodySceneNode_easyCylinder(ChSystem* asystem,
 
     ChVector<> hsize = size * 0.5;
 
-    core::vector3df irrsize((f32)hsize.x, (f32)hsize.y, (f32)hsize.z);
+    core::vector3df irrsize((f32)hsize.x(), (f32)hsize.y(), (f32)hsize.z());
     rigidBodyZ->setScale(irrsize);
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddCylinder(hsize.x, hsize.z, hsize.y);  // radius, radius, height on y
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddCylinder(hsize.x(), hsize.z(), hsize.y());  // radius, radius, height on y
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 
@@ -220,7 +220,7 @@ ISceneNode* addChBodySceneNode_easyClone(ChSystem* asystem,
     rigidBodyZ->setScale(source->getScale());
 
     rigidBodyZ->GetBody()->GetCollisionModel()->ClearModel();
-    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel());
+    rigidBodyZ->GetBody()->GetCollisionModel()->AddCopyOfAnotherModel(source->GetBody()->GetCollisionModel().get());
     rigidBodyZ->GetBody()->GetCollisionModel()->BuildModel();
     rigidBodyZ->GetBody()->SetCollide(true);
 

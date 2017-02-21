@@ -11,7 +11,7 @@
 
 #if defined _WIN32
 
-#include <stdio.h>
+#include <cstdio>
 #include <Windows.h>
 
 #include "chrono/parallel/ChThreadsWIN32.h"
@@ -81,7 +81,7 @@ void ChThreadsWIN32::waitForResponse(unsigned int* puiArgument0, unsigned int* p
 
     int last = -1;
 
-    DWORD res = WaitForMultipleObjects(m_completeHandles.size(), &m_completeHandles[0], FALSE, INFINITE);
+    DWORD res = WaitForMultipleObjects(m_completeHandles.size(), &m_completeHandles[0], 0, INFINITE);
     btAssert(res != WAIT_FAILED);
     last = res - WAIT_OBJECT_0;
 

@@ -56,7 +56,7 @@ RigidChassis::RigidChassis(const std::string& filename) : ChChassis(""), m_has_m
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 
@@ -93,12 +93,12 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         bool is_void = comp["Void"].GetBool();
 
         ChMatrix33<> inertia(inertiaXX);
-        inertia.SetElement(0, 1, inertiaXY.x);
-        inertia.SetElement(0, 2, inertiaXY.y);
-        inertia.SetElement(1, 2, inertiaXY.z);
-        inertia.SetElement(1, 0, inertiaXY.x);
-        inertia.SetElement(2, 0, inertiaXY.y);
-        inertia.SetElement(2, 1, inertiaXY.z);
+        inertia.SetElement(0, 1, inertiaXY.x());
+        inertia.SetElement(0, 2, inertiaXY.y());
+        inertia.SetElement(1, 2, inertiaXY.z());
+        inertia.SetElement(1, 0, inertiaXY.x());
+        inertia.SetElement(2, 0, inertiaXY.y());
+        inertia.SetElement(2, 1, inertiaXY.z());
 
         composite.AddComponent(ChFrame<>(loc, rot), mass, inertia, is_void);
     }

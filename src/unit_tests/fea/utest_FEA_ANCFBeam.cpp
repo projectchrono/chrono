@@ -148,17 +148,14 @@ int main(int argc, char* argv[]) {
     // Setup solver
     if (use_mkl) {
 #ifdef CHRONO_MKL
-        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-        my_system.ChangeSolverStab(mkl_solver_stab);
-        my_system.ChangeSolverSpeed(mkl_solver_speed);
-        mkl_solver_speed->SetSparsityPatternLock(false);
-        mkl_solver_stab->SetSparsityPatternLock(false);
-        mkl_solver_speed->SetVerbose(false);
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        mkl_solver->SetSparsityPatternLock(false);
+        mkl_solver->SetVerbose(false);
+        my_system.SetSolver(mkl_solver);
 #endif
     } else {
-        my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-        ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+        my_system.SetSolverType(ChSolver::Type::MINRES);
+        auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
         msolver->SetDiagonalPreconditioning(true);
         my_system.SetSolverWarmStarting(true);
         my_system.SetMaxItersSolverSpeed(100);
@@ -167,7 +164,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(10);
@@ -191,13 +188,13 @@ int main(int argc, char* argv[]) {
         hnodeancf5->SetForce(ChVector<>(0, -5e5 * std::pow(0.5, 3), 0));
         my_system.DoStepDynamics(time_Step);
     }
-    double error_y = (hnodeancf5->GetPos().y + u_y_Ref) / u_y_Ref;
-    double error_x = (hnodeancf5->GetPos().x + u_x_Ref - 2.0) / u_x_Ref;
+    double error_y = (hnodeancf5->GetPos().y() + u_y_Ref) / u_y_Ref;
+    double error_x = (hnodeancf5->GetPos().x() + u_x_Ref - 2.0) / u_x_Ref;
     if (ChMax(error_x, error_y) > rel_Tol) {
         return 1;
     }
-    std::cout << "Position of the tip: " << hnodeancf5->GetPos().y << " m. \n";
-    std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x << " m. \n";
-    std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z << " m. \n";
+    std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
+    std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
+    std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
     return 0;
 }

@@ -31,7 +31,7 @@ namespace generic {
         virtual ~Generic_SimpleDriveline() {}
 
         /// Return the number of driven axles.
-        virtual int GetNumDrivenAxles() const override { return 1; }
+        virtual int GetNumDrivenAxles() const final override { return 1; }
 
         /// Initialize the driveline subsystem.
         /// This function connects this driveline subsystem to the axles of the

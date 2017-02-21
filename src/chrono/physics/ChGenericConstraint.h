@@ -12,7 +12,7 @@
 #ifndef CHGENERICCONSTRAINT_H
 #define CHGENERICCONSTRAINT_H
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChRef.h"
@@ -39,7 +39,7 @@ class ChApi ChGenericConstraint {
 
   public:
     ChGenericConstraint();
-    ~ChGenericConstraint();
+    virtual ~ChGenericConstraint();
 
     /// Tells if the constraint data is currently valid.
     /// Instead of implementing it, child classes may simply

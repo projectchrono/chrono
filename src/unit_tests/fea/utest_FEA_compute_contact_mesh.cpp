@@ -271,9 +271,9 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         }
         case MINRES_SOLVER: {
             GetLog() << "Using MINRES solver.\n";
-            ChSolverMINRES* minres_solver = new ChSolverMINRES;
+            auto minres_solver = std::make_shared<ChSolverMINRES>();
             minres_solver->SetDiagonalPreconditioning(true);
-            system->ChangeSolverSpeed(minres_solver);
+            system->SetSolver(minres_solver);
             system->SetMaxItersSolverSpeed(100);
             system->SetTolForce(1e-6);
             break;
@@ -286,7 +286,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
     if (method == ChMaterialSurfaceBase::DEM) {
         GetLog() << "Using HHT integrator.\n";
-        system->SetIntegrationType(ChSystem::INT_HHT);
+        system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(0.0);
         integrator->SetMaxiters(100);
@@ -309,13 +309,13 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         ChVector<> contact_force = ground->GetContactForce();
         GetLog() << "t = " << system->GetChTime() << " num contacts = " <<
         system->GetContactContainer()->GetNcontacts()
-                 << "  force =  " << contact_force.y << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y << "\n";
+                 << "  force =  " << contact_force.y() << "\n";
+        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().y() << "\n";
         GetLog() << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system->GetChTime() > start_time) {
-            if (std::abs(1 - std::abs(contact_force.y) / total_weight) > rtol) {
-                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y << "\n";
+            if (std::abs(1 - std::abs(contact_force.y()) / total_weight) > rtol) {
+                GetLog() << "t = " << system->GetChTime() << "  force =  " << contact_force.y() << "\n";
                 passed = false;
                 break;
             }

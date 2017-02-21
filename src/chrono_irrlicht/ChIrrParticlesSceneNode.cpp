@@ -164,9 +164,9 @@ void ChIrrParticlesSceneNode::OnAnimate(u32 timeMs) {
                 irrMat[9] = (f32)chMat.GetElementN(5);
                 irrMat[10] = (f32)chMat.GetElementN(8);
 
-                irrMat[12] = (f32)(*particlep)->GetParticle(j).GetPos().x;
-                irrMat[13] = (f32)(*particlep)->GetParticle(j).GetPos().y;
-                irrMat[14] = (f32)(*particlep)->GetParticle(j).GetPos().z;
+                irrMat[12] = (f32)(*particlep)->GetParticle(j).GetPos().x();
+                irrMat[13] = (f32)(*particlep)->GetParticle(j).GetPos().y();
+                irrMat[14] = (f32)(*particlep)->GetParticle(j).GetPos().z();
 
                 // Clear the last column to 0 and set low-right corner to 1
                 // as in Denavitt-Hartemberg matrices, transposed.

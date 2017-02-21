@@ -61,10 +61,10 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     virtual ~ChSolidAxle() {}
 
     /// Specify whether or not this suspension can be steered.
-    virtual bool IsSteerable() const { return true; }
+    virtual bool IsSteerable() const final override { return true; }
 
     /// Specify whether or not this is an independent suspension.
-    virtual bool IsIndependent() const override { return false; }
+    virtual bool IsIndependent() const final override { return false; }
 
     /// Initialize this suspension subsystem.
     /// The suspension subsystem is initialized by attaching it to the specified

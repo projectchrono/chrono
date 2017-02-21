@@ -42,16 +42,16 @@ const std::string HMMWV_Chassis::m_meshFile = "hmmwv/hmmwv_chassis.obj";
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {
-    m_inertia.SetElement(0, 0, m_inertiaXX.x);
-    m_inertia.SetElement(1, 1, m_inertiaXX.y);
-    m_inertia.SetElement(2, 2, m_inertiaXX.z);
+    m_inertia.SetElement(0, 0, m_inertiaXX.x());
+    m_inertia.SetElement(1, 1, m_inertiaXX.y());
+    m_inertia.SetElement(2, 2, m_inertiaXX.z());
 
-    m_inertia.SetElement(0, 1, m_inertiaXY.x);
-    m_inertia.SetElement(0, 2, m_inertiaXY.y);
-    m_inertia.SetElement(1, 2, m_inertiaXY.z);
-    m_inertia.SetElement(1, 0, m_inertiaXY.x);
-    m_inertia.SetElement(2, 0, m_inertiaXY.y);
-    m_inertia.SetElement(2, 1, m_inertiaXY.z);
+    m_inertia.SetElement(0, 1, m_inertiaXY.x());
+    m_inertia.SetElement(0, 2, m_inertiaXY.y());
+    m_inertia.SetElement(1, 2, m_inertiaXY.z());
+    m_inertia.SetElement(1, 0, m_inertiaXY.x());
+    m_inertia.SetElement(2, 0, m_inertiaXY.y());
+    m_inertia.SetElement(2, 1, m_inertiaXY.z());
 }
 
 // -----------------------------------------------------------------------------

@@ -54,10 +54,6 @@ These are among the most important examples for learning Chrono::Engine.
 
   Learn how the assets system can be used to show 3D shapes
   
-- @subpage  tutorial_demo_import_solidworks
-
-  Load a mechanism that you exported from SolidWorks
-  
 - @subpage  tutorial_demo_forklift
 
   Advanced demo: create a forklift that can be driven by the user

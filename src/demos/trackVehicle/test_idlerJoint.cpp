@@ -26,7 +26,7 @@
 // The global reference frame is Y up.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <cmath>
 
 #include "core/ChFileutils.h"

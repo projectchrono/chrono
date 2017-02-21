@@ -46,9 +46,28 @@ class ChApi ChSolver {
     CH_FACTORY_TAG(ChSolver)
 
   public:
+      /// Available types of solvers.
+      enum class Type {
+          SOR = 0,
+          SYMMSOR,
+          JACOBI,
+          SOR_MULTITHREAD,
+          PMINRES,
+          BARZILAIBORWEIN,
+          PCG,
+          APGD,
+          MINRES,
+          SOLVER_DEM,
+          CUSTOM,
+      };
+
     ChSolver() : verbose(false) {}
 
     virtual ~ChSolver() {}
+
+    /// Return type of the solver.
+    /// Default is CUSTOM. Derived classes should override this function.
+    virtual Type GetType() const { return Type::CUSTOM; }
 
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, direct solvers only need the matrix for the Setup() phase. However,
@@ -79,20 +98,10 @@ class ChApi ChSolver {
     bool GetVerbose() const { return verbose; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive) {
-        // version number
-        marchive.VersionWrite(1);
-        // serialize all member data:
-        marchive << CHNVP(verbose);
-    }
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive) {
-        // version number
-        int version = marchive.VersionRead();
-        // stream in all member data:
-        marchive >> CHNVP(verbose);
-    }
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 
   protected:
     bool verbose;

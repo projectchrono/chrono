@@ -326,22 +326,19 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);     // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    my_system.SetSolverWarmStarting(true);
     my_system.SetMaxItersSolverSpeed(400);
     my_system.SetMaxItersSolverStab(400);
     my_system.SetTolForce(1e-25);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetVerbose(true);
     msolver->SetDiagonalPreconditioning(false);
 
     //***TEST***
     ChMatlabEngine matlab_engine;
-    ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
-    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeSolverStab(matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
+    auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
 
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 

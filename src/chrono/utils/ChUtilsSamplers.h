@@ -102,6 +102,8 @@ class Sampler {
   public:
     typedef typename Types<T>::PointVector PointVector;
 
+    virtual ~Sampler() {}
+
     PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim) {
         m_center = center;
         m_size = halfDim;
@@ -140,20 +142,20 @@ class Sampler {
     // Utility function to check if a point is inside the sampling volume
     bool accept(VolumeType t, const ChVector<T>& p) {
         ChVector<T> vec = p - m_center;
-        T fuzz = (m_size.x < 1) ? 1e-6 * m_size.x : 1e-6;
+        T fuzz = (m_size.x() < 1) ? 1e-6 * m_size.x() : 1e-6;
 
         switch (t) {
             case BOX:
-                return (std::abs(vec.x) <= m_size.x + fuzz) && (std::abs(vec.y) <= m_size.y + fuzz) &&
-                       (std::abs(vec.z) <= m_size.z + fuzz);
+                return (std::abs(vec.x()) <= m_size.x() + fuzz) && (std::abs(vec.y()) <= m_size.y() + fuzz) &&
+                       (std::abs(vec.z()) <= m_size.z() + fuzz);
             case SPHERE:
-                return (vec.Length2() <= m_size.x * m_size.x);
+                return (vec.Length2() <= m_size.x() * m_size.x());
             case CYLINDER_X:
-                return (vec.y * vec.y + vec.z * vec.z <= m_size.y * m_size.y) && (std::abs(vec.x) <= m_size.x + fuzz);
+                return (vec.y() * vec.y() + vec.z() * vec.z() <= m_size.y() * m_size.y()) && (std::abs(vec.x()) <= m_size.x() + fuzz);
             case CYLINDER_Y:
-                return (vec.z * vec.z + vec.x * vec.x <= m_size.z * m_size.z) && (std::abs(vec.y) <= m_size.y + fuzz);
+                return (vec.z() * vec.z() + vec.x() * vec.x() <= m_size.z() * m_size.z()) && (std::abs(vec.y()) <= m_size.y() + fuzz);
             case CYLINDER_Z:
-                return (vec.x * vec.x + vec.y * vec.y <= m_size.x * m_size.x) && (std::abs(vec.z) <= m_size.z + fuzz);
+                return (vec.x() * vec.x() + vec.y() * vec.y() <= m_size.x() * m_size.x()) && (std::abs(vec.z()) <= m_size.z() + fuzz);
             default:
                 return false;
         }
@@ -246,24 +248,24 @@ class PDSampler : public Sampler<T> {
     enum Direction2D { NONE, X_DIR, Y_DIR, Z_DIR };
 
     // This is the worker function for sampling the given domain.
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         // Check 2D/3D. If the size in one direction (e.g. z) is less than the
         // minimum distance, we switch to a 2D sampling. All sample points will
-        // have p.z = m_center.z
-        if (this->m_size.z < m_minDist) {
+        // have p.z() = m_center.z()
+        if (this->m_size.z() < m_minDist) {
             m_2D = Z_DIR;
             m_cellSize = m_minDist / std::sqrt(2.0);
-            this->m_size.z = 0;
-        } else if (this->m_size.y < m_minDist) {
+            this->m_size.z() = 0;
+        } else if (this->m_size.y() < m_minDist) {
             m_2D = Y_DIR;
             m_cellSize = m_minDist / std::sqrt(2.0);
-            this->m_size.y = 0;
-        } else if (this->m_size.x < m_minDist) {
+            this->m_size.y() = 0;
+        } else if (this->m_size.x() < m_minDist) {
             m_2D = X_DIR;
             m_cellSize = m_minDist / std::sqrt(2.0);
-            this->m_size.x = 0;
+            this->m_size.x() = 0;
         } else {
             m_2D = NONE;
             m_cellSize = m_minDist / std::sqrt(3.0);
@@ -272,8 +274,8 @@ class PDSampler : public Sampler<T> {
         m_bl = this->m_center - this->m_size;
         m_tr = this->m_center + this->m_size;
 
-        m_grid.Resize((int)(2 * this->m_size.x / m_cellSize) + 1, (int)(2 * this->m_size.y / m_cellSize) + 1,
-                      (int)(2 * this->m_size.z / m_cellSize) + 1);
+        m_grid.Resize((int)(2 * this->m_size.x() / m_cellSize) + 1, (int)(2 * this->m_size.y() / m_cellSize) + 1,
+                      (int)(2 * this->m_size.z() / m_cellSize) + 1);
 
         // Add the first output point (and initialize active list)
         AddFirstPoint(t, out_points);
@@ -306,9 +308,9 @@ class PDSampler : public Sampler<T> {
 
         // Generate a random point in the domain
         do {
-            p.x = m_bl.x + m_realDist(rengine()) * 2 * this->m_size.x;
-            p.y = m_bl.y + m_realDist(rengine()) * 2 * this->m_size.y;
-            p.z = m_bl.z + m_realDist(rengine()) * 2 * this->m_size.z;
+            p.x() = m_bl.x() + m_realDist(rengine()) * 2 * this->m_size.x();
+            p.y() = m_bl.y() + m_realDist(rengine()) * 2 * this->m_size.y();
+            p.z() = m_bl.z() + m_realDist(rengine()) * 2 * this->m_size.z();
         } while (!this->accept(t, p));
 
         // Place the point in the grid, add it to the active list, and add it
@@ -365,31 +367,31 @@ class PDSampler : public Sampler<T> {
             case Z_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi * m_realDist(rengine());
-                x = point.x + radius * std::cos(angle);
-                y = point.y + radius * std::sin(angle);
-                z = this->m_center.z;
+                x = point.x() + radius * std::cos(angle);
+                y = point.y() + radius * std::sin(angle);
+                z = this->m_center.z();
             } break;
             case Y_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi * m_realDist(rengine());
-                x = point.x + radius * std::cos(angle);
-                y = this->m_center.y;
-                z = point.z + radius * std::sin(angle);
+                x = point.x() + radius * std::cos(angle);
+                y = this->m_center.y();
+                z = point.z() + radius * std::sin(angle);
             } break;
             case X_DIR: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
                 T angle = 2 * Pi * m_realDist(rengine());
-                x = this->m_center.x;
-                y = point.y + radius * std::cos(angle);
-                z = point.z + radius * std::sin(angle);
+                x = this->m_center.x();
+                y = point.y() + radius * std::cos(angle);
+                z = point.z() + radius * std::sin(angle);
             } break;
             case NONE: {
                 T radius = m_minDist * (1 + m_realDist(rengine()));
                 T angle1 = 2 * Pi * m_realDist(rengine());
                 T angle2 = 2 * Pi * m_realDist(rengine());
-                x = point.x + radius * std::cos(angle1) * std::sin(angle2);
-                y = point.y + radius * std::sin(angle1) * std::sin(angle2);
-                z = point.z + radius * std::cos(angle2);
+                x = point.x() + radius * std::cos(angle1) * std::sin(angle2);
+                y = point.y() + radius * std::sin(angle1) * std::sin(angle2);
+                z = point.z() + radius * std::cos(angle2);
             } break;
         }
 
@@ -398,9 +400,9 @@ class PDSampler : public Sampler<T> {
 
     // Map point location to a 3D grid location
     void MapToGrid(ChVector<T> point) {
-        m_gridLoc[0] = (int)((point.x - m_bl.x) / m_cellSize);
-        m_gridLoc[1] = (int)((point.y - m_bl.y) / m_cellSize);
-        m_gridLoc[2] = (int)((point.z - m_bl.z) / m_cellSize);
+        m_gridLoc[0] = (int)((point.x() - m_bl.x()) / m_cellSize);
+        m_gridLoc[1] = (int)((point.y() - m_bl.y()) / m_cellSize);
+        m_gridLoc[2] = (int)((point.z() - m_bl.z()) / m_cellSize);
     }
 
     PDGrid<ChVector<T>> m_grid;
@@ -438,19 +440,19 @@ class GridSampler : public Sampler<T> {
     GridSampler(const ChVector<T>& spacing) : m_spacing(spacing) {}
 
   private:
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         ChVector<T> bl = this->m_center - this->m_size;
 
-        int nx = (int)(2 * this->m_size.x / m_spacing.x) + 1;
-        int ny = (int)(2 * this->m_size.y / m_spacing.y) + 1;
-        int nz = (int)(2 * this->m_size.z / m_spacing.z) + 1;
+        int nx = (int)(2 * this->m_size.x() / m_spacing.x()) + 1;
+        int ny = (int)(2 * this->m_size.y() / m_spacing.y()) + 1;
+        int nz = (int)(2 * this->m_size.z() / m_spacing.z()) + 1;
 
         for (int i = 0; i < nx; i++) {
             for (int j = 0; j < ny; j++) {
                 for (int k = 0; k < nz; k++) {
-                    ChVector<T> p = bl + ChVector<T>(i * m_spacing.x, j * m_spacing.y, k * m_spacing.z);
+                    ChVector<T> p = bl + ChVector<T>(i * m_spacing.x(), j * m_spacing.y(), k * m_spacing.z());
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }
@@ -478,15 +480,15 @@ class HCPSampler : public Sampler<T> {
     HCPSampler(T spacing) : m_spacing(spacing) {}
 
   private:
-    virtual PointVector Sample(VolumeType t) {
+    virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
         ChVector<T> bl = this->m_center - this->m_size;
 
         T m_cos30 = 0.5 * sqrt(3.0);
-        int nx = (int)(2 * this->m_size.x / (m_spacing)) + 1;
-        int ny = (int)(2 * this->m_size.y / (m_cos30 * m_spacing)) + 1;
-        int nz = (int)(2 * this->m_size.z / (m_cos30 * m_spacing)) + 1;
+        int nx = (int)(2 * this->m_size.x() / (m_spacing)) + 1;
+        int ny = (int)(2 * this->m_size.y() / (m_cos30 * m_spacing)) + 1;
+        int nz = (int)(2 * this->m_size.z() / (m_cos30 * m_spacing)) + 1;
         double offset_x = 0, offset_y = 0;
         for (int k = 0; k < nz; k++) {
             // need to offset each alternate layer by radius in both x and y direction

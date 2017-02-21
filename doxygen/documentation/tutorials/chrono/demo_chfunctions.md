@@ -1,4 +1,4 @@
-Using ChFunctions in Chrono (demo_chfunctions.cpp) {#tutorial_demo_chfunctions}
+Using ChFunctions in Chrono (demo_CH_functions.cpp) {#tutorial_demo_chfunctions}
 ==========================
 
 Tutorial that teaches how to use the ChFunction inherited classes to build math functions of y=f(x) type. The ChFunction objects are 'building blocks' whose main usage is to describe motion laws, such as trajectories in automation and robotics, etc.
@@ -9,4 +9,4 @@ Tutorial that teaches how to use the ChFunction inherited classes to build math 
 - No GUI: only text output.
 
 	
-\include demo_chfunctions.cpp
+\include demo_CH_functions.cpp

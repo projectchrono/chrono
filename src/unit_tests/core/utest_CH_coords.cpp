@@ -12,7 +12,7 @@
 // Demo on how to use Chrono coordinate transformations
 // -----------------------------------------------------------------------
 
-#include <math.h>
+#include <cmath>
 
 #include "chrono/core/ChLog.h"
 #include "chrono/core/ChTransform.h"

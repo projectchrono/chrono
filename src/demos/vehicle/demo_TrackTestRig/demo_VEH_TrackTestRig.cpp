@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     }
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+    rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
     rig->GetSystem()->SetMaxItersSolverSpeed(50);
     rig->GetSystem()->SetMaxItersSolverStab(50);
     rig->GetSystem()->SetTol(0);

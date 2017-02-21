@@ -9,7 +9,7 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <string.h>
+#include <cstring>
 
 #include "chrono/physics/ChGlobal.h"
 

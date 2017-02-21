@@ -123,16 +123,16 @@ void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const 
         // the terrain so fast that no contact force is generated.
         // The sign of the velocity term in the damping function is negative since
         // a positive velocity means a decreasing depth, not an increasing depth
-        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z);
+        double Fn_mag = GetNormalStiffnessForce(m_data.depth) + GetNormalDampingForce(m_data.depth, -m_data.vel.z());
 
         if (Fn_mag < 0) {
             Fn_mag = 0;
         }
 
         m_data.normal_force = Fn_mag;
-        m_states.abs_vx = std::abs(m_data.vel.x);
-        m_states.vsx = m_data.vel.x - wheel_state.omega * (m_unloaded_radius - m_data.depth);
-        m_states.vsy = m_data.vel.y;
+        m_states.abs_vx = std::abs(m_data.vel.x());
+        m_states.vsx = m_data.vel.x() - wheel_state.omega * (m_unloaded_radius - m_data.depth);
+        m_states.vsy = m_data.vel.y();
         m_states.omega = wheel_state.omega;
         m_states.disc_normal = disc_normal;
     } else {

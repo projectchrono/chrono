@@ -1112,10 +1112,10 @@ private:
                       const double offsetA, const double offsetB) {
 
         // convert to Bullet vectors. Note: in absolute csys.
-        btVector3 absA ((btScalar)candid_pA.x, (btScalar)candid_pA.y, (btScalar)candid_pA.z);
-        btVector3 absB ((btScalar)candid_pB.x, (btScalar)candid_pB.y, (btScalar)candid_pB.z);
+        btVector3 absA ((btScalar)candid_pA.x(), (btScalar)candid_pA.y(), (btScalar)candid_pA.z());
+        btVector3 absB ((btScalar)candid_pB.x(), (btScalar)candid_pB.y(), (btScalar)candid_pB.z());
         ChVector<> dabsN_onB ((candid_pA-candid_pB).GetNormalized());
-        btVector3 absN_onB ((btScalar)dabsN_onB.x, (btScalar)dabsN_onB.y, (btScalar)dabsN_onB.z);
+        btVector3 absN_onB ((btScalar)dabsN_onB.x(), (btScalar)dabsN_onB.y(), (btScalar)dabsN_onB.z());
         if (dist<0)
             absN_onB = - absN_onB; // flip norm to be coherent with dist sign
         resultOut->addContactPoint(absN_onB, absB + absN_onB * (btScalar)offsetB, (btScalar)(dist - (offsetA + offsetB)));
@@ -1367,8 +1367,8 @@ void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproxi
 }
 
 bool ChCollisionSystemBullet::RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) {
-    btVector3 btfrom((btScalar)from.x, (btScalar)from.y, (btScalar)from.z);
-    btVector3 btto((btScalar)to.x, (btScalar)to.y, (btScalar)to.z);
+    btVector3 btfrom((btScalar)from.x(), (btScalar)from.y(), (btScalar)from.z());
+    btVector3 btto((btScalar)to.x(), (btScalar)to.y(), (btScalar)to.z());
 
     btCollisionWorld::ClosestRayResultCallback rayCallback(btfrom, btto);
 

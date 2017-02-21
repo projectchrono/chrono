@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCONTACTTUPLE_H
 #define CHCONTACTTUPLE_H
@@ -39,11 +40,11 @@ class ChContactTuple {
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
 
-    ChVector<> p1;            ///< max penetration point on geo1, after refining, in abs space
-    ChVector<> p2;            ///< max penetration point on geo2, after refining, in abs space
-    ChVector<double> normal;  ///< normal, on surface of master reference (geo1)
+    ChVector<> p1;      ///< max penetration point on geo1, after refining, in abs space
+    ChVector<> p2;      ///< max penetration point on geo2, after refining, in abs space
+    ChVector<> normal;  ///< normal, on surface of master reference (geo1)
 
-    ChMatrix33<double> contact_plane;  ///< the plane of contact (X is normal direction)
+    ChMatrix33<> contact_plane;  ///< the plane of contact (X is normal direction)
 
     double norm_dist;  ///< penetration distance (negative if going inside) after refining
 
@@ -106,10 +107,10 @@ class ChContactTuple {
     /// This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system. Its origin is point P2.
     /// (It is the coordinate system of the contact plane and normal)
-    ChCoordsys<> GetContactCoords() {
+    ChCoordsys<> GetContactCoords() const {
         ChCoordsys<> mcsys;
-        ChQuaternion<float> mrot = this->contact_plane.Get_A_quaternion();
-        mcsys.rot.Set(mrot.e0, mrot.e1, mrot.e2, mrot.e3);
+        ChQuaternion<> mrot = this->contact_plane.Get_A_quaternion();
+        mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
         mcsys.pos = this->p2;
         return mcsys;
     }
@@ -117,22 +118,22 @@ class ChContactTuple {
     /// Returns the pointer to a contained 3x3 matrix representing the UV and normal
     /// directions of the contact. In detail, the X versor (the 1s column of the
     /// matrix) represents the direction of the contact normal.
-    ChMatrix33<double>* GetContactPlane() { return &contact_plane; }
+    const ChMatrix33<>& GetContactPlane() const { return contact_plane; }
 
     /// Get the contact point 1, in absolute coordinates
-    ChVector<> GetContactP1() { return p1; }
+    const ChVector<>& GetContactP1() const { return p1; }
 
     /// Get the contact point 2, in absolute coordinates
-    ChVector<> GetContactP2() { return p2; }
+    const ChVector<>& GetContactP2() const { return p2; }
 
     /// Get the contact normal, in absolute coordinates
-    ChVector<double> GetContactNormal() { return normal; }
+    const ChVector<>& GetContactNormal() const { return normal; }
 
     /// Get the contact distance
-    double GetContactDistance() { return norm_dist; }
+    double GetContactDistance() const { return norm_dist; }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() { return ChVector<>(0); }
+    virtual ChVector<> GetContactForce() const { return ChVector<>(0); }
 
     //
     // UPDATING FUNCTIONS

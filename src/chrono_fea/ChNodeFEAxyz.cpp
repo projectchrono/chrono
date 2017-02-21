@@ -53,7 +53,7 @@ void ChNodeFEAxyz::SetNoSpeedNoAcceleration() {
 
 void ChNodeFEAxyz::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeFEAxyz>();
     // serialize parent class
     ChNodeFEAbase::ArchiveOUT(marchive);
     // serialize parent class
@@ -65,7 +65,7 @@ void ChNodeFEAxyz::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyz::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeFEAxyz>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
     // serialize parent class

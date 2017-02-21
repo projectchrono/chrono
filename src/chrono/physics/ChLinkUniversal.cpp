@@ -111,9 +111,9 @@ void ChLinkUniversal::Initialize(std::shared_ptr<ChBodyFrame> body1,
     m_u1_tilde.Set_X_matrix(m_frame1.GetA().Get_A_Xaxis());
     m_v2_tilde.Set_X_matrix(m_frame2.GetA().Get_A_Yaxis());
 
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x - frame1_abs.coord.pos.x);
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y - frame1_abs.coord.pos.y);
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z - frame1_abs.coord.pos.z);
+    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
+    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
+    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
     m_C->SetElement(3, 0, Vdot(frame1_abs.GetA().Get_A_Xaxis(), frame2_abs.GetA().Get_A_Yaxis()));
 }
 
@@ -129,9 +129,9 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
     ChFrame<> frame2_abs = m_frame2 >> *Body2;
 
     // Calculate violations of the spherical constraints
-    m_C->SetElement(0, 0, frame2_abs.coord.pos.x - frame1_abs.coord.pos.x);
-    m_C->SetElement(1, 0, frame2_abs.coord.pos.y - frame1_abs.coord.pos.y);
-    m_C->SetElement(2, 0, frame2_abs.coord.pos.z - frame1_abs.coord.pos.z);
+    m_C->SetElement(0, 0, frame2_abs.coord.pos.x() - frame1_abs.coord.pos.x());
+    m_C->SetElement(1, 0, frame2_abs.coord.pos.y() - frame1_abs.coord.pos.y());
+    m_C->SetElement(2, 0, frame2_abs.coord.pos.z() - frame1_abs.coord.pos.z());
 
     // Compute Jacobian of the spherical constraints
     //    pos2_abs - pos1_abs = 0
@@ -200,16 +200,16 @@ void ChLinkUniversal::Update(double time, bool update_assets) {
         m_cnstr_dot.Get_Cq_a()->ElementN(0) = 0;
         m_cnstr_dot.Get_Cq_a()->ElementN(1) = 0;
         m_cnstr_dot.Get_Cq_a()->ElementN(2) = 0;
-        m_cnstr_dot.Get_Cq_a()->ElementN(3) = -Phi_pi1.x;
-        m_cnstr_dot.Get_Cq_a()->ElementN(4) = -Phi_pi1.y;
-        m_cnstr_dot.Get_Cq_a()->ElementN(5) = -Phi_pi1.z;
+        m_cnstr_dot.Get_Cq_a()->ElementN(3) = -Phi_pi1.x();
+        m_cnstr_dot.Get_Cq_a()->ElementN(4) = -Phi_pi1.y();
+        m_cnstr_dot.Get_Cq_a()->ElementN(5) = -Phi_pi1.z();
 
         m_cnstr_dot.Get_Cq_b()->ElementN(0) = 0;
         m_cnstr_dot.Get_Cq_b()->ElementN(1) = 0;
         m_cnstr_dot.Get_Cq_b()->ElementN(2) = 0;
-        m_cnstr_dot.Get_Cq_b()->ElementN(3) = -Phi_pi2.x;
-        m_cnstr_dot.Get_Cq_b()->ElementN(4) = -Phi_pi2.y;
-        m_cnstr_dot.Get_Cq_b()->ElementN(5) = -Phi_pi2.z;
+        m_cnstr_dot.Get_Cq_b()->ElementN(3) = -Phi_pi2.x();
+        m_cnstr_dot.Get_Cq_b()->ElementN(4) = -Phi_pi2.y();
+        m_cnstr_dot.Get_Cq_b()->ElementN(5) = -Phi_pi2.z();
     }
 }
 
@@ -415,7 +415,7 @@ void ChLinkUniversal::ConstraintsFetch_react(double factor) {
 
 void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkUniversal>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -428,7 +428,7 @@ void ChLinkUniversal::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkUniversal::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkUniversal>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

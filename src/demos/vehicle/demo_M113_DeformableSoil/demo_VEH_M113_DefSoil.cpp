@@ -100,14 +100,11 @@ int main(int argc, char* argv[]) {
     if (use_mkl) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
-        ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-        ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-        vehicle.GetSystem()->ChangeSolverStab(mkl_solver_stab);
-        vehicle.GetSystem()->ChangeSolverSpeed(mkl_solver_speed);
-        mkl_solver_speed->SetSparsityPatternLock(true);
-        mkl_solver_stab->SetSparsityPatternLock(true);
+        auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+        mkl_solver->SetSparsityPatternLock(true);
+        vehicle.GetSystem()->SetSolver(mkl_solver);
 
-        vehicle.GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
+        vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
         integrator->SetAlpha(-0.2);
         integrator->SetMaxiters(50);

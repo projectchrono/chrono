@@ -55,6 +55,8 @@ class ChApi ChLinkScrew : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkScrew,0)
+
 }  // end namespace chrono
 
 #endif

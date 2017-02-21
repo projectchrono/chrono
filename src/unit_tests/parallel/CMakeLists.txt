@@ -25,6 +25,7 @@ SET(TESTS
     utest_PAR_shafts
     utest_PAR_other_math
     #utest_PAR_svd
+    #utest_PAR_collision_system
 )
 
 MESSAGE(STATUS "Unit test programs for PARALLEL module...")

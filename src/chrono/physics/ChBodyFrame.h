@@ -30,6 +30,8 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     ChBodyFrame() {}
     ChBodyFrame(const ChBodyFrame& other) : ChFrameMoving<double>(other) {}
 
+    virtual ~ChBodyFrame() {}
+
     /// Returns reference to the encapsulated ChVariablesBody,
     /// representing body variables (pos, speed or accel.- see VariablesLoad...() )
     /// and forces.
@@ -42,13 +44,13 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// coordinates, if =0, in absolute.
     void To_abs_forcetorque(const ChVector<>& force,
                             const ChVector<>& appl_point,
-                            int local,
+                            bool local,
                             ChVector<>& resultforce,
                             ChVector<>& resulttorque);
 
     /// Transform generic cartesian torque into absolute torque applied to body COG.
     /// If local=1, torque is intended as expressed in local coordinates, if =0, in absolute.
-    void To_abs_torque(const ChVector<>& torque, int local, ChVector<>& resulttorque);
+    void To_abs_torque(const ChVector<>& torque, bool local, ChVector<>& resulttorque);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -56,6 +58,9 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChBodyFrame,0)
+
 
 }  // end namespace chrono
 

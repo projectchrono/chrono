@@ -162,11 +162,10 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetSolverWarmStarting(false);  // this helps a lot to speedup convergence in this class of problems
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    my_system.SetSolverWarmStarting(false);
     my_system.SetMaxItersSolverSpeed(538);
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetRelTolerance(1e-20);
     msolver->SetTolerance(1e-20);
     msolver->SetVerbose(true);

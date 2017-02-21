@@ -144,9 +144,9 @@ void ChMarker::Impose_Rel_Coord(const Coordsys& m_coord) {
     // set the actual coordinates
     SetCoord(m_coord);
     // set the resting position coordinates
-    rest_coord.pos.x = m_coord.pos.x - motion_X->Get_y(ChTime);
-    rest_coord.pos.y = m_coord.pos.y - motion_Y->Get_y(ChTime);
-    rest_coord.pos.z = m_coord.pos.z - motion_Z->Get_y(ChTime);
+    rest_coord.pos.x() = m_coord.pos.x() - motion_X->Get_y(ChTime);
+    rest_coord.pos.y() = m_coord.pos.y() - motion_Y->Get_y(ChTime);
+    rest_coord.pos.z() = m_coord.pos.z() - motion_Z->Get_y(ChTime);
     qtemp = Q_from_AngAxis(-(motion_ang->Get_y(ChTime)), motion_axis);
     rest_coord.rot = Qcross(m_coord.rot, qtemp);  // ***%%% check
                                                   // set also the absolute positions, and other.
@@ -207,21 +207,21 @@ void ChMarker::UpdateTime(double mytime) {
 
     // positions:
     // update positions:    rel_pos
-    csys.pos.x = motion_X->Get_y(mytime);
-    csys.pos.y = motion_Y->Get_y(mytime);
-    csys.pos.z = motion_Z->Get_y(mytime);
+    csys.pos.x() = motion_X->Get_y(mytime);
+    csys.pos.y() = motion_Y->Get_y(mytime);
+    csys.pos.z() = motion_Z->Get_y(mytime);
     if (motion_X->Get_Type() != ChFunction::FUNCT_MOCAP)
         csys.pos += rest_coord.pos;
 
     // update speeds:		rel_pos_dt
-    csys_dt.pos.x = motion_X->Get_y_dx(mytime);
-    csys_dt.pos.y = motion_Y->Get_y_dx(mytime);
-    csys_dt.pos.z = motion_Z->Get_y_dx(mytime);
+    csys_dt.pos.x() = motion_X->Get_y_dx(mytime);
+    csys_dt.pos.y() = motion_Y->Get_y_dx(mytime);
+    csys_dt.pos.z() = motion_Z->Get_y_dx(mytime);
 
     // update accelerations
-    csys_dtdt.pos.x = motion_X->Get_y_dxdx(mytime);
-    csys_dtdt.pos.y = motion_Y->Get_y_dxdx(mytime);
-    csys_dtdt.pos.z = motion_Z->Get_y_dxdx(mytime);
+    csys_dtdt.pos.x() = motion_X->Get_y_dxdx(mytime);
+    csys_dtdt.pos.y() = motion_Y->Get_y_dxdx(mytime);
+    csys_dtdt.pos.z() = motion_Z->Get_y_dxdx(mytime);
 
     // rotations:
 
@@ -324,7 +324,7 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChMarker>();
 
     // serialize parent class
     ChObj::ArchiveOUT(marchive);
@@ -344,7 +344,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChMarker>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

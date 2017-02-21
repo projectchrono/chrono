@@ -10,9 +10,9 @@
 // and at http://projectchrono.org/license-chrono.txt.
 //
 
-#include <math.h>
-#include <stdarg.h>
-#include <errno.h>
+#include <cmath>
+#include <cstdarg>
+#include <cerrno>
 #include <iterator>
 
 #include "chrono/core/ChStream.h"

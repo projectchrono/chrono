@@ -1,4 +1,4 @@
-GNUplot example (demo_gnuplot.cpp)  {#tutorial_demo_gnuplot}
+GNUplot example (demo_POST_gnuplot.cpp)  {#tutorial_demo_gnuplot}
 ==========================
 
 Tutorial that teaches how to use the 
@@ -58,7 +58,7 @@ Troubleshooting. If you do not see the window opening, check the following:
 <br>
 ... in case the .gpl command script contains errors, you can see which is 
   the offending statement by opening a shell, go to the current working directory 
-  of the demo_gnuplot executable using cd, and entering 
+  of the demo_POST_gnuplot executable using cd, and entering 
   `gnuplot __tmp_gnuplot_1.gpl`  where __tmp_gnuplot_1.gpl is the name 
   of the gpl file, here is for this example. 
   When executed it will prompt script errors, if any.
@@ -233,5 +233,5 @@ You should see the following plot:
 
 
 
-\include demo_gnuplot.cpp
+\include demo_POST_gnuplot.cpp
 

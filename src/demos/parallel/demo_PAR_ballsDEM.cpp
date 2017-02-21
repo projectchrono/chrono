@@ -24,7 +24,7 @@
 // generated for post-processing with POV-Ray.
 // =============================================================================
 
-#include <stdio.h>
+#include <cstdio>
 #include <vector>
 #include <cmath>
 
@@ -79,7 +79,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -92,11 +92,11 @@ void AddContainer(ChSystemParallelDEM* sys) {
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hdim.y, hthick), ChVector<>(0, 0, -hthick));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(-hdim.x - hthick, 0, hdim.z));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y, hdim.z), ChVector<>(hdim.x + hthick, 0, hdim.z));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, -hdim.y - hthick, hdim.z));
-    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x, hthick, hdim.z), ChVector<>(0, hdim.y + hthick, hdim.z));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hdim.y(), hthick), ChVector<>(0, 0, -hthick));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), ChVector<>(-hdim.x() - hthick, 0, hdim.z()));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hthick, hdim.y(), hdim.z()), ChVector<>(hdim.x() + hthick, 0, hdim.z()));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), ChVector<>(0, -hdim.y() - hthick, hdim.z()));
+    utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->BuildModel();
 
     sys->AddBody(bin);
@@ -123,7 +123,7 @@ void AddFallingBalls(ChSystemParallel* sys) {
         for (int iy = -count_Y; iy <= count_Y; iy++) {
             ChVector<> pos(0.4 * ix, 0.4 * iy, 1);
 
-            auto ball = std::make_shared<ChBody>(new ChCollisionModelParallel, ChMaterialSurfaceBase::DEM);
+            auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
             ball->SetMaterialSurface(ballMat);
 
             ball->SetIdentifier(ballId++);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     msystem.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     msystem.GetSettings()->solver.tolerance = tolerance;
 
-    msystem.GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     msystem.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,

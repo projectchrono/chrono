@@ -37,15 +37,13 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
       m_adhesion_model(Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false) {
-    descriptor = new ChSystemDescriptor;
+    descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    solver_type = ChSystem::SOLVER_DEM;
+    solver_speed = std::make_shared<ChSolverDEM>();
+    solver_stab = std::make_shared<ChSolverDEM>();
 
-    solver_speed = new ChSolverDEM();
-    solver_stab = new ChSolverDEM();
-
-    collision_system = new collision::ChCollisionSystemBullet(max_objects, scene_size);
+    collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
     // For default DEM there is no need to create contacts 'in advance' 
     // when models are closer than the safety envelope, so set default envelope to 0
@@ -58,30 +56,20 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
     m_characteristicVelocity = 1; 
 }
 
-void ChSystemDEM::SetSolverType(eCh_solverType mval) {
+void ChSystemDEM::SetSolverType(ChSolver::Type type) {
 
-    ChSystem::SetSolverType(mval);
+    ChSystem::SetSolverType(type);
 
     contact_container = std::make_shared<ChContactContainerDEM>();
     contact_container->SetSystem(this);
 }
 
-/*
-void ChSystemDEM::ChangeSolverSpeed(ChSolver* newsolver) {
-    if (dynamic_cast<ChSolverDEM*>(newsolver))
-        ChSystem::ChangeSolverSpeed(newsolver);
-}
-*/
-
-void ChSystemDEM::ChangeContactContainer(std::shared_ptr<ChContactContainerBase>  newcontainer) {
-    if (std::dynamic_pointer_cast<ChContactContainerDEM>(newcontainer))
-        ChSystem::ChangeContactContainer(newcontainer);
+void ChSystemDEM::SetContactContainer(std::shared_ptr<ChContactContainerBase>  container) {
+    if (std::dynamic_pointer_cast<ChContactContainerDEM>(container))
+        ChSystem::SetContactContainer(container);
 }
 
-
-////////
-////////  STREAMING - FILE HANDLING
-////////
+// STREAMING - FILE HANDLING
 
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
@@ -108,7 +96,7 @@ public:
 void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChSystemDEM>();
 
     // serialize parent class
     ChSystem::ArchiveOUT(marchive);
@@ -130,7 +118,7 @@ void ChSystemDEM::ArchiveOUT(ChArchiveOut& marchive)
 void ChSystemDEM::ArchiveIN(ChArchiveIn& marchive) 
 {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChSystemDEM>();
 
     // deserialize parent class
     ChSystem::ArchiveIN(marchive);

@@ -45,8 +45,8 @@
 // Include C++ headers this way...
 
 %{
+#include <typeindex>
 #include <cstddef>
-#include <stddef.h>
 #include "chrono/core/ChApiCE.h"
 #include "chrono/physics/ChBody.h"
 
@@ -123,6 +123,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChFunction_Sine)
 
 %shared_ptr(chrono::ChObj)
+%shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
 %shared_ptr(chrono::ChMaterialSurface)
 %shared_ptr(chrono::ChMaterialSurfaceBase)
@@ -137,6 +138,25 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticlesClones)
 %shared_ptr(chrono::ChAssembly)
+%shared_ptr(chrono::ChTimestepper)
+%shared_ptr(chrono::ChTimestepperIorder)
+%shared_ptr(chrono::ChTimestepperIIorder)
+%shared_ptr(chrono::ChTimestepperEulerExpl)
+%shared_ptr(chrono::ChTimestepperEulerExplIIorder)
+%shared_ptr(chrono::ChTimestepperEulerSemiImplicit)
+%shared_ptr(chrono::ChTimestepperRungeKuttaExpl)
+%shared_ptr(chrono::ChTimestepperHeun)
+%shared_ptr(chrono::ChTimestepperLeapfrog)
+%shared_ptr(chrono::ChTimestepperEulerImplicit)
+%shared_ptr(chrono::ChTimestepperEulerImplicitLinearized)
+%shared_ptr(chrono::ChTimestepperEulerImplicitProjected)
+%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized)
+%shared_ptr(chrono::ChTimestepperTrapezoidalLinearized2)
+%shared_ptr(chrono::ChTimestepperTrapezoidal)
+%shared_ptr(chrono::ChTimestepperNewmark)
+%shared_ptr(chrono::ChImplicitIterativeTimestepper)
+%shared_ptr(chrono::ChImplicitTimestepper)
+%shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystem)
 %shared_ptr(chrono::ChContactContainerBase)
 %shared_ptr(chrono::ChProximityContainerBase)
@@ -214,8 +234,8 @@ using namespace chrono::geometry;
 
 //  core/  classes
 %include "ChException.i"
-%include "../chrono/core/ChClassFactory.h"
-%include "ChArchive.i"
+%include "ChClassFactory.i"
+//%include "ChArchive.i"
 %include "ChVector.i" 
 #define Vector ChVector<double>
 %include "ChQuaternion.i"
@@ -270,6 +290,8 @@ using namespace chrono::geometry;
 %include "ChIndexedParticles.i"
 %include "ChParticlesClones.i"
 %include "ChAssembly.i"
+%include "../chrono/timestepper/ChTimestepper.h"
+%include "../chrono/solver/ChSolver.h"
 %include "ChSystem.i"
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"

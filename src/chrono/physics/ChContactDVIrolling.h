@@ -160,18 +160,18 @@ class ChContactDVIrolling :
         // base behaviour too
         ChContactDVI< Ta, Tb >::ContIntStateGatherReactions(off_L, L);
 
-        L(off_L + 3) = react_torque.x;
-        L(off_L + 4) = react_torque.y;
-        L(off_L + 5) = react_torque.z;
+        L(off_L + 3) = react_torque.x();
+        L(off_L + 4) = react_torque.y();
+        L(off_L + 5) = react_torque.z();
     }
 
     virtual void ContIntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
          // base behaviour too
         ChContactDVI< Ta, Tb >::ContIntStateScatterReactions(off_L, L);
 
-        react_torque.x = L(off_L + 3);
-        react_torque.y = L(off_L + 4);
-        react_torque.z = L(off_L + 5);
+        react_torque.x() = L(off_L + 3);
+        react_torque.y() = L(off_L + 4);
+        react_torque.z() = L(off_L + 5);
     }
 
     virtual void ContIntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
@@ -280,9 +280,9 @@ class ChContactDVIrolling :
         ChContactDVI< Ta, Tb >::ConstraintsFetch_react(factor);
 
         // From constraints to react torque:
-        react_torque.x = Rx.Get_l_i() * factor;
-        react_torque.y = Ru.Get_l_i() * factor;
-        react_torque.z = Rv.Get_l_i() * factor;
+        react_torque.x() = Rx.Get_l_i() * factor;
+        react_torque.y() = Ru.Get_l_i() * factor;
+        react_torque.z() = Rv.Get_l_i() * factor;
     }
 };
 

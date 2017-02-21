@@ -61,7 +61,7 @@ void TrackAssemblySinglePin::LoadSprocket(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a sprocket specification file.
     assert(d.HasMember("Type"));
@@ -90,7 +90,7 @@ void TrackAssemblySinglePin::LoadBrake(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a brake specification file.
     assert(d.HasMember("Type"));
@@ -120,7 +120,7 @@ void TrackAssemblySinglePin::LoadIdler(const std::string& filename) {
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is an idler specification file.
     assert(d.HasMember("Type"));
@@ -152,7 +152,7 @@ void TrackAssemblySinglePin::LoadSuspension(const std::string& filename, int whi
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a road-wheel assembly specification file.
     assert(d.HasMember("Type"));
@@ -182,7 +182,7 @@ void TrackAssemblySinglePin::LoadRoller(const std::string& filename, int which) 
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a roller specification file.
     assert(d.HasMember("Type"));
@@ -212,7 +212,7 @@ void TrackAssemblySinglePin::LoadTrackShoes(const std::string& filename, int num
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Check that the given file is a track shoe specification file.
     assert(d.HasMember("Type"));
@@ -243,7 +243,7 @@ TrackAssemblySinglePin::TrackAssemblySinglePin(const std::string& filename) : Ch
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     Create(d);
 

@@ -33,6 +33,8 @@ namespace chrono {
 /// implement a custom ContactCallback() function.
 class ChApi ChAddContactCallback {
   public:
+    virtual ~ChAddContactCallback() {}
+
     /// Callback used to report contact points being added to the container.
     /// This must be implemented by a child class of ChAddContactCallback
     virtual void ContactCallback(
@@ -48,6 +50,8 @@ class ChApi ChAddContactCallback {
 /// implement a custom ReportContactCallback() function.
 class ChApi ChReportContactCallback {
   public:
+    virtual ~ChReportContactCallback() {}
+
     /// Callback, used to report contact points already added to the container.
     /// This must be implemented by a child class of ChReportContactCallback.
     /// If returns false, the contact scanning will be stopped.
@@ -149,9 +153,9 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
                              std::unordered_map<ChContactable*, ForceTorque>& contactforces) {
         for (auto contact = contactlist.begin(); contact != contactlist.end(); ++contact) {
             // Extract information for current contact (expressed in global frame)
-            ChMatrix33<>* A = (*contact)->GetContactPlane();
+            ChMatrix33<> A = (*contact)->GetContactPlane();
             ChVector<> force_loc = (*contact)->GetContactForce();
-            ChVector<> force = A->Matr_x_Vect(force_loc);
+            ChVector<> force = A.Matr_x_Vect(force_loc);
             ChVector<> p1 = (*contact)->GetContactP1();
             ChVector<> p2 = (*contact)->GetContactP2();
 
@@ -193,6 +197,8 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
         }
     }
 };
+
+CH_CLASS_VERSION(ChContactContainerBase,0)
 
 }  // end namespace chrono
 

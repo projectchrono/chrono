@@ -35,10 +35,21 @@ class ChArchiveOut;
 class ChArchiveIn;
 
 
-/// Macro to create a  ChDetect_FactoryNameTag  detector that can be used in 
-/// templates, to select which specialized template to use depending if the
-/// FactoryNameTag function is present in the class of type T.
-CH_CREATE_MEMBER_DETECTOR(FactoryNameTag)
+/// Macro to create a  ChDetect_ArchiveINconstructor that can be used in 
+/// templates, to select which specialized template to use
+//CH_CREATE_MEMBER_DETECTOR(ArchiveINconstructor) already defined in ChClassFactory
+
+/// Macro to create a  ChDetect_ArchiveOUTconstructor that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveOUTconstructor)
+
+/// Macro to create a  ChDetect_ArchiveOUT that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveOUT)
+
+/// Macro to create a  ChDetect_ArchiveIN that can be used in 
+/// templates, to select which specialized template to use
+CH_CREATE_MEMBER_DETECTOR(ArchiveIN)
 
 
 
@@ -53,10 +64,29 @@ public:
 /// Functor to call the ArchiveOUT function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveOut
 /// easier and equippable with virtual functions.
+/// Also use this to call ArchiveOUTconstructor. 
 
 class ChFunctorArchiveOut {
 public:
-    virtual void CallArchiveOut(ChArchiveOut& marchive)=0;   
+        /// Use this to call ArchiveOut member function.
+    virtual void CallArchiveOut(ChArchiveOut& marchive)=0;
+
+        /// Use this to call (optional) member function ArchiveOUTconstructor. This is
+        /// expected to serialize constructor parameters if any. 
+        /// If ArchiveOUTconstructor is not provided, simply does nothing.
+    virtual void CallArchiveOutConstructor(ChArchiveOut& marchive)=0;
+    
+        /// Get registered name in class factory. If type is not previously registered, 
+        /// returns a "" string.
+    virtual std::string& GetRegisteredName() =0;
+
+        /// Get platform-dependent typeid name
+    virtual const char* GetTypeidName() =0;
+
+        /// Get class version, if class version is registered, otherwise defaults 0
+    virtual int GetClassVersion() =0;
+
+        /// Tell if it is a null pointer    
     virtual bool IsNull()=0;
 };
 
@@ -64,107 +94,230 @@ template <class TClass>
 class ChFunctorArchiveOutSpecific : public ChFunctorArchiveOut
 {
 private:
-      void (TClass::*fpt)(ChArchiveOut&);   // pointer to member function
       TClass* pt2Object;                    // pointer to object
 
 public:
 
       // constructor - takes pointer to an object and pointer to a member
-      ChFunctorArchiveOutSpecific(TClass* _pt2Object, void(TClass::*_fpt)(ChArchiveOut&))
-         { pt2Object = _pt2Object;  fpt=_fpt; };
+      ChFunctorArchiveOutSpecific(TClass* _pt2Object)
+         { pt2Object = _pt2Object; };
 
-      virtual void CallArchiveOut(ChArchiveOut& marchive)
-        { (*pt2Object.*fpt)(marchive);};             // execute member function
+      virtual void CallArchiveOut(ChArchiveOut& marchive) { 
+          this->_archive_out(marchive);
+      }
+
+      virtual void CallArchiveOutConstructor(ChArchiveOut& marchive) {
+          this->_archive_out_constructor(marchive);
+        }
+
+      virtual std::string& GetRegisteredName() {
+          try {
+              return ChClassFactory::GetClassTagName(typeid(pt2Object));
+          }catch (ChException myex) {
+              static std::string nostring("");
+              return nostring;
+          }
+        }
+
+      virtual const char* GetTypeidName() {
+          return typeid(pt2Object).name();
+      }
 
       virtual bool IsNull()
-        { return (pt2Object==0);};            
+        { return (pt2Object==0);};   
+
+              
+      virtual int GetClassVersion() {
+          return chrono::class_factory::ChClassVersion<TClass>::version;
+        }
+
+private:
+
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type
+        _archive_out_constructor(ChArchiveOut& marchive) {
+            this->pt2Object->ArchiveOUTconstructor(marchive);
+        }
+        template <class Tc=TClass>
+        typename enable_if< !ChDetect_ArchiveOUTconstructor<Tc>::value, void >::type 
+        _archive_out_constructor(ChArchiveOut& marchive) {
+            // nothing to do if not provided
+        }
+
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveOUT<Tc>::value, void >::type
+        _archive_out(ChArchiveOut& marchive) {
+            this->pt2Object->ArchiveOUT(marchive);
+        }
+        //template <class Tc=TClass>
+        //typename enable_if< !ChDetect_ArchiveOUT<Tc>::value, void >::type 
+        //_archive_out(ChArchiveOut& marchive) {
+        //    //std::static_assert(true, "ArchiveOUT() not provided.");
+        //}
 
 };
 
 
 /// Functor to call the ArchiveIN function for unrelated classes that
-/// implemented them. This helps stripping out the templating, to make ChArchiveOut
+/// implemented them. This helps stripping out the templating, to make ChArchiveIn
 /// easier and equippable with virtual functions.
 
 class ChFunctorArchiveIn {
 public:
+        /// Use this to call member function ArchiveIn. 
     virtual void CallArchiveIn(ChArchiveIn& marchive)=0;
-    virtual void CallNew(ChArchiveIn& marchive) {};
-    virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname) {};
-    virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) {};
-    virtual void* CallGetRawPtr(ChArchiveIn& marchive) { return 0;};
+
+        /// Use this to call an (optional) static member function ArchiveINconstructor. This 
+        /// is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new myclass(params..).
+        /// If classname not registered, call T::ArchiveINconstructor()    
+        /// If ArchiveINconstructor() is not provided, simply creates a new object as new obj() in CallNewPolimorphic.
+    virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)=0;
+
+        /// Use this to create a new object as pt2Object = new myclass()
+        /// If classname not registered, throws exception
+    virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) =0;
+
+    virtual void  SetRawPtr(void* mptr) =0;
+
+    virtual void* GetRawPtr() =0;
+
+    virtual bool  IsPolymorphic() = 0;
 };
 
 template <class TClass> 
 class ChFunctorArchiveInSpecific : public ChFunctorArchiveIn
 {
 private:
-      void (TClass::*fpt)(ChArchiveIn&);   // pointer to member function
       TClass* pt2Object;                    // pointer to object
 
 public:
 
       // constructor - takes pointer to an object and pointer to a member 
-      ChFunctorArchiveInSpecific(TClass* _pt2Object, void(TClass::*_fpt)(ChArchiveIn&))
-         { pt2Object = _pt2Object;  fpt=_fpt; };
+      ChFunctorArchiveInSpecific(TClass* _pt2Object)
+         { pt2Object = _pt2Object; };
 
       virtual void CallArchiveIn(ChArchiveIn& marchive)
-        { (*pt2Object.*fpt)(marchive);};             // execute member function
+        { this->_archive_in(marchive);}
+
+      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname)
+        { throw (ChExceptionArchive( "Cannot call CallArchiveInConstructor() for a constructed object.")); };
+
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname) 
+        { throw (ChExceptionArchive( "Cannot call CallConstructor() for a constructed object.")); };
+
+      virtual void  SetRawPtr(void* mptr) 
+        { throw (ChExceptionArchive( "Cannot call SetRawPtr() for a constructed object.")); };
+
+      virtual void* GetRawPtr() 
+        { return static_cast<void*>(pt2Object); };
+
+      virtual bool IsPolymorphic() 
+        { throw (ChExceptionArchive( "Cannot call IsPolymorphic() for a constructed object.")); };
+
+private:
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
+        _archive_in(ChArchiveIn& marchive) {
+            this->pt2Object->ArchiveIN(marchive);
+        }
+        //template <class Tc=TClass>
+        //typename enable_if< !ChDetect_ArchiveIN<Tc>::value, void >::type 
+        //_archive_in(ChArchiveIn& marchive) {
+        //    //std::static_assert(true, "ArchiveIN() not provided in class to be deserialized.");
+        //}
+
 };
 
 template <class TClass> 
 class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn
 {
 private:
-      void (TClass::*fpt)(ChArchiveIn&);   // pointer to member function
       TClass** pt2Object;                    // pointer to object
 
 public:
 
       // constructor - takes pointer to an object and pointer to a member 
-      ChFunctorArchiveInSpecificPtr(TClass** _pt2Object, void(TClass::*_fpt)(ChArchiveIn&))
-         { pt2Object = _pt2Object;  fpt=_fpt; };
+      ChFunctorArchiveInSpecificPtr(TClass** _pt2Object)
+         { pt2Object = _pt2Object; }
 
       virtual void CallArchiveIn(ChArchiveIn& marchive)
-        { (**pt2Object.*fpt)(marchive);};             // execute member function
+        { this->_archive_in(marchive);}
 
-      virtual void CallNew(ChArchiveIn& marchive)
-        { *pt2Object = new(TClass); }
+      virtual void CallArchiveInConstructor(ChArchiveIn& marchive, const char* classname) 
+        { this->_archive_in_constructor(marchive, classname); }
 
-      virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
+      virtual void CallConstructor(ChArchiveIn& marchive, const char* classname)  
+        { this->_constructor(marchive, classname);  }
+
+      virtual void  SetRawPtr(void* mptr) 
         { *pt2Object = static_cast<TClass*>(mptr); };
 
-      virtual void* CallGetRawPtr(ChArchiveIn& marchive) 
+      virtual void* GetRawPtr() 
         { return static_cast<void*>(*pt2Object); };
-};
 
-
-template <class TClass> 
-class ChFunctorArchiveInSpecificPtrPolimorphic : public ChFunctorArchiveIn
-{
+      virtual bool IsPolymorphic() 
+        { return this->_is_polymorphic(); };
+      
 private:
-      void (TClass::*fpt)(ChArchiveIn&);   // pointer to member function
-      TClass** pt2Object;                    // pointer to object
-
-public:
-
-      // constructor - takes pointer to an object and pointer to a member 
-      ChFunctorArchiveInSpecificPtrPolimorphic(TClass** _pt2Object, void(TClass::*_fpt)(ChArchiveIn&))
-        { pt2Object = _pt2Object;  fpt=_fpt; };
-
-      virtual void CallArchiveIn(ChArchiveIn& marchive)
-        { (**pt2Object.*fpt)(marchive);};             // execute member function
-
-      virtual void CallNewPolimorphic(ChArchiveIn& marchive, const char* classname) { 
-            std::string sclassname(classname);
-            ChClassFactory::create(sclassname, pt2Object); 
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveINconstructor<Tc>::value, void >::type
+        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), marchive, pt2Object);
+            else
+                *pt2Object = static_cast<Tc*> (Tc::ArchiveINconstructor(marchive));
+        }
+        template <class Tc=TClass>
+        typename enable_if< !ChDetect_ArchiveINconstructor<Tc>::value, void >::type 
+        _archive_in_constructor(ChArchiveIn& marchive, const char* classname) {
+            this->CallConstructor(marchive, classname);
         }
 
-      virtual void  CallSetRawPtr(ChArchiveIn& marchive, void* mptr) 
-        { *pt2Object = static_cast<TClass*>(mptr); };
+        template <class Tc=TClass>
+        typename enable_if< std::is_polymorphic<Tc>::value, bool >::type
+        _is_polymorphic() {
+            return true;
+        }
+        template <class Tc=TClass>
+        typename enable_if< !std::is_polymorphic<Tc>::value, bool >::type
+        _is_polymorphic() {
+            return false;
+        }
 
-      virtual void* CallGetRawPtr(ChArchiveIn& marchive) 
-        { return static_cast<void*>(*pt2Object); };
+        template <class Tc=TClass>
+        typename enable_if< std::is_default_constructible<Tc>::value && !std::is_abstract<Tc>::value, void >::type
+        _constructor(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                *pt2Object = new(TClass);
+        }
+        template <class Tc=TClass>
+        typename enable_if< std::is_default_constructible<Tc>::value && std::is_abstract<Tc>::value, void >::type
+        _constructor(ChArchiveIn& marchive, const char* classname) {
+            if (ChClassFactory::IsClassRegistered(std::string(classname)))
+                ChClassFactory::create(std::string(classname), pt2Object);
+            else
+                throw (ChExceptionArchive( "Cannot call CallConstructor(). Class not registered, and base is an abstract class."));
+        }
+        template <class Tc=TClass>
+        typename enable_if< !std::is_default_constructible<Tc>::value, void >::type
+        _constructor(ChArchiveIn& marchive, const char* classname) {
+            throw (ChExceptionArchive( "Cannot call CallConstructor() for an object without default constructor.")); 
+        }
+
+        private:
+        template <class Tc=TClass>
+        typename enable_if< ChDetect_ArchiveIN<Tc>::value, void >::type
+        _archive_in(ChArchiveIn& marchive) {
+            (*this->pt2Object)->ArchiveIN(marchive);
+        }
+        //template <class Tc=TClass>
+        //typename enable_if< !ChDetect_ArchiveIN<Tc>::value, void >::type 
+        //_archive_in(ChArchiveIn& marchive) {
+        //    //std::static_assert(true, "ArchiveIN() not provided in class to be deserialized.");
+        //}
+
 };
 
 
@@ -264,14 +417,13 @@ ChNameValue< T > make_ChNameValue(const char * auto_name, const T & t, char flag
 
 class ChEnumMapperBase {
 public:
-    ChEnumMapperBase ()  {};
+    ChEnumMapperBase ()  {}
 
     virtual int  GetValueAsInt() = 0;
     virtual void SetValueAsInt(const int mval) = 0;
 
     virtual std::string GetValueAsString() = 0;
     virtual bool SetValueAsString(const std::string& mname) = 0;
-
 };
 
 template <class Te>
@@ -285,15 +437,14 @@ public:
 
 template <class Te>
 class ChEnumMapper : public ChEnumMapperBase {
-public:
-    ChEnumMapper () : 
-        value_ptr(0) {
-        enummap = std::shared_ptr< std::vector< ChEnumNamePair<Te> > >(new std::vector< ChEnumNamePair<Te> >);
-    };
+  public:
+    ChEnumMapper() : value_ptr(0) {
+        enummap = std::shared_ptr<std::vector<ChEnumNamePair<Te> > >(new std::vector<ChEnumNamePair<Te> >);
+    }
 
-    ChEnumMapper (std::shared_ptr< std::vector< ChEnumNamePair<Te> > >  mmap) : 
-        value_ptr(0), 
-        enummap(mmap) {};
+    ChEnumMapper(std::shared_ptr<std::vector<ChEnumNamePair<Te> > > mmap) : value_ptr(0), enummap(mmap) {}
+
+    virtual ~ChEnumMapper() {}
 
     void AddMapping(const char* name, Te enumid) {
         ChEnumNamePair<Te> mpair (name, enumid);
@@ -309,14 +460,14 @@ public:
 
     Te& Value() {return *value_ptr;}
 
-    virtual int  GetValueAsInt() { 
+    virtual int  GetValueAsInt() override { 
         return static_cast<int>(*value_ptr);
     };
-    virtual void SetValueAsInt(const int mval) {
+    virtual void SetValueAsInt(const int mval) override {
         *value_ptr = static_cast<Te>(mval);
     };
 
-    virtual std::string GetValueAsString() {
+    virtual std::string GetValueAsString() override {
         for (int i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).enumid == *value_ptr)
@@ -328,7 +479,7 @@ public:
         return std::string(buffer);
     };
 
-    virtual bool SetValueAsString(const std::string& mname) {
+    virtual bool SetValueAsString(const std::string& mname) override {
         for (int i = 0; i < enummap->size(); ++i)
         {
             if(enummap->at(i).name == mname) {
@@ -394,6 +545,31 @@ public:
         } }; 
 
 
+//
+// Wrapper class to ease the archival of std::pair
+//
+
+template<class T, class Tv>
+class _wrap_pair {
+public:
+    _wrap_pair(std::pair<T, Tv>& apair) {
+        _wpair = &apair;
+    }
+    void ArchiveOUT(ChArchiveOut& marchive)
+    {
+        marchive << CHNVP(_wpair->first,"1");
+        marchive << CHNVP(_wpair->second,"2");
+    }
+    void ArchiveIN(ChArchiveIn& marchive)
+    {
+        marchive >> CHNVP(_wpair->first,"1");
+        marchive >> CHNVP(_wpair->second,"2");
+    }
+private:
+    std::pair<T, Tv>* _wpair;
+};
+
+
 ///
 /// This is a base class for archives with pointers to shared objects 
 ///
@@ -401,71 +577,31 @@ public:
 class ChArchive {
   protected:
 
-    /// vector of pointers to stored/retrieved objects,
-    /// to avoid saving duplicates or deadlocks
-    std::vector<void*> objects_pointers;
-
-    /// container of pointers to not serialize if ever encountered
-    std::unordered_set<void*>  cut_pointers;
+    bool cluster_class_versions;
+    
+    std::unordered_map<std::type_index, int> class_versions;
 
     bool use_versions;
-    bool cut_all_pointers;
 
   public:
     ChArchive() {
         use_versions = true;
-        cut_all_pointers = false;
-        Init();
+        cluster_class_versions = true;
     }
 
     virtual ~ChArchive() {};
 
-    /// Reinitialize the vector of pointers to loaded/saved objects
-    void Init() {
-        objects_pointers.clear();
-        objects_pointers.push_back(0); // objects_pointers[0] for null pointer.
-    }
-    /// Find a pointer in pointer vector: eventually add it to vecor if it
-    /// was not previously inserted. Returns already_stored=false if was
-    /// already inserted. Return 'pos' offset in vector in any case.
-    /// For null pointers, always return 'already_stored'=true, and 'pos'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& pos) {
-        for (size_t i = 0; i < objects_pointers.size(); ++i) {
-            if (objects_pointers[i] == object)
-            {
-                already_stored = true;
-                pos = i;
-                return;
-            }
-        }
-        // wasn't in list.. add to it
-        objects_pointers.push_back(object);
-
-        already_stored = false;
-        pos = objects_pointers.size()-1;
-        return;
-    }
+    
 
     /// By default, version numbers are saved in archives
     /// Use this to turn off version info in archives (either save/load both
     /// with version info, or not, do not mix because it could give problems in binary archives.).
     void SetUseVersions(bool muse) {this->use_versions = muse;}
 
-    /// If you enable  SetCutAllPointers(true), no serialization happens for 
-    /// objects referenced via pointers. This can be useful to save a single object, 
-    /// regardless of the fact that it contains pointers to other 'children' objects.
-    /// Cut pointers are turned into null pointers.
-    void SetCutAllPointers(bool mcut) {this->cut_all_pointers = mcut;}
-
-    /// Access the container of pointers that must not be serialized.
-    /// This is in case SetCutAllPointers(true) is too extreme. So you can 
-    /// selectively 'cut' the network of pointers when serializing an object that
-    /// has a network of sub objects. Works also for shared pointers, but remember to store
-    /// the embedded pointer, not the shared pointer itself. For instance:
-    ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
-    ///    myarchive.CutPointers().insert(my_shared_pointer.get());  // shared pointers
-    /// The cut pointers are serialized as null pointers.
-    std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
+    /// If true, the version number is not saved in each class: rather, 
+    /// it is saved only the first time that class is encountered. 
+    /// The same setting must be used for both serialization and deserialization.
+    void SetClusterClassVersions(bool mcl) {this->cluster_class_versions = mcl;}
 };
 
 
@@ -475,9 +611,85 @@ class ChArchive {
 ///
 
 class  ChArchiveOut : public ChArchive {
-  public:
-      virtual ~ChArchiveOut() {};
 
+  protected:
+
+    std::unordered_map<void*, size_t>  internal_ptr_id;
+    size_t currentID;
+
+    std::unordered_map<void*, size_t>  external_ptr_id;
+
+    std::unordered_set<void*>  cut_pointers;
+
+    bool cut_all_pointers;
+
+  public:
+        ChArchiveOut() {
+
+            cut_all_pointers = false;
+
+            internal_ptr_id.clear();
+            internal_ptr_id[0]=(0);  // ID=0 -> null pointer.
+            currentID = 0;
+        };
+
+        virtual ~ChArchiveOut() {};
+
+
+        /// If you enable  SetCutAllPointers(true), no serialization happens for 
+        /// objects referenced via pointers. This can be useful to save a single object, 
+        /// regardless of the fact that it contains pointers to other 'children' objects.
+        /// Cut pointers are turned into null pointers.
+        void SetCutAllPointers(bool mcut) {this->cut_all_pointers = mcut;}
+
+        /// Access the container of pointers that must not be serialized.
+        /// This is in case SetCutAllPointers(true) is too extreme. So you can 
+        /// selectively 'cut' the network of pointers when serializing an object that
+        /// has a network of sub objects. Works also for shared pointers, but remember to store
+        /// the embedded pointer, not the shared pointer itself. For instance:
+        ///    myarchive.CutPointers().insert(my_raw_pointer); // normal pointers
+        ///    myarchive.CutPointers().insert(my_shared_pointer.get());  // shared pointers
+        /// The cut pointers are serialized as null pointers.
+        std::unordered_set<void*>&  CutPointers() {return cut_pointers;}
+
+
+        /// Use the following to declare pointer(s) that must not be de-serialized
+        /// but rather be 'unbind' and be saved just as unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when de-serializing pointers in ArchiveIN.
+        void UnbindExternalPointer(void* mptr, size_t ID) {
+            external_ptr_id[mptr] = ID;
+        }
+        /// Use the following to declare pointer(s) that must not be de-serialized
+        /// but rather be 'unbind' and be saved just as unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when de-serializing pointers in ArchiveIN.
+        void UnbindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
+            external_ptr_id[mptr.get()] = ID;
+        }
+
+     protected:
+
+        /// Find a pointer in pointer map: eventually add it to map if it
+        /// was not previously inserted. Returns already_stored=false if was
+        /// already inserted. Return 'obj_ID' offset in vector in any case.
+        /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
+        void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
+            if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
+              already_stored = true;
+              obj_ID = internal_ptr_id[static_cast<void*>(object)];
+              return;
+            }
+
+            // wasn't in list.. add to it
+            ++currentID;
+            obj_ID = currentID;
+            internal_ptr_id[static_cast<void*>(object)] = obj_ID;
+            already_stored = false;
+            return;
+        }
+
+    public:
       //---------------------------------------------------
       // INTERFACES - to be implemented by children classes
       //
@@ -495,13 +707,10 @@ class  ChArchiveOut : public ChArchive {
       virtual void out     (ChNameValue<ChEnumMapperBase> bVal) =0;
 
         // for custom C++ objects - see 'wrapping' trick below
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) = 0;
-
-        // for pointed objects with polimorphic class system (i.e. supporting class factory)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
-      
-        // for pointed objects without class polimorphism
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) = 0;
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) = 0;
+    
+        // for pointed objects
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) = 0;
 
         // for wrapping arrays and lists
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) = 0;
@@ -564,130 +773,166 @@ class  ChArchiveOut : public ChArchive {
           }
           this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
       }
+        // trick to wrap stl::pair container
+      template<class T, class Tv>
+      void out     (ChNameValue< std::pair<T, Tv> > bVal) {
+          _wrap_pair<T,Tv> mpair(bVal.value());
+          ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
+          this->out (pair_val);
+      }
+        // trick to wrap stl::unordered_map container
+      template<class T, class Tv>
+      void out     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
+          this->out_array_pre(bVal.name(), bVal.value().size(), typeid(std::pair<T, Tv>).name());
+          int i=0;
+          for ( auto it = bVal.value().begin(); it != bVal.value().end(); ++it )
+          {
+              char buffer[20];
+              sprintf(buffer, "el_%lu", (unsigned long)i);
+              ChNameValue< std::pair<T, Tv> > array_key(buffer, (*it));
+              this->out (array_key);
+              this->out_array_between(bVal.value().size(), typeid(bVal.value()).name());
+              ++i;
+          }
+          this->out_array_end(bVal.value().size(), typeid(bVal.value()).name());
+      }
      
-
-
-        // trick to call out_ref on ChSharedPointer, with class polimorphism:
+        // trick to call out_ref on ChSharedPointer
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t pos;
+      void out     (ChNameValue< std::shared_ptr<T> > bVal) {
+          
           T* mptr = bVal.value().get();
+
+          const char* class_name = "";
+          if (mptr) {
+              try {
+                  class_name = ChClassFactory::GetClassTagName(typeid(*mptr)).c_str(); // registered
+              } catch(ChException mex) {}
+          }
+
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
-          const char* class_name;
-          if (bVal.value())
-              class_name = bVal.value()->FactoryNameTag().c_str();
-          else // null ptr
-              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
-          this->out_ref_polimorphic(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
-              already_stored, 
-              pos, 
-              class_name );
-      }
-
-        // trick to call out_ref on ChSharedPointer, without class polimorphism:
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
-      out     (ChNameValue< std::shared_ptr<T> > bVal) {
-          bool already_stored; size_t pos;
-          T* mptr = bVal.value().get();
-          if (this->cut_all_pointers)
-              mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
-              mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          }
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored, 
-              pos, 
-              typeid(T).name() ); // note, this class name is not platform independent
+              obj_ID,
+              ext_ID,
+              class_name ); // note, this class name is not platform independent
       }
 
-        // trick to call out_ref on plain pointers, with class polimorphism:
+         // trick to call out_ref on raw pointers:
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t pos;
+      void out     (ChNameValue<T*> bVal) {
+          
           T* mptr = bVal.value();
+
+          const char* class_name = "";
+          if (mptr) {
+              try {
+                  class_name = ChClassFactory::GetClassTagName(typeid(*mptr)).c_str(); // registered
+              } catch(ChException mex) {}
+          }
+
           if (this->cut_all_pointers)
               mptr = 0;
           if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
               mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
-          const char* class_name;
-          if (bVal.value())
-              class_name = bVal.value()->FactoryNameTag().c_str();
-          else // null ptr
-              class_name = typeid(T).name(); // note, this class name is not platform independent but enough here since for null ptr
-          this->out_ref_polimorphic(
-              ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
-              already_stored,
-              pos, 
-              class_name ); // this class name is platform independent
-      }
-
-         // trick to call out_ref on plain pointers (no class polimorphism):
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type 
-      out     (ChNameValue<T*> bVal) {
-          bool already_stored; size_t pos;
-          T* mptr = bVal.value();
-          if (this->cut_all_pointers)
-              mptr = 0;
-          if (this->cut_pointers.find((void*)mptr) != this->cut_pointers.end())
-              mptr = 0;
-          PutPointer(mptr, already_stored, pos);
-          ChFunctorArchiveOutSpecific<T> specFuncA(mptr, &T::ArchiveOUT);
+          bool already_stored = false;  
+          size_t obj_ID = 0; 
+          size_t ext_ID = 0;
+          if (this->external_ptr_id.find(static_cast<void*>(mptr)) != this->external_ptr_id.end()) {
+              already_stored = true;
+              ext_ID = external_ptr_id[static_cast<void*>(mptr)];
+          }
+          else {
+              PutPointer(mptr, already_stored, obj_ID);
+          } 
+          ChFunctorArchiveOutSpecific<T> specFuncA(mptr);
           this->out_ref(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               already_stored,
-              pos, 
-              typeid(T).name() ); // note, this class name is not platform independent
+              obj_ID, 
+              ext_ID,
+              class_name ); // note, this class name is not platform independent
       }
 
        // trick to apply 'virtual out..' on remaining C++ object, that has a function "ArchiveOUT" 
       template<class T>
       void out (ChNameValue<T> bVal) {
           bool tracked = false;
-          size_t pos =0;
+          size_t obj_ID =0;
           if (bVal.flags() & NVP_TRACK_OBJECT)
           {
               bool already_stored; 
               T* mptr = &bVal.value();
-              PutPointer(mptr, already_stored, pos);
+              PutPointer(mptr, already_stored, obj_ID);
               if (already_stored) 
                   {throw (ChExceptionArchive( "Cannot serialize tracked object '" + std::string(bVal.name()) + "' by value, AFTER already serialized by pointer."));}
               tracked = true;
           }
-          ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value(), &T::ArchiveOUT);
+          ChFunctorArchiveOutSpecific<T> specFuncA(&bVal.value());
           this->out(
               ChNameValue<ChFunctorArchiveOut>(bVal.name(), specFuncA, bVal.flags()), 
               typeid(T).name(),  // not platform independent, but not needed in this case
-              tracked, pos);
+              tracked, obj_ID);
       }
 
-        /// Operator to allow easy serialization as   myarchive >> mydata;
-      
-      template<class T>
+        /// Operator to allow easy serialization as   myarchive << mydata;
+      template<class T> 
       ChArchiveOut& operator<<(ChNameValue<T> bVal) {
           this->out(bVal);
           return (*this);
       }
-      
-      void VersionWrite(int mver) {
-          if (use_versions)
-            this->out(ChNameValue<int>("version",mver));
+
+      // for backward compatibility
+      void VersionWrite(int iv) {
+          if (use_versions) {
+            this->out(ChNameValue<int>("_version", iv));
+          }
       }
+
+      template<class T>
+      void VersionWrite() {
+          if (!use_versions)
+              return;
+          if (this->cluster_class_versions) {
+              if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
+                this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = chrono::class_factory::ChClassVersion<T>::version;
+              } 
+          } 
+          else {
+              this->out_version(chrono::class_factory::ChClassVersion<T>::version, typeid(T));
+          }
+      }
+
       
   protected:
+
+      virtual void out_version(int mver, const std::type_info& mtype) {
+          if (use_versions) {
+              const char* class_name = "";
+                  try {
+                      class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
+                  } catch(ChException mex) {   
+                      class_name = mtype.name();
+                  }
+              this->out(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+          }
+      }
       
 };
 
@@ -698,8 +943,70 @@ class  ChArchiveOut : public ChArchive {
 ///
 
 class  ChArchiveIn : public ChArchive {
+  protected:
+
+        std::unordered_map<void*, size_t>  internal_ptr_id;
+        std::unordered_map<size_t, void*>  internal_id_ptr;
+        size_t currentID;
+
+        std::unordered_map<void*, std::shared_ptr<void> >  shared_ptr_map;
+
+        /// container of pointers marker with external IDs to re-bind instead of de-serializing
+        std::unordered_map<size_t, void*>  external_id_ptr;
   public:
-      virtual ~ChArchiveIn() {};
+
+         ChArchiveIn() {
+
+            internal_ptr_id.clear();
+            internal_ptr_id[0]=(0);  // null pointer -> ID=0.
+            internal_id_ptr.clear();
+            internal_id_ptr[0]=(0);  // ID=0 -> null pointer.
+            currentID = 0;
+        };
+
+        virtual ~ChArchiveIn() {};
+
+
+        /// Use the following to declare object IDs that must not be de-serialized
+        /// but rather be 'rebind' to already-existing external pointers, given unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
+        /// Note, there is no check on pointer types when rebinding!
+        void RebindExternalPointer(void* mptr, size_t ID) {
+            external_id_ptr[ID] = mptr;
+        }
+        /// Use the following to declare object IDs that must not be de-serialized
+        /// but rather be 'rebind' to already-existing external shared pointers, given unique IDs.
+        /// Note, the IDs can be whatever integer > 0. Use unique IDs per each pointer. 
+        /// Note, the same IDs must be used when serializing pointers in ArchiveOUT.
+        /// Note, there is no check on pointer types when rebinding!
+        void RebindExternalPointer(std::shared_ptr<void> mptr, size_t ID) {
+            external_id_ptr[ID] = mptr.get();
+            shared_ptr_map[mptr.get()] = mptr;
+        }
+
+  protected:
+        /// Find a pointer in pointer map: eventually add it to map if it
+        /// was not previously inserted. Returns already_stored=false if was
+        /// already inserted. Return 'obj_ID' offset in vector in any case.
+        /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
+        void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
+            if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
+              already_stored = true;
+              obj_ID = internal_ptr_id[static_cast<void*>(object)];
+              return;
+            }
+
+            // wasn't in list.. add to it
+            ++currentID;
+            obj_ID = currentID;
+            internal_ptr_id[static_cast<void*>(object)] = obj_ID;
+            internal_id_ptr[obj_ID] = static_cast<void*>(object);
+            already_stored = false;
+            return;
+        }
+
+  public:
 
       //---------------------------------------------------
       // INTERFACES - to be implemented by children classes
@@ -720,9 +1027,8 @@ class  ChArchiveIn : public ChArchive {
         // for custom C++ objects - see 'wrapping' trick below
       virtual void in     (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
-        // for pointed objects 
-      virtual void in_ref_polimorphic (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
-      virtual void in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
+        // for pointed objects (return pointer of created object if new allocation, if reused just return null)
+      virtual void* in_ref          (ChNameValue<ChFunctorArchiveIn> bVal) = 0;
 
         // for wrapping arrays and lists
       virtual void in_array_pre (const char* name, size_t& msize) = 0;
@@ -794,49 +1100,72 @@ class  ChArchiveIn : public ChArchive {
           }
           this->in_array_end(bVal.name());
       }
+        // trick to wrap stl::pair container
+      template<class T, class Tv>
+      void in     (ChNameValue< std::pair<T, Tv> > bVal) {
+          _wrap_pair<T,Tv> mpair(bVal.value());
+          ChNameValue< _wrap_pair<T,Tv> > pair_val(bVal.name(), mpair);
+          this->in (pair_val);
+      }
+        // trick to wrap stl::unordered_map container
+      template<class T, class Tv>
+      void in     (ChNameValue< std::unordered_map<T, Tv> > bVal) {
+          bVal.value().clear();
+          size_t arraysize;
+          this->in_array_pre(bVal.name(), arraysize);
+          for (size_t i = 0; i<arraysize; ++i)
+          {
+              char idname[20];
+              sprintf(idname, "el_%lu", (unsigned long)i);
+              std::pair<T,Tv> mpair;
+              ChNameValue< std::pair<T,Tv> > array_val(idname, mpair);
+              this->in (array_val);
+              // store in map; constant time:
+              bVal.value()[mpair.first]=mpair.second; 
+              this->in_array_between(bVal.name());
+          }
+          this->in_array_end(bVal.name());
+      }
 
-        // trick to call in_ref on ChSharedPointer, with class polimorphism:
+         // trick to call in_ref on ChSharedPointer:
       template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type 
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
+      void in     (ChNameValue< std::shared_ptr<T> > bVal) {
           T* mptr;
-          ChFunctorArchiveInSpecificPtrPolimorphic<T> specFuncA(&mptr, &T::ArchiveIN);
+          ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr);
           ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
-          this->in_ref_polimorphic(mtmp);
-          bVal.value() = std::shared_ptr<T> ( mptr );
+          void* newptr = this->in_ref(mtmp);
+
+          // Some additional complication respect to raw pointers: 
+          // it must properly increment shared count of shared pointers.
+          if(newptr) {
+              // case A: new object, so just make a shared ptr with initial count=1
+              bVal.value() = std::shared_ptr<T> ( mptr ); 
+              this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
+          }
+          else {
+              if (this->shared_ptr_map.find(mptr) != this->shared_ptr_map.end()) {
+                  // case B1: preexisting object, previously referenced by a shared ptr, so increment ref count
+                  bVal.value() = std::static_pointer_cast<T>(shared_ptr_map[mptr]);
+              }
+              else {
+                  // case B2: preexisting object, but not referenced by shared ptr (maybe by some raw ptr) so just make a shared ptr with initial count=1
+                  bVal.value() = std::shared_ptr<T> ( mptr ); 
+                  this->shared_ptr_map[mptr] = std::static_pointer_cast<void>(bVal.value());
+              }
+          }
       }
 
-         // trick to call in_ref on ChSharedPointer (no class polimorphism):
+        // trick to call in_ref on raw pointers:
       template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue< std::shared_ptr<T> > bVal) {
-          T* mptr;
-          ChFunctorArchiveInSpecificPtr<T> specFuncA(&mptr, &T::ArchiveIN);
-          ChNameValue<ChFunctorArchiveIn> mtmp(bVal.name(), specFuncA, bVal.flags());
-          this->in_ref(mtmp);
-          bVal.value() = std::shared_ptr<T> ( mptr );
-      }
-
-        // trick to call in_ref on plain pointers, with class polimorphism:
-      template<class T>
-      typename enable_if< ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
-          ChFunctorArchiveInSpecificPtrPolimorphic<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref_polimorphic(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
-      }
-
-        // trick to call in_ref on plain pointers (no class polimorphism):
-      template<class T>
-      typename enable_if< !ChDetect_FactoryNameTag<T>::value >::type
-      in     (ChNameValue<T*> bVal) {
-          ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value(), &T::ArchiveIN);
-          this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
+      void in     (ChNameValue<T*> bVal) {
+          ChFunctorArchiveInSpecificPtr<T> specFuncA(&bVal.value());
+          void* newptr = this->in_ref(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()) );
       }
 
         // trick to apply 'virtual in..' on C++ objects that has a function "ArchiveIN":
       template<class T>
       void in     (ChNameValue<T> bVal) {
-          ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value(), &T::ArchiveIN);
+          ChFunctorArchiveInSpecific<T> specFuncA(&bVal.value());
           this->in(ChNameValue<ChFunctorArchiveIn>(bVal.name(), specFuncA, bVal.flags()));
       }
 
@@ -848,17 +1177,46 @@ class  ChArchiveIn : public ChArchive {
           return (*this);
       }
       
+      // For backward compatibility
       int VersionRead() {
           if (use_versions) {
               int mver;
-              this->in(ChNameValue<int>("version",mver));
+              this->in(ChNameValue<int>("_version",mver));
               return mver;
           }
           return 99999;
       }
 
-  protected:
+      template<class T>
+      int VersionRead() {
+          int iv = 99999;
+          if (!use_versions)
+              return iv;
+          if (this->cluster_class_versions) {
+              if (this->class_versions.find(std::type_index(typeid(T))) == this->class_versions.end()) {
+                int iv = this->in_version(typeid(T));
+                this->class_versions[std::type_index(typeid(T))] = iv;
+                return iv;
+              } 
+          } 
+          else {
+              return this->in_version(typeid(T));
+          }
+          return iv;
+      }
 
+  protected:
+      virtual int in_version(const std::type_info& mtype) {
+            int mver;
+            const char* class_name = "";
+            try {
+                class_name = ChClassFactory::GetClassTagName(mtype).c_str(); // registered
+            } catch(ChException mex) {   
+                class_name = mtype.name();
+            }
+          this->in(ChNameValue<int>(("_version_" + std::string(class_name)).c_str(), mver));
+          return mver;
+      }
 };
 
 /// @} chrono_serialization

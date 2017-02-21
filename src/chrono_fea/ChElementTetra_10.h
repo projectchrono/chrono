@@ -143,30 +143,30 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, double zeta1, double zeta2, double zeta3, double zeta4) {
         Jacobian.FillElem(1);
 
-        Jacobian.SetElement(1, 0, 4 * (nodes[0]->pos.x * (zeta1 - 1 / 4) + nodes[4]->pos.x * zeta2 +
-                                       nodes[6]->pos.x * zeta3 + nodes[7]->pos.x * zeta4));
-        Jacobian.SetElement(2, 0, 4 * (nodes[0]->pos.y * (zeta1 - 1 / 4) + nodes[4]->pos.y * zeta2 +
-                                       nodes[6]->pos.y * zeta3 + nodes[7]->pos.y * zeta4));
-        Jacobian.SetElement(3, 0, 4 * (nodes[0]->pos.z * (zeta1 - 1 / 4) + nodes[4]->pos.z * zeta2 +
-                                       nodes[6]->pos.z * zeta3 + nodes[7]->pos.z * zeta4));
-        Jacobian.SetElement(1, 1, 4 * (nodes[4]->pos.x * zeta1 + nodes[1]->pos.x * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.x * zeta3 + nodes[8]->pos.x * zeta4));
-        Jacobian.SetElement(2, 1, 4 * (nodes[4]->pos.y * zeta1 + nodes[1]->pos.y * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.y * zeta3 + nodes[8]->pos.y * zeta4));
-        Jacobian.SetElement(3, 1, 4 * (nodes[4]->pos.z * zeta1 + nodes[1]->pos.z * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.z * zeta3 + nodes[8]->pos.z * zeta4));
-        Jacobian.SetElement(1, 2, 4 * (nodes[6]->pos.x * zeta1 + nodes[5]->pos.x * zeta2 +
-                                       nodes[2]->pos.x * (zeta3 - 1 / 4) + nodes[9]->pos.x * zeta4));
-        Jacobian.SetElement(2, 2, 4 * (nodes[6]->pos.y * zeta1 + nodes[5]->pos.y * zeta2 +
-                                       nodes[2]->pos.y * (zeta3 - 1 / 4) + nodes[9]->pos.y * zeta4));
-        Jacobian.SetElement(3, 2, 4 * (nodes[6]->pos.z * zeta1 + nodes[5]->pos.z * zeta2 +
-                                       nodes[2]->pos.z * (zeta3 - 1 / 4) + nodes[9]->pos.z * zeta4));
-        Jacobian.SetElement(1, 3, 4 * (nodes[7]->pos.x * zeta1 + nodes[8]->pos.x * zeta2 + nodes[9]->pos.x * zeta3 +
-                                       nodes[3]->pos.x * (zeta4 - 1 / 4)));
-        Jacobian.SetElement(2, 3, 4 * (nodes[7]->pos.y * zeta1 + nodes[8]->pos.y * zeta2 + nodes[9]->pos.y * zeta3 +
-                                       nodes[3]->pos.y * (zeta4 - 1 / 4)));
-        Jacobian.SetElement(3, 3, 4 * (nodes[7]->pos.z * zeta1 + nodes[8]->pos.z * zeta2 + nodes[9]->pos.z * zeta3 +
-                                       nodes[3]->pos.z * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(1, 0, 4 * (nodes[0]->pos.x() * (zeta1 - 1 / 4) + nodes[4]->pos.x() * zeta2 +
+                                       nodes[6]->pos.x() * zeta3 + nodes[7]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 0, 4 * (nodes[0]->pos.y() * (zeta1 - 1 / 4) + nodes[4]->pos.y() * zeta2 +
+                                       nodes[6]->pos.y() * zeta3 + nodes[7]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 0, 4 * (nodes[0]->pos.z() * (zeta1 - 1 / 4) + nodes[4]->pos.z() * zeta2 +
+                                       nodes[6]->pos.z() * zeta3 + nodes[7]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 1, 4 * (nodes[4]->pos.x() * zeta1 + nodes[1]->pos.x() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.x() * zeta3 + nodes[8]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 1, 4 * (nodes[4]->pos.y() * zeta1 + nodes[1]->pos.y() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.y() * zeta3 + nodes[8]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 1, 4 * (nodes[4]->pos.z() * zeta1 + nodes[1]->pos.z() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.z() * zeta3 + nodes[8]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 2, 4 * (nodes[6]->pos.x() * zeta1 + nodes[5]->pos.x() * zeta2 +
+                                       nodes[2]->pos.x() * (zeta3 - 1 / 4) + nodes[9]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 2, 4 * (nodes[6]->pos.y() * zeta1 + nodes[5]->pos.y() * zeta2 +
+                                       nodes[2]->pos.y() * (zeta3 - 1 / 4) + nodes[9]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 2, 4 * (nodes[6]->pos.z() * zeta1 + nodes[5]->pos.z() * zeta2 +
+                                       nodes[2]->pos.z() * (zeta3 - 1 / 4) + nodes[9]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 3, 4 * (nodes[7]->pos.x() * zeta1 + nodes[8]->pos.x() * zeta2 + nodes[9]->pos.x() * zeta3 +
+                                       nodes[3]->pos.x() * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(2, 3, 4 * (nodes[7]->pos.y() * zeta1 + nodes[8]->pos.y() * zeta2 + nodes[9]->pos.y() * zeta3 +
+                                       nodes[3]->pos.y() * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(3, 3, 4 * (nodes[7]->pos.z() * zeta1 + nodes[8]->pos.z() * zeta2 + nodes[9]->pos.z() * zeta3 +
+                                       nodes[3]->pos.z() * (zeta4 - 1 / 4)));
     }
 
     /// Computes the matrix of partial derivatives and puts data in "mmatrB"

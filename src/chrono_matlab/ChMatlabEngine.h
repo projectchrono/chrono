@@ -87,13 +87,13 @@ class ChApiMatlab ChMatlabEngine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChMatlabEngine>();
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChMatlabEngine>();
     }
 };
 

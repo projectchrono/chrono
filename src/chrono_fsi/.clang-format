@@ -1,4 +1,0 @@
-BasedOnStyle: Chromium
-
-# Longer lines requested by @hmazhar
-ColumnLimit: 120

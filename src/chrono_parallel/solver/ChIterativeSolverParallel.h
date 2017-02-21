@@ -83,7 +83,7 @@ class CH_PARALLEL_API ChIterativeSolverParallelDVI : public ChIterativeSolverPar
     ///< This function computes an initial guess for each contact
     void PreSolve();
     ///< This function is used to change the solver algorithm.
-    void ChangeSolverType(SOLVERTYPE type);
+    void ChangeSolverType(SolverType type);
 
   private:
     ChShurProduct ShurProductFull;

@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Impose field on the base points:
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().y < 0.01) {
+            if (mnode->GetPos().y() < 0.01) {
                 mnode->SetFixed(true);
                 mnode->SetP(10);  // field: temperature [K]
             }
@@ -170,11 +170,12 @@ int main(int argc, char* argv[]) {
     // THE SOFT-REAL-TIME CYCLE
     //
 
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);      // <- NEEDED because other solvers can't handle stiffness matrices
-    my_system.SetSolverWarmStarting(false);  // this helps a lot to speedup convergence in this class of problems
+    // Use MINRES solver because other solvers cannot handle stiffness matrices.
+    // For improved convergence, use warm starting.
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    my_system.SetSolverWarmStarting(false);
     my_system.SetMaxItersSolverSpeed(160);
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     // Note: if you are interested only in a single LINEAR STATIC solution
     // (not a transient thermal solution, but rather the steady-state solution),
@@ -200,8 +201,8 @@ int main(int argc, char* argv[]) {
     // Print some node temperatures..
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
-            if (mnode->GetPos().x < 0.01) {
-                GetLog() << "Node at y=" << mnode->GetPos().y << " has T=" << mnode->GetP() << "\n";
+            if (mnode->GetPos().x() < 0.01) {
+                GetLog() << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
             }
         }
     }

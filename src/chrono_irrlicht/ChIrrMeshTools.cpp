@@ -525,14 +525,14 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
         chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
         chrono::ChVector<> pos;
         pos = chTrimesh->getTriangle(i).p1;
-        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
-                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p2;
-        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
-                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 1] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         pos = chTrimesh->getTriangle(i).p3;
-        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x, (f32)pos.y, (f32)pos.z, (f32)normal.x,
-                                                            (f32)normal.y, (f32)normal.z, clr, 0, 0);
+        buffer->Vertices[i * 3 + 2] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
+                                                            (f32)normal.y(), (f32)normal.z(), clr, 0, 0);
         buffer->Indices[i * 3 + 0] = i * 3 + 0;
         buffer->Indices[i * 3 + 1] = i * 3 + 1;
         buffer->Indices[i * 3 + 2] = i * 3 + 2;

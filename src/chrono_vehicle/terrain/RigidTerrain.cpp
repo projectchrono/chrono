@@ -75,7 +75,7 @@ static ChColor loadColor(const Value& a) {
     assert(a.IsArray());
     assert(a.Size() == 3);
 
-    return ChColor(a[0u].GetDouble(), a[1u].GetDouble(), a[2u].GetDouble());
+    return ChColor(a[0u].GetFloat(), a[1u].GetFloat(), a[2u].GetFloat());
 }
 
 RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
@@ -110,7 +110,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     fclose(fp);
 
     Document d;
-    d.ParseStream(is);
+    d.ParseStream<ParseFlag::kParseCommentsFlag>(is);
 
     // Read top-level data
     assert(d.HasMember("Type"));
@@ -120,22 +120,22 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
     // Read contact material data
     assert(d.HasMember("Contact Material"));
 
-    float mu = d["Contact Material"]["Coefficient of Friction"].GetDouble();
-    float cr = d["Contact Material"]["Coefficient of Restitution"].GetDouble();
+    float mu = d["Contact Material"]["Coefficient of Friction"].GetFloat();
+    float cr = d["Contact Material"]["Coefficient of Restitution"].GetFloat();
 
     SetContactFrictionCoefficient(mu);
     SetContactRestitutionCoefficient(cr);
 
     if (d["Contact Material"].HasMember("Properties")) {
-        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetDouble();
-        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetDouble();
+        float ym = d["Contact Material"]["Properties"]["Young Modulus"].GetFloat();
+        float pr = d["Contact Material"]["Properties"]["Poisson Ratio"].GetFloat();
         SetContactMaterialProperties(ym, pr);
     }
     if (d["Contact Material"].HasMember("Coefficients")) {
-        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetDouble();
-        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetDouble();
-        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetDouble();
-        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetDouble();
+        float kn = d["Contact Material"]["Coefficients"]["Normal Stiffness"].GetFloat();
+        float gn = d["Contact Material"]["Coefficients"]["Normal Damping"].GetFloat();
+        float kt = d["Contact Material"]["Coefficients"]["Tangential Stiffness"].GetFloat();
+        float gt = d["Contact Material"]["Coefficients"]["Tangential Damping"].GetFloat();
         SetContactMaterialCoefficients(kn, gn, kt, gt);
     }
 
@@ -148,11 +148,11 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
 
         if (d["Visualization"].HasMember("Texture File")) {
             std::string tex_file = d["Visualization"]["Texture File"].GetString();
-            double sx = 1;
-            double sy = 1;
+            float sx = 1;
+            float sy = 1;
             if (d["Visualization"].HasMember("Texture Scaling")) {
-                sx = d["Visualization"]["Texture Scaling"][0u].GetDouble();
-                sy = d["Visualization"]["Texture Scaling"][1u].GetDouble();
+                sx = d["Visualization"]["Texture Scaling"][0u].GetFloat();
+                sy = d["Visualization"]["Texture Scaling"][1u].GetFloat();
             }
             SetTexture(vehicle::GetDataFile(tex_file), sx, sy);
         }
@@ -395,17 +395,17 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // Calculate normals and then average the normals from all adjacent faces.
     for (unsigned int it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector<> nrm = Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
-                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
+                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
-        normals[idx_normals[it].x] += nrm;
-        normals[idx_normals[it].y] += nrm;
-        normals[idx_normals[it].z] += nrm;
+        normals[idx_normals[it][0]] += nrm;
+        normals[idx_normals[it][1]] += nrm;
+        normals[idx_normals[it][2]] += nrm;
         // Increment the count of all incident vertices by 1
-        accumulators[idx_normals[it].x] += 1;
-        accumulators[idx_normals[it].y] += 1;
-        accumulators[idx_normals[it].z] += 1;
+        accumulators[idx_normals[it][0]] += 1;
+        accumulators[idx_normals[it][1]] += 1;
+        accumulators[idx_normals[it][2]] += 1;
     }
 
     // Set the normals to the average values.
