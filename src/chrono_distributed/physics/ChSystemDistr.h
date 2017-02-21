@@ -23,10 +23,9 @@
 
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/comm/ChCommDistr.h"
-//#include "chrono_distributed/collision/ChCollisionSystemDistr.h"
+#include "chrono_distributed/collision/ChDataManagerDistr.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChSettings.h"
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
@@ -38,10 +37,10 @@ namespace chrono {
 class ChDomainDistr;
 class ChCommDistr;
 
-class ChSystemDistr : public ChSystemParallel {
+class ChSystemDistr : public ChSystemParallelDEM {
 
 public:
-	ChSystemDistr(MPI_Comm world, double ghost_layer, int max_objects);
+	ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int max_objects);
 	virtual ~ChSystemDistr();
 
 	int GetRanks() {return num_ranks;}
@@ -49,21 +48,15 @@ public:
 
 	std::shared_ptr<ChDomainDistr> GetDomain() {return domain;}
 	
-	ChParallelDataManager* GetDataManager() {return data_manager;}
+	ChDataManagerDistr* GetDataManager() {return data_manager;}
 
 	// Set the distance from the subdomain within which a body will be kept as a ghost
 	void SetGhostLayer(double thickness) { if (ghost_layer > 0) ghost_layer = thickness; }
 	double GetGhostLayer() {return ghost_layer;}
 
-	// Reads in body data from a file for start up.
-	// Format:
-	// TODO:
-	void ReadBodies(std::string filename);
+	virtual void AddBody(std::shared_ptr<ChBody> newbody) override; // TODO: Needs to overwrite Chrono::Parallel
 
-	virtual void AddBody(std::shared_ptr<ChBody> newbody); // TODO: Needs to overwrite Chrono::Parallel
-	void RemoveBody(int global_id);//TODO
-
-	int Integrate_Y(); //TODO
+	virtual bool Integrate_Y() override; //TODO
 	void SetDomainImpl(std::shared_ptr<ChDomainDistr> dom);
 	void ErrorAbort(std::string msg);
 
@@ -78,7 +71,7 @@ public:
 	int my_rank;
 
 	// TODO
-	ChParallelDataManager *data_manager;
+	ChDataManagerDistr *data_manager;
 
 
 	// World of MPI ranks for the simulation

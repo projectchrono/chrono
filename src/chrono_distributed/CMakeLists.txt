@@ -1,5 +1,5 @@
 #===============================================================================
-# CMake configuration file for the ChronoEngine_Distributed library
+# CMake configuration file for the ChronoEngine_distributed library
 #
 # Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #===============================================================================
@@ -70,12 +70,12 @@ set(CH_DISTRIBUTED_INCLUDES "${CH_DISTRIBUTED_INCLUDES}" PARENT_SCOPE)
 # List the files in the Chrono distributed module
 # ------------------------------------------------------------------------------
 
-SET(ChronoEngine_Distributed_BASE
+SET(ChronoEngine_distributed_BASE
    )
 
-SOURCE_GROUP("" FILES ${ChronoEngine_Distributed_BASE})
+SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})
 
-SET(ChronoEngine_Distributed_PHYSICS
+SET(ChronoEngine_distributed_PHYSICS
     physics/ChSystemDistr.h
     physics/ChDomainDistr.h
     physics/ChDomainDistrLong.h
@@ -84,9 +84,9 @@ SET(ChronoEngine_Distributed_PHYSICS
 	physics/ChDomainDistrLong.cpp
     )
     
-SOURCE_GROUP(physics FILES ${ChronoEngine_Distributed_PHYSICS})
+SOURCE_GROUP(physics FILES ${ChronoEngine_distributed_PHYSICS})
 
-SET(ChronoEngine_Distributed_COLLISION
+SET(ChronoEngine_distributed_COLLISION
 	#collision/ChBroadphaseDistr.h
 	#collision/ChBroadphaseDistrBasic.h
 	collision/ChCollisionSystemDistr.h
@@ -104,47 +104,47 @@ SET(ChronoEngine_Distributed_COLLISION
 	#collision/ChAABBGenerator.cpp
     )
 
-SOURCE_GROUP(collision FILES ${ChronoEngine_Distributed_COLLISION})
+SOURCE_GROUP(collision FILES ${ChronoEngine_distributed_COLLISION})
 
-SET(ChronoEngine_Distributed_COMM
+SET(ChronoEngine_distributed_COMM
 	comm/ChCommDistr.h
 	comm/ChCommDistr.cpp
 	)
 
-SOURCE_GROUP(comm FILES ${ChronoEngine_Distributed_COMM})
+SOURCE_GROUP(comm FILES ${ChronoEngine_distributed_COMM})
 
-SET(ChronoEngine_Distributed_SOLVER
+SET(ChronoEngine_distributed_SOLVER
 	)
 
-SOURCE_GROUP(solver FILES ${ChronoEngine_Distributed_SOLVER})
+SOURCE_GROUP(solver FILES ${ChronoEngine_distributed_SOLVER})
 	
 # ------------------------------------------------------------------------------
-# Add the ChronoEngine_Distributed library
+# Add the ChronoEngine_distributed library
 # ------------------------------------------------------------------------------
 
 include_directories(${CH_PARALLEL_INCLUDES})
 include_directories(${CH_DISTRIBUTED_INCLUDES})
 
-ADD_LIBRARY(ChronoEngine_Distributed SHARED
-			${ChronoEngine_Distributed_BASE}
-			${ChronoEngine_Distributed_PHYSICS}
-			${ChronoEngine_Distributed_COLLISION}
-			${ChronoEngine_Distributed_COMM}
-			${ChronoEngine_Distributed_COSIMULATION}
-			${ChronoEngine_Distributed_SOLVER}
+ADD_LIBRARY(ChronoEngine_distributed SHARED
+			${ChronoEngine_distributed_BASE}
+			${ChronoEngine_distributed_PHYSICS}
+			${ChronoEngine_distributed_COLLISION}
+			${ChronoEngine_distributed_COMM}
+			${ChronoEngine_distributed_COSIMULATION}
+			${ChronoEngine_distributed_SOLVER}
 			)
  
-SET_TARGET_PROPERTIES(ChronoEngine_Distributed PROPERTIES
+SET_TARGET_PROPERTIES(ChronoEngine_distributed PROPERTIES
 	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_DISTRIBUTED")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Distributed
+TARGET_LINK_LIBRARIES(ChronoEngine_distributed
                       ChronoEngine
                       ChronoEngine_parallel
                       ${MPI_CXX_LIBRARIES})
 
-INSTALL(TARGETS ChronoEngine_Distributed
+INSTALL(TARGETS ChronoEngine_distributed
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib64
         ARCHIVE DESTINATION lib64)

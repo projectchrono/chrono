@@ -16,10 +16,10 @@
 #define CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/collision/ChDataManagerDistr.h"
 
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_parallel/ChDataManager.h"
 
 #include <memory>
 
@@ -45,7 +45,7 @@ public:
 	// list before sending.
 	// Packages the body into buf.
 	// Returns the number of elements which the body took in the buffer
-	int PackExchange(double *buf, int index, std::shared_ptr<ChBody> body);
+	int PackExchange(double *buf, int index);
 
 	// Unpacks a sphere body from the buffer into body.
 	// Note: body is meant to be a ptr into the data structure
@@ -53,12 +53,12 @@ public:
 	void UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
 
 	// Packs a body to be sent to update its ghost on another rank
-	int PackUpdate(double *buf, int index, std::shared_ptr<ChBody> body);
+	int PackUpdate(double *buf, int index);
 	
 	// Unpacks an incoming body to update a ghost
 	void UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
 
-	ChParallelDataManager* data_manager;
+	ChDataManagerDistr* data_manager;
 
 protected:
 	std::shared_ptr<ChSystemDistr> my_sys;

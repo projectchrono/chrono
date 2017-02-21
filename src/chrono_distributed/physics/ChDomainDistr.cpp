@@ -33,22 +33,19 @@ ChDomainDistr::~ChDomainDistr() {}
 // Takes in the user specified coordinates of the bounding box for the simulation.
 void ChDomainDistr::SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi)
 {
-	boxlo.x = xlo;
-	boxhi.x = xhi;
-	boxlo.y = ylo;
-	boxhi.y = yhi;
-	boxlo.z = zlo;
-	boxhi.z = zhi;
+	boxlo.Set(xlo, ylo, zlo);
+	boxhi.Set(xhi, yhi, zhi);
 
-	double len_x = boxhi.x - boxlo.x;
-	double len_y = boxhi.y - boxlo.y;
-	double len_z = boxhi.z - boxlo.z;
+	double len_x = boxhi.x() - boxlo.x();
+	double len_y = boxhi.y() - boxlo.y();
+	double len_z = boxhi.z() - boxlo.z();
 
 	if (len_x <= 0 || len_y <= 0 || len_z <=0) my_sys->ErrorAbort("Invalid domain dimensions.");
 
 	// Index of the longest domain axis 0=x, 1=y, 2=z
 	long_axis = (len_x >= len_y) ? 0 : 1;
-	long_axis = (len_z >= boxhi(long_axis) - boxlo(long_axis)) ? 2 : long_axis;
+	long_axis = (len_z >= boxhi[long_axis] - boxlo[long_axis]) ? 2 : long_axis;
 }
+
 
 } /* namespace chrono */
