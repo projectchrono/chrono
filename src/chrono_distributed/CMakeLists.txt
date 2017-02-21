@@ -4,28 +4,26 @@
 # Invoked from the main CMakeLists.txt using ADD_SUBDIRECTORY()
 #===============================================================================
 
-# The Chrono Parallel will build even if openmp is not found, it just won't have parallel computation support
-# If TBB is defined, thrust will use TBB but the rest of the code will be single threaded
-
 option(ENABLE_MODULE_DISTRIBUTED "Enable the Chrono Distributed module" OFF)
 
 # Return now if this module is not enabled
-
 if(NOT ENABLE_MODULE_DISTRIBUTED)
-  mark_as_advanced(FORCE BLAZE_DIR)
   return()
 endif()
 
+# Return now if MPI is not available
+if(NOT MPI_CXX_FOUND)
+	message("Chrono::Distributed requires MPI")
+	return()
+endif()
+
+# Return now if Chrono::Parallel is not enabled
+if(NOT ENABLE_MODULE_PARALLEL)
+    message("Chrono::Distributed depends on Chrono::Parallel")
+    return()
+endif()
+
 message(STATUS "==== Chrono Distributed module ====")
-
-mark_as_advanced(CLEAR BLAZE_DIR)
-
-# ------------------------------------------------------------------------------
-# Additional compiler flags
-# ------------------------------------------------------------------------------
-
-set(CH_DISTRIBUTED_CXX_FLAGS "")
-set(CH_DISTRIBUTED_C_FLAGS "")
 
 # ------------------------------------------------------------------------------
 # Additional dependencies, specific to this module
@@ -44,28 +42,29 @@ CONFIGURE_FILE(
   ${PROJECT_BINARY_DIR}/chrono_distributed/ChConfigDistr.h
   )
 
-install(FILES "${PROJECT_BINARY_DIR}/chrono_parallel/ChConfigParallel.h"
-        DESTINATION include/chrono_parallel)
+install(FILES "${PROJECT_BINARY_DIR}/chrono_distributed/ChConfigDistr.h"
+        DESTINATION include/chrono_distributed)
 
 # ------------------------------------------------------------------------------
-# Collect all additional include directories necessary for the PARALLEL module
+# Compiler and linker flags specific to this module.
+# Additional include directories for this module.
 # ------------------------------------------------------------------------------
 
-SET(CH_DISTRIBUTED_INCLUDES
-    ${BLAZE_DIR}
-    ${BOOST_DIR}
-    ${THRUST_INCLUDE_DIR}
-)
+set(CH_DISTRIBUTED_CXX_FLAGS "${MPI_CXX_COMPILE_FLAGS}")
+set(CH_DISTRIBUTED_C_FLAGS "")
 
-INCLUDE_DIRECTORIES(${CH_DISTRIBUTED_INCLUDES})
+set(CH_DISTRIBUTED_LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
+
+set(CH_DISTRIBUTED_INCLUDES "${MPI_CXX_INCLUDE_PATH}")
 
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
 
-SET(CH_DISTRIBUTED_CXX_FLAGS "${CH_DISTRIBUTED_CXX_FLAGS}" PARENT_SCOPE)
-SET(CH_DISTRIBUTED_C_FLAGS "${CH_DISTRIBUTED_C_FLAGS}" PARENT_SCOPE)
-SET(CH_DISTRIBUTED_INCLUDES "${CH_DISTRIBUTED_INCLUDES}" PARENT_SCOPE)
+set(CH_DISTRIBUTED_CXX_FLAGS "${CH_DISTRIBUTED_CXX_FLAGS}" PARENT_SCOPE)
+set(CH_DISTRIBUTED_C_FLAGS "${CH_DISTRIBUTED_C_FLAGS}" PARENT_SCOPE)
+set(CH_DISTRIBUTED_LINK_FLAGS "${CH_DISTRIBUTED_LINK_FLAGS}" PARENT_SCOPE)
+set(CH_DISTRIBUTED_INCLUDES "${CH_DISTRIBUTED_INCLUDES}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List the files in the Chrono distributed module
@@ -94,15 +93,15 @@ SET(ChronoEngine_Distributed_COLLISION
 	collision/ChCollision.h
 	#collision/ChNarrowphaseDistr.h
 	#collision/ChNarrowphaseDistrBasic.h
-	collision/ChCollisionModelDistr.h
+	#collision/ChCollisionModelDistr.h
 	
 	#collision/ChBroadphaseDistr.cpp
 	#collision/ChBroadphaseDistrBasic.cpp
 	collision/ChCollisionSystemDistr.cpp
 	#collision/ChNarrowphaseDistr.cpp
 	#collision/ChNarrowphaseDistrBasic.cpp
-	collision/ChCollisionModelDistr.cpp
-	collision/ChAABBGenerator.cpp
+	#collision/ChCollisionModelDistr.cpp
+	#collision/ChAABBGenerator.cpp
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_Distributed_COLLISION})
@@ -130,6 +129,8 @@ SOURCE_GROUP(solver FILES ${ChronoEngine_Distributed_SOLVER})
 # Add the ChronoEngine_Distributed library
 # ------------------------------------------------------------------------------
 
+include_directories(${CH_PARALLEL_INCLUDES})
+include_directories(${CH_DISTRIBUTED_INCLUDES})
 
 ADD_LIBRARY(ChronoEngine_Distributed SHARED
 			${ChronoEngine_Distributed_BASE}
@@ -139,15 +140,16 @@ ADD_LIBRARY(ChronoEngine_Distributed SHARED
 			${ChronoEngine_Distributed_COSIMULATION}
 			${ChronoEngine_Distributed_SOLVER}
 			)
-			
-SET(CHRONO_DISTRIBUTED_LINKED_LIBRARIES ChronoEngine ${MPI_LIBRARIES})
-
  
 SET_TARGET_PROPERTIES(ChronoEngine_Distributed PROPERTIES
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
+	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_DISTRIBUTED")
 
-TARGET_LINK_LIBRARIES(ChronoEngine_Distributed ${CHRONO_DISTRIBUTED_LINKED_LIBRARIES})
+TARGET_LINK_LIBRARIES(ChronoEngine_Distributed
+                      ChronoEngine
+                      ChronoEngine_Parallel
+                      ${MPI_CXX_LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_Distributed
         RUNTIME DESTINATION bin
@@ -155,5 +157,5 @@ INSTALL(TARGETS ChronoEngine_Distributed
         ARCHIVE DESTINATION lib64)
 
 INSTALL(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-    DESTINATION include/chrono_distributed
-    FILES_MATCHING PATTERN "*.h")
+        DESTINATION include/chrono_distributed
+        FILES_MATCHING PATTERN "*.h")
