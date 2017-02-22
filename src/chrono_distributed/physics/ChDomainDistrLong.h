@@ -29,13 +29,16 @@ public:
 	ChDomainDistrLong(std::shared_ptr<ChSystemDistr> my_sys) : ChDomainDistr(my_sys) {}
 	virtual ~ChDomainDistrLong() {}
 	
-	void SplitDomain();
-	bool HasLeft(std::shared_ptr<ChBody> body);
-	bool InSub(std::shared_ptr<ChBody> body);
-	bool InGhost(std::shared_ptr<ChBody> body);
-	typename std::forward_list<int>::iterator GetNeighItr();
+	virtual void SplitDomain() override;
+	virtual bool InSub(std::shared_ptr<ChBody> body) override;
+	virtual bool InGhost(std::shared_ptr<ChBody> body) override;
+	virtual std::forward_list<int>::iterator GetNeighItr() override;
+
+    bool HasLeft(std::shared_ptr<ChBody> body);
 
 	void PrintDomain();
 };
+
 }
+
 #endif

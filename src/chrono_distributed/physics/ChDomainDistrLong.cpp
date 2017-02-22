@@ -90,7 +90,7 @@ bool ChDomainDistrLong::InGhost(std::shared_ptr<ChBody> body)
 			my_sys->my_rank != 0);
 }
 
-typename std::forward_list<int>::iterator ChDomainDistrLong::GetNeighItr()
+std::forward_list<int>::iterator ChDomainDistrLong::GetNeighItr()
 {
 	return neigh_ranks.begin();
 }

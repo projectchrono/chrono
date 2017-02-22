@@ -38,7 +38,7 @@ public:
 	virtual void SplitDomain() = 0;
 	virtual bool InSub(std::shared_ptr<ChBody> body) = 0;
 	virtual bool InGhost(std::shared_ptr<ChBody>) = 0;
-	virtual typename std::forward_list<int>::iterator GetNeighItr() = 0;
+	virtual std::forward_list<int>::iterator GetNeighItr() = 0;
 
 	ChVector<double> GetBoxLo() {return boxlo;}
 	ChVector<double> GetBoxHi() {return boxhi;}
