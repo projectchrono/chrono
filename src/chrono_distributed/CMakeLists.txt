@@ -93,7 +93,7 @@ SET(ChronoEngine_distributed_COLLISION
 	#collision/ChBroadphaseDistr.h
 	#collision/ChBroadphaseDistrBasic.h
 	collision/ChCollisionSystemDistr.h
-	collision/ChCollision.h
+	#collision/ChCollision.h
 	#collision/ChNarrowphaseDistr.h
 	#collision/ChNarrowphaseDistrBasic.h
 	#collision/ChCollisionModelDistr.h

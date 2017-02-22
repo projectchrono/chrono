@@ -14,11 +14,7 @@
 
 #include "chrono_distributed/collision/ChCollisionSystemDistr.h"
 
-#include "chrono/collision/ChCCollisionSystem.h"
 #include "chrono_parallel/collision/ChCollision.h"
-
-#include "chrono_parallel/math/other_types.h"
-#include "chrono_parallel/ChDataManager.h"
 
 #include <memory>
 
