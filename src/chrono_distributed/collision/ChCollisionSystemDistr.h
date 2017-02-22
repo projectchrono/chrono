@@ -17,20 +17,23 @@
 
 #include <memory>
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono/collision/ChCCollisionSystem.h"
+
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono/collision/ChCCollisionSystem.h"
+
+#include "chrono_distributed/ChApiDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
 namespace collision {
 
-class ChCollisionSystemDistr : public ChCollisionSystem {
+class CH_DISTR_API ChCollisionSystemDistr : public ChCollisionSystem {
 public:
 
 	ChCollisionSystemDistr(ChParallelDataManager* dc);
-	virtual ~ChCollisionSystemDistr();
+    virtual ~ChCollisionSystemDistr() {}
 
     /// Clears all data instanced by this algorithm
     /// if any (like persistent contact manifolds)

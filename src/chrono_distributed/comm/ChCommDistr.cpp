@@ -17,7 +17,7 @@
 
 #include "chrono_distributed/comm/ChCommDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/collision/ChDataManagerDistr.h"
+#include "chrono_distributed/ChDataManagerDistr.h"
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/core/ChVector.h"

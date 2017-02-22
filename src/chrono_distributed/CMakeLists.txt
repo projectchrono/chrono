@@ -71,7 +71,10 @@ set(CH_DISTRIBUTED_INCLUDES "${CH_DISTRIBUTED_INCLUDES}" PARENT_SCOPE)
 # ------------------------------------------------------------------------------
 
 SET(ChronoEngine_distributed_BASE
-   )
+	ChApiDistributed.h
+	ChDataManagerDistr.h
+	ChDataManagerDistr.cpp
+    )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})
 

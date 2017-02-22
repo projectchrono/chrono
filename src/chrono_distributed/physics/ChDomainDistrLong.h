@@ -18,13 +18,15 @@
 #include <forward_list>
 #include <memory>
 
-#include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono/physics/ChBody.h"
+
+#include "chrono_distributed/ChApiDistributed.h"
+#include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
-class ChDomainDistrLong : public ChDomainDistr {
+class CH_DISTR_API ChDomainDistrLong : public ChDomainDistr {
 public:
 	ChDomainDistrLong(std::shared_ptr<ChSystemDistr> my_sys) : ChDomainDistr(my_sys) {}
 	virtual ~ChDomainDistrLong() {}

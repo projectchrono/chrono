@@ -15,21 +15,19 @@
 #ifndef CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
 #define CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/collision/ChDataManagerDistr.h"
+#include <memory>
 
 #include "chrono/physics/ChBody.h"
 
-
-#include <memory>
-
+#include "chrono_distributed/ChApiDistributed.h"
+#include "chrono_distributed/ChDataManagerDistr.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
 
 namespace chrono {
 
+class ChDataManagerDistr;
 
-class ChSystemDistr;
-
-class ChCommDistr {
+class CH_DISTR_API ChCommDistr {
 public:
 	ChCommDistr(std::shared_ptr<ChSystemDistr> my_sys);
 	virtual ~ChCommDistr();

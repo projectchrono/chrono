@@ -21,9 +21,10 @@
 
 #include "chrono/physics/ChBody.h"
 
+#include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/comm/ChCommDistr.h"
-#include "chrono_distributed/collision/ChDataManagerDistr.h"
+#include "chrono_distributed/ChDataManagerDistr.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChSettings.h"
@@ -36,8 +37,9 @@ namespace chrono {
 
 class ChDomainDistr;
 class ChCommDistr;
+class ChDataManagerDistr;
 
-class ChSystemDistr : public ChSystemParallelDEM {
+class CH_DISTR_API ChSystemDistr : public ChSystemParallelDEM {
 
 public:
 	ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int max_objects);
@@ -71,7 +73,7 @@ public:
 	int my_rank;
 
 	// TODO
-	ChDataManagerDistr *data_manager;
+	ChDataManagerDistr* data_manager;
 
 
 	// World of MPI ranks for the simulation

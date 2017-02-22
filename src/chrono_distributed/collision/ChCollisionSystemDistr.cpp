@@ -118,6 +118,10 @@ void ChCollisionSystemDistr::Add(ChCollisionModel* model)
     }
 }
 
+void ChCollisionSystemDistr::Remove(ChCollisionModel* model)
+{
+}
+
 void ChCollisionSystemDistr::Run() {
     LOG(INFO) << "ChCollisionSystemParallel::Run()";
     if (data_manager->settings.collision.use_aabb_active) {

@@ -15,6 +15,7 @@
 #ifndef CHRONO_DISTRIBUTED_COLLISION_CHDATAMANAGERDISTR_H_
 #define CHRONO_DISTRIBUTED_COLLISION_CHDATAMANAGERDISTR_H_
 
+#include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
 
 #include "chrono_parallel/ChDataManager.h"
@@ -25,7 +26,7 @@ namespace chrono {
 
 class ChSystemDistr;
 
-class ChDataManagerDistr : public ChParallelDataManager {
+class CH_DISTR_API ChDataManagerDistr : public ChParallelDataManager {
 public:
 	ChDataManagerDistr(ChSystemDistr *my_sys);
 	virtual ~ChDataManagerDistr();

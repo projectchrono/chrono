@@ -18,17 +18,17 @@
 #include <forward_list>
 #include <memory>
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono/core/ChVector.h"
+#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/ChApiDistributed.h"
 
 namespace chrono {
 
 class ChSystemDistr;
-class ChBodyDistr;
 
-class ChDomainDistr {
+class CH_DISTR_API ChDomainDistr {
 
 public:
 	ChDomainDistr(std::shared_ptr<ChSystemDistr> sys);

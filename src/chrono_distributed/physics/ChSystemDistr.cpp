@@ -24,7 +24,7 @@
 #include "chrono_distributed/physics/ChSystemDistr.h"
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/physics/ChDomainDistrLong.h"
-#include "chrono_distributed/collision/ChDataManagerDistr.h"
+#include "chrono_distributed/ChDataManagerDistr.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
