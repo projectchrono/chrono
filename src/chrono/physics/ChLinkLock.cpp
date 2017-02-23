@@ -35,12 +35,12 @@ ChLinkLock::ChLinkLock()
     Cq2_temp = new ChMatrixDynamic<>(7, BODY_QDOF);
     Qc_temp = new ChMatrixDynamic<>(7, 1);
 
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
-    motion_ang2 = new ChFunction_Const(0);
-    motion_ang3 = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0);
+    motion_Z = std::make_shared<ChFunction_Const>(0);
+    motion_ang = std::make_shared<ChFunction_Const>(0);
+    motion_ang2 = std::make_shared<ChFunction_Const>(0);
+    motion_ang3 = std::make_shared<ChFunction_Const>(0);
 
     limit_X = new ChLinkLimit;  // default: inactive limits
     limit_Y = new ChLinkLimit;
@@ -83,12 +83,12 @@ ChLinkLock::ChLinkLock(const ChLinkLock& other) : ChLinkMasked(other) {
     relC_dtdt = other.relC_dtdt;
     Ct_temp = other.Ct_temp;
 
-    motion_X = other.motion_X->Clone();
-    motion_Y = other.motion_Y->Clone();
-    motion_Z = other.motion_Z->Clone();
-    motion_ang = other.motion_ang->Clone();
-    motion_ang2 = other.motion_ang2->Clone();
-    motion_ang3 = other.motion_ang3->Clone();
+    motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
+    motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
+    motion_Z = std::shared_ptr<ChFunction>(other.motion_Z->Clone());
+    motion_ang = std::shared_ptr<ChFunction>(other.motion_ang->Clone());
+    motion_ang2 = std::shared_ptr<ChFunction>(other.motion_ang2->Clone());
+    motion_ang3 = std::shared_ptr<ChFunction>(other.motion_ang3->Clone());
 
     motion_axis = other.motion_axis;
     angleset = other.angleset;
@@ -103,19 +103,6 @@ ChLinkLock::~ChLinkLock() {
         delete Cq2_temp;
     if (Qc_temp)
         delete Qc_temp;
-
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-    if (motion_ang2)
-        delete motion_ang2;
-    if (motion_ang3)
-        delete motion_ang3;
 
     if (limit_X)
         delete limit_X;
@@ -200,25 +187,12 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
 
     // reset all motions and limits!
 
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-    if (motion_ang2)
-        delete motion_ang2;
-    if (motion_ang3)
-        delete motion_ang3;
-
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
-    motion_ang2 = new ChFunction_Const(0);
-    motion_ang3 = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0);
+    motion_Z = std::make_shared<ChFunction_Const>(0);
+    motion_ang = std::make_shared<ChFunction_Const>(0);
+    motion_ang2 = std::make_shared<ChFunction_Const>(0);
+    motion_ang3 = std::make_shared<ChFunction_Const>(0);
     motion_axis = VECT_Z;
     angleset = AngleSet::ANGLE_AXIS;
 
@@ -252,39 +226,27 @@ void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
 
 // setup the functions when user changes them.
 
-void ChLinkLock::SetMotion_X(ChFunction* m_funct) {
-    if (motion_X)
-        delete motion_X;
+void ChLinkLock::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
     motion_X = m_funct;
 }
 
-void ChLinkLock::SetMotion_Y(ChFunction* m_funct) {
-    if (motion_Y)
-        delete motion_Y;
+void ChLinkLock::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
     motion_Y = m_funct;
 }
 
-void ChLinkLock::SetMotion_Z(ChFunction* m_funct) {
-    if (motion_Z)
-        delete motion_Z;
+void ChLinkLock::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
     motion_Z = m_funct;
 }
 
-void ChLinkLock::SetMotion_ang(ChFunction* m_funct) {
-    if (motion_ang)
-        delete motion_ang;
+void ChLinkLock::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
     motion_ang = m_funct;
 }
 
-void ChLinkLock::SetMotion_ang2(ChFunction* m_funct) {
-    if (motion_ang2)
-        delete motion_ang2;
+void ChLinkLock::SetMotion_ang2(std::shared_ptr<ChFunction> m_funct) {
     motion_ang2 = m_funct;
 }
 
-void ChLinkLock::SetMotion_ang3(ChFunction* m_funct) {
-    if (motion_ang3)
-        delete motion_ang3;
+void ChLinkLock::SetMotion_ang3(std::shared_ptr<ChFunction> m_funct) {
     motion_ang3 = m_funct;
 }
 

@@ -40,7 +40,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_plate->SetCollide(true);
 
     internal_link = new ChLinkLockLock;
-    internal_link->SetMotion_X(new ChFunction_Ramp);
+    internal_link->SetMotion_X(std::make_shared<ChFunction_Ramp>());
 
     std::shared_ptr<ChMarker> mmark1(new ChMarker);
     std::shared_ptr<ChMarker> mmark2(new ChMarker);
@@ -272,9 +272,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_plate->Update(mytime, update_assets);
 
-    ((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
+    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
     // always zero pos. offset (trick):
-    ((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
+    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
 
     internal_link->Update(mytime, update_assets);
 }
