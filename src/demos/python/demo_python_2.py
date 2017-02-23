@@ -34,7 +34,6 @@ my_shbodyB.SetCollide(True)
 
 my_shmarker = chrono.ChMarker()
 my_funct = chrono.ChFunction_Sine(0,0.5,3)
-my_funct.thisown=0      # because the marker will take care of deletion!
 my_shmarker.SetMotion_X(my_funct)
 my_shmarker.SetPos(chrono.ChVectorD(1,2,3))
 my_shbodyB.AddMarker(my_shmarker)

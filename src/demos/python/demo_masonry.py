@@ -171,12 +171,10 @@ my_system.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.
 mfunY = chrono.ChFunction_Sine(0,1.5,0.001)  # phase, frequency, amplitude
-#mfunY.thisown=0      # because the link will take care of deletion!
 link_shaker.SetMotion_Y(mfunY)
 
 # ..create the function for imposed y vertical motion, etc.
 mfunZ = chrono.ChFunction_Sine(0,1.5,0.12)  # phase, frequency, amplitude
-#mfunZ.thisown=0      # because the link will take care of deletion!
 link_shaker.SetMotion_Z(mfunZ)
 
 # Note that you could use other types of ChFunction_ objects, or create
