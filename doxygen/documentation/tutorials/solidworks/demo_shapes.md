@@ -280,14 +280,11 @@ my_system.Add(link_shaker)
 *Up to here, the link_shaker object has no custom motion law assigned, so it will simply keep the floor statically connected to the ground. So now we create a motion law of the type x=(Ca*sin(t*A+phaseA))*(Cb*sin(t*B+phaseB)) as a product of two armonic laws:
 <source lang="py">
 my_functA = chrono.ChFunction_Sine(0,1.4,0.06)
-my_functA.thisown = 0
 my_functB = chrono.ChFunction_Sine(0,0.1,1)
-my_functB.thisown = 0
 my_funct = chrono.ChFunction_Operation()
 my_funct.Set_fa(my_functA)
 my_funct.Set_fb(my_functB)
 my_funct.Set_optype(chrono.CHOP_MUL)
-my_funct.thisown = 0
 
 link_shaker.SetMotion_X(my_funct)
 </source>
