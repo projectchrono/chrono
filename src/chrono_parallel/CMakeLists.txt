@@ -42,6 +42,17 @@ set(CH_PARALLEL_C_FLAGS "")
 find_package(CUDA)
 
 cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+    message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_PARALLEL_CUDA")
+    set(USE_PARALLEL_CUDA OFF CACHE OFF "" FORCE)
+  endif()
+
+endif()
+
+
+
 IF(USE_PARALLEL_CUDA)
 	SET(CUDA_SEPARABLE_COMPILATION ON)
 
