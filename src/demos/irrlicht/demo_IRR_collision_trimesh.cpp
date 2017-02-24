@@ -159,7 +159,6 @@ int main(int argc, char* argv[]) {
     //
     // THE SOFT-REAL-TIME CYCLE
     //
-    application.SetPaused(true);
 
     while (application.GetDevice()->run()) {
         application.GetVideoDriver()->beginScene(true, true, SColor(255, 140, 161, 192));
