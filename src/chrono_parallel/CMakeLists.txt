@@ -15,7 +15,18 @@ if(NOT ENABLE_MODULE_PARALLEL)
   mark_as_advanced(FORCE BLAZE_DIR)
   mark_as_advanced(FORCE USE_PARALLEL_DOUBLE)
   mark_as_advanced(FORCE USE_PARALLEL_SIMD)
-  mark_as_advanced(FORCE USE_PARALLEL_CUDA)
+  
+  # GCC > 4.9 does not support CUDA (<= 8.0) by default. 
+  # Users may explicitly select CUDA support if they are sure that their compiler
+  # does make use of any conflicting features, such as C++14.
+  if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+      message(STATUS "GCC version:  ${CMAKE_CXX_COMPILER_VERSION} does not support USE_PARALLEL_CUDA by default")
+      set(USE_PARALLEL_CUDA OFF CACHE OFF "")
+      mark_as_advanced(FORCE USE_PARALLEL_CUDA)
+    endif()
+  endif()
+
   return()
 endif()
 
@@ -42,12 +53,21 @@ set(CH_PARALLEL_C_FLAGS "")
 find_package(CUDA)
 
 cmake_dependent_option(USE_PARALLEL_CUDA "Enable CUDA support in Chrono::Parallel" ON "CUDA_FOUND" OFF)
+
+
 IF(USE_PARALLEL_CUDA)
 	SET(CUDA_SEPARABLE_COMPILATION ON)
 
 	IF(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 	ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
-	  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
+        IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+            IF(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 4.9)
+                SET(CUDA_SEPARABLE_COMPILATION OFF)
+                SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
+                SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
+            ENDIF()
+        ENDIF()
+        SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
 	ELSEIF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	  SET(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS}; --compiler-options -fPIC)
 	ENDIF()
