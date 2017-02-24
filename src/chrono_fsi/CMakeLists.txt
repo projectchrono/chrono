@@ -29,6 +29,13 @@ find_package(CUDA)
 
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std=c++11")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} --device-c")
+
+# Chrono FSI on GCC requires explicit C++11 support. '-std=c++11' must also be
+# passed to the host compiler to override -std=c++14 if it is enabled.
+IF(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -std c++11")
+  SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -Xcompiler -std=c++11")
+ENDIF()
 SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -gencode arch=compute_30,code=sm_30")
 #SET(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} ---gpu-code=sm_30")
 
@@ -109,9 +116,9 @@ SOURCE_GROUP("" FILES
     ${ChronoEngine_FSI_SOURCES} 
     ${ChronoEngine_FSI_HEADERS})
 
-#-----------------------------------------------------------------------------	
+#-----------------------------------------------------------------------------  
 # Create the ChronoEngine_fsi library
-#-----------------------------------------------------------------------------	
+#-----------------------------------------------------------------------------  
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES "ChronoEngine")
@@ -122,14 +129,14 @@ if(ENABLE_MODULE_OPENGL)
 ENDIF()
 
 if(ENABLE_MODULE_PARALLEL)
-	set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
-	include_directories(${CH_PARALLEL_INCLUDES})
-	list(APPEND LIBRARIES ChronoEngine_parallel)
+  set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
+  include_directories(${CH_PARALLEL_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_parallel)
 endif()
 
 if(ENABLE_MODULE_VEHICLE)
-	include_directories(${CH_VEHICLE_INCLUDES})
-	list(APPEND LIBRARIES ChronoEngine_vehicle)
+  include_directories(${CH_VEHICLE_INCLUDES})
+  list(APPEND LIBRARIES ChronoEngine_vehicle)
 endif()
 
 CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED 
