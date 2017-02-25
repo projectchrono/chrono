@@ -113,10 +113,10 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     virtual double GetSlipAngle() const override { return m_slip->alpha; }
 
     /// Get the tire longitudinal slip.
-    virtual double GetLongitudinalSlip() const { return m_slip->kappa; }
+    virtual double GetLongitudinalSlip() const override { return m_slip->kappa; }
 
     /// Get the tire camber angle.
-    virtual double GetCamberAngle() const { return m_slip->gamma; }
+    virtual double GetCamberAngle() const override { return m_slip->gamma; }
 
     /// Advance the state of this tire by the specified time step.
     /// Use the new body state, calculate all the relevant quantities over the

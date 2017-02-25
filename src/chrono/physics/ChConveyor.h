@@ -48,7 +48,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system
-    virtual void SetSystem(ChSystem* m_system);
+    virtual void SetSystem(ChSystem* m_system) override;
 
     /// Set the speed of the conveyor belt (upper part, X direction)
     void SetConveyorSpeed(double mspeed) { conveyor_speed = mspeed; }

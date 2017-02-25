@@ -470,20 +470,20 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawLine(cp1, cp2, Space::GRAPH);
 
     // draw xy labels
-    if (msetting->Xaxis.label) {
-        cp1.x() = G_p.x() + Gs_p.x() - 0.4;
-        cp1.y() = G_p.y() + 0.4;
-        SetRGB(msetting->Xaxis.label_color);
-        SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
-        DrawText(cp1, msetting->Xaxis.label, Space::PAGE, Justification::RIGHT);
-    }
-    if (msetting->Yaxis.label) {
-        cp1.x() = G_p.x() + 0.7;
-        cp1.y() = G_p.y() + Gs_p.y() - 0.3;
-        SetRGB(msetting->Yaxis.label_color);
-        SetFont(ch_font_labels[msetting->Yaxis.label_fontname], msetting->Yaxis.label_fontsize);
-        DrawText(cp1, msetting->Yaxis.label, Space::PAGE);
-    }
+    //if (msetting->Xaxis.label) { // pointers to static arrays are always TRUE
+    cp1.x() = G_p.x() + Gs_p.x() - 0.4;
+    cp1.y() = G_p.y() + 0.4;
+    SetRGB(msetting->Xaxis.label_color);
+    SetFont(ch_font_labels[msetting->Xaxis.label_fontname], msetting->Xaxis.label_fontsize);
+    DrawText(cp1, msetting->Xaxis.label, Space::PAGE, Justification::RIGHT);
+    //}
+    //if (msetting->Yaxis.label) { // pointers to static arrays are always TRUE
+    cp1.x() = G_p.x() + 0.7;
+    cp1.y() = G_p.y() + Gs_p.y() - 0.3;
+    SetRGB(msetting->Yaxis.label_color);
+    SetFont(ch_font_labels[msetting->Yaxis.label_fontname], msetting->Yaxis.label_fontsize);
+    DrawText(cp1, msetting->Yaxis.label, Space::PAGE);
+    //}
 
     // restore old gfx mode -without the clipping region
     GrRestore();
@@ -493,14 +493,14 @@ void ChFile_ps::DrawGraphAxes(ChFile_ps_graph_setting* msetting) {
     DrawRectangle(G_p, Gs_p, Space::PAGE, false);
 
     // draw title
-    if (msetting->title)
-        if (*msetting->title != 0) {
-            SetFont(ch_font_labels[msetting->title_fontname], msetting->title_fontsize);
-            SetRGB(msetting->title_color);
-            cpt.x() = G_p.x() + 0.0;
-            cpt.y() = G_p.y() + Gs_p.y() + 0.4;
-            DrawText(cpt, msetting->title, Space::PAGE);
-        }
+    //if (msetting->title) // pointers to static arrays are always TRUE
+    if (*msetting->title != 0) {
+        SetFont(ch_font_labels[msetting->title_fontname], msetting->title_fontsize);
+        SetRGB(msetting->title_color);
+        cpt.x() = G_p.x() + 0.0;
+        cpt.y() = G_p.y() + Gs_p.y() + 0.4;
+        DrawText(cpt, msetting->title, Space::PAGE);
+    }
 
     // return to original gfx mode
     GrRestore();

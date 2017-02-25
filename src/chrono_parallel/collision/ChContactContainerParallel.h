@@ -36,10 +36,10 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
 
     virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
 
-    virtual void RemoveAllContacts();
-    virtual void BeginAddContact();
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact);
-    virtual void EndAddContact();
+    virtual void RemoveAllContacts() override;
+    virtual void BeginAddContact() override;
+    virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
+    virtual void EndAddContact() override;
 
     /// Return the list of contacts between rigid bodies
     const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }

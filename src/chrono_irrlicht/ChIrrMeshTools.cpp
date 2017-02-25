@@ -38,11 +38,12 @@ createEllipticalMesh(f32 radiusH, f32 radiusV, f32 Ylow, f32 Yhigh, f32 offset, 
         polyCountX = 2;
     if (polyCountY < 2)
         polyCountY = 2;
-    if (polyCountX * polyCountY > 32767)  // prevent u16 overflow
+    if (polyCountX * polyCountY > 32767) {  // prevent u16 overflow
         if (polyCountX > polyCountY)      // prevent u16 overflow
             polyCountX = 32767 / polyCountY - 1;
         else
             polyCountY = 32767 / (polyCountX + 1);
+    }
 
     u32 polyCountXPitch = polyCountX + 1;  // get to same vertex on next level
     u32 n_tot_verts = (polyCountXPitch * polyCountY) + 2;

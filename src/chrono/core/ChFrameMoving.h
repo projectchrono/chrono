@@ -484,7 +484,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// The transformation (also for speeds, accelerations) is
     /// inverted in place.
     /// That is if w=A*v, then A.Invert();v=A*w;
-    virtual void Invert() {
+    virtual void Invert() override {
         ChFrameMoving<Real> tmp;
         ChFrameMoving<Real> unit;
         tmp = *this;

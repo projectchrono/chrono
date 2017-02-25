@@ -111,7 +111,7 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
     /// This projection will also modify the l_i values of the two
     /// tangential friction constraints (projection onto the friction cone,
     /// as by Anitescu-Tasora theory).
-    virtual void Project() {
+    virtual void Project() override {
         if (!constraint_U)
             return;
 

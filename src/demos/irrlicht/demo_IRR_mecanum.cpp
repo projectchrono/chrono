@@ -90,6 +90,8 @@ class MyEventReceiver : public IEventReceiver {
                     if (STATIC_rot_speed < -MAX_ROT_SPEED)
                         STATIC_rot_speed = -MAX_ROT_SPEED;
                     return true;
+                default:
+                    break;
             }
         }
 

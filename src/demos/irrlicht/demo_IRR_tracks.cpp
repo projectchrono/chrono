@@ -456,6 +456,8 @@ class MyEventReceiver : public IEventReceiver {
                         return true;
                     }
                     break;
+                default:
+                    break;
             }
         }
 

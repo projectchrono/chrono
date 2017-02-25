@@ -283,6 +283,8 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
                     iss >> radius >> hlen >> srad;
                     AddRoundedCylinderGeometry(body, radius, hlen, srad, apos, arot);
                 } break;
+                default:
+                    break;
             }
         }
 

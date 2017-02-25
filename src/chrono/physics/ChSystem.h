@@ -280,7 +280,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Initial system setup before analysis.
     /// This function must be called once the system construction is completed.
-    void SetupInitial();
+    void SetupInitial() override;
 
     //
     // DATABASE HANDLING.

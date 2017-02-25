@@ -405,6 +405,8 @@ class MyEventReceiver : public IEventReceiver {
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->Get_rot_funct()))
                         mfun->Set_yconst(-0.005 + mfun->Get_yconst());
                     return true;
+                default:
+                    break;
             }
         }
 

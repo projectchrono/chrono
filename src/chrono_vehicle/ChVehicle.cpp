@@ -44,6 +44,8 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
         case ChMaterialSurfaceBase::DVI:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             break;
+        default:
+            break;
     }
 }
 

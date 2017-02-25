@@ -169,6 +169,8 @@ class ChDriverSelector : public irr::IEventReceiver {
                     m_driver_follower->GetSteeringController().WriteOutputFile(std::string(filename));
                 }
                 return true;
+            default:
+                break;
         }
 
         return false;

@@ -81,7 +81,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
 
     /// Set references to the constrained objects, each of ChVariables type,
     /// automatically creating/resizing jacobians if needed.
-    virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c);
+    virtual void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b, ChVariables* mvariables_c) override;
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b and Eq_c  matrices
@@ -127,11 +127,11 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // end namespace chrono

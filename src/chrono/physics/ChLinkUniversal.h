@@ -44,7 +44,7 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual int GetDOC_c() override { return 4; }
 
     /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() { return m_frame2.GetCoord(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoord(); }
 
     /// Get the joint frame on Body1, expressed in Body1 coordinate system.
     const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
@@ -88,7 +88,7 @@ class ChApi ChLinkUniversal : public ChLink {
 
     /// Perform the update of this joint at the specified time: compute jacobians
     /// and constraint violations, cache in internal structures
-    virtual void Update(double time, bool update_assets = true);
+    virtual void Update(double time, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS

@@ -38,8 +38,8 @@ class CH_MODELS_API HMMWV_Wheel : public ChWheel {
 
     virtual double GetMass() const override { return m_mass; }
     virtual ChVector<> GetInertia() const override { return m_inertia; }
-    virtual double GetRadius() const { return m_radius; }
-    virtual double GetWidth() const { return m_width; }
+    virtual double GetRadius() const override { return m_radius; }
+    virtual double GetWidth() const override { return m_width; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override;

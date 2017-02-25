@@ -444,6 +444,8 @@ void RigidTerrain::ExportMeshPovray(const std::string& out_dir) {
             utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                                    ChQuaternion<>(1, 0, 0, 0), true);
             break;
+        default:
+                break;
     }
 }
 

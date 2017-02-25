@@ -40,6 +40,7 @@ uvec3 SortedFace(int face, const uvec4& tetrahedron) {
             return Sort(_make_uvec3(i, j, l));
             break;
         case 3:
+        default:
             return Sort(_make_uvec3(i, j, k));
             break;
     }
@@ -60,6 +61,7 @@ uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
             return (_make_uvec3(i, j, l));
             break;
         case 3:
+        default:
             return (_make_uvec3(i, j, k));
             break;
     }

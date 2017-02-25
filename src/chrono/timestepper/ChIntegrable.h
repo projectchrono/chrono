@@ -321,7 +321,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     ///    R += c*F
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
-                                ) {
+                                ) override {
         throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
     };
 
@@ -345,7 +345,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                   const ChVectorDynamic<>& L,  ///< the L vector
                                   const double c               ///< a scaling factor
-                                  ) {
+                                  ) override {
         throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     };
 
@@ -358,7 +358,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const double c,               ///< a scaling factor
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double mclam = 1e30     ///< clamping value
-                                  ) {
+                                  ) override {
         throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
     };
 
@@ -369,7 +369,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     ///    Qc += c*Ct
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                    const double c          ///< a scaling factor
-                                   ) {
+                                   ) override {
         throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
     };
 

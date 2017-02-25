@@ -55,11 +55,11 @@ class CH_MODELS_API M113_SprocketSinglePin : public ChSprocketSinglePin {
     virtual double GetSeparation() const override { return m_separation; }
 
     /// Return the radius of the addendum circle.
-    virtual double GetOuterRadius() const { return m_gear_RT; }
+    virtual double GetOuterRadius() const override { return m_gear_RT; }
     /// Return the radius of the (concave) tooth circular arc.
-    virtual double GetArcRadius() const { return m_gear_R; }
+    virtual double GetArcRadius() const override { return m_gear_R; }
     /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const { return m_gear_RC; }
+    virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

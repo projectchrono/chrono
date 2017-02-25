@@ -43,8 +43,8 @@ class ChApi ChLineBezier : public ChLine {
 
     virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
 
-    virtual void Set_closed(bool mc) {}
-    virtual void Set_complexity(int mc) {}
+    virtual void Set_closed(bool mc) override {}
+    virtual void Set_complexity(int mc) override {}
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,

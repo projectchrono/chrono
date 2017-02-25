@@ -67,6 +67,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_RIGHT:
                 m_app->m_camera.Turn(-1);
                 return true;
+            default:
+                break;
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -85,6 +87,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
                 return true;
+            default:
+                break;
         }
     }
 

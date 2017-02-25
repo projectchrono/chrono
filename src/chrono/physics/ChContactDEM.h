@@ -251,6 +251,8 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
                 //// TODO: implement proper MultiStep mode
                 delta_t = relvel_t_mag * dT;
                 break;
+            default:
+                break;
         }
 
         // Calculate the magnitudes of the normal and tangential contact forces

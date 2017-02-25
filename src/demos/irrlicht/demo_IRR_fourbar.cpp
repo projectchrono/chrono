@@ -78,6 +78,8 @@ class MyEventReceiver : public IEventReceiver {
                         text_enginespeed->setText(core::stringw(message).c_str());
                     }
                     break;
+                default:
+                    break;
             }
         }
 

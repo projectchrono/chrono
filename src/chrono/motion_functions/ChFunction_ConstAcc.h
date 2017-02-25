@@ -92,7 +92,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     virtual double Get_Ca_neg() const override;
     virtual double Get_Cv() const override;
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const {
+    virtual void Estimate_x_range(double& xmin, double& xmax) const override {
         xmin = 0.0;
         xmax = end;
     }

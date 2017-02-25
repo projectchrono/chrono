@@ -40,7 +40,7 @@ class ChApi ChSolverSORmultithread : public ChIterativeSolver {
     virtual ~ChSolverSORmultithread();
 
     /// Return type of the solver.
-    virtual Type GetType() const { return Type::SOR_MULTITHREAD; }
+    virtual Type GetType() const override { return Type::SOR_MULTITHREAD; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.

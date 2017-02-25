@@ -1376,6 +1376,8 @@ namespace CONVEX_DECOMPOSITION
 		a -= b; a -= c; a ^= (c>>3);
 		b -= c; b -= a; b ^= (a<<10);
 		c -= a; c -= b; c ^= (b>>15);
+
+		return 0;
 	}
 
 	NX_INLINE NxU32 hash(const NxU32 *k, NxU32 length)
@@ -1465,6 +1467,7 @@ namespace CONVEX_DECOMPOSITION
 
 			HashBase(NxU32 initialTableSize = 64, float loadFactor = 0.75f):
 			mLoadFactor(loadFactor),
+				EOL(0xffffffff),
 				mFreeList((NxU32)EOL),
 				mTimestamp(0),
 				mSize(0),
@@ -1474,7 +1477,6 @@ namespace CONVEX_DECOMPOSITION
 			{
 				if(initialTableSize)
 					reserveInternal(initialTableSize);
-				EOL= 0xffffffff;
 			}
 
 			~HashBase()

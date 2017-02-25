@@ -102,6 +102,8 @@ class MyEventReceiver : public IEventReceiver {
                         GLOBAL_compliance = (((float)pos) / 100) / 1000000.0f;
                     }
                     break;
+                default:
+                    break;
             }
         }
 

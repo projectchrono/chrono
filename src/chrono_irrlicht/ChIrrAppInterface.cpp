@@ -123,6 +123,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_ESCAPE:
                 app->GetDevice()->closeDevice();
                 return true;
+            default:
+                break;
         }
     }
 
@@ -182,6 +184,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     (*(app->selectedspring))->Set_SpringK(25 * (*(app->selectedmover))->GetMass());
                     (*(app->selectedspring))->Set_SpringR(3 * (*(app->selectedmover))->GetMass());
                 }
+                break;
+            default:
                 break;
         }
     }
@@ -336,6 +340,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     app->SetSymbolscale(scale);
                     break;
                 }
+
+            default:
+                break;
         }
     }
 

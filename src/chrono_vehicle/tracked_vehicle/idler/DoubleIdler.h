@@ -46,12 +46,12 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
 
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
     virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
-    virtual double GetCarrierVisRadius() const { return m_carrier_vis_radius; }
+    virtual double GetCarrierVisRadius() const override { return m_carrier_vis_radius; }
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
 
     virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
-    virtual double GetTensionerFreeLength() const { return m_tensioner_l0; }
+    virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 

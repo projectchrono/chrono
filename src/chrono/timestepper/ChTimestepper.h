@@ -313,7 +313,7 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Euler semi-implicit timestepper.
@@ -354,7 +354,7 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
@@ -375,7 +375,7 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of a Leapfrog explicit integrator.
@@ -397,7 +397,7 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems.
@@ -422,7 +422,7 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems using the Anitescu/Stewart/Trinkle
@@ -449,7 +449,7 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of Euler implicit for II order systems using a semi implicit Euler without
@@ -476,7 +476,7 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit for II order systems.
@@ -505,7 +505,7 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -531,7 +531,7 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 };
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
@@ -600,7 +600,7 @@ class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplici
 
     /// Performs an integration timestep
     virtual void Advance(const double dt  ///< timestep to advance
-                         );
+                         ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

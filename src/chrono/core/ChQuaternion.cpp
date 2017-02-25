@@ -342,6 +342,8 @@ ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mang
         case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
+        default:
+            break;
     }
     res = Acoord.Get_A_quaternion();
     return res;
@@ -368,6 +370,8 @@ ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mqua
             break;
         case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
+            break;
+        default:
             break;
     }
     return res;
@@ -426,6 +430,8 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
         case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
+        default:
+            break;
     }
 
     switch (setto) {
@@ -443,6 +449,8 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
             break;
         case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
+            break;
+        default:
             break;
     }
     return res;

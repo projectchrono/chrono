@@ -64,6 +64,8 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
             m_suspensions[0] = std::make_shared<Generic_MultiLink>("FrontSusp");
             m_suspensions[1] = std::make_shared<Generic_MultiLink>("RearSusp");
             break;
+        default:
+            break;
     }
 
     // -----------------------------
@@ -110,6 +112,8 @@ void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chas
             break;
         case SuspensionType::MULTI_LINK:
             offset = ChVector<>(1.65, 0, -0.12);
+            break;
+        default:
             break;
     }
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
@@ -225,6 +229,8 @@ void Articulated_Vehicle::LogHardpointLocations() {
             std::static_pointer_cast<ChMultiLink>(m_suspensions[0])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChMultiLink>(m_suspensions[1])->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            break;
+        default:
             break;
     }
 

@@ -102,7 +102,7 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     void ChangedLinkMask();
 
     /// If some constraint is redundant, return to normal state
-    int RestoreRedundant();  ///< \return number of changed states
+    int RestoreRedundant() override;  ///< \return number of changed states
 
     /// User can use this to enable/disable all the constraint of
     /// the link as desired.

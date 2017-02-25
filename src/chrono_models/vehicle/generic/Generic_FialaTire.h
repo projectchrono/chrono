@@ -37,7 +37,7 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
         return m_normalDamping * velocity;
     }
 
-    virtual void SetFialaParams();
+    virtual void SetFialaParams() override;
 
   private:
     static const double m_normalStiffness;

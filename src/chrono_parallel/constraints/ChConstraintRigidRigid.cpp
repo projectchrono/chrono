@@ -167,6 +167,8 @@ void ChConstraintRigidRigid::host_Project_single(int index, vec2* ids, real3* fr
             func_Project_sliding(index, ids, friction, cohesion, gamma);
             func_Project_spinning(index, ids, friction, gamma);
         } break;
+        default:
+            break;
     }
 }
 
@@ -197,6 +199,8 @@ void ChConstraintRigidRigid::Project(real* gamma) {
                 func_Project_spinning(index, bids.data(), friction.data(), gamma);
             }
         } break;
+        default:
+            break;
     }
 }
 void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
@@ -218,6 +222,8 @@ void ChConstraintRigidRigid::Project_Single(int index, real* gamma) {
             func_Project_sliding(index, bids.data(), friction.data(), cohesion.data(), gamma);
             func_Project_spinning(index, bids.data(), friction.data(), gamma);
         } break;
+        default:
+            break;
     }
 }
 

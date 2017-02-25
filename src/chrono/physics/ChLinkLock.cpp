@@ -306,7 +306,7 @@ void ChLinkLock::UpdateTime(double time) {
         case AngleSet::EULERO:
         case AngleSet::CARDANO:
         case AngleSet::HPB:
-        case AngleSet::RXYZ:
+        case AngleSet::RXYZ: {
             Vector vangles, vangles_dt, vangles_dtdt;
             vangles.x() = motion_ang->Get_y(time);
             vangles.y() = motion_ang2->Get_y(time);
@@ -320,6 +320,9 @@ void ChLinkLock::UpdateTime(double time) {
             deltaC.rot = Angle_to_Quat(angleset, vangles);
             deltaC_dt.rot = AngleDT_to_QuatDT(angleset, vangles_dt, deltaC.rot);
             deltaC_dtdt.rot = AngleDTDT_to_QuatDTDT(angleset, vangles_dtdt, deltaC.rot);
+            break;
+        }
+        default:
             break;
     }
 }
