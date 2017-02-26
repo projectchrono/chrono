@@ -138,4 +138,10 @@ if(ENABLE_MODULE_FSI)
   	endif()
 endif()
 
-
+if(ENABLE_MODULE_DISTRIBUTED)
+	option(BUILD_DEMOS_DISTRIBUTED "Build demo programs for Distributed module" TRUE)
+ 	mark_as_advanced(FORCE BUILD_DEMOS_DISTRIBUTED)
+	if(BUILD_DEMOS_DISTRIBUTED)
+  		add_subdirectory(distributed)
+  	endif()
+endif()
