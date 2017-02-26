@@ -17,12 +17,24 @@
 
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/comm/ChCommDistr.h"
 
 #include "chrono_parallel/ChDataManager.h"
 
 #include <memory>
 
 namespace chrono {
+
+namespace communication {
+
+enum COMM_STATUS {
+	OWNED,
+	GHOST,
+	SHARED_UP,
+	SHARED_DOWN
+};
+
+}
 
 class ChSystemDistr;
 
@@ -32,6 +44,7 @@ public:
 	virtual ~ChDataManagerDistr();
 
 	std::vector<unsigned int> global_id;
+	std::vector<chrono::communication::COMM_STATUS> comm_status;
 
 protected:
 	ChSystemDistr *my_sys;

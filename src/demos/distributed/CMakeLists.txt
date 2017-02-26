@@ -1,6 +1,6 @@
 #--------------------------------------------------------------
 set(DISTRIBUTED_TESTS
-    #demo_DISTR_system
+    demo_DISTR_system
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
@@ -8,9 +8,9 @@ set(LINKER_FLAGS "${CH_LINKERFLAG_EXE}")
 set(LIBRARIES
     ChronoEngine
     ChronoEngine_parallel
-    ChronoEngine_Distributed)
+    ChronoEngine_distributed)
 
-include_directories(${CH_DISTRIBUTED_INCLUDES})
+include_directories(${CH_DISTRIBUTED_INCLUDES} ${CH_PARALLEL_INCLUDES})
 
 message(STATUS "Additional test programs for DISTRIBUTED module...")
 
@@ -24,10 +24,12 @@ foreach(PROGRAM ${DISTRIBUTED_TESTS})
 
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER tests
-        COMPILE_FLAGS "${COMPILER_FLAGS}"
+        COMPILE_FLAGS "${COMPILER_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
         LINK_FLAGS "${LINKER_FLAGS}"
     )
 
     target_link_libraries(${PROGRAM} ${LIBRARIES})
-
+	ADD_DEPENDENCIES(${PROGRAM} ${LIBRARIES})
+	INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
+	
 endforeach()

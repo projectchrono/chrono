@@ -21,13 +21,10 @@
 
 #include <memory>
 
-namespace chrono {
+using namespace chrono;
 
 ChDataManagerDistr::ChDataManagerDistr(ChSystemDistr *my_sys) : ChParallelDataManager() {
 	this->my_sys = my_sys;
 }
 
 ChDataManagerDistr::~ChDataManagerDistr() {}
-
-
-} /* namespace chrono */

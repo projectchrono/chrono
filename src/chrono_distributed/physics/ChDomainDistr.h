@@ -22,6 +22,7 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/ChDataManagerDistr.h"
 #include "chrono_distributed/ChApiDistributed.h"
 
 namespace chrono {
@@ -31,14 +32,30 @@ class ChSystemDistr;
 class CH_DISTR_API ChDomainDistr {
 
 public:
-	ChDomainDistr(std::shared_ptr<ChSystemDistr> sys);
+	ChDomainDistr(ChSystemDistr *sys);
 	virtual ~ChDomainDistr();
 	void SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi);
 	
-	virtual void SplitDomain() = 0;
-	virtual bool InSub(std::shared_ptr<ChBody> body) = 0;
-	virtual bool InGhost(std::shared_ptr<ChBody>) = 0;
-	virtual std::forward_list<int>::iterator GetNeighItr() = 0;
+	/// Calculates the borders of this subdomain based on the rank
+	virtual void SplitDomain();
+
+	/// Returns true if the specified body is strictly inside this subdomain
+	virtual int InSub(int index);
+	virtual int InSub(std::shared_ptr<ChBody> body);
+
+	/// Returns: 0 if the body is not in the ghost layer
+	/// 1 if the body is in the next rank up
+	/// 2 if the body is in the next rank down
+	virtual int InGhost(int index);
+	virtual int InGhost(std::shared_ptr<ChBody> body);
+
+	virtual int InShared(int index);
+	virtual int InShared(std::shared_ptr<ChBody> body);
+
+	virtual int GetCommStatus(int index);
+	virtual int GetCommStatus(std::shared_ptr<ChBody> body);
+
+	virtual void PrintDomain();
 
 	ChVector<double> GetBoxLo() {return boxlo;}
 	ChVector<double> GetBoxHi() {return boxhi;}
@@ -49,7 +66,7 @@ public:
 	int GetLongAxis() {return long_axis;}
 
 protected:
-	std::shared_ptr<ChSystemDistr> my_sys;
+	ChSystemDistr *my_sys;
 
 	int long_axis;
 
@@ -58,8 +75,6 @@ protected:
 
 	ChVector<double> sublo; // Lower coordinates of this subdomain, 0=x,1=y,2=z
 	ChVector<double> subhi; // Upper coordinates of this subdomain
-
-	std::forward_list<int> neigh_ranks; // List of the MPI ranks whose subdomains border the local subdomain
 };
 
 } /* namespace chrono */

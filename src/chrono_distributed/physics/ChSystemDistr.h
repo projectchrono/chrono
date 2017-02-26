@@ -27,11 +27,6 @@
 #include "chrono_distributed/ChDataManagerDistr.h"
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "chrono_parallel/ChSettings.h"
-#include "chrono_parallel/collision/ChCollisionModelParallel.h"
-#include "chrono_parallel/collision/ChCollisionSystemParallel.h"
-#include "chrono_parallel/math/real3.h"
-#include "chrono_parallel/math/other_types.h"
 
 namespace chrono {
 
@@ -48,7 +43,7 @@ public:
 	int GetRanks() {return num_ranks;}
 	int GetMyRank() {return my_rank;}
 
-	std::shared_ptr<ChDomainDistr> GetDomain() {return domain;}
+	ChDomainDistr* GetDomain() {return domain;}
 	
 	ChDataManagerDistr* GetDataManager() {return data_manager;}
 
@@ -56,15 +51,17 @@ public:
 	void SetGhostLayer(double thickness) { if (ghost_layer > 0) ghost_layer = thickness; }
 	double GetGhostLayer() {return ghost_layer;}
 
-	virtual void AddBody(std::shared_ptr<ChBody> newbody) override; // TODO: Needs to overwrite Chrono::Parallel
+	void AddBody(std::shared_ptr<ChBody> newbody) override;
 
-	virtual bool Integrate_Y() override; //TODO
-	void SetDomainImpl(std::shared_ptr<ChDomainDistr> dom);
+	int DoStepDynamics(double m_step); // TODO yeah...
+    virtual bool Integrate_Y() override;
+	void SetDomainImpl(ChDomainDistr *dom);
 	void ErrorAbort(std::string msg);
+	void PrintBodyStatus();
 
 	// A running count of the number of global bodies for
 	// identification purposes
-	int num_bodies_global;
+	unsigned int num_bodies_global;
 
 	double ghost_layer;
 
@@ -75,18 +72,14 @@ public:
 	// TODO
 	ChDataManagerDistr* data_manager;
 
-
 	// World of MPI ranks for the simulation
 	MPI_Comm world;
 
 	// Class for domain decomposition
-	std::shared_ptr<ChDomainDistr> domain;
+	ChDomainDistr *domain;
 
 	// Class for MPI communication
-	std::shared_ptr<ChCommDistr> comm;
-
-	// Class for collision detection
-	collision::ChCollisionSystem *collision_system;
+	ChCommDistr *comm;
 
 	// A body whose center is this far from the subdomain will be kept as a ghost.
 

@@ -81,10 +81,8 @@ SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})
 SET(ChronoEngine_distributed_PHYSICS
     physics/ChSystemDistr.h
     physics/ChDomainDistr.h
-    physics/ChDomainDistrLong.h
     physics/ChSystemDistr.cpp
 	physics/ChDomainDistr.cpp
-	physics/ChDomainDistrLong.cpp
     )
     
 SOURCE_GROUP(physics FILES ${ChronoEngine_distributed_PHYSICS})

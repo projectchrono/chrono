@@ -26,10 +26,11 @@
 namespace chrono {
 
 class ChDataManagerDistr;
+class ChSystemDistr;
 
 class CH_DISTR_API ChCommDistr {
 public:
-	ChCommDistr(std::shared_ptr<ChSystemDistr> my_sys);
+	ChCommDistr(ChSystemDistr *my_sys);
 	virtual ~ChCommDistr();
 
 	// Locate each body that has left the subdomain,
@@ -48,24 +49,28 @@ public:
 	// Unpacks a sphere body from the buffer into body.
 	// Note: body is meant to be a ptr into the data structure
 	// where the body should be unpacks.
-	void UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
+	int UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
+
+	// Packs a message that the body at index has completely left the subdomain
+	int PackTransferOwner(double *buf, int index);
+
+	// Marks the existing ghost as owned
+	int UnpackTransferOwner(double *buf);
 
 	// Packs a body to be sent to update its ghost on another rank
 	int PackUpdate(double *buf, int index);
 	
 	// Unpacks an incoming body to update a ghost
-	void UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
+	int UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
 
 	ChDataManagerDistr* data_manager;
 
 protected:
-	std::shared_ptr<ChSystemDistr> my_sys;
-	double *send_buf;
-	int num_send;
-
-	double *recv_buf;
-	int num_recv;
-
+	ChSystemDistr *my_sys;
+	double *sendup_buf;
+	double *senddown_buf;
+	int num_sendup;
+	int num_senddown;
 };
 
 } /* namespace chrono */
