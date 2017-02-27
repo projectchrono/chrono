@@ -41,7 +41,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     virtual int GetNdofs() override { return 2 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
         nodes[0] = nodeA;
@@ -59,7 +59,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     /// Fills the D vector (column matrix) with the current
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override {
         mD.Reset(this->GetNdofs(), 1);
         mD.PasteVector(this->nodes[0]->GetPos(), 0, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), 3, 0);
@@ -68,7 +68,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
     /// (For the spring matrix there is no need to corotate local matrices: we already know a closed form expression.)
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
         assert((H.GetRows() == 6) && (H.GetColumns() == 6));
 
         // compute stiffness matrix (this is already the explicit
@@ -96,7 +96,7 @@ class ChApiFea ChElementSpring : public ChElementGeneric {
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
         assert((Fi.GetRows() == 6) && (Fi.GetColumns() == 1));
 
         ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();

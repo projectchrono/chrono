@@ -320,7 +320,7 @@ void ChMatterMeshless::IntLoadResidual_F(
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
         GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -481,7 +481,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
         GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }

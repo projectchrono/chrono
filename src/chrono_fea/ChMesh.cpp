@@ -275,7 +275,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off,  // offset in R residual 
         common_gravity_loader->loader.SetNumIntPoints(num_points_gravity);
 
         for (unsigned int ie = 0; ie < velements.size(); ie++) {
-            if (mloadable = std::dynamic_pointer_cast<ChLoadableUVW>(velements[ie])) {
+            if ((mloadable = std::dynamic_pointer_cast<ChLoadableUVW>(velements[ie]))) {
                 if (mloadable->GetDensity()) {
                     // temporary set loader target and compute generalized forces term
                     common_gravity_loader->loader.loadable = mloadable;

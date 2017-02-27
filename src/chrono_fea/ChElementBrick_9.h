@@ -270,7 +270,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual void Update() override;
 
     /// Fill the D vector (column matrix) with the current states of the element nodes.
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD);
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
     /// Initial element setup.
     virtual void SetupInitial(ChSystem* system) override;

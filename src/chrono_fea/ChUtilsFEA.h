@@ -71,7 +71,7 @@ bool LU_factor(ChMatrixNM<double, N, N>& A,  ///< [input/output] matrix to be fa
                 SUM -= A(I, K) * A(K, J);
             }
             A(I, J) = SUM;
-            if (DUM = VV(I) * std::abs(SUM) >= AAMAX) {
+            if ((DUM = VV(I) * std::abs(SUM)) >= AAMAX) {
                 IMAX = I;
                 AAMAX = DUM;
             }

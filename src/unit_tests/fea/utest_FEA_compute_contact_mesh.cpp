@@ -278,6 +278,8 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             system->SetTolForce(1e-6);
             break;
         }
+        default:
+            break;
     }
 
     // ----------------
