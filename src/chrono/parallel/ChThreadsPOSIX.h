@@ -17,6 +17,13 @@
 #include "chrono/parallel/ChThreadsFunct.h"
 #include "chrono/collision/bullet/LinearMath/btAlignedObjectArray.h"
 
+// macOS platform-specific headers:
+#if defined(__APPLE__)
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <cerrno>
+#endif
+
 // UNIX - LINUX platform specific:
 #include <pthread.h>
 #include <semaphore.h>
@@ -36,7 +43,12 @@ struct ChThreadStatePOSIX {
     void* m_lsMemory;               // initialized using PosixLocalStoreMemorySetupFunc
 
     pthread_t thread;
+
+    #if defined(__APPLE__)
+    sem_t* startSemaphore;
+    #else
     sem_t startSemaphore;
+    #endif
 
     sem_t* mainSemaphore;
 
@@ -50,7 +62,11 @@ class ChApi ChThreadsPOSIX {
     std::string uniqueName;
 
     // this semaphore will signal, if and how many threads are finished with their work
+    #if defined(__APPLE__)
+    sem_t* mainSemaphore;
+    #else
     sem_t mainSemaphore;
+    #endif
 
   public:
     /// Constructor: create and initialize N threads.
