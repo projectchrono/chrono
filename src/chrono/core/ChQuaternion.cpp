@@ -116,13 +116,13 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
     double cosangle = ChClamp(fr_vect ^ to_vect / lenXlen, -1.0, +1.0);
 
     // Consider three cases: Parallel, Opposite, non-colinear
-    if (abs(sinangle) == 0.0 && cosangle > 0) {
+    if (std::abs(sinangle) == 0.0 && cosangle > 0) {
         // fr_vect & to_vect are parallel
         quat.e0() = 1.0;
         quat.e1() = 0.0;
         quat.e2() = 0.0;
         quat.e3() = 0.0;
-    } else if (abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
+    } else if (std::abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
         // fr_vect & to_vect are opposite, i.e. ~180 deg apart
         axis = fr_vect.GetOrthogonalVector() + (-to_vect).GetOrthogonalVector();
         axis.Normalize();
