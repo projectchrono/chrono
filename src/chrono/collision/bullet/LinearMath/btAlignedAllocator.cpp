@@ -14,6 +14,7 @@ subject to the following restrictions:
 */
 
 #include "btAlignedAllocator.h"
+#include <stdint.h>
 
 int gNumAlignedAllocs = 0;
 int gNumAlignedFree = 0;
@@ -62,11 +63,11 @@ static inline void *btAlignedAllocDefault(size_t size, int alignment)
 {
   void *ret;
   char *real;
-  unsigned long offset;
+  uint64_t offset;
 
   real = (char *)sAllocFunc(size + sizeof(void *) + (alignment-1));
   if (real) {
-    offset = (alignment - (unsigned long)(real + sizeof(void *))) & (alignment-1);
+    offset = (alignment - (uint64_t)(real + sizeof(void *))) & (alignment-1);
     ret = (void *)((real + sizeof(void *)) + offset);
     *((void **)(ret)-1) = (void *)(real);
   } else {

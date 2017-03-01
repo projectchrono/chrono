@@ -16,7 +16,7 @@ subject to the following restrictions:
 #include "bCommon.h"
 #include "bChunk.h"
 #include "bDNA.h"
-#include <math.h>
+#include <cmath>
 #include <string.h>
 #include <stdlib.h>
 #include "bDefines.h"

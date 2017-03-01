@@ -16,7 +16,7 @@ subject to the following restrictions:
 
 //#define NOMINMAX
 #include <algorithm>
-
+#define BT_USE_DOUBLE_PRECISION
 #include "btCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
