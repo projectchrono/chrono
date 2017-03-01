@@ -930,7 +930,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                     double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
                                     Yfunc1 = SQRJ2T + eta * P -
                                              gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-                                    if (abs(Yfunc1) < m_element->GetDPYieldTol())
+                                    if (std::abs(Yfunc1) < m_element->GetDPYieldTol())
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
@@ -1055,14 +1055,14 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                             DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                                 (P - hydroPt + MeanEffP);
 
-                                    if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                    if (std::abs(Hi) < m_element->GetDPYieldTol()) {
                                         if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
                                             sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
 
                                             break;
                                     } else {
-                                        if (sqrt(Res01 * Res01) / abs(Hi) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) / abs(Hi) < m_element->GetDPYieldTol())
+                                        if (sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
 
                                             break;
                                     }
@@ -1149,11 +1149,11 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
                                                 (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
-                                        if (abs(Hi) < m_element->GetDPYieldTol()) {
-                                            if (abs(Res01) < m_element->GetDPYieldTol())
+                                        if (std::abs(Hi) < m_element->GetDPYieldTol()) {
+                                            if (std::abs(Res01) < m_element->GetDPYieldTol())
                                                 break;
                                         } else {
-                                            if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
+                                            if (std::abs(Res01) / std::abs(Hi) < m_element->GetDPYieldTol())
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)
@@ -2021,7 +2021,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                     double EpBar = m_element->m_Alpha_Plast(m_element->m_InteCounter, 0) + gsi * DGamma;
                                     Yfunc1 = SQRJ2T + eta * P -
                                              gsi * (m_element->m_YieldStress + m_element->m_HardeningSlope * EpBar);
-                                    if (abs(Yfunc1) < m_element->GetDPYieldTol())
+                                    if (std::abs(Yfunc1) < m_element->GetDPYieldTol())
                                         break;
 
                                     if (ii == m_element->GetDPIterationNo() - 1)
@@ -2185,13 +2185,13 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                             DGamma * 2.0 / (m_element->m_DPCapBeta * m_element->m_DPCapBeta) *
                                                 (P - hydroPt + MeanEffP);
 
-                                    if (abs(Hi) < m_element->GetDPYieldTol()) {
+                                    if (std::abs(Hi) < m_element->GetDPYieldTol()) {
                                         if (sqrt(Res01 * Res01) < m_element->GetDPYieldTol() &&
                                             sqrt(Res02 * Res02) < m_element->GetDPYieldTol())
                                             break;
                                     } else {
-                                        if (sqrt(Res01 * Res01) / abs(Hi) < m_element->GetDPYieldTol() &&
-                                            sqrt(Res02 * Res02) / abs(Hi) < m_element->GetDPYieldTol())
+                                        if (sqrt(Res01 * Res01) / std::abs(Hi) < m_element->GetDPYieldTol() &&
+                                            sqrt(Res02 * Res02) / std::abs(Hi) < m_element->GetDPYieldTol())
                                             break;
                                     }
                                     if (ii == m_element->GetDPIterationNo() - 1)
@@ -2275,11 +2275,11 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                                     (P - hydroPt + MeanEffP) * (P - hydroPt + MeanEffP) +
                                                 (sqrt(3.0) * SQRJ2 / CapM) * (sqrt(3.0) * SQRJ2 / CapM) -
                                                 MeanEffP * MeanEffP;
-                                        if (abs(Hi) < m_element->GetDPYieldTol()) {
-                                            if (abs(Res01) < m_element->GetDPYieldTol())
+                                        if (std::abs(Hi) < m_element->GetDPYieldTol()) {
+                                            if (std::abs(Res01) < m_element->GetDPYieldTol())
                                                 break;
                                         } else {
-                                            if (abs(Res01) / abs(Hi) < m_element->GetDPYieldTol())
+                                            if (std::abs(Res01) / std::abs(Hi) < m_element->GetDPYieldTol())
                                                 break;
                                         }
                                         if (ii == m_element->GetDPIterationNo() - 1)

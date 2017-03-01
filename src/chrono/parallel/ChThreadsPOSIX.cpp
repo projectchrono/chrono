@@ -49,11 +49,7 @@ static void* threadFunction(void* argument) {
             status->m_userThreadFunc(userPtr, status->m_lsMemory);
             status->m_status = 2;
             checkPThreadFunction(
-            #if defined(__APPLE__)
                 sem_post(status->mainSemaphore)
-            #else
-                sem_post(&status->mainSemaphore)
-            #endif
             );
 
             // status->threadUsed++;

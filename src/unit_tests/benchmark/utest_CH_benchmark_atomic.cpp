@@ -13,7 +13,7 @@
 #include "chrono/physics/ChGlobal.h"
 
 #if defined(__APPLE__)
-#include <libkern/OSAtomic.h>
+#include <stdatomic.h>
 #endif
 #include <iostream>
 
@@ -28,13 +28,17 @@ int main() {
     OSX.start();
     for (int j = 0; j < 100; j++) {
         for (int i = 0; i < 1000000; i++) {
-            static volatile int32_t id = first;
-            OSAtomicIncrement32Barrier(&id);
+            static volatile _Atomic(int) id = first;
+            //OSAtomicIncrement32Barrier(&id); // DEPRECATED in macOS Sierra
+            atomic_fetch_add(&id, 1);
         }
     }
     OSX.stop();
     double result_OSX = OSX();
-    cout << "OSAtomicIncrement32Barrier: " << result_OSX << " " << result_OSX / 100000000.0 << endl;
+
+    // Deprecated in macOS Sierra
+    // cout << "OSAtomicIncrement32Barrier: " << result_OSX << " " << result_OSX / 100000000.0 << endl;
+    cout << "atomic_fetch_add: " << result_OSX << " " << result_OSX / 100000000.0 << endl;
 #endif
 
 #if defined(__GNUC__)
