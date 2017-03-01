@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
         for (unsigned int it = 0; it < num_steps_UT; it++) {
             my_system.DoStepDynamics(step_size);
             std::cout << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << std::endl;
-            double err = abs(nodetip->GetPos().z() - FileInputMat[it][1]);
+            double err = std::abs(nodetip->GetPos().z() - FileInputMat[it][1]);
             max_err = std::max(max_err, err);
             if (err > precision) {
                 std::cout << "Unit test check failed -- node_tip: " << nodetip->pos.z()

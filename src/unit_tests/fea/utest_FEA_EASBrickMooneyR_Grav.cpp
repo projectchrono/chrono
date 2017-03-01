@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
         // Simulate to final time, while accumulating number of iterations.
         while (my_system.GetChTime() < sim_time_UT) {
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
             GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
