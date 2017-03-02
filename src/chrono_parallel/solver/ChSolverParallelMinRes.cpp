@@ -15,7 +15,7 @@ uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
     real& residual = data_manager->measures.solver.residual;
     real& objective_value = data_manager->measures.solver.objective_value;
 
-    uint N = mb.size();
+    uint N = (uint)mb.size();
 
     v.resize(N);
     v_hat.resize(x.size());
@@ -39,7 +39,7 @@ uint ChSolverParallelMinRes::Solve(ChShurProduct& ShurProduct,
         return 0;
     }
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         //// Lanczos
         v_old = v;
         v = 1.0 / beta * v_hat;

@@ -24,6 +24,12 @@
 #include <hacdMeshDecimator.h>
 #include <hacdRaycastMesh.h>
 
+#if defined _WIN32
+#define SIZET_FMT "%zu"
+#else
+#define SIZET_FMT "%lu"
+#endif
+
 //#define THREAD_DIST_POINTS 1
 
 //#define HACD_DEBUG
@@ -143,7 +149,7 @@ namespace HACD
             if (m_callBack)
             {
                 char msg[1024];
-                sprintf(msg, "nCC %lu\n", m_graph.m_nCCs);
+                sprintf(msg, "nCC " SIZET_FMT "\n", m_graph.m_nCCs);
                 (*m_callBack)(msg, 0.0, 0.0,  m_graph.GetNVertices());
                 
             }
@@ -316,7 +322,7 @@ namespace HACD
                 {
 					m_extraDistPoints[f] = hitPoint;
 					m_extraDistNormals[f] = hitNormal;
-					m_graph.m_vertices[f].m_distPoints.PushBack(DPoint(m_nPoints+f, 0, false, true));
+					m_graph.m_vertices[f].m_distPoints.PushBack(DPoint((long)(m_nPoints+f), 0, false, true));
 				}
 
 				// Atomic update of the progress
@@ -874,7 +880,7 @@ namespace HACD
                 if (m_callBack) 
                 {
                     char msg[1024];
-                    sprintf(msg, "\t CH(%lu) \t %lu \t %lf \t %lu \t %f \t %lu\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
+                    sprintf(msg, "\t CH(" SIZET_FMT ") \t %lu \t %lf \t " SIZET_FMT " \t %f \t " SIZET_FMT "\n", v, static_cast<unsigned long>(p), m_graph.m_vertices[v].m_concavity, m_graph.m_vertices[v].m_distPoints.Size(),  m_graph.m_vertices[v].m_surf*100.0/m_area, m_graph.m_vertices[v].m_ancestors.size());
 					(*m_callBack)(msg, 0.0, 0.0, m_nClusters);
 					p++;
                 }

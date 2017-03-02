@@ -118,7 +118,9 @@ void ChCBroadphase::DetermineBoundingBox() {
 void ChCBroadphase::OffsetAABB() {
     custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
+
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
     // Offset tet aabb
@@ -219,7 +221,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     }
 
     Thrust_Sort_By_Key(bin_number, bin_aabb_number);
-    number_of_bins_active = Run_Length_Encode(bin_number, bin_number_out, bin_start_index);
+    number_of_bins_active = (int)(Run_Length_Encode(bin_number, bin_number_out, bin_start_index));
 
     if (number_of_bins_active <= 0) {
         number_of_contacts_possible = 0;
@@ -236,7 +238,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     bin_num_contact[number_of_bins_active] = 0;
 
 #pragma omp parallel for
-    for (int i = 0; i < number_of_bins_active; i++) {
+    for (int i = 0; i < (signed)number_of_bins_active; i++) {
         f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, fam_data, obj_active, obj_data_id,
                                        bin_num_contact);
@@ -248,7 +250,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
 
 #pragma omp parallel for
-    for (int index = 0; index < number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)number_of_bins_active; index++) {
         f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
                                        obj_data_id, contact_pairs);

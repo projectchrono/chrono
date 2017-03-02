@@ -59,6 +59,8 @@
 #include "NvUserMemAlloc.h"
 #include "NvHashMap.h"
 
+#include <cmath>
+
 namespace CONVEX_DECOMPOSITION
 {
 

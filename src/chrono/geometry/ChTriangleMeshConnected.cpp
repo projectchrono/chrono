@@ -1297,7 +1297,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<> Vnew = (mesh.m_vertices[i1] + mesh.m_vertices[i2]) * 0.5;
             mesh.m_vertices.push_back(Vnew);
-            created_index = mesh.m_vertices.size()-1;
+            created_index = (int)mesh.m_vertices.size()-1;
             return true;
         }
         case 1: {
@@ -1306,7 +1306,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
             ChVector<> Vnew = (mesh.m_normals[i1] + mesh.m_normals[i2]) * 0.5;
             Vnew.Normalize();
             mesh.m_normals.push_back(Vnew);
-            created_index = mesh.m_normals.size()-1;
+            created_index = (int)mesh.m_normals.size()-1;
             return true;
         }
         case 2: {
@@ -1314,7 +1314,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<> Vnew = (mesh.m_UV[i1] + mesh.m_UV[i2]) * 0.5;
             mesh.m_UV.push_back(Vnew);
-            created_index = mesh.m_UV.size()-1;
+            created_index = (int)mesh.m_UV.size()-1;
             return true;
         }
         case 3: {
@@ -1322,7 +1322,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<float> Vnew = (mesh.m_colors[i1] + mesh.m_colors[i2]) * 0.5;
             mesh.m_colors.push_back(Vnew);
-            created_index = mesh.m_colors.size()-1;
+            created_index = (int)mesh.m_colors.size()-1;
             return true;
         }
         default:
@@ -1403,7 +1403,7 @@ bool ChTriangleMeshConnected::SplitEdge (
             face_indexes[ibuffer]->at(itA) = tA_1; // reuse face
             itA_1 = itA;
             face_indexes[ibuffer]->push_back(tA_2); // allocate new face
-            itA_2 = face_indexes[ibuffer]->size() -1;
+            itA_2 = (int)face_indexes[ibuffer]->size() -1;
 
             // Split triangle B in two (reuse existing, and allocate one new)
             if (itB != -1) {
@@ -1418,7 +1418,7 @@ bool ChTriangleMeshConnected::SplitEdge (
                 face_indexes[ibuffer]->at(itB) = tB_1; // reuse face 
                 itB_1 = itB;
                 face_indexes[ibuffer]->push_back(tB_2); // allocate new face
-                itB_2 = face_indexes[ibuffer]->size() -1;
+                itB_2 = (int)face_indexes[ibuffer]->size() -1;
             }
 
             // for m_face_v_indices buffer (vertex indexes) only:
@@ -1445,7 +1445,7 @@ bool ChTriangleMeshConnected::SplitEdge (
                         tri_map[itC][in] = itA_2;
                 tri_map[itA] = topo_A_1; // reuse  
                 tri_map.push_back(topo_A_2); // allocate
-                topo_A_2[0] = tri_map.size() -1;
+                topo_A_2[0] = (int)tri_map.size() -1;
 
                 if (itB != -1) {
                     std::array<int, 4> topo_B_1 = tri_map[itB];
@@ -1467,7 +1467,7 @@ bool ChTriangleMeshConnected::SplitEdge (
                             tri_map[itE][in] = itB_2;
                     tri_map[itB] = topo_B_1; // reuse  
                     tri_map.push_back(topo_B_2); // allocate
-                    topo_B_2[0] = tri_map.size() -1;
+                    topo_B_2[0] = (int)tri_map.size() -1;
                 }
             }
         } else {

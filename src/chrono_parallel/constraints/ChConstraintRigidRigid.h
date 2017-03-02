@@ -50,7 +50,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
             quat_b.resize(num_contacts);
 
 #pragma omp parallel for
-            for (int i = 0; i < num_contacts; i++) {
+            for (int i = 0; i < (signed)num_contacts; i++) {
                 vec2 body = data_manager->host_data.bids_rigid_rigid[i];
                 uint b1 = body.x;
                 uint b2 = body.y;

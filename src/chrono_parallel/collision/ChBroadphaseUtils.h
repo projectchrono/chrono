@@ -50,18 +50,18 @@ struct bbox_transformation : public thrust::unary_function<real3, bbox> {
 template <class T>
 inline vec3 HashMin(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
-    temp.x = Floor(A.x * inv_bin_size_vec.x);
-    temp.y = Floor(A.y * inv_bin_size_vec.y);
-    temp.z = Floor(A.z * inv_bin_size_vec.z);
+    temp.x = (int)Floor(A.x * inv_bin_size_vec.x);
+    temp.y = (int)Floor(A.y * inv_bin_size_vec.y);
+    temp.z = (int)Floor(A.z * inv_bin_size_vec.z);
     return temp;
 }
 
 template <class T>
 inline vec3 HashMax(const T& A, const real3& inv_bin_size_vec) {
     vec3 temp;
-    temp.x = Ceil(A.x * inv_bin_size_vec.x) - 1;
-    temp.y = Ceil(A.y * inv_bin_size_vec.y) - 1;
-    temp.z = Ceil(A.z * inv_bin_size_vec.z) - 1;
+    temp.x = (int)Ceil(A.x * inv_bin_size_vec.x) - 1;
+    temp.y = (int)Ceil(A.y * inv_bin_size_vec.y) - 1;
+    temp.z = (int)Ceil(A.z * inv_bin_size_vec.z) - 1;
     return temp;
 }
 
@@ -275,9 +275,9 @@ static inline void f_Store_AABB_BIN_Intersection(const uint index,
     vec3 gmin = HashMin(aabb_min_data[index], inv_bin_size);
     vec3 gmax = HashMax(aabb_max_data[index], inv_bin_size);
     uint mInd = bins_intersected[index];
-    for (i = gmin.x; i <= gmax.x; i++) {
-        for (j = gmin.y; j <= gmax.y; j++) {
-            for (k = gmin.z; k <= gmax.z; k++) {
+    for (i = gmin.x; i <= (uint)gmax.x; i++) {
+        for (j = gmin.y; j <= (uint)gmax.y; j++) {
+            for (k = gmin.z; k <= (uint)gmax.z; k++) {
                 bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                 aabb_number[mInd + count] = index;
                 count++;
@@ -369,7 +369,7 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
         short2 famA = fam_data[shapeA];
         uint bodyA = body_id[shapeA];
 
-        for (int k = i + 1; k < end; k++) {
+        for (uint k = i + 1; k < end; k++) {
             uint shapeB = aabb_number[k];
             uint bodyB = body_id[shapeB];
             real3 Bmin = aabb_min_data[shapeB];

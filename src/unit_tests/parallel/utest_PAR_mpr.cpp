@@ -53,7 +53,7 @@ real3 ToReal3(const btVector3& v) {
 }
 
 btVector3 ToBtVec(const real3& v) {
-    return btVector3(v.x, v.y, v.z);
+    return btVector3((btScalar)v.x, (btScalar)v.y, (btScalar)v.z);
 }
 
 // =============================================================================
@@ -68,7 +68,7 @@ void test_support_functions() {
         real3 R = real3(3.0, 1, 2);
         real3 answer_a = GetSupportPoint_Sphere(R.x, Dir);
 
-        btSphereShape shape(R.x);
+        btSphereShape shape((btScalar)R.x);
         shape.setMargin(0);
         real3 answer_b = R.x * Dir;  // ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
 
@@ -82,7 +82,7 @@ void test_support_functions() {
 
         btBoxShape shape(ToBtVec(R));
         shape.setMargin(0);
-        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
 
         WeakEqual(answer_a, answer_b, precision);
     }
@@ -94,7 +94,7 @@ void test_support_functions() {
 
         btCylinderShape shape(ToBtVec(R));
         shape.setMargin(0);
-        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
 
         WeakEqual(answer_a, answer_b, precision);
     }
@@ -104,9 +104,9 @@ void test_support_functions() {
         real3 R = real3(3.0, 1.0, 3.0);
         real3 answer_a = GetSupportPoint_Cone(R, Dir);
 
-        btConeShape shape(R.x, R.y);
+        btConeShape shape((btScalar)R.x, (btScalar)R.y);
         shape.setMargin(0);
-        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3(Dir.x, Dir.y, Dir.z)));
+        real3 answer_b = ToReal3(shape.localGetSupportingVertex(btVector3((btScalar)Dir.x, (btScalar)Dir.y, (btScalar)Dir.z)));
 
         WeakEqual(answer_a, answer_b, precision);
     }

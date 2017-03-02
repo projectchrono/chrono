@@ -107,7 +107,7 @@ bool ChSystemParallel::Integrate_Y() {
     // Iterate over the active bilateral constraints and store their Lagrange
     // multiplier.
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
-    for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
     }
@@ -151,7 +151,7 @@ bool ChSystemParallel::Integrate_Y() {
     }
 
     ////#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_shafts; i++) {
+    for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         if (!data_manager->host_data.shaft_active[i])
             continue;
 
@@ -334,12 +334,12 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 //
 void ChSystemParallel::ClearForceVariables() {
 #pragma omp parallel for
-    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+    for (int i = 0; i < (signed)data_manager->num_rigid_bodies; i++) {
         bodylist[i]->VariablesFbReset();
     }
 
     ////#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_shafts; i++) {
+    for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         shaftlist[i]->VariablesFbReset();
     }
 }
@@ -435,7 +435,7 @@ void ChSystemParallel::UpdateShafts() {
     char* shaft_active = data_manager->host_data.shaft_active.data();
 
     ////#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_shafts; i++) {
+    for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         shaftlist[i]->Update(ChTime, false);
         shaftlist[i]->VariablesFbLoadForces(GetStep());
         shaftlist[i]->VariablesQbLoadSpeed();
@@ -578,7 +578,7 @@ void ChSystemParallel::UpdateBilaterals() {
         }
     }
     // Set the number of currently active bilateral constraints.
-    data_manager->num_bilaterals = data_manager->host_data.bilateral_mapping.size();
+    data_manager->num_bilaterals = (uint)data_manager->host_data.bilateral_mapping.size();
 }
 
 //
@@ -708,7 +708,7 @@ double ChSystemParallel::CalculateConstraintViolation(std::vector<double>& cvec)
     cvec.resize(data_manager->num_bilaterals);
     double max_c = 0;
 
-    for (int index = 0; index < data_manager->num_bilaterals; index++) {
+    for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         cvec[index] = mconstraints[cntr]->Compute_c_i();
         double abs_c = std::abs(cvec[index]);

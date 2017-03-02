@@ -42,7 +42,7 @@ uint ChSolverParallelJacobi::Solve(ChShurProduct& ShurProduct,
     // rigid fluid norm
     // rigid fluid tan
 
-    for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
         D[index] = Nshur(index, index) + Nshur(num_contacts + index * 2 + 0, num_contacts + index * 2 + 0) +
                    Nshur(num_contacts + index * 2 + 1, num_contacts + index * 2 + 1);
         D[index] = 3.0 / D[index];
@@ -78,7 +78,7 @@ uint ChSolverParallelJacobi::Solve(ChShurProduct& ShurProduct,
         }
     }
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;  // 2.0 / eignenval;//1.0 / 3.0;
         ml = ml_old - omega * D * (Nshur * ml_old - r);
 
