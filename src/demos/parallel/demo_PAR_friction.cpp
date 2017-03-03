@@ -58,12 +58,12 @@ int main(int argc, char** argv) {
     // Set number of threads
     system.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
-#pragma omp parallel
-#pragma omp master
-    {
-        // Sanity check: print number of threads in a parallel region
-        std::cout << "Actual number of OpenMP threads: " << omp_get_num_threads() << std::endl;
-    }
+////#pragma omp parallel
+////#pragma omp master
+////    {
+////        // Sanity check: print number of threads in a parallel region
+////        std::cout << "Actual number of OpenMP threads: " << omp_get_num_threads() << std::endl;
+////    }
 
     // Set solver settings
     system.ChangeSolverType(SolverType::APGD);
