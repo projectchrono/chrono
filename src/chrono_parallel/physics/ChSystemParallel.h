@@ -60,11 +60,11 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
-    void Update();
+    virtual void Update();
     void UpdateBilaterals();
     void UpdateLinks();
     void UpdateOtherPhysics();
-    void UpdateRigidBodies();
+    virtual void UpdateRigidBodies();
     void UpdateShafts();
     void Update3DOFBodies();
     void RecomputeThreads();
