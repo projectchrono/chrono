@@ -24,11 +24,31 @@
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/comm/ChCommDistr.h"
-#include "chrono_distributed/ChDataManagerDistr.h"
+#include "chrono_distributed/ChDistributedDataManager.h"
 
+#include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
 
 namespace chrono {
+
+
+enum COMM_STATUS {
+	EMPTY = 0,
+	OWNED,
+	GHOST_UP,
+	GHOST_DOWN,
+	SHARED_UP,
+	SHARED_DOWN,
+	UNOWNED_UP,
+	UNOWNED_DOWN
+};
+
+enum MESSAGE_TYPE {
+	EXCHANGE,
+	UPDATE,
+	TRANSFER
+};
+
 
 class ChDomainDistr;
 class ChCommDistr;
@@ -45,17 +65,15 @@ public:
 
 	ChDomainDistr* GetDomain() {return domain;}
 	
-	ChDataManagerDistr* GetDataManager() {return data_manager;}
-
 	// Set the distance from the subdomain within which a body will be kept as a ghost
 	void SetGhostLayer(double thickness) { if (ghost_layer > 0) ghost_layer = thickness; }
 	double GetGhostLayer() {return ghost_layer;}
 
 	void AddBody(std::shared_ptr<ChBody> newbody) override;
 
-	int DoStepDynamics(double m_step); // TODO yeah...
-    virtual bool Integrate_Y() override;
-	void SetDomainImpl(ChDomainDistr *dom);
+	virtual bool Integrate_Y() override;
+    virtual void UpdateRigidBodies() override;
+
 	void ErrorAbort(std::string msg);
 	void PrintBodyStatus();
 
@@ -69,9 +87,6 @@ public:
 	int num_ranks;
 	int my_rank;
 
-	// TODO
-	ChDataManagerDistr* data_manager;
-
 	// World of MPI ranks for the simulation
 	MPI_Comm world;
 
@@ -81,8 +96,7 @@ public:
 	// Class for MPI communication
 	ChCommDistr *comm;
 
-	// A body whose center is this far from the subdomain will be kept as a ghost.
-
+	ChDistributedDataManager *ddm;
 };
 
 } /* namespace chrono */

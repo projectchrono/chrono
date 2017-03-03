@@ -14,8 +14,10 @@
 
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono/physics/ChBody.h"
 
+#include "chrono_parallel/ChDataManager.h"
+
+#include "chrono/physics/ChBody.h"
 #include "chrono/core/ChVector.h"
 
 #include <iostream>
@@ -73,171 +75,275 @@ void ChDomainDistr::SplitDomain()
 	}
 }
 
-int ChDomainDistr::InSub(int index)
+// Returns 1 if the body is in the subdomain and not shared on another rank
+int ChDomainDistr::InOwned(int index)
 {
-	double pos = my_sys->GetDataManager()->host_data.pos_rigid[index][long_axis];
+	double pos = my_sys->data_manager->host_data.pos_rigid[index][long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
+
 	// If the position is not in the subdoman AND not within the ghost layer inside the subdomain
-	return ((pos >= sublo[long_axis] + my_sys->ghost_layer) && (pos < subhi[long_axis] - my_sys->ghost_layer)) ? 1 : 0;
+	if (pos >= sublo[long_axis] && pos <= subhi[long_axis])
+	{
+		// If there is no neighbor rank below, take ownership
+		if (my_rank == 0 && pos < subhi[long_axis] - ghost_layer)
+		{
+			return 1;
+		}
+		// If there is no neighbor rank above, take ownership
+		if (my_rank == ranks - 1 && pos >= sublo[long_axis] + ghost_layer)
+		{
+			return 1;
+		}
+		// If the body is not seen by other ranks
+		if (pos >= sublo[long_axis] + ghost_layer && pos < subhi[long_axis] - ghost_layer)
+		{
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
-int ChDomainDistr::InSub(std::shared_ptr<ChBody> body)
+// Returns 1 if the body is in the subdomain and not shared on another rank
+int ChDomainDistr::InOwned(std::shared_ptr<ChBody> body)
 {
 	double pos = body->GetPos()[long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
+
 	// If the position is not in the subdoman AND not within the ghost layer inside the subdomain
-	return ((pos >= sublo[long_axis] + my_sys->ghost_layer) && (pos < subhi[long_axis] - my_sys->ghost_layer)) ? 1 : 0;
-}
-
-// Returns true only if the body is not in this subdomain,
-// and is within the ghost thickness of the subdomain
-int ChDomainDistr::InGhost(int index)
-{
-	double pos = my_sys->GetDataManager()->host_data.pos_rigid[index][long_axis];
-
-	// Returns:
-		// 1: Above the subdomain and within the ghost skin and
-		// not out of the bounding box
-		// OR
-		// 2: Below the subdomain and within the ghost skin and
-		// not out of the bounding box
-		// OR
-		// 0: Not in the ghost layer
-	if ((pos > subhi[long_axis] &&
-			pos <= subhi[long_axis] + my_sys->ghost_layer &&
-			my_sys->my_rank != my_sys->num_ranks))
+	if (pos >= sublo[long_axis] && pos <= subhi[long_axis])
 	{
-		return 1;
-	}
-	if ((pos < sublo[long_axis] &&
-			pos >= sublo[long_axis] - my_sys->ghost_layer &&
-			my_sys->my_rank != 0))
-	{
-		return 2;
+		// If there is no neighbor rank below, take ownership
+		if (my_rank == 0 && pos < subhi[long_axis] - ghost_layer)
+		{
+			return 1;
+		}
+		// If there is no neighbor rank above, take ownership
+		if (my_rank == ranks - 1 && pos >= sublo[long_axis] + ghost_layer)
+		{
+			return 1;
+		}
+		// If the body is not seen by other ranks
+		if (pos >= sublo[long_axis] + ghost_layer && pos < subhi[long_axis] - ghost_layer)
+		{
+			return 1;
+		}
 	}
 	return 0;
 }
 
+
+// Returns:
+	// 1: Above the subdomain and within the ghost skin and
+	// not out of the bounding box
+	// 2: Below the subdomain and within the ghost skin and
+	// not out of the bounding box
+	// 0: Not in the ghost layer
+int ChDomainDistr::InGhost(int index)
+{
+	double pos = my_sys->data_manager->host_data.pos_rigid[index][long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
+
+	if (pos >= subhi[long_axis])
+	{
+		// If there is no rank above to share the body, the body is ignored
+		if (my_rank == ranks - 1)
+		{
+			return 0;
+		}
+		if (pos < subhi[long_axis] + ghost_layer)
+		{
+			return 1;
+		}
+	}
+
+	else if (pos < sublo[long_axis])
+	{
+		// If there is no rank below to share the body, the body is ignored
+		if (my_rank == 0)
+		{
+			return 0;
+		}
+		if (pos >= sublo[long_axis] - ghost_layer)
+		{
+			return 2;
+		}
+	}
+
+	return 0;
+}
+
+
+// Returns:
+	// 1: Above the subdomain and within the ghost skin and
+	// not out of the bounding box
+	// 2: Below the subdomain and within the ghost skin and
+	// not out of the bounding box
+	// 0: Not in the ghost layer
 int ChDomainDistr::InGhost(std::shared_ptr<ChBody> body)
 {
 	double pos = body->GetPos()[long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
 
-	// Returns:
-		// 1: Above the subdomain and within the ghost skin and
-		// not out of the bounding box
-		// OR
-		// 2: Below the subdomain and within the ghost skin and
-		// not out of the bounding box
-		// OR
-		// 0: Not in the ghost layer
-	if ((pos > subhi[long_axis] &&
-			pos <= subhi[long_axis] + my_sys->ghost_layer &&
-			my_sys->my_rank != my_sys->num_ranks))
+	if (pos >= subhi[long_axis])
 	{
-		return 1;
+		// If there is no rank above to share the body, the body is ignored
+		if (my_rank == ranks - 1)
+		{
+			return 0;
+		}
+		if (pos < subhi[long_axis] + ghost_layer)
+		{
+			return 1;
+		}
 	}
-	if ((pos < sublo[long_axis] &&
-			pos >= sublo[long_axis] - my_sys->ghost_layer &&
-			my_sys->my_rank != 0))
+
+	else if (pos < sublo[long_axis])
 	{
-		return 2;
+		// If there is no rank below to share the body, the body is ignored
+		if (my_rank == 0)
+		{
+			return 0;
+		}
+		if (pos >= sublo[long_axis] - ghost_layer)
+		{
+			return 2;
+		}
 	}
+
 	return 0;
 }
 
+// Returns 1 if shared up, 2 if shared down, 0 if not shared
 int ChDomainDistr::InShared(int index)
 {
 	double pos = my_sys->data_manager->host_data.pos_rigid[index][long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
 
-	// If seen on the next rank as a ghost
-	if (pos < subhi[long_axis] && subhi[long_axis] - pos < my_sys->ghost_layer)
+	if (pos >= subhi[long_axis] - ghost_layer && pos < subhi[long_axis] && my_rank != ranks)
 	{
-		if (my_sys->GetMyRank() == my_sys->GetRanks() - 1)
-		{
-			return 0;
-		}
 		return 1;
 	}
-	// If seen on the previous rank as a ghost
-	else if (pos > sublo[long_axis] && sublo[long_axis] - pos < my_sys->ghost_layer)
+	if (pos < sublo[long_axis] + ghost_layer && pos >= sublo[long_axis] && my_rank != 0)
 	{
-		if (my_sys->GetMyRank() == 0)
-		{
-			return 0;
-		}
 		return 2;
 	}
-
 	return 0;
 }
 
+// Returns 1 if shared up, 2 if shared down, 0 if not shared
 int ChDomainDistr::InShared(std::shared_ptr<ChBody> body)
 {
 	double pos = body->GetPos()[long_axis];
+	int my_rank = my_sys->GetMyRank();
+	int ranks = my_sys->GetRanks();
+	double ghost_layer = my_sys->GetGhostLayer();
 
-	// If seen on the next rank as a ghost
-	if (pos < subhi[long_axis] && subhi[long_axis] - pos < my_sys->ghost_layer)
+	if (pos >= subhi[long_axis] - ghost_layer && pos < subhi[long_axis] && my_rank != ranks)
 	{
-		if (my_sys->GetMyRank() == my_sys->GetRanks() - 1)
-		{
-			return 0;
-		}
 		return 1;
 	}
-	// If seen on the previous rank as a ghost
-	else if (pos > sublo[long_axis] && sublo[long_axis] - pos < my_sys->ghost_layer)
+	if (pos < sublo[long_axis] + ghost_layer && pos >= sublo[long_axis] && my_rank != 0)
 	{
-		if (my_sys->GetMyRank() == 0)
-		{
-			return 0;
-		}
 		return 2;
 	}
-
 	return 0;
 }
 
 
-// 0 none, 1 shared up, 2 shared down, 3 owned, 4 ghost up, 5 ghost down
 int ChDomainDistr::GetCommStatus(int index)
 {
 	int status = InShared(index);
-	if (status)
+	if (status == 1)
 	{
-		return status;
+		return chrono::SHARED_UP;
 	}
-	status = InSub(index);
-	if (status)
+	if (status == 2)
 	{
-		return status + 2;
-	}
-	status = InGhost(index);
-	if (status)
-	{
-		return status + 3;
+		return chrono::SHARED_DOWN;
 	}
 
-	return 0;
+	status = InOwned(index);
+	if (status)
+	{
+		return chrono::OWNED;
+	}
+
+	status = InGhost(index);
+	if (status == 1)
+	{
+		return chrono::GHOST_UP;
+	}
+	if (status == 2)
+	{
+		return chrono::GHOST_DOWN;
+	}
+
+	if (my_sys->data_manager->host_data.pos_rigid[index][long_axis] >= subhi[long_axis] + my_sys->GetGhostLayer())
+	{
+		return chrono::UNOWNED_UP;
+	}
+
+	if (my_sys->data_manager->host_data.pos_rigid[index][long_axis] < sublo[long_axis] - my_sys->GetGhostLayer())
+	{
+		return chrono::UNOWNED_DOWN;
+	}
+
+	// TODO: Sanity check
+	GetLog() << "Error classifying body\n";
+	return -1;
 }
 
-// 0 none, 1 shared up, 2 shared down, 3 owned, 4 ghost up, 5 ghost down
 int ChDomainDistr::GetCommStatus(std::shared_ptr<ChBody> body)
 {
 	int status = InShared(body);
-	if (status)
+	if (status == 1)
 	{
-		return status;
+		return chrono::SHARED_UP;
 	}
-	status = InSub(body);
-	if (status)
+	if (status == 2)
 	{
-		return status + 2;
-	}
-	status = InGhost(body);
-	if (status)
-	{
-		return status + 3;
+		return chrono::SHARED_DOWN;
 	}
 
-	return 0;
+	status = InOwned(body);
+	if (status)
+	{
+		return chrono::OWNED;
+	}
+
+	status = InGhost(body);
+	if (status == 1)
+	{
+		return chrono::GHOST_UP;
+	}
+	if (status == 2)
+	{
+		return chrono::GHOST_DOWN;
+	}
+
+	if (body->GetPos()[long_axis] >= subhi[long_axis] + my_sys->GetGhostLayer())
+	{
+		return chrono::UNOWNED_UP;
+	}
+
+	if (body->GetPos()[long_axis] < sublo[long_axis] - my_sys->GetGhostLayer())
+	{
+		return chrono::UNOWNED_DOWN;
+	}
+
+	GetLog() << "Error classifying body\n";
+	return -1;
 }
 
 

@@ -72,8 +72,8 @@ set(CH_DISTRIBUTED_INCLUDES "${CH_DISTRIBUTED_INCLUDES}" PARENT_SCOPE)
 
 SET(ChronoEngine_distributed_BASE
 	ChApiDistributed.h
-	ChDataManagerDistr.h
-	ChDataManagerDistr.cpp
+	ChDistributedDataManager.h
+	ChDistributedDataManager.cpp
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})
@@ -88,21 +88,6 @@ SET(ChronoEngine_distributed_PHYSICS
 SOURCE_GROUP(physics FILES ${ChronoEngine_distributed_PHYSICS})
 
 SET(ChronoEngine_distributed_COLLISION
-	#collision/ChBroadphaseDistr.h
-	#collision/ChBroadphaseDistrBasic.h
-	collision/ChCollisionSystemDistr.h
-	#collision/ChCollision.h
-	#collision/ChNarrowphaseDistr.h
-	#collision/ChNarrowphaseDistrBasic.h
-	#collision/ChCollisionModelDistr.h
-
-	#collision/ChBroadphaseDistr.cpp
-	#collision/ChBroadphaseDistrBasic.cpp
-	collision/ChCollisionSystemDistr.cpp
-	#collision/ChNarrowphaseDistr.cpp
-	#collision/ChNarrowphaseDistrBasic.cpp
-	#collision/ChCollisionModelDistr.cpp
-	#collision/ChAABBGenerator.cpp
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_distributed_COLLISION})

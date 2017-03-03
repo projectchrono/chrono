@@ -22,7 +22,6 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/ChDataManagerDistr.h"
 #include "chrono_distributed/ChApiDistributed.h"
 
 namespace chrono {
@@ -40,8 +39,8 @@ public:
 	virtual void SplitDomain();
 
 	/// Returns true if the specified body is strictly inside this subdomain
-	virtual int InSub(int index);
-	virtual int InSub(std::shared_ptr<ChBody> body);
+	virtual int InOwned(int index);
+	virtual int InOwned(std::shared_ptr<ChBody> body);
 
 	/// Returns: 0 if the body is not in the ghost layer
 	/// 1 if the body is in the next rank up
