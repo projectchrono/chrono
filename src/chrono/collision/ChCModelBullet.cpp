@@ -824,7 +824,7 @@ void ChModelBullet::ArchiveOUT(ChArchiveOut& marchive)
 
     if (this->bt_collision_object->getCollisionShape()) {
         // serialize all member data:
-        int maxSerializeBufferSize = 1024 * 1024 * 5;  //***TO DO*** make this more efficient
+        int maxSerializeBufferSize = 1024 * 1024 * 5;  // ***TO DO*** make this more efficient
         btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
 
         serializer->startSerialization();
@@ -936,7 +936,7 @@ void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
 
     // serialize custom data:
 
-    int maxSerializeBufferSize = 1024 * 1024 * 5;  //***TO DO*** make this more efficient
+    int maxSerializeBufferSize = 1024 * 1024 * 5;  // ***TO DO*** make this more efficient
     btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
 
     serializer->startSerialization();

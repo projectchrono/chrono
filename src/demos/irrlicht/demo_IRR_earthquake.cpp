@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     auto linkEarthquake = std::make_shared<ChLinkLockLock>();
     linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0)));
 
-    ChFunction_Sine* mmotion_x = new ChFunction_Sine(0, 0.6, 0.2);  // phase freq ampl
+    auto mmotion_x = std::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);
 
     mphysicalSystem.Add(linkEarthquake);

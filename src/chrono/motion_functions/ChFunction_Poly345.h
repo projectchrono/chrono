@@ -57,7 +57,7 @@ class ChApi ChFunction_Poly345 : public ChFunction {
     double Get_end() const { return end; }
     double Get_h() const { return h; }
 
-    virtual double Get_Ca_pos() const { return 5.8; }
+    virtual double Get_Ca_pos() const override { return 5.8; }
     virtual double Get_Ca_neg() const override { return 5.8; }
     virtual double Get_Cv() const override { return 1.9; }
 

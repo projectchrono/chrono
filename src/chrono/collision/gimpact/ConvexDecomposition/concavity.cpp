@@ -705,7 +705,7 @@ float computeConcavity(unsigned int vcount,
 			}
 		}
 
-	  if ( ftris.size()  && 0 )
+	  if ( ftris.size() )
 	  {
 
       // ok..now we extract the triangles which form the maximum concavity.

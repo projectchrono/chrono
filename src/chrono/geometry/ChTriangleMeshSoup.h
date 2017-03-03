@@ -51,16 +51,16 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const { return (int)m_triangles.size(); }
+    virtual int getNumTriangles() const override { return (int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const { return m_triangles[index]; }
+    virtual ChTriangle getTriangle(int index) const override { return m_triangles[index]; }
 
     /// Clear all data
-    virtual void Clear() { this->m_triangles.clear(); }
+    virtual void Clear() override { this->m_triangles.clear(); }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_SOUP; }
 

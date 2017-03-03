@@ -585,6 +585,8 @@ class MyEventReceiver : public IEventReceiver {
                         this->mcar->throttle = newthrottle;
                     }
                     break;
+                default:
+                    break;
             }
         }
 

@@ -150,7 +150,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     void Relax();
 
     /// Set no speed and no accelerations in nodes (but does not change reference positions)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// This recomputes the number of DOFs, constraints,
     /// as well as state offsets of contained items

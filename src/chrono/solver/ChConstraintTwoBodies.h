@@ -57,19 +57,19 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     ChConstraintTwoBodies& operator=(const ChConstraintTwoBodies& other);
 
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_a() { return &Cq_a; }
+    virtual ChMatrix<double>* Get_Cq_a() override { return &Cq_a; }
     /// Access jacobian matrix
-    virtual ChMatrix<double>* Get_Cq_b() { return &Cq_b; }
+    virtual ChMatrix<double>* Get_Cq_b() override { return &Cq_b; }
 
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_a() { return &Eq_a; }
+    virtual ChMatrix<double>* Get_Eq_a() override { return &Eq_a; }
     /// Access auxiliary matrix (ex: used by iterative solvers)
-    virtual ChMatrix<double>* Get_Eq_b() { return &Eq_b; }
+    virtual ChMatrix<double>* Get_Eq_b() override { return &Eq_b; }
 
     /// Set references to the constrained objects, each of ChVariablesBody type,
     /// automatically creating/resizing jacobians if needed.
     /// If variables aren't from ChVariablesBody class, an assert failure happens.
-    void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b);
+    void SetVariables(ChVariables* mvariables_a, ChVariables* mvariables_b) override;
 
     /// This function updates the following auxiliary data:
     ///  - the Eq_a and Eq_b matrices
@@ -116,11 +116,11 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // end namespace chrono

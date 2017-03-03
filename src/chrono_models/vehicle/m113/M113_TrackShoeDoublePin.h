@@ -47,16 +47,16 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetHeight() const override { return m_shoe_height; }
 
     /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const { return m_shoe_mass; }
+    virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
     virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
     /// Return shoe length (distance between pins).
-    virtual double GetShoeLength() const { return m_shoe_length; }
+    virtual double GetShoeLength() const override { return m_shoe_length; }
     /// Return shoe width (separation between connectors).
-    virtual double GetShoeWidth() const { return m_shoe_width; }
+    virtual double GetShoeWidth() const override { return m_shoe_width; }
 
     /// Return the mass of a connector body.
-    virtual double GetConnectorMass() const { return m_connector_mass; }
+    virtual double GetConnectorMass() const override { return m_connector_mass; }
     /// Return the moments of inertia of a connector body.
     virtual const ChVector<>& GetConnectorInertia() const override { return m_connector_inertia; }
     /// Return the length of a connector body.

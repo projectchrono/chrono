@@ -158,7 +158,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
 
         // ODE coefficients for longitudinal direction: z' = a + b * z
         {
-            double v = abs(m_data[id].vel.x());
+            double v = std::abs(m_data[id].vel.x());
             double g = m_Fc[0] + (m_Fs[0] - m_Fc[0]) * exp(-sqrt(v / m_vs[0]));
             m_data[id].ode_coef_a[0] = v;
             m_data[id].ode_coef_b[0] = -m_sigma0[0] * v / g;
@@ -166,7 +166,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
 
         // ODE coefficients for lateral direction: z' = a + b * z
         {
-            double v = abs(m_data[id].vel.y());
+            double v = std::abs(m_data[id].vel.y());
             double g = m_Fc[1] + (m_Fs[1] - m_Fc[1]) * exp(-sqrt(v / m_vs[1]));
             m_data[id].ode_coef_a[1] = v;
             m_data[id].ode_coef_b[1] = -m_sigma0[1] * v / g;
@@ -228,7 +228,7 @@ void ChLugreTire::Advance(double step) {
             double zd0 = m_data[id].ode_coef_a[0] + m_data[id].ode_coef_b[0] * z0;
 
             double v = m_data[id].vel.x();
-            double Ft_mag = Fn_mag * (m_sigma0[0] * z0 + m_sigma1[0] * zd0 + m_sigma2[0] * abs(v));
+            double Ft_mag = Fn_mag * (m_sigma0[0] * z0 + m_sigma1[0] * zd0 + m_sigma2[0] * std::abs(v));
             ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
             ChVector<> Ft = -Ft_mag * dir;
 
@@ -241,7 +241,7 @@ void ChLugreTire::Advance(double step) {
             double zd1 = m_data[id].ode_coef_a[1] + m_data[id].ode_coef_b[1] * z1;
 
             double v = m_data[id].vel.y();
-            double Ft_mag = Fn_mag * (m_sigma0[1] * z1 + m_sigma1[1] * zd1 + m_sigma2[1] * abs(v));
+            double Ft_mag = Fn_mag * (m_sigma0[1] * z1 + m_sigma1[1] * zd1 + m_sigma2[1] * std::abs(v));
             ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
             ChVector<> Ft = -Ft_mag * dir;
 

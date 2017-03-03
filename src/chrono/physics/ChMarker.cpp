@@ -32,10 +32,10 @@ ChMarker::ChMarker()
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0); 
+    motion_Z = std::make_shared<ChFunction_Const>(0); 
+    motion_ang = std::make_shared<ChFunction_Const>(0); 
 
     UpdateState();
 }
@@ -44,10 +44,10 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
     SetName(myname);
     Body = myBody;
 
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);   // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0); 
+    motion_Z = std::make_shared<ChFunction_Const>(0); 
+    motion_ang = std::make_shared<ChFunction_Const>(0); 
     motion_axis = VECT_Z;
 
     rest_coord = CSYSNORM;
@@ -68,20 +68,10 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
 ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(other) {
     Body = NULL;
 
-    // Replace the default functions.
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-
-    motion_X = other.motion_X->Clone();
-    motion_Y = other.motion_Y->Clone();
-    motion_Z = other.motion_Z->Clone();
-    motion_ang = other.motion_ang->Clone();
+    motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
+    motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
+    motion_Z = std::shared_ptr<ChFunction>(other.motion_Z->Clone());
+    motion_ang = std::shared_ptr<ChFunction>(other.motion_ang->Clone());
 
     motion_axis = other.motion_axis;
 
@@ -97,39 +87,24 @@ ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(
 }
 
 ChMarker::~ChMarker() {
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
+
 }
 
 // Setup the functions when user changes them.
 
-void ChMarker::SetMotion_X(ChFunction* m_funct) {
-    if (motion_X)
-        delete motion_X;
+void ChMarker::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
     motion_X = m_funct;
 }
 
-void ChMarker::SetMotion_Y(ChFunction* m_funct) {
-    if (motion_Y)
-        delete motion_Y;
+void ChMarker::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
     motion_Y = m_funct;
 }
 
-void ChMarker::SetMotion_Z(ChFunction* m_funct) {
-    if (motion_Z)
-        delete motion_Z;
+void ChMarker::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
     motion_Z = m_funct;
 }
 
-void ChMarker::SetMotion_ang(ChFunction* m_funct) {
-    if (motion_ang)
-        delete motion_ang;
+void ChMarker::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
     motion_ang = m_funct;
 }
 

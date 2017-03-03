@@ -31,6 +31,7 @@ SET(DEMOS
     demo_PAR_fluidDVI
     demo_PAR_snowMPM
     demo_PAR_rigid3DOFDVI
+    demo_PAR_friction
 )
 
 # ------------------------------------------------------------------------------

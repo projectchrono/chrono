@@ -176,7 +176,7 @@ void bDNA::initCmpFlags(bDNA *memDNA)
 	// this ptr should be the file data
 
 
-	assert(!m_Names.size() == 0 && "SDNA empty!");
+	assert(!(m_Names.size() == 0) && "SDNA empty!");
 	mCMPFlags.resize(mStructs.size(), FDF_NONE);
 
 

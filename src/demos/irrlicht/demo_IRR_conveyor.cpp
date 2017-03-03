@@ -85,6 +85,8 @@ class MyEventReceiver : public IEventReceiver {
                         STATIC_speed = (((double)pos) / 100) * 2;
                     }
                     break;
+                default:
+                    break;
             }
         }
 

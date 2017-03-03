@@ -86,16 +86,16 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const { return (int)m_face_v_indices.size(); }
+    virtual int getNumTriangles() const override { return (int)m_face_v_indices.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const {
+    virtual ChTriangle getTriangle(int index) const override {
         return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
                           m_vertices[m_face_v_indices[index].z()]);
     }
 
     /// Clear all data
-    virtual void Clear() {
+    virtual void Clear() override {
         this->getCoordsVertices().clear();
         this->getCoordsNormals().clear();
         this->getCoordsUV().clear();
@@ -113,7 +113,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::string GetFileName() { return m_filename; }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
     /// Create a map of neighbouring triangles, vector of:
     /// [Ti TieA TieB TieC]

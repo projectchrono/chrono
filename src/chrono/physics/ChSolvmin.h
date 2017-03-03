@@ -346,10 +346,10 @@ class ChApi ChOptimizerHybrid : public ChOptimizer {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChOptimizerHybrid* Clone() const override { return new ChOptimizerHybrid(*this); }
 
-    virtual void SetObjective(ChFx* mformula);
-    virtual void SetObjectiveGrad(ChFx* mformula);
+    virtual void SetObjective(ChFx* mformula) override;
+    virtual void SetObjectiveGrad(ChFx* mformula) override;
 
-    void SetNumOfVars(int mv);
+    void SetNumOfVars(int mv) override;
 
     // Performs the optimization of the PSystem pointed by "database"
     // (or whatever object which can evaluate the string "function" and the "optvarlist")

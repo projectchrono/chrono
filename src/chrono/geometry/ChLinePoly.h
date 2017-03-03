@@ -44,7 +44,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual GeometryType GetClassType() const override { return LINE_POLY; }
 
     virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc){};
+    virtual void Set_complexity(int mc) override {};
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,

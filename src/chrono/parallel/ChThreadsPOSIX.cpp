@@ -35,14 +35,22 @@ static void* threadFunction(void* argument) {
     ChThreadStatePOSIX* status = (ChThreadStatePOSIX*)argument;
 
     while (1) {
-        checkPThreadFunction(sem_wait(&status->startSemaphore));
+        checkPThreadFunction(
+        #if defined(__APPLE__)
+            sem_wait(status->startSemaphore)
+        #else
+            sem_wait(&status->startSemaphore)
+        #endif
+        );
 
         void* userPtr = status->m_userPtr;
 
         if (userPtr) {
             status->m_userThreadFunc(userPtr, status->m_lsMemory);
             status->m_status = 2;
-            checkPThreadFunction(sem_post(status->mainSemaphore));
+            checkPThreadFunction(
+                sem_post(status->mainSemaphore)
+            );
 
             // status->threadUsed++;
         } else {
@@ -68,7 +76,13 @@ void ChThreadsPOSIX::sendRequest(uint32_t uiCommand,
     spuStatus.m_userPtr = uiUserPtr;
 
     // fire event to start new task
-    checkPThreadFunction(sem_post(&spuStatus.startSemaphore));
+    checkPThreadFunction(
+    #if defined(__APPLE__)
+        sem_post(spuStatus.startSemaphore)
+    #else
+        sem_post(&spuStatus.startSemaphore)
+    #endif
+    );
 }
 
 /// check for messages from SPUs
@@ -80,7 +94,13 @@ void ChThreadsPOSIX::waitForResponse(unsigned int* puiArgument0, unsigned int* p
     btAssert(m_activeSpuStatus.size());
 
     // wait for any of the threads to finish
-    checkPThreadFunction(sem_wait(&this->mainSemaphore));
+    checkPThreadFunction(
+    #if defined(__APPLE__)
+        sem_wait(this->mainSemaphore)
+    #else
+        sem_wait(&this->mainSemaphore)
+    #endif
+    );
 
     // get at least one thread which has finished
     int last = -1;
@@ -108,15 +128,44 @@ void ChThreadsPOSIX::makeThreads(ChThreadConstructionInfo& threadConstructionInf
     m_activeSpuStatus.resize(threadConstructionInfo.m_numThreads);
 
     uniqueName = threadConstructionInfo.m_uniqueName;
+    
+    #if defined(__APPLE__)
+    std::string sem_prefix("/" + uniqueName);
+    #endif
 
+    #if defined(__APPLE__)
+    this->mainSemaphore = sem_open(
+        std::string(sem_prefix+"_main").c_str(), // Construct a unique name
+        O_CREAT,           // Create the semaphore if it doesn't exist
+        S_IRUSR | S_IWUSR, // Set as readable and writable by this process
+        0                  // Set the initial value to 0
+    );
+    checkPThreadFunction(errno);
+    #else
     checkPThreadFunction(sem_init(&this->mainSemaphore, 0, 0));
+    #endif
 
     for (int i = 0; i < threadConstructionInfo.m_numThreads; i++) {
         ChThreadStatePOSIX& spuStatus = m_activeSpuStatus[i];
 
+        #if defined(__APPLE__)
+        spuStatus.mainSemaphore = this->mainSemaphore;
+        #else
         spuStatus.mainSemaphore = &this->mainSemaphore;
+        #endif
 
+        #if defined(__APPLE__)
+        spuStatus.startSemaphore = sem_open(
+            std::string(sem_prefix+"_start"+std::to_string(i)).c_str(),
+            O_CREAT,
+            S_IRUSR | S_IWUSR,
+            0
+        );
+        checkPThreadFunction(errno);
+        #else
         checkPThreadFunction(sem_init(&spuStatus.startSemaphore, 0, 0));
+        #endif
+
         checkPThreadFunction(pthread_create(&spuStatus.thread, NULL, &threadFunction, (void*)&spuStatus));
 
         spuStatus.m_userPtr = 0;
@@ -153,13 +202,34 @@ void ChThreadsPOSIX::startSPU() {
 
 /// tell the task scheduler we are done with the SPU tasks
 void ChThreadsPOSIX::stopSPU() {
+
+    #if defined(__APPLE__)
+    std::string sem_prefix("/" + uniqueName);
+    #endif
+
     for (size_t t = 0; t < m_activeSpuStatus.size(); ++t) {
         ChThreadStatePOSIX& spuStatus = m_activeSpuStatus[t];
 
+        #if defined(__APPLE__)
+        checkPThreadFunction(sem_close(spuStatus.startSemaphore));
+        checkPThreadFunction(sem_unlink(
+            std::string(sem_prefix+"_start"+std::to_string(t)).c_str()
+        ));
+        #else
         checkPThreadFunction(sem_destroy(&spuStatus.startSemaphore));
+        #endif
+
         checkPThreadFunction(pthread_cancel(spuStatus.thread));
     }
+
+    #if defined(__APPLE__)
+    checkPThreadFunction(sem_close(this->mainSemaphore));
+    checkPThreadFunction(sem_unlink(
+        std::string(sem_prefix+"_main").c_str()
+    ));
+    #else
     checkPThreadFunction(sem_destroy(&this->mainSemaphore));
+    #endif
 
     m_activeSpuStatus.clear();
 }

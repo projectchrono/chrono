@@ -50,10 +50,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
   private:
     eChMarkerMotion motion_type;  ///< type of marker motion
 
-    ChFunction* motion_X;    ///< user imposed motion for X coord, body relative
-    ChFunction* motion_Y;    ///< user imposed motion for Y coord, body relative
-    ChFunction* motion_Z;    ///< user imposed motion for Z coord, body relative
-    ChFunction* motion_ang;  ///< user imposed angle rotation about axis
+    std::shared_ptr<ChFunction> motion_X;    ///< user imposed motion for X coord, body relative
+    std::shared_ptr<ChFunction> motion_Y;    ///< user imposed motion for Y coord, body relative
+    std::shared_ptr<ChFunction> motion_Z;    ///< user imposed motion for Z coord, body relative
+    std::shared_ptr<ChFunction> motion_ang;  ///< user imposed angle rotation about axis
     Vector motion_axis;      ///< this is the axis for the user imposed rotation
 
     ChBody* Body;  ///< points to parent body
@@ -164,24 +164,24 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     //
 
     /// Set the imposed motion law, for translation on X body axis
-    void SetMotion_X(ChFunction* m_funct);
+    void SetMotion_X(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for translation on Y body axis
-    void SetMotion_Y(ChFunction* m_funct);
+    void SetMotion_Y(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for translation on Z body axis
-    void SetMotion_Z(ChFunction* m_funct);
+    void SetMotion_Z(std::shared_ptr<ChFunction> m_funct);
     /// Set the imposed motion law, for rotation about an axis
-    void SetMotion_ang(ChFunction* m_funct);
+    void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
     /// Set the axis of rotation, if rotation motion law is used.
     void SetMotion_axis(Vector m_axis);
 
     /// The imposed motion law, for translation on X body axis
-    ChFunction* GetMotion_X() const { return motion_X; }
+    std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
     /// The imposed motion law, for translation on Y body axis
-    ChFunction* GetMotion_Y() const { return motion_Y; }
+    std::shared_ptr<ChFunction> GetMotion_Y() const { return motion_Y; }
     /// The imposed motion law, for translation on Z body axis
-    ChFunction* GetMotion_Z() const { return motion_Z; }
+    std::shared_ptr<ChFunction> GetMotion_Z() const { return motion_Z; }
     /// The imposed motion law, for rotation about an axis
-    ChFunction* GetMotion_ang() const { return motion_ang; }
+    std::shared_ptr<ChFunction> GetMotion_ang() const { return motion_ang; }
     /// Get the axis of rotation, if rotation motion law is used.
     Vector GetMotion_axis() const { return motion_axis; }
 

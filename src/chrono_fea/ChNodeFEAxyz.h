@@ -74,7 +74,7 @@ class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChV
     //
     // INTERFACE to ChVariableTupleCarrier_1vars
     //
-    virtual ChVariables* GetVariables1() { return &Variables(); }
+    virtual ChVariables* GetVariables1() override { return &Variables(); }
 
     //
     // Functions for interfacing to the state bookkeeping

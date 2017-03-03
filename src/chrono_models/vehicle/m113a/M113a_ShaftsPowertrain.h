@@ -34,7 +34,7 @@ class CH_MODELS_API M113a_ShaftsPowertrain : public ChShaftsPowertrain {
 
     ~M113a_ShaftsPowertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

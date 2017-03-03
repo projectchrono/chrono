@@ -67,6 +67,8 @@ bool ChIrrGuiDriverSTR::OnEvent(const SEvent& event) {
             case KEY_KEY_D:
                 SetSteering(m_steering + m_steeringDelta);
                 return true;
+            default:
+                break;
         }
     }
 

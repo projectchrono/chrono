@@ -258,7 +258,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -549,7 +549,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

@@ -157,6 +157,8 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                         SetBraking(m_braking + m_brakingDelta);
                 }
                 return true;
+            default:
+                break;
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -190,6 +192,8 @@ bool ChIrrGuiDriver::OnEvent(const SEvent& event) {
                 if (m_mode == KEYBOARD)
                     m_app.m_powertrain->SetDriveMode(ChPowertrain::REVERSE);
                 return true;
+            default:
+                break;
         }
     }
 

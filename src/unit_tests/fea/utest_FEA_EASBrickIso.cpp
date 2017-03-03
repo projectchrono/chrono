@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
                 nodetip->SetForce(ChVector<>(0, 0, -50));
             }
             my_system.DoStepDynamics(step_size);
-            AbsVal = abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
+            AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat[stepNo][1]);
             GetLog() << "time = " << my_system.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";

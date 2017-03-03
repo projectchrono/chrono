@@ -46,7 +46,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     //
     // STATE FUNCTIONS
@@ -81,7 +81,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
@@ -91,7 +91,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Each shaft must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
                     std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
-                    );
+                    ) override;
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
@@ -103,11 +103,11 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return ratio * torque_react; }
+    double GetTorqueReactionOn1() const override { return ratio * torque_react; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return -torque_react; }
+    double GetTorqueReactionOn2() const override { return -torque_react; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;

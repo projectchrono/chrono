@@ -56,12 +56,12 @@ class ChApi ChLinkLock : public ChLinkMasked {
     Vector q_4;
 
     // imposed motion
-    ChFunction* motion_X;     ///< user imposed motion for X coord, marker relative
-    ChFunction* motion_Y;     ///< user imposed motion for Y coord, marker relative
-    ChFunction* motion_Z;     ///< user imposed motion for Z coord, marker relative
-    ChFunction* motion_ang;   ///< user imposed angle rotation about axis
-    ChFunction* motion_ang2;  ///< user imposed angle rotation if three-angles rot.
-    ChFunction* motion_ang3;  ///< user imposed angle rotation if three-angles rot.
+    std::shared_ptr<ChFunction> motion_X;     ///< user imposed motion for X coord, marker relative
+    std::shared_ptr<ChFunction> motion_Y;     ///< user imposed motion for Y coord, marker relative
+    std::shared_ptr<ChFunction> motion_Z;     ///< user imposed motion for Z coord, marker relative
+    std::shared_ptr<ChFunction> motion_ang;   ///< user imposed angle rotation about axis
+    std::shared_ptr<ChFunction> motion_ang2;  ///< user imposed angle rotation if three-angles rot.
+    std::shared_ptr<ChFunction> motion_ang3;  ///< user imposed angle rotation if three-angles rot.
     Vector motion_axis;       ///< this is the axis for the user imposed rotation
     AngleSet angleset;             ///< type of rotation (3 Eul angles, angle/axis, etc.)
 
@@ -150,19 +150,19 @@ class ChApi ChLinkLock : public ChLinkMasked {
     void SetDeltaC_dtdt(Coordsys mc) { deltaC_dtdt = mc; }
 
     // for the imposed motion functions
-    ChFunction* GetMotion_X() { return motion_X; };
-    ChFunction* GetMotion_Y() { return motion_Y; };
-    ChFunction* GetMotion_Z() { return motion_Z; };
-    ChFunction* GetMotion_ang() { return motion_ang; };
-    ChFunction* GetMotion_ang2() { return motion_ang2; };
-    ChFunction* GetMotion_ang3() { return motion_ang3; };
+    std::shared_ptr<ChFunction> GetMotion_X() { return motion_X; };
+    std::shared_ptr<ChFunction> GetMotion_Y() { return motion_Y; };
+    std::shared_ptr<ChFunction> GetMotion_Z() { return motion_Z; };
+    std::shared_ptr<ChFunction> GetMotion_ang() { return motion_ang; };
+    std::shared_ptr<ChFunction> GetMotion_ang2() { return motion_ang2; };
+    std::shared_ptr<ChFunction> GetMotion_ang3() { return motion_ang3; };
     Vector GetMotion_axis() { return motion_axis; };
-    void SetMotion_X(ChFunction* m_funct);
-    void SetMotion_Y(ChFunction* m_funct);
-    void SetMotion_Z(ChFunction* m_funct);
-    void SetMotion_ang(ChFunction* m_funct);
-    void SetMotion_ang2(ChFunction* m_funct);
-    void SetMotion_ang3(ChFunction* m_funct);
+    void SetMotion_X(std::shared_ptr<ChFunction> m_funct);
+    void SetMotion_Y(std::shared_ptr<ChFunction> m_funct);
+    void SetMotion_Z(std::shared_ptr<ChFunction> m_funct);
+    void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
+    void SetMotion_ang2(std::shared_ptr<ChFunction> m_funct);
+    void SetMotion_ang3(std::shared_ptr<ChFunction> m_funct);
     void SetMotion_axis(Vector m_axis);
     AngleSet Get_angleset() { return angleset; };
     void Set_angleset(AngleSet mset) { angleset = mset; }
@@ -245,7 +245,7 @@ class ChApi ChLinkLock : public ChLinkMasked {
                                      const double c,
                                      bool do_clamp,
                                      double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c);
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
     virtual void IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,

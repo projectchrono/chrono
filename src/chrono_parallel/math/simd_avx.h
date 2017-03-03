@@ -153,8 +153,10 @@ inline __m256d Cross3(__m256d a012, __m256d b012) {
     __m256d tmp = _mm256_fmsub_pd(b012, a201, _mm256_mul_pd(a012, b201));
     tmp = _mm256_permute4x64_pd(tmp, _MM_SHUFFLE(3, 1, 0, 2));
     tmp = _mm256_blend_pd(_mm256_setzero_pd(), tmp, 0x7);  // put zero on 4th position
-    return tmp;
+#else
+    __m256d tmp = {0, 0, 0, 0};
 #endif
+    return tmp;
 }
 
 inline __m256d Normalize3(__m256d v) {
@@ -273,6 +275,9 @@ inline __m256d QuatMult(__m256d a, __m256d b) {
     __m256d t0 = _mm256_mul_pd(a0000, b);
     __m256d t03 = _mm256_sub_pd(t0, t3);
     return _mm256_add_pd(t03, t12m);
+#else
+    __m256d tmp = {0, 0, 0, 0};
+    return tmp;
 #endif
 }
 

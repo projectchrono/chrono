@@ -41,7 +41,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
 
     virtual double GetVisualizationWidth() const override { return 0.25; }
 
-    virtual void SetFialaParams();
+    virtual void SetFialaParams() override;
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;

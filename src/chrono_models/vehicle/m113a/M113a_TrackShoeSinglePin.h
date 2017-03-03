@@ -46,16 +46,16 @@ class CH_MODELS_API M113a_TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual double GetPitch() const override { return m_shoe_pitch; }
 
     /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const { return m_shoe_mass; }
+    virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
     virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
 
     /// Return the location of the front contact cylinder.
-    virtual double GetFrontCylinderLoc() const { return m_front_cyl_loc; }
+    virtual double GetFrontCylinderLoc() const override { return m_front_cyl_loc; }
     /// Return the location of the rear contact cylinder.
-    virtual double GetRearCylinderLoc() const { return m_rear_cyl_loc; }
+    virtual double GetRearCylinderLoc() const override { return m_rear_cyl_loc; }
     /// Return the radius of the contact cylinders.
-    virtual double GetCylinderRadius() const { return m_cyl_radius; }
+    virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
     /// Return dimensions and locations of the contact boxes for the shoe and guiding pin.
     /// Note that this is for contact with wheels, idler, and ground only.

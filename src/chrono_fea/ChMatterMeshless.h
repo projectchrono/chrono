@@ -62,9 +62,9 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     void SetCollisionRadius(double mr);
 
     // Set the mass of the node
-    void SetMass(double mmass) { this->variables.SetNodeMass(mmass); }
+    void SetMass(double mmass) override { this->variables.SetNodeMass(mmass); }
     // Get the mass of the node
-    double GetMass() const { return variables.GetNodeMass(); }
+    double GetMass() const override { return variables.GetNodeMass(); }
 
     // Access the variables of the node
     virtual ChVariablesNode& Variables() override { return variables; }
@@ -299,7 +299,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;

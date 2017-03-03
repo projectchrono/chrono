@@ -127,10 +127,10 @@ class ChApi ChSystemDEM : public ChSystem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOUT(ChArchiveOut& marchive);
+    virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIN(ChArchiveIn& marchive);
+    virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
   private:
     bool m_use_mat_props;                        ///< if true, derive contact parameters from mat. props.

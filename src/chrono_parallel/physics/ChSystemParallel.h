@@ -81,15 +81,15 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     int GetNumBilaterals();
 
     /// Gets the time (in seconds) spent for computing the time step
-    virtual double GetTimerStep();
+    virtual double GetTimerStep() override;
     /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step
-    virtual double GetTimerSolver();
+    virtual double GetTimerSolver() override;
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionBroad();
+    virtual double GetTimerCollisionBroad() override;
     /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionNarrow();
+    virtual double GetTimerCollisionNarrow() override;
     /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-    virtual double GetTimerUpdate();
+    virtual double GetTimerUpdate() override;
 
     /// Gets the total time for the collision detection step
     double GetTimerCollision();
@@ -154,18 +154,18 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DVI; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
-    void CalculateContactForces();
+    void CalculateContactForces() override;
     real CalculateKineticEnergy();
     real CalculateDualObjective();
 
-    virtual real3 GetBodyContactForce(uint body_id) const;
-    virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const override;
+    virtual real3 GetBodyContactTorque(uint body_id) const override;
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
@@ -194,8 +194,8 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     virtual void Setup() override;
     virtual void ChangeCollisionSystem(CollisionSystemType type) override;
 
-    virtual real3 GetBodyContactForce(uint body_id) const;
-    virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const override;
+    virtual real3 GetBodyContactTorque(uint body_id) const override;
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 

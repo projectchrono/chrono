@@ -216,10 +216,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     bool GetLimitSpeed() const { return do_limit_speed; };
 
     /// Get the number of particles
-    size_t GetNparticles() const { return particles.size(); }
+    size_t GetNparticles() const override { return particles.size(); }
 
     /// Access the N-th particle
-    ChParticleBase& GetParticle(unsigned int n) {
+    ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
         return *particles[n];
     }
@@ -228,13 +228,13 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// previously created particles, if any.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void ResizeNparticles(int newsize);
+    void ResizeNparticles(int newsize) override;
 
     /// Add a new particle to the particle cluster, passing a
     /// coordinate system as initial state.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
+    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
 
     /// Set the material surface for contacts
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
@@ -298,7 +298,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Acess the collision model for the collision engine: this is the 'sample'
     /// collision model that is used by all particles.
@@ -306,9 +306,9 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// After you added collision shapes to the sample coll.model (the one
     /// that you access with GetCollisionModel() ) you need to call this

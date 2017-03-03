@@ -78,11 +78,11 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
 
     /// Method to allow deserializing a persistent binary archive (ex: a file)
     /// into transient data.
-    virtual void StreamIN(ChStreamInBinary& mstream);
+    virtual void StreamIN(ChStreamInBinary& mstream) override;
 
     /// Method to allow serializing transient data into a persistent
     /// binary archive (ex: a file).
-    virtual void StreamOUT(ChStreamOutBinary& mstream);
+    virtual void StreamOUT(ChStreamOutBinary& mstream) override;
 };
 
 }  // end namespace chrono

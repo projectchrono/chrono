@@ -65,8 +65,8 @@ class CH_MODELS_API Generic_MultiLink : public ChMultiLink {
     virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which);
-    virtual const ChVector<> getDirection(DirectionId which);
+    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector<> getDirection(DirectionId which) override;
 
     ChSpringForceCallback* m_springForceCB;
     ChSpringForceCallback* m_shockForceCB;

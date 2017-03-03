@@ -84,6 +84,8 @@ Generic_Vehicle::Generic_Vehicle(const bool fixed,
             m_suspensions[0] = std::make_shared<Generic_MacPhersonStrut>("Front suspension");
             m_suspensions[1] = std::make_shared<Generic_MacPhersonStrut>("Rear suspension");
             break;
+        default:
+            break;
     }
 
     // --------------------------------
@@ -149,6 +151,8 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
             break;
         case SuspensionType::MACPHERSON_STRUT:
             offset = ChVector<>(1.25, 0, 0.03);
+            break;
+        default:
             break;
     }
     m_steerings[0]->Initialize(m_chassis->GetBody(), offset, ChQuaternion<>(1, 0, 0, 0));
@@ -336,6 +340,8 @@ void Generic_Vehicle::LogHardpointLocations() {
             GetLog() << "\n---- REAR suspension hardpoint locations (RIGHT side)\n";
             std::static_pointer_cast<ChMacPhersonStrut>(m_suspensions[1])
                 ->LogHardpointLocations(ChVector<>(0, 0, 0), true);
+            break;
+        default:
             break;
     }
 

@@ -233,6 +233,8 @@ void ChIterativeSolverParallelDVI::ComputeD() {
             nnz_total += nnz_normal + nnz_tangential + nnz_spinning;
             num_rows += num_normal + num_tangential + num_spinning;
             break;
+        default:
+            break;
     }
 
     CLEAR_RESERVE_RESIZE(D_T, nnz_total, num_rows, num_dof)
@@ -427,5 +429,7 @@ void ChIterativeSolverParallelDVI::ChangeSolverType(SolverType type) {
         case SolverType::GAUSS_SEIDEL:
             solver = new ChSolverParallelGS();
             break;
+        default:
+                break;
     }
 }

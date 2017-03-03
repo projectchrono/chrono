@@ -116,13 +116,13 @@ ChQuaternion<double> Q_from_Vect_to_Vect(const ChVector<double>& fr_vect, const 
     double cosangle = ChClamp(fr_vect ^ to_vect / lenXlen, -1.0, +1.0);
 
     // Consider three cases: Parallel, Opposite, non-colinear
-    if (abs(sinangle) == 0.0 && cosangle > 0) {
+    if (std::abs(sinangle) == 0.0 && cosangle > 0) {
         // fr_vect & to_vect are parallel
         quat.e0() = 1.0;
         quat.e1() = 0.0;
         quat.e2() = 0.0;
         quat.e3() = 0.0;
-    } else if (abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
+    } else if (std::abs(sinangle) < ANGLE_TOLERANCE && cosangle < 0) {
         // fr_vect & to_vect are opposite, i.e. ~180 deg apart
         axis = fr_vect.GetOrthogonalVector() + (-to_vect).GetOrthogonalVector();
         axis.Normalize();
@@ -342,6 +342,8 @@ ChQuaternion<double> Angle_to_Quat(AngleSet angset, const ChVector<double>& mang
         case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
+        default:
+            break;
     }
     res = Acoord.Get_A_quaternion();
     return res;
@@ -368,6 +370,8 @@ ChVector<double> Quat_to_Angle(AngleSet angset, const ChQuaternion<double>& mqua
             break;
         case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
+            break;
+        default:
             break;
     }
     return res;
@@ -426,6 +430,8 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
         case AngleSet::RODRIGUEZ:
             Acoord.Set_A_Rodriguez(mangles);
             break;
+        default:
+            break;
     }
 
     switch (setto) {
@@ -443,6 +449,8 @@ ChVector<double> Angle_to_Angle(AngleSet setfrom, AngleSet setto, const ChVector
             break;
         case AngleSet::RODRIGUEZ:
             res = Acoord.Get_A_Rodriguez();
+            break;
+        default:
             break;
     }
     return res;

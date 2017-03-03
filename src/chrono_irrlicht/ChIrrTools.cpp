@@ -98,6 +98,8 @@ class _draw_reporter_class : public ChReportContactCallback {
             case ChIrrTools::CONTACT_FORCES:
                 v2 = pA + (mplanecoord * (react_forces * clen));
                 break;
+            default:
+                break;
         }
 
         this->cdriver->draw3DLine(irr::core::vector3dfCH(v1), irr::core::vector3dfCH(v2), mcol);
@@ -179,6 +181,8 @@ class _label_reporter_class : public ChReportContactCallback {
             case ChIrrTools::CONTACT_TORQUES_R_VAL:
                 sprintf(buffer, "% 6.3g", ChVector<>(0, react_torques.y(), react_torques.z()).Length());
                 break;
+            default:
+                break;
         }
 
         font->draw(irr::core::stringw(buffer).c_str(),
@@ -244,6 +248,8 @@ int ChIrrTools::drawAllLinks(ChSystem& mphysicalSystem,
                 case ChIrrTools::LINK_REACT_TORQUE:
                     v2 = mylink->Get_react_torque();
                     break;
+                default:
+                    break;
             }
 
             v2 *= mlen;
@@ -304,6 +310,8 @@ int ChIrrTools::drawAllLinkLabels(ChSystem& mphysicalSystem,
                     break;
                 case ChIrrTools::LINK_REACT_TORQUE_Z:
                     sprintf(buffer, "% 6.3g", mylink->Get_react_torque().z());
+                    break;
+                default:
                     break;
             }
 

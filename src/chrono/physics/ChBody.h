@@ -211,8 +211,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Returns reference to the encapsulated ChVariablesBody, representing
     /// body variables (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
-    ChVariablesBodyOwnMass& VariablesBody() { return variables; }
-    ChVariables& Variables() { return variables; }
+    ChVariablesBodyOwnMass& VariablesBody() override { return variables; }
+    ChVariables& Variables() override { return variables; }
 
     //
     // STATE FUNCTIONS
@@ -300,7 +300,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Change the collision model.
     void SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model);
@@ -310,9 +310,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     std::shared_ptr<collision::ChCollisionModel> GetCollisionModel() { return collision_model; }
 
     /// Synchronize coll.model coordinate and bounding box to the position of the body.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// Update the optimization structures (OOBB, ABB, etc.)
     /// of the collision model, from the associated geometry in some external object (es.CAD).
@@ -338,16 +338,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the master coordinate system for the assets (this will return the
     /// main coordinate system of the rigid body)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return (GetFrame_REF_to_abs()); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
 
     /// Get the entire AABB axis-aligned bounding box of the object,
     /// as defined by the collision model (if any).
-    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax);
+    virtual void GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) override;
 
     /// Method to deserialize only the state (position, speed)
-    virtual void StreamINstate(ChStreamInBinary& mstream);
+    virtual void StreamINstate(ChStreamInBinary& mstream) override;
     /// Method to serialize only the state (position, speed)
-    virtual void StreamOUTstate(ChStreamOutBinary& mstream);
+    virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
     ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
@@ -591,10 +591,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..), at given time
-    virtual void Update(double mytime, bool update_assets = true);
+    virtual void Update(double mytime, bool update_assets = true) override;
     /// Update all auxiliary data of the rigid body and of
     /// its children (markers, forces..)
-    virtual void Update(bool update_assets = true);
+    virtual void Update(bool update_assets = true) override;
 
     //
     // INTERFACE TO ChContactable

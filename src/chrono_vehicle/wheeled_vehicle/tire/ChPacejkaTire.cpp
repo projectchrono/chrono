@@ -753,14 +753,14 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
     // any thresholds exceeded? then print some details about slip state
     bool output_slip_to_console = false;
 
-    if (abs(m_FM_combined.force.x()) > Fx_thresh) {
+    if (std::abs(m_FM_combined.force.x()) > Fx_thresh) {
         // GetLog() << "\n ***  !!!  ***  Fx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.x() <<
         // "\n";
         output_slip_to_console = true;
         if (enforce_threshold)
             m_FM_combined.force.x() = m_FM_combined.force.x() * (Fx_thresh / std::abs(m_FM_combined.force.x()));
     }
-    if (abs(m_FM_combined.force.y()) > Fy_thresh) {
+    if (std::abs(m_FM_combined.force.y()) > Fy_thresh) {
         // GetLog() << "\n ***  !!!  ***  Fy exceeded threshold, tire " << m_name << ", = " << m_FM_combined.force.y() <<
         // "\n";
         output_slip_to_console = true;
@@ -770,12 +770,12 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
 
     //  m_Fz, the Fz input to the tire model, must be limited based on the Fz_threshold
     // e.g., should never need t;his
-    if (abs(m_Fz) > Fz_thresh) {
+    if (std::abs(m_Fz) > Fz_thresh) {
         GetLog() << "\n ***  !!!  ***  Fz exceeded threshold:, tire " << m_name << ", = " << m_Fz << "\n";
         output_slip_to_console = true;
     }
 
-    if (abs(m_FM_combined.moment.x()) > Mx_thresh) {
+    if (std::abs(m_FM_combined.moment.x()) > Mx_thresh) {
         // GetLog() << " ***  !!!  ***  Mx exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.x() <<
         // "\n";
         if (enforce_threshold)
@@ -783,7 +783,7 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
         output_slip_to_console = true;
     }
 
-    if (abs(m_FM_combined.moment.y()) > My_thresh) {
+    if (std::abs(m_FM_combined.moment.y()) > My_thresh) {
         // GetLog() << " ***  !!!  ***  My exceeded threshold, tire " << m_name << ", = " << m_FM_combined.moment.y() <<
         // "\n";
         if (enforce_threshold)
@@ -791,7 +791,7 @@ void ChPacejkaTire::evaluate_reactions(bool write_violations, bool enforce_thres
         output_slip_to_console = true;
     }
 
-    if (abs(m_FM_combined.moment.z()) > Mz_thresh) {
+    if (std::abs(m_FM_combined.moment.z()) > Mz_thresh) {
         if (enforce_threshold)
             m_FM_combined.moment.z() = m_FM_combined.moment.z() * (Mz_thresh / std::abs(m_FM_combined.moment.z()));
 

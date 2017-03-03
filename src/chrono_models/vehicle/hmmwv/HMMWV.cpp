@@ -213,6 +213,8 @@ void HMMWV::Initialize() {
 #endif
             break;
         }
+        default:
+            break;
     }
 
     // Initialize the tires.

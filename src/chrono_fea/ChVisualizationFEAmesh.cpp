@@ -675,6 +675,8 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             mybeam->EvaluateSectionStrain(eta, displ, vresult);
                             sresult = vresult.y();
                             break;
+                        default:
+                            break;
                     }
                     ChVector<float> mcol = ComputeFalseColor(sresult);
 
