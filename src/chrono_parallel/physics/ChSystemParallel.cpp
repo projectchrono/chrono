@@ -279,7 +279,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     uint current_nodes = data_manager->num_fea_nodes;
 
-    for (int i = 0; i < num_nodes; i++) {
+    for (int i = 0; i < (signed)num_nodes; i++) {
         if (auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyz>(mesh->GetNode(i))) {
             positions[i] = real3(node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
             velocities[i] = real3(node->GetPos_dt().x(), node->GetPos_dt().y(), node->GetPos_dt().z());
@@ -293,7 +293,7 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
 
     std::vector<uvec4> elements(num_elements);
 
-    for (int i = 0; i < num_elements; i++) {
+    for (int i = 0; i < (signed)num_elements; i++) {
         if (auto tet = std::dynamic_pointer_cast<fea::ChElementTetra_4>(mesh->GetElement(i))) {
             uvec4 elem;
 
