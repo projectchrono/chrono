@@ -25,6 +25,11 @@ set(MEMORYCHECK_COMMAND "/usr/bin/valgrind")
 set(CTEST_MEMORYCHECK_COMMAND "/usr/bin/valgrind")
 set(CTEST_MEMORYCHECK_COMMAND_OPTIONS "-v --tool=memcheck --leak-check=full --track-fds=yes --num-callers=50 --show-reachable=yes --track-origins=yes --malloc-fill=0xff --free-fill=0xfe")
 
+find_program(CCACHE_EXE ccache)
+if(CCACHE_EXE)
+  set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE "${CCACHE_EXE}")
+endif()
+
 #-----------------------------------------------------------------------------
 # Disable the warning when adding a subdir that has not CMakeLists.txt
 #-----------------------------------------------------------------------------
