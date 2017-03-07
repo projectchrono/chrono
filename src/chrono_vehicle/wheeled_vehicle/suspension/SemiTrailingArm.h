@@ -30,7 +30,7 @@ namespace vehicle {
 /// @addtogroup vehicle_wheeled_suspension
 /// @{
 
-/// Double-A arm suspension constructed with data from file.
+/// Semi-trailing arm suspension constructed with data from file.
 class CH_VEHICLE_API SemiTrailingArm : public ChSemiTrailingArm {
   public:
     SemiTrailingArm(const std::string& filename);

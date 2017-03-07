@@ -38,8 +38,7 @@ static ChVector<> loadVector(const Value& a) {
 }
 
 // -----------------------------------------------------------------------------
-// Construct a double wishbone suspension using data from the specified JSON
-// file.
+// Construct a trailing arm suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SemiTrailingArm::SemiTrailingArm(const std::string& filename)
     : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
