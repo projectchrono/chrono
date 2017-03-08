@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
     int num_threads = 1;
 
     uint max_iteration_normal = 0;
-    uint max_iteration_sliding = 100;
-    uint max_iteration_spinning = 300;
+    uint max_iteration_sliding = 0;
+    uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
     
     // ------------------------
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
 
     container->GetMaterialSurface()->SetFriction(0.4f);
     container->GetMaterialSurface()->SetRollingFriction(0.001f);
-
+	container->GetMaterialSurface()->SetSpinningFriction(0.001f);
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), ChVector<>(10, 10, 1), ChVector<>(0, 0, 0));
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
         ball->SetInertiaXX(ChVector<>(inertia));
 
         // Initial position and velocity
-        ball->SetPos(ChVector<>(-7, -5 + bi * radius * 2.5, 1 + radius));
+        ball->SetPos(ChVector<>(-6, -5 + bi * radius * 2.5, 1 + radius));
         ball->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
         ball->SetWvel_par(ChVector<>(0, initial_angspeed, 0));
 
@@ -130,13 +130,40 @@ int main(int argc, char** argv) {
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients
-        float rolling_friction = (bi / 10.0f) * 0.1f;  // double what we want
+        float rolling_friction = (bi / 10.0f) * 0.2f;  // double what we want
         ball->GetMaterialSurface()->SetFriction(0.4f);
         ball->GetMaterialSurface()->SetRollingFriction(rolling_friction);
 
         // Add to the system
         system.Add(ball);
     }
+
+	for (int bi = 0; bi < 10; bi++) {
+		auto ball = std::shared_ptr<ChBody>(system.NewBody());
+		ball->SetIdentifier(bi);
+		ball->SetMass(mass);
+		ball->SetInertiaXX(ChVector<>(inertia));
+
+		// Initial position and velocity
+		ball->SetPos(ChVector<>(-8, -5 + bi * radius * 2.5, 1 + radius));
+		ball->SetPos_dt(ChVector<>(0, 0, 0));
+		ball->SetWvel_par(ChVector<>(0, 0, initial_angspeed));
+
+		// Contact geometry
+		ball->SetCollide(true);
+		ball->GetCollisionModel()->ClearModel();
+		utils::AddSphereGeometry(ball.get(), radius);
+		ball->GetCollisionModel()->BuildModel();
+
+		// Sliding and rolling friction coefficients
+		float spinning_friction = (bi / 10.0f) * 0.1f;  // double what we want
+		ball->GetMaterialSurface()->SetFriction(1);
+		ball->GetMaterialSurface()->SetRollingFriction(1);
+		ball->GetMaterialSurface()->SetSpinningFriction(spinning_friction);
+		// Add to the system
+		system.Add(ball);
+	}
+
 
 #ifdef CHRONO_OPENGL
     // -------------------------------
@@ -145,7 +172,7 @@ int main(int argc, char** argv) {
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Settling test", &system);
-    gl_window.SetCamera(ChVector<>(0.1, 0, 20), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 

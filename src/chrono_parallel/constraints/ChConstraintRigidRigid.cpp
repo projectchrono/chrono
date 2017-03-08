@@ -124,7 +124,7 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
     //		gam[index + number_of_contacts * 2] = 0;
     //	}
 
-    real gamma_n = fabs(gam[index * 1 + 0]);
+    real gamma_n = gam[index * 1 + 0];
     real gamma_s = gam[3 * data_manager->num_rigid_contacts + index * 3 + 0];
     real gamma_tu = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
     real gamma_tv = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
@@ -145,7 +145,7 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
     } else {
         Cone_generalized(gamma_n, gamma_tu, gamma_tv, rollingfriction);
     }
-    // gam[index + number_of_contacts * 0] = gamma_n;
+    gam[index * 1 + 0] = gamma_n;
     gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = gamma_s;
     gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = gamma_tu;
     gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = gamma_tv;
