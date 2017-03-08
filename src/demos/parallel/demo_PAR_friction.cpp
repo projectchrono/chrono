@@ -85,8 +85,7 @@ int main(int argc, char** argv) {
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the container body.
-    // Note that Chrono::Parallel uses the *average* of the friction coefficients for a contacting pair.
-    // Also, if any of the two coefficients is exactly 0, we use 0 for the contact pair.
+    // Note that Chrono::Parallel uses the *minimum* of the spinning and rolling friction values for a contacting pair.
     auto container = std::shared_ptr<ChBody>(system.NewBody());
     system.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
@@ -94,8 +93,9 @@ int main(int argc, char** argv) {
     container->SetIdentifier(-1);
 
     container->GetMaterialSurface()->SetFriction(0.4f);
-    container->GetMaterialSurface()->SetRollingFriction(0.001f);
-	container->GetMaterialSurface()->SetSpinningFriction(0.001f);
+    container->GetMaterialSurface()->SetRollingFriction(1);
+    container->GetMaterialSurface()->SetSpinningFriction(1);
+
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
     utils::AddBoxGeometry(container.get(), ChVector<>(10, 10, 1), ChVector<>(0, 0, 0));
@@ -130,14 +130,14 @@ int main(int argc, char** argv) {
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients
-        float rolling_friction = (bi / 10.0f) * 0.2f;  // double what we want
         ball->GetMaterialSurface()->SetFriction(0.4f);
-        ball->GetMaterialSurface()->SetRollingFriction(rolling_friction);
+        ball->GetMaterialSurface()->SetRollingFriction((bi / 10.0f) * 0.05f);
 
         // Add to the system
         system.Add(ball);
     }
 
+    // Create some spheres that spin in place, with increasing spinning friction values
 	for (int bi = 0; bi < 10; bi++) {
 		auto ball = std::shared_ptr<ChBody>(system.NewBody());
 		ball->SetIdentifier(bi);
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
 		// Initial position and velocity
 		ball->SetPos(ChVector<>(-8, -5 + bi * radius * 2.5, 1 + radius));
 		ball->SetPos_dt(ChVector<>(0, 0, 0));
-		ball->SetWvel_par(ChVector<>(0, 0, initial_angspeed));
+		ball->SetWvel_par(ChVector<>(0, 0, 20));
 
 		// Contact geometry
 		ball->SetCollide(true);
@@ -156,11 +156,10 @@ int main(int argc, char** argv) {
 		ball->GetCollisionModel()->BuildModel();
 
 		// Sliding and rolling friction coefficients
-		float spinning_friction = (bi / 10.0f) * 0.1f;  // double what we want
-		ball->GetMaterialSurface()->SetFriction(1);
-		ball->GetMaterialSurface()->SetRollingFriction(1);
-		ball->GetMaterialSurface()->SetSpinningFriction(spinning_friction);
-		// Add to the system
+		ball->GetMaterialSurface()->SetFriction(0.4f);
+        ball->GetMaterialSurface()->SetSpinningFriction((bi / 10.0f) * 0.02f);
+
+        // Add to the system
 		system.Add(ball);
 	}
 
