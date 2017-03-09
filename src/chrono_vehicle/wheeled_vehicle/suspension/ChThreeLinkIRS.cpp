@@ -116,6 +116,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     u = points[TA_C] - points[TA_S];
     u.Normalize();
     v = Vcross(ChVector<>(0, 0, 1), u);
+    v.Normalize();
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
@@ -130,6 +131,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     u = points[UL_A] - points[UL_C];
     u.Normalize();
     v = Vcross(ChVector<>(0, 0, 1), u);
+    v.Normalize();
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
@@ -144,6 +146,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     u = points[LL_A] - points[LL_C];
     u.Normalize();
     v = Vcross(ChVector<>(0, 0, 1), u);
+    v.Normalize();
     w = Vcross(u, v);
     rot.Set_A_axis(u, v, w);
 
@@ -182,6 +185,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
     // Create and initialize the universal joints between links and chassis.
     u = dirs[UNIV_AXIS_UPPER];
     w = Vcross(u, ChVector<>(0, 0, 1));
+    w.Normalize();
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
@@ -192,6 +196,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 
     u = dirs[UNIV_AXIS_LOWER];
     w = Vcross(u, ChVector<>(0, 0, 1));
+    w.Normalize();
     v = Vcross(w, u);
     rot.Set_A_axis(u, v, w);
 
@@ -232,7 +237,7 @@ void ChThreeLinkIRS::InitializeSide(VehicleSide side,
 // Get the total mass of the suspension subsystem.
 // -----------------------------------------------------------------------------
 double ChThreeLinkIRS::GetMass() const {
-    return 2 * (getSpindleMass() + getArmMass());
+    return 2 * (getSpindleMass() + getArmMass() + getLowerLinkMass() + getUpperLinkMass());
 }
 
 // -----------------------------------------------------------------------------
@@ -255,21 +260,21 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "Arm spherical         ";
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
+        GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
     {
         ChMatrix<>* C = m_sphericalUpper[side]->GetC();
         GetLog() << "Upper spherical       ";
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
+        GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
     {
         ChMatrix<>* C = m_sphericalLower[side]->GetC();
         GetLog() << "Lower spherical       ";
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
-        GetLog() << "  " << C->GetElement(2, 0) << "  ";
+        GetLog() << "  " << C->GetElement(2, 0) << "\n";
     }
     {
         ChMatrix<>* C = m_universalUpper[side]->GetC();
@@ -277,7 +282,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
         GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
+        GetLog() << "  " << C->GetElement(3, 0) << "\n";
     }
     {
         ChMatrix<>* C = m_universalLower[side]->GetC();
@@ -285,7 +290,7 @@ void ChThreeLinkIRS::LogConstraintViolations(VehicleSide side) {
         GetLog() << "  " << C->GetElement(0, 0) << "  ";
         GetLog() << "  " << C->GetElement(1, 0) << "  ";
         GetLog() << "  " << C->GetElement(2, 0) << "  ";
-        GetLog() << "  " << C->GetElement(3, 0) << "  ";
+        GetLog() << "  " << C->GetElement(3, 0) << "\n";
     }
     {
         ChMatrix<>* C = m_revolute[side]->GetC();
