@@ -16,7 +16,7 @@
   {
     "Mass":                     3.0,
     "COM":                      [0.35, 0.9, 0.0],
-    "Inertia":                  [0.01, 0.002, 0.002],
+    "Inertia":                  [0.002, 0.02, 0.02],
     "Radius":                   0.02,
     "Location Chassis":         [0.7, 0.9, 0.0],
     "Location Spindle":         [0.0, 0.9, 0.0]
@@ -26,18 +26,18 @@
   {
     "Mass":                     1.0,
     "COM":                      [-0.1, 0.55, 0.25],
-    "Inertia":                  [0.01, 0.002, 0.002],
+    "Inertia":                  [0.002, 0.02, 0.02],
     "Radius":                   0.01,
     "Location Chassis":         [-0.1, 0.2, 0.4],
     "Location Arm":             [-0.1, 0.9, 0.1],
     "Universal Joint Axis":     [1, 0, 0]
- },
+  },
 
   "Lower Link":
   {
     "Mass":                     1.0,
     "COM":                      [-0.1, 0.55, 0.15],
-    "Inertia":                  [0.01, 0.002, 0.002],
+    "Inertia":                  [0.002, 0.02, 0.02],
     "Radius":                   0.01,
     "Location Chassis":         [-0.1, 0.2, 0.3],
     "Location Arm":             [-0.1, 0.9, 0.0],
@@ -48,15 +48,15 @@
   {
     "Location Chassis":         [0.3, 0.9, 0.4],
     "Location Arm":             [0.3, 0.9, 0.0],
-    "Spring Coefficient":       350000.000,
-    "Free Length" :             0.356
+    "Spring Coefficient":       100000.000,
+    "Free Length" :             0.4
   },
   
   "Shock":
   {
     "Location Chassis":         [0.3, 0.9, 0.5],
     "Location Arm":             [0.3, 0.9, 0.0],
-    "Damping Coefficient":      20000.000
+    "Damping Coefficient":      5000.000
   },
 
   "Axle":
