@@ -35,6 +35,7 @@
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 
 #include "chrono_vehicle/wheeled_vehicle/antirollbar/AntirollBarRSD.h"
 
@@ -204,6 +205,8 @@ void WheeledVehicle::LoadSuspension(const std::string& filename, int axle) {
         m_suspensions[axle] = std::make_shared<MacPhersonStrut>(d);
     } else if (subtype.compare("SemiTrailingArm") == 0) {
         m_suspensions[axle] = std::make_shared<SemiTrailingArm>(d);
+    } else if (subtype.compare("ThreeLinkIRS") == 0) {
+        m_suspensions[axle] = std::make_shared<ThreeLinkIRS>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";

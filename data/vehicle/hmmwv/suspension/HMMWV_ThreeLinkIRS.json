@@ -1,0 +1,66 @@
+{
+  "Name":                       "Generic HMMWV ThreeLinkIRS",
+  "Type":                       "Suspension",
+  "Template":                   "ThreeLinkIRS",
+
+  "Spindle" :
+  {
+    "Mass":                     1.0,
+    "COM":                      [0.0, 1.1, 0.0],
+    "Inertia":                  [0.005, 0.005, 0.005],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Trailing Arm":
+  {
+    "Mass":                     7.0,
+    "COM":                      [0.5, 0.9, 0.1],
+    "Inertia":                  [0.01, 0.3, 0.3],
+    "Radius":                   0.02,
+    "Location Chassis":         [1.0, 0.9, 0.2],
+    "Location Spindle":         [0.0, 0.9, 0.0]
+  },
+
+  "Upper Link":
+  {
+    "Mass":                     2.0,
+    "COM":                      [-0.1, 0.55, 0.45],
+    "Inertia":                  [0.01, 0.1, 0.1],
+    "Radius":                   0.01,
+    "Location Chassis":         [-0.1, 0.2, 0.6],
+    "Location Arm":             [-0.1, 0.9, 0.3],
+    "Universal Joint Axis":     [1, 0, 0]
+ },
+
+  "Lower Link":
+  {
+    "Mass":                     2.0,
+    "COM":                      [-0.1, 0.55, 0.15],
+    "Inertia":                  [0.1, 0.01, 0.1],
+    "Radius":                   0.01,
+    "Location Chassis":         [-0.1, 0.2, 0.3],
+    "Location Arm":             [-0.1, 0.9, 0.0],
+    "Universal Joint Axis":     [1, 0, 0]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         [0.3, 0.9, 0.4],
+    "Location Arm":             [0.3, 0.9, 0.0],
+    "Spring Coefficient":       150000.000,
+    "Free Length" :             0.42
+  },
+  
+  "Shock":
+  {
+    "Location Chassis":         [0.3, 0.9, 0.5],
+    "Location Arm":             [0.3, 0.9, 0.0],
+    "Damping Coefficient":      10000.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

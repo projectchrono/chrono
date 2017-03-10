@@ -12,13 +12,13 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Semi-trailing arm suspension constructed with data from file.
+// Three-link Independent Rear Suspension constructed with data from file.
 //
 // =============================================================================
 
 #include <cstdio>
 
-#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
 
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
 
@@ -38,10 +38,11 @@ static ChVector<> loadVector(const Value& a) {
 }
 
 // -----------------------------------------------------------------------------
-// Construct a trailing arm suspension using data from the specified JSON file.
+// Construct a three-link IRS suspension using data from the specified JSON
+// file.
 // -----------------------------------------------------------------------------
-SemiTrailingArm::SemiTrailingArm(const std::string& filename)
-    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+ThreeLinkIRS::ThreeLinkIRS(const std::string& filename)
+    : ChThreeLinkIRS(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -57,23 +58,23 @@ SemiTrailingArm::SemiTrailingArm(const std::string& filename)
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-SemiTrailingArm::SemiTrailingArm(const rapidjson::Document& d)
-    : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
+ThreeLinkIRS::ThreeLinkIRS(const rapidjson::Document& d)
+    : ChThreeLinkIRS(""), m_springForceCB(nullptr), m_shockForceCB(nullptr) {
     Create(d);
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-SemiTrailingArm::~SemiTrailingArm() {
+ThreeLinkIRS::~ThreeLinkIRS() {
     delete m_springForceCB;
     delete m_shockForceCB;
 }
 
 // -----------------------------------------------------------------------------
-// Worker function for creating a SemiTrailingArm suspension using data in the
+// Worker function for creating a ThreeLinkIRS suspension using data in the
 // specified RapidJSON document.
 // -----------------------------------------------------------------------------
-void SemiTrailingArm::Create(const rapidjson::Document& d) {
+void ThreeLinkIRS::Create(const rapidjson::Document& d) {
     // Read top-level data
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
@@ -99,9 +100,32 @@ void SemiTrailingArm::Create(const rapidjson::Document& d) {
     m_points[TA_CM] = loadVector(d["Trailing Arm"]["COM"]);
     m_armInertia = loadVector(d["Trailing Arm"]["Inertia"]);
     m_armRadius = d["Trailing Arm"]["Radius"].GetDouble();
-    m_points[TA_O] = loadVector(d["Trailing Arm"]["Location Chassis Outer"]);
-    m_points[TA_I] = loadVector(d["Trailing Arm"]["Location Chassis Inner"]);
+    m_points[TA_C] = loadVector(d["Trailing Arm"]["Location Chassis"]);
     m_points[TA_S] = loadVector(d["Trailing Arm"]["Location Spindle"]);
+
+    // Read upper link data
+    assert(d.HasMember("Upper Link"));
+    assert(d["Upper Link"].IsObject());
+
+    m_upperMass = d["Upper Link"]["Mass"].GetDouble();
+    m_points[UL_CM] = loadVector(d["Upper Link"]["COM"]);
+    m_upperInertia = loadVector(d["Upper Link"]["Inertia"]);
+    m_upperLinkRadius = d["Upper Link"]["Radius"].GetDouble();
+    m_points[UL_C] = loadVector(d["Upper Link"]["Location Chassis"]);
+    m_points[UL_A] = loadVector(d["Upper Link"]["Location Arm"]);
+    m_dirs[UNIV_AXIS_UPPER] = loadVector(d["Upper Link"]["Universal Joint Axis"]);
+
+    // Read lower link data
+    assert(d.HasMember("Lower Link"));
+    assert(d["Lower Link"].IsObject());
+
+    m_lowerMass = d["Lower Link"]["Mass"].GetDouble();
+    m_points[LL_CM] = loadVector(d["Lower Link"]["COM"]);
+    m_lowerInertia = loadVector(d["Lower Link"]["Inertia"]);
+    m_lowerLinkRadius = d["Lower Link"]["Radius"].GetDouble();
+    m_points[LL_C] = loadVector(d["Lower Link"]["Location Chassis"]);
+    m_points[LL_A] = loadVector(d["Lower Link"]["Location Arm"]);
+    m_dirs[UNIV_AXIS_LOWER] = loadVector(d["Lower Link"]["Universal Joint Axis"]);
 
     // Read spring data and create force callback
     assert(d.HasMember("Spring"));
