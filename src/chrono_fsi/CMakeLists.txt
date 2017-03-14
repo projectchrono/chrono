@@ -53,7 +53,7 @@ ENDIF()
 # Make some variables cisible from parent directory
 # ----------------------------------------------------------------------------
 
-set(CH_FSI_INCLUDES 
+set(CH_FSI_INCLUDES
     "${CUDA_TOOLKIT_ROOT_DIR}/include"
 )
 
@@ -96,6 +96,7 @@ ChBce.cuh
 ChCollisionSystemFsi.cuh
 ChDeviceUtils.cuh
 ChFluidDynamics.cuh
+ChParams.cuh
 ChFsiDataManager.cuh
 ChFsiForceParallel.cuh
 ChFsiGeneral.cuh
@@ -112,13 +113,13 @@ utils/ChUtilsPrintSph.h
 utils/ChUtilsPrintStruct.h
 )
 
-SOURCE_GROUP("" FILES 
-    ${ChronoEngine_FSI_SOURCES} 
+SOURCE_GROUP("" FILES
+    ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS})
 
-#-----------------------------------------------------------------------------  
+#-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
-#-----------------------------------------------------------------------------  
+#-----------------------------------------------------------------------------
 
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES "ChronoEngine")
@@ -139,15 +140,15 @@ if(ENABLE_MODULE_VEHICLE)
   list(APPEND LIBRARIES ChronoEngine_vehicle)
 endif()
 
-CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED 
+CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_fsi PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
-                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}" 
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_FSI")
-                          
+
 TARGET_LINK_LIBRARIES(ChronoEngine_fsi ${LIBRARIES})
 
 INSTALL(TARGETS ChronoEngine_fsi
