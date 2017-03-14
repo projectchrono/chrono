@@ -3,6 +3,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_parallel/physics/ChMPM.cuh"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/constraints/ChConstraintFluidFluidUtils.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
