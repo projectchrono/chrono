@@ -75,47 +75,57 @@ install(FILES "${PROJECT_BINARY_DIR}/chrono_fsi/ChConfigFSI.h"
 # LIST THE FILES THAT MAKE THE FSI FLUID-SOLID INTERACTION LIBRARY
 
 SET(ChronoEngine_FSI_SOURCES
-ChBce.cu
-ChCollisionSystemFsi.cu
-ChDeviceUtils.cu
-ChFluidDynamics.cu
-ChFsiDataManager.cu
-ChFsiForceParallel.cu
-ChFsiGeneral.cu
-ChFsiInterface.cpp
-ChSystemFsi.cpp
-ChFsiTypeConvert.cpp
-utils/ChUtilsGeneratorBce.cpp
-utils/ChUtilsGeneratorFluid.cpp
-utils/ChUtilsGeneratorFsi.cpp
-utils/ChUtilsPrintSph.cpp
+    ChBce.cu
+    ChCollisionSystemFsi.cu
+    ChDeviceUtils.cu
+    ChFluidDynamics.cu
+    ChFsiDataManager.cu
+    ChFsiForceParallel.cu
+    ChFsiGeneral.cu
+    ChFsiInterface.cpp
+    ChSystemFsi.cpp
+    ChFsiTypeConvert.cpp
 )
 
 SET(ChronoEngine_FSI_HEADERS
-ChBce.cuh
-ChCollisionSystemFsi.cuh
-ChDeviceUtils.cuh
-ChFluidDynamics.cuh
-ChParams.cuh
-ChFsiDataManager.cuh
-ChFsiForceParallel.cuh
-ChFsiGeneral.cuh
-ChFsiInterface.h
-ChSystemFsi.h
-ChSphGeneral.cuh
-ChApiFsi.h
-ChFsiTypeConvert.h
-custom_math.h
-utils/ChUtilsGeneratorBce.h
-utils/ChUtilsGeneratorFluid.h
-utils/ChUtilsGeneratorFsi.h
-utils/ChUtilsPrintSph.h
-utils/ChUtilsPrintStruct.h
+    ChBce.cuh
+    ChCollisionSystemFsi.cuh
+    ChDeviceUtils.cuh
+    ChFluidDynamics.cuh
+    ChParams.cuh
+    ChFsiDataManager.cuh
+    ChFsiForceParallel.cuh
+    ChFsiGeneral.cuh
+    ChFsiInterface.h
+    ChSystemFsi.h
+    ChSphGeneral.cuh
+    ChApiFsi.h
+    ChFsiTypeConvert.h
+    custom_math.h
 )
 
 SOURCE_GROUP("" FILES
     ${ChronoEngine_FSI_SOURCES}
     ${ChronoEngine_FSI_HEADERS})
+
+set(ChronoEngine_FSI_UTILS_SOURCES
+    utils/ChUtilsGeneratorBce.cpp
+    utils/ChUtilsGeneratorFluid.cpp
+    utils/ChUtilsGeneratorFsi.cpp
+    utils/ChUtilsPrintSph.cpp
+)
+
+set(ChronoEngine_FSI_UTILS_HEADERS
+    utils/ChUtilsGeneratorBce.h
+    utils/ChUtilsGeneratorFluid.h
+    utils/ChUtilsGeneratorFsi.h
+    utils/ChUtilsPrintSph.h
+    utils/ChUtilsPrintStruct.h
+)
+
+source_group(utils FILES
+    ${ChronoEngine_FSI_UTILS_SOURCES}
+    ${ChronoEngine_FSI_UTILS_HEADERS})
 
 #-----------------------------------------------------------------------------
 # Create the ChronoEngine_fsi library
@@ -142,7 +152,10 @@ endif()
 
 CUDA_ADD_LIBRARY(ChronoEngine_fsi SHARED
     ${ChronoEngine_FSI_SOURCES}
-    ${ChronoEngine_FSI_HEADERS})
+    ${ChronoEngine_FSI_HEADERS}
+    ${ChronoEngine_FSI_UTILS_SOURCES}
+    ${ChronoEngine_FSI_UTILS_HEADERS}
+)
 
 SET_TARGET_PROPERTIES(ChronoEngine_fsi PROPERTIES
                       COMPILE_FLAGS "${CXX_FLAGS}"
@@ -158,3 +171,5 @@ INSTALL(TARGETS ChronoEngine_fsi
 
 INSTALL(FILES ${ChronoEngine_FSI_HEADERS}
         DESTINATION include/chrono_fsi)
+INSTALL(FILES ${ChronoEngine_FSI_UTILS_HEADERS}
+        DESTINATION include/chrono_fsi/utils)
