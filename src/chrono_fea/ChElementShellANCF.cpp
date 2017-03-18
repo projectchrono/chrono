@@ -1558,7 +1558,7 @@ void ChElementShellANCF::EvaluateSectionPoint(const double u,
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
     mD.PasteVector(m_nodes[0]->GetD(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 6, 0);
@@ -1570,7 +1570,7 @@ void ChElementShellANCF::LoadableGetStateBlock_x(int block_offset, ChVectorDynam
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
     mD.PasteVector(m_nodes[0]->GetD_dt(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -1579,6 +1579,12 @@ void ChElementShellANCF::LoadableGetStateBlock_w(int block_offset, ChVectorDynam
     mD.PasteVector(m_nodes[2]->GetD_dt(), block_offset + 15, 0);
     mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
     mD.PasteVector(m_nodes[3]->GetD_dt(), block_offset + 21, 0);
+}
+
+void ChElementShellANCF::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    for (int i = 0; i < 4; i++) {
+        this->m_nodes[i]->NodeIntStateIncrement(off_x  + 6 * i  , x_new, x, off_v  + 6 * i  , Dv);
+    }
 }
 
 void ChElementShellANCF::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {

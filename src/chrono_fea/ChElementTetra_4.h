@@ -424,7 +424,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
     virtual int LoadableGet_ndof_w() override { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
@@ -432,11 +432,18 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
         mD.PasteVector(this->nodes[3]->GetPos_dt(), block_offset + 9, 0);
+    }
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<4; ++i) {
+            nodes[i]->NodeIntStateIncrement(off_x + i*3  , x_new, x, off_v  + i*3  , Dv);
+        }
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
@@ -749,7 +756,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
     virtual int LoadableGet_ndof_w() override { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD(block_offset) = this->nodes[0]->GetP();
         mD(block_offset + 1) = this->nodes[1]->GetP();
         mD(block_offset + 2) = this->nodes[2]->GetP();
@@ -757,11 +764,18 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD(block_offset) = this->nodes[0]->GetP_dt();
         mD(block_offset + 1) = this->nodes[1]->GetP_dt();
         mD(block_offset + 2) = this->nodes[2]->GetP_dt();
         mD(block_offset + 3) = this->nodes[3]->GetP_dt();
+    }
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<4; ++i) {
+            nodes[i]->NodeIntStateIncrement(off_x + i*1  , x_new, x, off_v  + i*1  , Dv);
+        }
     }
 
     /// Number of coordinates in the interpolated field: here the {t} temperature

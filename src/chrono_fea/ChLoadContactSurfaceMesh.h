@@ -164,18 +164,27 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
             ndoftot += forces[i]->LoadGet_ndof_w();
         return ndoftot;
     }
-    virtual void LoadGetStateBlock_x(ChVectorDynamic<>& mD) {
+    virtual void LoadGetStateBlock_x(ChState& mD) {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->loader.GetLoadable()->LoadableGetStateBlock_x(ndoftot, mD);
             ndoftot += forces[i]->loader.GetLoadable()->LoadableGet_ndof_x();
         }
     }
-    virtual void LoadGetStateBlock_w(ChVectorDynamic<>& mD) {
+    virtual void LoadGetStateBlock_w(ChStateDelta& mD) {
         int ndoftot = 0;
         for (int i = 0; i < forces.size(); ++i) {
             forces[i]->loader.GetLoadable()->LoadableGetStateBlock_w(ndoftot, mD);
             ndoftot += forces[i]->loader.GetLoadable()->LoadableGet_ndof_w();
+        }
+    }
+    virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        int ndoftotx = 0;
+        int ndoftotw = 0;
+        for (int i = 0; i < forces.size(); ++i) {
+            forces[i]->loader.GetLoadable()->LoadableStateIncrement(ndoftotx  , x_new, x, ndoftotw , dw);
+            ndoftotx += forces[i]->loader.GetLoadable()->LoadableGet_ndof_x();
+            ndoftotw += forces[i]->loader.GetLoadable()->LoadableGet_ndof_w();
         }
     }
 

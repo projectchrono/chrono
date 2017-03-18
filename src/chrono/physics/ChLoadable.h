@@ -17,6 +17,10 @@
 
 namespace chrono {
 
+// Forward decl.
+class ChState;
+class ChStateDelta;
+
 /// Interface for objects that can be subject to loads (forces)
 /// Forces can be distributed on UV surfaces, or lines, etc.,so
 /// look also the more detailed children classes.
@@ -32,10 +36,20 @@ class ChApi ChLoadable {
     virtual int LoadableGet_ndof_w() = 0;
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) = 0;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) = 0;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) = 0;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) = 0;
+
+    /// Increment all DOFs using a delta. Default is sum, but may override if 
+    /// ndof_x is diffenrent than ndof_w, for example with rotation quaternions and angular w vel.
+    /// This could be invoked, for example, by the BDF differentiation that computes the jacobians.
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                   ChState& x_new,
+                                   const ChState& x,
+                                   const unsigned int off_v,
+                                   const ChStateDelta& Dv) = 0;
+
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.

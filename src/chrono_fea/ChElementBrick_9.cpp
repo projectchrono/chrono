@@ -2626,7 +2626,7 @@ void ChElementBrick_9::ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, d
 // -----------------------------------------------------------------------------
 
 // Get all the DOFs packed in a single vector (position part).
-void ChElementBrick_9::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementBrick_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     for (int i = 0; i < 8; i++) {
         mD.PasteVector(m_nodes[i]->GetPos(), block_offset + 3 * i, 0);
     }
@@ -2636,13 +2636,20 @@ void ChElementBrick_9::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic
 }
 
 // Get all the DOFs packed in a single vector (speed part).
-void ChElementBrick_9::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementBrick_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
         mD.PasteVector(this->m_nodes[i]->GetPos_dt(), block_offset + 3 * i, 0);
     }
     mD.PasteVector(m_central_node->GetCurvatureXX_dt(), block_offset + 24, 0);
     mD.PasteVector(m_central_node->GetCurvatureYY_dt(), block_offset + 27, 0);
     mD.PasteVector(m_central_node->GetCurvatureZZ_dt(), block_offset + 30, 0);
+}
+
+void ChElementBrick_9::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    for (int i = 0; i < 8; i++) {
+        this->m_nodes[i]->NodeIntStateIncrement(off_x  + 3 * i  , x_new, x, off_v  + 3 * i  , Dv);
+    }
+    this->m_central_node->NodeIntStateIncrement(off_x  + 24  , x_new, x, off_v  + 24 , Dv);
 }
 
 // Get the pointers to the contained ChLcpVariables, appending to the mvars vector.

@@ -703,7 +703,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     virtual int LoadableGet_ndof_w() override { return 10 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
@@ -717,7 +717,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
@@ -728,6 +728,13 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
         mD.PasteVector(this->nodes[7]->GetPos_dt(), block_offset + 21, 0);
         mD.PasteVector(this->nodes[8]->GetPos_dt(), block_offset + 24, 0);
         mD.PasteVector(this->nodes[9]->GetPos_dt(), block_offset + 27, 0);
+    }
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<10; ++i) {
+            nodes[i]->NodeIntStateIncrement(off_x + i*3  , x_new, x, off_v  + i*3  , Dv);
+        }
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
