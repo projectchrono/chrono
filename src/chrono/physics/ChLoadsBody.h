@@ -282,18 +282,56 @@ public:
 
 
 
-        ChVector<> abs_applicationB = bodycoordB.TransformPointLocalToParent(loc_application_B);
-                   loc_torque = bodycoordB.rot.RotateBack(  ((abs_applicationB-bodycoordB.pos) % -abs_force) );
-        this->load_Q.PasteVector(-abs_force, 6,0);
-        this->load_Q.PasteVector( loc_torque,9,0);
+//------------------------------------------------------------------------------------------------
+
+
+/// Load for a visco-elastic bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached 
+/// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
+
+class ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
+protected:
+    ChVector<> stiffness;
+    ChVector<> damping;
+   
+public:
+    ChLoadBodyBodyBushingSpherical(
+                          std::shared_ptr<ChBody> mbodyA,   ///< object A
+                          std::shared_ptr<ChBody> mbodyB,   ///< object B
+                          const ChFrame<> abs_application,  ///< create the bushing here, in abs. coordinates. Initial alignment as world xyz.
+                          const ChVector<> mstiffness,      ///< stiffness, along x y z axes of the abs_application
+                          const ChVector<> mdamping         ///< damping, along x y z axes of the abs_application
+                        ) 
+         : ChLoadBodyBody(mbodyA,mbodyB,abs_application), 
+           stiffness(mstiffness),
+           damping(mdamping) {         
+        }
+
+        /// Implement the computation of bushing force, in local 
+        /// coordinates of the loc_application_B.
+        /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB, 
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque)  override {
+
+        loc_force  = rel_AB.GetPos()    * this->stiffness  // element-wise product!
+                   + rel_AB.GetPos_dt() * this->damping;   // element-wise product!
+        loc_torque = VNULL;
     }
 
     virtual bool IsStiff() {return true;}
 
 
-        /// Set radial stiffness, es [Ns/m]
-    void SetRadialStiffness(const double mstiffness) {this->radial_stiffness = mstiffness;}
-    double GetRadialStiffness() const {return this->radial_stiffness;}
+        /// Set stiffness, along the x y z axes of loc_application_B, es [N/m]
+    void SetStiffness(const ChVector<> mstiffness) {this->stiffness = mstiffness;}
+    ChVector<> GetStiffness() const {return this->stiffness;}
+
+        /// Set damping, along the x y z axes of loc_application_B, es [Ns/m]
+    void SetDamping(const ChVector<> mdamping) {this->damping = mdamping;}
+    ChVector<> GetDamping() const {return this->damping;}
+
+};
+
 
         /// Set radial damping, es [N/m]
     void SetRadialDamping(const double mdamping) {this->radial_damping = mdamping;}
