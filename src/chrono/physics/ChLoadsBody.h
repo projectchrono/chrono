@@ -478,6 +478,76 @@ public:
 };
 
 
+//------------------------------------------------------------------------------------------------
+
+
+/// Load for a visco-elastic translational/rotational bushing acting between two bodies.
+/// It uses a full user-defined 6x6 matrix [K] to express the local stiffness of the
+/// bushing, assumed expressed in the bushing coordinate system  attached 
+/// to the second body. A user-defined 6x6 matrix [D] can be defined for damping, as well. 
+/// Note that this assumes small rotations.
+/// Differently from the simplier ChLoadBodyBodyBushingMate and ChLoadBodyBodyBushingSpherical
+/// this can represent coupled effects, by using extra-diagonal terms in [K] and/or [D].
+
+class ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
+protected:
+    ChMatrixNM<double,6,6> stiffness;
+    ChMatrixNM<double,6,6> damping;
+   
+public:
+    ChLoadBodyBodyBushingGeneric(
+                          std::shared_ptr<ChBody> mbodyA,   ///< object A
+                          std::shared_ptr<ChBody> mbodyB,   ///< object B
+                          const ChFrame<> abs_application,  ///< create the bushing here, in abs. coordinates. Initial alignment as world xyz.
+                          const ChMatrix<>& mstiffness,     ///< stiffness as a 6x6 matrix, local in the abs_application frame
+                          const ChMatrix<>& mdamping        ///< damping as a 6x6 matrix, local in the abs_application frame
+                        ) 
+         : ChLoadBodyBody(mbodyA,mbodyB,abs_application), 
+           stiffness(mstiffness),
+           damping(mdamping) {         
+        }
+
+        /// Implement the computation of bushing force, in local 
+        /// coordinates of the loc_application_B.
+        /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB, 
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque)  override {
+        
+        // compute local force & torque (assuming small rotations):
+        ChVectorDynamic<> mF(6);
+        ChVectorDynamic<> mS(6);
+        ChVectorDynamic<> mSdt(6);
+        ChQuaternion<> rel_rot = rel_AB.GetRot();
+        mS.PasteVector(rel_AB.GetPos(), 0,0);
+        mS.PasteVector(rel_rot.Q_to_Rotv(), 3,0);
+        mSdt.PasteVector(rel_AB.GetPos_dt(), 0,0);
+        mSdt.PasteVector(rel_AB.GetWvel_par(), 3,0);
+        
+        mF = stiffness * mS + damping * mSdt;
+        
+        loc_force   = mF.ClipVector(0,0);
+        loc_torque  = mF.ClipVector(3,0);
+    }
+
+    virtual bool IsStiff() {return true;}
+
+
+        /// Set a generic 6x6 stiffness matrix, expressed in local 
+        /// coordinate system of loc_application_B.
+    void SetStiffnessMatrix(const ChMatrix<>& mstiffness) {this->stiffness = mstiffness;}
+    const ChMatrix<>& GetStiffnessMatrix() const {return this->stiffness;}
+
+        /// Set a generic 6x6 damping matrix, expressed in local 
+        /// coordinate system of loc_application_B.
+    void SetDampingMatrix(const ChMatrix<>& mdamping) {this->damping = mdamping;}
+    const ChMatrix<>& GetDampingMatrix() const {return this->damping;}
+
+};
+
+
+
+
 
 }  // end namespace chrono
 
