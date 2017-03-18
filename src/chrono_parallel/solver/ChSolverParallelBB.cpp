@@ -105,7 +105,7 @@ uint ChSolverParallelBB::Solve(ChShurProduct& ShurProduct,
     std::vector<real> f_hist;
     // t1.stop();
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         // t2.start();
         temp = (ml - alpha * mg);
         Project(temp.data());

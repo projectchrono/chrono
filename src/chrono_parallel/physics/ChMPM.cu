@@ -512,9 +512,9 @@ void MPM_ComputeBounds() {
 
     host_settings.bin_edge = host_settings.kernel_radius * 2;
 
-    host_settings.bins_per_axis_x = (max_bounding_point.x - min_bounding_point.x) / host_settings.bin_edge;
-    host_settings.bins_per_axis_y = (max_bounding_point.y - min_bounding_point.y) / host_settings.bin_edge;
-    host_settings.bins_per_axis_z = (max_bounding_point.z - min_bounding_point.z) / host_settings.bin_edge;
+    host_settings.bins_per_axis_x = int(max_bounding_point.x - min_bounding_point.x) / (int)host_settings.bin_edge;
+    host_settings.bins_per_axis_y = int(max_bounding_point.y - min_bounding_point.y) / (int)host_settings.bin_edge;
+    host_settings.bins_per_axis_z = int(max_bounding_point.z - min_bounding_point.z) / (int)host_settings.bin_edge;
 
     host_settings.inv_bin_edge = float(1.) / host_settings.bin_edge;
     host_settings.num_mpm_nodes =
@@ -531,7 +531,7 @@ void MPM_ComputeBounds() {
 //
 
 void Multiply(gpu_vector<float>& input, gpu_vector<float>& output) {
-    int size = input.size();
+    int size = (int)input.size();
 
     kMultiplyA<<<CONFIG(size)>>>(pos.data_d,    // input
                                  input.data_d,  //
@@ -650,8 +650,8 @@ float time_shur = 0;
 void MPM_BBSolver(gpu_vector<float>& r, gpu_vector<float>& delta_v) {
     time_shur = 0;
     time_no_shur = 0;
-    const unsigned int size = r.size();
-    float lastgoodres = 10e30;
+    const unsigned int size = (unsigned int)r.size();
+    float lastgoodres = 10e30f;
     {
         CudaEventTimer timer(start, stop, true, time_no_shur);
 

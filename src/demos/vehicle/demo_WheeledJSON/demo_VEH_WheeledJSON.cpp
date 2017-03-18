@@ -70,6 +70,7 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
 
 // JSON files for terrain (rigid plane), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");

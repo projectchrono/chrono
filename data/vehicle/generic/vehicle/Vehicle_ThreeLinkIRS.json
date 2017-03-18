@@ -1,0 +1,47 @@
+{
+  "Name":     "Test vehicle - SemiTrailingArm",
+  "Type":     "Vehicle",
+  "Template": "WheeledVehicle",
+
+  "Chassis":
+  {
+    "Input File":                "generic/chassis/Chassis.json"
+  },
+  
+  "Axles":
+  [
+    {
+      "Suspension Input File":   "generic/suspension/DoubleWishbone.json",
+      "Suspension Location":     [1.25, 0, -0.21],
+      "Steering Index":          0,
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    },
+
+    {
+      "Suspension Input File":   "generic/suspension/ThreeLinkIRS.json",
+      "Suspension Location":     [-1.25, 0, 0.0],
+      "Left Wheel Input File":   "generic/wheel/WheelSimple.json",
+      "Right Wheel Input File":  "generic/wheel/WheelSimple.json",
+      "Left Brake Input File":   "generic/brake/BrakeSimple.json",
+      "Right Brake Input File":  "generic/brake/BrakeSimple.json"
+    }
+  ],
+
+  "Steering Subsystems":
+  [
+    {
+      "Input File":           "generic/steering/PitmanArm.json",
+      "Location":             [1.1, 0, -0.4],
+      "Orientation":          [0.98699637, 0, 0.16074256, 0]
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "generic/driveline/Driveline2WD.json",
+    "Suspension Indexes":   [1]
+  }
+}

@@ -84,9 +84,9 @@ class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
             }
         }
         for (size_t i = 0; i < trilist.size(); ++i) {
-            triangles.push_back(ChVector<int>(ptr_ind_map.at(trilist[i]->GetNode1().get()),
-                                              ptr_ind_map.at(trilist[i]->GetNode2().get()),
-                                              ptr_ind_map.at(trilist[i]->GetNode3().get())));
+            triangles.push_back(ChVector<int>((int)ptr_ind_map.at(trilist[i]->GetNode1().get()),
+                                              (int)ptr_ind_map.at(trilist[i]->GetNode2().get()),
+                                              (int)ptr_ind_map.at(trilist[i]->GetNode3().get())));
         }
     }
 

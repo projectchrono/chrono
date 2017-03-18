@@ -47,7 +47,7 @@ void ChOpenGLBars::AddBar(double left, double right, double top, double bottom, 
     vec3 B(left, top, 0);
     vec3 C(right, top, 0);
     vec3 D(right, bottom, 0);
-    int index = this->data.size();
+    int index = (int)this->data.size();
 
     this->data.push_back(ChOpenGLVertexAttributesPCN(C, color, glm::vec3(1, 0, 0)));
     this->data.push_back(ChOpenGLVertexAttributesPCN(B, color, glm::vec3(1, 0, 0)));

@@ -236,8 +236,8 @@ int main(int argc, char* argv[]) {
   }
 #else
   // Run simulation for specified time
-  int num_steps = std::ceil(time_end / time_step);
-  int out_steps = std::ceil((1 / time_step) / out_fps);
+  int num_steps = (int)std::ceil(time_end / time_step);
+  int out_steps = (int)std::ceil((1 / time_step) / out_fps);
   int out_frame = 0;
   double time = 0;
   for (int i = 0; i < num_steps; i++) {

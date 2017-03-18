@@ -83,7 +83,7 @@ int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
 
     // fill in the information for constraints and friction
     DynamicVector<real> fric(num_constraints, -2.0);
-    for (int i = 0; i < num_rigid_contacts; i++) {
+    for (unsigned int i = 0; i < num_rigid_contacts; i++) {
         if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
         } else if (settings.solver.solver_mode == SolverMode::SLIDING) {

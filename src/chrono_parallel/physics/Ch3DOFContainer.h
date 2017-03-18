@@ -27,7 +27,7 @@
 #include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/math/matrix.h"
 #include "chrono_parallel/math/sse.h"
-#include "chrono_parallel/physics/ChMPM.cuh"
+#include "chrono_parallel/physics/ChMPMSettings.h"
 
 // Chrono headers
 #include "chrono/physics/ChBody.h"

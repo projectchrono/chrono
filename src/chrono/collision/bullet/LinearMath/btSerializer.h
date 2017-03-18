@@ -24,7 +24,7 @@ subject to the following restrictions:
 #include <memory.h>
 #endif
 #include <string.h>
-
+#include <stdint.h>
 
 
 ///only the 32bit versions for now
@@ -210,7 +210,9 @@ protected:
 
 			int *intPtr=0;
 			short *shtPtr=0;
-			char *cp = 0;int dataLen =0;long nr=0;
+			char *cp = 0;int dataLen =0;
+			uint64_t nr=0; // long was replaced with uint64_t for cross-platform compatibility
+
 			intPtr = (int*)m_dna;
 
 			/*
@@ -244,7 +246,7 @@ protected:
 				cp++;
 			}
 			{
-				nr= (long)cp;
+				nr= (uint64_t)cp;
 			//	long mask=3;
 				nr= ((nr+3)&~3)-nr;
 				while (nr--)
@@ -279,7 +281,7 @@ protected:
 			}
 
 		{
-				nr= (long)cp;
+				nr= (uint64_t)cp;
 			//	long mask=3;
 				nr= ((nr+3)&~3)-nr;
 				while (nr--)

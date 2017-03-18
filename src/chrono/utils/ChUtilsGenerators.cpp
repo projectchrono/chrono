@@ -32,19 +32,18 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialDVI(new ChMaterialSurface),
-      m_defMaterialDEM(new ChMaterialSurfaceDEM),
+      m_defMaterialDVI(std::make_shared<ChMaterialSurface>()),
+      m_defMaterialDEM(std::make_shared<ChMaterialSurfaceDEM>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
-      m_frictionDist(NULL),
-      m_cohesionDist(NULL),
-      m_youngDist(NULL),
-      m_poissonDist(NULL),
-      m_restitutionDist(NULL),
-      m_densityDist(NULL),
-      m_sizeDist(NULL),
-      callback_post_creation(NULL) {
-}
+      m_frictionDist(nullptr),
+      m_cohesionDist(nullptr),
+      m_youngDist(nullptr),
+      m_poissonDist(nullptr),
+      m_restitutionDist(nullptr),
+      m_densityDist(nullptr),
+      m_sizeDist(nullptr),
+      callback_post_creation(nullptr) {}
 
 // Destructor:: free the various distribution associated with this ingredient
 MixtureIngredient::~MixtureIngredient() {
@@ -69,11 +68,13 @@ void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase
 void MixtureIngredient::setDefaultDensity(double density) {
     m_defDensity = density;
     delete m_densityDist;
+    m_densityDist = nullptr;
 }
 
 void MixtureIngredient::setDefaultSize(const ChVector<>& size) {
     m_defSize = size;
     delete m_sizeDist;
+    m_sizeDist = nullptr;
 }
 
 // Functions to set parameters of truncated normal distributions for the various
@@ -148,53 +149,47 @@ void MixtureIngredient::freeMaterialDist() {
     delete m_youngDist;
     delete m_poissonDist;
     delete m_restitutionDist;
+
+    m_frictionDist = nullptr;
+    m_cohesionDist = nullptr;
+    m_youngDist = nullptr;
+    m_poissonDist = nullptr;
+    m_restitutionDist = nullptr;
 }
 
 // Modify the specified DVI material surface based on attributes of this ingredient.
 void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurface> mat) {
+    // Copy properties from the default material.
+    *mat = *m_defMaterialDVI;
+
+    // If using distributions for any of the supported properties, override those.
     if (m_frictionDist)
         mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
-    else
-        mat->SetFriction(m_defMaterialDVI->GetSfriction());
 
     if (m_cohesionDist)
         mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
-    else
-        mat->SetCohesion(m_defMaterialDVI->GetCohesion());
 }
 
 // Modify the specified DEM material surface based on attributes of this ingredient.
 void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceDEM> mat) {
+    // Copy properties from the default material.
+    *mat = *m_defMaterialDEM;
+
+    // If using distributions for any of the supported properties, override those.
     if (m_youngDist)
         mat->SetYoungModulus(sampleTruncatedDist<float>(*m_youngDist, m_minYoung, m_maxYoung));
-    else
-        mat->SetYoungModulus(m_defMaterialDEM->GetYoungModulus());
 
     if (m_poissonDist)
         mat->SetPoissonRatio(sampleTruncatedDist<float>(*m_poissonDist, m_minPoisson, m_maxPoisson));
-    else
-        mat->SetPoissonRatio(m_defMaterialDEM->GetPoissonRatio());
 
     if (m_frictionDist)
         mat->SetFriction(sampleTruncatedDist<float>(*m_frictionDist, m_minFriction, m_maxFriction));
-    else
-        mat->SetFriction(m_defMaterialDEM->GetSfriction());
 
     if (m_restitutionDist)
         mat->SetRestitution(sampleTruncatedDist<float>(*m_restitutionDist, m_minRestitution, m_maxRestitution));
-    else
-        mat->SetRestitution(m_defMaterialDEM->GetRestitution());
 
     if (m_cohesionDist)
         mat->SetAdhesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
-    else
-        mat->SetAdhesion(m_defMaterialDEM->GetAdhesion());
-
-    // Explicit contact coefficients always copied from the default material
-    mat->SetKn(m_defMaterialDEM->GetKn());
-    mat->SetGn(m_defMaterialDEM->GetGn());
-    mat->SetKt(m_defMaterialDEM->GetKt());
-    mat->SetGt(m_defMaterialDEM->GetGt());
 }
 
 // Return a size for an object created based on attributes of this ingredient.

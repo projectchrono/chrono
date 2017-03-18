@@ -3,6 +3,7 @@
 
 #include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
+#include "chrono_parallel/physics/ChMPM.cuh"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/constraints/ChConstraintFluidFluidUtils.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
@@ -60,7 +61,7 @@ void ChFluidContainer::AddBodies(const std::vector<real3>& positions, const std:
     vel_fluid.insert(vel_fluid.end(), velocities.begin(), velocities.end());
     // In case the number of velocities provided were not enough, resize to the number of fluid bodies
     vel_fluid.resize(pos_fluid.size());
-    data_manager->num_fluid_bodies = pos_fluid.size();
+    data_manager->num_fluid_bodies = (int)pos_fluid.size();
 }
 void ChFluidContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -72,38 +73,38 @@ void ChFluidContainer::Update(double ChTime) {
     real3 h_gravity = data_manager->settings.step_size * mass * g_acc;
 #ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_init) {
-        temp_settings.dt = data_manager->settings.step_size;
-        temp_settings.kernel_radius = kernel_radius;
-        temp_settings.inv_radius = 1.0 / kernel_radius;
-        temp_settings.bin_edge = kernel_radius * 2;
-        temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
-        temp_settings.max_velocity = max_velocity;
-        temp_settings.mu = lame_mu;
-        temp_settings.lambda = lame_lambda;
-        temp_settings.hardening_coefficient = hardening_coefficient;
-        temp_settings.theta_c = theta_c;
-        temp_settings.theta_s = theta_s;
-        temp_settings.alpha_flip = alpha_flip;
-        temp_settings.youngs_modulus = youngs_modulus;
-        temp_settings.poissons_ratio = nu;
+        temp_settings.dt = (float)data_manager->settings.step_size;
+        temp_settings.kernel_radius = (float)kernel_radius;
+        temp_settings.inv_radius = float(1.0 / kernel_radius);
+        temp_settings.bin_edge = float(kernel_radius * 2);
+        temp_settings.inv_bin_edge = float(1.0 / (kernel_radius * 2.0));
+        temp_settings.max_velocity = (float)max_velocity;
+        temp_settings.mu = (float)lame_mu;
+        temp_settings.lambda = (float)lame_lambda;
+        temp_settings.hardening_coefficient = (float)hardening_coefficient;
+        temp_settings.theta_c = (float)theta_c;
+        temp_settings.theta_s = (float)theta_s;
+        temp_settings.alpha_flip = (float)alpha_flip;
+        temp_settings.youngs_modulus = (float)youngs_modulus;
+        temp_settings.poissons_ratio = (float)nu;
         temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
-        temp_settings.mass = mass;
-        temp_settings.yield_stress = yield_stress;
+        temp_settings.mass = (float)mass;
+        temp_settings.yield_stress = (float)yield_stress;
         temp_settings.num_iterations = mpm_iterations;
         if (mpm_iterations > 0) {
             mpm_pos.resize(data_manager->num_fluid_bodies * 3);
             mpm_vel.resize(data_manager->num_fluid_bodies * 3);
             mpm_jejp.resize(data_manager->num_fluid_bodies * 2);
 
-            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
-                mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
-                mpm_pos[i * 3 + 1] = data_manager->host_data.pos_3dof[i].y;
-                mpm_pos[i * 3 + 2] = data_manager->host_data.pos_3dof[i].z;
+            for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+                mpm_pos[i * 3 + 0] = (float)data_manager->host_data.pos_3dof[i].x;
+                mpm_pos[i * 3 + 1] = (float)data_manager->host_data.pos_3dof[i].y;
+                mpm_pos[i * 3 + 2] = (float)data_manager->host_data.pos_3dof[i].z;
             }
-            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
-                mpm_vel[i * 3 + 0] = data_manager->host_data.vel_3dof[i].x;
-                mpm_vel[i * 3 + 1] = data_manager->host_data.vel_3dof[i].y;
-                mpm_vel[i * 3 + 2] = data_manager->host_data.vel_3dof[i].z;
+            for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+                mpm_vel[i * 3 + 0] = (float)data_manager->host_data.vel_3dof[i].x;
+                mpm_vel[i * 3 + 1] = (float)data_manager->host_data.vel_3dof[i].y;
+                mpm_vel[i * 3 + 2] = (float)data_manager->host_data.vel_3dof[i].z;
             }
 
             MPM_UpdateDeformationGradient(std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel),
@@ -111,7 +112,7 @@ void ChFluidContainer::Update(double ChTime) {
 
             mpm_thread = std::thread(MPM_Solve, std::ref(temp_settings), std::ref(mpm_pos), std::ref(mpm_vel));
 
-            for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
+            for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
                 data_manager->host_data.vel_3dof[i].x = mpm_vel[i * 3 + 0];
                 data_manager->host_data.vel_3dof[i].y = mpm_vel[i * 3 + 1];
                 data_manager->host_data.vel_3dof[i].z = mpm_vel[i * 3 + 2];
@@ -120,7 +121,7 @@ void ChFluidContainer::Update(double ChTime) {
     }
 #endif
 #pragma omp parallel for
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         // This was moved to after fluid collision detection
         // real3 vel = vel_fluid[i];
         // data_manager->host_data.v[num_rigid_bodies * 6 + num_shafts + i * 3 + 0] = vel.x;
@@ -141,7 +142,7 @@ void ChFluidContainer::UpdatePosition(double ChTime) {
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
     custom_vector<real3>& sorted_pos_fluid = data_manager->host_data.sorted_pos_3dof;
 #pragma omp parallel for
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         real3 vel;
         int original_index = data_manager->host_data.particle_indices_3dof[i];
         // these are sorted so we have to unsort them
@@ -242,7 +243,7 @@ void ChFluidContainer::ComputeInvMass(int offset) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
     real inv_mass = 1.0 / mass;
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         M_inv.append(offset + i * 3 + 0, offset + i * 3 + 0, inv_mass);
         M_inv.finalize(offset + i * 3 + 0);
         M_inv.append(offset + i * 3 + 1, offset + i * 3 + 1, inv_mass);
@@ -256,7 +257,7 @@ void ChFluidContainer::ComputeMass(int offset) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
     real fluid_mass = mass;
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         M.append(offset + i * 3 + 0, offset + i * 3 + 0, fluid_mass);
         M.finalize(offset + i * 3 + 0);
         M.append(offset + i * 3 + 1, offset + i * 3 + 1, fluid_mass);
@@ -283,31 +284,31 @@ void ChFluidContainer::Setup(int start_constraint) {
 
 void ChFluidContainer::Initialize() {
 #ifdef CHRONO_PARALLEL_USE_CUDA
-    temp_settings.dt = data_manager->settings.step_size;
-    temp_settings.kernel_radius = kernel_radius;
-    temp_settings.inv_radius = 1.0 / kernel_radius;
-    temp_settings.bin_edge = kernel_radius * 2;
-    temp_settings.inv_bin_edge = 1.0 / (kernel_radius * 2.0);
-    temp_settings.max_velocity = max_velocity;
-    temp_settings.mu = lame_mu;
-    temp_settings.lambda = lame_lambda;
-    temp_settings.hardening_coefficient = hardening_coefficient;
-    temp_settings.theta_c = theta_c;
-    temp_settings.theta_s = theta_s;
-    temp_settings.alpha_flip = alpha_flip;
-    temp_settings.youngs_modulus = youngs_modulus;
-    temp_settings.poissons_ratio = nu;
+    temp_settings.dt = (float)data_manager->settings.step_size;
+    temp_settings.kernel_radius = (float)kernel_radius;
+    temp_settings.inv_radius = float(1.0 / kernel_radius);
+    temp_settings.bin_edge = float(kernel_radius * 2);
+    temp_settings.inv_bin_edge = float(1.0 / (kernel_radius * 2.0));
+    temp_settings.max_velocity = (float)max_velocity;
+    temp_settings.mu = (float)lame_mu;
+    temp_settings.lambda = (float)lame_lambda;
+    temp_settings.hardening_coefficient = (float)hardening_coefficient;
+    temp_settings.theta_c = (float)theta_c;
+    temp_settings.theta_s = (float)theta_s;
+    temp_settings.alpha_flip = (float)alpha_flip;
+    temp_settings.youngs_modulus = (float)youngs_modulus;
+    temp_settings.poissons_ratio = (float)nu;
     temp_settings.num_mpm_markers = data_manager->num_fluid_bodies;
-    temp_settings.mass = mass;
-    temp_settings.yield_stress = yield_stress;
+    temp_settings.mass = (float)mass;
+    temp_settings.yield_stress = (float)yield_stress;
     temp_settings.num_iterations = mpm_iterations;
     if (mpm_iterations > 0) {
         mpm_pos.resize(data_manager->num_fluid_bodies * 3);
 
-        for (int i = 0; i < data_manager->num_fluid_bodies; i++) {
-            mpm_pos[i * 3 + 0] = data_manager->host_data.pos_3dof[i].x;
-            mpm_pos[i * 3 + 1] = data_manager->host_data.pos_3dof[i].y;
-            mpm_pos[i * 3 + 2] = data_manager->host_data.pos_3dof[i].z;
+        for (int i = 0; i < (signed)data_manager->num_fluid_bodies; i++) {
+            mpm_pos[i * 3 + 0] = (float)data_manager->host_data.pos_3dof[i].x;
+            mpm_pos[i * 3 + 1] = (float)data_manager->host_data.pos_3dof[i].y;
+            mpm_pos[i * 3 + 2] = (float)data_manager->host_data.pos_3dof[i].z;
         }
 
         MPM_Initialize(temp_settings, mpm_pos);
@@ -325,7 +326,7 @@ void ChFluidContainer::Density_FluidMPM() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 dcon_diag = real3(0.0);
         real3 pos_p = sorted_pos[body_a];
@@ -346,7 +347,7 @@ void ChFluidContainer::Density_FluidMPM() {
     }
 
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 diag = real3(0);
         real3 pos_p = sorted_pos[body_a];
@@ -374,7 +375,7 @@ void ChFluidContainer::DensityConstraint_FluidMPM() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real3 dcon_diag = real3(0.0);
         real3 pos_p = sorted_pos[body_a];
         int d_ind = 0;
@@ -412,7 +413,7 @@ void ChFluidContainer::Density_Fluid() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 dcon_diag = real3(0.0);
         real3 pos_p = sorted_pos[body_a];
@@ -449,7 +450,7 @@ void ChFluidContainer::Normalize_Density_Fluid() {
     custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real dens = 0;
         real3 diag = real3(0);
         real3 pos_p = sorted_pos[body_a];
@@ -502,7 +503,7 @@ void ChFluidContainer::Build_D() {
         const real eta_2 = eta * eta;
         if (enable_viscosity) {
 #pragma omp parallel for
-            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
                 real3 pos_p = sorted_pos[body_a];
                 real3 vmat_row1(0);
                 real3 vmat_row2(0);
@@ -569,7 +570,7 @@ void ChFluidContainer::Build_b() {
         //        } else
         {
 #pragma omp parallel for
-            for (int index = 0; index < num_fluid_bodies; index++) {
+            for (int index = 0; index < (signed)num_fluid_bodies; index++) {
                 b[start_density + index] = -(density[index] / rho - 1.0);
             }
         }
@@ -585,7 +586,7 @@ void ChFluidContainer::Build_E() {
 
     if (num_fluid_bodies > 0) {
 #pragma omp parallel for
-        for (int index = 0; index < num_fluid_bodies; index++) {
+        for (int index = 0; index < (signed)num_fluid_bodies; index++) {
             E[start_density + index] = f_compliance;
             if (enable_viscosity) {
                 E[start_viscous + index * 3 + 0] = 0;
@@ -606,7 +607,7 @@ void ChFluidContainer::GenerateSparsity() {
     AppendRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (data_manager->num_fluid_contacts > 0) {
-        for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+        for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
             for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                 int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                 AppendRow3(D_T, start_density + body_a, body_offset + body_b * 3, 0);
@@ -616,7 +617,7 @@ void ChFluidContainer::GenerateSparsity() {
         // Add more entries for viscosity
         // Code is repeated because there are three rows per viscosity constraint
         if (enable_viscosity) {
-            for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+            for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
                 for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {
                     int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i];
                     AppendRow3(D_T, start_viscous + body_a * 3 + 0, body_offset + body_b * 3, 0);
@@ -644,7 +645,7 @@ void ChFluidContainer::PreSolve() {
     if (mpm_thread.joinable()) {
         mpm_thread.join();
 #pragma omp parallel for
-        for (int p = 0; p < num_fluid_bodies; p++) {
+        for (int p = 0; p < (signed)num_fluid_bodies; p++) {
             int index = data_manager->host_data.reverse_mapping_3dof[p];
             data_manager->host_data.v[body_offset + index * 3 + 0] = mpm_vel[p * 3 + 0];
             data_manager->host_data.v[body_offset + index * 3 + 1] = mpm_vel[p * 3 + 1];
@@ -693,7 +694,7 @@ void ChFluidContainer::PostSolve() {
     real n = artificial_pressure_n;
     real dt = data_manager->settings.step_size;
 #pragma omp parallel for
-    for (int body_a = 0; body_a < num_fluid_bodies; body_a++) {
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {
         real corr = 0;
         real3 vorticity_grad(0);
         real3 pos_a = sorted_pos[body_a];
@@ -754,7 +755,7 @@ void ChFluidContainer::GetFluidDensity(custom_vector<real>& dens) {
 void ChFluidContainer::GetFluidPressure(custom_vector<real>& pres) {
     pres.resize(num_fluid_bodies);
 
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         pres[i] = data_manager->host_data.gamma[start_density + i];
     }
 }
@@ -769,7 +770,7 @@ void ChFluidContainer::GetFluidForce(custom_vector<real3>& forc) {
         submatrix(data_manager->host_data.D, body_offset, start_density, num_fluid_bodies * 3, num_fluid_bodies) *
         gamma_n / data_manager->settings.step_size;
 
-    for (int i = 0; i < num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)num_fluid_bodies; i++) {
         forc[i] = real3(pressure_forces[i * 3 + 0], pressure_forces[i * 3 + 1], pressure_forces[i * 3 + 2]);
     }
 }

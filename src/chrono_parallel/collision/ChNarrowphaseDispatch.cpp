@@ -79,7 +79,7 @@ void ChCNarrowphaseDispatch::PreprocessCount() {
     const long long* collision_pair = data_manager->host_data.contact_pairs.data();
 
 #pragma omp parallel for
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         // Identify the two candidate shapes and get their types.
         vec2 pair = I2(int(collision_pair[index] >> 32), int(collision_pair[index] & 0xffffffff));
         shape_type type1 = obj_data_T[pair.x];
@@ -116,7 +116,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
     data_manager->shape_data.triangle_global.resize(data_manager->shape_data.triangle_rigid.size());
 
 #pragma omp parallel for
-    for (int index = 0; index < num_shapes; index++) {
+    for (int index = 0; index < (signed)num_shapes; index++) {
         shape_type T = obj_data_T[index];
 
         // Get the identifier for the object associated with this collision shape
@@ -187,7 +187,7 @@ void ChCNarrowphaseDispatch::DispatchMPR() {
     ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
 
         Dispatch_Init(index, icoll, ID_A, ID_B, &shapeA, &shapeB);
@@ -212,7 +212,7 @@ void ChCNarrowphaseDispatch::DispatchR() {
     ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
 
         int nC;
@@ -237,7 +237,7 @@ void ChCNarrowphaseDispatch::DispatchHybridMPR() {
     ConvexShape shapeB;
 
 #pragma omp parallel for private(shapeA, shapeB)
-    for (int index = 0; index < num_potential_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)num_potential_rigid_contacts; index++) {
         uint ID_A, ID_B, icoll;
 
         int nC;
@@ -303,7 +303,7 @@ void ChCNarrowphaseDispatch::DispatchRigid() {
             break;
     }
 
-    num_rigid_contacts = Thrust_Count(contact_rigid_active, 1);
+    num_rigid_contacts = (uint)Thrust_Count(contact_rigid_active, 1);
     // Remove elements corresponding to inactive contacts. We do this in one step,
     // using zip iterators and removing all entries for which contact_active is 'false'.
     thrust::remove_if(
@@ -344,7 +344,7 @@ void ChCNarrowphaseDispatch::DispatchRigidFluid() {
 
 inline int GridCoord(real x, real inv_bin_edge, real minimum) {
     real l = x - minimum;
-    int c = Round(l * inv_bin_edge);
+    int c = (int)Round(l * inv_bin_edge);
     return c;
 }
 
@@ -557,7 +557,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
@@ -589,9 +589,9 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
         vec3 gmin = HashMin(pos_sphere - real3(radius + collision_envelope) - global_origin, inv_bin_size);
         vec3 gmax = HashMax(pos_sphere + real3(radius + collision_envelope) - global_origin, inv_bin_size);
         uint mInd = f_bin_intersections[p];
-        for (i = gmin.x; i <= gmax.x; i++) {
-            for (j = gmin.y; j <= gmax.y; j++) {
-                for (k = gmin.z; k <= gmax.z; k++) {
+        for (i = (unsigned)gmin.x; i <= (unsigned)gmax.x; i++) {
+            for (j = (unsigned)gmin.y; j <= (unsigned)gmax.y; j++) {
+                for (k = (unsigned)gmin.z; k <= (unsigned)gmax.z; k++) {
                     f_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                     f_bin_fluid_number[mInd + count] = p;
                     count++;
@@ -601,7 +601,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
     }
     LOG(TRACE) << "ChCNarrowphaseDispatch::DispatchRigidSphere Hash";
     Thrust_Sort_By_Key(f_bin_number, f_bin_fluid_number);
-    f_number_of_bins_active = Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index);
+    f_number_of_bins_active = (int)(Run_Length_Encode(f_bin_number, f_bin_number_out, f_bin_start_index));
 
     f_bin_start_index.resize(f_number_of_bins_active + 1);
     f_bin_start_index[f_number_of_bins_active] = 0;
@@ -617,7 +617,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
 
     Thrust_Fill(contact_counts, 0);
     // For each rigid bin
-    for (int index = 0; index < f_number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)f_number_of_bins_active; index++) {
         uint bin_number = f_bin_number_out[index];
         uint rigid_index = is_rigid_bin_active[bin_number];
         // check if the bin is active
@@ -629,7 +629,7 @@ void ChCNarrowphaseDispatch::RigidSphereContact(const real sphere_radius,
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (int i = start; i < end; i++) {
+            for (int i = start; i < (signed)end; i++) {
                 uint p = f_bin_fluid_number[i];
                 real3 pos_sphere = pos_spheres[p];
                 real3 Bmin = pos_sphere - real3(radius + collision_envelope) - global_origin;
@@ -694,7 +694,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
 
-    int num_tets = data_manager->host_data.boundary_element_fea.size();
+    int num_tets = (int)data_manager->host_data.boundary_element_fea.size();
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
     custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
     const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
@@ -702,7 +702,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     is_rigid_bin_active.resize(total_bins);
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 #pragma omp parallel for
-    for (int index = 0; index < data_manager->measures.collision.number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)data_manager->measures.collision.number_of_bins_active; index++) {
         uint bin_number = data_manager->host_data.bin_number_out[index];
         if (bin_number < total_bins) {
             // printf("bin_number: %d\n", index, bin_number);
@@ -731,9 +731,9 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
         vec3 gmin = HashMin(aabb_min_tet[p], inv_bin_size);
         vec3 gmax = HashMax(aabb_max_tet[p], inv_bin_size);
         uint mInd = t_bin_intersections[p];
-        for (i = gmin.x; i <= gmax.x; i++) {
-            for (j = gmin.y; j <= gmax.y; j++) {
-                for (k = gmin.z; k <= gmax.z; k++) {
+        for (i = (unsigned)gmin.x; i <= (unsigned)gmax.x; i++) {
+            for (j = (unsigned)gmin.y; j <= (unsigned)gmax.y; j++) {
+                for (k = (unsigned)gmin.z; k <= (unsigned)gmax.z; k++) {
                     t_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                     t_bin_fluid_number[mInd + count] = p;
                     count++;
@@ -742,7 +742,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
         }
     }
     Thrust_Sort_By_Key(t_bin_number, t_bin_fluid_number);
-    uint t_number_of_bins_active = Run_Length_Encode(t_bin_number, t_bin_number_out, t_bin_start_index);
+    uint t_number_of_bins_active = (int)(Run_Length_Encode(t_bin_number, t_bin_number_out, t_bin_start_index));
 
     t_bin_start_index.resize(t_number_of_bins_active + 1);
     t_bin_start_index[t_number_of_bins_active] = 0;
@@ -760,7 +760,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
     short2 family = data_manager->fea_container->family;
     Thrust_Fill(contact_counts, 0);
 
-    for (int index = 0; index < t_number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)t_number_of_bins_active; index++) {
         uint bin_number = t_bin_number_out[index];
         unsigned int rigid_index = is_rigid_bin_active[bin_number];
         if (rigid_index != 1000000000) {
@@ -769,7 +769,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
             uint rigid_start = data_manager->host_data.bin_start_index[rigid_index];
             uint rigid_end = data_manager->host_data.bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (int i = start; i < end; i++) {
+            for (int i = start; i < (signed)end; i++) {
                 uint p = t_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];
@@ -800,7 +800,7 @@ void ChCNarrowphaseDispatch::RigidTetContact(custom_vector<real3>& norm_rigid_te
                     real3 ptA, ptB, norm;
                     real depth;
                     real3 barycentric;
-                    int face;
+                    //int face;
                     real3 res;
                     if (MPRCollision(shapeA, shapeB, collision_envelope, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {
@@ -845,7 +845,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
     vec3 bins_per_axis = data_manager->settings.collision.bins_per_axis;
     real3 inv_bin_size = data_manager->measures.collision.inv_bin_size;
     real3 global_origin = data_manager->measures.collision.global_origin;
-    int num_tets = data_manager->host_data.boundary_element_fea.size();
+    int num_tets = (int)data_manager->host_data.boundary_element_fea.size();
     custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
     custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
     uint total_bins = (bins_per_axis.x + 1) * (bins_per_axis.y + 1) * (bins_per_axis.z + 1);
@@ -853,7 +853,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
     Thrust_Fill(is_rigid_bin_active, 1000000000);
 
 #pragma omp parallel for
-    for (int index = 0; index < f_number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)f_number_of_bins_active; index++) {
         uint bin_number = f_bin_number_out[index];
         is_rigid_bin_active[bin_number] = index;
     }
@@ -879,9 +879,9 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
         vec3 gmin = HashMin(aabb_min_tet[p], inv_bin_size);
         vec3 gmax = HashMax(aabb_max_tet[p], inv_bin_size);
         uint mInd = t_bin_intersections[p];
-        for (i = gmin.x; i <= gmax.x; i++) {
-            for (j = gmin.y; j <= gmax.y; j++) {
-                for (k = gmin.z; k <= gmax.z; k++) {
+        for (i = (unsigned)gmin.x; i <= (unsigned)gmax.x; i++) {
+            for (j = (unsigned)gmin.y; j <= (unsigned)gmax.y; j++) {
+                for (k = (unsigned)gmin.z; k <= (unsigned)gmax.z; k++) {
                     t_bin_number[mInd + count] = Hash_Index(vec3(i, j, k), bins_per_axis);
                     t_bin_fluid_number[mInd + count] = p;
                     count++;
@@ -890,7 +890,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
         }
     }
     Thrust_Sort_By_Key(t_bin_number, t_bin_fluid_number);
-    uint t_number_of_bins_active = Run_Length_Encode(t_bin_number, t_bin_number_out, t_bin_start_index);
+    uint t_number_of_bins_active = (int)(Run_Length_Encode(t_bin_number, t_bin_number_out, t_bin_start_index));
 
     t_bin_start_index.resize(t_number_of_bins_active + 1);
     t_bin_start_index[t_number_of_bins_active] = 0;
@@ -907,7 +907,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
     short2 family = data_manager->fea_container->family;
     Thrust_Fill(contact_counts, 0);
 
-    for (int index = 0; index < t_number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)t_number_of_bins_active; index++) {
         uint bin_number = t_bin_number_out[index];
         unsigned int rigid_index = is_rigid_bin_active[bin_number];
         if (rigid_index != 1000000000) {
@@ -916,7 +916,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
             uint rigid_start = f_bin_start_index[rigid_index];
             uint rigid_end = f_bin_start_index[rigid_index + 1];
 #pragma omp parallel for
-            for (int i = start; i < end; i++) {
+            for (int i = start; i < (signed)end; i++) {
                 uint p = t_bin_fluid_number[i];
                 real3 Bmin = aabb_min_tet[p];
                 real3 Bmax = aabb_max_tet[p];
@@ -950,7 +950,7 @@ void ChCNarrowphaseDispatch::MarkerTetContact(const real sphere_radius,
                     real3 ptA, ptB, norm;
                     real depth;
                     real3 barycentric;
-                    int face;
+                    //int face;
                     real3 res;
                     if (MPRCollision(shapeA, shapeB, 0, norm, ptA, ptB, depth)) {
                         if (contact_counts[p] < max_rigid_neighbors) {

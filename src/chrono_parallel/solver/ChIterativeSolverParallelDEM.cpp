@@ -31,6 +31,11 @@
 #include <thrust/system/tbb/execution_policy.h>
 #endif
 
+#if defined _WIN32
+#include <cstdint>
+#endif
+
+
 using namespace chrono;
 
 // -----------------------------------------------------------------------------
@@ -185,10 +190,10 @@ void function_CalcContactForces(
         int shape1 = shape_id[index].x;
         int shape2 = shape_id[index].y;
 
-        shear_body1 = Max(body1, body2);
-        shear_body2 = Min(body1, body2);
-        shear_shape1 = Max(shape1, shape2);
-        shear_shape2 = Min(shape1, shape2);
+        shear_body1 = (int)Max(body1, body2);
+        shear_body2 = (int)Min(body1, body2);
+        shear_shape1 = (int)Max(shape1, shape2);
+        shear_shape2 = (int)Min(shape1, shape2);
 
         // Check if contact history already exists.
         // If not, initialize new contact history.
@@ -425,7 +430,7 @@ void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ex
                                                           custom_vector<vec2>& shape_pairs,
                                                           custom_vector<char>& shear_touch) {
 #pragma omp parallel for
-    for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
         function_CalcContactForces(
             index, data_manager->settings.solver.contact_force_model,
             data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
@@ -457,7 +462,7 @@ void ChIterativeSolverParallelDEM::host_AddContactForces(uint ct_body_count, con
     const custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
 #pragma omp parallel for
-    for (int index = 0; index < ct_body_count; index++) {
+    for (int index = 0; index < (signed)ct_body_count; index++) {
         real3 contact_force = data_manager->settings.step_size * ct_body_force[index];
         real3 contact_torque = data_manager->settings.step_size * ct_body_torque[index];
         data_manager->host_data.hf[ct_body_id[index] * 6 + 0] += contact_force.x;
@@ -475,7 +480,7 @@ void ChIterativeSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, 
     custom_vector<int>& ct_body_map = data_manager->host_data.ct_body_map;
 
 #pragma omp parallel for
-    for (int index = 0; index < ct_body_count; index++) {
+    for (int index = 0; index < (signed)ct_body_count; index++) {
         ct_body_map[ct_body_id[index]] = index;
     }
 }
@@ -510,7 +515,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
         Thrust_Fill(shear_touch, false);
 #pragma omp parallel for
-        for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
+        for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
             vec2 pair = I2(int(data_manager->host_data.contact_pairs[i] >> 32),
                            int(data_manager->host_data.contact_pairs[i] & 0xffffffff));
             shape_pairs[i] = pair;
@@ -521,7 +526,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
 
     if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
 #pragma omp parallel for
-        for (int index = 0; index < data_manager->num_rigid_bodies; index++) {
+        for (int index = 0; index < (signed)data_manager->num_rigid_bodies; index++) {
             for (int i = 0; i < max_shear; i++) {
                 if (shear_touch[max_shear * index + i] == false)
                     data_manager->host_data.shear_neigh[max_shear * index + i].x = -1;
@@ -548,14 +553,19 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     // in contact. We do this simultaneously for contact forces and torques, using
     // zip iterators.
     uint ct_body_count =
-        thrust::reduce_by_key(
+        (uint)(thrust::reduce_by_key(
             THRUST_PAR ext_body_id.begin(), ext_body_id.end(),
             thrust::make_zip_iterator(thrust::make_tuple(ext_body_force.begin(), ext_body_torque.begin())),
             ct_body_id.begin(),
             thrust::make_zip_iterator(thrust::make_tuple(ct_body_force.begin(), ct_body_torque.begin())),
-            thrust::equal_to<int>(), sum_tuples())
-            .first -
-        ct_body_id.begin();
+            #if defined _WIN32
+            // Windows compilers require an explicit-width type
+                thrust::equal_to<int64_t>(), sum_tuples()
+            #else
+                thrust::equal_to<int>(), sum_tuples()
+            #endif
+            ).first -
+        ct_body_id.begin());
 
     ct_body_force.resize(ct_body_count);
     ct_body_torque.resize(ct_body_count);
@@ -684,7 +694,7 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
         AtIterationEnd(data_manager->measures.solver.maxd_hist[i], data_manager->measures.solver.maxdeltalambda_hist[i],
                        i);
     }
-    tot_iterations = data_manager->measures.solver.maxd_hist.size();
+    tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 }
 
 void ChIterativeSolverParallelDEM::ComputeImpulses() {

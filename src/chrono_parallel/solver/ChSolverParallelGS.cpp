@@ -29,7 +29,7 @@ uint ChSolverParallelGS::Solve(ChShurProduct& ShurProduct,
     DynamicVector<real> D;
     D.resize(num_constraints, false);
 
-    for (int index = 0; index < data_manager->num_rigid_contacts; index++) {
+    for (int index = 0; index < (signed)data_manager->num_rigid_contacts; index++) {
         D[index] = Nshur(index, index) + Nshur(num_contacts + index * 2 + 0, num_contacts + index * 2 + 0) +
                    Nshur(num_contacts + index * 2 + 1, num_contacts + index * 2 + 1);
         D[index] = 3.0 / D[index];
@@ -66,11 +66,11 @@ uint ChSolverParallelGS::Solve(ChShurProduct& ShurProduct,
     }
     int nc = data_manager->num_rigid_contacts;
     int nfc = data_manager->num_rigid_fluid_contacts;
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         real omega = .2;
         offset = 0;
 
-        for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
+        for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
             ml[offset + i] = ml[offset + i] -
                              omega * D[offset + i] * ((row(Nshur, offset + i * 1 + 0),
                                                        blaze::subvector(ml, 0, 1 * data_manager->num_constraints)) -

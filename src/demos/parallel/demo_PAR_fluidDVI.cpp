@@ -204,7 +204,7 @@ int main(int argc, char* argv[]) {
     }
 #else
     // Run simulation for specified time
-    int num_steps = std::ceil(time_end / time_step);
+    int num_steps = (int)std::ceil(time_end / time_step);
 
     double time = 0;
     for (int i = 0; i < num_steps; i++) {

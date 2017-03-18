@@ -260,6 +260,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChMacPhersonStrut.cpp
     wheeled_vehicle/suspension/ChSemiTrailingArm.h
     wheeled_vehicle/suspension/ChSemiTrailingArm.cpp
+    wheeled_vehicle/suspension/ChThreeLinkIRS.h
+    wheeled_vehicle/suspension/ChThreeLinkIRS.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
@@ -275,6 +277,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/MacPhersonStrut.cpp
     wheeled_vehicle/suspension/SemiTrailingArm.h
     wheeled_vehicle/suspension/SemiTrailingArm.cpp
+    wheeled_vehicle/suspension/ThreeLinkIRS.h
+    wheeled_vehicle/suspension/ThreeLinkIRS.cpp
 )
 source_group("wheeled_vehicle\\suspension" FILES ${CV_WV_SUSPENSION_FILES})
 
