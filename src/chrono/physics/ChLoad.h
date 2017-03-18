@@ -522,16 +522,18 @@ public:
  
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
         unsigned int rowQ = 0;
-        int ndoftot = 0;
         for (int k= 0; k<loadables.size(); ++k) {
+            std::vector<ChVariables*> kvars;
+            loadables[k]->LoadableGetVariables(kvars);
             for (int i =0; i< loadables[k]->GetSubBlocks(); ++i) {
-                unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
-                for (unsigned int row =0; row< loadables[k]->GetSubBlockSize(i); ++row) {
-                    R(row + mblockoffset) += this->load_Q(rowQ) * c;
-                    ++rowQ;
+                if (kvars[i]->IsActive()) {
+                    unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
+                    for (unsigned int row =0; row< loadables[k]->GetSubBlockSize(i); ++row) {
+                        R(row + mblockoffset) += this->load_Q(rowQ) * c;
+                        ++rowQ;
+                    }
                 }
             }
-            //ndoftot += loadables[i]->LoadableGet_ndof_w();
         }
         // GetLog() << " debug: R=" << R << "\n";
     };
