@@ -333,21 +333,92 @@ public:
 };
 
 
-        /// Set radial damping, es [N/m]
-    void SetRadialDamping(const double mdamping) {this->radial_damping = mdamping;}
-    double GetRadialDamping() const {return this->radial_damping;}
+//------------------------------------------------------------------------------------------------
 
-        /// Set the application point of bushing on bodyA
-    void SetApplicationPointA(const ChVector<> mpA) {this->loc_application_A = mpA;}
-    ChVector<> GetApplicationPointA() const {return this->loc_application_A;}
 
-        /// Set the application point of bushing on bodyB
-    void SetApplicationPointB(const ChVector<> mpB) {this->loc_application_B = mpB;}
-    ChVector<> GetApplicationPointB() const {return this->loc_application_B;}
+/// Load for a visco-elasto-plastic bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached 
+/// to the second body. This is equivalent to having a bushing with 3x3 diagonal local stiffness matrix.
+/// Also, it allows a very simple plasticity model, to cap the plastic force on x,y,z given three yelds.
+
+class ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical {
+protected:
+    ChVector<> yeld;
+    ChVector<> plastic_def;
+   
+public:
+    ChLoadBodyBodyBushingPlastic(
+                          std::shared_ptr<ChBody> mbodyA,   ///< object A
+                          std::shared_ptr<ChBody> mbodyB,   ///< object B
+                          const ChFrame<> abs_application,  ///< create the bushing here, in abs. coordinates. Initial alignment as world xyz.
+                          const ChVector<> mstiffness,      ///< stiffness, along x y z axes of the abs_application
+                          const ChVector<> mdamping,        ///< damping, along x y z axes of the abs_application
+                          const ChVector<> myeld            ///< plastic yeld, along x y z axes of the abs_application
+                        ) 
+         : ChLoadBodyBodyBushingSpherical(mbodyA,mbodyB,abs_application, mstiffness, mdamping), 
+           yeld(myeld),
+           plastic_def(VNULL) {         
+        }
+
+        /// Implement the computation of bushing force, in local 
+        /// coordinates of the loc_application_B.
+        /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB, 
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque)  override {
+
+        loc_force  = (rel_AB.GetPos()-plastic_def)  * this->stiffness  // element-wise product!
+                   + rel_AB.GetPos_dt() * this->damping;   // element-wise product!
+
+        // A basic plasticity, assumed with box capping, without hardening:
+        
+        if (loc_force.x() > yeld.x()) {
+            loc_force.x() = yeld.x();
+            plastic_def.x() = rel_AB.GetPos().x() - loc_force.x() / this->stiffness.x();
+        }
+        if (loc_force.x() < -yeld.x()) {
+            loc_force.x() = -yeld.x();
+            plastic_def.x() = rel_AB.GetPos().x() - loc_force.x() / this->stiffness.x();
+        }
+        if (loc_force.y() > yeld.y()) {
+            loc_force.y() = yeld.y();
+            plastic_def.y() = rel_AB.GetPos().y() - loc_force.y() / this->stiffness.y();
+        }
+        if (loc_force.y() < -yeld.y()) {
+            loc_force.y() = -yeld.y();
+            plastic_def.y() = rel_AB.GetPos().y() - loc_force.y() / this->stiffness.y();
+        }
+        if (loc_force.z() > yeld.z()) {
+            loc_force.z() = yeld.z();
+            plastic_def.z() = rel_AB.GetPos().z() - loc_force.z() / this->stiffness.z();
+        }
+        if (loc_force.z() < -yeld.z()) {
+            loc_force.z() = -yeld.z();
+            plastic_def.z() = rel_AB.GetPos().z() - loc_force.z() / this->stiffness.z();
+        }
+        
+        // GetLog() << "loc_force" << loc_force << "\n";
+        // GetLog() << "plastic_def" << plastic_def << "\n";
+        loc_torque = VNULL;
+    }
+
+    virtual bool IsStiff() {return true;}
+
+
+        /// Set plastic yeld, forces beyond this limit will be capped. 
+        /// Expressed along the x y z axes of loc_application_B, es [N/m].
+    void SetYeld(const ChVector<> myeld) {this->yeld = myeld;}
+    ChVector<> GetYeld() const {return this->yeld;}
+
+        /// Get the current accumulated plastic deformation, in [m], that
+        /// could become nonzero if forces went beyond the plastic yeld.
+    ChVector<> GetPlasticDeformation() const {return this->plastic_def;}
+
 };
 
 
-*/
+
+
 
 }  // end namespace chrono
 
