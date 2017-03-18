@@ -1478,6 +1478,8 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     
         // Load all KRM matrices with the K part only
     this->KRMmatricesLoad(1.0, 0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level K matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
@@ -1489,6 +1491,8 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     
         // Load all KRM matrices with the R part only
     this->KRMmatricesLoad(0, 1.0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
