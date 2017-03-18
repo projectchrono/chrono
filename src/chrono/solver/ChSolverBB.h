@@ -68,7 +68,8 @@ class ChApi ChSolverBB : public ChIterativeSolver {
     /// Solve() automatically falls back to this function.
     /// It does not solve the Schur complement N*l-r=0 as Solve does, here the
     /// entire system KKT matrix with duals l and primals q is used.
-    /// ***NOT WORKING***
+    //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
+    //***DEPRECATED***
     virtual double Solve_SupportingStiffness(
         ChSystemDescriptor& sysd  ///< system description with constraints and variables
         );
