@@ -419,6 +419,65 @@ public:
 
 
 
+//------------------------------------------------------------------------------------------------
+
+
+/// Load for a visco-elastic translational/rotational bushing acting between two bodies.
+/// It uses three values for stiffness along the X Y Z axes of a coordinate system attached 
+/// to the second body , and three rotational stiffness values for (small) rotations about X Y Z of the
+/// same coordinate system. 
+/// This is equivalent to having a bushing with 6x6 diagonal local stiffness matrix.
+
+class ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
+protected:
+    ChVector<> rot_stiffness;
+    ChVector<> rot_damping;
+   
+public:
+    ChLoadBodyBodyBushingMate(
+                          std::shared_ptr<ChBody> mbodyA,   ///< object A
+                          std::shared_ptr<ChBody> mbodyB,   ///< object B
+                          const ChFrame<> abs_application,  ///< create the bushing here, in abs. coordinates. Initial alignment as world xyz.
+                          const ChVector<> mstiffness,      ///< stiffness, along x y z axes of the abs_application
+                          const ChVector<> mdamping,        ///< damping, along x y z axes of the abs_application
+                          const ChVector<> mrotstiffness,   ///< rotational stiffness, about x y z axes of the abs_application
+                          const ChVector<> mrotdamping      ///< rotational damping, about x y z axes of the abs_application
+                        ) 
+         : ChLoadBodyBodyBushingSpherical(mbodyA,mbodyB,abs_application, mstiffness, mdamping), 
+           rot_stiffness(mrotstiffness),
+           rot_damping(mrotdamping) {         
+        }
+
+        /// Implement the computation of bushing force, in local 
+        /// coordinates of the loc_application_B.
+        /// Force is assumed applied to body B, and its opposite to A.
+    virtual void ComputeBushingForceTorque(const ChFrameMoving<>& rel_AB, 
+                                            ChVector<>& loc_force,
+                                            ChVector<>& loc_torque)  override {
+        // inherit parent to compute loc_force = ...
+        ChLoadBodyBodyBushingSpherical::ComputeBushingForceTorque(rel_AB, loc_force, loc_torque);
+
+        // compute local torque using small rotations:
+        ChQuaternion<> rel_rot = rel_AB.GetRot();
+        ChVector<> vect_rot = rel_rot.Q_to_Rotv();
+        loc_torque  = vect_rot  * this->rot_stiffness  // element-wise product!
+                    + rel_AB.GetWvel_par() * this->damping;   // element-wise product!
+    }
+
+    virtual bool IsStiff() {return true;}
+
+
+        /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
+    void SetRotationalStiffness(const ChVector<> mstiffness) {this->rot_stiffness = mstiffness;}
+    ChVector<> GetRotationalStiffness() const {return this->rot_stiffness;}
+
+        /// Set radial damping, along the x y z axes of loc_application_B, es [Ns/m]
+    void SetRotationalDamping(const ChVector<> mdamping) {this->rot_damping = mdamping;}
+    ChVector<> GetRotationalDamping() const {return this->rot_damping;}
+
+};
+
+
 
 }  // end namespace chrono
 
