@@ -602,4 +602,4 @@ Now, finally, run the loop of the simulator: here are snapshots from the real-ti
  
 # Here is the full source code:
 
-\include demo_robot.cpp
+\include demo_CAS_robot.cpp
