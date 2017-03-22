@@ -14,11 +14,11 @@
 
 #include <mpi.h>
 #include <memory>
-#include <new>
 
 #include "chrono_distributed/comm/ChCommDistr.h"
 #include "chrono_distributed/physics/ChSystemDistr.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
 
@@ -35,7 +35,7 @@ ChCommDistr::ChCommDistr(ChSystemDistr *my_sys)
 	this->my_sys = my_sys;
 	this->data_manager = my_sys->data_manager;
 
-	//TODO how large for the bufs?
+	//TODO how large for the bufs? put on stack?
 	sendup_buf = new double[1000000];
 	num_sendup = 0;
 	senddown_buf = new double[1000000];
@@ -49,76 +49,199 @@ ChCommDistr::~ChCommDistr()
 	delete senddown_buf;
 }
 
-// Locate each body that has left the subdomain,
+// Processes an incoming message from another rank.
+// updown determines if this buffer was received from the rank above this rank
+// or below this rank. updown = 1 => up, updown = 0 ==> down
+void ChCommDistr::ProcessBuf(int num_recv, double* buf, int updown)
+{
+	int first_empty = 0;
+	int n = 0; // Current index in the recved buffer
+	while (n < num_recv)
+	{
+		// Find the next empty slot in the data manager. TODO: update to a hash
+		while (first_empty < data_manager->num_rigid_bodies
+				&& ddm->comm_status[first_empty] != distributed::EMPTY)
+		{
+			first_empty++;
+		}
+
+		std::shared_ptr<ChBody> body;
+		// If this body is being added to the rank
+		if ((int) (buf[n+1]) == distributed::EXCHANGE)
+		{
+			// If there are no empty spaces in the data manager, create
+			// a new body to add
+			if (first_empty == data_manager->num_rigid_bodies)
+			{
+				body = std::make_shared<ChBody>();
+			}
+			// If an empty space was found in the body manager
+			else
+			{
+				body = (*data_manager->body_list)[first_empty];
+			}
+
+			n += UnpackExchange(buf + n, body);
+
+			// Add the new body
+			distributed::COMM_STATUS status = (updown == 1) ? distributed::GHOST_UP : distributed::GHOST_DOWN;
+			if (first_empty == data_manager->num_rigid_bodies)
+			{
+				my_sys->AddBodyExchange(body, status);
+			}
+			else
+			{
+				ddm->comm_status[first_empty] = status;
+				body->SetBodyFixed(false);
+				body->SetCollide(true);
+			}
+		}
+
+		// If this body is an update for an existing body
+		else if ((int) buf[n+1] == distributed::UPDATE || (int) buf[n+1] == distributed::FINAL_UPDATE_GIVE)
+		{
+			// Find the existing body // TODO: Better search
+			bool found = false;
+			unsigned int gid = (unsigned int) buf[n+2];
+			for (int i = 0; i < data_manager->num_rigid_bodies; i++)
+			{
+				if (ddm->global_id[i] == gid
+						&& ddm->comm_status[i] != distributed::EMPTY)
+				{
+					body = (*data_manager->body_list)[i];
+					found = true;
+					if ((int) buf[n+1] == distributed::FINAL_UPDATE_GIVE)
+					{
+						ddm->comm_status[i] = distributed::OWNED;
+					}
+					break;
+				}
+			}
+
+			if (!found)
+			{
+				GetLog() << "GID " << gid << " NOT found rank "
+						<< my_sys->GetMyRank() << "\n";
+			}
+			n += UnpackUpdate(buf + n, body);
+		}
+		else if ((int) buf[n+1] == distributed::FINAL_UPDATE_TAKE)
+		{
+			unsigned int gid = (unsigned int) buf[n+2];
+			int id = ddm->GetLocalIndex(gid);
+			GetLog() << "Remove gid " << gid << ", id " << id << " rank " << my_sys->GetMyRank() << "\n";
+			ddm->comm_status[id] = distributed::EMPTY;
+			(*data_manager->body_list)[id]->SetBodyFixed(true);
+			(*data_manager->body_list)[id]->SetCollide(false);
+			n += 3;
+		}
+		else
+		{
+			GetLog() << "Undefined message type rank " << my_sys->GetMyRank() << "\n";
+		}
+	}
+}
+
+// Locate each body that has left the sub-domain,
 // remove it,
 // and pack it for communication.
 void ChCommDistr::Exchange()
 {
 	num_sendup = 0;
 	num_senddown = 0;
+	int my_rank = my_sys->GetMyRank();
+	int num_ranks = my_sys->GetNumRanks();
 
-	// Identify bodies that need to be updated.
-	int num_elements = 0;
-	ChDomainDistr *domain = my_sys->domain;
-
-	// TODO OpenMP ??
 	// PACKING and UPDATING comm_status of existing bodies
 	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
 	{
-		// Skip empty bodies
+		// Skip empty bodies or those that this rank isn't responsible for
 		int curr_status = ddm->comm_status[i];
-		if (curr_status == chrono::EMPTY)
+		int location = my_sys->domain->GetBodyRegion(i);
+
+		if (curr_status == distributed::EMPTY || curr_status == distributed::GHOST_UP || curr_status == distributed::GHOST_DOWN)
 		{
 			continue;
 		}
 
-		int location = domain->GetCommStatus(i);
-
-		// If the body now affects the next subdomain:
-		if (location == chrono::GHOST_UP || location == chrono::SHARED_UP)
+		// If the body now affects the next sub-domain
+		if (location == distributed::GHOST_UP || location == distributed::SHARED_UP)
 		{
-			if (curr_status == chrono::SHARED_UP)
+			// If the body has already been shared, it need only update its corresponding ghost
+			if (curr_status == distributed::SHARED_UP)
 			{
-				// If the body has already been shared, it need only update its corresponding ghost
-				num_sendup += PackUpdate(sendup_buf + num_sendup, i);
+				GetLog() << "Update: rank " << my_rank
+						<< " -- " << ddm->global_id[i] << " --> rank "
+						<< my_rank + 1 << "\n";
+				num_sendup += PackUpdate(sendup_buf + num_sendup, i, distributed::UPDATE);
 			}
-			else
+			// If the body is being marked as shared for the first time, the whole body must
+			// be packed to create a ghost on another rank
+			else if (curr_status == distributed::OWNED)
 			{
-				// If the body is being marked as shared for the first time, the whole body must
-				// be packed to create a ghost on another rank
+				GetLog() << "Exchange: rank " << my_rank
+						<< " -- " << ddm->global_id[i] << " --> rank " <<
+						my_rank + 1 << "\n";
 				num_sendup += PackExchange(sendup_buf + num_sendup, i);
-				ddm->comm_status[i] = chrono::SHARED_UP;
+				ddm->comm_status[i] = distributed::SHARED_UP;
 			}
 		}
-		// If the body now affects the previous subdomain:
-		else if (location == chrono::GHOST_DOWN || location == chrono::SHARED_DOWN)
+
+		// If the body now affects the previous sub-domain:
+		else if (location == distributed::GHOST_DOWN || location == distributed::SHARED_DOWN)
 		{
-			if (curr_status == chrono::SHARED_DOWN)
+			if (curr_status == distributed::SHARED_DOWN)
 			{
 				// If the body has already been shared, it need only update its corresponding ghost
-				num_senddown += PackUpdate(senddown_buf + num_senddown, i);
+				GetLog() << "Update: rank " << my_rank << " -- "
+						<< ddm->global_id[i] << " --> rank "
+						<< my_rank - 1 << "\n";
+				num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::UPDATE);
 			}
-			else
+			else if (curr_status == distributed::OWNED)
 			{
 				// If the body is being marked as shared for the first time, the whole body must
 				// be packed to create a ghost on another rank
+				GetLog() << "Exchange: rank " << my_rank
+						<< " -- " << ddm->global_id[i] << " --> rank "
+						<< my_rank - 1 << "\n";
 				num_senddown += PackExchange(senddown_buf + num_senddown, i);
-				ddm->comm_status[i] = chrono::SHARED_DOWN;
+				ddm->comm_status[i] = distributed::SHARED_DOWN;
 			}
 		}
+
 		// If the body is no longer involved with this rank, it must be removed from this rank
-		else if (location == chrono::UNOWNED_UP || location == chrono::UNOWNED_DOWN)
+		else if (location == distributed::UNOWNED_UP || location == distributed::UNOWNED_DOWN)
 		{
-			ddm->comm_status[i] = chrono::EMPTY;
-			data_manager->host_data.active_rigid[i] = 0;
-		}
-		// If the body no longer affects either of its neighbor subdomains:
-		else if (location == chrono::OWNED)
-		{
-			if (curr_status == chrono::SHARED_UP || curr_status == chrono::SHARED_DOWN)
+			if (location == distributed::UNOWNED_UP && my_rank != num_ranks - 1)
 			{
-				ddm->comm_status[i] = chrono::OWNED;
+				num_sendup += PackUpdate(sendup_buf + num_sendup, i, distributed::FINAL_UPDATE_GIVE);
 			}
+			else if (my_rank != 0)
+			{
+				num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::FINAL_UPDATE_GIVE);
+			}
+
+			GetLog() << "Remove: GID " << ddm->global_id[i] << " from rank "
+					<< my_rank << "\n";
+			ddm->comm_status[i] = distributed::EMPTY;
+			(*data_manager->body_list)[i]->SetBodyFixed(true);
+			(*data_manager->body_list)[i]->SetCollide(false);
+		}
+
+		// If the body is no longer involved with either neighbor, remove it from the other rank
+		// and take ownership on this rank
+		else if (location == distributed::OWNED)
+		{
+			if (curr_status == distributed::SHARED_UP)
+			{
+				num_sendup += PackUpdateTake(sendup_buf + num_sendup, i);
+			}
+			else if (curr_status == distributed::SHARED_DOWN)
+			{
+				num_senddown += PackUpdateTake(senddown_buf + num_senddown, i);
+			}
+			ddm->comm_status[i] = distributed::OWNED;
 		}
 	} // End of packing for loop
 
@@ -135,10 +258,9 @@ void ChCommDistr::Exchange()
 	}
 
 	// send up
-	if (my_sys->GetMyRank() != my_sys->GetRanks() - 1)
+	if (my_rank != num_ranks - 1)
 	{
-		GetLog() << "Sending up: " << num_sendup << " from rank " << my_sys->GetMyRank() << "\n";
-		MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_sys->GetMyRank() + 1, 1, my_sys->world);
+		MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world);
 	}
 
 	// Send empty message if there is nothing to send
@@ -149,84 +271,31 @@ void ChCommDistr::Exchange()
 	}
 
 	// send down
-	if (my_sys->GetMyRank() != 0)
+	if (my_rank != 0)
 	{
-		GetLog() << "Sending down: " << num_senddown << " from rank " << my_sys->GetMyRank() << "\n";
-		MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_sys->GetMyRank() - 1, 2, my_sys->world);
+		MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world);
 	}
 
-	GetLog() << "Done sending on rank " << my_sys->GetMyRank() << "\n";
-
-
-
-	// RECEIVING // TODO: add the comm status on unpacking ***********************
+	// RECEIVING
 	int num_recvdown;
 	int num_recvup;
-	int first_empty = 0; // First index in the data manager that is empty
-	int n = 0; // Current index in the recved buffer
 
 	// probe for message from down
 	double *recvdown_buf = NULL;
 
-
 	if (my_sys->GetMyRank() != 0)
 	{
-		MPI_Probe(my_sys->GetMyRank() - 1, 1, my_sys->world, &statusdown);
+		MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown);
 		MPI_Get_count(&statusdown, MPI_DOUBLE, &num_recvdown);
 		recvdown_buf = new double[num_recvdown];
-		MPI_Recv(recvdown_buf, num_recvdown, MPI_DOUBLE, my_sys->GetMyRank() - 1, 1, my_sys->world, &statusdown);
+		MPI_Recv(recvdown_buf, num_recvdown, MPI_DOUBLE, my_rank - 1, 1, my_sys->world, &statusdown);
 	}
 
-	// Process message from down, then check for message from up. (or thread to do both at the same time)
-	if (my_sys->GetMyRank() != 0 && recvdown_buf[0] != 0)
+	// Process message from down, then check for message from up.
+	// (or thread to do both at the same time)
+	if (my_rank != 0 && recvdown_buf[0] != 0)
 	{
-		while (n < num_recvdown)
-		{
-			// Find the next empty slot in the data manager. TODO: update to a hash
-			while(data_manager->host_data.active_rigid[first_empty] && first_empty < data_manager->num_rigid_bodies)
-			{
-				first_empty++;
-			}
-
-			// TODO: anything to clear the space??
-			GetLog() << "Processing GID: " << (unsigned int) recvdown_buf[n+2] << "on rank " << my_sys->GetMyRank() << "\n";
-
-			std::shared_ptr<ChBody> body;
-			// If this body is being added to the rank
-			if ((int) recvdown_buf[n+1] == chrono::EXCHANGE)
-			{
-				if (first_empty == data_manager->num_rigid_bodies)
-				{
-					body = std::make_shared<ChBody>();
-				}
-				else
-				{
-					body = (*data_manager->body_list)[first_empty];
-				}
-
-				n += UnpackExchange(recvdown_buf + n, body);
-
-				if (first_empty == data_manager->num_rigid_bodies)
-				{
-					my_sys->AddBody(body);
-				}
-			}
-			// If this body is an update for an existing body
-			else
-			{
-				// Find the existing body // TODO: Better search
-				for (int i = 0; i < data_manager->num_rigid_bodies; i++)
-				{
-					if (ddm->global_id[i] == (unsigned int) recvdown_buf[n+2] && ddm->comm_status[i] != chrono::EMPTY)
-					{
-						body = (*data_manager->body_list)[i];
-					//	GetLog() << "A Found/updating GID: " << (unsigned int) recvdown_buf[n+2] << " at index " << i << " on rank " << my_sys->GetMyRank() << "\n";
-						break;
-					}
-				}
-				n += UnpackUpdate(recvdown_buf + n, body);
-			}
-		}
+		ProcessBuf(num_recvdown, recvdown_buf, 0);
 	}
 
 	delete recvdown_buf;
@@ -234,72 +303,151 @@ void ChCommDistr::Exchange()
 
 	// probe for a message from up
 	double *recvup_buf = NULL;
-	if (my_sys->GetMyRank() != my_sys->GetRanks() - 1)
+	if (my_rank != num_ranks - 1)
 	{
-		MPI_Probe(my_sys->GetMyRank() + 1, 2, my_sys->world, &statusup);
+		MPI_Probe(my_rank + 1, 2, my_sys->world, &statusup);
 		MPI_Get_count(&statusup, MPI_DOUBLE, &num_recvup);
 		recvup_buf = new double[num_recvup];
-		MPI_Recv(recvup_buf, num_recvup, MPI_DOUBLE, my_sys->GetMyRank() + 1, 2, my_sys->world, &statusup);
+		MPI_Recv(recvup_buf, num_recvup, MPI_DOUBLE, my_rank + 1, 2, my_sys->world, &statusup);
 	}
 
-	n = 0;
 	// Process message from up.
-	if (my_sys->GetMyRank() != my_sys->GetRanks() - 1 && recvup_buf[0] != 0)
+	if (my_rank != num_ranks - 1 && recvup_buf[0] != 0)
 	{
-		while (n < num_recvup)
+		ProcessBuf(num_recvup, recvup_buf, 1);
+	}
+
+	delete recvup_buf;
+	MPI_Barrier(my_sys->world);
+}
+
+
+void ChCommDistr::CheckExchange()
+{
+	int *checkup_buf = new int[10000]; // TODO buffer sizes based on num_shared and num_ghost
+	int iup = 0;
+	int *checkdown_buf = new int[10000];
+	int idown = 0;
+
+	my_sys->PrintBodyStatus();
+	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
+	{
+		switch(ddm->comm_status[i])
 		{
-			// Find the next empty slot in the data manager. TODO: update to a hash
-			while(data_manager->host_data.active_rigid[first_empty] && first_empty < data_manager->num_rigid_bodies)
-			{
-				first_empty++;
-			}
+		case distributed::SHARED_DOWN:
+			checkdown_buf[idown++] = distributed::SHARED_DOWN;
+			checkdown_buf[idown++] = (int) ddm->global_id[i];
+			break;
+		case distributed::SHARED_UP:
+			checkup_buf[iup++] = distributed::SHARED_UP;
+			checkup_buf[iup++] = (int) ddm->global_id[i];
+			break;
+		case distributed::GHOST_DOWN:
+			checkdown_buf[idown++] = distributed::GHOST_DOWN;
+			checkdown_buf[idown++] = (int) ddm->global_id[i];
+			break;
+		case distributed::GHOST_UP:
+			checkup_buf[iup++] = distributed::GHOST_UP;
+			checkup_buf[iup++] = (int) ddm->global_id[i];
+			break;
+		default:
+			break;
+		}
+	}
 
-			GetLog() << "Processing GID: " << (unsigned int) recvup_buf[n+2] << "on rank " << my_sys->GetMyRank() << "\n";
-			// TODO: anything to clear the space??
+	int my_rank = my_sys->GetMyRank();
+	int num_ranks = my_sys->GetNumRanks();
+	if (iup == 0)
+	{
+		checkup_buf[0] = distributed::EMPTY;
+		iup = 1;
+	}
+	if (idown == 0)
+	{
+		checkdown_buf[0] = distributed::EMPTY;
+		idown = 1;
+	}
 
-			std::shared_ptr<ChBody> body;
-			// If this body is being added to the rank
-			if ((int) recvup_buf[n+1] == chrono::EXCHANGE)
+	if (my_rank != num_ranks - 1)
+	{
+		MPI_Send(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world);
+	}
+	if (my_rank != 0)
+	{
+		MPI_Send(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world);
+	}
+
+	delete checkup_buf;
+	delete checkdown_buf;
+
+	MPI_Status statusdown;
+	MPI_Status statusup;
+	int num_recvdown = 1;
+	int num_recvup = 1;
+	int *recvdown_buf = NULL;
+	int *recvup_buf = NULL;
+
+	if (my_rank != 0)
+	{
+		MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown);
+		MPI_Get_count(&statusdown, MPI_INT, &num_recvdown);
+		recvdown_buf = new int[num_recvdown];
+		MPI_Recv(recvdown_buf, num_recvdown, MPI_INT, my_rank - 1, 1, my_sys->world, &statusdown);
+	}
+
+	if (num_recvdown != 1)
+	{
+		for (int i = 0; i < num_recvdown; i += 2)
+		{
+			int local_id = ddm->GetLocalIndex((unsigned int) recvdown_buf[i+1]);
+			int status_match = (recvdown_buf[i] == distributed::SHARED_UP) ? distributed::GHOST_DOWN : distributed::SHARED_DOWN;
+			if (ddm->comm_status[local_id] == status_match)
 			{
-				if (first_empty == data_manager->num_rigid_bodies)
-				{
-					body = std::make_shared<ChBody>();
-				}
-				else
-				{
-					body = (*data_manager->body_list)[first_empty];
-				}
-				n += UnpackExchange(recvup_buf + n, body);
-				if (first_empty == data_manager->num_rigid_bodies)
-				{
-					my_sys->AddBody(body);
-				}
+				continue;
 			}
-			// If this body is an update for an existing body
 			else
 			{
-				// Find the existing body todo better search
-				bool found = false;
-				for (int i = 0; i < data_manager->num_rigid_bodies; i++)
-				{
-					if (ddm->global_id[i] == (unsigned int) recvup_buf[n+2] && ddm->comm_status[i] != chrono::EMPTY)
-					{
-						body = (*data_manager->body_list)[i];
-						//GetLog() << "B Found/updating GID: " << (unsigned int) recvup_buf[n+2] << " at index " << i << " on rank " << my_sys->GetMyRank() << "\n";
-						found = true;
-						break;
-					}
-				}
-				if (found == false) GetLog() << "ERROR: body not found for upating. GID " << (unsigned int) recvup_buf[n+2] << " on rank " << my_sys->GetMyRank() << "\n";
-				n += UnpackUpdate(recvup_buf + n, body); // TODO: SEGFAULT body null?? ADD AN INHERITED UPDATE THAT ADDS THE GID FROM THE BODYLIST TO THE DATA_MANAGER
+				// TODO Handle Mismatch
+				GetLog() << "MISMATCH: GID " << (unsigned int) recvdown_buf[i+1] << "seen on "
+						<< my_rank << " as " << (int) ddm->comm_status[local_id] << " and on rank "
+						<< my_rank - 1 << " as " << recvdown_buf[i] << "\n";
+				my_sys->PrintBodyStatus();
+			}
+		}
+	}
+
+	delete recvdown_buf;
+
+	if (my_rank != num_ranks - 1)
+	{
+		MPI_Probe(my_rank + 1, 2, my_sys->world, &statusup);
+		MPI_Get_count(&statusup, MPI_INT, &num_recvup);
+		recvup_buf = new int[num_recvup];
+		MPI_Recv(recvup_buf, num_recvup, MPI_INT, my_rank + 1, 2, my_sys->world, &statusup);
+	}
+
+	if (my_rank != num_ranks - 1 && num_recvup != 1)
+	{
+		for (int i = 0; i < num_recvup; i += 2)
+		{
+			int local_id = ddm->GetLocalIndex((unsigned int) recvup_buf[i+1]);
+			int status_match = (recvup_buf[i] == distributed::SHARED_DOWN) ? distributed::GHOST_UP : distributed::SHARED_UP;
+			if (ddm->comm_status[local_id] == status_match)
+			{
+				continue;
+			}
+			else
+			{
+				// TODO handle mismatch
+				GetLog() << "MISMATCH: GID " << (unsigned int) recvdown_buf[i+1] << "seen on "
+						<< my_rank << " as " << (int) ddm->comm_status[local_id] << " and on rank "
+						<< my_rank + 1 << " as " << recvdown_buf[i] << "\n";
+				my_sys->PrintBodyStatus();
 			}
 		}
 	}
 
 	delete recvup_buf;
-
-	GetLog() << "Done Receiving on rank " << my_sys->GetMyRank() << "\n";
-	MPI_Barrier(my_sys->world);
 }
 
 
@@ -312,11 +460,9 @@ void ChCommDistr::Exchange()
 int ChCommDistr::PackExchange(double *buf, int index)
 {
 	int m = 1; // Number of doubles being packed (will be placed in the front of the buffer
-			   // once packing is done
+			   // once packing is done)
 
-	GetLog() << "PackExchange GID: " << (unsigned int) ddm->global_id[index] << " on rank " << my_sys->GetMyRank() << "\n";
-
-	buf[m++] = (double) chrono::EXCHANGE;
+	buf[m++] = (double) distributed::EXCHANGE;
 
 	// Global Id
 	buf[m++] = (double) ddm->global_id[index];
@@ -349,25 +495,29 @@ int ChCommDistr::PackExchange(double *buf, int index)
 	buf[m++] = data_manager->host_data.mass_rigid[index];
 
 	// Material DEM
-	buf[m++] = data_manager->host_data.mu[index];
-	buf[m++] = data_manager->host_data.adhesionMultDMT_data[index];
+	buf[m++] = data_manager->host_data.mu[index]; // Static Friction
+	buf[m++] = data_manager->host_data.adhesionMultDMT_data[index]; // Adhesion
 
-    if (data_manager->settings.solver.use_material_properties) {
-    	buf[m++] = data_manager->host_data.elastic_moduli[index].x;
-    	buf[m++] = data_manager->host_data.elastic_moduli[index].y;
-    	buf[m++] = data_manager->host_data.cr[index];
+    if (data_manager->settings.solver.use_material_properties)
+    {
+    	buf[m++] = data_manager->host_data.elastic_moduli[index].x; // Young's Modulus
+    	buf[m++] = data_manager->host_data.elastic_moduli[index].y; // Poisson Ratio
+    	buf[m++] = data_manager->host_data.cr[index]; // Coefficient of Restitution
     }
     else
     {
-    	buf[m++] = data_manager->host_data.dem_coeffs[index].x;
-    	buf[m++] = data_manager->host_data.dem_coeffs[index].y;
-    	buf[m++] = data_manager->host_data.dem_coeffs[index].z;
-    	buf[m++] = data_manager->host_data.dem_coeffs[index].w;
+    	buf[m++] = data_manager->host_data.dem_coeffs[index].x; // kn
+    	buf[m++] = data_manager->host_data.dem_coeffs[index].y; // kt
+    	buf[m++] = data_manager->host_data.dem_coeffs[index].z; // gn
+    	buf[m++] = data_manager->host_data.dem_coeffs[index].w; // gt
     }
 
 
-	// Contact Goemetries
-	// TODO how to get at the geometry in data manager?? *******************
+    // Collision
+    buf[m++] = double(data_manager->host_data.collide_rigid[index]);
+
+	// TODO how to get at the geometry in data manager??
+
 
 
 
@@ -375,10 +525,6 @@ int ChCommDistr::PackExchange(double *buf, int index)
 
 	return m;
 }
-
-
-
-// TODO check if all of these things will be automatically updated into the data_manager ********************************************
 
 
 // Unpacks a sphere body from the buffer into body.
@@ -389,6 +535,7 @@ int ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	int m = 2; // Skip the size value and the type value
 
 	// Global Id
+
 	body->SetGid((unsigned int) buf[m++]);
 
 	// Position and rotation
@@ -412,36 +559,40 @@ int ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	body->SetMass(buf[m++]);
 
 	// Material DEM
-	body->GetMaterialSurfaceDEM()->static_friction = buf[m++]; //TODO: static or sliding???
+	std::shared_ptr<ChMaterialSurfaceDEM> mat = std::make_shared<ChMaterialSurfaceDEM>();
 
-	body->GetMaterialSurfaceDEM()->adhesionMultDMT = buf[m++];
+	mat->SetFriction(buf[m++]);  //Static Friction
+	mat->adhesionMultDMT = buf[m++];
 
-    if (data_manager->settings.solver.use_material_properties) {
-    	body->GetMaterialSurfaceDEM()->young_modulus = buf[m++];
-    	body->GetMaterialSurfaceDEM()->poisson_ratio = buf[m++];
-    	body->GetMaterialSurfaceDEM()->restitution = buf[m++];
-
+    if (data_manager->settings.solver.use_material_properties)
+    {
+    	mat->young_modulus = buf[m++];
+    	mat->poisson_ratio = buf[m++];
+    	mat->restitution = buf[m++];
     }
     else
     {
-    	body->GetMaterialSurfaceDEM()->kn = buf[m++]; //TODO ORDER of dem_coeffs from packing??
-    	body->GetMaterialSurfaceDEM()->kt = buf[m++];
-    	body->GetMaterialSurfaceDEM()->gn = buf[m++];
-    	body->GetMaterialSurfaceDEM()->gt = buf[m++];
+    	mat->kn = buf[m++];
+    	mat->kt = buf[m++];
+    	mat->gn = buf[m++];
+    	mat->gt = buf[m++];
     }
+
+	body->SetMaterialSurface(mat);
+
+	//body->SetCollide((bool) buf[m++]);
+	m++;
 
 	return m;
 }
 
 
 // Only packs the essentials for a body update
-int ChCommDistr::PackUpdate(double *buf, int index)
+int ChCommDistr::PackUpdate(double *buf, int index, int update_type)
 {
 	int m = 1;
 
-	GetLog() << "PackUpdate GID: " << (unsigned int) ddm->global_id[index] << " on rank " << my_sys->GetMyRank() << "\n";
-
-	buf[m++] = (double) chrono::UPDATE;
+	buf[m++] = (double) update_type;
 
 	// Global Id
 	buf[m++] = (double) ddm->global_id[index];
@@ -496,4 +647,12 @@ int ChCommDistr::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
     body->Variables().Get_qb().SetElementN(5, buf[m++]);
 
 	return m;
+}
+
+int ChCommDistr::PackUpdateTake(double *buf, int index)
+{
+	buf[0] = (double) 3;
+	buf[1] = (double) distributed::FINAL_UPDATE_TAKE;
+	buf[2] = (double) ddm->global_id[index];
+	return 3;
 }

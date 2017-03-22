@@ -23,9 +23,9 @@
 #include "chrono_distributed/physics/ChSystemDistr.h"
 #include "chrono_distributed/physics/ChDomainDistr.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChSystemParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/collision/ChCollisionSystemParallel.h"
 #include "chrono_parallel/math/real3.h"
@@ -39,12 +39,7 @@ ChSystemDistr::ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int ma
 	MPI_Comm_size(world, &num_ranks);
 	MPI_Comm_rank(world, &my_rank);
 
-
-	//my_rank = 1;
-	//num_ranks = 2;
-
-
-
+	ddm = new ChDistributedDataManager(this);
 	domain = new ChDomainDistr(this);
 	comm = new ChCommDistr(this);
 
@@ -52,12 +47,24 @@ ChSystemDistr::ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int ma
 	this->num_bodies_global = 0;
 }
 
-//TODO *******
+ChSystemDistr::~ChSystemDistr()
+{
+	delete domain;
+	delete comm;
+	delete ddm;
+}
+
 bool ChSystemDistr::Integrate_Y()
 {
-	bool ret = ChSystemParallelDEM::Integrate_Y();
+	assert(domain->IsSplit());
 
-	comm->Exchange();
+	bool ret = ChSystemParallelDEM::Integrate_Y();
+	if (num_ranks != 1)
+	{
+		comm->Exchange();
+		comm->CheckExchange(); // TODO: Not every timestep
+	}
+
 	return ret;
 }
 
@@ -72,15 +79,6 @@ void ChSystemDistr::UpdateRigidBodies()
     }
 }
 
-
-ChSystemDistr::~ChSystemDistr()
-{
-	delete domain;
-	delete comm;
-}
-
-
-// TODO: BUG: inconsistent view between ranks ********************************************
 void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 {
 	// Regardless of whether the body is on this rank,
@@ -89,8 +87,11 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	newbody->SetGid(num_bodies_global);
 	num_bodies_global++;
 
-	int status = domain->GetCommStatus(newbody);
-	if (status == chrono::UNOWNED_UP || status == chrono::UNOWNED_DOWN)
+	// TODO: Add support for Global bodies (ie bounding box) signaled by being fixed-to-ground
+
+
+	distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
+	if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN)
 	{
 		GetLog() << "Not adding GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
 		return;
@@ -104,28 +105,28 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	{
 
 	// Shared up
-	case chrono::SHARED_UP:
+	case distributed::SHARED_UP:
 		GetLog() << "Adding shared up";
 		break;
 
 	// Shared down
-	case chrono::SHARED_DOWN:
+	case distributed::SHARED_DOWN:
 		GetLog() << "Adding shared down";
 		break;
 
 	// Owned
-	case chrono::OWNED:
+	case distributed::OWNED:
 		GetLog() << "Adding owned";
 		break;
 
 	// Ghost up
-	case chrono::GHOST_UP:
-		GetLog() << "Adding ghost";
+	case distributed::GHOST_UP:
+		GetLog() << "Adding ghost up";
 		break;
 
 	// Ghost down
-	case chrono::GHOST_DOWN:
-		GetLog() << "Adding ghost";
+	case distributed::GHOST_DOWN:
+		GetLog() << "Adding ghost down";
 		break;
 
 	// Not involved with this rank
@@ -135,7 +136,6 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 
 	GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
 	//-------------------------------------------------
-
 
 
 	newbody->SetId(data_manager->num_rigid_bodies);
@@ -152,6 +152,34 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
 }
 
+void ChSystemDistr::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status)
+{
+	GetLog() << "AddBodyExchange " << my_rank << "\n";
+
+	ddm->comm_status.push_back(status);
+	ddm->global_id.push_back(newbody->GetGid());
+	newbody->SetId(data_manager->num_rigid_bodies);
+	bodylist.push_back(newbody);
+	data_manager->num_rigid_bodies++;
+	newbody->SetSystem(this); //TODO might add collision of the body?
+
+	GetLog() << "A\n";
+	//newbody->SetCollide(true); //TODO syncs!! the collision models
+	GetLog() << "B\n";
+	newbody->SetBodyFixed(false);
+	GetLog() << "C\n";
+
+	// Actual data is set in UpdateBodies()
+    data_manager->host_data.pos_rigid.push_back(real3());
+    data_manager->host_data.rot_rigid.push_back(quaternion());
+    data_manager->host_data.active_rigid.push_back(true);
+    data_manager->host_data.collide_rigid.push_back(true);
+
+	// Let derived classes reserve space for specific material surface data
+	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
+	GetLog() << "End AddBodyExchange\n";
+}
+
 
 // Used to end the program on an error and print a message.
 void ChSystemDistr::ErrorAbort(std::string msg)
@@ -164,52 +192,71 @@ void ChSystemDistr::ErrorAbort(std::string msg)
 void ChSystemDistr::PrintBodyStatus()
 {
 	GetLog() << "Rank: " << my_rank << "\n";
-	GetLog() << "Bodylist:\n";
+	GetLog() << "\tBodylist:\n";
 	std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
-	for (; bl_itr != bodylist.end(); bl_itr++)
+	int i = 0;
+	for (; bl_itr != bodylist.end(); bl_itr++, i++)
 	{
 		ChVector<double> pos = (*bl_itr)->GetPos();
 		ChVector<double> vel = (*bl_itr)->GetPos_dt();
+		if (ddm->comm_status[i] != distributed::EMPTY)
+		{
+			float adhesion = (*bl_itr)->GetMaterialSurfaceDEM()->adhesionMultDMT;
+			float const_ad = (*bl_itr)->GetMaterialSurfaceDEM()->constant_adhesion;
+			float gn = (*bl_itr)->GetMaterialSurfaceDEM()->gn;
+			float gt = (*bl_itr)->GetMaterialSurfaceDEM()->gt;
+			float kn = (*bl_itr)->GetMaterialSurfaceDEM()->kn;
+			float kt = (*bl_itr)->GetMaterialSurfaceDEM()->kt;
+			float poisson = (*bl_itr)->GetMaterialSurfaceDEM()->poisson_ratio;
+			float restit = (*bl_itr)->GetMaterialSurfaceDEM()->restitution;
+			float sliding_fric = (*bl_itr)->GetMaterialSurfaceDEM()->sliding_friction;
+			float static_fric = (*bl_itr)->GetMaterialSurfaceDEM()->static_friction;
+			float young = (*bl_itr)->GetMaterialSurfaceDEM()->young_modulus;
 
-		fprintf(stdout, "Global ID: %d Pos: %.2f,%.2f,%.2f\n",
-				(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z());
+			fprintf(stdout, "\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n"
+					"Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
+					"restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f\n",
+				(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(),
+				adhesion, const_ad, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young);
+		}
 	}
-
-	GetLog() << "Data Manager:\n";
+/*
+	GetLog() << "\tData Manager:\n";
 	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
 	{
 		int status = ddm->comm_status[i];
 		unsigned int gid = ddm->global_id[i];
 
-		if (status != chrono::EMPTY)
+		if (status != distributed::EMPTY)
 		{
-			if (status == chrono::SHARED_DOWN)
+			if (status == distributed::SHARED_DOWN)
 			{
-				GetLog() << "Global ID: " << gid << " Shared down";
+				GetLog() << "\tGlobal ID: " << gid << " Shared down";
 			}
-			else if (status == chrono::SHARED_UP)
+			else if (status == distributed::SHARED_UP)
 			{
-				GetLog() << "Global ID: " << gid << " Shared up";
+				GetLog() << "\tGlobal ID: " << gid << " Shared up";
 			}
-			else if (status == chrono::GHOST_UP)
+			else if (status == distributed::GHOST_UP)
 			{
-				GetLog() << "Global ID: " << gid << " Ghost up";
+				GetLog() << "\tGlobal ID: " << gid << " Ghost up";
 			}
-			else if (status == chrono::GHOST_DOWN)
+			else if (status == distributed::GHOST_DOWN)
 			{
-				GetLog() << "Global ID: " << gid << " Ghost down";
+				GetLog() << "\tGlobal ID: " << gid << " Ghost down";
 			}
-			else if (status == chrono::OWNED)
+			else if (status == distributed::OWNED)
 			{
-				GetLog() << "Global ID: " << gid << " Owned";
+				GetLog() << "\tGlobal ID: " << gid << " Owned";
 			}
 			else
 			{
-				GetLog() << "ERROR: Global ID: " << gid << " Undefined comm_status\n";
+				GetLog() << "\tERROR: Global ID: " << gid << " Undefined comm_status\n";
 			}
 
 			real3 pos = data_manager->host_data.pos_rigid[i];
 			fprintf(stdout, " Pos: %.2f,%.2f,%.2f\n",pos.x, pos.y, pos.z);
 		}
 	}
+	*/
 }

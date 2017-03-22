@@ -1,24 +1,43 @@
-/*
- * ChDistributedDataManager.cpp
- *
- *  Created on: Mar 3, 2017
- *      Author: nic
- */
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Nic Olsen
+// =============================================================================
 
-#include "ChDistributedDataManager.h"
+#include "chrono_distributed/ChDistributedDataManager.h"
 
-namespace chrono {
+using namespace chrono;
 
-ChDistributedDataManager::ChDistributedDataManager()
+ChDistributedDataManager::ChDistributedDataManager(ChSystemDistr *my_sys)
 {
-	// TODO Auto-generated constructor stub
-	
+	this->my_sys = my_sys;
+	data_manager = my_sys->data_manager;
+	num_sharedup = 0;
+	num_shareddown = 0;
+	num_ghostup = 0;
+	num_ghostdown = 0;
 }
 
-ChDistributedDataManager::~ChDistributedDataManager()
+ChDistributedDataManager::~ChDistributedDataManager(){}
+
+// TODO make much better search
+int ChDistributedDataManager::GetLocalIndex(unsigned int gid)
 {
-	// TODO Auto-generated destructor stub
+	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
+	{
+		if (global_id[i] == gid && comm_status[i] != distributed::EMPTY)
+		{
+			return i;
+		}
+	}
+
+	return -1;
 }
-
-
-} /* namespace chrono */
