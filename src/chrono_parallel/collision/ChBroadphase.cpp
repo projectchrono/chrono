@@ -178,6 +178,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
+    const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
     const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
     custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
 
@@ -240,7 +241,7 @@ void ChCBroadphase::OneLevelBroadphase() {
 #pragma omp parallel for
     for (int i = 0; i < (signed)number_of_bins_active; i++) {
         f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
-                                       bin_aabb_number, bin_start_index, fam_data, obj_active, obj_data_id,
+                                       bin_aabb_number, bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
                                        bin_num_contact);
     }
 
@@ -253,7 +254,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     for (int index = 0; index < (signed)number_of_bins_active; index++) {
         f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
-                                       obj_data_id, contact_pairs);
+                                       obj_collide, obj_data_id, contact_pairs);
     }
     contact_pairs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;

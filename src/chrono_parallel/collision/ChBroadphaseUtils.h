@@ -297,6 +297,7 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
                                                   const custom_vector<uint>& bin_start_index,
                                                   const custom_vector<short2>& fam_data,
                                                   const custom_vector<char>& body_active,
+                                                  const custom_vector<char>& body_collide,
                                                   const custom_vector<uint>& body_id,
                                                   custom_vector<uint>& num_contact) {
     uint start = bin_start_index[index];
@@ -314,6 +315,9 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
         short2 famA = fam_data[shapeA];
         uint bodyA = body_id[shapeA];
 
+        if (body_collide[bodyA] == 0)
+            continue;
+
         for (uint k = i + 1; k < end; k++) {
             uint shapeB = aabb_number[k];
             uint bodyB = body_id[shapeB];
@@ -323,6 +327,8 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)
+                continue;
+            if (body_collide[bodyB] == 0)
                 continue;
             if (!body_active[bodyA] && !body_active[bodyB])
                 continue;
@@ -351,6 +357,7 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
                                                   const custom_vector<uint>& num_contact,
                                                   const custom_vector<short2>& fam_data,
                                                   const custom_vector<char>& body_active,
+                                                  const custom_vector<char>& body_collide,
                                                   const custom_vector<uint>& body_id,
                                                   custom_vector<long long>& potential_contacts) {
     uint start = bin_start_index[index];
@@ -369,6 +376,9 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
         short2 famA = fam_data[shapeA];
         uint bodyA = body_id[shapeA];
 
+        if (body_collide[bodyA] == 0)
+            continue;
+
         for (uint k = i + 1; k < end; k++) {
             uint shapeB = aabb_number[k];
             uint bodyB = body_id[shapeB];
@@ -378,6 +388,8 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)
+                continue;
+            if (body_collide[bodyB] == 0)
                 continue;
             if (!body_active[bodyA] && !body_active[bodyB])
                 continue;
