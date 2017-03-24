@@ -16,6 +16,7 @@
 #include "chrono/geometry/ChBox.h"
 #include "chrono/geometry/ChTriangleMeshSoup.h"
 #include "chrono/geometry/ChLinePath.h"
+#include "chrono/assets/ChEllipsoidShape.h"
 
 #include "chrono_irrlicht/ChIrrAssetConverter.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -264,6 +265,21 @@ void ChIrrAssetConverter::_recursePopulateIrrlicht(std::vector<std::shared_ptr<C
 
                         double mradius = mysphere->GetSphereGeometry().rad;
                         mchildnode->setScale(core::vector3dfCH(ChVector<>(mradius, mradius, mradius)));
+                        ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
+                        mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
+                    }
+                } else if (auto myellipsoid = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
+                    if (sphereMesh) {
+                        ISceneNode* mproxynode = new ChIrrNodeProxyToAsset(myellipsoid, mnode);
+                        ISceneNode* mchildnode = scenemanager->addMeshSceneNode(sphereMesh, mproxynode);
+                        mproxynode->drop();
+
+                        // Calculate transform from node to geometry
+                        // (concatenate node - asset and asset - geometry)
+                        ChVector<> pos = myellipsoid->Pos + myellipsoid->Rot * myellipsoid->GetEllipsoidGeometry().center;
+                        ChCoordsys<> irrspherecoords(pos, myellipsoid->Rot.Get_A_quaternion());
+
+                        mchildnode->setScale(core::vector3dfCH(myellipsoid->GetEllipsoidGeometry().rad));
                         ChIrrTools::alignIrrlichtNodeToChronoCsys(mchildnode, irrspherecoords);
                         mchildnode->setMaterialFlag(video::EMF_NORMALIZE_NORMALS, true);
                     }
