@@ -19,6 +19,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/collision/ChCCollisionUtils.h"
 #include "chrono/physics/ChBody.h"
@@ -64,6 +65,46 @@ class ChBodyEasySphere : public ChBody {
         }
     }
 };
+
+
+/// Easy-to-use class for quick creation of rigid bodies with an ellipsoid shape.
+/// Compared to the base ChBody class, this class also does
+/// automatically, at object creation, the following tasks that
+/// you would normally do by hand if using ChBody:
+/// - a visualization shape is created and added, if visualization asset is desired
+/// - a collision shape is created and added, if collision is desired,
+/// - mass and moment of inertia is automatically set, according to the geometry.
+class ChBodyEasyEllipsoid : public ChBody {
+  public:
+    /// Creates a ChBody plus adds a visualization shape and, optionally,
+    /// a collision shape. Mass and inertia are set automatically depending
+    /// on density.
+    /// Ellipsoid is assumed with center at body reference coordsystem.
+    ChBodyEasyEllipsoid(ChVector<> radius, double mdensity, bool collide = false, bool visual_asset = true,
+			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+        double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * radius.x()*radius.y()*radius.z());
+        double inertiax = (1.0 / 5.0) * mmass * (pow(radius.y(), 2)+pow(radius.z(),2));
+        double inertiay = (1.0 / 5.0) * mmass * (pow(radius.x(), 2)+pow(radius.z(),2));
+        double inertiaz = (1.0 / 5.0) * mmass * (pow(radius.x(), 2)+pow(radius.y(),2));
+
+        this->SetDensity((float)mdensity);
+        this->SetMass(mmass);
+        this->SetInertiaXX(ChVector<>(inertiax, inertiay, inertiaz));
+
+        if (collide) {
+            GetCollisionModel()->ClearModel();
+            GetCollisionModel()->AddEllipsoid(radius.x(),radius.y(),radius.z()); 
+            GetCollisionModel()->BuildModel();
+            SetCollide(true);
+        }
+        if (visual_asset) {
+            std::shared_ptr<ChEllipsoidShape> vshape(new ChEllipsoidShape());
+            vshape->GetEllipsoidGeometry().rad = radius;
+            this->AddAsset(vshape);
+        }
+    }
+};
+
 
 /// Easy-to-use class for quick creation of rigid bodies with a cylindrical shape.
 /// Compared to the base ChBody class, this class also does
