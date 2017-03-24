@@ -28,6 +28,7 @@ typedef enum COMM_STATUS {
 	SHARED_DOWN,
 	UNOWNED_UP,
 	UNOWNED_DOWN,
+	GLOBAL,
 	UNDEFINED
 } COMM_STATUS;
 
@@ -37,6 +38,7 @@ typedef enum MESSAGE_TYPE {
 	FINAL_UPDATE_GIVE,
 	FINAL_UPDATE_TAKE
 } MESSAGE_TYPE;
+
 } // End namespace distributed
 } // End namespace chrono
 #endif /* CHRONO_DISTRIBUTED_OTHER_TYPES_H_ */

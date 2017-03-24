@@ -87,10 +87,28 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	newbody->SetGid(num_bodies_global);
 	num_bodies_global++;
 
-	// TODO: Add support for Global bodies (ie bounding box) signaled by being fixed-to-ground
-
-
 	distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
+
+	// TODO: Add support for Global bodies (ie bounding box) signaled by being fixed-to-ground
+	// Check for collision with this subdomain
+	if (newbody->GetBodyFixed())
+	{
+		ChVector<double> min;
+		ChVector<double> max;
+		ChVector<double> sublo(domain->GetSubLo());
+		ChVector<double> subhi(domain->GetSubHi());
+
+		newbody->GetCollisionModel()->GetAABB(min, max); // Not implemented
+
+		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+		if ((min.x() <= subhi.x() && sublo.x() <= max.x()) &&
+				(min.y() <= subhi.y() && sublo.y() <= max.y()) &&
+				(min.z() <= subhi.z() && sublo.z() <= max.z())) // TODO look over this mess
+		{
+			status = distributed::GLOBAL;
+		}
+	}
+
 	if (status == distributed::UNOWNED_UP || status == distributed::UNOWNED_DOWN)
 	{
 		GetLog() << "Not adding GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
@@ -127,6 +145,11 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	// Ghost down
 	case distributed::GHOST_DOWN:
 		GetLog() << "Adding ghost down";
+		break;
+
+	// Global
+	case distributed::GLOBAL:
+		GetLog() << "Adding global";
 		break;
 
 	// Not involved with this rank
