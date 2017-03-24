@@ -126,7 +126,7 @@ uint ChSolverParallelAPGD::Solve(ChShurProduct& ShurProduct,
     // overwritten with a vector of zero size
     gamma_hat = gamma;
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         ShurProduct(y, temp);
         // ShurProduct(y, g);
         g = temp - r;

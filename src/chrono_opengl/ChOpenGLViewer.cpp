@@ -379,49 +379,49 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
                 glm::rotate(glm::vec3(rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(-rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(-rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(radsphere));
+            model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
         } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(asset.get())) {
             double rad = capsule_shape->GetCapsuleGeometry().rad;
@@ -440,14 +440,14 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             glm::vec3 local = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(rad));
+            model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
 
             model = glm::translate(glm::mat4(1),
                                    glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
-            model = glm::scale(model, glm::vec3(rad));
+            model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
         } else if (ChTriangleMeshShape* trimesh_shape = dynamic_cast<ChTriangleMeshShape*>(asset.get())) {
@@ -533,7 +533,7 @@ void ChOpenGLViewer::RenderAABB() {
 
         model_box.resize(data_manager->num_rigid_shapes);
 #pragma omp parallel for
-        for (int i = 0; i < data_manager->num_rigid_shapes; i++) {
+        for (int i = 0; i < (signed)data_manager->num_rigid_shapes; i++) {
             real3 min_p = aabb_min[i] + data_manager->measures.collision.global_origin;
             real3 max_p = aabb_max[i] + data_manager->measures.collision.global_origin;
 
@@ -567,18 +567,18 @@ void ChOpenGLViewer::RenderFluid() {
 
     fluid_data.resize(parallel_system->data_manager->num_fluid_bodies);
 #pragma omp parallel for
-    for (int i = 0; i < parallel_system->data_manager->num_fluid_bodies; i++) {
+    for (int i = 0; i < (signed)parallel_system->data_manager->num_fluid_bodies; i++) {
         real3 pos = parallel_system->data_manager->host_data.pos_3dof[i];
         fluid_data[i] = glm::vec3(pos.x, pos.y, pos.z);
     }
 
     if (ChFluidContainer* fluid_container =
             dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
-        fluid.SetPointSize(fluid_container->kernel_radius * .75);
+        fluid.SetPointSize(float(fluid_container->kernel_radius * .75));
     }
     if (Ch3DOFRigidContainer* rigid_container =
             dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
-        fluid.SetPointSize(rigid_container->kernel_radius * .75);
+        fluid.SetPointSize(float(rigid_container->kernel_radius * .75));
     }
     fluid.Update(fluid_data);
     glm::mat4 model(1);

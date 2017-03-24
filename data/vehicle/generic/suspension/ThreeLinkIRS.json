@@ -1,0 +1,66 @@
+{
+  "Name":                       "Generic ThreeLinkIRS",
+  "Type":                       "Suspension",
+  "Template":                   "ThreeLinkIRS",
+
+  "Spindle" :
+  {
+    "Mass":                     1.0,
+    "COM":                      [0.0, 1.1, 0.0],
+    "Inertia":                  [0.0005, 0.0005, 0.0005],
+    "Radius":                   0.15,
+    "Width":                    0.06
+  },
+
+  "Trailing Arm":
+  {
+    "Mass":                     3.0,
+    "COM":                      [0.35, 0.9, 0.0],
+    "Inertia":                  [0.002, 0.02, 0.02],
+    "Radius":                   0.02,
+    "Location Chassis":         [0.7, 0.9, 0.0],
+    "Location Spindle":         [0.0, 0.9, 0.0]
+  },
+
+  "Upper Link":
+  {
+    "Mass":                     1.0,
+    "COM":                      [-0.1, 0.55, 0.25],
+    "Inertia":                  [0.002, 0.02, 0.02],
+    "Radius":                   0.01,
+    "Location Chassis":         [-0.1, 0.2, 0.4],
+    "Location Arm":             [-0.1, 0.9, 0.1],
+    "Universal Joint Axis":     [1, 0, 0]
+  },
+
+  "Lower Link":
+  {
+    "Mass":                     1.0,
+    "COM":                      [-0.1, 0.55, 0.15],
+    "Inertia":                  [0.002, 0.02, 0.02],
+    "Radius":                   0.01,
+    "Location Chassis":         [-0.1, 0.2, 0.3],
+    "Location Arm":             [-0.1, 0.9, 0.0],
+    "Universal Joint Axis":     [1, 0, 0]
+  },
+
+  "Spring":
+  {
+    "Location Chassis":         [0.3, 0.9, 0.4],
+    "Location Arm":             [0.3, 0.9, 0.0],
+    "Spring Coefficient":       100000.000,
+    "Free Length" :             0.4
+  },
+  
+  "Shock":
+  {
+    "Location Chassis":         [0.3, 0.9, 0.5],
+    "Location Arm":             [0.3, 0.9, 0.0],
+    "Damping Coefficient":      5000.000
+  },
+
+  "Axle":
+  {
+    "Inertia":                  0.4
+  }
+}

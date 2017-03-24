@@ -208,5 +208,5 @@ install(TARGETS ChronoModels_vehicle
         ARCHIVE DESTINATION lib64)
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-        DESTINATION include/chrono_vehicle/models/vehicle
+        DESTINATION include/chrono_models/vehicle
         FILES_MATCHING PATTERN "*.h")

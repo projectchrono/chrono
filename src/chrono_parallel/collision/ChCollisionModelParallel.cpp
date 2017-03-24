@@ -287,7 +287,7 @@ bool ChCollisionModelParallel::AddConvexHull(std::vector<ChVector<double> >& poi
     nObjects++;
     ConvexModel tData;
     tData.A = real3(position.x(), position.y(), position.z());
-    tData.B = real3(pointlist.size(), local_convex_data.size(), 0);
+    tData.B = real3((chrono::real)pointlist.size(), (chrono::real)local_convex_data.size(), 0);
     tData.C = real3(0, 0, 0);
     tData.R = quaternion(rotation.e0(), rotation.e1(), rotation.e2(), rotation.e3());
     tData.type = CONVEX;

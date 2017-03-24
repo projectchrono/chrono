@@ -26,8 +26,9 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
-    if (sysd.GetKblocksList().size() > 0)
-        return this->Solve_SupportingStiffness(sysd);
+    //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
+//    if (sysd.GetKblocksList().size() > 0)
+//        return this->Solve_SupportingStiffness(sysd);
 
     // Tuning of the spectral gradient search
     double a_min = 1e-13;
@@ -367,9 +368,15 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
 //////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////
 
+
 double ChSolverBB::Solve_SupportingStiffness(
     ChSystemDescriptor& sysd  ///< system description with constraints and variables
     ) {
+
+    //***TODO*** Solve_SupportingStiffness() was not working. Is there a way to make this working? probably not..
+    //***DEPRECATED***
+    throw ChException("ChSolverBB::Solve_SupportingStiffness() is not yet working. Do NOT use BarzilaiBorwein solver if you have stiffness matrices.");
+
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
     std::vector<ChKblock*>& mstiffness = sysd.GetKblocksList();

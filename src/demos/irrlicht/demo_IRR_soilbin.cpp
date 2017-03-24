@@ -59,7 +59,7 @@ class ParticleGenerator {
         this->simTime_lastPcreated = 0.0;
         this->totalParticles = 0;
         this->totalParticleMass = 0.0;
-        this->mu = mu;
+        this->mu = (float)mu;
 
         // keep track of some statistics
         this->pRadMean = 0.0;
@@ -90,7 +90,7 @@ class ParticleGenerator {
             GetLog() << "probably shouldn't have mu > 1.0   \n";
 
         // set mu anyway if >1.0
-        this->mu = newMu;
+        this->mu = (float)newMu;
     }
 
     const double getSphDensity() { return this->sphDens; }
@@ -690,7 +690,7 @@ class MyEventReceiver : public IEventReceiver {
                     if (id == 1104)  // # particles to generate
                     {
                         s32 currPos = ((IGUIScrollBar*)event.GUIEvent.Caller)->getPos();
-                        this->currNparticlesGen = nParticlesGenMax + ((currPos - 50) / 50.0) * nParticlesGenMax;
+                        this->currNparticlesGen = nParticlesGenMax + int(double(currPos - 50) / 50.0) * nParticlesGenMax;
                         char message[50];
                         sprintf(message, "# p Gen: %d", this->currNparticlesGen);
                         text_nParticlesGen->setText(core::stringw(message).c_str());

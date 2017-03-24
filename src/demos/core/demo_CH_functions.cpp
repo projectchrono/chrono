@@ -140,5 +140,38 @@ int main(int argc, char* argv[]) {
         file_f_sequence << x << " " << y << " " << ydx << " " << ydxdx << "\n";
     }
 
+    //
+    // EXAMPLE 5: a repeating sequence
+    //
+
+    GetLog() << "==== Test 5...\n\n";
+
+    auto f_part1 = std::make_shared<ChFunction_Ramp>();
+    f_part1->Set_ang(.50);
+    auto f_part2 = std::make_shared<ChFunction_Const>();
+    f_part2->Set_yconst(1.0);
+    auto f_part3 = std::make_shared<ChFunction_Ramp>();
+    f_part3->Set_ang(-.50);
+
+    auto f_seq = std::make_shared<ChFunction_Sequence>();
+    f_seq->InsertFunct(f_part1, 1.0, 1, true);
+    f_seq->InsertFunct(f_part2, 1.0, 1., true);
+    f_seq->InsertFunct(f_part3, 1.0, 1., true);
+
+    auto f_rep_seq = std::make_shared<ChFunction_Repeat>();
+    f_rep_seq->Set_fa(f_seq);
+    f_rep_seq->Set_window_length(3.0);
+    f_rep_seq->Set_window_start(0.0);
+    f_rep_seq->Set_window_phase(3.0);
+
+    ChStreamOutAsciiFile file_f_repeat("f_repeat_out.dat");
+    for (int i = 0; i < 1000; i++) {
+        double x = (double)i / 50.0;
+        double y = f_rep_seq->Get_y(x);
+        double ydx = f_rep_seq->Get_y_dx(x);
+        double ydxdx = f_rep_seq->Get_y_dxdx(x);
+        file_f_repeat << x << " " << y << " " << ydx << " " << ydxdx << "\n";
+    }
+
     return 0;
 }

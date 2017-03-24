@@ -71,16 +71,22 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 // interface to ChLoadableUV
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.PasteVector(mnode1->GetPos(), block_offset, 0);
     mD.PasteVector(mnode2->GetPos(), block_offset + 3, 0);
     mD.PasteVector(mnode3->GetPos(), block_offset + 6, 0);
 }
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.PasteVector(mnode1->GetPos_dt(), block_offset, 0);
     mD.PasteVector(mnode2->GetPos_dt(), block_offset + 3, 0);
     mD.PasteVector(mnode3->GetPos_dt(), block_offset + 6, 0);
+}
+/// Increment all DOFs using a delta.
+void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
+    mnode2->NodeIntStateIncrement(off_x+3 , x_new, x, off_v+3 , Dv);
+    mnode3->NodeIntStateIncrement(off_x+6 , x_new, x, off_v+6 , Dv);
 }
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
@@ -88,6 +94,7 @@ void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars
     mvars.push_back(&mnode2->Variables());
     mvars.push_back(&mnode3->Variables());
 }
+
 
 // Evaluate N'*F , where N is the shape function evaluated at (U,V) coordinates of the surface.
 void ChContactTriangleXYZ::ComputeNF(
@@ -160,7 +167,7 @@ ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
 // interface to ChLoadableUV
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.PasteVector(mnode1->GetPos(), block_offset, 0);
     mD.PasteQuaternion(mnode1->GetRot(), block_offset + 3, 0);
     mD.PasteVector(mnode2->GetPos(), block_offset + 7, 0);
@@ -169,13 +176,19 @@ void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChVector
     mD.PasteQuaternion(mnode3->GetRot(), block_offset + 17, 0);
 }
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.PasteVector(mnode1->GetPos_dt(), block_offset, 0);
     mD.PasteVector(mnode1->GetWvel_loc(), block_offset + 3, 0);
     mD.PasteVector(mnode2->GetPos_dt(), block_offset + 6, 0);
     mD.PasteVector(mnode2->GetWvel_loc(), block_offset + 9, 0);
     mD.PasteVector(mnode3->GetPos_dt(), block_offset + 12, 0);
     mD.PasteVector(mnode3->GetWvel_loc(), block_offset + 15, 0);
+}
+/// Increment all DOFs using a delta.
+void ChContactTriangleXYZROT::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    mnode1->NodeIntStateIncrement(off_x   , x_new, x, off_v    , Dv);
+    mnode2->NodeIntStateIncrement(off_x+7 , x_new, x, off_v+6  , Dv);
+    mnode3->NodeIntStateIncrement(off_x+14, x_new, x, off_v+12 , Dv);
 }
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChContactTriangleXYZROT::LoadableGetVariables(std::vector<ChVariables*>& mvars) {

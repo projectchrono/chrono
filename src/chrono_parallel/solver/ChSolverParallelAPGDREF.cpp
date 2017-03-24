@@ -86,7 +86,7 @@ uint ChSolverParallelAPGDREF::Solve(ChShurProduct& ShurProduct,
     }
 
     // (7) for k := 0 to N_max
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         // (8) g = N * y_k - r
         ShurProduct(y, g);
         g = g - r;

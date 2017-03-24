@@ -984,7 +984,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     virtual int LoadableGet_ndof_w() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetD(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 6, 0);
@@ -992,11 +992,17 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[0]->GetD_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 6, 0);
         mD.PasteVector(this->nodes[1]->GetD_dt(), block_offset + 9, 0);
+    }
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        nodes[0]->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
+        nodes[1]->NodeIntStateIncrement(off_x+6 , x_new, x, off_v+6 , Dv);
     }
 
     /// Number of coordinates in the interpolated field, ex=3 for a

@@ -43,7 +43,7 @@ namespace chrono {
 
 CUDA_HOST_DEVICE static float N_Tri(const float x) {
     if (fabsf(x) < float(1.0)) {
-        return 1.0 - fabsf(x);
+        return float(1.0) - fabsf(x);
     }
     return float(0.0);
 }
@@ -68,7 +68,7 @@ CUDA_HOST_DEVICE static float N_tight(const float x) {
     if (fabsf(x) >= float(0.0) && fabsf(x) < float(.5)) {
         return -Sqr(x) + three_fourths;
     } else if (fabsf(x) >= float(1.0) && fabsf(x) < float(three_halves)) {
-        return .5 * Sqr(x) - float(three_halves) * fabsf(x) + (9.0 / 8.0);
+        return float(.5) * Sqr(x) - float(three_halves) * fabsf(x) + float(9.0 / 8.0);
     }
     return float(0.0);
 }
@@ -108,7 +108,7 @@ CUDA_HOST_DEVICE static float3 dN(const float3& X, const float inv_grid_dx) {
 
 CUDA_HOST_DEVICE static inline int GridCoord(const float x, const float inv_bin_edge, const float minimum) {
     float l = x - minimum;
-    int c = roundf(l * inv_bin_edge);
+    int c = (int)roundf(l * inv_bin_edge);
     return c;
 }
 

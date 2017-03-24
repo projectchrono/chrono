@@ -66,7 +66,7 @@ bool ChOpenGLMesh::Initialize(chrono::ChTriangleMeshShape* tri_mesh, ChOpenGLMat
     }
     int num_triangles = tri_mesh->GetMesh().getNumTriangles();
 
-    for (unsigned int i = 0; i < num_triangles; i++) {
+    for (unsigned int i = 0; i < (unsigned)num_triangles; i++) {
         chrono::geometry::ChTriangle tri = tri_mesh->GetMesh().getTriangle(i);
         ChVector<> norm = tri.GetNormal();
         ChVector<> v1 = tri.p1;
@@ -213,7 +213,7 @@ void ChOpenGLMesh::Update(std::vector<glm::mat4>& model) {
     glBindBuffer(GL_ARRAY_BUFFER, vertex_model_handle);
     glBufferData(GL_ARRAY_BUFFER, model.size() * sizeof(mat4), &model[0], GL_DYNAMIC_DRAW);
 
-    size = model.size();
+    size = (int)model.size();
 }
 void ChOpenGLMesh::Draw(const mat4& projection, const mat4& view) {
     if (GLReturnedError("ChOpenGLMesh::Draw - on entry"))

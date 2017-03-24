@@ -1272,10 +1272,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (dump_matrices) {
-        // GetLog() << "StateSolveCorrection R=" << R << "\n\n";
-        // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
-        // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
-        // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
 
         const char* numformat = "%.12g";
         std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
@@ -1308,7 +1304,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     timer_solver.start();
     GetSolver()->Solve(*descriptor);
     timer_solver.stop();
-    solvecount++;
+    
 
     // Dv and L vectors  <-- sparse solver structures
     IntFromDescriptor(0, Dv, 0, L);
@@ -1326,9 +1322,16 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         file_L.SetNumFormat(numformat);
         ((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
 
-        // GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
-        // GetLog() << "StateSolveCorrection L="  << L << "\n\n";
+        // Just for diagnostic, dump also unscaled loads (forces,torques), 
+        // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
+        ChVectorDynamic<> tempF(this->GetNcoords_v());
+        this->IntLoadResidual_F(0, tempF, 1.0);
+        chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
+        file_F.SetNumFormat(numformat);
+        tempF.StreamOUTdenseMatlabFormat(file_F);
     }
+    
+    solvecount++;
 
     return true;
 }
@@ -1478,6 +1481,8 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     
         // Load all KRM matrices with the K part only
     this->KRMmatricesLoad(1.0, 0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level K matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
@@ -1489,6 +1494,8 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     
         // Load all KRM matrices with the R part only
     this->KRMmatricesLoad(0, 1.0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);

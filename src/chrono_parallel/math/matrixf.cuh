@@ -23,8 +23,10 @@
 //#include "chrono_parallel/math/float.h"
 namespace chrono {
 
+#if !defined(_WIN32)
 #define FLT_EPSILON 1.19209290E-07F
 #define FLT_MAX 3.40282347E+38F
+#endif
 
 #define OPERATOR_EQUALSALT(op, tin, tout)                           \
     static inline tout& operator op##=(tout& a, const tin& scale) { \

@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
     int num_threads = 1;
 
     uint max_iteration_normal = 0;
-    uint max_iteration_sliding = 100;
-    uint max_iteration_spinning = 300;
+    uint max_iteration_sliding = 0;
+    uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
     
     // ------------------------
@@ -85,8 +85,7 @@ int main(int argc, char** argv) {
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Create the container body.
-    // Note that Chrono::Parallel uses the *average* of the friction coefficients for a contacting pair.
-    // Also, if any of the two coefficients is exactly 0, we use 0 for the contact pair.
+    // Note that Chrono::Parallel uses the *minimum* of the spinning and rolling friction values for a contacting pair.
     auto container = std::shared_ptr<ChBody>(system.NewBody());
     system.Add(container);
     container->SetPos(ChVector<>(0, 0, 0));
@@ -94,7 +93,8 @@ int main(int argc, char** argv) {
     container->SetIdentifier(-1);
 
     container->GetMaterialSurface()->SetFriction(0.4f);
-    container->GetMaterialSurface()->SetRollingFriction(0.001f);
+    container->GetMaterialSurface()->SetRollingFriction(1);
+    container->GetMaterialSurface()->SetSpinningFriction(1);
 
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
         ball->SetInertiaXX(ChVector<>(inertia));
 
         // Initial position and velocity
-        ball->SetPos(ChVector<>(-7, -5 + bi * radius * 2.5, 1 + radius));
+        ball->SetPos(ChVector<>(-6, -5 + bi * radius * 2.5, 1 + radius));
         ball->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
         ball->SetWvel_par(ChVector<>(0, initial_angspeed, 0));
 
@@ -130,13 +130,39 @@ int main(int argc, char** argv) {
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients
-        float rolling_friction = (bi / 10.0f) * 0.1f;  // double what we want
         ball->GetMaterialSurface()->SetFriction(0.4f);
-        ball->GetMaterialSurface()->SetRollingFriction(rolling_friction);
+        ball->GetMaterialSurface()->SetRollingFriction((bi / 10.0f) * 0.05f);
 
         // Add to the system
         system.Add(ball);
     }
+
+    // Create some spheres that spin in place, with increasing spinning friction values
+	for (int bi = 0; bi < 10; bi++) {
+		auto ball = std::shared_ptr<ChBody>(system.NewBody());
+		ball->SetIdentifier(bi);
+		ball->SetMass(mass);
+		ball->SetInertiaXX(ChVector<>(inertia));
+
+		// Initial position and velocity
+		ball->SetPos(ChVector<>(-8, -5 + bi * radius * 2.5, 1 + radius));
+		ball->SetPos_dt(ChVector<>(0, 0, 0));
+		ball->SetWvel_par(ChVector<>(0, 0, 20));
+
+		// Contact geometry
+		ball->SetCollide(true);
+		ball->GetCollisionModel()->ClearModel();
+		utils::AddSphereGeometry(ball.get(), radius);
+		ball->GetCollisionModel()->BuildModel();
+
+		// Sliding and rolling friction coefficients
+		ball->GetMaterialSurface()->SetFriction(0.4f);
+        ball->GetMaterialSurface()->SetSpinningFriction((bi / 10.0f) * 0.02f);
+
+        // Add to the system
+		system.Add(ball);
+	}
+
 
 #ifdef CHRONO_OPENGL
     // -------------------------------
@@ -145,7 +171,7 @@ int main(int argc, char** argv) {
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Settling test", &system);
-    gl_window.SetCamera(ChVector<>(0.1, 0, 20), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 

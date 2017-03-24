@@ -43,7 +43,7 @@ real ChSolverParallel::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVect
         ShurProduct(eigen_vec, temp);
         eigen_vec = 1.0 / lambda * temp;
     }
-    real lambda_old;
+    real lambda_old = 0;
 
     for (int i = 0; i < data_manager->settings.solver.max_power_iteration; i++) {
         ShurProduct(eigen_vec, temp);

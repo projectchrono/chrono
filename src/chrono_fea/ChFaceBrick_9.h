@@ -82,7 +82,7 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
     virtual int LoadableGet_ndof_w() { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) {
         mD.PasteVector(this->GetNodeN(0)->GetPos(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->GetNodeN(2)->GetPos(), block_offset + 6, 0);
@@ -90,11 +90,18 @@ class ChApiFea ChFaceBrick_9 : public ChLoadableUV {
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
         mD.PasteVector(this->GetNodeN(0)->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->GetNodeN(1)->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->GetNodeN(2)->GetPos_dt(), block_offset + 6, 0);
         mD.PasteVector(this->GetNodeN(3)->GetPos_dt(), block_offset + 9, 0);
+    }
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<4; ++i) {
+            GetNodeN(i)->NodeIntStateIncrement(off_x + i*3  , x_new, x, off_v  + i*3  , Dv);
+        }
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement

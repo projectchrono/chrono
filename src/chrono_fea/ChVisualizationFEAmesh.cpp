@@ -702,13 +702,13 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
 
                         if (in > 0) {
                             ChVector<int> ivert_offset(ivert_el, ivert_el, ivert_el);
-                            ChVector<int> islice_offset((in - 1) * msection_pts.size(), (in - 1) * msection_pts.size(),
-                                                        (in - 1) * msection_pts.size());
+                            ChVector<int> islice_offset((in - 1) * (int)msection_pts.size(), (in - 1) * (int)msection_pts.size(),
+                                                        (in - 1) * (int)msection_pts.size());
                             for (size_t is = 0; is < msection_pts.size(); ++is) {
-                                int ipa = is;
-                                int ipb = (is + 1) % msection_pts.size();
-                                int ipaa = ipa + msection_pts.size();
-                                int ipbb = ipb + msection_pts.size();
+                                int ipa = (int)is;
+                                int ipb = int((is + 1) % msection_pts.size());
+                                int ipaa = ipa + (int)msection_pts.size();
+                                int ipbb = ipb + (int)msection_pts.size();
 
                                 trianglemesh.getIndicesVertexes()[i_triindex] =
                                     ChVector<int>(ipa, ipbb, ipaa) + islice_offset + ivert_offset;
@@ -1141,7 +1141,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
                     glyphs_asset->GetNumberOfGlyphs();
                     glyphs_asset->SetGlyphCoordsys(
-                        glyphs_asset->GetNumberOfGlyphs(),
+                        (unsigned int)glyphs_asset->GetNumberOfGlyphs(),
                         ChCoordsys<>((myshell->GetNodeA()->GetPos() + myshell->GetNodeB()->GetPos() +
                                       myshell->GetNodeC()->GetPos() + myshell->GetNodeD()->GetPos()) *
                                          0.25,
@@ -1153,7 +1153,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     for (int igp = 0; igp < 4; ++igp) {
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphCoordsys(
-                            glyphs_asset->GetNumberOfGlyphs(),
+                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(),
                             ChCoordsys<>(myshell->EvaluateGP(igp), myshell->T_i[igp].Get_A_quaternion()));
                     }
                 }
@@ -1162,7 +1162,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                     for (int igp = 0; igp < 4; ++igp) {
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                                                      ChVector<>(0, myshell->alpha_i[igp] * 4, 0));
                     }
                 }
@@ -1182,7 +1182,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                             */
                         glyphs_asset->GetNumberOfGlyphs();
                         glyphs_asset->SetGlyphVector(
-                            glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                            (unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                             myshell->T_i[igp] * ((myshell->k_tilde_1_i[igp] + myshell->k_tilde_2_i[igp]) * 50),
                             ChColor(0, 0, 0));
                     }
@@ -1193,11 +1193,11 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                         glyphs_asset->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
                         double scale = 1;
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                                                      myshell->T_i[igp] * (myshell->eps_tilde_1_i[igp] * scale),
                                                      ChColor(1, 0, 0));
                         glyphs_asset->GetNumberOfGlyphs();
-                        glyphs_asset->SetGlyphVector(glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
+                        glyphs_asset->SetGlyphVector((unsigned int)glyphs_asset->GetNumberOfGlyphs(), myshell->EvaluateGP(igp),
                                                      myshell->T_i[igp] * (myshell->eps_tilde_2_i[igp] * scale),
                                                      ChColor(0, 0, 1));
                         glyphs_asset->GetNumberOfGlyphs();

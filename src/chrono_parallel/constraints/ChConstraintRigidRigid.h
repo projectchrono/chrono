@@ -50,7 +50,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
             quat_b.resize(num_contacts);
 
 #pragma omp parallel for
-            for (int i = 0; i < num_contacts; i++) {
+            for (int i = 0; i < (signed)num_contacts; i++) {
                 vec2 body = data_manager->host_data.bids_rigid_rigid[i];
                 uint b1 = body.x;
                 uint b2 = body.y;
@@ -68,8 +68,10 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
                 real3 mu;
 
                 mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
-                mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
-                mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+                ////mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
+                ////mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+                mu.y = Min(f_a.y, f_b.y);  // rolling
+                mu.z = Min(f_a.z, f_b.z);  // spinning
 
                 data_manager->host_data.fric_rigid_rigid[i] = mu;
 

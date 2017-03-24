@@ -72,7 +72,7 @@ uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
 
     f_hist[0] = (0.5 * (g - r, x));
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         temp = x - alpha * g;
         Project(temp.data());
         // g_alpha = 1.0 / alpha * (x - temp);

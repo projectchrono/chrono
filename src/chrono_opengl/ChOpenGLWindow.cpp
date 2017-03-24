@@ -188,12 +188,12 @@ void ChOpenGLWindow::CallbackMouseButton(GLFWwindow* window, int button, int sta
     double x, y;
     glfwGetCursorPos(window, &x, &y);
 
-    pointer->render_camera.SetPos(button, state, x, y);
+    pointer->render_camera.SetPos(button, state, (int)x, (int)y);
 }
 void ChOpenGLWindow::CallbackMousePos(GLFWwindow* window, double x, double y) {
     ChOpenGLViewer* pointer = ((ChOpenGLViewer*)(glfwGetWindowUserPointer(window)));
 
-    pointer->render_camera.Move2D(x, y);
+    pointer->render_camera.Move2D((int)x, (int)y);
 }
 }
 }

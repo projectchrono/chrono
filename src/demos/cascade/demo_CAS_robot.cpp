@@ -390,7 +390,7 @@ int main(int argc, char* argv[]) {
     motlaw_z_seq->InsertFunct(motlaw_z2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_z_seq->InsertFunct(motlaw_z3, 1, 1, true);
     motlaw_z_seq->InsertFunct(motlaw_z4, 1, 1, true);
-    ChFunction_Repeat* motlaw_z = new ChFunction_Repeat();
+    std::shared_ptr<ChFunction_Repeat> motlaw_z (new ChFunction_Repeat);
     motlaw_z->Set_fa(motlaw_z_seq);
     motlaw_z->Set_window_length(4);
 
@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
     motlaw_y_seq->InsertFunct(motlaw_y2, 1, 1, true);  // true = force c0 continuity, traslating fx
     motlaw_y_seq->InsertFunct(motlaw_y3, 1, 1, true);
     motlaw_y_seq->InsertFunct(motlaw_y4, 1, 1, true);
-    ChFunction_Repeat* motlaw_y = new ChFunction_Repeat();
+    std::shared_ptr<ChFunction_Repeat> motlaw_y(new ChFunction_Repeat);
     motlaw_y->Set_fa(motlaw_y_seq);
     motlaw_y->Set_window_length(4);
 
@@ -470,8 +470,8 @@ int main(int argc, char* argv[]) {
         application.DoStep();
 
         // .. plot something on realtime view
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z, 0, 10, -0.9, 0.2,10,400,300,80);
-        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y, 0, 10, -0.9, 0.2,10,500,300,80);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_z.get(), 0, 10, -0.9, 0.2,10,400,300,80);
+        ChIrrTools::drawChFunction(application.GetDevice(), motlaw_y.get(), 0, 10, -0.9, 0.2,10,500,300,80);
 
         application.GetVideoDriver()->endScene();
     }

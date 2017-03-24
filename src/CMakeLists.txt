@@ -174,6 +174,20 @@ else()
   message(STATUS "  No FMA support")
 endif()  
 
+# Pass -mfma flag to configuration file if fma is found
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${FMA_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${FMA_FLAGS}")
+  set(CH_CXX_FLAGS "${CH_CXX_FLAGS} ${FMA_FLAGS}")
+  set(CH_C_FLAGS "${CH_C_FLAGS} ${FMA_FLAGS}")
+endif()
+
+
 #-----------------------------------------------------------------------------
 # MPI support
 #-----------------------------------------------------------------------------

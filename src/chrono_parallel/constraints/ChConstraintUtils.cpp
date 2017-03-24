@@ -193,12 +193,12 @@ void ComplianceRigidFluidBoundary(const real contact_mu,
     if (num_rigid_fluid_contacts > 0) {
         if (contact_mu == 0) {
 #pragma omp parallel for
-            for (int index = 0; index < num_rigid_fluid_contacts; index++) {
+            for (int index = 0; index < (signed)num_rigid_fluid_contacts; index++) {
                 E[start_boundary + index + 0] = com;
             }
         } else {
 #pragma omp parallel for
-            for (int index = 0; index < num_rigid_fluid_contacts; index++) {
+            for (int index = 0; index < (signed)num_rigid_fluid_contacts; index++) {
                 E[start_boundary + index + 0] = com;
                 E[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
                 E[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;
