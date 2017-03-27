@@ -5,6 +5,7 @@ namespace ChOgre {
 
 ChOgreLight::ChOgreLight(Ogre::SceneManager* SceneManager) {
     m_pLight = SceneManager->createLight();
+	m_pLight->setCastShadows(true);
 }
 
 ChOgreLight::ChOgreLight(Ogre::SceneManager* SceneManager, const std::string& Name) {

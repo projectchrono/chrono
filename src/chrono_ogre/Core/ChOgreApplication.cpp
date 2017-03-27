@@ -22,7 +22,6 @@ namespace ChOgre {
 	ChOgreApplication::ChOgreApplication() {
 		m_pRoot = new Ogre::Root("", "", "ChOgre.log");
 
-		//NOTE: Probably terrible practice. Do better
 		{
 			std::vector<std::string> l_Plugins;
 
@@ -34,7 +33,6 @@ namespace ChOgre {
 			//l_tPlugins.push_back("Plugin_OctreeZone");
 			//l_tPlugins.push_back("Plugin_BSPSceneManager");
 
-			//NOTE: Again, this is straight from a tutorial, so this could probably be done better
 			{
 				// use configuration file in the future for better compatibility
 #if defined(__linux__)
@@ -58,7 +56,6 @@ namespace ChOgre {
 			//m_pRoot->loadPlugin("RenderSystem_GL");
 		}
 
-		//NOTE: Just rewrite this entire function
 
 		{
 			const Ogre::RenderSystemList& l_RenderSystemList = m_pRoot->getAvailableRenderers();
@@ -73,49 +70,12 @@ namespace ChOgre {
 		{
 			m_pRoot->initialise(false, "", "");
 
-			m_pSceneManager = m_pRoot->createSceneManager(Ogre::ST_GENERIC, "MainSceneManager");
-
 			m_pChSystem = new chrono::ChSystem;
 			m_isSystemForeign = false;
-			m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
 
 			m_currentTime = 0.0;
 		}
 
-
-        {
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath(), "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre", "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre/mygui_resources",
-                    "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre/materials", "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre/materials/textures",
-                    "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-				chrono::GetChronoDataPath() + "/ogre/materials/scripts",
-				"FileSystem",
-				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre/models", "FileSystem",
-                    Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-            Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
-                    chrono::GetChronoDataPath() + "/ogre/skyboxes/sky",
-                    "FileSystem",
-					Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
-
-			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
-
-		}
 
 		timestep_max = 0.05;
 		timestep_min = 0.001;
@@ -248,6 +208,56 @@ namespace ChOgre {
 		}
 
 		m_pRenderWindow = m_pRoot->createRenderWindow(Title, Width, Height, Fullscreen, &l_Params);
+		
+		m_pSceneManager = m_pRoot->createSceneManager(Ogre::ST_GENERIC, "MainSceneManager");
+
+		m_pScene = new ChOgreScene(m_pSceneManager, m_pChSystem);
+
+		m_pSceneManager->setAmbientLight(Ogre::ColourValue(0.0f, 0.0f, 0.0f));
+
+		m_pSceneManager->setShadowTechnique(SHADOWTYPE_STENCIL_ADDITIVE);
+		m_pSceneManager->setShadowColour(Ogre::ColourValue(1.0f, 1.0f, 1.0f));
+		//m_pSceneManager->setShadowFarDistance(200);
+
+		{
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath(), "FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre", "FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/mygui_resources",
+				"FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/materials", "FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/materials/textures",
+				"FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/materials/scripts",
+				"FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/models", "FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+			Ogre::ResourceGroupManager::getSingleton().addResourceLocation(
+				chrono::GetChronoDataPath() + "/ogre/skyboxes/sky",
+				"FileSystem",
+				Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, false);
+
+			Ogre::ResourceGroupManager::getSingleton().initialiseAllResourceGroups();
+
+		}
+
+		auto materialIterator = Ogre::MaterialManager::getSingleton().getResourceIterator();
+
+		while (materialIterator.hasMoreElements()) {
+			materialIterator.getNext().dynamicCast<Ogre::Material>()->setReceiveShadows(true);
+		}
 
 		m_pCamera = m_pSceneManager->createCamera("MainCamera");
 

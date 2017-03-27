@@ -204,11 +204,10 @@ int main(int argc, char* argv[]) {
 
 	ChOgreLightHandle lightHandle = app.getScene()->createLight("Light");
 	lightHandle->setType(ChOgreLight::POINT);
-	lightHandle->setPosition(0.0f, 40.0f, -20.0f);
+	lightHandle->setPosition(0.0f, 40.0f, -40.0f);
 	lightHandle->setDiffuse(1.0f, 1.0f, 1.0f);
 	lightHandle->setSpecular(1.0f, 1.0f, 1.0f);
-	lightHandle->setDirection(0.0f, 0.0f, 0.0f);
-	lightHandle->setIntensity(400.0f);
+	lightHandle->setDirection(0.0f, -40.0f, 40.0f);
 
 	app.getScene()->setSkyBox("sky");
 

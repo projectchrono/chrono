@@ -53,7 +53,7 @@ int main(int argc, char** args) {
 
 	ChOgreLightHandle yeh2 = app.getScene()->createLight("Lys2");
 	yeh2->setType(ChOgreLight::POINT);
-	yeh2->setPosition(0.0f, 30.0f, -5.0f);
+	yeh2->setPosition(0.0f, 50.0f, -25.0f);
 	yeh2->setDiffuse(1.0f, 1.0f, 1.0f);
 	yeh2->setSpecular(1.0f, 1.0f, 1.0f);
 	yeh2->setDirection(0.0f, 0.0f, 0.0f);

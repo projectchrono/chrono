@@ -75,12 +75,16 @@ void ChOgreModel::loadMesh(const std::string& MeshPath) {
     mesh.loadMesh(MeshPath);
 
     m_pNode->attachObject(mesh.getEntity());
+
+	mesh.getEntity()->setCastShadows(true);
 }
 
 void ChOgreModel::setMesh(const Ogre::MeshPtr& pMesh) {
     mesh.setMesh(pMesh);
 
     m_pNode->attachObject(mesh.getEntity());
+
+	mesh.getEntity()->setCastShadows(true);
 }
 }
 }
