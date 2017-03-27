@@ -224,7 +224,17 @@ void ChOgreBody::refresh() {
             double _sz = shape->GetScale().z;
             l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
 		} else if (RTTI_Name == std::string(TextureRTTI)) {
+			chrono::ChTexture* texture = (chrono::ChTexture*)temp_asset.get();
+			std::string path = texture->GetTextureFilename();
 
+			Ogre::Image image;
+			image.load(path, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME);
+
+			std::string textureName = std::to_string((uint64_t)texture);
+
+			Ogre::TexturePtr ogreTexture = Ogre::TextureManager::getSingleton().loadImage(textureName, Ogre::ResourceGroupManager::DEFAULT_RESOURCE_GROUP_NAME, image);
+
+			m_Models[0].mesh.getEntity()->getSubEntity(0)->getMaterial()->getTechnique(0)->getPass(0)->createTextureUnitState()->setTexture(ogreTexture);
 		}
 
         // l_pNode->attachObject(l_pEntity);
