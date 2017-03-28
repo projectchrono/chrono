@@ -4,8 +4,7 @@
 #include <vector>
 #include <cmath>
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
-
+#include "../../chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -38,7 +37,7 @@ const char* out_folder = "../EXCHANGE";
 
 void print(std::string msg);
 
-void OutputData(ChSystemDistr* sys, int out_frame, double time) {
+void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
     char filename[100];
     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
     utils::WriteShapesPovray(sys, filename);
@@ -51,7 +50,7 @@ void OutputData(ChSystemDistr* sys, int out_frame, double time) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBall(ChSystemDistr* sys)
+void AddFallingBall(ChSystemDistributed* sys)
 {
     // Common material
     auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
@@ -113,7 +112,7 @@ int main(int argc, char *argv[])
     unsigned int max_iteration = 100;
     double tolerance = 1e-3;
 
-	ChSystemDistr my_sys(MPI_COMM_WORLD, 1.0, 100000);
+	ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000);
 
 	my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);

@@ -20,10 +20,10 @@
 #include "chrono/physics/ChBody.h"
 #include "chrono/collision/ChCCollisionSystem.h"
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
-#include "chrono_distributed/physics/ChDomainDistr.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/other_types.h"
+#include "chrono_distributed/physics/ChDomainDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -33,28 +33,28 @@
 
 using namespace chrono;
 
-ChSystemDistr::ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int max_objects)
+ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects)
 {
 	this->world = world;
 	MPI_Comm_size(world, &num_ranks);
 	MPI_Comm_rank(world, &my_rank);
 
 	ddm = new ChDistributedDataManager(this);
-	domain = new ChDomainDistr(this);
-	comm = new ChCommDistr(this);
+	domain = new ChDomainDistributed(this);
+	comm = new ChCommDistributed(this);
 
 	this->ghost_layer = ghost_layer;
 	this->num_bodies_global = 0;
 }
 
-ChSystemDistr::~ChSystemDistr()
+ChSystemDistributed::~ChSystemDistributed()
 {
 	delete domain;
 	delete comm;
 	delete ddm;
 }
 
-bool ChSystemDistr::Integrate_Y()
+bool ChSystemDistributed::Integrate_Y()
 {
 	assert(domain->IsSplit());
 
@@ -68,7 +68,7 @@ bool ChSystemDistr::Integrate_Y()
 	return ret;
 }
 
-void ChSystemDistr::UpdateRigidBodies()
+void ChSystemDistributed::UpdateRigidBodies()
 {
 	this->ChSystemParallel::UpdateRigidBodies();
 
@@ -79,7 +79,7 @@ void ChSystemDistr::UpdateRigidBodies()
     }
 }
 
-void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
+void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody)
 {
 	// Regardless of whether the body is on this rank,
 	// increment the global id counter to maintain unique
@@ -89,8 +89,7 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 
 	distributed::COMM_STATUS status = domain->GetBodyRegion(newbody);
 
-	// TODO: Add support for Global bodies (ie bounding box) signaled by being fixed-to-ground
-	// Check for collision with this subdomain
+	// Check for collision with this sub-domain
 	if (newbody->GetBodyFixed())
 	{
 		ChVector<double> min;
@@ -98,12 +97,14 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 		ChVector<double> sublo(domain->GetSubLo());
 		ChVector<double> subhi(domain->GetSubHi());
 
-		newbody->GetCollisionModel()->GetAABB(min, max); // Not implemented
+		newbody->GetCollisionModel()->GetAABB(min, max);
 
 		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+
+		// If the part of the body lies in this sub-domain, add it
 		if ((min.x() <= subhi.x() && sublo.x() <= max.x()) &&
 				(min.y() <= subhi.y() && sublo.y() <= max.y()) &&
-				(min.z() <= subhi.z() && sublo.z() <= max.z())) // TODO look over this mess
+				(min.z() <= subhi.z() && sublo.z() <= max.z()))
 		{
 			status = distributed::GLOBAL;
 		}
@@ -164,7 +165,7 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	newbody->SetId(data_manager->num_rigid_bodies);
 	bodylist.push_back(newbody);
 	data_manager->num_rigid_bodies++;
-	newbody->SetSystem(this);
+	newbody->SetSystem(this); // TODO Syncs collision model
 
 	// actual data is set in UpdateBodies().
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -175,7 +176,7 @@ void ChSystemDistr::AddBody(std::shared_ptr<ChBody> newbody)
 	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
 }
 
-void ChSystemDistr::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status)
+void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status)
 {
 	GetLog() << "AddBodyExchange " << my_rank << "\n";
 
@@ -187,7 +188,7 @@ void ChSystemDistr::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed
 	newbody->SetSystem(this); //TODO might add collision of the body?
 
 	GetLog() << "A\n";
-	//newbody->SetCollide(true); //TODO syncs!! the collision models
+	//newbody->SetCollide(true); //TODO syncs!! the collision models need to add the model first
 	GetLog() << "B\n";
 	newbody->SetBodyFixed(false);
 	GetLog() << "C\n";
@@ -203,16 +204,14 @@ void ChSystemDistr::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed
 	GetLog() << "End AddBodyExchange\n";
 }
 
-
 // Used to end the program on an error and print a message.
-void ChSystemDistr::ErrorAbort(std::string msg)
+void ChSystemDistributed::ErrorAbort(std::string msg)
 {
 	if (my_rank == 0) GetLog() << msg << '\n';
 	MPI_Abort(world, MPI_ERR_OTHER);
 }
 
-
-void ChSystemDistr::PrintBodyStatus()
+void ChSystemDistributed::PrintBodyStatus()
 {
 	GetLog() << "Rank: " << my_rank << "\n";
 	GetLog() << "\tBodylist:\n";
@@ -224,7 +223,7 @@ void ChSystemDistr::PrintBodyStatus()
 		ChVector<double> vel = (*bl_itr)->GetPos_dt();
 		if (ddm->comm_status[i] != distributed::EMPTY)
 		{
-			float adhesion = (*bl_itr)->GetMaterialSurfaceDEM()->adhesionMultDMT;
+			/*float adhesion = (*bl_itr)->GetMaterialSurfaceDEM()->adhesionMultDMT;
 			float const_ad = (*bl_itr)->GetMaterialSurfaceDEM()->constant_adhesion;
 			float gn = (*bl_itr)->GetMaterialSurfaceDEM()->gn;
 			float gt = (*bl_itr)->GetMaterialSurfaceDEM()->gt;
@@ -235,12 +234,16 @@ void ChSystemDistr::PrintBodyStatus()
 			float sliding_fric = (*bl_itr)->GetMaterialSurfaceDEM()->sliding_friction;
 			float static_fric = (*bl_itr)->GetMaterialSurfaceDEM()->static_friction;
 			float young = (*bl_itr)->GetMaterialSurfaceDEM()->young_modulus;
+			*/
 
-			fprintf(stdout, "\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n"
+			printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n",
+					(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide());
+
+			/*printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n"
 					"Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
 					"restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f\n",
 				(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(),
-				adhesion, const_ad, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young);
+				adhesion, const_ad, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young);*/
 		}
 	}
 /*
@@ -282,4 +285,25 @@ void ChSystemDistr::PrintBodyStatus()
 		}
 	}
 	*/
+}
+
+void ChSystemDistributed::WriteCSV(int fileCounter)
+{
+	const std::string file_name = "../granular/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
+
+	std::ofstream file;
+	file.open(file_name);
+	std::stringstream ss_particles;
+	ss_particles << "x,y,z,vx,vy,vz,U,r\n";
+
+	std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
+	for (; bl_itr != bodylist.end(); bl_itr++)
+	{
+		ChVector<> pos = (*bl_itr)->GetPos();
+		ChVector<> vel = (*bl_itr)->GetPos_dt();
+		ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << 0.15 << std::endl;
+	}
+
+	file << ss_particles.str();
+	file.close();
 }

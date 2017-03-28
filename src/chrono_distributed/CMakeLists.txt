@@ -79,22 +79,26 @@ SET(ChronoEngine_distributed_BASE
 SOURCE_GROUP("" FILES ${ChronoEngine_distributed_BASE})
 
 SET(ChronoEngine_distributed_PHYSICS
-    physics/ChSystemDistr.h
-    physics/ChDomainDistr.h
-    physics/ChSystemDistr.cpp
-	physics/ChDomainDistr.cpp
+    physics/ChSystemDistributed.h
+    physics/ChDomainDistributed.h
+    physics/ChSystemDistributed.cpp
+	physics/ChDomainDistributed.cpp
     )
     
 SOURCE_GROUP(physics FILES ${ChronoEngine_distributed_PHYSICS})
 
 SET(ChronoEngine_distributed_COLLISION
+	collision/ChCollisionModelDistributed.h
+	collision/ChCollisionSystemDistributed.h
+	collision/ChCollisionModelDistributed.cpp
+	collision/ChCollisionSystemDistributed.h
     )
 
 SOURCE_GROUP(collision FILES ${ChronoEngine_distributed_COLLISION})
 
 SET(ChronoEngine_distributed_COMM
-	comm/ChCommDistr.h
-	comm/ChCommDistr.cpp
+	comm/ChCommDistributed.h
+	comm/ChCommDistributed.cpp
 	)
 
 SOURCE_GROUP(comm FILES ${ChronoEngine_distributed_COMM})

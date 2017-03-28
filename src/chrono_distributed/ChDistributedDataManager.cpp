@@ -16,7 +16,7 @@
 
 using namespace chrono;
 
-ChDistributedDataManager::ChDistributedDataManager(ChSystemDistr *my_sys)
+ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed *my_sys)
 {
 	this->my_sys = my_sys;
 	data_manager = my_sys->data_manager;

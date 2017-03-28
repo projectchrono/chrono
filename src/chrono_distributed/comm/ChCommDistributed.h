@@ -12,8 +12,7 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
-#define CHRONO_DISTRIBUTED_PHYSICS_CHCOMMDISTR_H_
+#pragma once
 
 #include <memory>
 
@@ -22,7 +21,7 @@
 #include "chrono_parallel/ChDataManager.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 
 namespace chrono {
@@ -71,7 +70,7 @@ struct update
 
 
 class ChDistributedDataManager;
-class ChSystemDistr;
+class ChSystemDistributed;
 
 
 /// This class holds functions for processing the system's bodies to determine
@@ -89,10 +88,10 @@ class ChSystemDistr;
 ///
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
-class CH_DISTR_API ChCommDistr {
+class CH_DISTR_API ChCommDistributed {
 public:
-	ChCommDistr(ChSystemDistr *my_sys);
-	virtual ~ChCommDistr();
+	ChCommDistributed(ChSystemDistributed *my_sys);
+	virtual ~ChCommDistributed();
 
 	/// Scans the system's data structures for bodies that:
 	///	- need to be sent to another rank to create ghosts
@@ -124,7 +123,7 @@ public:
 	ChDistributedDataManager *ddm;
 
 protected:
-	ChSystemDistr *my_sys;
+	ChSystemDistributed *my_sys;
 	double *sendup_buf;
 	double *senddown_buf;
 	int num_sendup;
@@ -135,5 +134,3 @@ private:
 };
 
 } /* namespace chrono */
-
-#endif

@@ -15,8 +15,8 @@
 #include <mpi.h>
 #include <memory>
 
-#include "chrono_distributed/comm/ChCommDistr.h"
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/comm/ChCommDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/other_types.h"
 
@@ -30,7 +30,7 @@
 
 using namespace chrono;
 
-ChCommDistr::ChCommDistr(ChSystemDistr *my_sys)
+ChCommDistributed::ChCommDistributed(ChSystemDistributed *my_sys)
 {
 	this->my_sys = my_sys;
 	this->data_manager = my_sys->data_manager;
@@ -43,7 +43,7 @@ ChCommDistr::ChCommDistr(ChSystemDistr *my_sys)
 	ddm = my_sys->ddm;
 }
 
-ChCommDistr::~ChCommDistr()
+ChCommDistributed::~ChCommDistributed()
 {
 	delete sendup_buf;
 	delete senddown_buf;
@@ -52,7 +52,7 @@ ChCommDistr::~ChCommDistr()
 // Processes an incoming message from another rank.
 // updown determines if this buffer was received from the rank above this rank
 // or below this rank. updown = 1 => up, updown = 0 ==> down
-void ChCommDistr::ProcessBuf(int num_recv, double* buf, int updown)
+void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
 {
 	int first_empty = 0;
 	int n = 0; // Current index in the recved buffer
@@ -145,7 +145,7 @@ void ChCommDistr::ProcessBuf(int num_recv, double* buf, int updown)
 // Locate each body that has left the sub-domain,
 // remove it,
 // and pack it for communication.
-void ChCommDistr::Exchange()
+void ChCommDistributed::Exchange()
 {
 	num_sendup = 0;
 	num_senddown = 0;
@@ -322,7 +322,7 @@ void ChCommDistr::Exchange()
 }
 
 
-void ChCommDistr::CheckExchange()
+void ChCommDistributed::CheckExchange()
 {
 	int *checkup_buf = new int[10000]; // TODO buffer sizes based on num_shared and num_ghost
 	int iup = 0;
@@ -457,7 +457,7 @@ void ChCommDistr::CheckExchange()
 // list after this function is called.
 // Packages the body into buf.
 // Returns the number of elements which the body took in the buffer
-int ChCommDistr::PackExchange(double *buf, int index)
+int ChCommDistributed::PackExchange(double *buf, int index)
 {
 	int m = 1; // Number of doubles being packed (will be placed in the front of the buffer
 			   // once packing is done)
@@ -530,7 +530,7 @@ int ChCommDistr::PackExchange(double *buf, int index)
 // Unpacks a sphere body from the buffer into body.
 // Note: body is meant to be a ptr into the data structure
 // where the body should be unpacked.
-int ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
+int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 {
 	int m = 2; // Skip the size value and the type value
 
@@ -588,7 +588,7 @@ int ChCommDistr::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 
 
 // Only packs the essentials for a body update
-int ChCommDistr::PackUpdate(double *buf, int index, int update_type)
+int ChCommDistributed::PackUpdate(double *buf, int index, int update_type)
 {
 	int m = 1;
 
@@ -622,7 +622,7 @@ int ChCommDistr::PackUpdate(double *buf, int index, int update_type)
 	return m;
 }
 
-int ChCommDistr::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
+int ChCommDistributed::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 {
 	int m = 2; // Skip size value and type value
 
@@ -649,7 +649,7 @@ int ChCommDistr::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 	return m;
 }
 
-int ChCommDistr::PackUpdateTake(double *buf, int index)
+int ChCommDistributed::PackUpdateTake(double *buf, int index)
 {
 	buf[0] = (double) 3;
 	buf[1] = (double) distributed::FINAL_UPDATE_TAKE;

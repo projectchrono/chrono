@@ -12,37 +12,40 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-
-#ifndef CHRONO_DISTRIBUTED_CHDISTRIBUTEDDATAMANAGER_H_
-#define CHRONO_DISTRIBUTED_CHDISTRIBUTEDDATAMANAGER_H_
+#pragma once
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
 
+#include "chrono_parallel/math/other_types.h"
 #include "chrono_parallel/ChDataManager.h"
 
 #include <vector>
 
 namespace chrono {
 
-class ChSystemDistr;
+class ChSystemDistributed;
 
 class CH_DISTR_API ChDistributedDataManager {
 public:
-	ChDistributedDataManager(ChSystemDistr *my_sys);
+	ChDistributedDataManager(ChSystemDistributed *my_sys);
 	virtual ~ChDistributedDataManager();
 
-	std::vector<unsigned int> global_id;
-	std::vector<distributed::COMM_STATUS> comm_status;
+	std::vector<unsigned int> global_id; ///< Global id of each body
+	std::vector<distributed::COMM_STATUS> comm_status; ///< Communication status of each body
 
-	std::vector<int> ghosts;
 
-	std::vector<int> shape_start;
-	std::vector<int> num_shapes;
+	// TODO
+	std::vector<int> num_shapes;	///< The number of collision shapes that each body has
+	std::vector<vec3> shape_indices;	///< Maps body index to shape index in data_manager->shape_data
+										///< Requires that each body have 3 or fewer contact shapes
+	std::vector<bool> free_shapes;	///< Indicates if a shape index is empty TODO
 
 	ChParallelDataManager *data_manager;
-	ChSystemDistr *my_sys;
+	ChSystemDistributed *my_sys;
+
+	std::vector<int> ghosts; // TODO
 
 	int num_sharedup;
 	int num_shareddown;
@@ -53,5 +56,3 @@ public:
 	int GetLocalIndex(unsigned int gid);
 };
 } /* namespace chrono */
-
-#endif /* CHRONO_DISTRIBUTED_CHDISTRIBUTEDDATAMANAGER_H_ */

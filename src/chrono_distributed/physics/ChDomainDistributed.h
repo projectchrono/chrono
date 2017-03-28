@@ -12,21 +12,20 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_PHYSICS_CHDOMAINDISTR_H_
-#define CHRONO_DISTRIBUTED_PHYSICS_CHDOMAINDISTR_H_
+#pragma once
 
 #include <memory>
 
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChBody.h"
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChApiDistributed.h"
 #include "chrono_distributed/other_types.h"
 
 namespace chrono {
 
-class ChSystemDistr;
+class ChSystemDistributed;
 
 /// This class maps sub-domains of the global simulation domain to each MPI rank.
 /// The global domain is split along the longest axis.
@@ -105,11 +104,11 @@ class ChSystemDistr;
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
 
-class CH_DISTR_API ChDomainDistr {
+class CH_DISTR_API ChDomainDistributed {
 
 public:
-	ChDomainDistr(ChSystemDistr *sys);
-	virtual ~ChDomainDistr();
+	ChDomainDistributed(ChSystemDistributed *sys);
+	virtual ~ChDomainDistributed();
 
 	/// Defines the global space used for simulation. This space cannot be changed once set and
 	/// needs to encompass all of the possible simulation region. If a body leaves the specified
@@ -132,7 +131,7 @@ public:
 	/// Get the upper bounds of the local sub-domain
 	ChVector<double> GetSubHi() {return subhi;}
 
-	// x = 0, y = 1, z = 2
+	/// x = 0, y = 1, z = 2
 	int GetLongAxis() {return long_axis;}
 
 	/// Returns true if the domain has been set.
@@ -142,7 +141,7 @@ public:
 	virtual void PrintDomain();
 
 protected:
-	ChSystemDistr *my_sys;
+	ChSystemDistributed *my_sys;
 
 	int long_axis; ///< Index of the dimension of the longest edge of the global domain
 
@@ -161,5 +160,3 @@ private:
 };
 
 } /* namespace chrono */
-
-#endif

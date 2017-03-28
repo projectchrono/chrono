@@ -12,8 +12,7 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_OTHER_TYPES_H_
-#define CHRONO_DISTRIBUTED_OTHER_TYPES_H_
+#pragma once
 
 namespace chrono
 {
@@ -41,4 +40,3 @@ typedef enum MESSAGE_TYPE {
 
 } // End namespace distributed
 } // End namespace chrono
-#endif /* CHRONO_DISTRIBUTED_OTHER_TYPES_H_ */

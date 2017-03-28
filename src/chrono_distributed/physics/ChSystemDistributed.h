@@ -12,8 +12,7 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#ifndef CHRONO_DISTRIBUTED_PHYSICS_CHSYSTEMDISTR_H_
-#define CHRONO_DISTRIBUTED_PHYSICS_CHSYSTEMDISTR_H_
+#pragma once
 
 #include <mpi.h>
 #include <string>
@@ -22,35 +21,35 @@
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_distributed/ChApiDistributed.h"
-#include "chrono_distributed/physics/ChDomainDistr.h"
-#include "chrono_distributed/comm/ChCommDistr.h"
+#include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
+#include "ChDomainDistributed.h"
 
 namespace chrono {
 
-class ChDomainDistr;
-class ChCommDistr;
+class ChDomainDistributed;
+class ChCommDistributed;
 class ChDataManagerDistr;
 
-class CH_DISTR_API ChSystemDistr : public ChSystemParallelDEM {
+class CH_DISTR_API ChSystemDistributed : public ChSystemParallelDEM {
 
-	friend class ChCommDistr;
+	friend class ChCommDistributed;
 
 public:
-	ChSystemDistr(MPI_Comm world, double ghost_layer, unsigned int max_objects);
-	virtual ~ChSystemDistr();
+	ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
+	virtual ~ChSystemDistributed();
 
 	int GetNumRanks() {return num_ranks;}
 	int GetMyRank() {return my_rank;}
 
 	double GetGhostLayer() {return ghost_layer;}
 
-	// A running count of the number of global bodies for
-	// identification purposes
+	/// A running count of the number of global bodies for
+	/// identification purposes
 	int GetNumBodiesGlobal() {return num_bodies_global;}
 
 
@@ -58,10 +57,11 @@ public:
 	virtual bool Integrate_Y() override;
     virtual void UpdateRigidBodies() override;
 
-	ChDomainDistr* GetDomain() {return domain;}
-	ChCommDistr* GetComm() {return comm;}
+	ChDomainDistributed* GetDomain() {return domain;}
+	ChCommDistributed* GetComm() {return comm;}
 	void ErrorAbort(std::string msg);
 	void PrintBodyStatus();
+	void WriteCSV(int fileCounter);
 
 	MPI_Comm GetMPIWorld() {return world;}
 
@@ -80,14 +80,12 @@ protected:
 	MPI_Comm world;
 
 	// Class for domain decomposition
-	ChDomainDistr *domain;
+	ChDomainDistributed *domain;
 
 	// Class for MPI communication
-	ChCommDistr *comm;
+	ChCommDistributed *comm;
 
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 };
 
 } /* namespace chrono */
-
-#endif /* CHRONO_DISTRIBUTED_PHYSICS_CHSYSTEMDISTR_H_ */

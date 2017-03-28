@@ -12,8 +12,8 @@
 // Authors: Nic Olsen
 // =============================================================================
 
-#include "chrono_distributed/physics/ChDomainDistr.h"
-#include "chrono_distributed/physics/ChSystemDistr.h"
+#include "chrono_distributed/physics/ChDomainDistributed.h"
+#include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
@@ -28,17 +28,17 @@
 
 using namespace chrono;
 
-ChDomainDistr::ChDomainDistr(ChSystemDistr *sys)
+ChDomainDistributed::ChDomainDistributed(ChSystemDistributed *sys)
 {
 	this->my_sys = sys;
 	long_axis = 0;
 	split = false;
 }
 
-ChDomainDistr::~ChDomainDistr() {}
+ChDomainDistributed::~ChDomainDistributed() {}
 
 // Takes in the user specified coordinates of the bounding box for the simulation.
-void ChDomainDistr::SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi)
+void ChDomainDistributed::SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi)
 {
 	assert(!split);
 
@@ -61,7 +61,7 @@ void ChDomainDistr::SetSimDomain(double xlo, double xhi, double ylo, double yhi,
 ///  Divides the domain into equal-volume, orthogonal, axis-aligned regions along
 /// the longest axis. Needs to be called right after the system is created so that
 /// bodies are added correctly.
-void ChDomainDistr::SplitDomain()
+void ChDomainDistributed::SplitDomain()
 {
 	// Length of this subdomain along the long axis
 	double sub_len = (boxhi[long_axis] - boxlo[long_axis]) / (double) my_sys->GetNumRanks();
@@ -82,7 +82,7 @@ void ChDomainDistr::SplitDomain()
 	split = true;
 }
 
-distributed::COMM_STATUS ChDomainDistr::GetRegion(double pos)
+distributed::COMM_STATUS ChDomainDistributed::GetRegion(double pos)
 {
 	int num_ranks = my_sys->GetNumRanks();
 	if (num_ranks == 1)
@@ -178,18 +178,18 @@ distributed::COMM_STATUS ChDomainDistr::GetRegion(double pos)
 	return distributed::UNDEFINED;
 }
 
-distributed::COMM_STATUS ChDomainDistr::GetBodyRegion(int index)
+distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(int index)
 {
 	return GetRegion(my_sys->data_manager->host_data.pos_rigid[index][long_axis]);
 }
 
-distributed::COMM_STATUS ChDomainDistr::GetBodyRegion(std::shared_ptr<ChBody> body)
+distributed::COMM_STATUS ChDomainDistributed::GetBodyRegion(std::shared_ptr<ChBody> body)
 {
 	return GetRegion(body->GetPos()[long_axis]);
 }
 
 
-void ChDomainDistr::PrintDomain()
+void ChDomainDistributed::PrintDomain()
 {
 	GetLog() << "Domain:\n"
 			"Box:\n"

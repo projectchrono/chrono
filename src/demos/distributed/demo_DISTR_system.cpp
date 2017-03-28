@@ -1,16 +1,11 @@
-//TODO: Bugish. The contact shape for 3 is staying where it was when 3 was removed. 3 IS marked as inactive. check if 3 collide is set false and if the simulation cares if that happens in the middle of the simulation.
-// 4 then stops on top of 3.
-
-
 #include <mpi.h>
 #include <omp.h>
 #include <cstdio>
 #include <vector>
 #include <cmath>
 
-#include "chrono_distributed/physics/ChSystemDistr.h"
-
-#include "chrono/ChConfig.h"
+#include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
+#include "../../chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -29,8 +24,8 @@ int num_threads;
 double tilt_angle = 1 * CH_C_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 0;
-int count_Y = 0;
+int count_X = 4;
+int count_Y = 4;
 
 // Material properties (same on bin and balls)
 float Y = 2e6f;
@@ -41,7 +36,7 @@ const char* out_folder = "../BALLS_DEM/POVRAY";
 
 void print(std::string msg);
 
-void OutputData(ChSystemDistr* sys, int out_frame, double time) {
+void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
     char filename[100];
     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
     utils::WriteShapesPovray(sys, filename);
@@ -51,7 +46,7 @@ void OutputData(ChSystemDistr* sys, int out_frame, double time) {
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemDistr* sys) {
+void AddContainer(ChSystemDistributed* sys) {
     // IDs for the two bodies
     int binId = -200;
 
@@ -62,7 +57,7 @@ void AddContainer(ChSystemDistr* sys) {
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -71,7 +66,7 @@ void AddContainer(ChSystemDistr* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(2, 2, 0.5);
+    ChVector<> hdim(5, 5, 10);
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
@@ -88,7 +83,7 @@ void AddContainer(ChSystemDistr* sys) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a uniform rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemDistr* sys) {
+void AddFallingBalls(ChSystemDistributed* sys) {
     // Common material
     auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
     ballMat->SetYoungModulus(Y);
@@ -101,31 +96,31 @@ void AddFallingBalls(ChSystemDistr* sys) {
     double mass = 1;
     double radius = 0.15;
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
-	for (double z = 47.5; z < 49.6; z += 1)
-	{
-		for (int ix = -count_X; ix <= count_X; ix++) {
-			for (int iy = -count_Y; iy <= count_Y; iy++) {
 
-				ChVector<> pos(0.4 * ix, 0.4 * iy, z);
+    for (double z = 54; z < 57; z++)
+    {
+    	for (int ix = -count_X; ix <= count_X; ix++) {
+    		for (int iy = -count_Y; iy <= count_Y; iy++) {
+    			ChVector<> pos(0.4 * ix, 0.4 * iy, z);
 
-            auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
-            ball->SetMaterialSurface(ballMat);
+    			auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+    			ball->SetMaterialSurface(ballMat);
 
-            ball->SetIdentifier(ballId++);
-            ball->SetMass(mass);
-            ball->SetInertiaXX(inertia);
-            ball->SetPos(pos);
-            ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
+    			ball->SetIdentifier(ballId++);
+    			ball->SetMass(mass);
+    			ball->SetInertiaXX(inertia);
+    			ball->SetPos(pos);
+    			ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    			ball->SetBodyFixed(false);
+    			ball->SetCollide(true);
 
-            ball->GetCollisionModel()->ClearModel();
-            utils::AddSphereGeometry(ball.get(), radius);
-            ball->GetCollisionModel()->BuildModel();
+    			ball->GetCollisionModel()->ClearModel();
+    			utils::AddSphereGeometry(ball.get(), radius);
+    			ball->GetCollisionModel()->BuildModel();
 
-            sys->AddBody(ball);
-        	}
-        }
+    			sys->AddBody(ball);
+    		}
+    	}
     }
 }
 
@@ -145,7 +140,7 @@ int main(int argc, char *argv[])
 	std::cout << "Running on " << num_threads << " OpenMP threads.\n";
 
 	double time_step = 1e-3;
-    double time_end = 5;
+    double time_end = 100;
 
     double out_fps = 50;
 
@@ -153,7 +148,7 @@ int main(int argc, char *argv[])
     double tolerance = 1e-3;
 
 	print("Constructing the system...\n");
-	ChSystemDistr my_sys(MPI_COMM_WORLD, 1.0, 100000);
+	ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000);
 
 	my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
@@ -187,11 +182,14 @@ int main(int argc, char *argv[])
     int out_frame = 0;
     double time = 0;
 
-    for (int i = 0; i < num_steps; i++) {
-        if (i % out_steps == 0) {
+    for (int i = 0; i < num_steps; i++)
+    {
+        if (i % out_steps == 0)
+        {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
             my_sys.PrintBodyStatus();
+            my_sys.WriteCSV(i);
         }
         my_sys.DoStepDynamics(time_step);
         time += time_step;
