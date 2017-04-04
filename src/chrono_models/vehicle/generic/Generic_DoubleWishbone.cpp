@@ -23,6 +23,7 @@
 // =============================================================================
 
 #include <vector>
+#include <algorithm>
 
 #include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
 #include "chrono/core/ChCubicSpline.h"
@@ -114,16 +115,34 @@ class Genaric_ShockForce : public ChSpringForceCallback {
 
   private:
     ChCubicSpline m_ShockTable;
+    double m_MaxVel;
+    double m_MinVel;
 };
 
-Genaric_ShockForce::Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {}
+Genaric_ShockForce::Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {
+    m_MaxVel = *std::max_element(std::begin(vel), std::end(vel));
+    m_MinVel = *std::min_element(std::begin(vel), std::end(vel));
+}
 
 double Genaric_ShockForce::operator()(double time, double rest_length, double length, double vel) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;
+    double org_vel = vel;
 
-    m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
+    if ((vel >= m_MinVel) && (vel <= m_MaxVel)) {
+        m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
+    }
+    else if ((vel <= m_MinVel)){
+        m_ShockTable.Evaluate(m_MinVel, force, dcurve, ddcurve);
+        std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ", modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
+        force -= dcurve*(m_MinVel - vel);
+    }
+    else {
+        m_ShockTable.Evaluate(m_MaxVel, force, dcurve, ddcurve);
+        std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ", modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
+        force += dcurve*(m_MaxVel - vel);
+    }
 
     return force;
 }
