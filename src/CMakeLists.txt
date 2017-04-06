@@ -298,7 +298,7 @@ endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
-        FILES_MATCHING PATTERN "*.h")
+        FILES_MATCHING PATTERN "*.h*")
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header
