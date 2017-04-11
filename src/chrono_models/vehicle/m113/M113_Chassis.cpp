@@ -36,9 +36,6 @@ const ChVector<> M113_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> M113_Chassis::m_COM_loc(-2.006, 0, 0.406);
 const ChCoordsys<> M113_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
-const std::string M113_Chassis::m_meshName = "Chassis_POV_geom";
-const std::string M113_Chassis::m_meshFile = "M113/Chassis.obj";
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 M113_Chassis::M113_Chassis(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
@@ -52,21 +49,10 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed) : ChRigidChassis
     m_inertia.SetElement(1, 0, m_inertiaXY.x());
     m_inertia.SetElement(2, 0, m_inertiaXY.y());
     m_inertia.SetElement(2, 1, m_inertiaXY.z());
-}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void M113_Chassis::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
-        m_body->AddAsset(trimesh_shape);
-    } else {
-        ChChassis::AddVisualizationAssets(vis);
-    }
+    m_has_mesh = true;
+    m_meshName = "Chassis_POV_geom";
+    m_meshFile = "M113/Chassis.obj";
 }
 
 }  // end namespace m113

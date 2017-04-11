@@ -49,9 +49,3 @@ Articulated_Chassis::Articulated_Chassis(const std::string& name) : ChRigidChass
     m_inertia.SetElement(2, 0, m_inertiaXY.y());
     m_inertia.SetElement(2, 1, m_inertiaXY.z());
 }
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void Articulated_Chassis::AddVisualizationAssets(VisualizationType vis) {
-    ChChassis::AddVisualizationAssets(vis);
-}

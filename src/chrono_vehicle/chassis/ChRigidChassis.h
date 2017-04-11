@@ -40,11 +40,23 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
 
     virtual ~ChRigidChassis() {}
 
+    /// Specifies whether or not visualization primitives were specified.
+    bool HasPrimitives() const { return m_has_primitives; }
+
+    /// Specifies whether or not a visualization mesh was specified.
+    bool HasMesh() const { return m_has_mesh; }
+
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     /// Remove all visualization assets from this subsystem.
     virtual void RemoveVisualizationAssets() override final;
+
+  protected:
+    bool m_has_primitives;
+    bool m_has_mesh;
+    std::string m_meshName;
+    std::string m_meshFile;
 };
 
 /// @} vehicle

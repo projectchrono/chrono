@@ -48,9 +48,6 @@ class CH_MODELS_API M113_Chassis : public ChRigidChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     ChMatrix33<> m_inertia;
 
@@ -59,9 +56,6 @@ class CH_MODELS_API M113_Chassis : public ChRigidChassis {
     static const ChVector<> m_inertiaXY;
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
-
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
 };
 
 }  // end namespace m113

@@ -50,9 +50,6 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Specifies whether or not a visualization mesh was specified.
-    bool HasMesh() const { return m_has_mesh; }
-
     /// Get the name of the Wavefront file with chassis visualization mesh.
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshFilename() const { return m_meshFile; }
@@ -60,9 +57,6 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     /// Get the name of the chassis visualization mesh asset.
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshName() const { return m_meshName; }
-
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
 
   private:
     void Create(const rapidjson::Document& d);
@@ -72,10 +66,6 @@ class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
     ChVector<> m_COM_loc;    ///< location of the chassis COM in the chassis reference frame
 
     ChCoordsys<> m_driverCsys;  ///< driver position and orientation relative to chassis
-
-    bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
 };
 
 /// @} vehicle

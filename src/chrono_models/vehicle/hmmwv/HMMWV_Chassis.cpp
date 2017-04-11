@@ -36,9 +36,6 @@ const ChVector<> HMMWV_Chassis::m_inertiaXY(0, 0, 0);
 const ChVector<> HMMWV_Chassis::m_COM_loc(0.056, 0, 0.523);
 const ChCoordsys<> HMMWV_Chassis::m_driverCsys(ChVector<>(0.87, -0.27, 1.05), ChQuaternion<>(1, 0, 0, 0));
 
-const std::string HMMWV_Chassis::m_meshName = "hmmwv_chassis_POV_geom";
-const std::string HMMWV_Chassis::m_meshFile = "hmmwv/hmmwv_chassis.obj";
-
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
@@ -52,21 +49,10 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChRigidChass
     m_inertia.SetElement(1, 0, m_inertiaXY.x());
     m_inertia.SetElement(2, 0, m_inertiaXY.y());
     m_inertia.SetElement(2, 1, m_inertiaXY.z());
-}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void HMMWV_Chassis::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
-        m_body->AddAsset(trimesh_shape);
-    } else {
-        ChChassis::AddVisualizationAssets(vis);
-    }
+    m_has_mesh = true;
+    m_meshName = "hmmwv_chassis_POV_geom";
+    m_meshFile = "hmmwv/hmmwv_chassis.obj";
 }
 
 }  // end namespace hmmwv

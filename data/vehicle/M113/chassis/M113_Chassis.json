@@ -25,7 +25,10 @@
 
   "Visualization":
   {
-    "Mesh Filename":  "M113/Chassis.obj",
-    "Mesh Name":      "Chassis_POV_geom"
+    "Mesh": 
+    {
+       "Filename":  "M113/Chassis.obj",
+       "Name":      "Chassis_POV_geom"
+    }
   }
 }

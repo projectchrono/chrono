@@ -41,9 +41,6 @@ class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(chrono::vehicle::VisualizationType vis) override;
-
   protected:
     chrono::ChMatrix33<> m_inertia;
 

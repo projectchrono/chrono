@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/utils/ChCompositeInertia.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/RigidChassis.h"
@@ -47,7 +46,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis(""), m_has_primitives(false), m_has_mesh(false) {
+RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis("") {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -63,7 +62,7 @@ RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis(""), m_
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RigidChassis::RigidChassis(const rapidjson::Document& d) : ChRigidChassis(""), m_has_primitives(false), m_has_mesh(false) {
+RigidChassis::RigidChassis(const rapidjson::Document& d) : ChRigidChassis("") {
     Create(d);
 }
 
@@ -113,26 +112,18 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 
     // Read chassis visualization
     if (d.HasMember("Visualization")) {
-        assert(d["Visualization"].HasMember("Mesh Filename"));
-        assert(d["Visualization"].HasMember("Mesh Name"));
-        m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
-        m_meshName = d["Visualization"]["Mesh Name"].GetString();
+        if (d["Visualization"].HasMember("Mesh")) {
+            assert(d["Visualization"]["Mesh"].HasMember("Filename"));
+            assert(d["Visualization"]["Mesh"].HasMember("Name"));
+            m_meshFile = d["Visualization"]["Mesh"]["Filename"].GetString();
+            m_meshName = d["Visualization"]["Mesh"]["Name"].GetString();
             m_has_mesh = true;
         }
-}
+        if (d["Visualization"].HasMember("Primitives")) {
+            assert(d["Visualization"]["Primitives"].IsArray());
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void RigidChassis::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::MESH && m_has_mesh) {
-        geometry::ChTriangleMeshConnected trimesh;
-        trimesh.LoadWavefrontMesh(vehicle::GetDataFile(m_meshFile), false, false);
-        auto trimesh_shape = std::make_shared<ChTriangleMeshShape>();
-        trimesh_shape->SetMesh(trimesh);
-        trimesh_shape->SetName(m_meshName);
-        m_body->AddAsset(trimesh_shape);
-    } else {
-        ChChassis::AddVisualizationAssets(vis);
+            m_has_primitives = true;
+        }
     }
 }
 
