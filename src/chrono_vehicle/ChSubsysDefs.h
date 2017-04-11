@@ -347,14 +347,17 @@ namespace TrackCollide {
 // Note: we cannot use strongly typed enums since these are used as integers
 enum Enum {
     NONE = 0,
-    SPROCKET_LEFT = 1 << 0,
-    SPROCKET_RIGHT = 1 << 1,
-    IDLER_LEFT = 1 << 2,
-    IDLER_RIGHT = 1 << 3,
-    WHEELS_LEFT = 1 << 4,
-    WHEELS_RIGHT = 1 << 5,
-    SHOES_LEFT = 1 << 6,
-    SHOES_RIGHT = 1 << 7,
+    CHASSIS = 1 << 0,
+    SPROCKET_LEFT = 1 << 1,
+    SPROCKET_RIGHT = 1 << 2,
+    IDLER_LEFT = 1 << 3,
+    IDLER_RIGHT = 1 << 4,
+    WHEELS_LEFT = 1 << 5,
+    WHEELS_RIGHT = 1 << 6,
+    SHOES_LEFT = 1 << 7,
+    SHOES_RIGHT = 1 << 8,
+    ROLLERS_LEFT = 1 << 9,
+    ROLLERS_RIGHT = 1 << 10,
     ALL = 0xFFFF
 };
 }

@@ -58,9 +58,13 @@ void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos
             break;
     }
 
-    // If collision shapes were defined, create the contact geometry.
-    // Note that we DO NOT enable collision for the chassis body.
+    // If collision shapes were defined, create the contact geometry and enable contact
+    // for the chassis's rigid body.
+    // NOTE: setting the collision family is deferred to the containing vehicle system
+    // (which can also disable contact between the chassis and certain vehicle subsystems).
     if (m_has_collision) {
+        m_body->SetCollide(true);
+
         m_body->GetCollisionModel()->ClearModel();
         for (auto sphere : m_coll_spheres) {
             m_body->GetCollisionModel()->AddSphere(sphere.m_radius, sphere.m_pos);

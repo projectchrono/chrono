@@ -94,15 +94,56 @@ void ChTrackedVehicle::SetRoadWheelVisualizationType(VisualizationType vis) {
     m_tracks[1]->SetRoadWheelVisualizationType(vis);
 }
 
+void ChTrackedVehicle::SetRollerVisualizationType(VisualizationType vis) {
+    m_tracks[0]->SetRollerVisualizationType(vis);
+    m_tracks[1]->SetRollerVisualizationType(vis);
+}
+
 void ChTrackedVehicle::SetTrackShoeVisualizationType(VisualizationType vis) {
     m_tracks[0]->SetTrackShoeVisualizationType(vis);
     m_tracks[1]->SetTrackShoeVisualizationType(vis);
 }
 
 // -----------------------------------------------------------------------------
+// Enable/disable collision for the various subsystems
+// -----------------------------------------------------------------------------
+void ChTrackedVehicle::SetSprocketCollide(bool state) {
+    m_tracks[0]->GetSprocket()->SetCollide(state);
+    m_tracks[1]->GetSprocket()->SetCollide(state);
+}
+
+void ChTrackedVehicle::SetIdlerCollide(bool state) {
+    m_tracks[0]->GetIdler()->SetCollide(state);
+    m_tracks[1]->GetIdler()->SetCollide(state);
+}
+
+void ChTrackedVehicle::SetRoadWheelCollide(bool state) {
+    for (size_t i = 0; i < m_tracks[0]->GetNumRoadWheelAssemblies(); ++i)
+        m_tracks[0]->GetRoadWheel(i)->SetCollide(state);
+    for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
+        m_tracks[1]->GetRoadWheel(i)->SetCollide(state);
+}
+
+void ChTrackedVehicle::SetRollerCollide(bool state) {
+    for (size_t i = 0; i < m_tracks[0]->GetNumRollers(); ++i)
+        m_tracks[0]->GetRoller(i)->SetCollide(state);
+    for (size_t i = 0; i < m_tracks[1]->GetNumRollers(); ++i)
+        m_tracks[1]->GetRoller(i)->SetCollide(state);
+}
+
+void ChTrackedVehicle::SetTrackShoeCollide(bool state) {
+    for (size_t i = 0; i < m_tracks[0]->GetNumTrackShoes(); ++i)
+        m_tracks[0]->GetTrackShoe(i)->SetCollide(state);
+    for (size_t i = 0; i < m_tracks[1]->GetNumTrackShoes(); ++i)
+        m_tracks[1]->GetTrackShoe(i)->SetCollide(state);
+}
+
+// -----------------------------------------------------------------------------
 // Override collision flags for various subsystems
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::SetCollide(int flags) {
+    m_chassis->SetCollide((flags & static_cast<int>(TrackCollide::CHASSIS)) != 0);
+
     m_tracks[0]->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_LEFT)) != 0);
     m_tracks[1]->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_RIGHT)) != 0);
 
@@ -115,6 +156,13 @@ void ChTrackedVehicle::SetCollide(int flags) {
         m_tracks[0]->GetRoadWheel(i)->SetCollide(collide_wheelsL);
     for (size_t i = 0; i < m_tracks[1]->GetNumRoadWheelAssemblies(); ++i)
         m_tracks[1]->GetRoadWheel(i)->SetCollide(collide_wheelsR);
+
+    bool collide_rollersL = (flags & static_cast<int>(TrackCollide::ROLLERS_LEFT)) != 0;
+    bool collide_rollersR = (flags & static_cast<int>(TrackCollide::ROLLERS_RIGHT)) != 0;
+    for (size_t i = 0; i < m_tracks[0]->GetNumRollers(); ++i)
+        m_tracks[0]->GetRoller(i)->SetCollide(collide_rollersL);
+    for (size_t i = 0; i < m_tracks[1]->GetNumRollers(); ++i)
+        m_tracks[1]->GetRoller(i)->SetCollide(collide_rollersR);
 
     bool collide_shoesL = (flags & static_cast<int>(TrackCollide::SHOES_LEFT)) != 0;
     bool collide_shoesR = (flags & static_cast<int>(TrackCollide::SHOES_RIGHT)) != 0;

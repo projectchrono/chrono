@@ -97,6 +97,9 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
+    /// Enable/disable collision for the chassis usbsystem.
+    void SetChassisCollide(bool state);
+
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step);
 

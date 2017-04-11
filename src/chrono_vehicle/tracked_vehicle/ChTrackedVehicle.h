@@ -121,13 +121,32 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set visualization type for the road-wheel subsystems.
     void SetRoadWheelVisualizationType(VisualizationType vis);
 
+    /// Set visualization type for the roller subsystems.
+    void SetRollerVisualizationType(VisualizationType vis);
+
     /// Set visualization type for the track shoe subsystems.
     void SetTrackShoeVisualizationType(VisualizationType vis);
 
+    /// Enable/disable collision for the sprocket subsystem.
+    void SetSprocketCollide(bool state);
+
+    /// Enable/disable collision for the idler subsystem.
+    void SetIdlerCollide(bool state);
+
+    /// Enable/disable collision for the road-wheel subsystems.
+    void SetRoadWheelCollide(bool state);
+
+    /// Enable/disable collision for the roller subsystems.
+    void SetRollerCollide(bool state);
+
+    /// Enable/disable collision for the track shoe subsystems.
+    void SetTrackShoeCollide(bool state);
+
     /// Set collision flags for the various subsystems.
-    /// By default, collision is enabled for sprocket, idler, road wheels, and
-    /// track shoes. To override these default settings, this function must be
-    /// called after the call to Initialize().
+    /// By default, collision is enabled for chassis, sprocket, idler, road wheels, and
+    /// track shoes. To override these default settings, this function must be called
+    /// called after the call to Initialize(). 'flags' can be any of the TrackCollide
+    /// enums, or a combination thereof (using bit-wise operators).
     void SetCollide(int flags);
 
     /// Set contacts to be monitored.
