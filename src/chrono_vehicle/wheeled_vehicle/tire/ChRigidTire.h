@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     /// The default value is 0.7
     void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
 
-    /// Set coefficient of restiturion.
+    /// Set coefficient of restitution.
     /// The default value is 0.1
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 
