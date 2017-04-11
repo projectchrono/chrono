@@ -115,13 +115,33 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         if (d["Visualization"].HasMember("Mesh")) {
             assert(d["Visualization"]["Mesh"].HasMember("Filename"));
             assert(d["Visualization"]["Mesh"].HasMember("Name"));
-            m_meshFile = d["Visualization"]["Mesh"]["Filename"].GetString();
-            m_meshName = d["Visualization"]["Mesh"]["Name"].GetString();
+            m_vis_mesh_file = d["Visualization"]["Mesh"]["Filename"].GetString();
+            m_vis_mesh_name = d["Visualization"]["Mesh"]["Name"].GetString();
             m_has_mesh = true;
         }
         if (d["Visualization"].HasMember("Primitives")) {
             assert(d["Visualization"]["Primitives"].IsArray());
-
+            int num_shapes = d["Visualization"]["Primitives"].Size();
+            for (int i = 0; i < num_shapes; i++) {
+                const Value& shape = d["Visualization"]["Primitives"][i];
+                std::string type = shape["Type"].GetString();
+                if (type.compare("SPHERE") == 0) {
+                    ChVector<> pos = loadVector(shape["Location"]);
+                    double radius = shape["Radius"].GetDouble();
+                    m_vis_spheres.push_back(SphereShape(pos, radius));
+                } else if (type.compare("BOX") == 0) {
+                    ChVector<> pos = loadVector(shape["Location"]);
+                    ChQuaternion<> rot = loadQuaternion(shape["Orientation"]);
+                    ChVector<> dims = loadVector(shape["Dimensions"]);
+                    m_vis_boxes.push_back(BoxShape(pos, rot, dims));
+                } else if (type.compare("CYLINDER") == 0) {
+                    ChVector<> pos = loadVector(shape["Location"]);
+                    ChQuaternion<> rot = loadQuaternion(shape["Orientation"]);
+                    double radius = shape["Radius"].GetDouble();
+                    double length = shape["Length"].GetDouble();
+                    m_vis_cylinders.push_back(CylinderShape(pos, rot, radius, length));
+                }
+            }
             m_has_primitives = true;
         }
     }

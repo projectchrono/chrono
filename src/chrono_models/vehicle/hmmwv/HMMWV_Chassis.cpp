@@ -51,8 +51,8 @@ HMMWV_Chassis::HMMWV_Chassis(const std::string& name, bool fixed) : ChRigidChass
     m_inertia.SetElement(2, 1, m_inertiaXY.z());
 
     m_has_mesh = true;
-    m_meshName = "hmmwv_chassis_POV_geom";
-    m_meshFile = "hmmwv/hmmwv_chassis.obj";
+    m_vis_mesh_name = "hmmwv_chassis_POV_geom";
+    m_vis_mesh_file = "hmmwv/hmmwv_chassis.obj";
 }
 
 }  // end namespace hmmwv

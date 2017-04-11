@@ -51,8 +51,8 @@ M113_Chassis::M113_Chassis(const std::string& name, bool fixed) : ChRigidChassis
     m_inertia.SetElement(2, 1, m_inertiaXY.z());
 
     m_has_mesh = true;
-    m_meshName = "Chassis_POV_geom";
-    m_meshFile = "M113/Chassis.obj";
+    m_vis_mesh_name = "Chassis_POV_geom";
+    m_vis_mesh_file = "M113/Chassis.obj";
 }
 
 }  // end namespace m113

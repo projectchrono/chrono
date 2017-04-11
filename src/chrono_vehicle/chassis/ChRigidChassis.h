@@ -19,6 +19,8 @@
 #ifndef CH_RIGID_CHASSIS_H
 #define CH_RIGID_CHASSIS_H
 
+#include <vector>
+
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 
@@ -46,6 +48,14 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// Specifies whether or not a visualization mesh was specified.
     bool HasMesh() const { return m_has_mesh; }
 
+    /// Get the name of the Wavefront file with chassis visualization mesh.
+    /// An empty string is returned if no mesh was specified.
+    const std::string& GetMeshFilename() const { return m_vis_mesh_file; }
+
+    /// Get the name of the chassis visualization mesh asset.
+    /// An empty string is returned if no mesh was specified.
+    const std::string& GetMeshName() const { return m_vis_mesh_name; }
+
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -53,10 +63,37 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     virtual void RemoveVisualizationAssets() override final;
 
   protected:
+    struct BoxShape {
+        BoxShape(const ChVector<>& pos, const ChQuaternion<>& rot, const ChVector<>& dims)
+            : m_pos(pos), m_rot(rot), m_dims(dims) {}
+        ChVector<> m_pos;
+        ChQuaternion<> m_rot;
+        ChVector<> m_dims;
+    };
+
+    struct SphereShape {
+        SphereShape(const ChVector<>& pos, double radius) : m_pos(pos), m_radius(radius) {}
+        ChVector<> m_pos;
+        double m_radius;
+    };
+
+    struct CylinderShape {
+        CylinderShape(const ChVector<>& pos, const ChQuaternion<>& rot, double radius, double length)
+            : m_pos(pos), m_rot(rot), m_radius(radius), m_length(length) {}
+        ChVector<> m_pos;
+        ChQuaternion<> m_rot;
+        double m_radius;
+        double m_length;
+    };
+
     bool m_has_primitives;
+    std::vector<BoxShape> m_vis_boxes;
+    std::vector<SphereShape> m_vis_spheres;
+    std::vector<CylinderShape> m_vis_cylinders;
+
     bool m_has_mesh;
-    std::string m_meshName;
-    std::string m_meshFile;
+    std::string m_vis_mesh_name;
+    std::string m_vis_mesh_file;
 };
 
 /// @} vehicle
