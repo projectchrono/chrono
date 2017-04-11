@@ -21,9 +21,9 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-class Articulated_Chassis : public chrono::vehicle::ChChassis {
+class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
   public:
     Articulated_Chassis(const std::string& name);
     ~Articulated_Chassis() {}

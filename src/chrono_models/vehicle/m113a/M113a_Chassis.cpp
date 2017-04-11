@@ -41,7 +41,7 @@ const std::string M113a_Chassis::m_meshFile = "M113/Chassis.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-M113a_Chassis::M113a_Chassis(const std::string& name, bool fixed) : ChChassis(name, fixed) {
+M113a_Chassis::M113a_Chassis(const std::string& name, bool fixed) : ChRigidChassis(name, fixed) {
     m_inertia.SetElement(0, 0, m_inertiaXX.x());
     m_inertia.SetElement(1, 1, m_inertiaXX.y());
     m_inertia.SetElement(2, 2, m_inertiaXX.z());

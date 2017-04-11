@@ -30,12 +30,11 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
+
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -48,7 +47,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Defintion of a chassis for a track test rig
 // -----------------------------------------------------------------------------
-class ChTrackTestRigChassis : public ChChassis {
+class ChTrackTestRigChassis : public ChRigidChassis {
   public:
     ChTrackTestRigChassis();
     virtual double GetMass() const override { return m_mass; }
@@ -71,7 +70,7 @@ const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
 const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
 const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
-ChTrackTestRigChassis::ChTrackTestRigChassis() : ChChassis("Ground") {
+ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
 }
 
@@ -146,7 +145,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // ----------------------------
     m_chassis = std::make_shared<ChTrackTestRigChassis>();
     m_chassis->Initialize(m_system, chassisPos, 0);
-    m_chassis->GetBody()->SetBodyFixed(true);
+    m_chassis->SetFixed(true);
 
     // ---------------------------------
     // Initialize the vehicle subsystems

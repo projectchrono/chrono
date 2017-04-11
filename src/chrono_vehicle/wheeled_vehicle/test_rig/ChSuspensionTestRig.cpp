@@ -27,19 +27,17 @@
 
 #include "chrono/assets/ChCylinderShape.h"
 
-#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
+#include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
+#include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
-
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
-
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -52,7 +50,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // Defintion of a chassis for a suspension test rig
 // -----------------------------------------------------------------------------
-class ChSuspensionTestRigChassis : public ChChassis {
+class ChSuspensionTestRigChassis : public ChRigidChassis {
   public:
     ChSuspensionTestRigChassis();
     virtual double GetMass() const override { return m_mass; }
@@ -74,7 +72,7 @@ const ChVector<> ChSuspensionTestRigChassis::m_inertiaXX(1, 1, 1);
 const ChVector<> ChSuspensionTestRigChassis::m_COM_loc(0, 0, 0);
 const ChCoordsys<> ChSuspensionTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
-ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChChassis("Ground") {
+ChSuspensionTestRigChassis::ChSuspensionTestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
 }
 
@@ -311,7 +309,7 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // ----------------------------
     m_chassis = std::make_shared<ChSuspensionTestRigChassis>();
     m_chassis->Initialize(m_system, chassisPos, 0);
-    m_chassis->GetBody()->SetBodyFixed(true);
+    m_chassis->SetFixed(true);
 
     // ---------------------------------
     // Initialize the vehicle subsystems

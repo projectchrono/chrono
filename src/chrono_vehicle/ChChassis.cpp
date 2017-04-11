@@ -58,21 +58,5 @@ void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, dou
     system->Add(m_body);
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChChassis::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    auto sphere = std::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = GetLocalPosCOM();
-    m_body->AddAsset(sphere);
-}
-
-void ChChassis::RemoveVisualizationAssets() {
-    m_body->GetAssets().clear();
-}
-
 }  // end namespace vehicle
 }  // end namespace chrono

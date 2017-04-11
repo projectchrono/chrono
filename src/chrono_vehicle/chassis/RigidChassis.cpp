@@ -47,7 +47,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-RigidChassis::RigidChassis(const std::string& filename) : ChChassis(""), m_has_mesh(false) {
+RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis(""), m_has_primitives(false), m_has_mesh(false) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -63,7 +63,7 @@ RigidChassis::RigidChassis(const std::string& filename) : ChChassis(""), m_has_m
     GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
 }
 
-RigidChassis::RigidChassis(const rapidjson::Document& d) : ChChassis(""), m_has_mesh(false) {
+RigidChassis::RigidChassis(const rapidjson::Document& d) : ChRigidChassis(""), m_has_primitives(false), m_has_mesh(false) {
     Create(d);
 }
 
@@ -117,8 +117,8 @@ void RigidChassis::Create(const rapidjson::Document& d) {
         assert(d["Visualization"].HasMember("Mesh Name"));
         m_meshFile = d["Visualization"]["Mesh Filename"].GetString();
         m_meshName = d["Visualization"]["Mesh Name"].GetString();
-        m_has_mesh = true;
-    }
+            m_has_mesh = true;
+        }
 }
 
 // -----------------------------------------------------------------------------

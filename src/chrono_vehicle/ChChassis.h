@@ -109,12 +109,6 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
 
-    /// Add visualization assets to this subsystem, for the specified visualization mode.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove all visualization assets from this subsystem.
-    virtual void RemoveVisualizationAssets() override final;
-
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
     bool m_fixed;                          ///< is the chassis body fixed to ground?

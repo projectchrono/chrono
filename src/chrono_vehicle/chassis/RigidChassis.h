@@ -16,11 +16,11 @@
 //
 // =============================================================================
 
-#ifndef SPROCKET_SINGLE_PIN_H
-#define SPROCKET_SINGLE_PIN_H
+#ifndef RIGID_CHASSIS_H
+#define RIGID_CHASSIS_H
 
 #include "chrono_vehicle/ChApiVehicle.h"
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 
@@ -31,7 +31,7 @@ namespace vehicle {
 /// @{
 
 /// Vehicle rigid chassis model constructed with data from file(JSON format).
-class CH_VEHICLE_API RigidChassis : public ChChassis {
+class CH_VEHICLE_API RigidChassis : public ChRigidChassis {
   public:
     RigidChassis(const std::string& filename);
     RigidChassis(const rapidjson::Document& d);

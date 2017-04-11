@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -30,7 +30,7 @@ namespace vehicle {
 namespace hmmwv {
 
 /// HMMWV chassis subsystem.
-class CH_MODELS_API HMMWV_Chassis : public ChChassis {
+class CH_MODELS_API HMMWV_Chassis : public ChRigidChassis {
   public:
     HMMWV_Chassis(const std::string& name, bool fixed = false);
     ~HMMWV_Chassis() {}
