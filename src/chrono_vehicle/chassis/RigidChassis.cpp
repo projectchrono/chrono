@@ -148,19 +148,19 @@ void RigidChassis::Create(const rapidjson::Document& d) {
                 ChVector<> pos = loadVector(shape["Location"]);
                 double radius = shape["Radius"].GetDouble();
                 m_coll_spheres.push_back(SphereShape(pos, radius));
-            }
-            else if (type.compare("BOX") == 0) {
+            } else if (type.compare("BOX") == 0) {
                 ChVector<> pos = loadVector(shape["Location"]);
                 ChQuaternion<> rot = loadQuaternion(shape["Orientation"]);
                 ChVector<> dims = loadVector(shape["Dimensions"]);
                 m_coll_boxes.push_back(BoxShape(pos, rot, dims));
-            }
-            else if (type.compare("CYLINDER") == 0) {
+            } else if (type.compare("CYLINDER") == 0) {
                 ChVector<> pos = loadVector(shape["Location"]);
                 ChQuaternion<> rot = loadQuaternion(shape["Orientation"]);
                 double radius = shape["Radius"].GetDouble();
                 double length = shape["Length"].GetDouble();
                 m_coll_cylinders.push_back(CylinderShape(pos, rot, radius, length));
+            } else if (type.compare("MESH") == 0) {
+                m_coll_mesh_names.push_back(shape["Filename"].GetString());
             }
         }
 

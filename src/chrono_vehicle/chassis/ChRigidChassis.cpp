@@ -21,6 +21,8 @@
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCylinderShape.h"
 
+#include "chrono/utils/ChUtilsCreators.h"
+
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
@@ -69,6 +71,14 @@ void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos
         }
         for (auto cyl : m_coll_cylinders) {
             m_body->GetCollisionModel()->AddCylinder(cyl.m_radius, cyl.m_radius, cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
+        }
+        for (auto mesh_name : m_coll_mesh_names) {
+            geometry::ChTriangleMeshConnected mesh;
+            std::vector<std::vector<ChVector<>>> hulls;
+            utils::LoadConvexHulls(vehicle::GetDataFile(mesh_name), mesh, hulls);
+            for (int c = 0; c < hulls.size(); c++) {
+                m_body->GetCollisionModel()->AddConvexHull(hulls[c]);
+            }
         }
         m_body->GetCollisionModel()->BuildModel();
     }

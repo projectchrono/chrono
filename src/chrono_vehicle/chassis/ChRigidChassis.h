@@ -99,6 +99,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     std::vector<BoxShape> m_coll_boxes;
     std::vector<SphereShape> m_coll_spheres;
     std::vector<CylinderShape> m_coll_cylinders;
+    std::vector<std::string> m_coll_mesh_names;
 
     bool m_has_primitives;
     std::vector<BoxShape> m_vis_boxes;
