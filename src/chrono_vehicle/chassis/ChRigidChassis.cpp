@@ -30,7 +30,74 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed)
-    : ChChassis(name, fixed), m_has_primitives(false), m_has_mesh(false) {}
+    : ChChassis(name, fixed),
+      m_has_primitives(false),
+      m_has_mesh(false),
+      m_has_collision(false),
+      m_friction(0.7f),
+      m_restitution(0.1f),
+      m_young_modulus(1e7f),
+      m_poisson_ratio(0.3f),
+      m_kn(2e6),
+      m_kt(2e5),
+      m_gn(40),
+      m_gt(20) {}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidChassis::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
+    m_young_modulus = young_modulus;
+    m_poisson_ratio = poisson_ratio;
+}
+
+void ChRigidChassis::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
+    m_kn = kn;
+    m_gn = gn;
+    m_kt = kt;
+    m_gt = gt;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    // Invoke the base class method.
+    ChChassis::Initialize(system, chassisPos, chassisFwdVel);
+
+    // Set chassis body contact material properties.
+    switch (m_body->GetContactMethod()) {
+        case ChMaterialSurfaceBase::DVI:
+            m_body->GetMaterialSurface()->SetFriction(m_friction);
+            m_body->GetMaterialSurface()->SetRestitution(m_restitution);
+            break;
+        case ChMaterialSurfaceBase::DEM:
+            m_body->GetMaterialSurfaceDEM()->SetFriction(m_friction);
+            m_body->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
+            m_body->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
+            m_body->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
+            m_body->GetMaterialSurfaceDEM()->SetKn(m_kn);
+            m_body->GetMaterialSurfaceDEM()->SetGn(m_gn);
+            m_body->GetMaterialSurfaceDEM()->SetKt(m_kt);
+            m_body->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            break;
+    }
+
+    // If collision shapes were defined, create the contact geometry.
+    // Note that we DO NOT enable collision for the chassis body.
+    if (m_has_collision) {
+        m_body->GetCollisionModel()->ClearModel();
+        for (auto sphere : m_coll_spheres) {
+            m_body->GetCollisionModel()->AddSphere(sphere.m_radius, sphere.m_pos);
+        }
+        for (auto box : m_coll_boxes) {
+            ChVector<> hdims = box.m_dims / 2;
+            m_body->GetCollisionModel()->AddBox(hdims.x(), hdims.y(), hdims.z(), box.m_pos, box.m_rot);
+        }
+        for (auto cyl : m_coll_cylinders) {
+            m_body->GetCollisionModel()->AddCylinder(cyl.m_radius, cyl.m_radius, cyl.m_length / 2, cyl.m_pos, cyl.m_rot);
+        }
+        m_body->GetCollisionModel()->BuildModel();
+    }
+}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -66,11 +133,11 @@ void ChRigidChassis::AddVisualizationAssets(VisualizationType vis) {
 
         for (auto cyl : m_vis_cylinders) {
             auto cyl_shape = std::make_shared<ChCylinderShape>();
-            ChVector<> p1 = cyl.m_pos + cyl.m_rot.Rotate(ChVector<>(cyl.m_length / 2, 0, 0));
-            ChVector<> p2 = cyl.m_pos + cyl.m_rot.Rotate(ChVector<>(-cyl.m_length / 2, 0, 0));
             cyl_shape->GetCylinderGeometry().rad = cyl.m_radius;
-            cyl_shape->GetCylinderGeometry().p1 = p1;
-            cyl_shape->GetCylinderGeometry().p2 = p2;
+            cyl_shape->GetCylinderGeometry().p1 = ChVector<>(0, cyl.m_length / 2, 0);
+            cyl_shape->GetCylinderGeometry().p2 = ChVector<>(0, -cyl.m_length / 2, 0);
+            cyl_shape->Pos = cyl.m_pos;
+            cyl_shape->Rot = cyl.m_rot;
             m_body->AddAsset(cyl_shape);
         }
 

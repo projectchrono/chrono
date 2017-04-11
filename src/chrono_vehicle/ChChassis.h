@@ -103,6 +103,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                             double chassisFwdVel             ///< [in] initial chassis forward velocity
                             );
 
+    /// Enable/disable contact for the chassis.
+    virtual void SetCollide(bool state) = 0;
+
     /// Set the "fixed to ground" status of the chassis body.
     void SetFixed(bool val) { m_body->SetBodyFixed(val); }
 
