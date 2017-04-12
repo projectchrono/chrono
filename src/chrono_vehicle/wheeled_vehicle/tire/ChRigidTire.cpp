@@ -50,6 +50,8 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     wheel->SetCollide(true);
 
+    wheel->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
+
     if (m_use_contact_mesh) {
         // Mesh contact
         m_trimesh = new geometry::ChTriangleMeshConnected;

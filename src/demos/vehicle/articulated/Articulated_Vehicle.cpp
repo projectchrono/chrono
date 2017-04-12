@@ -101,7 +101,8 @@ Articulated_Vehicle::Articulated_Vehicle(const bool fixed,
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Articulated_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).

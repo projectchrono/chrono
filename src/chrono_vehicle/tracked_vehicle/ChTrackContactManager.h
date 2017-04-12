@@ -60,7 +60,7 @@ class ChTrackContactManager : public chrono::ChReportContactCallback {
     void Process(ChTrackedVehicle* vehicle);
 
   private:
-    bool IsFlagSet(TrackCollide::Enum val) { return (m_flags & static_cast<int>(val)) != 0; }
+    bool IsFlagSet(TrackedCollisionFlag::Enum val) { return (m_flags & static_cast<int>(val)) != 0; }
 
     /// Callback, used to report contact points already added to the container.
     /// If it returns false, the contact scanning will be stopped.

@@ -145,9 +145,15 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for chassis, sprocket, idler, road wheels, and
     /// track shoes. To override these default settings, this function must be called
-    /// called after the call to Initialize(). 'flags' can be any of the TrackCollide
-    /// enums, or a combination thereof (using bit-wise operators).
+    /// called after the call to Initialize(). The 'flags' argument can be any of the
+    /// TrackedCollisionFlag enums, or a combination thereof (using bit-wise operators).
     void SetCollide(int flags);
+
+    /// Enable/disable collision between the chassis and all other vehicle
+    /// subsystems. This only controls collisions between the chassis and the
+    /// track shoes.  All other internal collisions involving the chassis are
+    /// always ignored.
+    virtual void SetChassisVehicleCollide(bool state) override;
 
     /// Set contacts to be monitored.
     /// Contact information will be tracked for the specified subsystems.
@@ -161,6 +167,14 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// If data collection was enabled and at least one subsystem is monitored,
     /// contact information is written (in CSV format) to the specified file.
     void WriteContacts(const std::string& filename) { m_contacts->WriteContacts(filename); }
+
+    /// Initialize this vehicle at the specified global location and orientation.
+    /// This base class implementation only initializes the chassis subsystem.
+    /// Derived classes must extend this function to initialize all other tracked
+    /// vehicle subsystems (the two track assemblies and the driveline).
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
+                            ) override;
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between

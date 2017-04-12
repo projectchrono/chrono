@@ -252,15 +252,15 @@ void ChTrackTestRig::Synchronize(double time, double disp, double throttle, cons
 // Override collision flags for various subsystems
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::SetCollide(int flags) {
-    m_track->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_LEFT)) != 0);
+    m_track->GetIdler()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
-    m_track->GetSprocket()->SetCollide((flags & static_cast<int>(TrackCollide::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
-    bool collide_wheels = (flags & static_cast<int>(TrackCollide::WHEELS_LEFT)) != 0;
+    bool collide_wheels = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i)
         m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
 
-    bool collide_shoes = (flags & static_cast<int>(TrackCollide::SHOES_LEFT)) != 0;
+    bool collide_shoes = (flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
         m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
 }

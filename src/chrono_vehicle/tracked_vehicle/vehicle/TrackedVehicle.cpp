@@ -233,7 +233,8 @@ void TrackedVehicle::Create(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void TrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChTrackedVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the left and right track assemblies.
     m_tracks[0]->Initialize(m_chassis->GetBody(), ChVector<>(0, m_track_offset[0], 0));

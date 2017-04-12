@@ -56,7 +56,8 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// An empty string is returned if no mesh was specified.
     const std::string& GetMeshName() const { return m_vis_mesh_name; }
 
-    /// Enable/disable contact for the chassis.
+    /// Enable/disable contact for the chassis. This function controls contact of
+    /// the chassis with all other collision shapes in the simulation.
     virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
 
     /// Initialize the chassis at the specified global position and orientation.

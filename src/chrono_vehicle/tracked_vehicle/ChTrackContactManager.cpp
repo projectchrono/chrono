@@ -91,7 +91,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
         return true;
 
     // Extract contacts on sprockets.
-    if (IsFlagSet(TrackCollide::SPROCKET_LEFT)) {
+    if (IsFlagSet(TrackedCollisionFlag::SPROCKET_LEFT)) {
         if (modA == m_sprocket_L->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
@@ -108,7 +108,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
         }
     }
 
-    if (IsFlagSet(TrackCollide::SPROCKET_RIGHT)) {
+    if (IsFlagSet(TrackedCollisionFlag::SPROCKET_RIGHT)) {
         if (modA == m_sprocket_R->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
@@ -126,7 +126,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
     }
 
     // Extract contacts on track shoes (discard contacts with sprockets)
-    if (IsFlagSet(TrackCollide::SHOES_LEFT)) {
+    if (IsFlagSet(TrackedCollisionFlag::SHOES_LEFT)) {
         if (modA == m_shoe_L->GetShoeBody().get() && modB != m_sprocket_L->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
@@ -143,7 +143,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
         }
     }
 
-    if (IsFlagSet(TrackCollide::SHOES_RIGHT)) {
+    if (IsFlagSet(TrackedCollisionFlag::SHOES_RIGHT)) {
         if (modA == m_shoe_R->GetShoeBody().get() && modB != m_sprocket_R->GetGearBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
@@ -161,7 +161,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
     }
 
     // Extract contacts on idler wheels.
-    if (IsFlagSet(TrackCollide::IDLER_LEFT)) {
+    if (IsFlagSet(TrackedCollisionFlag::IDLER_LEFT)) {
         if (modA == m_idler_L->GetWheelBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;
@@ -178,7 +178,7 @@ bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
         }
     }
 
-    if (IsFlagSet(TrackCollide::IDLER_RIGHT)) {
+    if (IsFlagSet(TrackedCollisionFlag::IDLER_RIGHT)) {
         if (modA == m_idler_R->GetWheelBody().get()) {
             info.m_point = pA;
             info.m_csys = plane_coord;

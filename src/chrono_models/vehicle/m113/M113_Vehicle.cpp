@@ -72,7 +72,8 @@ void M113_Vehicle::Create(bool fixed) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChTrackedVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the left and right track assemblies.
     double track_offset = 1.0795;
