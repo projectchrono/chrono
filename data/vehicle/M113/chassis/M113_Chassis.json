@@ -45,10 +45,11 @@
         "Length": 0.6
       },
       {
-        "Type": "BOX",
-        "Location": [-2.0, 0.0, -0.1],
-        "Orientation": [1, 0, 0, 0],
-        "Dimensions": [4.0, 1.0, 0.3]
+        "Type": "CYLINDER",
+        "Location": [-2.006, 0, 0.406],
+        "Orientation": [0.7071, 0, 0, 0.7071],
+        "Radius": 0.02,
+        "Length": 0.6
       }
    ]
   }

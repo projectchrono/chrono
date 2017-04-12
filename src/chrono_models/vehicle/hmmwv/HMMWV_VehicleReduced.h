@@ -20,6 +20,8 @@
 #define HMMWV_VEHICLE_REDUCED_H
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
+
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
@@ -37,17 +39,21 @@ namespace hmmwv {
 class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleReduced(const bool fixed = false,
-                         DrivelineType driveType = DrivelineType::AWD,
-                         ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                         DrivelineType drive_type = DrivelineType::AWD,
+                         ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    HMMWV_VehicleReduced(ChSystem* system, const bool fixed = false, DrivelineType driveType = DrivelineType::AWD);
+    HMMWV_VehicleReduced(ChSystem* system,
+                         const bool fixed = false,
+                         DrivelineType drive_type = DrivelineType::AWD,
+                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~HMMWV_VehicleReduced();
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
 };
 
 }  // end namespace hmmwv

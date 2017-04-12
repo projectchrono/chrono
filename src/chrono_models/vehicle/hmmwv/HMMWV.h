@@ -50,6 +50,7 @@ class CH_MODELS_API HMMWV {
     void SetContactMethod(ChMaterialSurfaceBase::ContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
+    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
     void SetDriveType(DrivelineType val) { m_driveType = val; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
@@ -93,6 +94,7 @@ class CH_MODELS_API HMMWV {
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
     ChMaterialSurfaceBase::ContactMethod m_contactMethod;
+    ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
 
     DrivelineType m_driveType;
@@ -122,8 +124,8 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
 
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType)
-                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod);
+        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_chassisCollisionType)
+                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
     }
 };
 
@@ -134,8 +136,8 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
 
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType)
-                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod);
+        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType)
+                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
     }
 };
 

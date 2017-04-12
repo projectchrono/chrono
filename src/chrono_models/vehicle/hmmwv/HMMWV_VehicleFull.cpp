@@ -31,22 +31,26 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
-                                     DrivelineType driveType,
-                                     ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : HMMWV_Vehicle(contactMethod, driveType) {
-    Create(fixed);
+                                     DrivelineType drive_type,
+                                     ChMaterialSurfaceBase::ContactMethod contact_method,
+                                     ChassisCollisionType chassis_collision_type)
+    : HMMWV_Vehicle(contact_method, drive_type) {
+    Create(fixed, chassis_collision_type);
 }
 
-HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system, const bool fixed, DrivelineType driveType)
-    : HMMWV_Vehicle(system, driveType) {
-    Create(fixed);
+HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
+                                     const bool fixed,
+                                     DrivelineType drive_type,
+                                     ChassisCollisionType chassis_collision_type)
+    : HMMWV_Vehicle(system, drive_type) {
+    Create(fixed, chassis_collision_type);
 }
 
-void HMMWV_VehicleFull::Create(bool fixed) {
+void HMMWV_VehicleFull::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed);
+    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // -------------------------------------------
     // Create the suspension subsystems

@@ -20,7 +20,9 @@
 #define M113_VEHICLE_H
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
+
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
@@ -30,16 +32,20 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
-                 ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    M113_Vehicle(bool fixed, TrackShoeType shoe_type, ChSystem* system);
+    M113_Vehicle(bool fixed,
+                 TrackShoeType shoe_type,
+                 ChSystem* system,
+                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~M113_Vehicle() {}
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
 
     TrackShoeType m_type;  ///< type of track assembly (SINGLE_PIN or DOUBLE_PIN)
 };

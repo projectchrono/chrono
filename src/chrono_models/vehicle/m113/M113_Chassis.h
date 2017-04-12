@@ -24,6 +24,7 @@
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
@@ -32,7 +33,9 @@ namespace m113 {
 /// M113 chassis subsystem.
 class CH_MODELS_API M113_Chassis : public ChRigidChassis {
   public:
-    M113_Chassis(const std::string& name, bool fixed = false);
+    M113_Chassis(const std::string& name,
+                 bool fixed = false,
+                 ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
     ~M113_Chassis() {}
 
     /// Return the mass of the chassis body.
