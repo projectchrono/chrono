@@ -58,6 +58,9 @@ VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
+// Collision type for chassis (PRIMITIVES, MESH, or NONE)
+ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -112,6 +115,7 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
+    my_hmmwv.SetChassisCollisionType(chassis_collision_type);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);

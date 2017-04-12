@@ -90,15 +90,22 @@ void AddFixedObstacles(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    // --------------------------
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
+    // --------------------------
+
+    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM, chassis_collision_type);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
     use_mkl = false;
 #endif
 
-    // Solver and integrator settings.
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+
     if (use_mkl) {
 #ifdef CHRONO_MKL
         auto mkl_solver = std::make_shared<ChSolverMKL<>>();
@@ -126,12 +133,16 @@ int main(int argc, char* argv[]) {
         ////vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
     }
 
+    // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Control steering type (enable crossdrive capability).
+    // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Initialize the vehicle at the specified position.
+    // ------------------------------------------------
+    // Initialize the vehicle at the specified position
+    // ------------------------------------------------
+
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -142,13 +153,32 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    // Control internal collisions and contact monitoring.
-    ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT));
-    ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
+    // --------------------------------------------------
+    // Control internal collisions and contact monitoring
+    // --------------------------------------------------
+
+    // Enable contact on all tracked vehicle parts, except the left sprocket
+    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+
+    // Disable contact for all tracked vehicle parts
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+
+    // Disable all contacts for vehicle chassis (if chassis collision was defined)
+    ////vehicle.SetChassisCollide(false);
+
+    // Disable only contact between chassis and track shoes (if chassis collision was defined)
+    ////vehicle.SetChassisVehicleCollide(false);
+
+    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+
+    // Collect contact information
     ////vehicle.SetContactCollection(true);
 
+    // ------------------
     // Create the terrain
+    // ------------------
+
     RigidTerrain terrain(vehicle.GetSystem());
     terrain.SetContactFrictionCoefficient(0.9f);
     terrain.SetContactRestitutionCoefficient(0.01f);
@@ -159,11 +189,17 @@ int main(int argc, char* argv[]) {
 
     AddFixedObstacles(vehicle.GetSystem());
 
+    // ----------------------------
     // Create the powertrain system
+    // ----------------------------
+
     M113_SimplePowertrain powertrain;
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
+    // ---------------------------------------
     // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
     ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -174,7 +210,10 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // ------------------------
     // Create the driver system
+    // ------------------------
+
     ChIrrGuiDriver driver(app);
 
     // Set the time response for keyboard inputs.
@@ -187,7 +226,10 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
     // Initialize output
+    // -----------------
+
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
