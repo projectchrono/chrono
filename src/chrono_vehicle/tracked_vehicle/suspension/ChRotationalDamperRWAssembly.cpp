@@ -109,6 +109,12 @@ double ChRotationalDamperRWAssembly::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
+    return m_spring->GetRelAngle();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChRotationalDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;

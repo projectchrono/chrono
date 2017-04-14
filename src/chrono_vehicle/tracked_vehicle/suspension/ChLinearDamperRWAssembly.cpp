@@ -112,6 +112,12 @@ double ChLinearDamperRWAssembly::GetMass() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+double ChLinearDamperRWAssembly::GetCarrierAngle() const {
+    return m_spring->GetRelAngle();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 void ChLinearDamperRWAssembly::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::NONE)
         return;

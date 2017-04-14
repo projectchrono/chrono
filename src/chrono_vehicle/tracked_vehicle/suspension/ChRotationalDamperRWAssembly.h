@@ -46,6 +46,11 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
+    /// Return the current pitch angle of the carrir body.
+    /// This angle is measured in the x-z transversal plane, from the initial configuration,
+    /// and follows the right-hand rule.
+    virtual double GetCarrierAngle() const override;
+
     /// Get a handle to the revolute joint of the arm.
     std::shared_ptr<ChLinkLockRevolute> GetArmRevolute() const { return m_revolute; }
 
