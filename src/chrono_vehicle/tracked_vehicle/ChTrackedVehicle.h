@@ -163,6 +163,9 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// If enabled, contact information will be collected for all monitored subsystems.
     void SetContactCollection(bool val) { m_contacts->SetContactCollection(val); }
 
+    /// Return true if the specified vehicle part is currently experiencing a collision.
+    bool IsPartInContact(TrackedCollisionFlag::Enum part) const { return m_contacts->InContact(part); }
+
     /// Write contact information to file.
     /// If data collection was enabled and at least one subsystem is monitored,
     /// contact information is written (in CSV format) to the specified file.

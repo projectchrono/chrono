@@ -25,6 +25,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
+#include "chrono_vehicle/ChChassis.h"
 #include "chrono_vehicle/tracked_vehicle/ChSprocket.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
 #include "chrono_vehicle/tracked_vehicle/ChIdler.h"
@@ -59,6 +60,8 @@ class ChTrackContactManager : public chrono::ChReportContactCallback {
 
     void Process(ChTrackedVehicle* vehicle);
 
+    bool InContact(TrackedCollisionFlag::Enum part) const;
+
   private:
     bool IsFlagSet(TrackedCollisionFlag::Enum val) { return (m_flags & static_cast<int>(val)) != 0; }
 
@@ -79,6 +82,7 @@ class ChTrackContactManager : public chrono::ChReportContactCallback {
 
     utils::CSV_writer m_csv;
 
+    std::shared_ptr<ChChassis> m_chassis;
     std::shared_ptr<ChSprocket> m_sprocket_L;
     std::shared_ptr<ChSprocket> m_sprocket_R;
     std::shared_ptr<ChIdler> m_idler_L;
@@ -88,6 +92,8 @@ class ChTrackContactManager : public chrono::ChReportContactCallback {
 
     size_t m_shoe_index_L;                                ///< index of monitored track shoe on left track
     size_t m_shoe_index_R;                                ///< index of monitored track shoe on right track
+
+    std::list<ChTrackContactInfo> m_chassis_contacts;     ///< list of contacts on chassis
     std::list<ChTrackContactInfo> m_sprocket_L_contacts;  ///< list of contacts on left sprocket gear
     std::list<ChTrackContactInfo> m_sprocket_R_contacts;  ///< list of contacts on right sprocket gear
     std::list<ChTrackContactInfo> m_shoe_L_contacts;      ///< list of contacts on left track shoe

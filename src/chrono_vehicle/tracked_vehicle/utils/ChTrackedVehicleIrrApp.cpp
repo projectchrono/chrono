@@ -102,6 +102,9 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     // Contact normals on idler wheels.
     renderContactNormals(m_tvehicle->m_contacts->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
     renderContactNormals(m_tvehicle->m_contacts->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
+
+    // Contact normals on chassis.
+    renderContactNormals(m_tvehicle->m_contacts->m_chassis_contacts, video::SColor(255, 0, 180, 0));
 }
 
 // Render normal for all contacts in the specified list, using the given color.
