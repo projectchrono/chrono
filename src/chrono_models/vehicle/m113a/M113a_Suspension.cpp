@@ -53,7 +53,7 @@ public:
         if (angle < m_lowerstop) {
             force -= m_kstop*(angle - m_lowerstop);
         }
-        else if (angle > m_lowerstop) {
+        else if (angle > m_upperstop) {
             force -= m_kstop*(angle - m_upperstop);
         }
 
