@@ -66,6 +66,9 @@ class CH_MODELS_API M113a_Suspension : public ChLinearDamperRWAssembly {
     static const double m_torsion_k;
     static const double m_torsion_c;
     static const double m_torsion_t;
+    static const double m_torsion_kstop;
+    static const double m_torsion_lowerstop;
+    static const double m_torsion_upperstop;
 
     static const double m_shock_c;
 };
