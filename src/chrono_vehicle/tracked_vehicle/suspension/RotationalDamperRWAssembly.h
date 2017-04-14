@@ -46,10 +46,10 @@ class CH_VEHICLE_API RotationalDamperRWAssembly : public ChRotationalDamperRWAss
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
-    /// Return the funtion for torsion force.
-    virtual ChLinkForce* GetTorsionForceFunction() const override { return m_torsion_force; }
+    /// Return the callback function for the torsional spring force.
+    virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const override { return m_spring_torqueCB; }
 
-    /// Return the callback function for shock force.
+    /// Return the callback function for the torsional shock force.
     virtual ChRotSpringTorqueCallback* GetShockTorqueCallback() const override { return m_shock_torqueCB; }
 
   private:
@@ -59,7 +59,7 @@ class CH_VEHICLE_API RotationalDamperRWAssembly : public ChRotationalDamperRWAss
 
     void LoadRoadWheel(const std::string& filename);
 
-    ChLinkForce* m_torsion_force;
+    ChRotSpringTorqueCallback* m_spring_torqueCB;
     ChRotSpringTorqueCallback* m_shock_torqueCB;
 
     ChVector<> m_points[NUM_POINTS];
