@@ -242,7 +242,7 @@ class MapSpringDamperActuatorForce : public ChSpringForceCallback {
 /// Utility class for specifying a linear rotational spring torque.
 class LinearSpringTorque : public ChRotSpringTorqueCallback {
   public:
-    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(0) {}
+    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(rest_angle) {}
     virtual double operator()(double time, double angle, double vel) override { return -m_k * (angle - m_rest_angle); }
 
   private:
@@ -250,7 +250,7 @@ class LinearSpringTorque : public ChRotSpringTorqueCallback {
     double m_rest_angle;
 };
 
-/// Utility class for specifying a linear rotational damper force.
+/// Utility class for specifying a linear rotational damper torque.
 class LinearDamperTorque : public ChRotSpringTorqueCallback {
   public:
     LinearDamperTorque(double c) : m_c(c) {}
@@ -260,11 +260,42 @@ class LinearDamperTorque : public ChRotSpringTorqueCallback {
     double m_c;
 };
 
-/// Utility class for specifying a map rotational spring force.
+/// Utility class for specifying a linear rotational spring-damper torque.
+class LinearSpringDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringDamperTorque(double k, double c, double rest_angle = 0) : m_k(k), m_c(c), m_rest_angle(rest_angle) {}
+    virtual double operator()(double time, double angle, double vel) override {
+        return -m_k * (angle - m_rest_angle) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a linear rotational spring-damper torque with pre-tension.
+class LinearSpringDamperActuatorTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringDamperActuatorTorque(double k, double c, double t, double rest_angle = 0)
+        : m_k(k), m_c(c), m_t(t), m_rest_angle(rest_angle) {}
+    virtual double operator()(double time, double angle, double vel) override {
+        return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_t;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a map rotational spring torque.
 class MapSpringTorque : public ChRotSpringTorqueCallback {
   public:
     MapSpringTorque() {}
-    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0) : m_rest_angle(rest_angle) {
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0)
+        : m_rest_angle(rest_angle) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
@@ -274,12 +305,12 @@ class MapSpringTorque : public ChRotSpringTorqueCallback {
         return -m_map.Get_y(angle - m_rest_angle);
     }
 
-private:
+  private:
     ChFunction_Recorder m_map;
     double m_rest_angle;
 };
 
-/// Utility class for specifying a map rotational damper force.
+/// Utility class for specifying a map rotational damper torque.
 class MapDamperTorque : public ChRotSpringTorqueCallback {
   public:
     MapDamperTorque() {}
