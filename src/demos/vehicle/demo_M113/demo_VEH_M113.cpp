@@ -87,6 +87,7 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
+void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
@@ -94,7 +95,7 @@ int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
     // --------------------------
 
-    ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
     M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM, chassis_collision_type);
 
 #ifndef CHRONO_MKL
@@ -169,10 +170,16 @@ int main(int argc, char* argv[]) {
     // Disable only contact between chassis and track shoes (if chassis collision was defined)
     ////vehicle.SetChassisVehicleCollide(false);
 
-    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
-    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+    // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
+    ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
 
-    // Collect contact information
+    // Monitor only contacts involving the chassis.
+    vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
+
+    // Collect contact information.
+    // If enabled, number of contacts and local contact point locations are collected for all
+    // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
     // ------------------
@@ -187,7 +194,12 @@ int main(int argc, char* argv[]) {
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
+    // --------------------------------
+    // Add fixed and/or falling objects
+    // --------------------------------
+
     AddFixedObstacles(vehicle.GetSystem());
+    ////AddFallingObjects(vehicle.GetSystem());
 
     // ----------------------------
     // Create the powertrain system
@@ -337,6 +349,11 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step_size);
         app.Advance(step_size);
 
+        // Report if the chassis experienced a collision
+        if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
+            std::cout << time << "  chassis contact" << std::endl;
+        }
+
         // Increment frame number
         step_number++;
     }
@@ -348,8 +365,8 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 void AddFixedObstacles(ChSystem* system) {
-    double radius = 2;
-    double length = 10;
+    double radius = 2.2;
+    double length = 6;
 
     float friction_coefficient = 0.9f;
     float restitution_coefficient = 0.01f;
@@ -396,4 +413,33 @@ void AddFixedObstacles(ChSystem* system) {
     }
 
     system->AddBody(obstacle);
+}
+
+// =============================================================================
+void AddFallingObjects(ChSystem* system) {
+    double radius = 0.1;
+    double mass = 10;
+
+    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    ball->SetMass(mass);
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+    ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
+    ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    ball->SetPos_dt(ChVector<>(3, 0, 0));
+    ball->SetBodyFixed(false);
+
+    ball->SetCollide(true);
+    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->BuildModel();
+
+    auto sphere = std::make_shared<ChSphereShape>();
+    sphere->GetSphereGeometry().rad = radius;
+    ball->AddAsset(sphere);
+
+    auto mtexture = std::make_shared<ChTexture>();
+    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    ball->AddAsset(mtexture);
+
+    system->AddBody(ball);
 }
