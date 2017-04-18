@@ -35,30 +35,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIdler::ChIdler(const std::string& name)
-    : ChPart(name),
-      m_friction(0.7f),
-      m_restitution(0.1f),
-      m_young_modulus(1e8f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChIdler::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChIdler::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
+ChIdler::ChIdler(const std::string& name) : ChPart(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

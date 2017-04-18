@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    ////rig->SetCollide(TrackCollide::NONE);
-    ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
+    ////rig->SetCollide(TrackedCollisionFlag::NONE);
+    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.

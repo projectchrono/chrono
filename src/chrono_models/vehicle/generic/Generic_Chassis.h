@@ -19,7 +19,7 @@
 #ifndef GENERIC_CHASSIS_H
 #define GENERIC_CHASSIS_H
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -27,7 +27,7 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
-class CH_MODELS_API Generic_Chassis : public ChChassis {
+class CH_MODELS_API Generic_Chassis : public ChRigidChassis {
   public:
     Generic_Chassis(const std::string& name);
     ~Generic_Chassis() {}

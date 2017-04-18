@@ -34,6 +34,10 @@ namespace vehicle {
 /// @addtogroup vehicle
 /// @{
 
+// -----------------------------------------------------------------------------
+// Utility classes and structures for data exchange
+// -----------------------------------------------------------------------------
+
 /// Enum for the side (left/right) of a vehicle.
 enum VehicleSide {
     LEFT = 0,  ///< left side of vehicle is always 0
@@ -116,6 +120,10 @@ struct TrackShoeForce {
 
 /// Vector of tire force structures.
 typedef std::vector<TrackShoeForce> TrackShoeForces;
+
+// -----------------------------------------------------------------------------
+// Utility functor classes for force elements
+// -----------------------------------------------------------------------------
 
 /// Utility class for specifying a linear translational spring force.
 class LinearSpringForce : public ChSpringForceCallback {
@@ -234,7 +242,7 @@ class MapSpringDamperActuatorForce : public ChSpringForceCallback {
 /// Utility class for specifying a linear rotational spring torque.
 class LinearSpringTorque : public ChRotSpringTorqueCallback {
   public:
-    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(0) {}
+    LinearSpringTorque(double k, double rest_angle = 0) : m_k(k), m_rest_angle(rest_angle) {}
     virtual double operator()(double time, double angle, double vel) override { return -m_k * (angle - m_rest_angle); }
 
   private:
@@ -242,7 +250,7 @@ class LinearSpringTorque : public ChRotSpringTorqueCallback {
     double m_rest_angle;
 };
 
-/// Utility class for specifying a linear rotational damper force.
+/// Utility class for specifying a linear rotational damper torque.
 class LinearDamperTorque : public ChRotSpringTorqueCallback {
   public:
     LinearDamperTorque(double c) : m_c(c) {}
@@ -252,11 +260,42 @@ class LinearDamperTorque : public ChRotSpringTorqueCallback {
     double m_c;
 };
 
-/// Utility class for specifying a map rotational spring force.
+/// Utility class for specifying a linear rotational spring-damper torque.
+class LinearSpringDamperTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringDamperTorque(double k, double c, double rest_angle = 0) : m_k(k), m_c(c), m_rest_angle(rest_angle) {}
+    virtual double operator()(double time, double angle, double vel) override {
+        return -m_k * (angle - m_rest_angle) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a linear rotational spring-damper torque with pre-tension.
+class LinearSpringDamperActuatorTorque : public ChRotSpringTorqueCallback {
+  public:
+    LinearSpringDamperActuatorTorque(double k, double c, double t, double rest_angle = 0)
+        : m_k(k), m_c(c), m_t(t), m_rest_angle(rest_angle) {}
+    virtual double operator()(double time, double angle, double vel) override {
+        return m_t - m_k * (angle - m_rest_angle) - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_t;
+    double m_rest_angle;
+};
+
+/// Utility class for specifying a map rotational spring torque.
 class MapSpringTorque : public ChRotSpringTorqueCallback {
   public:
     MapSpringTorque() {}
-    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0) : m_rest_angle(rest_angle) {
+    MapSpringTorque(const std::vector<std::pair<double, double>>& data, double rest_angle = 0)
+        : m_rest_angle(rest_angle) {
         for (unsigned int i = 0; i < data.size(); ++i) {
             m_map.AddPoint(data[i].first, data[i].second);
         }
@@ -266,12 +305,12 @@ class MapSpringTorque : public ChRotSpringTorqueCallback {
         return -m_map.Get_y(angle - m_rest_angle);
     }
 
-private:
+  private:
     ChFunction_Recorder m_map;
     double m_rest_angle;
 };
 
-/// Utility class for specifying a map rotational damper force.
+/// Utility class for specifying a map rotational damper torque.
 class MapDamperTorque : public ChRotSpringTorqueCallback {
   public:
     MapDamperTorque() {}
@@ -286,6 +325,10 @@ class MapDamperTorque : public ChRotSpringTorqueCallback {
   private:
     ChFunction_Recorder m_map;
 };
+
+// -----------------------------------------------------------------------------
+// Enums and flags for wheeled and tracked vehicles
+// -----------------------------------------------------------------------------
 
 /// Enum for visualization types.
 enum class VisualizationType {
@@ -330,6 +373,15 @@ enum class DrivelineType {
     SIMPLE
 };
 
+/// Enumerations for wheeled vehicle collision families.
+namespace WheeledCollisionFamily {
+// Note: we cannot use strongly typed enums, since these are passed as integers
+enum Enum {
+    CHASSIS = 0,  ///< chassis collision family
+    TIRES = 1     ///< collision family for tire systems
+};
+}
+
 /// Enum for track shoe types.
 enum class TrackShoeType {
     SINGLE_PIN,  ///< single-pin track shoe and sprocket
@@ -343,31 +395,34 @@ enum class GuidePinType {
 };
 
 /// Enumerations for track collision flags.
-namespace TrackCollide {
+namespace TrackedCollisionFlag {
 // Note: we cannot use strongly typed enums since these are used as integers
 enum Enum {
     NONE = 0,
-    SPROCKET_LEFT = 1 << 0,
-    SPROCKET_RIGHT = 1 << 1,
-    IDLER_LEFT = 1 << 2,
-    IDLER_RIGHT = 1 << 3,
-    WHEELS_LEFT = 1 << 4,
-    WHEELS_RIGHT = 1 << 5,
-    SHOES_LEFT = 1 << 6,
-    SHOES_RIGHT = 1 << 7,
+    CHASSIS = 1 << 0,
+    SPROCKET_LEFT = 1 << 1,
+    SPROCKET_RIGHT = 1 << 2,
+    IDLER_LEFT = 1 << 3,
+    IDLER_RIGHT = 1 << 4,
+    WHEELS_LEFT = 1 << 5,
+    WHEELS_RIGHT = 1 << 6,
+    SHOES_LEFT = 1 << 7,
+    SHOES_RIGHT = 1 << 8,
+    ROLLERS_LEFT = 1 << 9,
+    ROLLERS_RIGHT = 1 << 10,
     ALL = 0xFFFF
 };
 }
 
-/// Enumerations for track collision families.
-namespace TrackCollisionFamily {
+/// Enumerations for tracked vehicle collision families.
+namespace TrackedCollisionFamily {
 // Note: we cannot use strongly typed enums, since these are passed as integers
 enum Enum {
     CHASSIS = 0,  ///< chassis collision family
     IDLERS = 1,   ///< collision family for idler subsystems
     WHEELS = 2,   ///< collision family for road-wheel assemblies
-    SHOES = 3,    ///< collision family for track shoe subsystems
-    ROLLERS = 4   ///< collision family for roller subsystems
+    ROLLERS = 3,  ///< collision family for roller subsystems
+    SHOES = 4     ///< collision family for track shoe subsystems
 };
 }
 

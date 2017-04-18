@@ -34,20 +34,54 @@ const double M113a_Suspension::m_torsion_a0 = 0;
 const double M113a_Suspension::m_torsion_k = 9557;
 const double M113a_Suspension::m_torsion_c = 191;
 const double M113a_Suspension::m_torsion_t = 0;
+const double M113a_Suspension::m_torsion_kstop = 350800;
+const double M113a_Suspension::m_torsion_lowerstop = -7.0 / 180.0 * CH_C_PI;
+const double M113a_Suspension::m_torsion_upperstop = 47.59 / 180.0 * CH_C_PI;
 
 // -----------------------------------------------------------------------------
-// M113 shock functor class - implements a (non)linear damper
+// M113 spring functor class - implements a (non)linear rotational spring
+// -----------------------------------------------------------------------------
+class M113a_SpringTorque : public ChRotSpringTorqueCallback {
+public:
+    M113a_SpringTorque(double k, double c, double t, double kstop, double lowerstop, double upperstop) 
+        : m_k(k), m_c(c), m_t(t), m_kstop(kstop), m_lowerstop(lowerstop), m_upperstop(upperstop) {}
+
+    virtual double operator()(double time, double angle, double vel) override {
+        double force = m_t - m_k * angle - m_c * vel;
+
+        //Apply bump stop spring rates if needed
+        if (angle < m_lowerstop) {
+            force -= m_kstop*(angle - m_lowerstop);
+        }
+        else if (angle > m_upperstop) {
+            force -= m_kstop*(angle - m_upperstop);
+        }
+
+        return force;
+    }
+
+private:
+    double m_k;
+    double m_c;
+    double m_t;
+    double m_kstop;
+    double m_lowerstop;
+    double m_upperstop;
+};
+
+// -----------------------------------------------------------------------------
+// M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
 class M113a_ShockForce : public ChSpringForceCallback {
   public:
     M113a_ShockForce(){}
 
     virtual double operator()(double time, double rest_length, double length, double vel) {
-        //clip the velocity to within +/- 0.254 m/s [10 in/s] 
-        vel = vel <= -0.254 ? -0.254 : vel >= 0.254 ? 0.254 : vel;
+        // Clip the velocity to within +/- 0.254 m/s [10 in/s] 
+        ChClampValue(vel, -0.254, 0.254);
 
-        //Velocity is positive in extension
-        //linear interpolate between 500lbf in extension at 10 in/s and
+        // Velocity is positive in extension.
+        // Linear interpolate between 500lbf in extension at 10 in/s and
         // -2000lbf at -10in/s (converted to N)
         return vel >= 0 ? (-8756.341762 * vel) : (-35025.36705 * vel);
     }
@@ -63,12 +97,9 @@ M113a_Suspension::M113a_Suspension(VehicleSide side, bool has_shock)
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = new M113a_ShockForce();
 
-    // Create the torsional force component.
-    m_torsion_force = new ChLinkForce;
-    m_torsion_force->Set_active(1);
-    m_torsion_force->Set_K(m_torsion_k);
-    m_torsion_force->Set_R(m_torsion_c);
-    m_torsion_force->Set_iforce(m_torsion_t);
+    // Instantiate the torque callback for the spring.
+    m_spring_torqueCB = new M113a_SpringTorque(m_torsion_k, m_torsion_c, m_torsion_t, m_torsion_kstop,
+                                               m_torsion_lowerstop, m_torsion_upperstop);
 
     // Create the associated road wheel.
     if (side == LEFT)
@@ -79,8 +110,7 @@ M113a_Suspension::M113a_Suspension(VehicleSide side, bool has_shock)
 
 M113a_Suspension::~M113a_Suspension() {
     delete m_shock_forceCB;
-    //// NOTE: Do not delete m_torsion_force here (it is deleted in the destructor for the revolute joint)
-    ////delete m_torsion_force;
+    delete m_spring_torqueCB;
 }
 
 // -----------------------------------------------------------------------------

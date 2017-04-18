@@ -12,21 +12,24 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Base class for a track shoe.
-//
-// The reference frame for a vehicle follows the ISO standard: Z-axis up, X-axis
-// pointing forward, and Y-axis towards the left of the vehicle.
+// Definitions for vehicle models.
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/ChTrackShoe.h"
+#ifndef CH_VEHICLE_MODEL_DEFS_H
+#define CH_VEHICLE_MODEL_DEFS_H
+
 
 namespace chrono {
 namespace vehicle {
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-ChTrackShoe::ChTrackShoe(const std::string& name) : ChPart(name), m_index(0) {}
+enum class ChassisCollisionType {
+    NONE,        ///< no contact shapes
+    PRIMITIVES,  ///< contact model composed of primitives
+    MESH         ///< contact model composed of convex hulls
+};
 
 }  // end namespace vehicle
 }  // end namespace chrono
+
+#endif

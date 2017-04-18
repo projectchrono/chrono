@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     use_mkl = false;
 #endif
 
-    // Solver and integrator settings.
+    // Solver and integrator settings
     if (use_mkl) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
@@ -119,10 +119,10 @@ int main(int argc, char* argv[]) {
         vehicle.GetSystem()->SetMaxItersSolverStab(50);
     }
 
-    // Control steering type (enable crossdrive capability).
+    // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Initialize the vehicle at the specified position.
+    // Initialize the vehicle at the specified position
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -134,8 +134,14 @@ int main(int argc, char* argv[]) {
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
-    ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
+
+    // Disable contact for all tracked vehicle parts
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+
+    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+
+    // Collect contact information
     ////vehicle.SetContactCollection(true);
 
     // Create the terrain

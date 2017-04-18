@@ -82,5 +82,11 @@ void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChVehicle::SetChassisCollide(bool state) {
+    m_chassis->SetCollide(state);
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono

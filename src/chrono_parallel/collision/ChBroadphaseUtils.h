@@ -315,6 +315,8 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
         short2 famA = fam_data[shapeA];
         uint bodyA = body_id[shapeA];
 
+        if (bodyA < 0)
+            continue;
         if (body_collide[bodyA] == 0)
             continue;
 
@@ -324,6 +326,8 @@ static inline void f_Count_AABB_AABB_Intersection(const uint index,
             real3 Bmin = aabb_min_data[shapeB];
             real3 Bmax = aabb_max_data[shapeB];
 
+            if (bodyB < 0)
+                continue;
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)

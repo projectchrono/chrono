@@ -46,6 +46,11 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Get a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const override { return m_arm; }
 
+    /// Return the current pitch angle of the carrir body.
+    /// This angle is measured in the x-z transversal plane, from the initial configuration,
+    /// and follows the right-hand rule.
+    virtual double GetCarrierAngle() const override;
+
     /// Get a handle to the revolute joint of the arm.
     std::shared_ptr<ChLinkLockRevolute> GetArmRevolute() const { return m_revolute; }
 
@@ -92,16 +97,17 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
-    /// Return the function for torsion force
-    virtual ChLinkForce* GetTorsionForceFunction() const = 0;
+    /// Return the callback function for the torsional spring force.
+    virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const = 0;
 
-    /// Return the callback function for shock force.
+    /// Return the callback function for the rotational shock force.
     virtual ChRotSpringTorqueCallback* GetShockTorqueCallback() const = 0;
 
     bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body
     std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< handle to the revolute joint arm-chassis
-    std::shared_ptr<ChLinkRotSpringCB> m_shock;      ///< handle to the shock link
+    std::shared_ptr<ChLinkRotSpringCB> m_spring;     ///< handle to the rotational spring link
+    std::shared_ptr<ChLinkRotSpringCB> m_shock;      ///< handle to the rotational shock link
 
   private:
     void AddVisualizationArm(const ChVector<>& pt_O,   ///< wheel center (in global frame)

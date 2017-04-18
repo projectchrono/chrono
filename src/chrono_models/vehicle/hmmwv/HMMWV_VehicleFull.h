@@ -20,6 +20,8 @@
 #define HMMWV_VEHICLE_FULL_H
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
+
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
@@ -37,10 +39,14 @@ namespace hmmwv {
 class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleFull(const bool fixed = false,
-                      DrivelineType driveType = DrivelineType::AWD,
-                      ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                      DrivelineType drive_type = DrivelineType::AWD,
+                      ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    HMMWV_VehicleFull(ChSystem* system, const bool fixed = false, DrivelineType driveType = DrivelineType::AWD);
+    HMMWV_VehicleFull(ChSystem* system,
+                      const bool fixed = false,
+                      DrivelineType drive_type = DrivelineType::AWD,
+                      ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~HMMWV_VehicleFull();
 
@@ -59,7 +65,7 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
     void DebugLog(int what);       /// shock forces and lengths, constraints, etc.
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
 };
 
 }  // end namespace hmmwv

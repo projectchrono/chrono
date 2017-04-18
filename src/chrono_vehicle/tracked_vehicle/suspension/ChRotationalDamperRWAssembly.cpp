@@ -78,11 +78,16 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chas
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(chassis, m_arm,
                            ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
-    // Add torsional spring associated with m_revolute
-    m_revolute->SetForce_Rz(GetTorsionForceFunction());
     chassis->GetSystem()->AddLink(m_revolute);
 
-    // Create and initialize the shock force element.
+    // Create and initialize the rotational spring torque element.
+    m_spring = std::make_shared<ChLinkRotSpringCB>();
+    m_spring->SetNameString(m_name + "_spring");
+    m_spring->Initialize(chassis, m_arm, ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+    m_spring->Set_RotSpringCallback(GetSpringTorqueCallback());
+    chassis->GetSystem()->AddLink(m_spring);
+
+    // Create and initialize the rotational shock torque element.
     if (m_has_shock) {
         m_shock = std::make_shared<ChLinkRotSpringCB>();
         m_shock->SetNameString(m_name + "_shock");
@@ -100,6 +105,12 @@ void ChRotationalDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chas
 // -----------------------------------------------------------------------------
 double ChRotationalDamperRWAssembly::GetMass() const {
     return GetArmMass() + m_road_wheel->GetWheelMass();
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+double ChRotationalDamperRWAssembly::GetCarrierAngle() const {
+    return m_spring->GetRelAngle();
 }
 
 // -----------------------------------------------------------------------------

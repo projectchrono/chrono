@@ -179,6 +179,8 @@ protected:
     ChFrame<>  loc_application_B;
     ChVector<> locB_force;  // store computed values here 
     ChVector<> locB_torque; // store computed values here 
+    ChFrameMoving<> frame_Aw; // for results
+    ChFrameMoving<> frame_Bw; // for results
 public:
     ChLoadBodyBody( std::shared_ptr<ChBody> mbodyA,   ///< object A
                     std::shared_ptr<ChBody> mbodyB,   ///< object B
@@ -218,6 +220,14 @@ public:
     void SetApplicationFrameB(const ChFrame<>& mpB) {this->loc_application_B = mpB;}
     ChFrame<> GetApplicationFrameB() const {return this->loc_application_B;}
 
+        /// Get absolute coordinate of frame A (last computed) 
+    ChFrameMoving<> GetAbsoluteFrameA() const {return this->frame_Aw;}
+
+        /// Get absolute coordinate of frame B (last computed)
+    ChFrameMoving<> GetAbsoluteFrameB() const {return this->frame_Bw;}
+
+    std::shared_ptr<ChBody> GetBodyA() const {return std::dynamic_pointer_cast<ChBody> (this->loadables[0]); }
+    std::shared_ptr<ChBody> GetBodyB() const {return std::dynamic_pointer_cast<ChBody> (this->loadables[1]); }
 
         /// Compute Q, the generalized load. It calls ComputeBushingForceTorque, so in
         /// children classes you do not need to implement it.
@@ -250,8 +260,8 @@ public:
             bodycoordB.SetCoord_dt(mbodyB->GetCoord_dt());
         }
         
-        ChFrameMoving<> frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;
-        ChFrameMoving<> frame_Bw = ChFrameMoving<>(loc_application_B) >> bodycoordB;
+        frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;
+        frame_Bw = ChFrameMoving<>(loc_application_B) >> bodycoordB;
         ChFrameMoving<> rel_AB = frame_Aw >> frame_Bw.GetInverse();
         
         // ----COMPUTE THE BUSHING FORCE

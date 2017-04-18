@@ -61,7 +61,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// The default value is 0.7
     void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
 
-    /// Set coefficient of restiturion.
+    /// Set coefficient of restitution.
     /// The default value is 0.1
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 
@@ -82,6 +82,23 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
                                         float kt,  ///< [in] tangential contact stiffness
                                         float gt   ///< [in] tangential contact damping
                                         );
+
+    /// Get coefficient of friction for contact material.
+    float GetCoefficientFriction() const { return m_friction; }
+    /// Get coefficient of restitution for contact material.
+    float GetCoefficientRestitution() const { return m_restitution; }
+    /// Get Young's modulus of elasticity for contact material.
+    float GetYoungModulus() const { return m_young_modulus; }
+    /// Get Poisson ratio for contact material.
+    float GetPoissonRatio() const { return m_poisson_ratio; }
+    /// Get normal stiffness coefficient for contact material.
+    float GetKn() const { return m_kn; }
+    /// Get tangential stiffness coefficient for contact material.
+    float GetKt() const { return m_kt; }
+    /// Get normal viscous damping coefficient for contact material.
+    float GetGn() const { return m_gn; }
+    /// Get tangential viscous damping coefficient for contact material.
+    float GetGt() const { return m_gt; }
 
     /// Enable/disable terrain visualization (default: true).
     /// Note that this is ignored when constructing a terrain object from a JSON specification file.
@@ -148,14 +165,14 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     std::string m_mesh_name;
     double m_height;
 
-    float m_friction;
-    float m_restitution;
-    float m_young_modulus;
-    float m_poisson_ratio;
-    float m_kn;
-    float m_gn;
-    float m_kt;
-    float m_gt;
+    float m_friction;       ///< contact coefficient of friction
+    float m_restitution;    ///< contact coefficient of restitution
+    float m_young_modulus;  ///< contact material Young modulus
+    float m_poisson_ratio;  ///< contact material Poisson ratio
+    float m_kn;             ///< normal contact stiffness
+    float m_gn;             ///< normal contact damping
+    float m_kt;             ///< tangential contact stiffness
+    float m_gt;             ///< tangential contact damping
 
     void ApplyContactMaterial();
 };

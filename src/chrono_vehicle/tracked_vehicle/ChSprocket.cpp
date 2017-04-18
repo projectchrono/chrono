@@ -31,34 +31,10 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocket::ChSprocket(const std::string& name)
-    : ChPart(name),
-      m_callback(NULL),
-      m_friction(0.4f),
-      m_restitution(0.1f),
-      m_young_modulus(1e7f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20) {}
+ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_callback(NULL) {}
 
 ChSprocket::~ChSprocket() {
     delete m_callback;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSprocket::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChSprocket::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------

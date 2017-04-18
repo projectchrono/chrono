@@ -1,0 +1,28 @@
+{
+  "Name":     "M113 vehicle",
+  "Type":     "Vehicle",
+  "Template": "TrackedVehicle",
+
+  "Chassis":
+  {
+    "Input File":           "M113/chassis/M113_Chassis_mesh.json"
+  },
+
+  "Track Assemblies":
+  [
+    {
+      "Input File":         "M113/track_assembly/M113_TrackAssemblySinglePin_Left.json",
+      "Offset":             1.0795
+    },
+
+    {
+      "Input File":         "M113/track_assembly/M113_TrackAssemblySinglePin_Right.json",
+      "Offset":             -1.0795
+    }
+  ],
+
+  "Driveline":
+  {
+    "Input File":           "M113/driveline/M113_SimpleTrackDriveline.json"
+  }
+}

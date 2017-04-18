@@ -29,18 +29,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRigidTire::ChRigidTire(const std::string& name)
-    : ChTire(name),
-      m_use_contact_mesh(false),
-      m_trimesh(nullptr),
-      m_friction(0.7f),
-      m_restitution(0.1f),
-      m_young_modulus(2e5f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5f),
-      m_gn(40),
-      m_kt(2e5f),
-      m_gt(20) {}
+ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name), m_use_contact_mesh(false), m_trimesh(nullptr) {}
 
 ChRigidTire::~ChRigidTire() {
     delete m_trimesh;
@@ -56,24 +45,12 @@ void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sph
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChRigidTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ChTire::Initialize(wheel, side);
 
     wheel->SetCollide(true);
+
+    wheel->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
 
     if (m_use_contact_mesh) {
         // Mesh contact

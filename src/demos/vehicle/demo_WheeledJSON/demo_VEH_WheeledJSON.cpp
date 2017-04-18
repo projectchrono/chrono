@@ -128,8 +128,8 @@ int main(int argc, char* argv[]) {
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    ////vehicle.GetChassisBody()->SetBodyFixed(true);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);

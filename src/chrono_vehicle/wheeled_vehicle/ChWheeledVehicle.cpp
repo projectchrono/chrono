@@ -22,6 +22,19 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// Initialize this vehicle at the specified global location and orientation.
+// This base class implementation only initializes the chassis subsystem.
+// Derived classes must extend this function to initialize all other wheeled
+// vehicle subsystems (steering, suspensions, wheels, brakes, and driveline).
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+
+    // Set the collision family for the chassis body.
+    m_chassis->GetBody()->GetCollisionModel()->SetFamily(WheeledCollisionFamily::CHASSIS);
+}
+
+// -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
 // The vehicle system is provided the current driver inputs (throttle between
 // 0 and 1, steering between -1 and +1, braking between 0 and 1), the torque
@@ -71,6 +84,20 @@ void ChWheeledVehicle::SetSteeringVisualizationType(VisualizationType vis) {
 void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < m_wheels.size(); ++i) {
         m_wheels[i]->SetVisualizationType(vis);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Enable/disable collision between the chassis and all other vehicle subsystems
+// This only controls collisions between the chassis and the tire systems.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
+    if (state) {
+        // Chassis collides with tires
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRES);
+    } else {
+        // Chassis does not collide with tires
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRES);
     }
 }
 

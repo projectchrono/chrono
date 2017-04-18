@@ -103,17 +103,15 @@ class CH_VEHICLE_API ChChassis : public ChPart {
                             double chassisFwdVel             ///< [in] initial chassis forward velocity
                             );
 
+    /// Enable/disable contact for the chassis. This function controls contact of
+    /// the chassis with all other collision shapes in the simulation.
+    virtual void SetCollide(bool state) = 0;
+
     /// Set the "fixed to ground" status of the chassis body.
     void SetFixed(bool val) { m_body->SetBodyFixed(val); }
 
     /// Return true if the chassis body is fixed to ground.
     bool IsFixed() const { return m_body->GetBodyFixed(); }
-
-    /// Add visualization assets to this subsystem, for the specified visualization mode.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
-    /// Remove all visualization assets from this subsystem.
-    virtual void RemoveVisualizationAssets() override final;
 
   protected:
     std::shared_ptr<ChBodyAuxRef> m_body;  ///< handle to the chassis body
