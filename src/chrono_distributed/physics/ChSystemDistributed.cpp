@@ -24,6 +24,7 @@
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/other_types.h"
 #include "chrono_distributed/physics/ChDomainDistributed.h"
+#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -32,6 +33,7 @@
 #include "chrono_parallel/math/other_types.h"
 
 using namespace chrono;
+using namespace collision;
 
 ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects)
 {
@@ -45,6 +47,8 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 
 	this->ghost_layer = ghost_layer;
 	this->num_bodies_global = 0;
+
+	collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 }
 
 ChSystemDistributed::~ChSystemDistributed()
@@ -161,7 +165,6 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody)
 	GetLog() << " GID: " << newbody->GetGid() << " on Rank: " << my_rank << "\n";
 	//-------------------------------------------------
 
-
 	newbody->SetId(data_manager->num_rigid_bodies);
 	bodylist.push_back(newbody);
 	data_manager->num_rigid_bodies++;
@@ -185,13 +188,10 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 	newbody->SetId(data_manager->num_rigid_bodies);
 	bodylist.push_back(newbody);
 	data_manager->num_rigid_bodies++;
-	newbody->SetSystem(this); //TODO might add collision of the body?
 
-	GetLog() << "A\n";
-	//newbody->SetCollide(true); //TODO syncs!! the collision models need to add the model first
-	GetLog() << "B\n";
+	newbody->SetSystem(this); //TODO adds the collision model to the collisionsystem
+
 	newbody->SetBodyFixed(false);
-	GetLog() << "C\n";
 
 	// Actual data is set in UpdateBodies()
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -202,6 +202,14 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 	// Let derived classes reserve space for specific material surface data
 	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
 	GetLog() << "End AddBodyExchange\n";
+}
+
+void ChSystemDistributed::RemoveBodyExchange(int index)
+{
+	ddm->comm_status[index] = distributed::EMPTY;
+	bodylist[index]->SetBodyFixed(true);
+	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove - but this does nothing
+
 }
 
 // Used to end the program on an error and print a message.
@@ -246,14 +254,14 @@ void ChSystemDistributed::PrintBodyStatus()
 				adhesion, const_ad, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young);*/
 		}
 	}
-/*
+
 	GetLog() << "\tData Manager:\n";
 	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
 	{
 		int status = ddm->comm_status[i];
 		unsigned int gid = ddm->global_id[i];
 
-		if (status != distributed::EMPTY)
+		//if (status != distributed::EMPTY)
 		{
 			if (status == distributed::SHARED_DOWN)
 			{
@@ -275,6 +283,10 @@ void ChSystemDistributed::PrintBodyStatus()
 			{
 				GetLog() << "\tGlobal ID: " << gid << " Owned";
 			}
+			else if (status == distributed::GLOBAL)
+			{
+				GetLog() << "\tGlobal ID: " << gid << " Global";
+			}
 			else
 			{
 				GetLog() << "\tERROR: Global ID: " << gid << " Undefined comm_status\n";
@@ -284,9 +296,43 @@ void ChSystemDistributed::PrintBodyStatus()
 			fprintf(stdout, " Pos: %.2f,%.2f,%.2f\n",pos.x, pos.y, pos.z);
 		}
 	}
-	*/
+
 }
 
+void ChSystemDistributed::PrintShapeData()
+{
+	std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
+	int i = 0;
+	printf("Shape data: Rank %d:\n", my_rank);
+	for (; bl_itr != bodylist.end(); bl_itr++, i++)
+	{
+		if (ddm->comm_status[i] != distributed::EMPTY)
+		{
+			int body_start = ddm->body_shape_start[i];
+			printf("Body %d: ", i);
+			for (int j = 0; j < ddm->body_shape_count[i]; j++)
+			{
+				std::string msg;
+				int shape_index = ddm->body_shapes[body_start + j];
+
+				switch (data_manager->shape_data.typ_rigid[shape_index])
+				{
+				case chrono::collision::SPHERE:
+					printf("Sphere: r %.3f, ", data_manager->shape_data.sphere_rigid[data_manager->shape_data.start_rigid[shape_index]]);
+					break;
+				case chrono::collision::BOX:
+					printf("Box: "); //TODO
+					break;
+				default:
+					printf("Undefined Shape, ");
+				}
+			}
+			printf("\n");
+		}
+	}
+}
+
+// Outputs all bodies in the system to a CSV file
 void ChSystemDistributed::WriteCSV(int fileCounter)
 {
 	const std::string file_name = "../granular/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
@@ -294,14 +340,18 @@ void ChSystemDistributed::WriteCSV(int fileCounter)
 	std::ofstream file;
 	file.open(file_name);
 	std::stringstream ss_particles;
-	ss_particles << "x,y,z,vx,vy,vz,U,r\n";
+	ss_particles << "X,Y,Z,vx,vy,vz,U,r\n";
 
 	std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
-	for (; bl_itr != bodylist.end(); bl_itr++)
+	int i = 0;
+	for (; bl_itr != bodylist.end(); bl_itr++,i++)
 	{
-		ChVector<> pos = (*bl_itr)->GetPos();
-		ChVector<> vel = (*bl_itr)->GetPos_dt();
-		ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << 0.15 << std::endl;
+		if (ddm->comm_status[i] != distributed::EMPTY)
+		{
+			ChVector<> pos = (*bl_itr)->GetPos();
+			ChVector<> vel = (*bl_itr)->GetPos_dt();
+			ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << 0.15 << std::endl;
+		}
 	}
 
 	file << ss_particles.str();

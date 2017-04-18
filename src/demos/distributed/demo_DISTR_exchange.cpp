@@ -5,6 +5,8 @@
 #include <cmath>
 
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
+#include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
+
 #include "chrono/ChConfig.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -68,13 +70,13 @@ void AddFallingBall(ChSystemDistributed* sys)
 
 
 
-    ChVector<> pos(0,0,60);
+    ChVector<> pos(0,0,51.5);
 
 
 
 
 
-    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
+    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
     ball->SetMaterialSurface(ballMat);
 
     ball->SetIdentifier(ballId++);
@@ -147,6 +149,8 @@ int main(int argc, char *argv[])
             OutputData(&my_sys, out_frame, time);
             out_frame++;
             my_sys.PrintBodyStatus();
+            my_sys.PrintShapeData();
+            my_sys.WriteCSV(i);
         }
         my_sys.DoStepDynamics(time_step);
         time += time_step;

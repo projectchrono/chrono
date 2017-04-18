@@ -20,10 +20,12 @@ ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed *my_sys)
 {
 	this->my_sys = my_sys;
 	data_manager = my_sys->data_manager;
+	/*
 	num_sharedup = 0;
 	num_shareddown = 0;
 	num_ghostup = 0;
 	num_ghostdown = 0;
+	*/
 }
 
 ChDistributedDataManager::~ChDistributedDataManager(){}

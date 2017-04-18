@@ -130,7 +130,7 @@ protected:
 	int num_senddown;
 
 private:
-	void ProcessBuf(int num_recv, double* buf, int updown);
+	void ProcessBuffer(int num_recv, double* buf, int updown);
 };
 
 } /* namespace chrono */

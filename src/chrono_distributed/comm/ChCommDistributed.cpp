@@ -18,6 +18,8 @@
 #include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
+#include "chrono_distributed/collision/ChCollisionModelDistributed.h"
+#include "chrono_distributed/collision/ChCollisionSystemDistributed.h"
 #include "chrono_distributed/other_types.h"
 
 #include "chrono_parallel/ChDataManager.h"
@@ -29,6 +31,7 @@
 #include "chrono/physics/ChMaterialSurfaceDEM.h"
 
 using namespace chrono;
+using namespace collision;
 
 ChCommDistributed::ChCommDistributed(ChSystemDistributed *my_sys)
 {
@@ -52,7 +55,7 @@ ChCommDistributed::~ChCommDistributed()
 // Processes an incoming message from another rank.
 // updown determines if this buffer was received from the rank above this rank
 // or below this rank. updown = 1 => up, updown = 0 ==> down
-void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
+void ChCommDistributed::ProcessBuffer(int num_recv, double* buf, int updown)
 {
 	int first_empty = 0;
 	int n = 0; // Current index in the recved buffer
@@ -73,7 +76,8 @@ void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
 			// a new body to add
 			if (first_empty == data_manager->num_rigid_bodies)
 			{
-				body = std::make_shared<ChBody>();
+				body = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+				body->SetId(data_manager->num_rigid_bodies);
 			}
 			// If an empty space was found in the body manager
 			else
@@ -93,7 +97,6 @@ void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
 			{
 				ddm->comm_status[first_empty] = status;
 				body->SetBodyFixed(false);
-				body->SetCollide(true);
 			}
 		}
 
@@ -113,6 +116,8 @@ void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
 					if ((int) buf[n+1] == distributed::FINAL_UPDATE_GIVE)
 					{
 						ddm->comm_status[i] = distributed::OWNED;
+						GetLog() << "Owning gid " << gid << " on rank " << my_sys->GetMyRank() << "\n";
+						my_sys->PrintBodyStatus();
 					}
 					break;
 				}
@@ -124,15 +129,15 @@ void ChCommDistributed::ProcessBuf(int num_recv, double* buf, int updown)
 						<< my_sys->GetMyRank() << "\n";
 			}
 			n += UnpackUpdate(buf + n, body);
+			my_sys->PrintBodyStatus();
 		}
 		else if ((int) buf[n+1] == distributed::FINAL_UPDATE_TAKE)
 		{
 			unsigned int gid = (unsigned int) buf[n+2];
 			int id = ddm->GetLocalIndex(gid);
-			GetLog() << "Remove gid " << gid << ", id " << id << " rank " << my_sys->GetMyRank() << "\n";
-			ddm->comm_status[id] = distributed::EMPTY;
-			(*data_manager->body_list)[id]->SetBodyFixed(true);
-			(*data_manager->body_list)[id]->SetCollide(false);
+			GetLog() << "RemoveA gid " << gid << ", id " << id << " rank " << my_sys->GetMyRank() << "\n";
+
+			my_sys->RemoveBodyExchange(id);
 			n += 3;
 		}
 		else
@@ -179,6 +184,7 @@ void ChCommDistributed::Exchange()
 			// be packed to create a ghost on another rank
 			else if (curr_status == distributed::OWNED)
 			{
+				my_sys->PrintBodyStatus();
 				GetLog() << "Exchange: rank " << my_rank
 						<< " -- " << ddm->global_id[i] << " --> rank " <<
 						my_rank + 1 << "\n";
@@ -222,11 +228,11 @@ void ChCommDistributed::Exchange()
 				num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::FINAL_UPDATE_GIVE);
 			}
 
-			GetLog() << "Remove: GID " << ddm->global_id[i] << " from rank "
+			GetLog() << "RemoveB: GID " << ddm->global_id[i] << " from rank "
 					<< my_rank << "\n";
-			ddm->comm_status[i] = distributed::EMPTY;
-			(*data_manager->body_list)[i]->SetBodyFixed(true);
-			(*data_manager->body_list)[i]->SetCollide(false);
+			my_sys->PrintBodyStatus();
+
+			my_sys->RemoveBodyExchange(i);
 		}
 
 		// If the body is no longer involved with either neighbor, remove it from the other rank
@@ -257,9 +263,11 @@ void ChCommDistributed::Exchange()
 		num_sendup = 1;
 	}
 
+	MPI_Request up_rq;
 	// send up
 	if (my_rank != num_ranks - 1)
 	{
+		//MPI_Isend(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world, &up_rq);
 		MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world);
 	}
 
@@ -270,9 +278,11 @@ void ChCommDistributed::Exchange()
 		num_senddown = 1;
 	}
 
+	MPI_Request down_rq;
 	// send down
 	if (my_rank != 0)
 	{
+		//MPI_Isend(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world, &down_rq);
 		MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world);
 	}
 
@@ -295,7 +305,7 @@ void ChCommDistributed::Exchange()
 	// (or thread to do both at the same time)
 	if (my_rank != 0 && recvdown_buf[0] != 0)
 	{
-		ProcessBuf(num_recvdown, recvdown_buf, 0);
+		ProcessBuffer(num_recvdown, recvdown_buf, 0);
 	}
 
 	delete recvdown_buf;
@@ -314,7 +324,7 @@ void ChCommDistributed::Exchange()
 	// Process message from up.
 	if (my_rank != num_ranks - 1 && recvup_buf[0] != 0)
 	{
-		ProcessBuf(num_recvup, recvup_buf, 1);
+		ProcessBuffer(num_recvup, recvup_buf, 1);
 	}
 
 	delete recvup_buf;
@@ -322,6 +332,7 @@ void ChCommDistributed::Exchange()
 }
 
 
+// TODO has bug of
 void ChCommDistributed::CheckExchange()
 {
 	int *checkup_buf = new int[10000]; // TODO buffer sizes based on num_shared and num_ghost
@@ -329,7 +340,7 @@ void ChCommDistributed::CheckExchange()
 	int *checkdown_buf = new int[10000];
 	int idown = 0;
 
-	my_sys->PrintBodyStatus();
+	//my_sys->PrintBodyStatus();
 	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
 	{
 		switch(ddm->comm_status[i])
@@ -368,13 +379,18 @@ void ChCommDistributed::CheckExchange()
 		idown = 1;
 	}
 
+	MPI_Request up_rq;
 	if (my_rank != num_ranks - 1)
 	{
+		//MPI_Isend(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world, &up_rq);
 		MPI_Send(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world);
 	}
+	MPI_Request down_rq;
 	if (my_rank != 0)
 	{
+		//MPI_Isend(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world, &down_rq);
 		MPI_Send(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world);
+
 	}
 
 	delete checkup_buf;
@@ -400,8 +416,13 @@ void ChCommDistributed::CheckExchange()
 		for (int i = 0; i < num_recvdown; i += 2)
 		{
 			int local_id = ddm->GetLocalIndex((unsigned int) recvdown_buf[i+1]);
-			int status_match = (recvdown_buf[i] == distributed::SHARED_UP) ? distributed::GHOST_DOWN : distributed::SHARED_DOWN;
-			if (ddm->comm_status[local_id] == status_match)
+			int status_to_match = (recvdown_buf[i] == distributed::SHARED_UP) ? distributed::GHOST_DOWN : distributed::SHARED_DOWN;
+			if (local_id == -1)
+			{
+				GetLog() << "ERROR: GID " << (unsigned int) recvdown_buf[i+1] << " not on rank " << my_rank << " and on rank "
+										<< my_rank - 1 << " as " << recvdown_buf[i] << "\n";
+			}
+			else if (ddm->comm_status[local_id] == status_to_match)
 			{
 				continue;
 			}
@@ -432,16 +453,21 @@ void ChCommDistributed::CheckExchange()
 		{
 			int local_id = ddm->GetLocalIndex((unsigned int) recvup_buf[i+1]);
 			int status_match = (recvup_buf[i] == distributed::SHARED_DOWN) ? distributed::GHOST_UP : distributed::SHARED_UP;
-			if (ddm->comm_status[local_id] == status_match)
+			if (local_id == -1)
+			{
+				GetLog() << "ERROR: GID: " << (unsigned int) recvup_buf[i+1] << " not on rank " << my_rank << " and on rank "
+							<< my_rank + 1 << " as " << recvup_buf[i] << "\n";
+			}
+			else if (ddm->comm_status[local_id] == status_match)
 			{
 				continue;
 			}
 			else
 			{
 				// TODO handle mismatch
-				GetLog() << "MISMATCH: GID " << (unsigned int) recvdown_buf[i+1] << "seen on "
+				GetLog() << "MISMATCH: GID " << (unsigned int) recvup_buf[i+1] << "seen on "
 						<< my_rank << " as " << (int) ddm->comm_status[local_id] << " and on rank "
-						<< my_rank + 1 << " as " << recvdown_buf[i] << "\n";
+						<< my_rank + 1 << " as " << recvup_buf[i] << "\n";
 				my_sys->PrintBodyStatus();
 			}
 		}
@@ -514,12 +540,42 @@ int ChCommDistributed::PackExchange(double *buf, int index)
 
 
     // Collision
-    buf[m++] = double(data_manager->host_data.collide_rigid[index]);
+    buf[m++] = (double) data_manager->host_data.collide_rigid[index];
 
-	// TODO how to get at the geometry in data manager??
+    int shape_count = ddm->body_shape_count[index];
+    buf[m++] = (double) shape_count;
+    for (int i = 0; i < shape_count; i++)
+    {
+    	int shape_index = ddm->body_shapes[ddm->body_shape_start[index] + i];
+    	int type = data_manager->shape_data.typ_rigid[shape_index];
+    	int start = data_manager->shape_data.start_rigid[shape_index];
+    	buf[m++] = (double) type;
 
+		buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].x;
+		buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].y;
+		buf[m++] = data_manager->shape_data.ObA_rigid[shape_index].z;
 
+		buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].x;
+		buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].y;
+		buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].z;
+		buf[m++] = data_manager->shape_data.ObR_rigid[shape_index].w;
 
+		//buf[m++] = data_manager->shape_data.fam_rigid[shape_index]; short2??
+
+    	switch(type)
+    	{
+    	case chrono::collision::SPHERE:
+    		buf[m++] = data_manager->shape_data.sphere_rigid[start];
+    		break;
+    	case chrono::collision::BOX:
+    		buf[m++] = data_manager->shape_data.box_like_rigid[start].x;
+    		buf[m++] = data_manager->shape_data.box_like_rigid[start].y;
+    		buf[m++] = data_manager->shape_data.box_like_rigid[start].z;
+    		break;
+    	default:
+    		GetLog() << "Invalid shape for transfer\n";
+    	}
+    }
 
 	buf[0] = (double) m;
 
@@ -546,7 +602,8 @@ int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	body->SetRot(ChQuaternion<double>(buf[m],buf[m+1],buf[m+2],buf[m+3]));
 	m += 4;
 
-	// Linear and Angular Velocities
+	// Linear and Angular Velocities TODO: these do not set velocity...
+	/*
     body->Variables().Get_qb().SetElementN(0, buf[m++]);
     body->Variables().Get_qb().SetElementN(1, buf[m++]);
     body->Variables().Get_qb().SetElementN(2, buf[m++]);
@@ -554,6 +611,12 @@ int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
     body->Variables().Get_qb().SetElementN(3, buf[m++]);
     body->Variables().Get_qb().SetElementN(4, buf[m++]);
     body->Variables().Get_qb().SetElementN(5, buf[m++]);
+	*/
+
+	body->SetPos_dt(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
+
+	m+=3;
+	m+=3; //TODO ********** how to set angular velocity. how many values needed?
 
 	// Mass
 	body->SetMass(buf[m++]);
@@ -580,8 +643,34 @@ int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 
 	body->SetMaterialSurface(mat);
 
-	//body->SetCollide((bool) buf[m++]);
-	m++;
+	bool collide = (bool) buf[m++];
+
+    // Collision
+	int shape_count = (int) buf[m++];
+	for (int i = 0; i < shape_count; i++)
+	{
+		int type = (int) buf[m++];
+		body->GetCollisionModel()->ClearModel();
+		ChVector<double> A(buf[m++],buf[m++],buf[m++]);
+		ChQuaternion<double> R(buf[m++],buf[m++],buf[m++],buf[m++]);
+		switch(type)
+		{
+		case chrono::collision::SPHERE:
+			GetLog() << "Unpacking Sphere\n";
+			body->GetCollisionModel()->AddSphere(buf[m++], A); //TODO does anything with pos?
+			break;
+		case chrono::collision::BOX:
+			GetLog() << "Unpacking Box\n";
+			body->GetCollisionModel()->AddBox(buf[m++],buf[m++],buf[m++], A); // TODO does anything with pos ?? rotation as quaternion vs matrix??
+			break;
+		default:
+			GetLog() << "Unpacking undefined collision shape\n";
+		}
+	}
+
+	body->GetCollisionModel()->BuildModel(); // Doesn't call collisionsystem::add since system isn't set yet.
+	body->SetSystem(my_sys); // TODO where should this go? calls collisionsystem::add ??
+	body->SetCollide(collide);
 
 	return m;
 }
@@ -626,7 +715,7 @@ int ChCommDistributed::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 {
 	int m = 2; // Skip size value and type value
 
-	// Global Id
+	// Global Id //TODO not needed??
 	body->SetGid((unsigned int) buf[m++]);
 
 	// Position
@@ -637,7 +726,8 @@ int ChCommDistributed::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 	body->SetRot(ChQuaternion<double>(buf[m],buf[m+1],buf[m+2],buf[m+3]));
 	m += 4;
 
-	// Linear and Angular Velocities
+	// Linear and Angular Velocities TODO
+	/*
     body->Variables().Get_qb().SetElementN(0, buf[m++]);
     body->Variables().Get_qb().SetElementN(1, buf[m++]);
     body->Variables().Get_qb().SetElementN(2, buf[m++]);
@@ -645,6 +735,10 @@ int ChCommDistributed::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
     body->Variables().Get_qb().SetElementN(3, buf[m++]);
     body->Variables().Get_qb().SetElementN(4, buf[m++]);
     body->Variables().Get_qb().SetElementN(5, buf[m++]);
+	*/
+	body->SetPos_dt(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
+	m+=3;
+	m+=3;
 
 	return m;
 }

@@ -35,22 +35,32 @@ public:
 	std::vector<unsigned int> global_id; ///< Global id of each body
 	std::vector<distributed::COMM_STATUS> comm_status; ///< Communication status of each body
 
-
-	// TODO
-	std::vector<int> num_shapes;	///< The number of collision shapes that each body has
-	std::vector<vec3> shape_indices;	///< Maps body index to shape index in data_manager->shape_data
-										///< Requires that each body have 3 or fewer contact shapes
-	std::vector<bool> free_shapes;	///< Indicates if a shape index is empty TODO
-
 	ChParallelDataManager *data_manager;
 	ChSystemDistributed *my_sys;
 
-	std::vector<int> ghosts; // TODO
+	std::vector<int> body_shape_start; ///< Start index in body_shapes of the shapes associated with this BODY
+	std::vector<int> body_shape_count; ///< Number of shapes associated with this BODY
+	std::vector<int> body_shapes; ///< Indices of shapes in data_manager->shape_data for a given SHAPE
 
+	// TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
+	// DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index
+	// and therefore can be checked for validity by checking the body status
+
+	// When receiving a body and adding its collision shapes, need 1)to find a spot in body shapes large enough for all of the
+	// body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
+
+	std::vector<bool> my_free_shapes;	///< Indicates that the free spaces in body_shapes
+	std::vector<bool> dm_free_shapes;	///< Indicates that the space in the data_manager->shape_data is available
+
+
+
+	//std::vector<int> ghosts; // TODO
+/*
 	int num_sharedup;
 	int num_shareddown;
 	int num_ghostup;
 	int num_ghostdown;
+*/
 
 	/// Returns the local index of a body, given its global id
 	int GetLocalIndex(unsigned int gid);

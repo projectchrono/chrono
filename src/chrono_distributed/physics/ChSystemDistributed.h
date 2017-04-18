@@ -57,10 +57,12 @@ public:
 	virtual bool Integrate_Y() override;
     virtual void UpdateRigidBodies() override;
 
+    void RemoveBodyExchange(int index);
 	ChDomainDistributed* GetDomain() {return domain;}
 	ChCommDistributed* GetComm() {return comm;}
 	void ErrorAbort(std::string msg);
 	void PrintBodyStatus();
+	void PrintShapeData();
 	void WriteCSV(int fileCounter);
 
 	MPI_Comm GetMPIWorld() {return world;}

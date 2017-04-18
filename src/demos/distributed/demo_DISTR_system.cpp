@@ -132,12 +132,17 @@ int main(int argc, char *argv[])
 	MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
 	int num_threads = 0;
-#pragma omp parallel reduction(+:num_threads)
+
+	omp_set_num_threads(num_threads);
+
+	int thread_count = 0;
+#pragma omp parallel reduction(+:thread_count)
 	{
-		num_threads++;
+		thread_count++;
 	}
+
 	std::cout << "Running on " << num_ranks << " MPI ranks.\n";
-	std::cout << "Running on " << num_threads << " OpenMP threads.\n";
+	std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
 	double time_step = 1e-3;
     double time_end = 100;
@@ -189,7 +194,8 @@ int main(int argc, char *argv[])
             OutputData(&my_sys, out_frame, time);
             out_frame++;
             my_sys.PrintBodyStatus();
-            my_sys.WriteCSV(i);
+         //   my_sys.PrintShapeData();
+           my_sys.WriteCSV(i);
         }
         my_sys.DoStepDynamics(time_step);
         time += time_step;
