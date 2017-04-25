@@ -50,6 +50,8 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     wheel->SetCollide(true);
 
+    wheel->GetCollisionModel()->ClearModel();
+
     wheel->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
 
     if (m_use_contact_mesh) {
@@ -57,16 +59,14 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
         m_trimesh = new geometry::ChTriangleMeshConnected;
         m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
-        wheel->GetCollisionModel()->ClearModel();
         wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                     m_sweep_sphere_radius);
-        wheel->GetCollisionModel()->BuildModel();
     } else {
         // Cylinder contact
-        wheel->GetCollisionModel()->ClearModel();
         wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
-        wheel->GetCollisionModel()->BuildModel();
     }
+
+    wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:

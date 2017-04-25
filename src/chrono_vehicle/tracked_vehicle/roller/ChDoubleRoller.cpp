@@ -44,13 +44,15 @@ void ChDoubleRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChV
 
     m_wheel->SetCollide(true);
 
+    m_wheel->GetCollisionModel()->ClearModel();
+
     m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::ROLLERS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
 
-    m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
+    
     m_wheel->GetCollisionModel()->BuildModel();
 }
 

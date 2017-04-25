@@ -63,7 +63,8 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// Initialize the chassis at the specified global position and orientation.
     virtual void Initialize(ChSystem* system,                ///< [in] containing system
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                            double chassisFwdVel             ///< [in] initial chassis forward velocity
+                            double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                            int collision_family = 0         ///< [in] chassis collision family
                             ) override;
 
     /// Add visualization assets to this subsystem, for the specified visualization mode.

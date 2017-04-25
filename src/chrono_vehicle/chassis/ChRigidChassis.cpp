@@ -36,8 +36,11 @@ ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Invoke the base class method.
+void ChRigidChassis::Initialize(ChSystem* system,
+                                const ChCoordsys<>& chassisPos,
+                                double chassisFwdVel,
+                                int collision_family) {
+    // Invoke the base class method to construct the frame body.
     ChChassis::Initialize(system, chassisPos, chassisFwdVel);
 
     // Set chassis body contact material properties.
@@ -66,6 +69,9 @@ void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos
         m_body->SetCollide(true);
 
         m_body->GetCollisionModel()->ClearModel();
+
+        m_body->GetCollisionModel()->SetFamily(collision_family);
+
         for (auto sphere : m_coll_spheres) {
             m_body->GetCollisionModel()->AddSphere(sphere.m_radius, sphere.m_pos);
         }
