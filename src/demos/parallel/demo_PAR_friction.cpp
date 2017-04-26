@@ -40,7 +40,7 @@ int main(int argc, char** argv) {
     // ----------------
     double radius = 0.5;
 
-    double time_step = 1e-3;
+    double time_step = 0.01;
     int num_threads = 1;
 
     uint max_iteration_normal = 0;
@@ -53,7 +53,7 @@ int main(int argc, char** argv) {
     // --------------------------
 
     ChSystemParallelDVI system;
-    system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads
     system.SetParallelThreadNumber(num_threads);
@@ -76,11 +76,11 @@ int main(int argc, char** argv) {
     system.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
     system.GetSettings()->solver.alpha = 0;
-    system.GetSettings()->solver.contact_recovery_speed = 0.1;
+    system.GetSettings()->solver.contact_recovery_speed =1e32;
     system.GetSettings()->solver.use_full_inertia_tensor = false;
-    system.GetSettings()->solver.tolerance = 0.1;
+    system.GetSettings()->solver.tolerance = 0;
 
-    system.GetSettings()->collision.collision_envelope = 0.05 * radius;
+    system.GetSettings()->collision.collision_envelope = 0.1 * radius;
     system.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
@@ -92,17 +92,17 @@ int main(int argc, char** argv) {
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
-    container->GetMaterialSurface()->SetFriction(0.4f);
+    container->GetMaterialSurface()->SetFriction(0.6f);
     container->GetMaterialSurface()->SetRollingFriction(1);
     container->GetMaterialSurface()->SetSpinningFriction(1);
 
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-    utils::AddBoxGeometry(container.get(), ChVector<>(10, 10, 1), ChVector<>(0, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 10, 2), ChVector<>(10, 0, 0)); 
-    utils::AddBoxGeometry(container.get(), ChVector<>(1, 10, 2), ChVector<>(-10, 0, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(10, 1, 2), ChVector<>(0, -10, 0));
-    utils::AddBoxGeometry(container.get(), ChVector<>(10, 1, 2), ChVector<>(0, 10, 0));
+	utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20)/2.0, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, 10));
     container->GetCollisionModel()->BuildModel();
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
@@ -119,9 +119,9 @@ int main(int argc, char** argv) {
         ball->SetInertiaXX(ChVector<>(inertia));
 
         // Initial position and velocity
-        ball->SetPos(ChVector<>(-6, -5 + bi * radius * 2.5, 1 + radius));
+        ball->SetPos(ChVector<>(-7, radius - 0.5, -5 + bi * radius * 2.5));
         ball->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
-        ball->SetWvel_par(ChVector<>(0, initial_angspeed, 0));
+        ball->SetWvel_par(ChVector<>(0, 0, -initial_angspeed));
 
         // Contact geometry
         ball->SetCollide(true);
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
         // Sliding and rolling friction coefficients
         ball->GetMaterialSurface()->SetFriction(0.4f);
-        ball->GetMaterialSurface()->SetRollingFriction((bi / 10.0f) * 0.05f);
+        ball->GetMaterialSurface()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
         system.Add(ball);
@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
 		ball->SetInertiaXX(ChVector<>(inertia));
 
 		// Initial position and velocity
-		ball->SetPos(ChVector<>(-8, -5 + bi * radius * 2.5, 1 + radius));
+		ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
 		ball->SetPos_dt(ChVector<>(0, 0, 0));
 		ball->SetWvel_par(ChVector<>(0, 0, 20));
 
@@ -171,7 +171,7 @@ int main(int argc, char** argv) {
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Settling test", &system);
-    gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), 0.05f);
+    gl_window.SetCamera(ChVector<>(10, 10, 20), ChVector<>(0, 0, 0), ChVector<>(0, 1, 0), 0.05f);
     gl_window.SetRenderMode(opengl::WIREFRAME);
 #endif
 
@@ -183,9 +183,12 @@ int main(int argc, char** argv) {
     double time_out = 2.5;
     bool output = false;
 
-    while (system.GetChTime() < time_end) {
-        system.DoStepDynamics(time_step);
+    while (true) {
+#ifdef CHRONO_OPENGL
 
+#else
+        system.DoStepDynamics(time_step);
+#endif
         if (!output && system.GetChTime() >= time_out) {
             for (int i = 1; i <= 10; i++) {
                 auto pos = system.Get_bodylist()->at(i)->GetPos();
@@ -197,9 +200,10 @@ int main(int argc, char** argv) {
 #ifdef CHRONO_OPENGL
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active()) {
+			gl_window.DoStepDynamics(time_step);
             gl_window.Render();
         } else {
-            return 1;
+            break;
         }
 #endif
     }
