@@ -29,13 +29,13 @@ namespace chrono {
 namespace vehicle {
 
 ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
-                                           ChBezierCurve* path,
-                                           const std::string& path_name,
-                                           double target_speed,
-                                           double target_following_time,
-                                           double target_min_distance,
-                                           double current_distance,
-                                           bool isClosedPath)
+                                                 std::shared_ptr<ChBezierCurve> path,
+                                                 const std::string& path_name,
+                                                 double target_speed,
+                                                 double target_following_time,
+                                                 double target_min_distance,
+                                                 double current_distance,
+                                                 bool isClosedPath)
     : ChDriver(vehicle),
       m_steeringPID(path, isClosedPath),
       m_pathName(path_name),
@@ -48,15 +48,15 @@ ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
 }
 
 ChPathFollowerACCDriver::ChPathFollowerACCDriver(ChVehicle& vehicle,
-                                           const std::string& steering_filename,
-                                           const std::string& speed_filename,
-                                           ChBezierCurve* path,
-                                           const std::string& path_name,
-                                           double target_speed,
-                                           double target_following_time,
-                                           double target_min_distance,
-                                           double current_distance,
-                                           bool isClosedPath)
+                                                 const std::string& steering_filename,
+                                                 const std::string& speed_filename,
+                                                 std::shared_ptr<ChBezierCurve> path,
+                                                 const std::string& path_name,
+                                                 double target_speed,
+                                                 double target_following_time,
+                                                 double target_min_distance,
+                                                 double current_distance,
+                                                 bool isClosedPath)
     : ChDriver(vehicle),
       m_steeringPID(steering_filename, path, isClosedPath),
       m_speedPID(speed_filename),
@@ -93,13 +93,8 @@ void ChPathFollowerACCDriver::Reset() {
 
 void ChPathFollowerACCDriver::Advance(double step) {
     // Set the throttle and braking values based on the output from the speed controller.
-    double out_speed = m_speedPID.Advance(m_vehicle, 
-                                          m_target_speed,
-                                          m_target_following_time, 
-                                          m_target_min_distance,
-                                          m_current_distance, 
-                                          step
-                                          );
+    double out_speed = m_speedPID.Advance(m_vehicle, m_target_speed, m_target_following_time, m_target_min_distance,
+                                          m_current_distance, step);
     ChClampValue(out_speed, -1.0, 1.0);
 
     if (out_speed > 0) {

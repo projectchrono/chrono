@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     // Create the Bezier path
     // ----------------------
 
-    ChBezierCurve* path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ////path->write("my_path.txt");
 
     // ---------------------------------------

@@ -12,17 +12,10 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Utility classes implementing PID steering controllers. The base class
-// implements the basic functionality to control the error between the location
-// of a sentinel point (a point at a look-ahead distance in front of the vehicle)
-// and the current target point.
-// Derived classes differ in how they specify the target point.  This can be the
-// closest point to the sentinel point on a pre-defined curve path (currently
-// using a ChBezierCurve) or from some other external sources (e.g. interfacing
-// with a camera sensor).
+// Utility classes implementing PID speed controllers.
 //
 // An object of this type can be used within a Chrono::Vehicle driver model to
-// provide the steering output.
+// provide the throttle/braking outputs.
 //
 // =============================================================================
 
