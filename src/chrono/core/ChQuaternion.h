@@ -1057,12 +1057,10 @@ inline void ChQuaternion<Real>::Q_from_AngAxis(Real angle, const ChVector<Real>&
 
 template <class Real>
 inline void ChQuaternion<Real>::Q_to_AngAxis(Real& a_angle, ChVector<Real>& a_axis) const {
-    Real arg;
-    Real invsine;
     if (fabs(data[0]) < 0.99999999) {
-        arg = acos(data[0]);
+        Real arg = acos(data[0]);
+        Real invsine = 1 / sin(arg);
         a_angle = 2 * arg;
-        invsine = 1 / sin(arg);
         a_axis.x() = invsine * data[1];
         a_axis.y() = invsine * data[2];
         a_axis.z() = invsine * data[3];
