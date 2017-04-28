@@ -117,7 +117,7 @@ void ChCommDistributed::ProcessBuffer(int num_recv, double* buf, int updown)
 					{
 						ddm->comm_status[i] = distributed::OWNED;
 						GetLog() << "Owning gid " << gid << " on rank " << my_sys->GetMyRank() << "\n";
-						my_sys->PrintBodyStatus();
+						//my_sys->PrintBodyStatus();
 					}
 					break;
 				}
@@ -129,7 +129,7 @@ void ChCommDistributed::ProcessBuffer(int num_recv, double* buf, int updown)
 						<< my_sys->GetMyRank() << "\n";
 			}
 			n += UnpackUpdate(buf + n, body);
-			my_sys->PrintBodyStatus();
+			//my_sys->PrintBodyStatus();
 		}
 		else if ((int) buf[n+1] == distributed::FINAL_UPDATE_TAKE)
 		{
@@ -175,19 +175,19 @@ void ChCommDistributed::Exchange()
 			// If the body has already been shared, it need only update its corresponding ghost
 			if (curr_status == distributed::SHARED_UP)
 			{
-				GetLog() << "Update: rank " << my_rank
-						<< " -- " << ddm->global_id[i] << " --> rank "
-						<< my_rank + 1 << "\n";
+				//GetLog() << "Update: rank " << my_rank
+				//		<< " -- " << ddm->global_id[i] << " --> rank "
+				//		<< my_rank + 1 << "\n";
 				num_sendup += PackUpdate(sendup_buf + num_sendup, i, distributed::UPDATE);
 			}
 			// If the body is being marked as shared for the first time, the whole body must
 			// be packed to create a ghost on another rank
 			else if (curr_status == distributed::OWNED)
 			{
-				my_sys->PrintBodyStatus();
-				GetLog() << "Exchange: rank " << my_rank
-						<< " -- " << ddm->global_id[i] << " --> rank " <<
-						my_rank + 1 << "\n";
+				//my_sys->PrintBodyStatus();
+				//GetLog() << "Exchange: rank " << my_rank
+				//		<< " -- " << ddm->global_id[i] << " --> rank " <<
+				//		my_rank + 1 << "\n";
 				num_sendup += PackExchange(sendup_buf + num_sendup, i);
 				ddm->comm_status[i] = distributed::SHARED_UP;
 			}
@@ -199,18 +199,18 @@ void ChCommDistributed::Exchange()
 			if (curr_status == distributed::SHARED_DOWN)
 			{
 				// If the body has already been shared, it need only update its corresponding ghost
-				GetLog() << "Update: rank " << my_rank << " -- "
-						<< ddm->global_id[i] << " --> rank "
-						<< my_rank - 1 << "\n";
+				//GetLog() << "Update: rank " << my_rank << " -- "
+				//		<< ddm->global_id[i] << " --> rank "
+				//		<< my_rank - 1 << "\n";
 				num_senddown += PackUpdate(senddown_buf + num_senddown, i, distributed::UPDATE);
 			}
 			else if (curr_status == distributed::OWNED)
 			{
 				// If the body is being marked as shared for the first time, the whole body must
 				// be packed to create a ghost on another rank
-				GetLog() << "Exchange: rank " << my_rank
-						<< " -- " << ddm->global_id[i] << " --> rank "
-						<< my_rank - 1 << "\n";
+				//GetLog() << "Exchange: rank " << my_rank
+				//		<< " -- " << ddm->global_id[i] << " --> rank "
+				//		<< my_rank - 1 << "\n";
 				num_senddown += PackExchange(senddown_buf + num_senddown, i);
 				ddm->comm_status[i] = distributed::SHARED_DOWN;
 			}
@@ -230,7 +230,7 @@ void ChCommDistributed::Exchange()
 
 			GetLog() << "RemoveB: GID " << ddm->global_id[i] << " from rank "
 					<< my_rank << "\n";
-			my_sys->PrintBodyStatus();
+		//	my_sys->PrintBodyStatus();
 
 			my_sys->RemoveBodyExchange(i);
 		}
@@ -267,8 +267,8 @@ void ChCommDistributed::Exchange()
 	// send up
 	if (my_rank != num_ranks - 1)
 	{
-		//MPI_Isend(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world, &up_rq);
-		MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world);
+		MPI_Isend(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world, &up_rq);
+		//MPI_Send(sendup_buf, num_sendup, MPI_DOUBLE, my_rank + 1, 1, my_sys->world);
 	}
 
 	// Send empty message if there is nothing to send
@@ -282,8 +282,8 @@ void ChCommDistributed::Exchange()
 	// send down
 	if (my_rank != 0)
 	{
-		//MPI_Isend(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world, &down_rq);
-		MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world);
+		MPI_Isend(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world, &down_rq);
+		//MPI_Send(senddown_buf, num_senddown, MPI_DOUBLE, my_rank - 1, 2, my_sys->world);
 	}
 
 	// RECEIVING
@@ -295,7 +295,7 @@ void ChCommDistributed::Exchange()
 
 	if (my_sys->GetMyRank() != 0)
 	{
-		MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown);
+		MPI_Probe(my_rank - 1, 1, my_sys->world, &statusdown); //TODO hanging here
 		MPI_Get_count(&statusdown, MPI_DOUBLE, &num_recvdown);
 		recvdown_buf = new double[num_recvdown];
 		MPI_Recv(recvdown_buf, num_recvdown, MPI_DOUBLE, my_rank - 1, 1, my_sys->world, &statusdown);
@@ -382,14 +382,14 @@ void ChCommDistributed::CheckExchange()
 	MPI_Request up_rq;
 	if (my_rank != num_ranks - 1)
 	{
-		//MPI_Isend(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world, &up_rq);
-		MPI_Send(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world);
+		MPI_Isend(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world, &up_rq);
+		//MPI_Send(checkup_buf, iup, MPI_INT, my_rank + 1, 1, my_sys->world);
 	}
 	MPI_Request down_rq;
 	if (my_rank != 0)
 	{
-		//MPI_Isend(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world, &down_rq);
-		MPI_Send(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world);
+		MPI_Isend(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world, &down_rq);
+		//MPI_Send(checkdown_buf, idown, MPI_INT, my_rank - 1, 2, my_sys->world);
 
 	}
 
@@ -474,6 +474,7 @@ void ChCommDistributed::CheckExchange()
 	}
 
 	delete recvup_buf;
+	MPI_Barrier(my_sys->world);
 }
 
 
@@ -602,21 +603,15 @@ int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	body->SetRot(ChQuaternion<double>(buf[m],buf[m+1],buf[m+2],buf[m+3]));
 	m += 4;
 
-	// Linear and Angular Velocities TODO: these do not set velocity...
-	/*
-    body->Variables().Get_qb().SetElementN(0, buf[m++]);
-    body->Variables().Get_qb().SetElementN(1, buf[m++]);
-    body->Variables().Get_qb().SetElementN(2, buf[m++]);
-
-    body->Variables().Get_qb().SetElementN(3, buf[m++]);
-    body->Variables().Get_qb().SetElementN(4, buf[m++]);
-    body->Variables().Get_qb().SetElementN(5, buf[m++]);
-	*/
+	// Linear and Angular Velocities
 
 	body->SetPos_dt(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
 
 	m+=3;
-	m+=3; //TODO ********** how to set angular velocity. how many values needed?
+
+	body->SetWvel_par(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
+
+	m+=3;
 
 	// Mass
 	body->SetMass(buf[m++]);
@@ -726,18 +721,12 @@ int ChCommDistributed::UnpackUpdate(double *buf, std::shared_ptr<ChBody> body)
 	body->SetRot(ChQuaternion<double>(buf[m],buf[m+1],buf[m+2],buf[m+3]));
 	m += 4;
 
-	// Linear and Angular Velocities TODO
-	/*
-    body->Variables().Get_qb().SetElementN(0, buf[m++]);
-    body->Variables().Get_qb().SetElementN(1, buf[m++]);
-    body->Variables().Get_qb().SetElementN(2, buf[m++]);
+	// Linear and Angular Velocities
 
-    body->Variables().Get_qb().SetElementN(3, buf[m++]);
-    body->Variables().Get_qb().SetElementN(4, buf[m++]);
-    body->Variables().Get_qb().SetElementN(5, buf[m++]);
-	*/
 	body->SetPos_dt(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
 	m+=3;
+
+	body->SetWvel_par(ChVector<double>(buf[m],buf[m+1],buf[m+2]));
 	m+=3;
 
 	return m;

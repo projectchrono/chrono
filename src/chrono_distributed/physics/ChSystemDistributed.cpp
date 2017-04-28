@@ -209,6 +209,7 @@ void ChSystemDistributed::RemoveBodyExchange(int index)
 	ddm->comm_status[index] = distributed::EMPTY;
 	bodylist[index]->SetBodyFixed(true);
 	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove - but this does nothing
+	//TODO change the body index for the shape in the data manager to UINT_MAX
 
 }
 
@@ -261,7 +262,7 @@ void ChSystemDistributed::PrintBodyStatus()
 		int status = ddm->comm_status[i];
 		unsigned int gid = ddm->global_id[i];
 
-		//if (status != distributed::EMPTY)
+		if (status != distributed::EMPTY)
 		{
 			if (status == distributed::SHARED_DOWN)
 			{

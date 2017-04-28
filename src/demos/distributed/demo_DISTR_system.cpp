@@ -66,7 +66,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(5, 5, 10);
+    ChVector<> hdim(10, 10, 10); //5,5,10
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
@@ -97,7 +97,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     double radius = 0.15;
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
-    for (double z = 54; z < 57; z++)
+    for (double z = 4; z < 14; z++)
     {
     	for (int ix = -count_X; ix <= count_X; ix++) {
     		for (int iy = -count_Y; iy <= count_Y; iy++) {
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 	MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
 
-	int num_threads = 0;
+	int num_threads = 7;
 
 	omp_set_num_threads(num_threads);
 
@@ -172,8 +172,8 @@ int main(int argc, char *argv[])
 
 
 	print("Setting and dividing the domain...\n");
-	ChVector<double> domlo(-10,-10,-5);
-	ChVector<double> domhi(10,10,100);
+	ChVector<double> domlo(-10,-10,-1);
+	ChVector<double> domhi(10,10,15);
 	my_sys.GetDomain()->SetSimDomain(domlo.x(),domhi.x(),domlo.y(),domhi.y(), domlo.z(),domhi.z());
 	my_sys.GetDomain()->PrintDomain();
 	print("Creating bodies...\n");
@@ -193,7 +193,7 @@ int main(int argc, char *argv[])
         {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
-            my_sys.PrintBodyStatus();
+         //   my_sys.PrintBodyStatus();
          //   my_sys.PrintShapeData();
            my_sys.WriteCSV(i);
         }
