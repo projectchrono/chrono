@@ -89,7 +89,7 @@ void AddMovingObstacles(ChSystem* system);
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::DEM);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -320,14 +320,14 @@ void AddFixedObstacles(ChSystem* system) {
 
     switch (obstacle->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
-            obstacle->GetMaterialSurface()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurface()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
         case ChMaterialSurfaceBase::DEM:
-            obstacle->GetMaterialSurfaceDEM()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceDEM()->SetPoissonRatio(poisson_ratio);
+            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
+            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
             break;
     }
 
@@ -343,7 +343,7 @@ void AddMovingObstacles(ChSystem* system) {
     ChVector<> init_ang_vel(0, 30, 0);
 
     // Create a material
-    auto material = std::make_shared<ChMaterialSurfaceDEM>();
+    auto material = std::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
 

@@ -160,8 +160,8 @@ set(ChronoEngine_physics_SOURCES
     physics/ChNodeXYZ.cpp
     physics/ChMatterSPH.cpp
     physics/ChContactContainerBase.cpp
-    physics/ChContactContainerDVI.cpp
-    physics/ChContactContainerDEM.cpp
+    physics/ChContactContainerNSC.cpp
+    physics/ChContactContainerSMC.cpp
     physics/ChProximityContainerBase.cpp
     physics/ChProximityContainerSPH.cpp
     physics/ChShaft.cpp
@@ -181,8 +181,8 @@ set(ChronoEngine_physics_SOURCES
     physics/ChFx.cpp
     physics/ChAssembly.cpp
     physics/ChSystemDEM.cpp
-    physics/ChMaterialSurfaceDEM.cpp
-    physics/ChMaterialSurface.cpp
+    physics/ChMaterialSurfaceSMC.cpp
+    physics/ChMaterialSurfaceNSC.cpp
     physics/ChContinuumMaterial.cpp
 	  physics/ChLoadContainer.cpp
     )
@@ -194,8 +194,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBodyEasy.h
     physics/ChGenericConstraint.h
     physics/ChContactContainerBase.h
-    physics/ChContactContainerDVI.h
-    physics/ChContactContainerDEM.h
+    physics/ChContactContainerNSC.h
+    physics/ChContactContainerSMC.h
     physics/ChController.h
     physics/ChControls.h
     physics/ChConveyor.h
@@ -237,8 +237,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChMarker.h
     physics/ChMaterialCouple.h
     physics/ChMaterialSurfaceBase.h
-    physics/ChMaterialSurface.h
-    physics/ChMaterialSurfaceDEM.h
+    physics/ChMaterialSurfaceNSC.h
+    physics/ChMaterialSurfaceSMC.h
     physics/ChMatterSPH.h
     physics/ChNlsolver.h
     physics/ChNodeBase.h
@@ -268,9 +268,9 @@ set(ChronoEngine_physics_HEADERS
     physics/ChSystem.h
     physics/ChAssembly.h
     physics/ChSystemDEM.h
-    physics/ChContactDEM.h
-    physics/ChContactDVI.h
-    physics/ChContactDVIrolling.h
+    physics/ChContactSMC.h
+    physics/ChContactNSC.h
+    physics/ChContactNSCrolling.h
     physics/ChTensors.h
     physics/ChContinuumMaterial.h
     physics/ChInertiaUtils.h

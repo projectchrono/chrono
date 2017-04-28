@@ -12,12 +12,12 @@
 // Authors: Radu Serban, Alessandro Tasora
 // =============================================================================
 //
-// Penalty-based contact between two generic contactable objects.
+// Smooth (penalty-based) contact between two generic contactable objects.
 //
 // =============================================================================
 
-#ifndef CHCONTACTDEM_H
-#define CHCONTACTDEM_H
+#ifndef CH_CONTACT_SMC_H
+#define CH_CONTACT_SMC_H
 
 #include <cmath>
 #include <algorithm>
@@ -30,16 +30,16 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
 
-/// Class for penalty-based contact between two generic contactable objects.
+/// Class for smooth (penalty-based) contact between two generic contactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 template <class Ta, class Tb>
-class ChContactDEM : public ChContactTuple<Ta, Tb> {
+class ChContactSMC : public ChContactTuple<Ta, Tb> {
   public:
     typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
     typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
@@ -55,9 +55,9 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
     ChContactJacobian* m_Jac;  ///< contact Jacobian data
 
   public:
-    ChContactDEM() : m_Jac(NULL) {}
+    ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactDEM(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactSMC(ChContactContainerBase* mcontainer,      ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
@@ -66,9 +66,7 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         Reset(mobjA, mobjB, cinfo);
     }
 
-    ~ChContactDEM() {
-        delete m_Jac;
-    }
+    ~ChContactSMC() { delete m_Jac; }
 
     /// Get the contact force, if computed, in contact coordinate system
     virtual ChVector<> GetContactForce() const override { return this->contact_plane.MatrT_x_Vect(m_force); }
@@ -145,11 +143,11 @@ class ChContactDEM : public ChContactTuple<Ta, Tb> {
         double R_eff = 1;
 
         // Use static casting now, since we are sure that this contact was created only if dynamic casting was fine
-        auto mmatA = std::static_pointer_cast<ChMaterialSurfaceDEM>(this->objA->GetMaterialSurfaceBase());
-        auto mmatB = std::static_pointer_cast<ChMaterialSurfaceDEM>(this->objB->GetMaterialSurfaceBase());
+        auto mmatA = std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurfaceBase());
+        auto mmatB = std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurfaceBase());
 
         // Calculate composite material properties
-        ChCompositeMaterialDEM mat = ChMaterialSurfaceDEM::CompositeMaterial(mmatA, mmatB);
+        ChCompositeMaterialSMC mat = ChMaterialSurfaceSMC::CompositeMaterial(mmatA, mmatB);
 
         // Calculate stiffness and viscous damping coefficients.
         // All models use the following formulas for normal and tangential forces:

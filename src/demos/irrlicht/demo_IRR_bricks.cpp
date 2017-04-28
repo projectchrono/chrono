@@ -14,7 +14,7 @@
 //
 //   Demo code about
 //     - collisions and contacts
-//     - sharing a ChMaterialSurface property between bodies
+//     - sharing a ChMaterialSurfaceNSC property between bodies
 //
 // =============================================================================
 
@@ -41,7 +41,7 @@ using namespace irr::gui;
 
 void create_wall_bodies(ChSystem& mphysicalSystem) {
     // Create a material that will be shared between bricks
-    auto mmaterial = std::make_shared<ChMaterialSurface>();
+    auto mmaterial = std::make_shared<ChMaterialSurfaceNSC>();
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
@@ -93,10 +93,10 @@ void create_wall_bodies(ChSystem& mphysicalSystem) {
     mrigidBall->SetMaterialSurface(mmaterial);
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 16));          // set initial speed
-    mrigidBall->GetMaterialSurface()->SetFriction(0.4f);  // use own (not shared) matrial properties
-    mrigidBall->GetMaterialSurface()->SetCompliance(0.0);
-    mrigidBall->GetMaterialSurface()->SetComplianceT(0.0);
-    mrigidBall->GetMaterialSurface()->SetDampingF(0.2f);
+    mrigidBall->GetMaterialSurfaceNSC()->SetFriction(0.4f);  // use own (not shared) matrial properties
+    mrigidBall->GetMaterialSurfaceNSC()->SetCompliance(0.0);
+    mrigidBall->GetMaterialSurfaceNSC()->SetComplianceT(0.0);
+    mrigidBall->GetMaterialSurfaceNSC()->SetDampingF(0.2f);
 
     mphysicalSystem.Add(mrigidBall);
 
@@ -111,7 +111,7 @@ void create_wall_bodies(ChSystem& mphysicalSystem) {
 
 void create_jengatower_bodies(ChSystem& mphysicalSystem) {
     // Create a material that will be shared between bricks
-    auto mmaterial = std::make_shared<ChMaterialSurface>();
+    auto mmaterial = std::make_shared<ChMaterialSurfaceNSC>();
     mmaterial->SetFriction(0.4f);
     mmaterial->SetCompliance(0.0000005f);
     mmaterial->SetComplianceT(0.0000005f);
@@ -172,10 +172,10 @@ void create_jengatower_bodies(ChSystem& mphysicalSystem) {
     mrigidBall->SetMaterialSurface(mmaterial);
     mrigidBall->SetPos(ChVector<>(0, 3, -8));
     mrigidBall->SetPos_dt(ChVector<>(0, 0, 2));           // set initial speed
-    mrigidBall->GetMaterialSurface()->SetFriction(0.4f);  // use own (not shared) matrial properties
-    mrigidBall->GetMaterialSurface()->SetCompliance(0.0);
-    mrigidBall->GetMaterialSurface()->SetComplianceT(0.0);
-    mrigidBall->GetMaterialSurface()->SetDampingF(0.2f);
+    mrigidBall->GetMaterialSurfaceNSC()->SetFriction(0.4f);  // use own (not shared) matrial properties
+    mrigidBall->GetMaterialSurfaceNSC()->SetCompliance(0.0);
+    mrigidBall->GetMaterialSurfaceNSC()->SetComplianceT(0.0);
+    mrigidBall->GetMaterialSurfaceNSC()->SetDampingF(0.2f);
 
     mphysicalSystem.Add(mrigidBall);
 

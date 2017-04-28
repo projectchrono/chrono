@@ -24,11 +24,11 @@
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactContainerDEM.h"
-#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/physics/ChSystemDEM.h"
@@ -48,7 +48,7 @@ bool addGravity = false;
 double time_step = 0.001;
 // Forward declaration
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceDEM> mysurfmaterial,
+                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     double nu = 0.3;    ///< Poisson ratio
     auto my_material = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface propeties for further investigation.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
@@ -169,7 +169,7 @@ int main(int argc, char* argv[]) {
 }
 
 // Custom contact container -- get access to the contact lists in the base class.
-class MyContactContainer : public ChContactContainerDEM {
+class MyContactContainer : public ChContactContainerSMC {
   public:
     MyContactContainer() {}
     // Traverse the list contactlist_6_6
@@ -199,7 +199,7 @@ class MyContactContainer : public ChContactContainerDEM {
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceDEM> mysurfmaterial,
+                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,

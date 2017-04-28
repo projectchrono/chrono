@@ -53,7 +53,7 @@ my_system.SetMaxItersSolverSpeed(70)
 # Create a contact material (surface property)to share between all objects.
 # The rolling and spinning parameters are optional - if enabled they double
 # the computational time.
-brick_material = chrono.ChMaterialSurface()
+brick_material = chrono.ChMaterialSurfaceNSC()
 brick_material.SetFriction(0.5)
 brick_material.SetDampingF(0.2)
 brick_material.SetCompliance (0.0000001)

@@ -29,8 +29,8 @@
 #include "chrono/core/ChVector.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 
@@ -140,7 +140,7 @@ ChApi void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                                    const std::string& name,
                                                    const ChVector<>& pos,
                                                    const ChQuaternion<>& rot,
-                                                   std::shared_ptr<ChMaterialSurface> material,
+                                                   std::shared_ptr<ChMaterialSurfaceNSC> material,
                                                    double total_mass);
 
 ChApi void AddTriangle(ChBody* body,

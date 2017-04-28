@@ -139,7 +139,7 @@ namespace VehicleEnvironment {
 
 		wheelRF = m_pApp->getScene()->spawnEllipsoid("WheelRF", 18.0, chrono::ChVector<>(1.5, 1, 1) + Pos, chrono::ChVector<>(0.9, 0.3, 0.9)*0.5, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Z));
 		wheelRF->SetInertiaXX(inertia_wheel);
-		wheelRF->GetMaterialSurface()->SetFriction(wheel_fric);
+		wheelRF->GetMaterialSurfaceNSC()->SetFriction(wheel_fric);
 		wheelRF.body().deletable = false;
 
 		spindleLF = m_pApp->getScene()->spawnBox("SpindleLF", 33.0, chrono::ChVector<>(-1.3, 1, 1) + Pos, chrono::ChVector<>(0.1, 0.4, 0.4)*.5);
@@ -149,7 +149,7 @@ namespace VehicleEnvironment {
 
 		wheelLF = m_pApp->getScene()->spawnEllipsoid("WheelLF", 18.0, chrono::ChVector<>(-1.5, 1, 1) + Pos, chrono::ChVector<>(0.9, 0.3, 0.9)*0.5, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Z));
 		wheelLF->SetInertiaXX(inertia_wheel);
-		wheelLF->GetMaterialSurface()->SetFriction(wheel_fric);
+        wheelLF->GetMaterialSurfaceNSC()->SetFriction(wheel_fric);
 		wheelLF.body().deletable = false;
 
 		spindleRB = m_pApp->getScene()->spawnBox("SpindleRB", 33.0, chrono::ChVector<>(1.3, 1, -1) + Pos, chrono::ChVector<>(0.1, 0.4, 0.4)*.5);
@@ -159,7 +159,7 @@ namespace VehicleEnvironment {
 
 		wheelRB = m_pApp->getScene()->spawnEllipsoid("WheelRB", 18.0, chrono::ChVector<>(1.5, 1, -1) + Pos, chrono::ChVector<>(0.9, 0.3, 0.9)*0.5, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Z));
 		wheelRB->SetInertiaXX(inertia_wheel);
-		wheelRB->GetMaterialSurface()->SetFriction(wheel_fric);
+        wheelRB->GetMaterialSurfaceNSC()->SetFriction(wheel_fric);
 		wheelRB.body().deletable = false;
 
 		spindleLB = m_pApp->getScene()->spawnBox("SpindleLB", 33.0, chrono::ChVector<>(-1.3, 1, -1) + Pos, chrono::ChVector<>(0.1, 0.4, 0.4)*.5);
@@ -169,7 +169,7 @@ namespace VehicleEnvironment {
 
 		wheelLB = m_pApp->getScene()->spawnEllipsoid("WheelLB", 18.0, chrono::ChVector<>(-1.5, 1, -1) + Pos, chrono::ChVector<>(0.9, 0.3, 0.9)*0.5, chrono::Q_from_AngAxis(chrono::CH_C_PI / 2, chrono::VECT_Z));
 		wheelLB->SetInertiaXX(inertia_wheel);
-		wheelLB->GetMaterialSurface()->SetFriction(wheel_fric);
+        wheelLB->GetMaterialSurfaceNSC()->SetFriction(wheel_fric);
 		wheelLB.body().deletable = false;
 
 		double spring_k_front = 23800;//9393;

@@ -57,7 +57,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurface>();
+    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(.55, .6, .55);

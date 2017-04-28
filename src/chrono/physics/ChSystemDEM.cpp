@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
 
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolverDEM.h"
@@ -49,7 +49,7 @@ ChSystemDEM::ChSystemDEM(bool use_material_properties, unsigned int max_objects,
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
-    contact_container = std::make_shared<ChContactContainerDEM>();
+    contact_container = std::make_shared<ChContactContainerSMC>();
     contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4; 
@@ -60,12 +60,12 @@ void ChSystemDEM::SetSolverType(ChSolver::Type type) {
 
     ChSystem::SetSolverType(type);
 
-    contact_container = std::make_shared<ChContactContainerDEM>();
+    contact_container = std::make_shared<ChContactContainerSMC>();
     contact_container->SetSystem(this);
 }
 
 void ChSystemDEM::SetContactContainer(std::shared_ptr<ChContactContainerBase>  container) {
-    if (std::dynamic_pointer_cast<ChContactContainerDEM>(container))
+    if (std::dynamic_pointer_cast<ChContactContainerSMC>(container))
         ChSystem::SetContactContainer(container);
 }
 

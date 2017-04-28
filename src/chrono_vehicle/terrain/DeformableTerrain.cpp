@@ -19,8 +19,8 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/utils/ChUtilsInputOutput.h"

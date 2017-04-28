@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChContactContainerDVI.h"
+#include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 
@@ -22,23 +22,23 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChContactContainerDVI)
+CH_FACTORY_REGISTER(ChContactContainerNSC)
 
-ChContactContainerDVI::ChContactContainerDVI()
+ChContactContainerNSC::ChContactContainerNSC()
     : n_added_6_6(0), n_added_6_3(0), n_added_3_3(0), n_added_6_6_rolling(0) {}
 
-ChContactContainerDVI::ChContactContainerDVI(const ChContactContainerDVI& other) : ChContactContainerBase(other) {
+ChContactContainerNSC::ChContactContainerNSC(const ChContactContainerNSC& other) : ChContactContainerBase(other) {
     n_added_6_6 = 0;
     n_added_6_3 = 0;
     n_added_3_3 = 0;
     n_added_6_6_rolling = 0;
 }
 
-ChContactContainerDVI::~ChContactContainerDVI() {
+ChContactContainerNSC::~ChContactContainerNSC() {
     RemoveAllContacts();
 }
 
-void ChContactContainerDVI::Update(double mytime, bool update_assets) {
+void ChContactContainerNSC::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainerBase::Update(mytime, update_assets);
 }
@@ -56,14 +56,14 @@ void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int&
     n_added = 0;
 }
 
-void ChContactContainerDVI::RemoveAllContacts() {
+void ChContactContainerNSC::RemoveAllContacts() {
     _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
     _RemoveAllContacts(contactlist_6_3, lastcontact_6_3, n_added_6_3);
     _RemoveAllContacts(contactlist_3_3, lastcontact_3_3, n_added_3_3);
     _RemoveAllContacts(contactlist_6_6_rolling, lastcontact_6_6_rolling, n_added_6_6_rolling);
 }
 
-void ChContactContainerDVI::BeginAddContact() {
+void ChContactContainerNSC::BeginAddContact() {
     lastcontact_6_6 = contactlist_6_6.begin();
     n_added_6_6 = 0;
 
@@ -77,7 +77,7 @@ void ChContactContainerDVI::BeginAddContact() {
     n_added_6_6_rolling = 0;
 }
 
-void ChContactContainerDVI::EndAddContact() {
+void ChContactContainerNSC::EndAddContact() {
     // remove contacts that are beyond last contact
     while (lastcontact_6_6 != contactlist_6_6.end()) {
         delete (*lastcontact_6_6);
@@ -119,18 +119,18 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,
     n_added++;
 }
 
-void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontact) {
+void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontact) {
     assert(mcontact.modelA->GetContactable());
     assert(mcontact.modelB->GetContactable());
 
     // See if both collision models use DVI i.e. 'nonsmooth dynamics' material
-    // of type ChMaterialSurface, trying to downcast from ChMaterialSurfaceBase.
+    // of type ChMaterialSurfaceNSC, trying to downcast from ChMaterialSurfaceBase.
     // If not DVI vs DVI, just bailout (ex it could be that this was a DEM vs DEM contact)
 
     auto mmatA =
-        std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
+        std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());
     auto mmatB =
-        std::dynamic_pointer_cast<ChMaterialSurface>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
+        std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(mcontact.modelB->GetContactable()->GetMaterialSurfaceBase());
 
     if (!mmatA || !mmatB)
         return;
@@ -187,7 +187,7 @@ void ChContactContainerDVI::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
-void ChContactContainerDVI::ComputeContactForces() {
+void ChContactContainerNSC::ComputeContactForces() {
     contact_forces.clear();
     SumAllContactForces(contactlist_6_6, contact_forces);
     SumAllContactForces(contactlist_6_3, contact_forces);
@@ -222,7 +222,7 @@ void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCa
     }
 }
 
-void ChContactContainerDVI::ReportAllContacts(ChReportContactCallback* mcallback) {
+void ChContactContainerNSC::ReportAllContacts(ChReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);
@@ -245,7 +245,7 @@ void _IntStateGatherReactions(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChContactContainerNSC::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     unsigned int coffset = 0;
     _IntStateGatherReactions(coffset, contactlist_6_6, off_L, L, 3);
     _IntStateGatherReactions(coffset, contactlist_6_3, off_L, L, 3);
@@ -267,7 +267,7 @@ void _IntStateScatterReactions(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChContactContainerNSC::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     unsigned int coffset = 0;
     _IntStateScatterReactions(coffset, contactlist_6_6, off_L, L, 3);
     _IntStateScatterReactions(coffset, contactlist_6_3, off_L, L, 3);
@@ -291,7 +291,7 @@ void _IntLoadResidual_CqL(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
+void ChContactContainerNSC::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                                 const ChVectorDynamic<>& L,  ///< the L vector
                                                 const double c               ///< a scaling factor
@@ -320,7 +320,7 @@ void _IntLoadConstraint_C(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
+void ChContactContainerNSC::IntLoadConstraint_C(const unsigned int off,  ///< offset in Qc residual
                                                 ChVectorDynamic<>& Qc,   ///< result: the Qc residual, Qc += c*C
                                                 const double c,          ///< a scaling factor
                                                 bool do_clamp,           ///< apply clamping to c*C?
@@ -351,7 +351,7 @@ void _IntToDescriptor(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChContactContainerNSC::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
                                             const ChStateDelta& v,
                                             const ChVectorDynamic<>& R,
                                             const unsigned int off_L,  ///< offset in L, Qc
@@ -380,7 +380,7 @@ void _IntFromDescriptor(unsigned int& coffset,
     }
 }
 
-void ChContactContainerDVI::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChContactContainerNSC::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
                                               ChStateDelta& v,
                                               const unsigned int off_L,  ///< offset in L
                                               ChVectorDynamic<>& L) {
@@ -402,7 +402,7 @@ void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& mdes
     }
 }
 
-void ChContactContainerDVI::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChContactContainerNSC::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     _InjectConstraints(contactlist_6_6, mdescriptor);
     _InjectConstraints(contactlist_6_3, mdescriptor);
     _InjectConstraints(contactlist_3_3, mdescriptor);
@@ -418,7 +418,7 @@ void _ConstraintsBiReset(std::list<Tcont*>& contactlist) {
     }
 }
 
-void ChContactContainerDVI::ConstraintsBiReset() {
+void ChContactContainerNSC::ConstraintsBiReset() {
     _ConstraintsBiReset(contactlist_6_6);
     _ConstraintsBiReset(contactlist_6_3);
     _ConstraintsBiReset(contactlist_3_3);
@@ -434,14 +434,14 @@ void _ConstraintsBiLoad_C(std::list<Tcont*>& contactlist, double factor, double 
     }
 }
 
-void ChContactContainerDVI::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChContactContainerNSC::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     _ConstraintsBiLoad_C(contactlist_6_6, factor, recovery_clamp, do_clamp);
     _ConstraintsBiLoad_C(contactlist_6_3, factor, recovery_clamp, do_clamp);
     _ConstraintsBiLoad_C(contactlist_3_3, factor, recovery_clamp, do_clamp);
     _ConstraintsBiLoad_C(contactlist_6_6_rolling, factor, recovery_clamp, do_clamp);
 }
 
-void ChContactContainerDVI::ConstraintsLoadJacobians() {
+void ChContactContainerNSC::ConstraintsLoadJacobians() {
     // already loaded when contact objects are created
 }
 
@@ -455,16 +455,16 @@ void _ConstraintsFetch_react(std::list<Tcont*>& contactlist, double factor) {
     }
 }
 
-void ChContactContainerDVI::ConstraintsFetch_react(double factor) {
+void ChContactContainerNSC::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6, factor);
     _ConstraintsFetch_react(contactlist_6_3, factor);
     _ConstraintsFetch_react(contactlist_3_3, factor);
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-void ChContactContainerDVI::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainerNSC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChContactContainerDVI>();
+    marchive.VersionWrite<ChContactContainerNSC>();
     // serialize parent class
     ChContactContainerBase::ArchiveOUT(marchive);
     // serialize all member data:
@@ -472,9 +472,9 @@ void ChContactContainerDVI::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerDVI::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainerNSC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainerDVI>();
+    int version = marchive.VersionRead<ChContactContainerNSC>();
     // deserialize parent class
     ChContactContainerBase::ArchiveIN(marchive);
     // stream in all member data:

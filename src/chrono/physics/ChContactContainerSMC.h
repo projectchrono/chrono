@@ -12,38 +12,37 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHCONTACTCONTAINERDEM_H
-#define CHCONTACTCONTAINERDEM_H
+#ifndef CH_CONTACTCONTAINER_SMC_H
+#define CH_CONTACTCONTAINER_SMC_H
 
 #include <algorithm>
 #include <cmath>
 #include <list>
 
 #include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
-/// Class representing a container of many penalty contacts.
-/// This is implemented as a typical linked list of ChContactDEM objects
+/// Class representing a container of many smooth (penalty) contacts.
+/// This is implemented as a typical linked list of ChContactSMC objects
 /// (that is, contacts between two ChContactable objects).
-class ChApi ChContactContainerDEM : public ChContactContainerBase {
-
+class ChApi ChContactContainerSMC : public ChContactContainerBase {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerDEM)
+    CH_FACTORY_TAG(ChContactContainerSMC)
 
   public:
-    typedef ChContactDEM<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;
-    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
-    typedef ChContactDEM<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
-    typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactDEM_333_3;
-    typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactDEM_333_6;
-    typedef ChContactDEM<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactDEM_333_333;
-    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactDEM_666_3;
-    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactDEM_666_6;
-    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactDEM_666_333;
-    typedef ChContactDEM<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactDEM_666_666;
+    typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;
+    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
+    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactDEM_333_3;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactDEM_333_6;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactDEM_333_333;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactDEM_666_3;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactDEM_666_6;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactDEM_666_333;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactDEM_666_666;
 
   protected:
     std::list<ChContactDEM_3_3*> contactlist_3_3;
@@ -80,12 +79,12 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     std::list<ChContactDEM_666_666*>::iterator lastcontact_666_666;
 
   public:
-    ChContactContainerDEM();
-    ChContactContainerDEM(const ChContactContainerDEM& other);
-    virtual ~ChContactContainerDEM();
+    ChContactContainerSMC();
+    ChContactContainerSMC(const ChContactContainerSMC& other);
+    virtual ~ChContactContainerSMC();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerDEM* Clone() const override { return new ChContactContainerDEM(*this); }
+    virtual ChContactContainerSMC* Clone() const override { return new ChContactContainerSMC(*this); }
 
     /// Tell the number of added contacts
     virtual int GetNcontacts() const override {
@@ -122,23 +121,17 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     /// Compute contact forces on all contactable objects in this container.
     virtual void ComputeContactForces() override;
 
-    //
     // STATE FUNCTIONS
-    //
 
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     virtual void ConstraintsFbLoadForces(double factor) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
@@ -147,7 +140,7 @@ class ChApi ChContactContainerDEM : public ChContactContainerBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChContactContainerDEM,0)
+CH_CLASS_VERSION(ChContactContainerSMC, 0)
 
 }  // end namespace chrono
 

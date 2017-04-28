@@ -216,9 +216,9 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------------
     for (int i = 0; i < 4; i++) {
         auto wheelBody = my_hmmwv.GetVehicle().GetWheelBody(i);
-        wheelBody->GetMaterialSurfaceDEM()->SetFriction(mu_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetYoungModulus(Y_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetRestitution(cr_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
 
         CreateLuggedGeometry(wheelBody);
     }

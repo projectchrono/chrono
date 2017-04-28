@@ -325,14 +325,14 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
 
 // -----------------------------------------------------------------------------
 
-//// TODO: extend this to also work for DEM systems.
+//// TODO: extend this to also work for smooth (penalty) contact systems.
 
 void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
-                                             std::shared_ptr<ChMaterialSurface>& material,
+                                             std::shared_ptr<ChMaterialSurfaceNSC>& material,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 

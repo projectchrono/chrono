@@ -151,7 +151,7 @@ ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
     material = std::make_shared<ChContinuumPlasticVonMises>();
 
     // Default: DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNodes(other) {

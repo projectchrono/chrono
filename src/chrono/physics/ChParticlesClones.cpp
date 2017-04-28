@@ -247,8 +247,8 @@ ChParticlesClones::ChParticlesClones()
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
 
-    // default DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    // default non-smooth contact material
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {

@@ -13,14 +13,14 @@
 // =============================================================================
 
 #include "chrono/core/ChClassFactory.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChMaterialSurface)
+CH_FACTORY_REGISTER(ChMaterialSurfaceNSC)
 
-ChMaterialSurface::ChMaterialSurface()
+ChMaterialSurfaceNSC::ChMaterialSurfaceNSC()
     : static_friction(0.6f),
       sliding_friction(0.6f),
       rolling_friction(0),
@@ -33,7 +33,7 @@ ChMaterialSurface::ChMaterialSurface()
       complianceRoll(0),
       complianceSpin(0) {}
 
-ChMaterialSurface::ChMaterialSurface(const ChMaterialSurface& other) {
+ChMaterialSurfaceNSC::ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other) {
     static_friction = other.static_friction;
     sliding_friction = other.sliding_friction;
     rolling_friction = other.rolling_friction;
@@ -47,14 +47,14 @@ ChMaterialSurface::ChMaterialSurface(const ChMaterialSurface& other) {
     complianceSpin = other.complianceSpin;
 }
 
-void ChMaterialSurface::SetFriction(float mval) {
+void ChMaterialSurfaceNSC::SetFriction(float mval) {
     SetSfriction(mval);
     SetKfriction(mval);
 }
 
-void ChMaterialSurface::ArchiveOUT(ChArchiveOut& marchive){
+void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialSurface>();
+    marchive.VersionWrite<ChMaterialSurfaceNSC>();
 
     // serialize parent class
     ChMaterialSurfaceBase::ArchiveOUT(marchive);
@@ -73,9 +73,9 @@ void ChMaterialSurface::ArchiveOUT(ChArchiveOut& marchive){
     marchive << CHNVP(complianceSpin);
 }
 
-void ChMaterialSurface::ArchiveIN(ChArchiveIn& marchive){
+void ChMaterialSurfaceNSC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMaterialSurface>();
+    int version = marchive.VersionRead<ChMaterialSurfaceNSC>();
 
     // deserialize parent class
     ChMaterialSurfaceBase::ArchiveIN(marchive);

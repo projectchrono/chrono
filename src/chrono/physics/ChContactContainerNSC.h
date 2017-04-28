@@ -12,35 +12,33 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHCONTACTCONTAINERDVI_H
-#define CHCONTACTCONTAINERDVI_H
+#ifndef CH_CONTACTCONTAINER_NSC_H
+#define CH_CONTACTCONTAINER_NSC_H
 
 #include <list>
 
 #include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactDVI.h"
-#include "chrono/physics/ChContactDVIrolling.h"
+#include "chrono/physics/ChContactNSC.h"
+#include "chrono/physics/ChContactNSCrolling.h"
 #include "chrono/physics/ChContactable.h"
 
 namespace chrono {
 
-/// Class representing a container of many complementarity contacts.
-/// This is implemented as a typical linked list of ChContactDVI objects
+/// Class representing a container of many non-smooth contacts.
+/// This is implemented as a typical linked list of ChContactNSC objects
 /// (that is, contacts between two ChContactable objects, with 3 reactions).
-/// It might also contain ChContactDVIrolling objects (extended versions of ChContactDVI,
+/// It might also contain ChContactNSCrolling objects (extended versions of ChContactNSC,
 /// with 6 reactions, that account also for rolling and spinning resistance), but also
 /// for '6dof vs 6dof' contactables.
-/// This is the default contact container used in most cases.
-class ChApi ChContactContainerDVI : public ChContactContainerBase {
-
+class ChApi ChContactContainerNSC : public ChContactContainerBase {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerDVI)
+    CH_FACTORY_TAG(ChContactContainerNSC)
 
   public:
-    typedef ChContactDVI<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
-    typedef ChContactDVI<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
-    typedef ChContactDVI<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
-    typedef ChContactDVIrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
+    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
+    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
+    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
+    typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
 
   protected:
     std::list<ChContactDVI_6_6*> contactlist_6_6;
@@ -59,12 +57,12 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     std::list<ChContactDVIrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
   public:
-    ChContactContainerDVI();
-    ChContactContainerDVI(const ChContactContainerDVI& other);
-    virtual ~ChContactContainerDVI();
+    ChContactContainerNSC();
+    ChContactContainerNSC(const ChContactContainerNSC& other);
+    virtual ~ChContactContainerNSC();
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChContactContainerDVI* Clone() const override { return new ChContactContainerDVI(*this); }
+    virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
     /// Tell the number of added contacts
     virtual int GetNcontacts() const override { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_6_6_rolling; }
@@ -151,7 +149,7 @@ class ChApi ChContactContainerDVI : public ChContactContainerBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChContactContainerDVI,0)
+CH_CLASS_VERSION(ChContactContainerNSC, 0)
 
 }  // end namespace chrono
 

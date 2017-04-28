@@ -20,7 +20,7 @@
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChIndexedParticles.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {

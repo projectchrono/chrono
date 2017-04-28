@@ -70,18 +70,18 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     switch (wheel->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
-            wheel->GetMaterialSurface()->SetFriction(m_friction);
-            wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+            wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
         case ChMaterialSurfaceBase::DEM:
-            wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }

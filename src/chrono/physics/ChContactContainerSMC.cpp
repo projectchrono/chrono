@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemDEM.h"
 
 namespace chrono {
@@ -21,9 +21,9 @@ using namespace collision;
 using namespace geometry;
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChContactContainerDEM)
+CH_FACTORY_REGISTER(ChContactContainerSMC)
 
-ChContactContainerDEM::ChContactContainerDEM()
+ChContactContainerSMC::ChContactContainerSMC()
     : n_added_3_3(0),
       n_added_6_3(0),
       n_added_6_6(0),
@@ -35,7 +35,7 @@ ChContactContainerDEM::ChContactContainerDEM()
       n_added_666_333(0),
       n_added_666_666(0) {}
 
-ChContactContainerDEM::ChContactContainerDEM(const ChContactContainerDEM& other) : ChContactContainerBase(other) {
+ChContactContainerSMC::ChContactContainerSMC(const ChContactContainerSMC& other) : ChContactContainerBase(other) {
     n_added_3_3 = 0;
     n_added_6_3 = 0;
     n_added_6_6 = 0;
@@ -48,11 +48,11 @@ ChContactContainerDEM::ChContactContainerDEM(const ChContactContainerDEM& other)
     n_added_666_666 = 0;
 }
 
-ChContactContainerDEM::~ChContactContainerDEM() {
+ChContactContainerSMC::~ChContactContainerSMC() {
     RemoveAllContacts();
 }
 
-void ChContactContainerDEM::Update(double mytime, bool update_assets) {
+void ChContactContainerSMC::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
     ChContactContainerBase::Update(mytime, update_assets);
 }
@@ -70,7 +70,7 @@ void _RemoveAllContacts(std::list<Tcont*>& contactlist, Titer& lastcontact, int&
     n_added = 0;
 }
 
-void ChContactContainerDEM::RemoveAllContacts() {
+void ChContactContainerSMC::RemoveAllContacts() {
     _RemoveAllContacts(contactlist_3_3, lastcontact_3_3, n_added_3_3);
     _RemoveAllContacts(contactlist_6_3, lastcontact_6_3, n_added_6_3);
     _RemoveAllContacts(contactlist_6_6, lastcontact_6_6, n_added_6_6);
@@ -84,7 +84,7 @@ void ChContactContainerDEM::RemoveAllContacts() {
     //**TODO*** cont. roll.
 }
 
-void ChContactContainerDEM::BeginAddContact() {
+void ChContactContainerSMC::BeginAddContact() {
     lastcontact_3_3 = contactlist_3_3.begin();
     n_added_3_3 = 0;
 
@@ -119,7 +119,7 @@ void ChContactContainerDEM::BeginAddContact() {
     // n_added_roll = 0;
 }
 
-void ChContactContainerDEM::EndAddContact() {
+void ChContactContainerSMC::EndAddContact() {
     // remove contacts that are beyond last contact
     while (lastcontact_3_3 != contactlist_3_3.end()) {
         delete (*lastcontact_3_3);
@@ -192,7 +192,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,
     n_added++;
 }
 
-void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontact) {
+void ChContactContainerSMC::AddContact(const collision::ChCollisionInfo& mcontact) {
     assert(mcontact.modelA->GetContactable());
     assert(mcontact.modelB->GetContactable());
 
@@ -205,8 +205,8 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
 
     // Check that the two collision models are compatible with penalty contact.
     // If either one has a contact material for complementarity, skip processing this contact.
-    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(contactableA->GetMaterialSurfaceBase());
-    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(contactableB->GetMaterialSurfaceBase());
+    auto mmatA = std::dynamic_pointer_cast<ChMaterialSurfaceSMC>(contactableA->GetMaterialSurfaceBase());
+    auto mmatB = std::dynamic_pointer_cast<ChMaterialSurfaceSMC>(contactableB->GetMaterialSurfaceBase());
     if (!mmatA || !mmatB)
         return;
 
@@ -304,7 +304,7 @@ void ChContactContainerDEM::AddContact(const collision::ChCollisionInfo& mcontac
     // ***TODO*** Fallback to some dynamic-size allocated constraint for cases that were not trapped by the switch
 }
 
-void ChContactContainerDEM::ComputeContactForces() {
+void ChContactContainerSMC::ComputeContactForces() {
     contact_forces.clear();
     SumAllContactForces(contactlist_3_3, contact_forces);
     SumAllContactForces(contactlist_6_3, contact_forces);
@@ -333,7 +333,7 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback*
     }
 }
 
-void ChContactContainerDEM::ReportAllContacts(ChReportContactCallback* mcallback) {
+void ChContactContainerSMC::ReportAllContacts(ChReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_3_3, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_6_6, mcallback);
@@ -358,7 +358,7 @@ void _IntLoadResidual_F(std::list<Tcont*>& contactlist, ChVectorDynamic<>& R, co
     }
 }
 
-void ChContactContainerDEM::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
+void ChContactContainerSMC::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     _IntLoadResidual_F(contactlist_3_3, R, c);
     _IntLoadResidual_F(contactlist_6_3, R, c);
     _IntLoadResidual_F(contactlist_6_6, R, c);
@@ -380,7 +380,7 @@ void _KRMmatricesLoad(std::list<Tcont*> contactlist, double Kfactor, double Rfac
     }
 }
 
-void ChContactContainerDEM::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChContactContainerSMC::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
     _KRMmatricesLoad(contactlist_3_3, Kfactor, Rfactor);
     _KRMmatricesLoad(contactlist_6_3, Kfactor, Rfactor);
     _KRMmatricesLoad(contactlist_6_6, Kfactor, Rfactor);
@@ -402,7 +402,7 @@ void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChSystemDescriptor& mdesc
     }
 }
 
-void ChContactContainerDEM::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChContactContainerSMC::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
     _InjectKRMmatrices(contactlist_3_3, mdescriptor);
     _InjectKRMmatrices(contactlist_6_3, mdescriptor);
     _InjectKRMmatrices(contactlist_6_6, mdescriptor);
@@ -416,13 +416,13 @@ void ChContactContainerDEM::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 }
 
 // OBSOLETE
-void ChContactContainerDEM::ConstraintsFbLoadForces(double factor) {
-    GetLog() << "ChContactContainerDEM::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+void ChContactContainerSMC::ConstraintsFbLoadForces(double factor) {
+    GetLog() << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
 }
 
-void ChContactContainerDEM::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainerSMC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChContactContainerDEM>();
+    marchive.VersionWrite<ChContactContainerSMC>();
     // serialize parent class
     ChContactContainerBase::ArchiveOUT(marchive);
     // serialize all member data:
@@ -430,9 +430,9 @@ void ChContactContainerDEM::ArchiveOUT(ChArchiveOut& marchive) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerDEM::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainerSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainerDEM>();
+    int version = marchive.VersionRead<ChContactContainerSMC>();
     // deserialize parent class
     ChContactContainerBase::ArchiveIN(marchive);
     // stream in all member data:

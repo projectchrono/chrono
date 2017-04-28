@@ -17,7 +17,7 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
-#include "chrono/physics/ChContactContainerDVI.h"
+#include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainerBase.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -219,7 +219,7 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
 
     // Set default contact container
     if (init_sys) {
-        contact_container = std::make_shared<ChContactContainerDVI>();
+        contact_container = std::make_shared<ChContactContainerNSC>();
         contact_container->SetSystem(this);
     }
 
@@ -312,7 +312,7 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    contact_container = std::make_shared<ChContactContainerDVI>();
+    contact_container = std::make_shared<ChContactContainerNSC>();
     contact_container->SetSystem(this);
 
     switch (type) {

@@ -125,7 +125,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChObj)
 %shared_ptr(chrono::collision::ChCollisionModel)
 %shared_ptr(chrono::ChPhysicsItem)
-%shared_ptr(chrono::ChMaterialSurface)
+%shared_ptr(chrono::ChMaterialSurfaceNSC)
 %shared_ptr(chrono::ChMaterialSurfaceBase)
 %shared_ptr(chrono::ChBodyFrame)
 %shared_ptr(chrono::ChMarker)
@@ -279,7 +279,7 @@ using namespace chrono::geometry;
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurfaceBase.i"
-%include "ChMaterialSurface.i"
+%include "ChMaterialSurfaceNSC.i"
 %include "ChMaterialCouple.i"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"

@@ -22,8 +22,8 @@
 #include "chrono/physics/ChForce.h"
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/physics/ChMarker.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChConstraint.h"
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
@@ -349,20 +349,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This function performs a dynamic cast (and returns an empty pointer
     /// if matsurface is in fact of DEM type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
-    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() {
-        return std::dynamic_pointer_cast<ChMaterialSurface>(matsurface);
+    std::shared_ptr<ChMaterialSurfaceNSC> GetMaterialSurfaceNSC() {
+        return std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(matsurface);
     }
 
     /// Access the DEM material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
     /// if matsurface is in fact of DVI type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
-    std::shared_ptr<ChMaterialSurfaceDEM> GetMaterialSurfaceDEM() {
-        return std::dynamic_pointer_cast<ChMaterialSurfaceDEM>(matsurface);
+    std::shared_ptr<ChMaterialSurfaceSMC> GetMaterialSurfaceSMC() {
+        return std::dynamic_pointer_cast<ChMaterialSurfaceSMC>(matsurface);
     }
 
-    /// Set the material surface properties by passing a ChMaterialSurface or
-    /// ChMaterialSurfaceDEM object.
+    /// Set the material surface properties by passing a ChMaterialSurfaceNSC or
+    /// ChMaterialSurfaceSMC object.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
 
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
@@ -620,7 +620,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     }
 
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceDVI or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
     virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
 

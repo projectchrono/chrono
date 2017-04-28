@@ -123,7 +123,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -150,7 +150,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sys->ChangeSolverType(SolverType::APGD);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurface>();
+            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;

@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     // It is a DEM-p (penalty) material that we will assign to 
     // all surfaces that might generate contacts.
 
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

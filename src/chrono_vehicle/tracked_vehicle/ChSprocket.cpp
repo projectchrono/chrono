@@ -82,18 +82,18 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
 
     switch (m_gear->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
-            m_gear->GetMaterialSurface()->SetFriction(m_friction);
-            m_gear->GetMaterialSurface()->SetRestitution(m_restitution);
+            m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
         case ChMaterialSurfaceBase::DEM:
-            m_gear->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_gear->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_gear->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_gear->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_gear->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_gear->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_gear->GetMaterialSurfaceDEM()->SetGt(m_gt);
+            m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_gear->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_gear->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_gear->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_gear->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_gear->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 

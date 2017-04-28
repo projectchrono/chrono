@@ -67,10 +67,10 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
 
     // Since this function is called in a parallel for loop, we must access the
     // material properties in a thread-safe manner (we cannot use the function
-    // ChBody::GetMaterialSurface since that returns a copy of the reference
+    // ChBody::GetMaterialSurfaceNSC since that returns a copy of the reference
     // counted shared pointer).
     std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
-    ChMaterialSurface* mat_ptr = static_cast<ChMaterialSurface*>(mat.get());
+    ChMaterialSurfaceNSC* mat_ptr = static_cast<ChMaterialSurfaceNSC*>(mat.get());
 
     friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());
     cohesion[index] = mat_ptr->GetCohesion();

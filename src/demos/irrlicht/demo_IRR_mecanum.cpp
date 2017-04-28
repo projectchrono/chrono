@@ -145,7 +145,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
         mRoller->addShadowVolumeSceneNode();
         mRoller->GetBody()->SetInertiaXX(ChVector<>(0.05, 0.005, 0.05));  //***TO DO *** proper inertia
         mRoller->GetBody()->SetCollide(true);
-        mRoller->GetBody()->GetMaterialSurface()->SetFriction(STATIC_wheelfriction);
+        mRoller->GetBody()->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
         ChFrameMoving<> f1(ChVector<>(0, 0, -(wheel_radius - roller_midradius)),
                            Q_from_AngAxis(roller_angle, ChVector<>(0, 0, 1)));
         ChFrameMoving<> f2(ChVector<>(0, 0, 0), Q_from_AngAxis(pitch, ChVector<>(0, 1, 0)));
@@ -274,7 +274,7 @@ int main(int argc, char* argv[]) {
         &mphysicalSystem, application.GetSceneManager(), 100.0, ChVector<>(0, -5, 0), ChQuaternion<>(1, 0, 0, 0),
         ChVector<>(200, 1, 200));
     ground->GetBody()->SetBodyFixed(true);
-    ground->GetBody()->GetMaterialSurface()->SetFriction(STATIC_wheelfriction);
+    ground->GetBody()->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 
     video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
     ground->setMaterialTexture(0, cubeMap);

@@ -143,7 +143,7 @@ class MySimpleCar {
         wheelRF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRF->SetMass(3);
         wheelRF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelRF->GetMaterialSurface()->SetFriction(1.0);
+        wheelRF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRF->AddAsset(texture);
         my_system.AddBody(wheelRF);
 
@@ -203,7 +203,7 @@ class MySimpleCar {
         wheelLF->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLF->SetMass(3);
         wheelLF->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelLF->GetMaterialSurface()->SetFriction(1.0);
+        wheelLF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLF->AddAsset(texture);
         my_system.AddBody(wheelLF);
 
@@ -263,7 +263,7 @@ class MySimpleCar {
         wheelRB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelRB->SetMass(3);
         wheelRB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelRB->GetMaterialSurface()->SetFriction(1.0);
+        wheelRB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRB->AddAsset(texture);
         my_system.AddBody(wheelRB);
 
@@ -331,7 +331,7 @@ class MySimpleCar {
         wheelLB->SetRot(chrono::Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
         wheelLB->SetMass(3);
         wheelLB->SetInertiaXX(ChVector<>(0.2, 0.2, 0.2));
-        wheelLB->GetMaterialSurface()->SetFriction(1.0);
+        wheelLB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLB->AddAsset(texture);
         my_system.AddBody(wheelLB);
 
@@ -640,8 +640,8 @@ int main(int argc, char* argv[]) {
     auto my_ground = std::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
     my_ground->SetBodyFixed(true);
-    my_ground->GetMaterialSurface()->SetSfriction(1.0);
-    my_ground->GetMaterialSurface()->SetKfriction(1.0);
+    my_ground->GetMaterialSurfaceNSC()->SetSfriction(1.0);
+    my_ground->GetMaterialSurfaceNSC()->SetKfriction(1.0);
     my_ground->AddAsset(texture);
     my_system.AddBody(my_ground);
 

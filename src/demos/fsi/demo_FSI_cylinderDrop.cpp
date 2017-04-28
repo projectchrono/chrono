@@ -207,7 +207,7 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
                                     fsi::ChSystemFsi& myFsiSystem,
                                     fsi::SimParams* paramsH) {
-    std::shared_ptr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+    std::shared_ptr<ChMaterialSurfaceNSC> mat_g(new ChMaterialSurfaceNSC);
     // Set common material Properties
     mat_g->SetFriction(0.8);
     mat_g->SetCohesion(0);

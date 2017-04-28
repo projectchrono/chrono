@@ -27,7 +27,7 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
@@ -185,7 +185,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;

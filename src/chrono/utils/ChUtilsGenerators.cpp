@@ -32,8 +32,8 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialDVI(std::make_shared<ChMaterialSurface>()),
-      m_defMaterialDEM(std::make_shared<ChMaterialSurfaceDEM>()),
+      m_defMaterialNSC(std::make_shared<ChMaterialSurfaceNSC>()),
+      m_defMaterialSMC(std::make_shared<ChMaterialSurfaceSMC>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(nullptr),
@@ -57,9 +57,9 @@ void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
     if (mat->GetContactMethod() == ChMaterialSurfaceBase::DVI) {
-        m_defMaterialDVI = std::static_pointer_cast<ChMaterialSurface>(mat);
+        m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
     } else {
-        m_defMaterialDEM = std::static_pointer_cast<ChMaterialSurfaceDEM>(mat);
+        m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
     }
 
     freeMaterialDist();
@@ -158,9 +158,9 @@ void MixtureIngredient::freeMaterialDist() {
 }
 
 // Modify the specified DVI material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurface> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
     // Copy properties from the default material.
-    *mat = *m_defMaterialDVI;
+    *mat = *m_defMaterialNSC;
 
     // If using distributions for any of the supported properties, override those.
     if (m_frictionDist)
@@ -171,9 +171,9 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurface>
 }
 
 // Modify the specified DEM material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceDEM> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
     // Copy properties from the default material.
-    *mat = *m_defMaterialDEM;
+    *mat = *m_defMaterialSMC;
 
     // If using distributions for any of the supported properties, override those.
     if (m_youngDist)
@@ -508,10 +508,10 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         switch (m_system->GetContactMethod()) {
             case ChMaterialSurfaceBase::DVI:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
+                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
                 break;
             case ChMaterialSurfaceBase::DEM:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
+                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
                 break;
         }
 
@@ -598,11 +598,11 @@ void Generator::writeObjectInfo(const std::string& filename) {
 
         switch (m_system->GetContactMethod()) {
             case ChMaterialSurfaceBase::DVI: {
-                std::shared_ptr<ChMaterialSurface> mat = m_bodies[i].m_body->GetMaterialSurface();
+                std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
                 csv << mat->GetSfriction() << mat->GetCohesion();
             } break;
             case ChMaterialSurfaceBase::DEM: {
-                std::shared_ptr<ChMaterialSurfaceDEM> mat = m_bodies[i].m_body->GetMaterialSurfaceDEM();
+                std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
                 csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
             } break;
         }

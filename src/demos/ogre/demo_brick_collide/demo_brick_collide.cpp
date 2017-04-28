@@ -37,7 +37,7 @@ int main(int argc, char** args) {
 				((1.0 / 12.0)*Brick->GetMass() * (16 + 4)),
 				((1.0 / 12.0)*Brick->GetMass()  * (4 + 4)),
 				((1.0 / 12.0)*Brick->GetMass() * (4 + 16))));
-			Brick->GetMaterialSurface()->SetFriction(1.f);
+            Brick->GetMaterialSurfaceNSC()->SetFriction(1.f);
 			Brick.body().deletable = true;
 		}
 	}

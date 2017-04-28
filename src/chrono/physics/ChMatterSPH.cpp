@@ -210,7 +210,7 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChMatterSPH)
 
 ChMatterSPH::ChMatterSPH() : do_collide(false) {
-    matsurface = std::make_shared<ChMaterialSurface>();
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {

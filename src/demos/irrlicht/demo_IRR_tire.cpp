@@ -53,7 +53,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     mrigidBody->SetMass(50);
     mrigidBody->SetInertiaXX(ChVector<>(10, 10, 10));
     mrigidBody->SetPos(mposition);
-    mrigidBody->GetMaterialSurface()->SetFriction(0.5);
+    mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5);
 
     // now attach a visualization shape, as a mesh from disk
     auto tireMesh = std::make_shared<ChObjShapeFile>();
@@ -112,7 +112,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
         mrigidBody->SetPos(ChVector<>(-0.5 * bed_x + ChRandom() * bed_x, 
                             0.01 + 0.04 * ((double)bi / (double)n_pebbles),
                               -0.5 * bed_z + ChRandom() * bed_z));
-        mrigidBody->GetMaterialSurface()->SetFriction(0.4f);
+        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
     }
 
     // Create the a plane using body of 'box' type:
@@ -120,7 +120,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
     mphysicalSystem.Add(mrigidBodyB);
     mrigidBodyB->SetBodyFixed(true);
     mrigidBodyB->SetPos(ChVector<>(0, -0.5, 0));
-    mrigidBodyB->GetMaterialSurface()->SetFriction(0.5);
+    mrigidBodyB->GetMaterialSurfaceNSC()->SetFriction(0.5);
     auto mcolor = std::make_shared<ChColorAsset>();
     mcolor->SetColor(ChColor(0.2f,0.2f,0.2f));
     mrigidBodyB->AddAsset(mcolor);

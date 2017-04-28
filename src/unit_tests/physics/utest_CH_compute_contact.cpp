@@ -27,7 +27,7 @@
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemDEM.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -125,7 +125,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sys->SetStiffContact(stiff_contact);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -143,7 +143,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             system = new ChSystem;
 
-            auto mat = std::make_shared<ChMaterialSurface>();
+            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;

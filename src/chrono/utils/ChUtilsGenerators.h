@@ -33,8 +33,8 @@
 #include "chrono/core/ChVector.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemDEM.h"
 
@@ -108,8 +108,8 @@ class ChApi MixtureIngredient {
     void calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration);
     double calcMinSeparation();
 
-    void setMaterialProperties(std::shared_ptr<ChMaterialSurface> mat);
-    void setMaterialProperties(std::shared_ptr<ChMaterialSurfaceDEM> mat);
+    void setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat);
+    void setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat);
 
     Generator* m_generator;
 
@@ -117,8 +117,8 @@ class ChApi MixtureIngredient {
     double m_ratio;
     double m_cumRatio;
 
-    std::shared_ptr<ChMaterialSurface> m_defMaterialDVI;
-    std::shared_ptr<ChMaterialSurfaceDEM> m_defMaterialDEM;
+    std::shared_ptr<ChMaterialSurfaceNSC> m_defMaterialNSC;
+    std::shared_ptr<ChMaterialSurfaceSMC> m_defMaterialSMC;
 
     float m_minFriction, m_maxFriction;
     float m_minCohesion, m_maxCohesion;

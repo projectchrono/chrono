@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/solver/ChSolverDEM.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     application.SetContactsDrawMode(ChIrrTools::eCh_ContactsDrawMode::CONTACT_FORCES);
 
     // Create a material (will be used by both objects)
-    auto material = std::make_shared<ChMaterialSurfaceDEM>();
+    auto material = std::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model

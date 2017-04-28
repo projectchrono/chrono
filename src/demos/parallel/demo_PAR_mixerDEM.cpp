@@ -64,7 +64,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
   int mixerId = -201;
 
   // Create a common material
-  auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+  auto mat = std::make_shared<ChMaterialSurfaceSMC>();
   mat->SetYoungModulus(2e5f);
   mat->SetFriction(0.4f);
   mat->SetRestitution(0.1f);
@@ -129,7 +129,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemParallelDEM* sys) {
   // Common material
-  auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
+  auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
   ballMat->SetYoungModulus(2e5f);
   ballMat->SetFriction(0.4f);
   ballMat->SetRestitution(0.1f);

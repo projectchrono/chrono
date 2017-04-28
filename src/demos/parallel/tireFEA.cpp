@@ -38,7 +38,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurface>();
+    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     ChVector<> hdim(2, 2, 2);
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
 
     AddContainer(&my_system);
 
-    auto material_plate = std::make_shared<ChMaterialSurface>();
+    auto material_plate = std::make_shared<ChMaterialSurfaceNSC>();
     std::shared_ptr<ChBody> PLATE = std::make_shared<ChBody>(new chrono::collision::ChCollisionModelParallel);
     utils::InitializeObject(PLATE, 100000, material_plate, ChVector<>(0, 0, 0), QUNIT, false, true, 2, 6);
     utils::AddBoxGeometry(PLATE.get(), ChVector<>(.1, .1, .1));

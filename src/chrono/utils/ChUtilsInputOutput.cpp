@@ -82,13 +82,13 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         // Write material information
         if (btype == 0) {
             // Write DVI material surface information
-            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
             csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
             csv << mat->restitution << mat->cohesion << mat->dampingf;
             csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
         } else {
             // Write DEM material surface information
-            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
             csv << mat->young_modulus << mat->poisson_ratio;
             csv << mat->static_friction << mat->sliding_friction;
             csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -189,12 +189,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Create a body of the appropriate type, read and apply material properties
         ChBody* body = system->NewBody();
         if (btype == 0) {
-            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
             iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
             iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
             iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
         } else {
-            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
             iss2 >> mat->young_modulus >> mat->poisson_ratio;
             iss2 >> mat->static_friction >> mat->sliding_friction;
             iss2 >> mat->restitution >> mat->constant_adhesion >> mat->adhesionMultDMT;

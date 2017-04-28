@@ -17,7 +17,7 @@
 
 #include "chrono_fea/ChElementBase.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
@@ -26,16 +26,16 @@ namespace fea {
 /// Base class for contact surfaces in FEA meshes.
 /// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh
 /// that implement practical functionalities.
-/// The contact surface has a material of ChMaterialSurfaceBase type (DVI material
-/// by default, but it can be also switched to a DEM material, etc, using Set).
+/// The contact surface has a material of ChMaterialSurfaceBase type (non-smooth contact material
+/// by default, but it can be also switched to a smooth (penalty) contact material, using Set).
 class ChApiFea ChContactSurface {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactSurface)
 
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {
-        // default DVI material
-        matsurface = std::make_shared<ChMaterialSurface>();
+        // default non-smooth contact material
+        matsurface = std::make_shared<ChMaterialSurfaceNSC>();
         mmesh = parentmesh;
     }
 

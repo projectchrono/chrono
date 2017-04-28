@@ -411,14 +411,14 @@ void AddFixedObstacles(ChSystem* system) {
 
     switch (obstacle->GetContactMethod()) {
         case ChMaterialSurfaceBase::DVI:
-            obstacle->GetMaterialSurface()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurface()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
         case ChMaterialSurfaceBase::DEM:
-            obstacle->GetMaterialSurfaceDEM()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceDEM()->SetPoissonRatio(poisson_ratio);
+            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
+            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
             break;
     }
 

@@ -1,7 +1,7 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 
 using namespace chrono;
 
@@ -10,6 +10,6 @@ using namespace chrono;
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/physics/ChMaterialSurface.h"    
+%include "../chrono/physics/ChMaterialSurfaceNSC.h"    
 
 

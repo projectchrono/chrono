@@ -15,16 +15,15 @@
 #include <algorithm>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChMaterialSurfaceDEM)
+CH_FACTORY_REGISTER(ChMaterialSurfaceSMC)
 
-// Constructors for a DEM material
-ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
+ChMaterialSurfaceSMC::ChMaterialSurfaceSMC()
     : young_modulus(2e5),
       poisson_ratio(0.3f),
       static_friction(0.6f),
@@ -37,7 +36,7 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM()
       gn(40),
       gt(20) {}
 
-ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
+ChMaterialSurfaceSMC::ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other) {
     young_modulus = other.young_modulus;
     poisson_ratio = other.poisson_ratio;
     static_friction = other.static_friction;
@@ -51,14 +50,14 @@ ChMaterialSurfaceDEM::ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other) {
     gt = other.gt;
 }
 
-void ChMaterialSurfaceDEM::SetFriction(float val) {
+void ChMaterialSurfaceSMC::SetFriction(float val) {
     SetSfriction(val);
     SetKfriction(val);
 }
 
-void ChMaterialSurfaceDEM::ArchiveOUT(ChArchiveOut& marchive) {
+void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChMaterialSurfaceDEM>();
+    marchive.VersionWrite<ChMaterialSurfaceSMC>();
 
     // serialize parent class
     ChMaterialSurfaceBase::ArchiveOUT(marchive);
@@ -77,9 +76,9 @@ void ChMaterialSurfaceDEM::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(gt);
 }
 
-void ChMaterialSurfaceDEM::ArchiveIN(ChArchiveIn& marchive) {
+void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChMaterialSurfaceDEM>();
+    int version = marchive.VersionRead<ChMaterialSurfaceSMC>();
 
     // deserialize parent class
     ChMaterialSurfaceBase::ArchiveIN(marchive);
@@ -100,9 +99,9 @@ void ChMaterialSurfaceDEM::ArchiveIN(ChArchiveIn& marchive) {
 
 // Calculate composite material properties as a combination of the physical
 // properties of the two specified materials.
-ChCompositeMaterialDEM ChMaterialSurfaceDEM::CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceDEM>& mat1,
-                                                               const std::shared_ptr<ChMaterialSurfaceDEM>& mat2) {
-    ChCompositeMaterialDEM mat;
+ChCompositeMaterialSMC ChMaterialSurfaceSMC::CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceSMC>& mat1,
+                                                               const std::shared_ptr<ChMaterialSurfaceSMC>& mat2) {
+    ChCompositeMaterialSMC mat;
 
     float inv_E = (1 - mat1->poisson_ratio * mat1->poisson_ratio) / mat1->young_modulus +
                   (1 - mat2->poisson_ratio * mat2->poisson_ratio) / mat2->young_modulus;

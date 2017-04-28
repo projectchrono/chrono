@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/solver/ChSolverDEM.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"

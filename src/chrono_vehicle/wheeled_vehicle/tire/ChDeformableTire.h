@@ -109,7 +109,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
+    std::shared_ptr<ChMaterialSurfaceSMC> GetContactMaterial() const { return m_contact_mat; }
 
     /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
@@ -225,7 +225,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     float m_kt;             ///< tangential contact stiffness
     float m_gt;             ///< tangential contact damping
 
-    std::shared_ptr<ChMaterialSurfaceDEM> m_contact_mat;           ///< tire contact material
+    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
     std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
 };
 

@@ -70,10 +70,10 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
 
     // Since this function is called in a parallel for loop, we must access the
     // material properties in a thread-safe manner (we cannot use the function
-    // ChBody::GetMaterialSurfaceDEM since that returns a copy of the reference
+    // ChBody::GetMaterialSurfaceSMC since that returns a copy of the reference
     // counted shared pointer).
     std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
-    ChMaterialSurfaceDEM* mat_ptr = static_cast<ChMaterialSurfaceDEM*>(mat.get());
+    ChMaterialSurfaceSMC* mat_ptr = static_cast<ChMaterialSurfaceSMC*>(mat.get());
 
     mass[index] = body->GetMass();
     mu[index] = mat_ptr->GetSfriction();

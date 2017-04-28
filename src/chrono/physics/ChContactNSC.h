@@ -9,9 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
+// Authors: Alessandro Tasora, Radu Serban
+// =============================================================================
 
-#ifndef CHCONTACTDVI_H
-#define CHCONTACTDVI_H
+#ifndef CH_CONTACT_NSC_H
+#define CH_CONTACT_NSC_H
 
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChVectorDynamic.h"
@@ -24,11 +26,11 @@
 
 namespace chrono {
 
-/// Class for DVI contact between two generic ChContactable objects.
+/// Class for non-smooth contact between two generic ChContactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 
 template <class Ta, class Tb>
-class ChContactDVI : public ChContactTuple<Ta, Tb> {
+class ChContactNSC : public ChContactTuple<Ta, Tb> {
   public:
     typedef typename ChContactTuple<Ta, Tb>::typecarr_a typecarr_a;
     typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
@@ -50,16 +52,12 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     double dampingf;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
-    ChContactDVI() {
+    ChContactNSC() {
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactDVI(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactNSC(ChContactContainerBase* mcontainer,      ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
@@ -71,11 +69,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         Reset(mobjA, mobjB, cinfo);
     }
 
-    ~ChContactDVI() {}
-
-    //
-    // FUNCTIONS
-    //
+    ~ChContactNSC() {}
 
     /// Initialize again this constraint.
     virtual void Reset(Ta* mobjA,                               ///< collidable object A
@@ -95,8 +89,8 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
         // Compute the 'average' material
 
         // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurface* mmatA = (ChMaterialSurface*)(this->objA->GetMaterialSurfaceBase().get());
-        ChMaterialSurface* mmatB = (ChMaterialSurface*)(this->objB->GetMaterialSurfaceBase().get());
+        ChMaterialSurfaceNSC* mmatA = (ChMaterialSurfaceNSC*)(this->objA->GetMaterialSurfaceBase().get());
+        ChMaterialSurfaceNSC* mmatB = (ChMaterialSurfaceNSC*)(this->objB->GetMaterialSurfaceBase().get());
 
         ChMaterialCouple mat;
         mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
@@ -143,9 +137,7 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
     /// Set the contact friction coefficient
     virtual void SetFriction(double mf) { Nx.SetFrictionCoefficient(mf); }
 
-    //
     // UPDATING FUNCTIONS
-    //
 
     virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override {
         L(off_L) = react_force.x();
@@ -215,11 +207,12 @@ class ChContactDVI : public ChContactTuple<Ta, Tb> {
                 Tu.Set_cfm_i((inv_hhpa) * this->complianceT);
                 Tv.Set_cfm_i((inv_hhpa) * this->complianceT);
 
-                double qc = inv_hpa * this->norm_dist; //***TODO*** see how to move this in KRMmatricesLoad() 
+                double qc = inv_hpa * this->norm_dist;  //***TODO*** see how to move this in KRMmatricesLoad()
 
-                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outgoing speed, but
+                // Note: clamping of Qc in case of compliance is questionable: it does not limit only the outgoing
+                // speed, but
                 // also the reaction, so it might allow more 'sinking'.
-                //if (do_clamp)
+                // if (do_clamp)
                 //    qc = ChMax(qc, -recovery_clamp);
 
                 Qc(off_L) += qc;

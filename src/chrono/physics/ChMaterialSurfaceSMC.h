@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHMATERIALSURFACEDEM_H
-#define CHMATERIALSURFACEDEM_H
+#ifndef CH_MATERIALSURFACE_SMC_H
+#define CH_MATERIALSURFACE_SMC_H
 
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 
-struct ChCompositeMaterialDEM {
+struct ChCompositeMaterialSMC {
     float E_eff;                ///< Effective elasticity modulus
     float G_eff;                ///< Effective shear modulus
     float mu_eff;               ///< Effective coefficient of friction
@@ -33,11 +33,12 @@ struct ChCompositeMaterialDEM {
     float gt;  ///< tangential viscuous damping coefficient
 };
 
-/// Class for material surface data for DEM contact
-class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
-
+/// Material data for a surface for use with smooth (penalty) contact method.
+/// This data is used to define surface properties owned by ChBody rigid bodies and
+/// similar objects; it carries information that is used to make contacts.
+class ChApi ChMaterialSurfaceSMC : public ChMaterialSurfaceBase {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurfaceDEM)
+    CH_FACTORY_TAG(ChMaterialSurfaceSMC)
 
   public:
     float young_modulus;      ///< Young's modulus (elastic modulus)
@@ -60,12 +61,12 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     float gn;  ///< user-specified normal damping coefficient
     float gt;  ///< user-specified tangential damping coefficient
 
-    ChMaterialSurfaceDEM();
-    ChMaterialSurfaceDEM(const ChMaterialSurfaceDEM& other);
-    ~ChMaterialSurfaceDEM() {}
+    ChMaterialSurfaceSMC();
+    ChMaterialSurfaceSMC(const ChMaterialSurfaceSMC& other);
+    ~ChMaterialSurfaceSMC() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChMaterialSurfaceDEM* Clone() const override { return new ChMaterialSurfaceDEM(*this); }
+    virtual ChMaterialSurfaceSMC* Clone() const override { return new ChMaterialSurfaceSMC(*this); }
 
     virtual ContactMethod GetContactMethod() const override { return DEM; }
 
@@ -112,8 +113,8 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     void SetGt(float val) { gt = val; }
 
     /// Calculate composite material properties
-    static ChCompositeMaterialDEM CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceDEM>& mat1,
-                                                    const std::shared_ptr<ChMaterialSurfaceDEM>& mat2);
+    static ChCompositeMaterialSMC CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceSMC>& mat1,
+                                                    const std::shared_ptr<ChMaterialSurfaceSMC>& mat2);
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
@@ -126,8 +127,7 @@ class ChApi ChMaterialSurfaceDEM : public ChMaterialSurfaceBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChMaterialSurfaceDEM,0)
-
+CH_CLASS_VERSION(ChMaterialSurfaceSMC, 0)
 
 }  // end namespace chrono
 

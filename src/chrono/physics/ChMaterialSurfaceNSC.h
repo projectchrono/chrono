@@ -12,22 +12,20 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHMATERIALSURFACE_H
-#define CHMATERIALSURFACE_H
+#ifndef CH_MATERIALSURFACE_NSC_H
+#define CH_MATERIALSURFACE_NSC_H
 
 #include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 
-/// Material data for a surface: friction, compliance, etc.
-/// This data is used to define surface properties owned by
-/// ChBody rigid bodies and similar things; it carries information
-/// that is used to make contacts.
+/// Material data for a surface for use with non-smooth (complementarity) contact method.
+/// This data is used to define surface properties owned by ChBody rigid bodies and
+/// similar objects; it carries information that is used to make contacts.
 
-class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
-
+class ChApi ChMaterialSurfaceNSC : public ChMaterialSurfaceBase {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurface)
+    CH_FACTORY_TAG(ChMaterialSurfaceNSC)
 
   public:
     float static_friction;
@@ -42,12 +40,12 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     float complianceRoll;
     float complianceSpin;
 
-    ChMaterialSurface();
-    ChMaterialSurface(const ChMaterialSurface& other);
-    ~ChMaterialSurface() {}
+    ChMaterialSurfaceNSC();
+    ChMaterialSurfaceNSC(const ChMaterialSurfaceNSC& other);
+    ~ChMaterialSurfaceNSC() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChMaterialSurface* Clone() const override { return new ChMaterialSurface(*this); }
+    virtual ChMaterialSurfaceNSC* Clone() const override { return new ChMaterialSurfaceNSC(*this); }
 
     virtual ContactMethod GetContactMethod() const override { return DVI; }
 
@@ -135,7 +133,7 @@ class ChApi ChMaterialSurface : public ChMaterialSurfaceBase {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
-CH_CLASS_VERSION(ChMaterialSurface,0)
+CH_CLASS_VERSION(ChMaterialSurfaceNSC, 0)
 
 }  // end namespace chrono
 

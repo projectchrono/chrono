@@ -184,7 +184,7 @@ void DPCapPress() {
 		m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) / (0.5*tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
 	}
 
-	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
 	my_surfacematerial->SetKn(3200);//(10e6);
 	my_surfacematerial->SetKt(3200);//(10e6);
 	my_surfacematerial->SetGn(32);// (10e3);
@@ -520,7 +520,7 @@ void ShellBrickContact() {
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
     ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
     auto mat = std::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
-    std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+    std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(3e6f);
     my_surfacematerial->SetKt(3e6f);
     my_surfacematerial->SetGn(3e3f);
@@ -843,7 +843,7 @@ void SimpleBoxContact() {
     material->Set_E(E.x());
     // material->Set_G(G.x());
     material->Set_v(nu.x());
-    std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+    std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
     my_surfacematerial->SetGn(6e2f);
@@ -1153,7 +1153,7 @@ void SoilBin() {
 	material->Set_E(E.x());
 	// material->Set_G(G.x());
 	material->Set_v(nu.x());
-	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
 	my_surfacematerial->SetKn(0.2e4);//0.2e6
 	my_surfacematerial->SetKt(0.2e4);//0.2e6
 	my_surfacematerial->SetGn(0.2e2);//0.2e4

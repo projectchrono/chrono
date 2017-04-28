@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
   // Create the surface material, containing information
   // about friction etc.
 
-  auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+  auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
   mysurfmaterial->SetYoungModulus(10e4);
   mysurfmaterial->SetFriction(0.3f);
   mysurfmaterial->SetRestitution(0.2f);
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->collision.collision_envelope = 0.01;
   systemG->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-  auto triMat = std::make_shared<ChMaterialSurface>();
+  auto triMat = std::make_shared<ChMaterialSurfaceNSC>();
   triMat->SetFriction(0.4f);
 
   // Create the triangles for the tire geometry

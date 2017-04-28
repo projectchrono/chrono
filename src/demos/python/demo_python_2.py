@@ -44,7 +44,7 @@ my_system.Add(my_shbodyB)
 
 
 # Define surface material(s)
-my_shmaterial = chrono.ChMaterialSurface()
+my_shmaterial = chrono.ChMaterialSurfaceNSC()
 my_shmaterial.SetFriction(0.3)
 my_shmaterial.SetCompliance(0)
 my_shbodyA.SetMaterialSurface(my_shmaterial)

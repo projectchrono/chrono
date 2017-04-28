@@ -92,9 +92,9 @@ int main(int argc, char** argv) {
     container->SetBodyFixed(true);
     container->SetIdentifier(-1);
 
-    container->GetMaterialSurface()->SetFriction(0.6f);
-    container->GetMaterialSurface()->SetRollingFriction(1);
-    container->GetMaterialSurface()->SetSpinningFriction(1);
+    container->GetMaterialSurfaceNSC()->SetFriction(0.6f);
+    container->GetMaterialSurfaceNSC()->SetRollingFriction(1);
+    container->GetMaterialSurfaceNSC()->SetSpinningFriction(1);
 
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
@@ -130,8 +130,8 @@ int main(int argc, char** argv) {
         ball->GetCollisionModel()->BuildModel();
 
         // Sliding and rolling friction coefficients
-        ball->GetMaterialSurface()->SetFriction(0.4f);
-        ball->GetMaterialSurface()->SetRollingFriction(((float)bi / 10) * 0.05f);
+        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
+        ball->GetMaterialSurfaceNSC()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
         system.Add(ball);
@@ -156,8 +156,8 @@ int main(int argc, char** argv) {
 		ball->GetCollisionModel()->BuildModel();
 
 		// Sliding and rolling friction coefficients
-		ball->GetMaterialSurface()->SetFriction(0.4f);
-        ball->GetMaterialSurface()->SetSpinningFriction((bi / 10.0f) * 0.02f);
+		ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
+        ball->GetMaterialSurfaceNSC()->SetSpinningFriction((bi / 10.0f) * 0.02f);
 
         // Add to the system
 		system.Add(ball);

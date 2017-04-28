@@ -145,7 +145,7 @@ class ParticleGenerator {
                                                 -0.5 * bedLength + ChRandom() * bedLength);
                 auto currRigidBody = std::make_shared<ChBodyEasySphere>(sphrad, this->sphDens, true, true);
                 currRigidBody->SetPos(currPos);
-                currRigidBody->GetMaterialSurface()->SetFriction(this->mu);
+                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(this->mu);
                 currRigidBody->SetRot(randrot);
                 currRigidBody->AddAsset(rockMap);
 
@@ -178,7 +178,7 @@ class ParticleGenerator {
                 auto currRigidBody = std::make_shared<ChBodyEasyBox>(pSize * xscale, pSize * yscale, pSize * zscale, this->boxDens, true, true);
                 currRigidBody->SetPos(currPos);
                 currRigidBody->SetRot(randrot);
-                currRigidBody->GetMaterialSurface()->SetFriction(0.5);
+                currRigidBody->GetMaterialSurfaceNSC()->SetFriction(0.5);
                 currRigidBody->AddAsset(cubeMap);
 
                 msys->AddBody(currRigidBody);
@@ -260,7 +260,7 @@ class SoilbinWheel {
         wheel->SetPos(mposition);
         wheel->SetMass(mass);
         wheel->SetInertiaXX(inertia);
-        wheel->GetMaterialSurface()->SetFriction(0.4f);
+        wheel->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         wheel->SetCollide(true);
 
         // Visualization mesh
@@ -343,7 +343,7 @@ class TestMech {
         floor = std::make_shared<ChBodyEasyBox>(binWidth + wallWidth / 2.0, wallWidth, binLength + wallWidth / 2.0, 1.0, true, true);
         floor->SetPos(ChVector<>(0, -0.5 - wallWidth / 2.0, 0));
         floor->SetBodyFixed(true);
-        floor->GetMaterialSurface()->SetFriction(0.5);
+        floor->GetMaterialSurfaceNSC()->SetFriction(0.5);
         floor->AddAsset(cubeMap);
         system->AddBody(floor);
 

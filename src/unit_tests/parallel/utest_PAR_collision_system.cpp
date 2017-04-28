@@ -71,7 +71,7 @@ bool test_collisionsystem() {
 	//create parallel system
 	ChSystemParallelDVI* system = new ChSystemParallelDVI();
 	bool passed = true;
-	auto material = std::make_shared<ChMaterialSurface>();
+	auto material = std::make_shared<ChMaterialSurfaceNSC>();
 
 	//add a chbody with a sphere model
 	std::shared_ptr<ChBody> sphere_model = std::make_shared<ChBody>(new ChCollisionModelParallel);
