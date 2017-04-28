@@ -40,7 +40,7 @@ class CH_MODELS_API HMMWV_VehicleFull : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleFull(const bool fixed = false,
                       DrivelineType drive_type = DrivelineType::AWD,
-                      ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                      ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC,
                       ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     HMMWV_VehicleFull(ChSystem* system,

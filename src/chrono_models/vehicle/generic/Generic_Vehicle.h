@@ -37,7 +37,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
                     SuspensionType suspType,
-                    ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                    ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::NSC);
 
     ~Generic_Vehicle() {}
 

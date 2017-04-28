@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     material->SetAdhesion(0);  // Magnitude of the adhesion in Constant adhesion model
 
     // Create the falling ball
-    auto ball = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
+    auto ball = std::make_shared<ChBody>(ChMaterialSurfaceBase::SMC);
 
     ball->SetIdentifier(ballId);
     ball->SetMass(mass);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     msystem.AddBody(ball);
 
     // Create container
-    auto bin = std::make_shared<ChBody>(ChMaterialSurfaceBase::DEM);
+    auto bin = std::make_shared<ChBody>(ChMaterialSurfaceBase::SMC);
 
     bin->SetIdentifier(binId);
     bin->SetMass(1);

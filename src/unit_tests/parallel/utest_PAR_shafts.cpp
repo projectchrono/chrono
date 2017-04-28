@@ -53,10 +53,10 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   ChSystemParallel* system;
 
   switch (cm) {
-      case ChMaterialSurfaceBase::DEM:
+      case ChMaterialSurfaceBase::SMC:
           system = new ChSystemParallelDEM();
           break;
-      case ChMaterialSurfaceBase::DVI:
+      case ChMaterialSurfaceBase::NSC:
           system = new ChSystemParallelDVI();
           break;
   }
@@ -72,7 +72,7 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (cm == ChMaterialSurfaceBase::DVI) {
+  if (cm == ChMaterialSurfaceBase::NSC) {
     ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
     systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -495,20 +495,20 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Test shaft - shaft connection
-  test_passed &= TestShaftShaft("shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
-  test_passed &= TestShaftShaft("shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
+  test_passed &= TestShaftShaft("shaft-shaft (DEM)", ChMaterialSurfaceBase::SMC);
+  test_passed &= TestShaftShaft("shaft-shaft (DVI)", ChMaterialSurfaceBase::NSC);
 
   // Test shaft - body connection
-  test_passed &= TestShaftBody("shaft-body (DEM)", ChMaterialSurfaceBase::DEM);
-  test_passed &= TestShaftBody("shaft-body (DVI)", ChMaterialSurfaceBase::DVI);
+  test_passed &= TestShaftBody("shaft-body (DEM)", ChMaterialSurfaceBase::SMC);
+  test_passed &= TestShaftBody("shaft-body (DVI)", ChMaterialSurfaceBase::NSC);
 
   // Test clutch between shafts
-  ////test_passed &= TestClutch("clutch (DEM)", ChMaterialSurfaceBase::DEM);
-  ////test_passed &= TestClutch("clutch (DVI)", ChMaterialSurfaceBase::DVI);
+  ////test_passed &= TestClutch("clutch (DEM)", ChMaterialSurfaceBase::SMC);
+  ////test_passed &= TestClutch("clutch (DVI)", ChMaterialSurfaceBase::NSC);
 
   // Test shaft - shaft - shaft connection
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", ChMaterialSurfaceBase::SMC);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", ChMaterialSurfaceBase::NSC);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

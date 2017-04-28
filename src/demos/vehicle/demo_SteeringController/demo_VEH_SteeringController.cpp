@@ -40,7 +40,7 @@ using namespace chrono::vehicle::hmmwv;
 // Problem parameters
 
 // Contact method type
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
+ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = TireModelType::RIGID;

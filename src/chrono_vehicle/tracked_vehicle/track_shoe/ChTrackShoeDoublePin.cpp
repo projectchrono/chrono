@@ -56,11 +56,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
 
     switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
@@ -93,11 +93,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Set contact material properties.
     switch (m_connector_L->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             m_connector_L->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_connector_L->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             m_connector_L->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_connector_L->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_connector_L->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
@@ -110,11 +110,11 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     }
 
     switch (m_connector_R->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             m_connector_R->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_connector_R->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             m_connector_R->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_connector_R->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_connector_R->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

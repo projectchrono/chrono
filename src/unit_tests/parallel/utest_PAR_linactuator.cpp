@@ -261,10 +261,10 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   ChSystemParallel* msystem;
 
   switch (cm) {
-      case ChMaterialSurfaceBase::DEM:
+      case ChMaterialSurfaceBase::SMC:
           msystem = new ChSystemParallelDEM();
           break;
-      case ChMaterialSurfaceBase::DVI:
+      case ChMaterialSurfaceBase::NSC:
           msystem = new ChSystemParallelDVI();
           break;
   }
@@ -281,7 +281,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (cm == ChMaterialSurfaceBase::DVI) {
+  if (cm == ChMaterialSurfaceBase::NSC) {
     ChSystemParallelDVI* msystemDVI = static_cast<ChSystemParallelDVI*>(msystem);
     msystemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -393,12 +393,12 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Case 1 - Translation axis vertical, imposed speed 1 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DEM, "Case 1 (DEM)", QUNIT, 1, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DVI, "Case 1 (DVI)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 1 (DEM)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 1 (DVI)", QUNIT, 1, animate);
 
   // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DEM, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::DVI, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

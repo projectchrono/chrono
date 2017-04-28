@@ -21,20 +21,20 @@ ChSystemParallelDEM::ChSystemParallelDEM(const ChSystemParallelDEM& other) : ChS
 
 ChBody* ChSystemParallelDEM::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
 
-    return new ChBody(ChMaterialSurfaceBase::DEM);
+    return new ChBody(ChMaterialSurfaceBase::SMC);
 }
 
 ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DEM);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
 
-    return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM);
+    return new ChBodyAuxRef(ChMaterialSurfaceBase::SMC);
 }
 
 void ChSystemParallelDEM::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DEM);
+    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::SMC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().

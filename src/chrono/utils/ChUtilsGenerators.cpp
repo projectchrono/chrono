@@ -56,7 +56,7 @@ MixtureIngredient::~MixtureIngredient() {
 void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
-    if (mat->GetContactMethod() == ChMaterialSurfaceBase::DVI) {
+    if (mat->GetContactMethod() == ChMaterialSurfaceBase::NSC) {
         m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
     } else {
         m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
@@ -292,7 +292,7 @@ void Generator::createObjectsBox(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -327,7 +327,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
 
     // When using DEM, make sure there is no shape overlap.
     ChVector<> distv;
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         distv = calcMinSeparation(dist);
     else
         distv = dist;
@@ -354,7 +354,7 @@ void Generator::createObjectsCylinderX(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -386,7 +386,7 @@ void Generator::createObjectsCylinderY(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -418,7 +418,7 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -507,10 +507,10 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         ChBody* body = m_system->NewBody();
 
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurfaceBase::DVI:
+            case ChMaterialSurfaceBase::NSC:
                 m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
                 break;
-            case ChMaterialSurfaceBase::DEM:
+            case ChMaterialSurfaceBase::SMC:
                 m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
                 break;
         }
@@ -597,11 +597,11 @@ void Generator::writeObjectInfo(const std::string& filename) {
         csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurfaceBase::DVI: {
+            case ChMaterialSurfaceBase::NSC: {
                 std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
                 csv << mat->GetSfriction() << mat->GetCohesion();
             } break;
-            case ChMaterialSurfaceBase::DEM: {
+            case ChMaterialSurfaceBase::SMC: {
                 std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
                 csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
             } break;

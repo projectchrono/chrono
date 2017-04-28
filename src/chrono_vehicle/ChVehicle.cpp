@@ -31,7 +31,7 @@ namespace vehicle {
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
-    m_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
+    m_system = (contact_method == ChMaterialSurfaceBase::NSC) ? new ChSystem : new ChSystemDEM;
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -41,7 +41,7 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             break;
         default:

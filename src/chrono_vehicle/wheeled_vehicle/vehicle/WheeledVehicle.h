@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API WheeledVehicle : public ChWheeledVehicle {
   public:
     WheeledVehicle(const std::string& filename,
-                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
 
     WheeledVehicle(ChSystem* system, const std::string& filename);
 

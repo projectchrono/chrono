@@ -96,8 +96,8 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
 int main(int argc, char* argv[]) {
 
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurfaceBase::DEM);
-    passed &= test_computecontact(ChMaterialSurfaceBase::DVI);
+    passed &= test_computecontact(ChMaterialSurfaceBase::SMC);
+    passed &= test_computecontact(ChMaterialSurfaceBase::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -113,7 +113,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
     double time_step;
 
     switch (method) {
-        case ChMaterialSurfaceBase::DEM: {
+        case ChMaterialSurfaceBase::SMC: {
             std::cout << "Using PENALTY method." << std::endl;
             sprintf(title, "Contact Force test (DEM)");
 
@@ -138,7 +138,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurfaceBase::DVI: {
+        case ChMaterialSurfaceBase::NSC: {
             std::cout << "Using COMPLEMENTARITY method." << std::endl;
             sprintf(title, "Contact Force test (DVI)");
 

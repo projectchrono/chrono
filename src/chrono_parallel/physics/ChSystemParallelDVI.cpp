@@ -34,9 +34,9 @@ ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChS
 
 ChBody* ChSystemParallelDVI::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
 
-    return new ChBody(ChMaterialSurfaceBase::DVI);
+    return new ChBody(ChMaterialSurfaceBase::NSC);
 }
 
 void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
@@ -45,13 +45,13 @@ void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
 
 ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::DVI);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
 
-    return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI);
+    return new ChBodyAuxRef(ChMaterialSurfaceBase::NSC);
 }
 
 void ChSystemParallelDVI::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::DVI);
+    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::NSC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().

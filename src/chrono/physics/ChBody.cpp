@@ -50,10 +50,10 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     collision_model = InstanceCollisionModel();
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             matsurface = std::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             matsurface = std::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
@@ -95,10 +95,10 @@ ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
     collision_model->SetContactable(this);
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             matsurface = std::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             matsurface = std::make_shared<ChMaterialSurfaceSMC>();
             break;
     }

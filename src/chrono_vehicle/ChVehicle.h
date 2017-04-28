@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChVehicle {
 
   protected:
     /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
 
     /// Construct a vehicle system using the specified ChSystem.
     ChVehicle(ChSystem* system);

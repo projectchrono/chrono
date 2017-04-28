@@ -69,11 +69,11 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

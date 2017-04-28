@@ -87,11 +87,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
   public:
     /// Build a rigid body.
-    ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+    ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
-           ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+           ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
 
     ChBody(const ChBody& other);
 

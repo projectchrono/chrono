@@ -89,7 +89,7 @@ void AddMovingObstacles(ChSystem* system);
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
@@ -319,11 +319,11 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
             obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);

@@ -154,7 +154,7 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
     void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DVI; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::NSC; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
@@ -185,7 +185,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
 
-    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::SMC; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;

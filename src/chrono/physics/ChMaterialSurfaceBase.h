@@ -29,8 +29,8 @@ class ChApi ChMaterialSurfaceBase {
 
   public:
     enum ContactMethod {
-        DVI,  ///< constraint-based (a.k.a. rigid-body) contact
-        DEM   ///< penalty-based (a.k.a. soft-body) contact
+        NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact
+        SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
     };
 
     virtual ~ChMaterialSurfaceBase() {}

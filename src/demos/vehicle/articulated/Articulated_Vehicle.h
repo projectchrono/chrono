@@ -32,7 +32,7 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     Articulated_Vehicle(
         const bool fixed,
         chrono::vehicle::SuspensionType suspType,
-        chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+        chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::NSC);
 
     ~Articulated_Vehicle() {}
 

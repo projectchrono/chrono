@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API TrackedVehicle : public ChTrackedVehicle {
   public:
     TrackedVehicle(const std::string& filename,
-                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
 
     TrackedVehicle(ChSystem* system, const std::string& filename);
 

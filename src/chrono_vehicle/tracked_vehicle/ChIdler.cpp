@@ -63,11 +63,11 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
 
     // Set wheel contact material properties.
     switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurfaceBase::NSC:
             m_wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
+        case ChMaterialSurfaceBase::SMC:
             m_wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

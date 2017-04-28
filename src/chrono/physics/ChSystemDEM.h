@@ -68,15 +68,15 @@ class ChApi ChSystemDEM : public ChSystem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSystemDEM* Clone() const override { return new ChSystemDEM(*this); }
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::SMC; }
 
     /// Create a new body, consistent with the contact method and collision model used by this system.
     /// The returned body is not added to the system.
-    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurfaceBase::DEM); }
+    virtual ChBody* NewBody() override { return new ChBody(ChMaterialSurfaceBase::SMC); }
 
     /// Create a new body with non-centroidal reference frame, consistent with the contact method and
     /// collision model used by this system.  The returned body is not added to the system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::DEM); }
+    virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::SMC); }
 
     virtual void SetSolverType(ChSolver::Type type) override;
 
