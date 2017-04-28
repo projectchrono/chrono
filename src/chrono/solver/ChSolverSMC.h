@@ -45,7 +45,7 @@ class ChApi ChSolverSMC : public ChIterativeSolver {
 
     ~ChSolverSMC() {}
 
-    virtual Type GetType() const override { return Type::SOLVER_DEM; }
+    virtual Type GetType() const override { return Type::SOLVER_SMC; }
 
     /// Performs the solution of the problem.
     /// \return  the maximum constraint violation after termination.
