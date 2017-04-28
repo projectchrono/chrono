@@ -21,8 +21,8 @@ SET(DEMOS
   demo_IRR_convergence
   demo_IRR_assets
   demo_IRR_soilbin
-  demo_IRR_ballDEM
-  demo_IRR_collisionDEM
+  demo_IRR_ballSMC
+  demo_IRR_collisionSMC
   demo_IRR_emitter
   demo_IRR_emit_cluster
   demo_IRR_emit_processor
