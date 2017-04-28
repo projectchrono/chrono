@@ -31,7 +31,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSystemSMC)
 
 ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects, double scene_size)
-    : ChSystem(max_objects, scene_size, false),
+    : ChSystem(max_objects, scene_size),
       m_use_mat_props(use_material_properties),
       m_contact_model(Hertz),
       m_adhesion_model(Constant),
@@ -45,7 +45,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
 
     collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
-    // For default DEM there is no need to create contacts 'in advance'
+    // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0);
 
@@ -56,12 +56,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
     m_characteristicVelocity = 1;
 }
 
-void ChSystemSMC::SetSolverType(ChSolver::Type type) {
-    ChSystem::SetSolverType(type);
-
-    contact_container = std::make_shared<ChContactContainerSMC>();
-    contact_container->SetSystem(this);
-}
+ChSystemSMC::ChSystemSMC(const ChSystemSMC& other) : ChSystem(other) {}
 
 void ChSystemSMC::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
     if (std::dynamic_pointer_cast<ChContactContainerSMC>(container))

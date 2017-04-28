@@ -26,7 +26,7 @@
 
 #include "chrono/assets/ChPointPointDrawing.h"
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -59,7 +59,7 @@ class MySpringForce : public ChSpringForceCallback {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body with two visualization spheres

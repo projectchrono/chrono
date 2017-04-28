@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
 #include "chrono/assets/ChTexture.h"
@@ -43,7 +43,7 @@ using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
     // Create the remover, i.e. an object that takes care
     // of removing particles that are inside or outside some volume.
     // The fact that particles are handled with shared pointers means that,
-    // after they are removed from the ChSystem, they are also automatically
+    // after they are removed from the system, they are also automatically
     // deleted if no one else is referencing them.
 
     ChParticleRemoverBox remover;

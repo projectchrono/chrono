@@ -21,7 +21,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 using namespace chrono;
 
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a physical system.. \n";
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create a bunch of rigid bodies..
         // Note that we use shared pointers, so you don't
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a slider-crank system: \n";
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create three rigid bodies and add them to the system:
         auto my_body_A = std::make_shared<ChBody>();
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
         my_system.ShowHierarchy(GetLog());
 
         GetLog() << "Now use an interator to scan through already-added constraints:\n\n";
-        ChSystem::IteratorLinks myiter = my_system.IterBeginLinks();
+        ChSystemNSC::IteratorLinks myiter = my_system.IterBeginLinks();
         while (myiter != my_system.IterEndLinks()) {
             GetLog() << "   Link class: " << typeid((*myiter)).name()
                      << "  , leaves n.DOFs: " << (*myiter)->GetLeftDOF() << "\n";

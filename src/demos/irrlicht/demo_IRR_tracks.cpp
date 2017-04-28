@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -79,7 +79,7 @@ class MySimpleTank {
     // Build and initialize the tank, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleTank(ChSystem& my_system,           ///< the chrono::engine physical system
+    MySimpleTank(ChSystemNSC& my_system,           ///< the chrono::engine physical system
                  ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                  IVideoDriver* mdriver          ///< the Irrlicht video driver
                  ) {
@@ -367,7 +367,7 @@ class MySimpleTank {
              std::shared_ptr<ChBody> template_shoe,  // collision geometry will be shared with this body, to save memory&cpu time.
              ChVector<> position,                    // position
              ChQuaternion<> rotation,                // orientation
-             ChSystem& my_system,                    // the physical system
+             ChSystemNSC& my_system,                    // the physical system
              chrono::ChVector<> joint_displacement   // position of shoe-shoe constraint, relative to COG.
              ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
@@ -480,8 +480,8 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
-    ChSystem my_system;
+    //    will be handled by this ChSystemNSC object.
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

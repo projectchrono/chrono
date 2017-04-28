@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/physics/ChLinkBushing.h"
@@ -30,7 +30,7 @@ using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
     // Create the system
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the ground body

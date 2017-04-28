@@ -24,7 +24,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/physics/ChBodyEasy.h"
 
@@ -106,7 +106,7 @@ class MySimpleCar {
     // Build and initialize the car, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleCar(ChSystem& my_system,           ///< the chrono::engine physical system
+    MySimpleCar(ChSystemNSC& my_system,           ///< the chrono::engine physical system
                 ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                 IVideoDriver* mdriver          ///< the Irrlicht video driver
                 ) {
@@ -391,10 +391,10 @@ class MySimpleCar {
     ~MySimpleCar() {
         ChSystem* mysystem = spindleRF->GetSystem();  // trick to get the system here
         // When a ChBodySceneNode is removed via ->remove() from Irrlicht 3D scene manager,
-        // it is also automatically removed from the ChSystem (the ChSystem::RemoveBody() is
+        // it is also automatically removed from the ChSystemNSC (the ChSystemNSC::RemoveBody() is
         // automatically called at Irrlicht node deletion - see ChBodySceneNode.h ).
 
-        // For links, just remove them from the ChSystem using ChSystem::RemoveLink()
+        // For links, just remove them from the ChSystemNSC using ChSystemNSC::RemoveLink()
         mysystem->RemoveLink(link_revoluteRF);
         mysystem->RemoveLink(link_distRFU1);
         mysystem->RemoveLink(link_distRFU2);
@@ -472,7 +472,7 @@ class MySimpleCar {
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystem* asystem, IrrlichtDevice* adevice, MySimpleCar* acar) {
+    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, MySimpleCar* acar) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         msystem = asystem;
         mdevice = adevice;
@@ -594,7 +594,7 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChSystem* msystem;
+    ChSystemNSC* msystem;
     IrrlichtDevice* mdevice;
     MySimpleCar* mcar;
 
@@ -619,8 +619,8 @@ int main(int argc, char* argv[]) {
     //
 
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
-    ChSystem my_system;
+    //    will be handled by this ChSystemNSC object.
+    ChSystemNSC my_system;
 
     // 2.- Create the Irrlicht visualization.
     ChIrrApp application(&my_system, L"Simple vehicle suspension", core::dimension2d<u32>(640, 480), false);
@@ -666,7 +666,7 @@ int main(int argc, char* argv[]) {
     //  a ChCustomCollisionPointCallback class. This will be called per each contact point, and
     //  it can modify the friction as in the very simple example below:
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChSystemNSC::ChCustomCollisionPointCallback {
       public:
         virtual void ContactCallback(
             const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)

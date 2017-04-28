@@ -77,21 +77,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
     /// collision algorithm in an optimal way. Scene size should be approximately
     /// the radius of the expected area where colliding objects will move.
-    /// Note that currently, by default, the collision broadphase is a btDbvtBroadphase
-    /// that does not make use of max_objects and scene_size, but one might plug-in
-    /// other collision engines that might use those parameters.
-    /// If init_sys is false it does not initialize the collision system or solver
-    /// assumes that the user will do so.
-    ChSystem(unsigned int max_objects = 16000, double scene_size = 500, bool init_sys = true);
+    /// The default collision broadphase does not make use of max_objects and scene_size.
+    ChSystem(unsigned int max_objects = 16000, double scene_size = 500);
 
     /// Copy constructor
     ChSystem(const ChSystem& other);
 
     /// Destructor
     virtual ~ChSystem();
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystem* Clone() const override { return new ChSystem(*this); }
 
     //
     // PROPERTIES
@@ -292,19 +285,19 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Return the contact method supported by this system.
     /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::NSC; }
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type
     /// of this Chsystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::NSC); }
+    virtual ChBody* NewBody() = 0;
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
     /// The returned body is created with a contact model consistent with the type
     /// of this Chsystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(ChMaterialSurfaceBase::NSC); }
+    virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
 
     /// Attach a probe to this system.
     void AddProbe(const std::shared_ptr<ChProbe>& newprobe);

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChProximityContainerSPH.h"
 #include "chrono/physics/ChMatterSPH.h"
@@ -31,7 +31,7 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 
-void create_some_falling_items(ChSystem& system) {
+void create_some_falling_items(ChSystemNSC& system) {
     // box data
     double xsize = 0.5;
     double zsize = 0.5;
@@ -128,7 +128,7 @@ void create_some_falling_items(ChSystem& system) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChSystem::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
+        ChSystemNSC::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
         while (myiter != mphysicalSystem.IterEndOtherPhysicsItems()) {
             if (ChMatterSPH* myfluid = dynamic_cast<ChMatterSPH*>((*myiter).get())) {
                 for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++) {

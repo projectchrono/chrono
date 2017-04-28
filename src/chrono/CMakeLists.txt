@@ -144,6 +144,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
     physics/ChSystem.cpp
+    physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
     physics/ChGlobal.cpp
     physics/ChSolvmin.cpp
@@ -266,6 +267,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsThermalEngine.h
     physics/ChSolvmin.h
     physics/ChSystem.h
+    physics/ChSystemNSC.h
     physics/ChSystemSMC.h    
     physics/ChAssembly.h
     physics/ChContactSMC.h

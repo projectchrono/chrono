@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 
@@ -121,7 +121,7 @@ class MyEventReceiver : public IEventReceiver {
     IGUIStaticText* text_compliance;
 };
 
-void create_some_falling_items(ChSystem& mphysicalSystem) {
+void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // From now on, all created collision models will have a large outward envelope (needed
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
@@ -221,7 +221,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     // the touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChSystemNSC::ChCustomCollisionPointCallback {
       public:
         virtual void ContactCallback(
             const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
             // add here:
             //    if (msystem->GetChTime() > 10) material.cohesion = 0;
         };
-        ChSystem* msystem;
+        ChSystemNSC* msystem;
     };
 
     MyContactCallback mycontact_callback;           // create the callback object

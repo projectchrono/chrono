@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -105,7 +105,7 @@ class MyEventReceiver : public IEventReceiver {
 // This small function creates a Mecanum wheel, made with many ChBodySceneNode rigid bodies (a central
 // wheel and the many radial rollers, already lined to the wheel with revolute joints.)
 // The function returns the pointer to the central wheel.
-ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
+ChBodySceneNode* create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
                                       ISceneManager* msceneManager,
                                       IVideoDriver* driver,
                                       ChVector<> shaft_position,
@@ -166,7 +166,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

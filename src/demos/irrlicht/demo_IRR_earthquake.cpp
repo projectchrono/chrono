@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
@@ -42,7 +42,7 @@ using namespace irr::gui;
 // For convex hulls, you just need to build a vector of points, it does not matter the order,
 // because they will be considered 'wrapped' in a convex hull anyway.
 
-void create_column(ChSystem& mphysicalSystem,
+void create_column(ChSystemNSC& mphysicalSystem,
                    ChCoordsys<> base_pos,
                    int col_nedges = 10,
                    double col_radius_hi = 0.45,
@@ -75,7 +75,7 @@ void create_column(ChSystem& mphysicalSystem,
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

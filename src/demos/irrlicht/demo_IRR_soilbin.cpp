@@ -25,7 +25,7 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
@@ -44,7 +44,7 @@ using namespace irr::gui;
 class ParticleGenerator {
   public:
     ParticleGenerator(ChIrrApp* application,
-                      ChSystem* mphysicalSystem,
+                      ChSystemNSC* mphysicalSystem,
                       double width,
                       double len,
                       double sphDensity = 100.0,
@@ -224,7 +224,7 @@ class ParticleGenerator {
 
   private:
     ChIrrApp* app;
-    ChSystem* msys;
+    ChSystemNSC* msys;
     int totalParticles;
     double totalParticleMass;
     double bedLength;
@@ -251,7 +251,7 @@ class SoilbinWheel {
     std::shared_ptr<ChBody> wheel;
 
     // Use convex decomposition for collision detection with the Trelleborg tire
-    SoilbinWheel(ChSystem* system, ChVector<> mposition, double mass, ChVector<>& inertia) {
+    SoilbinWheel(ChSystemNSC* system, ChVector<> mposition, double mass, ChVector<>& inertia) {
         ChCollisionModel::SetDefaultSuggestedEnvelope(0.005);
         ChCollisionModel::SetDefaultSuggestedMargin(0.004);
 
@@ -316,7 +316,7 @@ class TestMech {
     double currTorque;
 
     // functions
-    TestMech(ChSystem* system,
+    TestMech(ChSystemNSC* system,
              std::shared_ptr<ChBody> wheelBody,
              double binWidth = 1.0,
              double binLength = 2.0,
@@ -918,7 +918,7 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // ** user input
     double wheelMass = 5.0;  // mass of wheel

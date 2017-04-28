@@ -21,7 +21,7 @@
 
 #include <cstdio>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -52,7 +52,7 @@ class MySpringTorque : public ChRotSpringTorqueCallback {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     //ChQuaternion<> rev_rot = QUNIT;

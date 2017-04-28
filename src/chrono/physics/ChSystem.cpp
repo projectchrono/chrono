@@ -17,7 +17,6 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
-#include "chrono/physics/ChContactContainerNSC.h"
 #include "chrono/physics/ChProximityContainerBase.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -185,10 +184,7 @@ class IteratorAllPhysics {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSystem)
-
-ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
+ChSystem::ChSystem(unsigned int max_objects, double scene_size)
     : ChAssembly(),
       end_time(1),
       step(0.04),
@@ -217,28 +213,12 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
     // Set default number of threads to be equal to number of available cores
     parallel_thread_number = CHOMPfunctions::GetNumProcs();
 
-    // Set default contact container
-    if (init_sys) {
-        contact_container = std::make_shared<ChContactContainerNSC>();
-        contact_container->SetSystem(this);
-    }
-
-    // Set default collision engine
-    if (init_sys) {
-        collision_system = std::make_shared<ChCollisionSystemBullet>(max_objects, scene_size);
-    }
-
     // Set default collision envelope and margin.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // Set default timestepper.
     timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
-
-    // Set default solver
-    if (init_sys) {
-        SetSolverType(ChSolver::Type::SYMMSOR);
-    }
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
@@ -311,9 +291,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
 
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
-
-    contact_container = std::make_shared<ChContactContainerNSC>();
-    contact_container->SetSystem(this);
 
     switch (type) {
         case ChSolver::Type::SOR:

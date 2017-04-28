@@ -63,6 +63,9 @@ class ChApi ChSystemSMC : public ChSystem {
                 double scene_size = 500               ///< approximate bounding radius of the scene
                 );
 
+    /// Copy constructor
+    ChSystemSMC(const ChSystemSMC& other);
+
     virtual ~ChSystemSMC() {}
 
     /// "Virtual" copy constructor (covariant return type).
@@ -81,8 +84,6 @@ class ChApi ChSystemSMC : public ChSystem {
     /// Create a new body with non-centroidal reference frame, consistent with the contact method and
     /// collision model used by this system.  The returned body is not added to the system.
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurfaceBase::SMC); }
-
-    virtual void SetSolverType(ChSolver::Type type) override;
 
     /// Replace the contact container.
     /// The provided container object must be inherited from ChContactContainerSMC.

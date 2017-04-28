@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
@@ -83,7 +83,7 @@ std::shared_ptr<ChBody> create_wheel(ChVector<> mposition, ChIrrAppInterface& ma
     return mrigidBody;
 }
 
-void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
+void create_some_falling_items(ChSystemNSC& mphysicalSystem, ISceneManager* msceneManager, IVideoDriver* driver) {
     // Make some pebbles, just for fun, under the wheel
     video::ITexture* cubeMap = driver->getTexture(GetChronoDataFile("concrete.jpg").c_str());
     video::ITexture* rockMap = driver->getTexture(GetChronoDataFile("rock.jpg").c_str());
@@ -128,7 +128,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem, ISceneManager* msceneM
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
