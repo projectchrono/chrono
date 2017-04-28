@@ -18,7 +18,7 @@
 // The global reference frame has Z up.
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 #include "chrono_opengl/ChOpenGLWindow.h"
@@ -29,7 +29,7 @@ using namespace geometry;
 // -----------------------------------------------------------------------------
 // Create a collection of geometric shapes
 // -----------------------------------------------------------------------------
-void AddShapes(ChSystem* sys) {
+void AddShapes(ChSystemNSC* sys) {
     auto bin = std::make_shared<ChBody>();
     utils::AddSphereGeometry(bin.get(), 1, ChVector<>(0, 0, 0));
     utils::AddEllipsoidGeometry(bin.get(), ChVector<>(.5, 1, 1), ChVector<>(3, 0, 0));
@@ -43,7 +43,7 @@ void AddShapes(ChSystem* sys) {
 // Create the system
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    ChSystem msystem;
+    ChSystemNSC msystem;
 
     AddShapes(&msystem);
 

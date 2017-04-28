@@ -14,6 +14,7 @@
 //
 //     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -29,7 +30,7 @@ using namespace irr;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

@@ -28,6 +28,7 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverDEM.h"
 #include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
@@ -141,7 +142,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         case ChMaterialSurfaceBase::NSC: {
             GetLog() << "Using COMPLEMENTARITY method.\n";
 
-            system = new ChSystem;
+            system = new ChSystemNSC;
 
             auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);

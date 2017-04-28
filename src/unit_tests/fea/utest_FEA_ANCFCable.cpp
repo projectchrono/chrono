@@ -30,7 +30,7 @@
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     fileMid.close();
 
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
     unsigned int num_steps = 200;
     utils::Data m_data;  // Matrices to store datac
 
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     hnodeancf5->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
 
     // First: loads must be added to "load containers",
-    // and load containers must be added to your ChSystem
+    // and load containers must be added to your system
     auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 

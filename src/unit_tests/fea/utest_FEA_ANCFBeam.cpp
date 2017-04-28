@@ -22,7 +22,7 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBeamANCF.h"
 #include "chrono_fea/ChMesh.h"
@@ -41,7 +41,7 @@ using namespace chrono::fea;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups of elements and
     // their referenced nodes.

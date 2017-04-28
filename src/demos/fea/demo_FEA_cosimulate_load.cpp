@@ -18,7 +18,6 @@
 //       that is perform a cosimulation.
 
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"

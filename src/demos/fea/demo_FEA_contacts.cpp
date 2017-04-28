@@ -14,8 +14,6 @@
 //
 //     - contacts in FEA
 
-
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"

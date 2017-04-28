@@ -1404,7 +1404,7 @@ void SoilBin() {
 // Axial Dynamic
 void AxialDynamics() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1671,7 +1671,7 @@ void AxialDynamics() {
 // QuasiStatic
 void BendingQuasiStatic() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1912,7 +1912,7 @@ void BendingQuasiStatic() {
 // Swinging (Bricked) Shell
 void SwingingShell() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)

@@ -28,7 +28,7 @@
 // ------------------------------------------------
 ///////////////////////////////////////////////////
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_opengl/ChOpenGLWindow.h"
 
@@ -48,7 +48,7 @@ float GLOBAL_dampingf = 0.1f;
 // Define a MyEventReceiver class which will be used to manage input
 // from the GUI graphical user interface
 
-void create_some_falling_items(ChSystem& mphysicalSystem) {
+void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // From now on, all created collision models will have a large outward envelope (needed
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
@@ -135,7 +135,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create all the rigid bodies.
 
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
             // add here:
             //    if (msystem->GetChTime() > 10) material.cohesion = 0;
         };
-        ChSystem* msystem;
+        ChSystemNSC* msystem;
     };
 
     MyContactCallback mycontact_callback;           // create the callback object

@@ -22,15 +22,11 @@
 #include <functional>
 
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 

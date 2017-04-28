@@ -17,6 +17,7 @@
 // 3) J2 plasticity, 4) Drucker-Prager plasticity
 // =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChMesh.h"
@@ -108,7 +109,7 @@ int main(int argc, char* argv[]) {
 // QuasiStatic
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
@@ -305,7 +306,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     GetLog() << "--------------------------------------------------------------------\n";
@@ -503,7 +504,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 // J2 Flow Plasticity
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
@@ -708,7 +709,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 // Drucker-Prager Plasticity
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;

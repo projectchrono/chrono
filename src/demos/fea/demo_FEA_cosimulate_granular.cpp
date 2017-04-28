@@ -14,7 +14,6 @@
 //     - loading an Abaqus tetahedron mesh
 //     - apply a load to the mesh using Chrono::Parallel
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"

@@ -24,7 +24,7 @@
 #include <cmath>
 #include <valarray>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -126,14 +126,14 @@ void ODEModel::WriteData(double step, const std::string& filename) {
 class ChronoModel {
   public:
     ChronoModel();
-    std::shared_ptr<ChSystem> GetSystem() const { return m_system; }
+    std::shared_ptr<ChSystemNSC> GetSystem() const { return m_system; }
     void Simulate(double step, int num_steps);
     const utils::Data& GetData() const { return m_data; }
     const utils::Data& GetCnstrData() const { return m_cnstr_data; }
     void WriteData(double step, const std::string& filename);
 
   private:
-    std::shared_ptr<ChSystem> m_system;
+    std::shared_ptr<ChSystemNSC> m_system;
     std::shared_ptr<ChBody> m_pend1;
     std::shared_ptr<ChBody> m_pend2;
     std::shared_ptr<ChLinkLockRevolute> m_revolute1;
@@ -145,7 +145,7 @@ class ChronoModel {
 ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
-    m_system = std::make_shared<ChSystem>();
+    m_system = std::make_shared<ChSystemNSC>();
     m_system->Set_G_acc(ChVector<>(0, -g, 0));
 
     // Create the ground body
@@ -244,7 +244,7 @@ bool test_EULER_IMPLICIT_LINEARIZED(double step,
 
     // Create Chrono model.
     ChronoModel model;
-    std::shared_ptr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystemNSC> system = model.GetSystem();
 
     // Set integrator and modify parameters.
     system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
@@ -281,7 +281,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
 
     // Create Chrono model.
     ChronoModel model;
-    std::shared_ptr<ChSystem> system = model.GetSystem();
+    std::shared_ptr<ChSystemNSC> system = model.GetSystem();
 
     // Set solver and modify parameters.
     ////system->SetMaxItersSolverSpeed(200);

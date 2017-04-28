@@ -12,7 +12,7 @@
 #include <iostream>
 
 #include "../ChTestConfig.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 using namespace chrono;
 using namespace std;
@@ -32,7 +32,7 @@ int main() {
     const int num_bodies = 1000000;
     const double current_time = 1;
     const double time_step = .1;
-    ChSystem dynamics_system;
+    ChSystemNSC dynamics_system;
 
     for (int i = 0; i < num_bodies; i++) {
         auto body = std::make_shared<ChBody>();

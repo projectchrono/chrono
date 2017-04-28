@@ -16,7 +16,6 @@
 //     - using it as a wheel with contacts to ground
 
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoaderUV.h"
@@ -43,7 +42,7 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 
-void MakeWheel( ChSystem& my_system,
+void MakeWheel( ChSystemSMC& my_system,
                 const ChVector<> tire_center,
                 const ChQuaternion<> tire_alignment,
                 const double tire_scale_R,

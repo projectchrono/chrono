@@ -237,7 +237,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC* system = new ChSystemSMC();
 #else
     std::cout << "Create DVI system" << std::endl;
-    ChSystem* system = new ChSystem();
+    ChSystemNSC* system = new ChSystemNSC();
 #endif
 
 #else

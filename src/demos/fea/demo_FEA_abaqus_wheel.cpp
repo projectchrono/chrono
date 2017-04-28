@@ -16,7 +16,6 @@
 //     - using it as a wheel with contacts to ground
 
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoaderUV.h"
