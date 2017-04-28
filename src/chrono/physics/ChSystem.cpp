@@ -184,7 +184,7 @@ class IteratorAllPhysics {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-ChSystem::ChSystem(unsigned int max_objects, double scene_size)
+ChSystem::ChSystem()
     : ChAssembly(),
       end_time(1),
       step(0.04),

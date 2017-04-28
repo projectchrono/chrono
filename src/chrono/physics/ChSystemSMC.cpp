@@ -31,7 +31,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSystemSMC)
 
 ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects, double scene_size)
-    : ChSystem(max_objects, scene_size),
+    : ChSystem(),
       m_use_mat_props(use_material_properties),
       m_contact_model(Hertz),
       m_adhesion_model(Constant),

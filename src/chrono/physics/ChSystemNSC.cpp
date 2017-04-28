@@ -43,7 +43,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChSystemNSC)
 
 ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_sys)
-    : ChSystem(max_objects, scene_size) {
+    : ChSystem() {
     if (init_sys) {
         // Set default contact container
         contact_container = std::make_shared<ChContactContainerNSC>();

@@ -6,7 +6,7 @@
 
 using namespace chrono;
 
-ChSystemParallelNSC::ChSystemParallelNSC(unsigned int max_objects) : ChSystemParallel(max_objects) {
+ChSystemParallelNSC::ChSystemParallelNSC() : ChSystemParallel() {
     solver_speed = std::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)

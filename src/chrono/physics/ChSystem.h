@@ -73,12 +73,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
   public:
     /// Create a physical system.
-    /// Note, in case you will use collision detection, the values of
-    /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-    /// collision algorithm in an optimal way. Scene size should be approximately
-    /// the radius of the expected area where colliding objects will move.
-    /// The default collision broadphase does not make use of max_objects and scene_size.
-    ChSystem(unsigned int max_objects = 16000, double scene_size = 500);
+    ChSystem();
 
     /// Copy constructor
     ChSystem(const ChSystem& other);

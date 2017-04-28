@@ -4,7 +4,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallelSMC::ChSystemParallelSMC(unsigned int max_objects) : ChSystemParallel(max_objects) {
+ChSystemParallelSMC::ChSystemParallelSMC() : ChSystemParallel() {
     solver_speed = std::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;

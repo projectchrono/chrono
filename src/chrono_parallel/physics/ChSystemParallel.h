@@ -51,7 +51,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     CH_FACTORY_TAG(ChSystemParallel)
 
   public:
-    ChSystemParallel(unsigned int max_objects);
+    ChSystemParallel();
     ChSystemParallel(const ChSystemParallel& other);
     ~ChSystemParallel();
 
@@ -145,7 +145,7 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     CH_FACTORY_TAG(ChSystemParallelNSC)
 
   public:
-    ChSystemParallelNSC(unsigned int max_objects = 1000);
+    ChSystemParallelNSC();
     ChSystemParallelNSC(const ChSystemParallelNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
@@ -179,7 +179,7 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     CH_FACTORY_TAG(ChSystemParallelSMC)
 
   public:
-    ChSystemParallelSMC(unsigned int max_objects = 1000);
+    ChSystemParallelSMC();
     ChSystemParallelSMC(const ChSystemParallelSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).

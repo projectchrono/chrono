@@ -25,7 +25,7 @@ using namespace chrono::collision;
 #ifdef LOGGINGENABLED
 INITIALIZE_EASYLOGGINGPP
 #endif
-ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
+ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
     descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
