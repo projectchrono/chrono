@@ -58,7 +58,7 @@ void OutputData(ChSystemParallel* sys, int out_frame, double time) {
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelDEM* sys) {
+void AddContainer(ChSystemParallelSMC* sys) {
   // IDs for the two bodies
   int binId = -200;
   int mixerId = -201;
@@ -127,7 +127,7 @@ void AddContainer(ChSystemParallelDEM* sys) {
 // -----------------------------------------------------------------------------
 // Create the falling spherical objects in a unfiorm rectangular grid.
 // -----------------------------------------------------------------------------
-void AddFallingBalls(ChSystemParallelDEM* sys) {
+void AddFallingBalls(ChSystemParallelSMC* sys) {
   // Common material
   auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
   ballMat->SetYoungModulus(2e5f);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
   // Create system
   // -------------
 
-  ChSystemParallelDEM msystem;
+  ChSystemParallelSMC msystem;
 
   // Set number of threads.
   int max_threads = CHOMPfunctions::GetNumProcs();

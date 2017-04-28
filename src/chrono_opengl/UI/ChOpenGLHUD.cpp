@@ -351,7 +351,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
     GenerateRenderer();
 }
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
-    // if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    // if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
     //  ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
     //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));

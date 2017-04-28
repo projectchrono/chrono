@@ -16,7 +16,7 @@ namespace chrono {
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
 /// Notes:
 /// * This container is used only for reporting geometric information about the contact pairs
-///   and is therefore suitable for both DVI and DEM systems.
+///   and is therefore suitable for both NSC and SMC systems.
 /// * Currently, only contacts between rigid bodies are considered
 
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase {

@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Radu Serban, Arman Pazouki
 // =============================================================================
-// Implementation of methods specific to the parallel DEM solver.
+// Implementation of methods specific to the parallel smooth-contact solver.
 //
 // These functions implement the basic time update for a multibody system using
 // a penalty-based approach for including frictional contact. It is assumed that
@@ -424,7 +424,7 @@ void function_CalcContactForces(
 // Calculate contact forces and torques for all contact pairs.
 // -----------------------------------------------------------------------------
 
-void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ext_body_id,
+void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ext_body_id,
                                                           custom_vector<real3>& ext_body_force,
                                                           custom_vector<real3>& ext_body_torque,
                                                           custom_vector<vec2>& shape_pairs,
@@ -457,7 +457,7 @@ void ChIterativeSolverParallelDEM::host_CalcContactForces(custom_vector<int>& ex
 // cummulative force and torque, respectively, over all contacts involving that
 // body.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelDEM::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverParallelSMC::host_AddContactForces(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     const custom_vector<real3>& ct_body_force = data_manager->host_data.ct_body_force;
     const custom_vector<real3>& ct_body_torque = data_manager->host_data.ct_body_torque;
 
@@ -476,7 +476,7 @@ void ChIterativeSolverParallelDEM::host_AddContactForces(uint ct_body_count, con
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelDEM::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
+void ChIterativeSolverParallelSMC::host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id) {
     custom_vector<int>& ct_body_map = data_manager->host_data.ct_body_map;
 
 #pragma omp parallel for
@@ -499,7 +499,7 @@ struct sum_tuples {
 // generate contact forces, and update the (linear and rotational) impulses for
 // all bodies involved in at least one contact.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelDEM::ProcessContacts() {
+void ChIterativeSolverParallelSMC::ProcessContacts() {
     // 1. Calculate contact forces and torques - per contact basis
     //    For each pair of contact shapes that overlap, we calculate and store the
     //    IDs of the two corresponding bodies and the resulting contact forces and
@@ -579,7 +579,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     host_SetContactForcesMap(ct_body_count, ct_body_id);
 }
 
-void ChIterativeSolverParallelDEM::ComputeD() {
+void ChIterativeSolverParallelSMC::ComputeD() {
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
         return;
@@ -607,7 +607,7 @@ void ChIterativeSolverParallelDEM::ComputeD() {
     data_manager->host_data.M_invD = data_manager->host_data.M_inv * data_manager->host_data.D;
 }
 
-void ChIterativeSolverParallelDEM::ComputeE() {
+void ChIterativeSolverParallelSMC::ComputeE() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -618,7 +618,7 @@ void ChIterativeSolverParallelDEM::ComputeE() {
     data_manager->bilateral->Build_E();
 }
 
-void ChIterativeSolverParallelDEM::ComputeR() {
+void ChIterativeSolverParallelSMC::ComputeR() {
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -638,7 +638,7 @@ void ChIterativeSolverParallelDEM::ComputeR() {
 // generalized velocities, then enforces the velocity-level constraints for any
 // bilateral (joint) constraints present in the system.
 // -----------------------------------------------------------------------------
-void ChIterativeSolverParallelDEM::RunTimeStep() {
+void ChIterativeSolverParallelSMC::RunTimeStep() {
     // This is the total number of constraints, note that there are no contacts
     data_manager->num_constraints = data_manager->num_bilaterals;
     data_manager->num_unilaterals = 0;
@@ -648,9 +648,9 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
     Thrust_Fill(data_manager->host_data.ct_body_map, -1);
 
     if (data_manager->num_rigid_contacts > 0) {
-        data_manager->system_timer.start("ChIterativeSolverParallelDEM_ProcessContact");
+        data_manager->system_timer.start("ChIterativeSolverParallelSMC_ProcessContact");
         ProcessContacts();
-        data_manager->system_timer.stop("ChIterativeSolverParallelDEM_ProcessContact");
+        data_manager->system_timer.stop("ChIterativeSolverParallelSMC_ProcessContact");
     }
 
     // Generate the mass matrix and compute M_inv_k
@@ -697,7 +697,7 @@ void ChIterativeSolverParallelDEM::RunTimeStep() {
     tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 }
 
-void ChIterativeSolverParallelDEM::ComputeImpulses() {
+void ChIterativeSolverParallelSMC::ComputeImpulses() {
     DynamicVector<real>& v = data_manager->host_data.v;
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;

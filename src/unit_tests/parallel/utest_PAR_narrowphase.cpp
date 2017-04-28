@@ -167,7 +167,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
 }
 // =============================================================================
 
-void SetupSystem(ChSystemParallelDVI* msystem) {
+void SetupSystem(ChSystemParallelNSC* msystem) {
   msystem->Set_G_acc(ChVector<>(0, 0, -gravity));
 
   msystem->GetSettings()->solver.tolerance = tolerance;
@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 
-  ChSystemParallelDVI* msystem_mpr = new ChSystemParallelDVI();
-  ChSystemParallelDVI* msystem_r = new ChSystemParallelDVI();
+  ChSystemParallelNSC* msystem_mpr = new ChSystemParallelNSC();
+  ChSystemParallelNSC* msystem_r = new ChSystemParallelNSC();
 
 #ifdef BULLET
   msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);

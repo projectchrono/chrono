@@ -38,7 +38,7 @@ real timestep = .001;
 real factor = 1.0 / timestep;
 
 int main(int argc, char* argv[]) {
-  ChSystemParallelDVI* system = new ChSystemParallelDVI;
+  ChSystemParallelNSC* system = new ChSystemParallelNSC;
   system->SetIntegrationType(ChSystem::INT_ANITESCU);
 
   std::stringstream ss;

@@ -32,7 +32,7 @@ ChFEAContainer* fea_container;
 
 real time_step = 0.0005;
 real time_end = 10;
-void AddContainer(ChSystemParallelDVI* sys) {
+void AddContainer(ChSystemParallelNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
     double tire_w0 = tire_vel_z0 / tire_rad;
 
     // Create a Chrono::Engine physical system
-    ChSystemParallelDVI my_system;
+    ChSystemParallelNSC my_system;
     fea_container = new ChFEAContainer(&my_system);
     fea_container->kernel_radius = .01;
     fea_container->material_density = 1000;

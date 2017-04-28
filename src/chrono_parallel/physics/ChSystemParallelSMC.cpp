@@ -4,36 +4,36 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-ChSystemParallelDEM::ChSystemParallelDEM(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    solver_speed = std::make_shared<ChIterativeSolverParallelDEM>(data_manager);
+ChSystemParallelSMC::ChSystemParallelSMC(unsigned int max_objects) : ChSystemParallel(max_objects) {
+    solver_speed = std::make_shared<ChIterativeSolverParallelSMC>(data_manager);
 
     data_manager->settings.collision.collision_envelope = 0;
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
-    data_manager->settings.system_type = SystemType::SYSTEM_DEM;
+    data_manager->settings.system_type = SystemType::SYSTEM_SMC;
 
-    data_manager->system_timer.AddTimer("ChIterativeSolverParallelDEM_ProcessContact");
+    data_manager->system_timer.AddTimer("ChIterativeSolverParallelSMC_ProcessContact");
 }
 
-ChSystemParallelDEM::ChSystemParallelDEM(const ChSystemParallelDEM& other) : ChSystemParallel(other) {
+ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChSystemParallel(other) {
     //// TODO
 }
 
-ChBody* ChSystemParallelDEM::NewBody() {
+ChBody* ChSystemParallelSMC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
 
     return new ChBody(ChMaterialSurfaceBase::SMC);
 }
 
-ChBodyAuxRef* ChSystemParallelDEM::NewBodyAuxRef() {
+ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::SMC);
 }
 
-void ChSystemParallelDEM::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
+void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::SMC);
 
     // Reserve space for material properties for the specified body. Not that the
@@ -59,7 +59,7 @@ void ChSystemParallelDEM::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     }
 }
 
-void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
+void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<real>& mass = data_manager->host_data.mass_rigid;
     custom_vector<real2>& elastic_moduli = data_manager->host_data.elastic_moduli;
     custom_vector<real>& adhesion = data_manager->host_data.cohesion_data;
@@ -88,7 +88,7 @@ void ChSystemParallelDEM::UpdateMaterialSurfaceData(int index, ChBody* body) {
     }
 }
 
-void ChSystemParallelDEM::Setup() {
+void ChSystemParallelSMC::Setup() {
     // First, invoke the base class method
     ChSystemParallel::Setup();
 
@@ -96,12 +96,12 @@ void ChSystemParallelDEM::Setup() {
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-void ChSystemParallelDEM::ChangeCollisionSystem(CollisionSystemType type) {
+void ChSystemParallelSMC::ChangeCollisionSystem(CollisionSystemType type) {
     ChSystemParallel::ChangeCollisionSystem(type);
     data_manager->settings.collision.collision_envelope = 0;
 }
 
-real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const {
+real3 ChSystemParallelSMC::GetBodyContactForce(uint body_id) const {
     int index = data_manager->host_data.ct_body_map[body_id];
 
     if (index == -1)
@@ -110,7 +110,7 @@ real3 ChSystemParallelDEM::GetBodyContactForce(uint body_id) const {
     return data_manager->host_data.ct_body_force[index];
 }
 
-real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemParallelSMC::GetBodyContactTorque(uint body_id) const {
     int index = data_manager->host_data.ct_body_map[body_id];
 
     if (index == -1)
@@ -119,7 +119,7 @@ real3 ChSystemParallelDEM::GetBodyContactTorque(uint body_id) const {
     return data_manager->host_data.ct_body_torque[index];
 }
 
-void ChSystemParallelDEM::PrintStepStats() {
+void ChSystemParallelSMC::PrintStepStats() {
     double timer_solver_setup = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Setup");
     double timer_solver_stab = data_manager->system_timer.GetTime("ChIterativeSolverParallel_Stab");
 

@@ -52,7 +52,7 @@ int main(int argc, char** argv) {
     // Create the parallel system
     // --------------------------
 
-    ChSystemParallelDVI system;
+    ChSystemParallelNSC system;
     system.Set_G_acc(ChVector<>(0, -9.81, 0));
 
     // Set number of threads

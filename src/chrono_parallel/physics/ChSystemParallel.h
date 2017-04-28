@@ -140,16 +140,16 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     std::vector<ChShaft*> shaftlist;
 };
 //====================================================================================================
-class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
+class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelDVI)
+    CH_FACTORY_TAG(ChSystemParallelNSC)
 
   public:
-    ChSystemParallelDVI(unsigned int max_objects = 1000);
-    ChSystemParallelDVI(const ChSystemParallelDVI& other);
+    ChSystemParallelNSC(unsigned int max_objects = 1000);
+    ChSystemParallelNSC(const ChSystemParallelNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
+    virtual ChSystemParallelNSC* Clone() const override { return new ChSystemParallelNSC(*this); }
 
     void ChangeSolverType(SolverType type);
     void Initialize();
@@ -174,16 +174,16 @@ class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
 };
 
 //====================================================================================================
-class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
+class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelDEM)
+    CH_FACTORY_TAG(ChSystemParallelSMC)
 
   public:
-    ChSystemParallelDEM(unsigned int max_objects = 1000);
-    ChSystemParallelDEM(const ChSystemParallelDEM& other);
+    ChSystemParallelSMC(unsigned int max_objects = 1000);
+    ChSystemParallelSMC(const ChSystemParallelSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
+    virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
     virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::SMC; }
     virtual ChBody* NewBody() override;
@@ -202,7 +202,7 @@ class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
     virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const {
-        return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
+        return data_manager->system_timer.GetTime("ChIterativeSolverParallelSMC_ProcessContact");
     }
 };
 

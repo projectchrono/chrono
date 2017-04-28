@@ -54,10 +54,10 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
 
   switch (cm) {
       case ChMaterialSurfaceBase::SMC:
-          system = new ChSystemParallelDEM();
+          system = new ChSystemParallelSMC();
           break;
       case ChMaterialSurfaceBase::NSC:
-          system = new ChSystemParallelDVI();
+          system = new ChSystemParallelNSC();
           break;
   }
 
@@ -73,7 +73,7 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
   if (cm == ChMaterialSurfaceBase::NSC) {
-    ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
+    ChSystemParallelNSC* systemDVI = static_cast<ChSystemParallelNSC*>(system);
     systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;

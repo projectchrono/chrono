@@ -262,10 +262,10 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
 
   switch (cm) {
       case ChMaterialSurfaceBase::SMC:
-          msystem = new ChSystemParallelDEM();
+          msystem = new ChSystemParallelSMC();
           break;
       case ChMaterialSurfaceBase::NSC:
-          msystem = new ChSystemParallelDVI();
+          msystem = new ChSystemParallelNSC();
           break;
   }
   msystem->Set_G_acc(gravity);
@@ -282,7 +282,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
   if (cm == ChMaterialSurfaceBase::NSC) {
-    ChSystemParallelDVI* msystemDVI = static_cast<ChSystemParallelDVI*>(msystem);
+    ChSystemParallelNSC* msystemDVI = static_cast<ChSystemParallelNSC*>(msystem);
     msystemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     msystemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;

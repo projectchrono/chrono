@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // BEGIN PARALLEL SYSTEM INITIALIZATION
-  ChSystemParallelDVI* systemG = new ChSystemParallelDVI();
+  ChSystemParallelNSC* systemG = new ChSystemParallelNSC();
 
   // Set gravitational acceleration
   systemG->Set_G_acc(my_system.Get_G_acc());

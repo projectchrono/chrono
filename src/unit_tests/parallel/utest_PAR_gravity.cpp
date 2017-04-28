@@ -35,7 +35,7 @@ using namespace chrono::utils;
 int main(int argc, char* argv[]) {
   double time_step = .00001;
   ChVector<> gravity = ChVector<>(0, -9.80665, 0);
-  ChSystemParallelDVI msystem;
+  ChSystemParallelNSC msystem;
   msystem.Set_G_acc(gravity);
   msystem.SetStep(time_step);
   CHOMPfunctions::SetNumThreads(1);

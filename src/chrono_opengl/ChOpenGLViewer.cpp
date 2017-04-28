@@ -665,7 +665,7 @@ void ChOpenGLViewer::RenderGrid() {
 #ifdef CHRONO_PARALLEL
 /*mpm_grid_data.clear();
 mpm_node_data.clear();
-if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
     vec3 bins_per_axis;
     real3 bin_size_vec;
     real3 min_pt;

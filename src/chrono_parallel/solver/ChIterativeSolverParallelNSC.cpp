@@ -18,7 +18,7 @@ using namespace chrono;
         M.resize(rows, cols, false);                                                         \
     }
 
-void ChIterativeSolverParallelDVI::RunTimeStep() {
+void ChIterativeSolverParallelNSC::RunTimeStep() {
     // Compute the offsets and number of constrains depending on the solver mode
     if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
         data_manager->rigid_rigid->offset = 1;
@@ -39,7 +39,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
     // This is the total number of constraints
     data_manager->num_constraints =
         data_manager->num_unilaterals + data_manager->num_bilaterals + num_3dof_3dof + num_tet_constraints;
-    LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep S num_constraints: " << data_manager->num_constraints;
+    LOG(INFO) << "ChIterativeSolverParallelNSC::RunTimeStep S num_constraints: " << data_manager->num_constraints;
     // Generate the mass matrix and compute M_inv_k
     ComputeInvMassMatrix();
     // ComputeMassMatrix();
@@ -93,7 +93,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_normal > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
-            LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Normal";
+            LOG(INFO) << "ChIterativeSolverParallelNSC::RunTimeStep - Solve Normal";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                     //
                               ProjectFull,                                         //
@@ -108,7 +108,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_sliding > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
-            LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Sliding";
+            LOG(INFO) << "ChIterativeSolverParallelNSC::RunTimeStep - Solve Sliding";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                      //
                               ProjectFull,                                          //
@@ -122,7 +122,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
         if (data_manager->settings.solver.max_iteration_spinning > 0) {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
-            LOG(INFO) << "ChIterativeSolverParallelDVI::RunTimeStep - Solve Spinning";
+            LOG(INFO) << "ChIterativeSolverParallelNSC::RunTimeStep - Solve Spinning";
             data_manager->measures.solver.total_iteration +=
                 solver->Solve(ShurProductFull,                                       //
                               ProjectFull,                                           //
@@ -172,7 +172,7 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
     }
     tot_iterations = (int)data_manager->measures.solver.maxd_hist.size();
 
-    LOG(TRACE) << "ChIterativeSolverParallelDVI::RunTimeStep E solve: "
+    LOG(TRACE) << "ChIterativeSolverParallelNSC::RunTimeStep E solve: "
                << data_manager->system_timer.GetTime("ChIterativeSolverParallel_Solve")
                << " shur: " << data_manager->system_timer.GetTime("ShurProduct")
                //<< " residual: " << data_manager->measures.solver.residual
@@ -180,8 +180,8 @@ void ChIterativeSolverParallelDVI::RunTimeStep() {
                << " iterations: " << tot_iterations;
 }
 
-void ChIterativeSolverParallelDVI::ComputeD() {
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeD()";
+void ChIterativeSolverParallelNSC::ComputeD() {
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeD()";
     data_manager->system_timer.start("ChIterativeSolverParallel_D");
     uint num_constraints = data_manager->num_constraints;
     if (num_constraints <= 0) {
@@ -257,18 +257,18 @@ void ChIterativeSolverParallelDVI::ComputeD() {
     data_manager->node_container->Build_D();
     data_manager->fea_container->Build_D();
 
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeD - D = trans(D_T)";
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeD - D = trans(D_T)";
     // using the .transpose(); function will do in place transpose and copy
     data_manager->host_data.D = trans(D_T);
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeD - M_inv * D";
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeD - M_inv * D";
 
     data_manager->host_data.M_invD = M_inv * data_manager->host_data.D;
 
     data_manager->system_timer.stop("ChIterativeSolverParallel_D");
 }
 
-void ChIterativeSolverParallelDVI::ComputeE() {
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeE()";
+void ChIterativeSolverParallelNSC::ComputeE() {
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeE()";
     data_manager->system_timer.start("ChIterativeSolverParallel_E");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -286,8 +286,8 @@ void ChIterativeSolverParallelDVI::ComputeE() {
     data_manager->system_timer.stop("ChIterativeSolverParallel_E");
 }
 
-void ChIterativeSolverParallelDVI::ComputeR() {
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeR()";
+void ChIterativeSolverParallelNSC::ComputeR() {
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeR()";
     data_manager->system_timer.start("ChIterativeSolverParallel_R");
     if (data_manager->num_constraints <= 0) {
         return;
@@ -313,12 +313,12 @@ void ChIterativeSolverParallelDVI::ComputeR() {
     data_manager->system_timer.stop("ChIterativeSolverParallel_R");
 }
 
-void ChIterativeSolverParallelDVI::ComputeN() {
+void ChIterativeSolverParallelNSC::ComputeN() {
     if (data_manager->settings.solver.compute_N == false) {
         return;
     }
 
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeN";
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeN";
     data_manager->system_timer.start("ChIterativeSolverParallel_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
@@ -327,8 +327,8 @@ void ChIterativeSolverParallelDVI::ComputeN() {
     data_manager->system_timer.stop("ChIterativeSolverParallel_N");
 }
 
-void ChIterativeSolverParallelDVI::SetR() {
-    LOG(INFO) << "ChIterativeSolverParallelDVI::SetR()";
+void ChIterativeSolverParallelNSC::SetR() {
+    LOG(INFO) << "ChIterativeSolverParallelNSC::SetR()";
     if (data_manager->num_constraints <= 0) {
         return;
     }
@@ -381,8 +381,8 @@ void ChIterativeSolverParallelDVI::SetR() {
     }
 }
 
-void ChIterativeSolverParallelDVI::ComputeImpulses() {
-    LOG(INFO) << "ChIterativeSolverParallelDVI::ComputeImpulses()";
+void ChIterativeSolverParallelNSC::ComputeImpulses() {
+    LOG(INFO) << "ChIterativeSolverParallelNSC::ComputeImpulses()";
     const DynamicVector<real>& M_invk = data_manager->host_data.M_invk;
     const CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     const DynamicVector<real>& gamma = data_manager->host_data.gamma;
@@ -400,11 +400,11 @@ void ChIterativeSolverParallelDVI::ComputeImpulses() {
     }
 }
 
-void ChIterativeSolverParallelDVI::PreSolve() {
+void ChIterativeSolverParallelNSC::PreSolve() {
     // Currently not supported, might be added back in the future
 }
 
-void ChIterativeSolverParallelDVI::ChangeSolverType(SolverType type) {
+void ChIterativeSolverParallelNSC::ChangeSolverType(SolverType type) {
     data_manager->settings.solver.solver_type = type;
 
     if (this->solver) {

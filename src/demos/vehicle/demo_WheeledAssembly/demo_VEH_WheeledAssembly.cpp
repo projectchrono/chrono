@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Create system.
     // --------------
 
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
+    ChSystemParallelNSC* system = new ChSystemParallelNSC();
 
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 

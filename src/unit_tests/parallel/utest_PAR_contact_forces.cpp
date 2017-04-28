@@ -117,7 +117,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             std::cout << "Using PENALTY method." << std::endl;
             sprintf(title, "Contact Force test (DEM)");
 
-            ChSystemParallelDEM* sys = new ChSystemParallelDEM;
+            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
             sys->GetSettings()->solver.contact_force_model = force_model;
             sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
@@ -142,7 +142,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             std::cout << "Using COMPLEMENTARITY method." << std::endl;
             sprintf(title, "Contact Force test (DVI)");
 
-            ChSystemParallelDVI* sys = new ChSystemParallelDVI;
+            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 100;

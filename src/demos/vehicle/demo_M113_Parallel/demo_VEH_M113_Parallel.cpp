@@ -244,10 +244,10 @@ int main(int argc, char* argv[]) {
     // ----  Parallel
 #ifdef USE_DEM
     std::cout << "Create Parallel DEM system" << std::endl;
-    ChSystemParallelDEM* system = new ChSystemParallelDEM();
+    ChSystemParallelSMC* system = new ChSystemParallelSMC();
 #else
     std::cout << "Create Parallel DVI system" << std::endl;
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
+    ChSystemParallelNSC* system = new ChSystemParallelNSC();
 #endif
 
 #endif

@@ -6,11 +6,11 @@
 
 using namespace chrono;
 
-ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemParallel(max_objects) {
-    solver_speed = std::make_shared<ChIterativeSolverParallelDVI>(data_manager);
+ChSystemParallelNSC::ChSystemParallelNSC(unsigned int max_objects) : ChSystemParallel(max_objects) {
+    solver_speed = std::make_shared<ChIterativeSolverParallelNSC>(data_manager);
 
     // Set this so that the CD can check what type of system it is (needed for narrowphase)
-    data_manager->settings.system_type = SystemType::SYSTEM_DVI;
+    data_manager->settings.system_type = SystemType::SYSTEM_NSC;
 
     data_manager->system_timer.AddTimer("ChSolverParallel_solverA");
     data_manager->system_timer.AddTimer("ChSolverParallel_solverB");
@@ -28,29 +28,29 @@ ChSystemParallelDVI::ChSystemParallelDVI(unsigned int max_objects) : ChSystemPar
     data_manager->system_timer.AddTimer("ChIterativeSolverParallel_N");
 }
 
-ChSystemParallelDVI::ChSystemParallelDVI(const ChSystemParallelDVI& other) : ChSystemParallel(other) {
+ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChSystemParallel(other) {
     //// TODO
 }
 
-ChBody* ChSystemParallelDVI::NewBody() {
+ChBody* ChSystemParallelNSC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
 
     return new ChBody(ChMaterialSurfaceBase::NSC);
 }
 
-void ChSystemParallelDVI::ChangeSolverType(SolverType type) {
-    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->ChangeSolverType(type);
+void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->ChangeSolverType(type);
 }
 
-ChBodyAuxRef* ChSystemParallelDVI::NewBodyAuxRef() {
+ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
         return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
 
     return new ChBodyAuxRef(ChMaterialSurfaceBase::NSC);
 }
 
-void ChSystemParallelDVI::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
+void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
     assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::NSC);
 
     // Reserve space for material properties for the specified body. Not that the
@@ -60,7 +60,7 @@ void ChSystemParallelDVI::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody
     data_manager->host_data.compliance_data.push_back(real4(0));
 }
 
-void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
+void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     custom_vector<real>& cohesion = data_manager->host_data.cohesion_data;
     custom_vector<real3>& friction = data_manager->host_data.fric_data;
     custom_vector<real4>& compliance = data_manager->host_data.compliance_data;
@@ -78,7 +78,7 @@ void ChSystemParallelDVI::UpdateMaterialSurfaceData(int index, ChBody* body) {
                               mat_ptr->GetComplianceSpinning());
 }
 
-void ChSystemParallelDVI::CalculateContactForces() {
+void ChSystemParallelNSC::CalculateContactForces() {
     uint num_contacts = data_manager->num_rigid_contacts;
     DynamicVector<real>& Fc = data_manager->host_data.Fc;
 
@@ -90,19 +90,19 @@ void ChSystemParallelDVI::CalculateContactForces() {
         return;
     }
 
-    LOG(INFO) << "ChSystemParallelDVI::CalculateContactForces() ";
+    LOG(INFO) << "ChSystemParallelNSC::CalculateContactForces() ";
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     Fc = data_manager->host_data.D * gamma / data_manager->settings.step_size;
 }
 
-real3 ChSystemParallelDVI::GetBodyContactForce(uint body_id) const {
+real3 ChSystemParallelNSC::GetBodyContactForce(uint body_id) const {
     assert(data_manager->Fc_current);
     return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
                  data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
-real3 ChSystemParallelDVI::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemParallelNSC::GetBodyContactTorque(uint body_id) const {
     assert(data_manager->Fc_current);
     return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
                  data_manager->host_data.Fc[body_id * 6 + 5]);
@@ -112,7 +112,7 @@ static inline chrono::ChVector<real> ToChVector(const real3& a) {
     return chrono::ChVector<real>(a.x, a.y, a.z);
 }
 
-void ChSystemParallelDVI::SolveSystem() {
+void ChSystemParallelNSC::SolveSystem() {
     data_manager->system_timer.Reset();
     data_manager->system_timer.start("step");
 
@@ -127,12 +127,12 @@ void ChSystemParallelDVI::SolveSystem() {
     collision_system->ReportContacts(this->contact_container.get());
     data_manager->system_timer.stop("collision");
     data_manager->system_timer.start("solver");
-    std::static_pointer_cast<ChIterativeSolverParallelDVI>(solver_speed)->RunTimeStep();
+    std::static_pointer_cast<ChIterativeSolverParallelNSC>(solver_speed)->RunTimeStep();
     data_manager->system_timer.stop("solver");
     data_manager->system_timer.stop("step");
 }
 
-void ChSystemParallelDVI::AssembleSystem() {
+void ChSystemParallelNSC::AssembleSystem() {
     Setup();
 
     collision_system->Run();
@@ -220,7 +220,7 @@ void ChSystemParallelDVI::AssembleSystem() {
     descriptor->EndInsertion();
 }
 
-void ChSystemParallelDVI::Initialize() {
+void ChSystemParallelNSC::Initialize() {
     // Mpm update is special because it computes the number of nodes that we have
     // data_manager->node_container->ComputeDOF();
 

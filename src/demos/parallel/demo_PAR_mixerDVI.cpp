@@ -58,7 +58,7 @@ void OutputData(ChSystemParallel* sys, int out_frame, double time) {
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelDVI* sys) {
+void AddContainer(ChSystemParallelNSC* sys) {
   // IDs for the two bodies
   int binId = -200;
   int mixerId = -201;
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
   // Create system
   // -------------
 
-  ChSystemParallelDVI msystem;
+  ChSystemParallelNSC msystem;
 
   // Set number of threads.
   int max_threads = CHOMPfunctions::GetNumProcs();

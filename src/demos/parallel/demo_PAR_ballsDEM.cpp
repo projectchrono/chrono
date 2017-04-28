@@ -68,7 +68,7 @@ void OutputData(ChSystemParallel* sys, int out_frame, double time) {
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemParallelDEM* sys) {
+void AddContainer(ChSystemParallelSMC* sys) {
     // IDs for the two bodies
     int binId = -200;
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelDEM msystem;
+    ChSystemParallelSMC msystem;
 
     // Set number of threads.
     int max_threads = CHOMPfunctions::GetNumProcs();
