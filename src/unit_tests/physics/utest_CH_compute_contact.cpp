@@ -26,7 +26,7 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverDEM.h"
+#include "chrono/solver/ChSolverSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"

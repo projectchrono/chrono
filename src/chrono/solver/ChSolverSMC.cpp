@@ -12,14 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/solver/ChSolverDEM.h"
+#include "chrono/solver/ChSolverSMC.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSolverDEM)
+CH_FACTORY_REGISTER(ChSolverSMC)
 
-double ChSolverDEM::Solve(ChSystemDescriptor& sysd) {
+double ChSolverSMC::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
     std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
 

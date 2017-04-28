@@ -623,7 +623,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChVariablesShaft.cpp
     solver/ChVariablesNode.cpp
     solver/ChKblockGeneric.cpp
-    solver/ChSolverDEM.cpp
+    solver/ChSolverSMC.cpp
     )
 
 set(ChronoEngine_solver_HEADERS
@@ -663,7 +663,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChVariablesNode.h
     solver/ChKblock.h
     solver/ChKblockGeneric.h
-    solver/ChSolverDEM.h
+    solver/ChSolverSMC.h
     )
 
 source_group(solver FILES

@@ -21,7 +21,7 @@
 #include "chrono/physics/ChContactContainerSMC.h"
 
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/solver/ChSolverDEM.h"
+#include "chrono/solver/ChSolverSMC.h"
 
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 
@@ -40,8 +40,8 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    solver_speed = std::make_shared<ChSolverDEM>();
-    solver_stab = std::make_shared<ChSolverDEM>();
+    solver_speed = std::make_shared<ChSolverSMC>();
+    solver_stab = std::make_shared<ChSolverSMC>();
 
     collision_system = std::make_shared<collision::ChCollisionSystemBullet>(max_objects, scene_size);
 
