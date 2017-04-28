@@ -159,7 +159,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,       // result: comput
                                      ChVectorDynamic<>& L,     // result: computed lagrangian multipliers, if any
                                      const ChState& y,         // current state y
                                      const double T,           // current time T
-                                     const double dt,          // timestep (if needed, ex. in DVI)
+                                     const double dt,          // timestep (if needed, ex. in NSC)
                                      bool force_state_scatter  // if false, y and T are not scattered to the system
                                      ) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());

@@ -85,7 +85,7 @@ class ChContactable {
                                    ChVectorDynamic<>& Q,
                                    int offset) = 0;
 
-    /// This can be useful in some DEM code:
+    /// This can be useful in some SMC code:
     virtual double GetContactableMass() = 0;
 
     /// This is only for backward compatibility. Note that in recent code
@@ -114,7 +114,7 @@ class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,
@@ -142,7 +142,7 @@ class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,
@@ -170,7 +170,7 @@ class ChContactable_3vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,

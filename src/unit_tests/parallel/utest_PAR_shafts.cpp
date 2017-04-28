@@ -73,12 +73,12 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
   if (cm == ChMaterialSurfaceBase::NSC) {
-    ChSystemParallelNSC* systemDVI = static_cast<ChSystemParallelNSC*>(system);
-    systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(SolverType::APGD);
+    ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
+    systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    systemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    systemNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    systemNSC->ChangeSolverType(SolverType::APGD);
   }
 
   return system;
@@ -495,20 +495,20 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Test shaft - shaft connection
-  test_passed &= TestShaftShaft("shaft-shaft (DEM)", ChMaterialSurfaceBase::SMC);
-  test_passed &= TestShaftShaft("shaft-shaft (DVI)", ChMaterialSurfaceBase::NSC);
+  test_passed &= TestShaftShaft("shaft-shaft (SMC)", ChMaterialSurfaceBase::SMC);
+  test_passed &= TestShaftShaft("shaft-shaft (NSC)", ChMaterialSurfaceBase::NSC);
 
   // Test shaft - body connection
-  test_passed &= TestShaftBody("shaft-body (DEM)", ChMaterialSurfaceBase::SMC);
-  test_passed &= TestShaftBody("shaft-body (DVI)", ChMaterialSurfaceBase::NSC);
+  test_passed &= TestShaftBody("shaft-body (SMC)", ChMaterialSurfaceBase::SMC);
+  test_passed &= TestShaftBody("shaft-body (NSC)", ChMaterialSurfaceBase::NSC);
 
   // Test clutch between shafts
-  ////test_passed &= TestClutch("clutch (DEM)", ChMaterialSurfaceBase::SMC);
-  ////test_passed &= TestClutch("clutch (DVI)", ChMaterialSurfaceBase::NSC);
+  ////test_passed &= TestClutch("clutch (SMC)", ChMaterialSurfaceBase::SMC);
+  ////test_passed &= TestClutch("clutch (NSC)", ChMaterialSurfaceBase::NSC);
 
   // Test shaft - shaft - shaft connection
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", ChMaterialSurfaceBase::SMC);
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", ChMaterialSurfaceBase::NSC);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (SMC)", ChMaterialSurfaceBase::SMC);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (NSC)", ChMaterialSurfaceBase::NSC);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

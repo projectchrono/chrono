@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSOLVERDEM_H
-#define CHSOLVERDEM_H
+#ifndef CH_SOLVER_SMC_H
+#define CH_SOLVER_SMC_H
 
 #include "chrono/solver/ChIterativeSolver.h"
 

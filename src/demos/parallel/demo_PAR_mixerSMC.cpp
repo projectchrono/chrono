@@ -41,7 +41,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-const char* out_folder = "../MIXER_DEM/POVRAY";
+const char* out_folder = "../MIXER_SMC/POVRAY";
 
 // -----------------------------------------------------------------------------
 // Generate postprocessing output with current system state.
@@ -218,7 +218,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
   opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-  gl_window.Initialize(1280, 720, "mixerDEM", &msystem);
+  gl_window.Initialize(1280, 720, "mixerSMC", &msystem);
   gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
 
   // Uncomment the following two lines for the OpenGL manager to automatically

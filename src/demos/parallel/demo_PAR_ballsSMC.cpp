@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// ChronoParallel test program using DEM method for frictional contact.
+// ChronoParallel test program using SMC method for frictional contact.
 //
 // The model simulated here consists of a number of spherical objects falling
 // in a fixed container.
@@ -41,7 +41,7 @@
 using namespace chrono;
 using namespace chrono::collision;
 
-const char* out_folder = "../BALLS_DEM/POVRAY";
+const char* out_folder = "../BALLS_SMC/POVRAY";
 
 // Tilt angle (about global Y axis) of the container.
 double tilt_angle = 1 * CH_C_PI / 20;
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "ballsDEM", &msystem);
+    gl_window.Initialize(1280, 720, "ballsSMC", &msystem);
     gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
     gl_window.SetRenderMode(opengl::WIREFRAME);
 

@@ -180,7 +180,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     }
 
     // virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c)  {
-    // no force to add - this is DVI, not DEM
+    // no force to add - this is NSC, not SMC
     //};
 
     virtual void ContIntToDescriptor(const unsigned int off_L,  ///< offset in L, Qc

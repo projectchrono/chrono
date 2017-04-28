@@ -18,7 +18,7 @@
 // The vehicle model uses the utility class ChWheeledVehicleAssembly and is
 // based on JSON specification files from the Chrono data directory.
 //
-// Contact uses the DEM-P (penalty) formulation.
+// Contact uses the SMC (penalty) formulation.
 //
 // The global reference frame has Z up.
 // All units SI.

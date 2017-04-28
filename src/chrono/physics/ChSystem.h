@@ -121,8 +121,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Set the method for time integration (time stepper type).
     /// <pre>
-    ///   - Suggested for fast dynamics with hard (DVI) contacts: EULER_IMPLICIT_LINEARIZED
-    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
+    ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (NSC) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
     ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
     /// NOTES:
     ///   - for more advanced customization, use SetTimestepper()

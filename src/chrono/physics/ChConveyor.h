@@ -77,7 +77,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// Access the material surface properties of the conveyor belt (shortcut)
     std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return GetPlate()->GetMaterialSurfaceBase(); }
 
-    /// Access the DVI material surface properties of the conveyor belt (shortcut)
+    /// Access the NSC material surface properties of the conveyor belt (shortcut)
     std::shared_ptr<ChMaterialSurfaceNSC> GetMaterialSurfaceNSC() { return GetPlate()->GetMaterialSurfaceNSC(); }
 
     /// Set the material surface properties by passing a ChMaterialSurfaceNSC or ChMaterialSurfaceSMC object.

@@ -157,7 +157,7 @@ void MixtureIngredient::freeMaterialDist() {
     m_restitutionDist = nullptr;
 }
 
-// Modify the specified DVI material surface based on attributes of this ingredient.
+// Modify the specified NSC material surface based on attributes of this ingredient.
 void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialNSC;
@@ -170,7 +170,7 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceN
         mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
 }
 
-// Modify the specified DEM material surface based on attributes of this ingredient.
+// Modify the specified SMC material surface based on attributes of this ingredient.
 void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialSMC;
@@ -325,7 +325,7 @@ void Generator::createObjectsBox(const ChVector<>& dist,
     // Normalize the mixture ratios
     normalizeMixture();
 
-    // When using DEM, make sure there is no shape overlap.
+    // When using SMC, make sure there is no shape overlap.
     ChVector<> distv;
     if (m_system->GetContactMethod() == ChMaterialSurfaceBase::SMC)
         distv = calcMinSeparation(dist);

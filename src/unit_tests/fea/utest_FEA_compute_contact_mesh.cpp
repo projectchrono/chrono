@@ -16,7 +16,7 @@
 // Method system->GetContactContainer()->ComputeContactForces() iterates over
 // all bodies/meshes into contact and stores resultant contact force in an unordered map.
 // Upon invocation of myBody->GetContactForce(), the user can retrieve the resultant
-// of all (!) contact forces acting on the body from the NodeCloud DEM-P contact. 
+// of all (!) contact forces acting on the body from the NodeCloud SMC contact. 
 // In this unit test, the overall contact force applied to a box (from mesh) is compared 
 // to the total weight of the ANCF shell mesh.
 //

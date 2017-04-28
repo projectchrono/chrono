@@ -123,9 +123,9 @@ void ChContactContainerNSC::AddContact(const collision::ChCollisionInfo& mcontac
     assert(mcontact.modelA->GetContactable());
     assert(mcontact.modelB->GetContactable());
 
-    // See if both collision models use DVI i.e. 'nonsmooth dynamics' material
+    // See if both collision models use NSC i.e. 'nonsmooth dynamics' material
     // of type ChMaterialSurfaceNSC, trying to downcast from ChMaterialSurfaceBase.
-    // If not DVI vs DVI, just bailout (ex it could be that this was a DEM vs DEM contact)
+    // If not NSC vs NSC, just bailout (ex it could be that this was a SMC vs SMC contact)
 
     auto mmatA =
         std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(mcontact.modelA->GetContactable()->GetMaterialSurfaceBase());

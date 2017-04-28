@@ -64,8 +64,8 @@ using std::endl;
 // Comment the following line to use Chrono::Parallel
 //#define USE_SEQ
 
-// Comment the following line to use DVI contact
-//#define USE_DEM
+// Comment the following line to use NSC contact
+//#define USE_SMC
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain
@@ -153,7 +153,7 @@ int out_fps = 60;
 
 double CreateParticles(ChSystem* system) {
     // Create a material
-#ifdef USE_DEM
+#ifdef USE_SMC
     auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
@@ -232,21 +232,21 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
     // ----  Sequential
-#ifdef USE_DEM
-    std::cout << "Create DEM system" << std::endl;
+#ifdef USE_SMC
+    std::cout << "Create SMC system" << std::endl;
     ChSystemSMC* system = new ChSystemSMC();
 #else
-    std::cout << "Create DVI system" << std::endl;
+    std::cout << "Create NSC system" << std::endl;
     ChSystemNSC* system = new ChSystemNSC();
 #endif
 
 #else
     // ----  Parallel
-#ifdef USE_DEM
-    std::cout << "Create Parallel DEM system" << std::endl;
+#ifdef USE_SMC
+    std::cout << "Create Parallel SMC system" << std::endl;
     ChSystemParallelSMC* system = new ChSystemParallelSMC();
 #else
-    std::cout << "Create Parallel DVI system" << std::endl;
+    std::cout << "Create Parallel NSC system" << std::endl;
     ChSystemParallelNSC* system = new ChSystemParallelNSC();
 #endif
 
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.tolerance = tolerance;
 
-#ifndef USE_DEM
+#ifndef USE_SMC
     system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // Contact material
-#ifdef USE_DEM
+#ifdef USE_SMC
     auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);

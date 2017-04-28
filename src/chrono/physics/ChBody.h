@@ -345,17 +345,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Infer the contact method from the underlying material properties object.
     ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
 
-    /// Access the DVI material surface properties associated with this body.
+    /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
-    /// if matsurface is in fact of DEM type).  As such, it must return a copy
+    /// if matsurface is in fact of SMC type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
     std::shared_ptr<ChMaterialSurfaceNSC> GetMaterialSurfaceNSC() {
         return std::dynamic_pointer_cast<ChMaterialSurfaceNSC>(matsurface);
     }
 
-    /// Access the DEM material surface properties associated with this body.
+    /// Access the SMC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
-    /// if matsurface is in fact of DVI type).  As such, it must return a copy
+    /// if matsurface is in fact of NSC type).  As such, it must return a copy
     /// of the shared pointer and is therefore NOT thread safe.
     std::shared_ptr<ChMaterialSurfaceSMC> GetMaterialSurfaceSMC() {
         return std::dynamic_pointer_cast<ChMaterialSurfaceSMC>(matsurface);
@@ -691,7 +691,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                                bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v.
-    /// Used only for rolling friction DVI contacts.
+    /// Used only for rolling friction NSC contacts.
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
@@ -700,7 +700,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
-    /// Used by some DEM code
+    /// Used by some SMC code
     virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// This is only for backward compatibility

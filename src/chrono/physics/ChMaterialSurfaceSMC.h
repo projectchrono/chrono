@@ -118,7 +118,7 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurfaceBase {
 
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
-    virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material DEM \n"; }
+    virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;

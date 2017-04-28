@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc. 
-    // It is a DEM-p (penalty) material that we will assign to 
+    // It is a SMC (penalty) material that we will assign to 
     // all surfaces that might generate contacts.
 
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface
 
-    mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the DEM penalty contacts
+    mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the SMC penalty contacts
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);

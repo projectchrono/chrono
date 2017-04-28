@@ -209,7 +209,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
         //***TODO***!!!!!!!!!!!!!!!!!!!!
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
@@ -503,7 +503,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
         //***TODO***!!!!!!!!!!!!!!!!!!!!
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;

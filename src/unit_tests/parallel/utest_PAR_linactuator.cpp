@@ -223,7 +223,7 @@ bool VerifySolution(double time,                                     // current 
 // -----------------------------------------------------------------------------
 // Worker function for performing the simulation with specified parameters.
 // -----------------------------------------------------------------------------
-bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system (DEM or DVI)
+bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system (SMC or NSC)
                      const char* test_name,                    // name of this test
                      const ChQuaternion<>& rot,                // translation along Z axis
                      double speed,                             // imposed translation speed
@@ -282,12 +282,12 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
   if (cm == ChMaterialSurfaceBase::NSC) {
-    ChSystemParallelNSC* msystemDVI = static_cast<ChSystemParallelNSC*>(msystem);
-    msystemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    msystemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    msystemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    msystemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    msystemDVI->ChangeSolverType(SolverType::APGD);
+    ChSystemParallelNSC* msystemNSC = static_cast<ChSystemParallelNSC*>(msystem);
+    msystemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    msystemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    msystemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    msystemNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    msystemNSC->ChangeSolverType(SolverType::APGD);
   }
 
   // Create the ground body.
@@ -393,12 +393,12 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Case 1 - Translation axis vertical, imposed speed 1 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 1 (DEM)", QUNIT, 1, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 1 (DVI)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 1 (SMC)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 1 (NSC)", QUNIT, 1, animate);
 
   // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 2 (DEM)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 2 (DVI)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 2 (SMC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 2 (NSC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

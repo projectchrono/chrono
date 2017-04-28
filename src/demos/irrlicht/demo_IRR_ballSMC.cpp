@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Demo code about collisions and contacts using the penalty method (DEM)
+// Demo code about collisions and contacts using the penalty method (SMC)
 //
 // =============================================================================
 
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 
     // Create the Irrlicht visualization
-    ChIrrApp application(&msystem, L"DEM demo", core::dimension2d<u32>(800, 600), false, true);
+    ChIrrApp application(&msystem, L"SMC demo", core::dimension2d<u32>(800, 600), false, true);
 
     // Easy shortcuts to add camera, lights, logo and sky in Irrlicht scene
     application.AddTypicalLogo();

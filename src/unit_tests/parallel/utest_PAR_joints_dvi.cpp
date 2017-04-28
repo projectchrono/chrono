@@ -12,7 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Test for bilateral joint constraints in a DVI system.
+// Test for bilateral joint constraints in a NSC system.
 //
 // The mechanism consists of three bodies (ground, sled, and pendulum) with a
 // prismatic joint between ground and sled and a revolute joint between sled and

@@ -121,7 +121,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                                bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
@@ -130,7 +130,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
-    /// used by some DEM code
+    /// used by some SMC code
     virtual double GetContactableMass() override { return variables.GetBodyMass(); }
 
     /// This is only for backward compatibility

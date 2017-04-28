@@ -152,7 +152,7 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override;
 
-    /// Used by some DEM code
+    /// Used by some SMC code
     virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// Return the pointer to the surface material.

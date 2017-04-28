@@ -13,7 +13,7 @@
 // Authors: Radu Serban, Victor Bertolazzo
 // =============================================================================
 //
-// ChronoParallel test program using DEM-C method for rolling frictional contact.
+// ChronoParallel test program using NSC method for rolling frictional contact.
 //
 // The global reference frame has Z up.
 //

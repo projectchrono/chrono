@@ -141,7 +141,7 @@ void ChOpenGLHUD::GenerateHelp() {
     text.Render("2: Wireframe (slow)", LEFT, TOP - SPACING * 10, sx, sy);
     text.Render("3: Solid", LEFT, TOP - SPACING * 11, sx, sy);
 
-    text.Render("C: Show/Hide Contacts (DVI only)", LEFT, TOP - SPACING * 13, sx, sy);
+    text.Render("C: Show/Hide Contacts (NSC only)", LEFT, TOP - SPACING * 13, sx, sy);
 
     text.Render("Space: Pause Simulation (not rendering)", LEFT, TOP - SPACING * 15, sx, sy);
     text.Render("P: Pause Rendering (not simulating)", LEFT, TOP - SPACING * 16, sx, sy);

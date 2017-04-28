@@ -33,7 +33,7 @@ class ChApi ChSystemSMC : public ChSystem {
     CH_FACTORY_TAG(ChSystemSMC)
 
   public:
-    /// Enum for DEM contact type.
+    /// Enum for SMC contact type.
     enum ContactForceModel {
         Hooke,        ///< linear Hookean model
         Hertz,        ///< nonlinear Hertzian model
