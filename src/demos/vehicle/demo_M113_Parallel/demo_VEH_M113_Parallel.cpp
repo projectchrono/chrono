@@ -234,7 +234,7 @@ int main(int argc, char* argv[]) {
     // ----  Sequential
 #ifdef USE_DEM
     std::cout << "Create DEM system" << std::endl;
-    ChSystemDEM* system = new ChSystemDEM();
+    ChSystemSMC* system = new ChSystemSMC();
 #else
     std::cout << "Create DVI system" << std::endl;
     ChSystem* system = new ChSystem();
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
     system->ChangeSolverType(SolverType::APGD);
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
 #else
-    system->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
+    system->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
 #endif
 
     system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);

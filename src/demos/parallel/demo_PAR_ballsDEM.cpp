@@ -185,8 +185,8 @@ int main(int argc, char* argv[]) {
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
-    msystem.GetSettings()->solver.contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
-    msystem.GetSettings()->solver.adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
+    msystem.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    msystem.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
     // Create the fixed and moving bodies
     // ----------------------------------

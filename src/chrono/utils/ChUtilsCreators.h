@@ -32,7 +32,7 @@
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCapsuleShape.h"

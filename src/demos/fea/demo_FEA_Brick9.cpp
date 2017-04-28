@@ -27,7 +27,7 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementShellANCF.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
@@ -66,11 +66,11 @@ int main(int argc, char* argv[]) {
 // Soil Bin case testing Drucker-Prager Cap model
 void DPCapPress() {
 	FILE* outputfile;
-	ChSystemDEM my_system;
+	ChSystemSMC my_system;
 	my_system.UseMaterialProperties(false);
-	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
 	my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
 	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -395,10 +395,10 @@ void DPCapPress() {
 // Test1 Case
 void ShellBrickContact() {
     FILE* outputfile;
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
     my_system.UseMaterialProperties(false);
-    my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-    my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+    my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+    my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -754,10 +754,10 @@ void ShellBrickContact() {
 // Test Case
 void SimpleBoxContact() {
     FILE* outputfile;
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
     my_system.UseMaterialProperties(false);
-    my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-    my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+    my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+    my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1060,11 +1060,11 @@ void SimpleBoxContact() {
 // SoilBin Dynamic
 void SoilBin() {
 	FILE* outputfile;
-	ChSystemDEM my_system;
+	ChSystemSMC my_system;
 	my_system.UseMaterialProperties(false);
-	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
 	my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
 	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)

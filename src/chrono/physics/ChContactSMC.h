@@ -31,7 +31,7 @@
 #include "chrono/physics/ChContactContainerBase.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -101,7 +101,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                                  );
 
         // Set up and compute Jacobian matrices.
-        if (static_cast<ChSystemDEM*>(this->container->GetSystem())->GetStiffContact()) {
+        if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
             CreateJacobians();
             CalculateJacobians();
         }
@@ -120,12 +120,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         }
 
         // Extract parameters from containing system
-        ChSystemDEM* sys = static_cast<ChSystemDEM*>(this->container->GetSystem());
+        ChSystemSMC* sys = static_cast<ChSystemSMC*>(this->container->GetSystem());
         double dT = sys->GetStep();
         bool use_mat_props = sys->UsingMaterialProperties();
-        ChSystemDEM::ContactForceModel contact_model = sys->GetContactForceModel();
-        ChSystemDEM::AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
-        ChSystemDEM::TangentialDisplacementModel tdispl_model = sys->GetTangentialDisplacementModel();
+        ChSystemSMC::ContactForceModel contact_model = sys->GetContactForceModel();
+        ChSystemSMC::AdhesionForceModel adhesion_model = sys->GetAdhesionForceModel();
+        ChSystemSMC::TangentialDisplacementModel tdispl_model = sys->GetTangentialDisplacementModel();
 
         // Relative velocity at contact
         ChVector<> relvel = vel2 - vel1;
@@ -159,7 +159,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         double gt;
 
         switch (contact_model) {
-            case ChSystemDEM::Hooke:
+            case ChSystemSMC::Hooke:
                 if (use_mat_props) {
                     double tmp_k = (16.0 / 15) * std::sqrt(R_eff) * mat.E_eff;
                     double v2 = sys->GetCharacteristicImpactVelocity() * sys->GetCharacteristicImpactVelocity();
@@ -179,7 +179,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-            case ChSystemDEM::Hertz:
+            case ChSystemSMC::Hertz:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(R_eff * delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
@@ -200,7 +200,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
                 break;
 
-            case ChSystemDEM::PlainCoulomb:
+            case ChSystemSMC::PlainCoulomb:
                 if (use_mat_props) {
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
@@ -224,10 +224,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
                         forceN = 0;
                     double forceT = mat.mu_eff * std::tanh(5.0 * relvel_t_mag) * forceN;
                     switch (adhesion_model) {
-                        case ChSystemDEM::Constant:
+                        case ChSystemSMC::Constant:
                             forceN -= mat.adhesion_eff;
                             break;
-                        case ChSystemDEM::DMT:
+                        case ChSystemSMC::DMT:
                             forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
                             break;
                     }
@@ -242,10 +242,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // Tangential displacement (magnitude)
         double delta_t = 0;
         switch (tdispl_model) {
-            case ChSystemDEM::OneStep:
+            case ChSystemSMC::OneStep:
                 delta_t = relvel_t_mag * dT;
                 break;
-            case ChSystemDEM::MultiStep:
+            case ChSystemSMC::MultiStep:
                 //// TODO: implement proper MultiStep mode
                 delta_t = relvel_t_mag * dT;
                 break;
@@ -266,10 +266,10 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Include adhesion force
         switch (adhesion_model) {
-            case ChSystemDEM::Constant:
+            case ChSystemSMC::Constant:
                 forceN -= mat.adhesion_eff;
                 break;
-            case ChSystemDEM::DMT:
+            case ChSystemSMC::DMT:
                 forceN -= mat.adhesionMultDMT_eff * sqrt(R_eff);
                 break;
         }

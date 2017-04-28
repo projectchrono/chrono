@@ -30,8 +30,8 @@
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
@@ -206,10 +206,10 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector<> trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemDEM my_system(false, 16000, 500);
+    ChSystemSMC my_system(false, 16000, 500);
 
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
-    my_system.SetContactForceModel(ChSystemDEM::Hooke);
+    my_system.SetContactForceModel(ChSystemSMC::Hooke);
 
     double L_x = 1.0;
     double L_y = elementThickness;

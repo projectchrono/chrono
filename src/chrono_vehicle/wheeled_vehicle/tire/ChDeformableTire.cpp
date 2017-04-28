@@ -63,7 +63,7 @@ void ChDeformableTire::SetContactMaterialCoefficients(float kn, float gn, float 
 void ChDeformableTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ChTire::Initialize(wheel, side);
 
-    ChSystemDEM* system = dynamic_cast<ChSystemDEM*>(wheel->GetSystem());
+    ChSystemSMC* system = dynamic_cast<ChSystemSMC*>(wheel->GetSystem());
     assert(system);
 
     // Create the tire mesh

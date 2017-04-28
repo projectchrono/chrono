@@ -12,25 +12,25 @@
 // Authors: Radu Serban, Alessandro Tasora
 // =============================================================================
 //
-// Physical system in which contact is modeled using a Penalty Method.
+// Physical system in which contact is modeled using a smooth (penalty-based)
+// method.
 //
 // =============================================================================
 
-#ifndef CHSYSTEMDEM_H
-#define CHSYSTEMDEM_H
+#ifndef CH_SYSTEM_SMC_H
+#define CH_SYSTEM_SMC_H
 
 #include <algorithm>
 
 #include "chrono/physics/ChSystem.h"
 
-
 namespace chrono {
 
-/// Class for a physical system in which contact is modeled using a Penalty Method.
-class ChApi ChSystemDEM : public ChSystem {
-
+/// Class for a physical system in which contact is modeled using a smooth
+/// (penalty-based) method.
+class ChApi ChSystemSMC : public ChSystem {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemDEM)
+    CH_FACTORY_TAG(ChSystemSMC)
 
   public:
     /// Enum for DEM contact type.
@@ -53,22 +53,26 @@ class ChApi ChSystemDEM : public ChSystem {
         MultiStep  ///< use contact history (from contact initiation)
     };
 
-    /// Constructor for ChSystemDEM.
+    /// Constructor for ChSystemSMC.
     /// Note that, in case you will use collision detection, the values of
     /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
     /// collision algorithm in an optimal way. Scene size should be approximately
     /// the radius of the expected area where colliding objects will move.
-    ChSystemDEM(bool use_material_properties = true,  ///< use physical contact material properties
+    ChSystemSMC(bool use_material_properties = true,  ///< use physical contact material properties
                 unsigned int max_objects = 16000,     ///< maximum number of contactable objects
                 double scene_size = 500               ///< approximate bounding radius of the scene
                 );
 
-    virtual ~ChSystemDEM() {}
+    virtual ~ChSystemSMC() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemDEM* Clone() const override { return new ChSystemDEM(*this); }
+    virtual ChSystemSMC* Clone() const override { return new ChSystemSMC(*this); }
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override { return ChMaterialSurfaceBase::SMC; }
+    /// Return the contact method supported by this system.
+    /// Bodies added to this system must be compatible.
+    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const override {
+        return ChMaterialSurfaceBase::SMC;
+    }
 
     /// Create a new body, consistent with the contact method and collision model used by this system.
     /// The returned body is not added to the system.
@@ -80,9 +84,9 @@ class ChApi ChSystemDEM : public ChSystem {
 
     virtual void SetSolverType(ChSolver::Type type) override;
 
-    /// Replace the contact container. 
+    /// Replace the contact container.
     /// The provided container object must be inherited from ChContactContainerSMC.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase>  container) override;
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase> container) override;
 
     /// Enable/disable using physical contact material properties.
     /// If true, contact coefficients are estimated from physical material properties.
@@ -112,15 +116,15 @@ class ChApi ChSystemDEM : public ChSystem {
     void SetStiffContact(bool val) { m_stiff_contact = val; }
     bool GetStiffContact() const { return m_stiff_contact; }
 
-    /// Slip velocity threshold. 
+    /// Slip velocity threshold.
     /// No tangential contact forces are generated if the magnitude of the tangential
     /// relative velocity is below this value.
     void SetSlipVelocitythreshold(double vel) { m_minSlipVelocity = std::max(vel, CH_MICROTOL); }
-    double GetSlipVelocitythreshold() const {return m_minSlipVelocity;}
+    double GetSlipVelocitythreshold() const { return m_minSlipVelocity; }
 
     /// Characteristic impact velocity (Hooke contact force model).
     void SetCharacteristicImpactVelocity(double vel) { m_characteristicVelocity = vel; }
-    double GetCharacteristicImpactVelocity() const {return m_characteristicVelocity;}
+    double GetCharacteristicImpactVelocity() const { return m_characteristicVelocity; }
 
     //
     // SERIALIZATION
@@ -142,7 +146,7 @@ class ChApi ChSystemDEM : public ChSystem {
     double m_characteristicVelocity;             ///< characteristic impact velocity (Hooke model)
 };
 
-CH_CLASS_VERSION(ChSystemDEM,0)
+CH_CLASS_VERSION(ChSystemSMC, 0)
 
 }  // end namespace chrono
 

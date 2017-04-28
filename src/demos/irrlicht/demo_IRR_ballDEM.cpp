@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/solver/ChSolverDEM.h"
 
@@ -69,12 +69,12 @@ int main(int argc, char* argv[]) {
     double thickness = 0.1;
 
     // Create the system
-    ChSystemDEM msystem;
+    ChSystemSMC msystem;
 
     // The following two lines are optional, since they are the default options. They are added for future reference,
     // i.e. when needed to change those models.
-    msystem.SetContactForceModel(ChSystemDEM::ContactForceModel::Hertz);
-    msystem.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
+    msystem.SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
+    msystem.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
 
     msystem.Set_G_acc(ChVector<>(0, gravity, 0));
 

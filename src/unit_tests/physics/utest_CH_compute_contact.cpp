@@ -28,7 +28,7 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverDEM.h"
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 using namespace chrono;
@@ -56,8 +56,8 @@ double rtol = 1e-3;  // validation relative error
 // ---------------------------
 
 bool use_mat_properties = false;
-ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
-ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::OneStep;
+ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
+ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;
@@ -118,7 +118,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
         case ChMaterialSurfaceBase::SMC: {
             GetLog() << "Using PENALTY method.\n";
 
-            ChSystemDEM* sys = new ChSystemDEM;
+            ChSystemSMC* sys = new ChSystemSMC;
             sys->UseMaterialProperties(use_mat_properties);
             sys->SetContactForceModel(force_model);
             sys->SetTangentialDisplacementModel(tdispl_model);

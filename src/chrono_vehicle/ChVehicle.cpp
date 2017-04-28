@@ -19,7 +19,7 @@
 #include <algorithm>
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -31,7 +31,7 @@ namespace vehicle {
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
 ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
-    m_system = (contact_method == ChMaterialSurfaceBase::NSC) ? new ChSystem : new ChSystemDEM;
+    m_system = (contact_method == ChMaterialSurfaceBase::NSC) ? new ChSystem : new ChSystemSMC;
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 

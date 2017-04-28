@@ -52,8 +52,8 @@ double rtol = 1e-3;  // validation relative error
 // ---------------------------
 
 bool use_mat_properties = false;
-ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
-ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::OneStep;
+ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
+ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;

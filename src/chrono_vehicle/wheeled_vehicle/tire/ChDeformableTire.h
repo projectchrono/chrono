@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 
 #include "chrono_fea/ChContactSurfaceMesh.h"

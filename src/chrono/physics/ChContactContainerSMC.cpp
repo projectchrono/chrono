@@ -13,7 +13,7 @@
 // =============================================================================
 
 #include "chrono/physics/ChContactContainerSMC.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 namespace chrono {
 

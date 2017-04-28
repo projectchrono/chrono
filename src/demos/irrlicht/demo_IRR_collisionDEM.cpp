@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChContactContainerSMC.h"
 #include "chrono/solver/ChSolverDEM.h"
 
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     double out_step = 0.02;
 
     // Create a ChronoENGINE physical system
-    ChSystemDEM mphysicalSystem;
+    ChSystemSMC mphysicalSystem;
     mphysicalSystem.Set_G_acc(0.38 * mphysicalSystem.Get_G_acc());
 
     // Create the Irrlicht visualization (open the Irrlicht device,

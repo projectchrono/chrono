@@ -16,7 +16,7 @@
 
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -44,7 +44,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     //
 
 
-    //collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemDEM
+    //collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006); // max inside penetration - if not enough stiffness in material: troubles
 
     // Use this value for an outward additional layer around meshes, that can improve

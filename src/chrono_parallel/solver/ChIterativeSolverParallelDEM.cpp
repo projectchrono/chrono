@@ -20,7 +20,7 @@
 // on the velocity manifold of the bilateral constraints.
 // =============================================================================
 
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 #include <thrust/sort.h>
@@ -47,9 +47,9 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void function_CalcContactForces(
     int index,                                            // index of this contact pair
-    ChSystemDEM::ContactForceModel contact_model,         // contact force model
-    ChSystemDEM::AdhesionForceModel adhesion_model,       // contact force model
-    ChSystemDEM::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
+    ChSystemSMC::ContactForceModel contact_model,         // contact force model
+    ChSystemSMC::AdhesionForceModel adhesion_model,       // contact force model
+    ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
@@ -176,10 +176,10 @@ void function_CalcContactForces(
     int shear_shape2;
     bool newcontact = true;
 
-    if (displ_mode == ChSystemDEM::TangentialDisplacementModel::OneStep) {
+    if (displ_mode == ChSystemSMC::TangentialDisplacementModel::OneStep) {
         delta_t = relvel_t * dT;
 
-    } else if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
+    } else if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         delta_t = relvel_t * dT;
 
         // Contact history information should be stored on the body with
@@ -241,7 +241,7 @@ void function_CalcContactForces(
     }
 
     switch (contact_model) {
-        case ChSystemDEM::ContactForceModel::Hooke:
+        case ChSystemSMC::ContactForceModel::Hooke:
             if (use_mat_props) {
                 real tmp_k = (16.0 / 15) * Sqrt(eff_radius[index]) * E_eff;
                 real v2 = char_vel * char_vel;
@@ -261,7 +261,7 @@ void function_CalcContactForces(
 
             break;
 
-        case ChSystemDEM::ContactForceModel::Hertz:
+        case ChSystemSMC::ContactForceModel::Hertz:
             if (use_mat_props) {
                 real sqrt_Rd = Sqrt(eff_radius[index] * delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
@@ -282,7 +282,7 @@ void function_CalcContactForces(
 
             break;
 
-        case ChSystemDEM::ContactForceModel::PlainCoulomb:
+        case ChSystemSMC::ContactForceModel::PlainCoulomb:
             if (use_mat_props) {
                 real sqrt_Rd = Sqrt(delta_n);
                 real Sn = 2 * E_eff * sqrt_Rd;
@@ -306,10 +306,10 @@ void function_CalcContactForces(
                     forceN_mag = 0;
                 real forceT_mag = mu_eff * Tanh(5.0 * relvel_t_mag) * forceN_mag;
                 switch (adhesion_model) {
-                    case ChSystemDEM::AdhesionForceModel::Constant:
+                    case ChSystemSMC::AdhesionForceModel::Constant:
                         forceN_mag -= adhesion_eff;
                         break;
-                    case ChSystemDEM::AdhesionForceModel::DMT:
+                    case ChSystemSMC::AdhesionForceModel::DMT:
                         forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
                         break;
                 }
@@ -355,11 +355,11 @@ void function_CalcContactForces(
 
     // Include adhesion force.
     switch (adhesion_model) {
-        case ChSystemDEM::AdhesionForceModel::Constant:
+        case ChSystemSMC::AdhesionForceModel::Constant:
             // (This is a very simple model, which can perhaps be improved later.)
             forceN_mag -= adhesion_eff;
             break;
-        case ChSystemDEM::AdhesionForceModel::DMT:
+        case ChSystemSMC::AdhesionForceModel::DMT:
             // Derjaguin, Muller and Toporov (DMT) adhesion force,
             forceN_mag -= adhesionMultDMT_eff * Sqrt(eff_radius[index]);
             break;
@@ -381,7 +381,7 @@ void function_CalcContactForces(
         if (delta_t_mag > CH_MICROTOL) {
             real ratio = forceT_slide / forceT_stiff_mag;
             forceT_stiff *= ratio;
-            if (displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
+            if (displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
                 if (shear_body1 == body1) {
                     shear_disp[max_shear * shear_body1 + contact_id] = forceT_stiff / kt;
                 } else {
@@ -510,7 +510,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
     custom_vector<vec2> shape_pairs;
     custom_vector<char> shear_touch;
 
-    if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
         shape_pairs.resize(data_manager->num_rigid_contacts);
         shear_touch.resize(max_shear * data_manager->num_rigid_bodies);
         Thrust_Fill(shear_touch, false);
@@ -524,7 +524,7 @@ void ChIterativeSolverParallelDEM::ProcessContacts() {
 
     host_CalcContactForces(ext_body_id, ext_body_force, ext_body_torque, shape_pairs, shear_touch);
 
-    if (data_manager->settings.solver.tangential_displ_mode == ChSystemDEM::TangentialDisplacementModel::MultiStep) {
+    if (data_manager->settings.solver.tangential_displ_mode == ChSystemSMC::TangentialDisplacementModel::MultiStep) {
 #pragma omp parallel for
         for (int index = 0; index < (signed)data_manager->num_rigid_bodies; index++) {
             for (int i = 0; i < max_shear; i++) {

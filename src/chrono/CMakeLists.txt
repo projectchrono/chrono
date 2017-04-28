@@ -144,6 +144,7 @@ set(ChronoEngine_physics_SOURCES
     physics/ChLinkRevoluteTranslational.cpp
     physics/ChLinkUniversal.cpp
     physics/ChSystem.cpp
+    physics/ChSystemSMC.cpp
     physics/ChGlobal.cpp
     physics/ChSolvmin.cpp
     physics/ChProbe.cpp
@@ -180,11 +181,10 @@ set(ChronoEngine_physics_SOURCES
     physics/ChConveyor.cpp
     physics/ChFx.cpp
     physics/ChAssembly.cpp
-    physics/ChSystemDEM.cpp
     physics/ChMaterialSurfaceSMC.cpp
     physics/ChMaterialSurfaceNSC.cpp
     physics/ChContinuumMaterial.cpp
-	  physics/ChLoadContainer.cpp
+    physics/ChLoadContainer.cpp
     )
 
 set(ChronoEngine_physics_HEADERS
@@ -266,8 +266,8 @@ set(ChronoEngine_physics_HEADERS
     physics/ChShaftsThermalEngine.h
     physics/ChSolvmin.h
     physics/ChSystem.h
+    physics/ChSystemSMC.h    
     physics/ChAssembly.h
-    physics/ChSystemDEM.h
     physics/ChContactSMC.h
     physics/ChContactNSC.h
     physics/ChContactNSCrolling.h
