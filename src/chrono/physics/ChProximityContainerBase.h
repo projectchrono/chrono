@@ -16,7 +16,6 @@
 #define CHPROXIMITYCONTAINERBASE_H
 
 #include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {

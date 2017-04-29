@@ -21,7 +21,6 @@
 namespace chrono {
 
 /// Base class for specifying material properties for contact force generation.
-
 class ChApi ChMaterialSurfaceBase {
 
     // Tag needed for class factory in archive (de)serialization:
@@ -55,6 +54,11 @@ class ChApi ChMaterialSurfaceBase {
 
 CH_CLASS_VERSION(ChMaterialSurfaceBase,0)
 
+/// Base class for composite material for a contact pair.
+class ChApi ChMaterialComposite {
+  public:
+    virtual ~ChMaterialComposite() {}
+};
 
 }  // end namespace chrono
 

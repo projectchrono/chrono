@@ -22,13 +22,7 @@
 
 #include "chrono/physics/ChSystem.h"
 
-#include "chrono/physics/ChMaterialCouple.h"
-
 namespace chrono {
-
-// Forward references
-class ChSystemDescriptor;
-class ChContactContainerBase;
 
 /// Class for a physical system in which contact is modeled using a non-smooth
 /// (complementarity-based) method.

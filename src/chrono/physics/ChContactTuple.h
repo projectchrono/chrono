@@ -19,7 +19,6 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/physics/ChMaterialCouple.h"
 
 namespace chrono {
 

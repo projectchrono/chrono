@@ -1376,7 +1376,7 @@ class SystemAddCollisionPointCallback : public ChAddContactCallback {
     ChSystem* client_system;
     virtual void ContactCallback(
         const collision::ChCollisionInfo& mcontactinfo,  ///< pass info about contact (cannot change it)
-        ChMaterialCouple& material                       ///< you can modify this!
+        ChMaterialCompositeNSC& material                 ///< you can modify this!
         ) {
         if (client_system->collisionpoint_callback)
             client_system->collisionpoint_callback->ContactCallback(mcontactinfo, material);

@@ -12,10 +12,14 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <algorithm>
+
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/physics/ChMaterialSurfaceNSC.h"
 
 namespace chrono {
+
+// -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChMaterialSurfaceNSC)
@@ -92,6 +96,36 @@ void ChMaterialSurfaceNSC::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(complianceT);
     marchive >> CHNVP(complianceRoll);
     marchive >> CHNVP(complianceSpin);
+}
+
+// -----------------------------------------------------------------------------
+
+ChMaterialCompositeNSC::ChMaterialCompositeNSC()
+    : static_friction(0),
+      sliding_friction(0),
+      rolling_friction(0),
+      spinning_friction(0),
+      restitution(0),
+      cohesion(0),
+      dampingf(0),
+      compliance(0),
+      complianceT(0),
+      complianceRoll(0),
+      complianceSpin(0) {}
+
+ChMaterialCompositeNSC::ChMaterialCompositeNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat1,
+                                               std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
+    static_friction = std::min<float>(mat1->static_friction, mat2->static_friction);
+    restitution = std::min<float>(mat1->restitution, mat2->restitution);
+    cohesion = std::min<float>(mat1->cohesion, mat2->cohesion);
+    dampingf = std::min<float>(mat1->dampingf, mat2->dampingf);
+    compliance = mat1->compliance + mat2->compliance;
+    complianceT = mat1->complianceT + mat2->complianceT;
+
+    rolling_friction = std::min<float>(mat1->rolling_friction, mat2->rolling_friction);
+    spinning_friction = std::min<float>(mat1->spinning_friction, mat2->spinning_friction);
+    complianceRoll = mat1->complianceRoll + mat2->complianceRoll;
+    complianceSpin = mat1->complianceSpin + mat2->complianceSpin;
 }
 
 }  // end namespace chrono

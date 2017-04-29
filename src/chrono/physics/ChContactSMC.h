@@ -142,12 +142,9 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         //// TODO:  how can I get this with current collision system!?!?!?
         double R_eff = 1;
 
-        // Use static casting now, since we are sure that this contact was created only if dynamic casting was fine
-        auto mmatA = std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurfaceBase());
-        auto mmatB = std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurfaceBase());
-
         // Calculate composite material properties
-        ChCompositeMaterialSMC mat = ChMaterialSurfaceSMC::CompositeMaterial(mmatA, mmatB);
+        ChMaterialCompositeSMC mat(std::static_pointer_cast<ChMaterialSurfaceSMC>(objA->GetMaterialSurfaceBase()),
+                                   std::static_pointer_cast<ChMaterialSurfaceSMC>(objB->GetMaterialSurfaceBase()));
 
         // Calculate stiffness and viscous damping coefficients.
         // All models use the following formulas for normal and tangential forces:

@@ -80,17 +80,9 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Get_tuple_a().SetVariables(*this->objA);
         Rv.Get_tuple_b().SetVariables(*this->objB);
 
-        // Compute the 'average' material
-
-        // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurfaceNSC* mmatA = (ChMaterialSurfaceNSC*)(this->objA->GetMaterialSurfaceBase().get());
-        ChMaterialSurfaceNSC* mmatB = (ChMaterialSurfaceNSC*)(this->objB->GetMaterialSurfaceBase().get());
-
-        ChMaterialCouple mat;
-        mat.rolling_friction = (float)ChMin(mmatA->rolling_friction, mmatB->rolling_friction);
-        mat.spinning_friction = (float)ChMin(mmatA->spinning_friction, mmatB->spinning_friction);
-        mat.complianceRoll = (float)(mmatA->complianceRoll + mmatB->complianceRoll);
-        mat.complianceSpin = (float)(mmatA->complianceSpin + mmatB->complianceSpin);
+        // Calculate composite material properties
+        ChMaterialCompositeNSC mat(std::static_pointer_cast<ChMaterialSurfaceNSC>(objA->GetMaterialSurfaceBase()),
+                                   std::static_pointer_cast<ChMaterialSurfaceNSC>(objB->GetMaterialSurfaceBase()));
 
         Rx.SetRollingFrictionCoefficient(mat.rolling_friction);
         Rx.SetSpinningFrictionCoefficient(mat.spinning_friction);

@@ -666,11 +666,11 @@ int main(int argc, char* argv[]) {
     //  a ChCustomCollisionPointCallback class. This will be called per each contact point, and
     //  it can modify the friction as in the very simple example below:
 
-    class MyContactCallback : public ChSystemNSC::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
       public:
         virtual void ContactCallback(
             const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCouple& material)                      ///< you can modify this!
+            ChMaterialCompositeNSC& material)                ///< you can modify this!
         {
             if (mcontactinfo.vpA.x() > 0)
                 material.static_friction = 0.7f;  // On the right of the plane, less friction...

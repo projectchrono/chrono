@@ -19,20 +19,6 @@
 
 namespace chrono {
 
-struct ChCompositeMaterialSMC {
-    float E_eff;                ///< Effective elasticity modulus
-    float G_eff;                ///< Effective shear modulus
-    float mu_eff;               ///< Effective coefficient of friction
-    float cr_eff;               ///< Effective coefficient of restitution
-    float adhesion_eff;         ///< Effective cohesion force
-    float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
-
-    float kn;  ///< normal stiffness coefficient
-    float kt;  ///< tangential stiffness coefficient
-    float gn;  ///< normal viscous damping coefficient
-    float gt;  ///< tangential viscuous damping coefficient
-};
-
 /// Material data for a surface for use with smooth (penalty) contact method.
 /// This data is used to define surface properties owned by ChBody rigid bodies and
 /// similar objects; it carries information that is used to make contacts.
@@ -112,10 +98,6 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurfaceBase {
     void SetGn(float val) { gn = val; }
     void SetGt(float val) { gt = val; }
 
-    /// Calculate composite material properties
-    static ChCompositeMaterialSMC CompositeMaterial(const std::shared_ptr<ChMaterialSurfaceSMC>& mat1,
-                                                    const std::shared_ptr<ChMaterialSurfaceSMC>& mat2);
-
     /// Method to allow serializing transient data into in ascii
     /// as a readable item, for example   "chrono::GetLog() << myobject;"
     virtual void StreamOUT(ChStreamOutAscii& mstream) { mstream << "Material SMC \n"; }
@@ -128,6 +110,26 @@ class ChApi ChMaterialSurfaceSMC : public ChMaterialSurfaceBase {
 };
 
 CH_CLASS_VERSION(ChMaterialSurfaceSMC, 0)
+
+/// Composite SMC material data for a contact pair.
+class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
+  public:
+    float E_eff;                ///< Effective elasticity modulus
+    float G_eff;                ///< Effective shear modulus
+    float mu_eff;               ///< Effective coefficient of friction
+    float cr_eff;               ///< Effective coefficient of restitution
+    float adhesion_eff;         ///< Effective cohesion force
+    float adhesionMultDMT_eff;  ///< Effective adhesion multiplier (DMT model)
+
+    float kn;  ///< normal stiffness coefficient
+    float kt;  ///< tangential stiffness coefficient
+    float gn;  ///< normal viscous damping coefficient
+    float gt;  ///< tangential viscuous damping coefficient
+
+    ChMaterialCompositeSMC();
+
+    ChMaterialCompositeSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat1, std::shared_ptr<ChMaterialSurfaceSMC> mat2);
+};
 
 }  // end namespace chrono
 

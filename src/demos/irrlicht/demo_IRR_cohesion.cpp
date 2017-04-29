@@ -259,11 +259,11 @@ int main(int argc, char* argv[]) {
     // the touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChSystemNSC::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
       public:
         virtual void ContactCallback(
             const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCouple& material)                      ///< you can modify this!
+            ChMaterialCompositeNSC& material)                ///< you can modify this!
         {
             // Set friction according to user setting:
             material.static_friction = GLOBAL_friction;

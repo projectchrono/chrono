@@ -22,7 +22,6 @@ namespace chrono {
 /// Material data for a surface for use with non-smooth (complementarity) contact method.
 /// This data is used to define surface properties owned by ChBody rigid bodies and
 /// similar objects; it carries information that is used to make contacts.
-
 class ChApi ChMaterialSurfaceNSC : public ChMaterialSurfaceBase {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChMaterialSurfaceNSC)
@@ -134,6 +133,26 @@ class ChApi ChMaterialSurfaceNSC : public ChMaterialSurfaceBase {
 };
 
 CH_CLASS_VERSION(ChMaterialSurfaceNSC, 0)
+
+/// Composite NSC material data for a contact pair.
+class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
+  public:
+    float static_friction;
+    float sliding_friction;
+    float rolling_friction;
+    float spinning_friction;
+    float restitution;
+    float cohesion;
+    float dampingf;
+    float compliance;
+    float complianceT;
+    float complianceRoll;
+    float complianceSpin;
+
+    ChMaterialCompositeNSC();
+
+    ChMaterialCompositeNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat1, std::shared_ptr<ChMaterialSurfaceNSC> mat2);
+};
 
 }  // end namespace chrono
 

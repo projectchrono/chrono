@@ -86,19 +86,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Tv.Get_tuple_a().SetVariables(*this->objA);
         Tv.Get_tuple_b().SetVariables(*this->objB);
 
-        // Compute the 'average' material
-
-        // just low level casting, now, since we are sure that this contact was created only if dynamic casting was fine
-        ChMaterialSurfaceNSC* mmatA = (ChMaterialSurfaceNSC*)(this->objA->GetMaterialSurfaceBase().get());
-        ChMaterialSurfaceNSC* mmatB = (ChMaterialSurfaceNSC*)(this->objB->GetMaterialSurfaceBase().get());
-
-        ChMaterialCouple mat;
-        mat.static_friction = (float)ChMin(mmatA->static_friction, mmatB->static_friction);
-        mat.restitution = (float)ChMin(mmatA->restitution, mmatB->restitution);
-        mat.cohesion = (float)ChMin(mmatA->cohesion, mmatB->cohesion);
-        mat.dampingf = (float)ChMin(mmatA->dampingf, mmatB->dampingf);
-        mat.compliance = (float)(mmatA->compliance + mmatB->compliance);
-        mat.complianceT = (float)(mmatA->complianceT + mmatB->complianceT);
+        // Calculate composite material properties
+        ChMaterialCompositeNSC mat(std::static_pointer_cast<ChMaterialSurfaceNSC>(objA->GetMaterialSurfaceBase()),
+                                   std::static_pointer_cast<ChMaterialSurfaceNSC>(objB->GetMaterialSurfaceBase()));
 
         // see if the user wants to modify the material via a callback:
         if (this->container->GetAddContactCallback()) {

@@ -236,7 +236,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
     physics/ChMarker.h
-    physics/ChMaterialCouple.h
     physics/ChMaterialSurfaceBase.h
     physics/ChMaterialSurfaceNSC.h
     physics/ChMaterialSurfaceSMC.h

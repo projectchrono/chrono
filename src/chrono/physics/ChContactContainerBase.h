@@ -21,7 +21,8 @@
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialCouple.h"
+
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 
 namespace chrono {
 
@@ -39,7 +40,7 @@ class ChApi ChAddContactCallback {
     /// This must be implemented by a child class of ChAddContactCallback
     virtual void ContactCallback(
         const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-        ChMaterialCouple& material                       ///< you can modify this!
+        ChMaterialCompositeNSC& material                 ///< you can modify this!
         ) = 0;
 };
 
