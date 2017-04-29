@@ -35,26 +35,26 @@ class ChApi ChContactContainerNSC : public ChContactContainerBase {
     CH_FACTORY_TAG(ChContactContainerNSC)
 
   public:
-    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVI_6_6;
-    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDVI_6_3;
-    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDVI_3_3;
-    typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDVIrolling_6_6;
+    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
+    typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactNSC_6_3;
+    typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactNSC_3_3;
+    typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
 
   protected:
-    std::list<ChContactDVI_6_6*> contactlist_6_6;
-    std::list<ChContactDVI_6_3*> contactlist_6_3;
-    std::list<ChContactDVI_3_3*> contactlist_3_3;
-    std::list<ChContactDVIrolling_6_6*> contactlist_6_6_rolling;
+    std::list<ChContactNSC_6_6*> contactlist_6_6;
+    std::list<ChContactNSC_6_3*> contactlist_6_3;
+    std::list<ChContactNSC_3_3*> contactlist_3_3;
+    std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
 
     int n_added_6_6;
     int n_added_6_3;
     int n_added_3_3;
     int n_added_6_6_rolling;
 
-    std::list<ChContactDVI_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactDVI_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactDVI_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactDVIrolling_6_6*>::iterator lastcontact_6_6_rolling;
+    std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
+    std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
+    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
+    std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
   public:
     ChContactContainerNSC();

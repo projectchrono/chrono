@@ -33,28 +33,28 @@ class ChApi ChContactContainerSMC : public ChContactContainerBase {
     CH_FACTORY_TAG(ChContactContainerSMC)
 
   public:
-    typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactDEM_3_3;
-    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactDEM_6_3;
-    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactDEM_6_6;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactDEM_333_3;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactDEM_333_6;
-    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactDEM_333_333;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactDEM_666_3;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactDEM_666_6;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactDEM_666_333;
-    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactDEM_666_666;
+    typedef ChContactSMC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactSMC_3_3;
+    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactSMC_6_3;
+    typedef ChContactSMC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactSMC_6_6;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactSMC_333_3;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactSMC_333_6;
+    typedef ChContactSMC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactSMC_333_333;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactSMC_666_3;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactSMC_666_6;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactSMC_666_333;
+    typedef ChContactSMC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactSMC_666_666;
 
   protected:
-    std::list<ChContactDEM_3_3*> contactlist_3_3;
-    std::list<ChContactDEM_6_3*> contactlist_6_3;
-    std::list<ChContactDEM_6_6*> contactlist_6_6;
-    std::list<ChContactDEM_333_3*> contactlist_333_3;
-    std::list<ChContactDEM_333_6*> contactlist_333_6;
-    std::list<ChContactDEM_333_333*> contactlist_333_333;
-    std::list<ChContactDEM_666_3*> contactlist_666_3;
-    std::list<ChContactDEM_666_6*> contactlist_666_6;
-    std::list<ChContactDEM_666_333*> contactlist_666_333;
-    std::list<ChContactDEM_666_666*> contactlist_666_666;
+    std::list<ChContactSMC_3_3*> contactlist_3_3;
+    std::list<ChContactSMC_6_3*> contactlist_6_3;
+    std::list<ChContactSMC_6_6*> contactlist_6_6;
+    std::list<ChContactSMC_333_3*> contactlist_333_3;
+    std::list<ChContactSMC_333_6*> contactlist_333_6;
+    std::list<ChContactSMC_333_333*> contactlist_333_333;
+    std::list<ChContactSMC_666_3*> contactlist_666_3;
+    std::list<ChContactSMC_666_6*> contactlist_666_6;
+    std::list<ChContactSMC_666_333*> contactlist_666_333;
+    std::list<ChContactSMC_666_666*> contactlist_666_666;
 
     int n_added_3_3;
     int n_added_6_3;
@@ -67,16 +67,16 @@ class ChApi ChContactContainerSMC : public ChContactContainerBase {
     int n_added_666_333;
     int n_added_666_666;
 
-    std::list<ChContactDEM_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactDEM_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactDEM_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactDEM_333_3*>::iterator lastcontact_333_3;
-    std::list<ChContactDEM_333_6*>::iterator lastcontact_333_6;
-    std::list<ChContactDEM_333_333*>::iterator lastcontact_333_333;
-    std::list<ChContactDEM_666_3*>::iterator lastcontact_666_3;
-    std::list<ChContactDEM_666_6*>::iterator lastcontact_666_6;
-    std::list<ChContactDEM_666_333*>::iterator lastcontact_666_333;
-    std::list<ChContactDEM_666_666*>::iterator lastcontact_666_666;
+    std::list<ChContactSMC_3_3*>::iterator lastcontact_3_3;
+    std::list<ChContactSMC_6_3*>::iterator lastcontact_6_3;
+    std::list<ChContactSMC_6_6*>::iterator lastcontact_6_6;
+    std::list<ChContactSMC_333_3*>::iterator lastcontact_333_3;
+    std::list<ChContactSMC_333_6*>::iterator lastcontact_333_6;
+    std::list<ChContactSMC_333_333*>::iterator lastcontact_333_333;
+    std::list<ChContactSMC_666_3*>::iterator lastcontact_666_3;
+    std::list<ChContactSMC_666_6*>::iterator lastcontact_666_6;
+    std::list<ChContactSMC_666_333*>::iterator lastcontact_666_333;
+    std::list<ChContactSMC_666_666*>::iterator lastcontact_666_666;
 
   public:
     ChContactContainerSMC();
