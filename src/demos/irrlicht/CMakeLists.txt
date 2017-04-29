@@ -2,7 +2,7 @@
 # List of all Irrlicht demos
 
 SET(DEMOS
-  demo_IRR_collision
+  demo_IRR_collisionNSC
   demo_IRR_bricks
   demo_IRR_cohesion
   demo_IRR_conveyor
