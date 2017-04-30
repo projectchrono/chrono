@@ -255,47 +255,48 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.SetMaxItersSolverSpeed(20);
     // mphysicalSystem.SetMaxItersSolverStab(5);
 
-    // Cohesion in a contact depends on the cohesion in the surface property of
-    // the touching bodies, but the user can override this value when each contact is created,
+    // Cohesion in a contact depends on the cohesion in the surface property of the
+    // touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChAddContactCallback {
       public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCompositeNSC& material)                ///< you can modify this!
-        {
+        virtual void ContactCallback(const collision::ChCollisionInfo& contactinfo,
+                                     ChMaterialComposite* const material) override {
+            // Downcast to appropriate composite material type
+            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+
             // Set friction according to user setting:
-            material.static_friction = GLOBAL_friction;
+            mat->static_friction = GLOBAL_friction;
 
             // Set compliance (normal and tangential at once)
-            material.compliance = GLOBAL_compliance;
-            material.complianceT = GLOBAL_compliance;
-            material.dampingf = GLOBAL_dampingf;
+            mat->compliance = GLOBAL_compliance;
+            mat->complianceT = GLOBAL_compliance;
+            mat->dampingf = GLOBAL_dampingf;
 
             // Set cohesion according to user setting:
             // Note that we must scale the cohesion force value by time step, because
             // the material 'cohesion' value has the dimension of an impulse.
             float my_cohesion_force = GLOBAL_cohesion;
-            material.cohesion =
-                (float)msystem->GetStep() * my_cohesion_force;  //<- all contacts will have this cohesion!
+            mat->cohesion = (float)msystem->GetStep() * my_cohesion_force;  //<- all contacts will have this cohesion!
 
-            if (mcontactinfo.distance > 0.12)
-                material.cohesion = 0;
+            if (contactinfo.distance > 0.12)
+                mat->cohesion = 0;
 
             // Note that here you might decide to modify the cohesion
             // depending on object sizes, type, time, position, etc. etc.
             // For example, after some time disable cohesion at all, just
             // add here:
-            //    if (msystem->GetChTime() > 10) material.cohesion = 0;
+            //    if (msystem->GetChTime() > 10) mat->cohesion = 0;
         };
         ChSystemNSC* msystem;
     };
 
     MyContactCallback mycontact_callback;           // create the callback object
     mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
-    // Tell the system to use the callback above, per each created contact!
-    mphysicalSystem.SetCustomCollisionPointCallback(&mycontact_callback);
+
+    // Use the above callback to process each contact as it is created.
+    mphysicalSystem.GetContactContainer()->SetAddContactCallback(&mycontact_callback);
 
     //
     // THE SOFT-REAL-TIME CYCLE

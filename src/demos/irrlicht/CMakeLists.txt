@@ -40,6 +40,8 @@ SET(DEMOS
   demo_IRR_plane_plane
   demo_IRR_link_bushing
   demo_IRR_prismatic_limits
+  demo_IRR_callbackNSC
+  demo_IRR_callbackSMC
 )
 
 #--------------------------------------------------------------

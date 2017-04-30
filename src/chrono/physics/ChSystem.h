@@ -41,8 +41,6 @@
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/timestepper/ChTimestepperHHT.h"
 
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-
 namespace chrono {
 
 // Forward references
@@ -580,21 +578,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
         collision_callbacks.push_back(mcallb);
     }
 
-    /// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
-    class ChApi ChCustomCollisionPointCallback {
-      public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCompositeNSC& material                 ///< you can modify this!
-            ) = 0;
-    };
-
-    /// Use this if you want that some specific callback function is executed soon after
-    /// each contact point is created. The callback will be called many times, once for each contact.
-    /// Example: it can be used to modify the friction coefficients for each created
-    /// contact (otherwise, by default, would be the average of the two frict.coeff.)
-    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; }
-
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
     /// Note: use only _before_ you start adding colliding bodies to the system!
@@ -847,10 +830,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
-  public:
-    ChCustomCollisionPointCallback* collisionpoint_callback;
-
-  private:
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 };
 

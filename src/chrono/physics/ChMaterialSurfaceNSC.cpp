@@ -116,6 +116,7 @@ ChMaterialCompositeNSC::ChMaterialCompositeNSC()
 ChMaterialCompositeNSC::ChMaterialCompositeNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat1,
                                                std::shared_ptr<ChMaterialSurfaceNSC> mat2) {
     static_friction = std::min<float>(mat1->static_friction, mat2->static_friction);
+    sliding_friction = std::min<float>(mat1->sliding_friction, mat2->sliding_friction);
     restitution = std::min<float>(mat1->restitution, mat2->restitution);
     cohesion = std::min<float>(mat1->cohesion, mat2->cohesion);
     dampingf = std::min<float>(mat1->dampingf, mat2->dampingf);

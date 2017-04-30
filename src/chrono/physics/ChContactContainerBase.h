@@ -21,41 +21,35 @@
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
-
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 
-/// Class to be used as a callback interface for some user defined
-/// action to be taken each time a contact is added to the container.
-/// It can be used to modify the friction value (as default it is the
-/// average of the friction of the two bodies).
-/// The user should implement an inherited class and
-/// implement a custom ContactCallback() function.
+/// Class to be used as a callback interface for some user defined action to be taken
+/// each time a contact is added to the container.
+/// It can be used to modify the composite material properties for the contact pair.
 class ChApi ChAddContactCallback {
   public:
     virtual ~ChAddContactCallback() {}
 
-    /// Callback used to report contact points being added to the container.
-    /// This must be implemented by a child class of ChAddContactCallback
+    /// Callback used to process contact points being added to the container.
+    /// A derived user-provided callback class must implement this. The provided
+    /// composite material should be downcast to the appropriate type.
     virtual void ContactCallback(
-        const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-        ChMaterialCompositeNSC& material                 ///< you can modify this!
+        const collision::ChCollisionInfo& contactinfo,  ///< information about the collision pair
+        ChMaterialComposite* const material             ///< composite material can be modified
         ) = 0;
 };
 
-/// Class to be used as a callback interface for some user defined
-/// action to be taken for each contact (already added to the container,
-/// maybe with already computed forces).
-/// The user should implement an inherited class and
-/// implement a custom ReportContactCallback() function.
+/// Class to be used as a callback interface for some user defined action to be taken
+/// for each contact (already added to the container, maybe with already computed forces).
+/// It can be used to report or post-process contacts.
 class ChApi ChReportContactCallback {
   public:
     virtual ~ChReportContactCallback() {}
 
-    /// Callback, used to report contact points already added to the container.
-    /// This must be implemented by a child class of ChReportContactCallback.
-    /// If returns false, the contact scanning will be stopped.
+    /// Callback used to report contact points already added to the container.
+    /// If it returns false, the contact scanning will be stopped.
     virtual bool ReportContactCallback(
         const ChVector<>& pA,             ///< get contact pA
         const ChVector<>& pB,             ///< get contact pB

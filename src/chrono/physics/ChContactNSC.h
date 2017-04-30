@@ -90,9 +90,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         ChMaterialCompositeNSC mat(std::static_pointer_cast<ChMaterialSurfaceNSC>(objA->GetMaterialSurfaceBase()),
                                    std::static_pointer_cast<ChMaterialSurfaceNSC>(objB->GetMaterialSurfaceBase()));
 
-        // see if the user wants to modify the material via a callback:
+        // Check for a user-provided callback to modify the material
         if (this->container->GetAddContactCallback()) {
-            this->container->GetAddContactCallback()->ContactCallback(cinfo, mat);
+            this->container->GetAddContactCallback()->ContactCallback(cinfo, &mat);
         }
 
         Nx.SetFrictionCoefficient(mat.static_friction);

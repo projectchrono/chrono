@@ -93,26 +93,37 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // Note: cinfo.distance is the same as this->norm_dist.
         assert(cinfo.distance < 0);
 
+        // Calculate composite material properties
+        ChMaterialCompositeSMC mat(std::static_pointer_cast<ChMaterialSurfaceSMC>(objA->GetMaterialSurfaceBase()),
+                                   std::static_pointer_cast<ChMaterialSurfaceSMC>(objB->GetMaterialSurfaceBase()));
+
+        // Check for a user-provided callback to modify the material
+        if (this->container->GetAddContactCallback()) {
+            this->container->GetAddContactCallback()->ContactCallback(cinfo, &mat);
+        }
+
         // Calculate contact force.
         m_force = CalculateForce(-this->norm_dist,                            // overlap (here, always positive)
                                  this->normal,                                // normal contact direction
                                  this->objA->GetContactPointSpeed(this->p1),  // velocity of contact point on objA
-                                 this->objB->GetContactPointSpeed(this->p2)   // velocity of contact point on objB
+                                 this->objB->GetContactPointSpeed(this->p2),  // velocity of contact point on objB
+                                 mat                                          // composite material for contact pair
                                  );
 
         // Set up and compute Jacobian matrices.
         if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
             CreateJacobians();
-            CalculateJacobians();
+            CalculateJacobians(mat);
         }
     }
 
     /// Calculate contact force, expressed in absolute coordinates.
     ChVector<> CalculateForce(
-        double delta,                  ///< overlap in normal direction
-        const ChVector<>& normal_dir,  ///< normal contact direction (expressed in global frame)
-        const ChVector<>& vel1,        ///< velocity of contact point on objA (expressed in global frame)
-        const ChVector<>& vel2         ///< velocity of contact point on objB (expressed in global frame)
+        double delta,                      ///< overlap in normal direction
+        const ChVector<>& normal_dir,      ///< normal contact direction (expressed in global frame)
+        const ChVector<>& vel1,            ///< velocity of contact point on objA (expressed in global frame)
+        const ChVector<>& vel2,            ///< velocity of contact point on objB (expressed in global frame)
+        const ChMaterialCompositeSMC& mat  ///< composite material for contact pair
         ) {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
@@ -141,10 +152,6 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // Calculate effective contact radius
         //// TODO:  how can I get this with current collision system!?!?!?
         double R_eff = 1;
-
-        // Calculate composite material properties
-        ChMaterialCompositeSMC mat(std::static_pointer_cast<ChMaterialSurfaceSMC>(objA->GetMaterialSurfaceBase()),
-                                   std::static_pointer_cast<ChMaterialSurfaceSMC>(objB->GetMaterialSurfaceBase()));
 
         // Calculate stiffness and viscous damping coefficients.
         // All models use the following formulas for normal and tangential forces:
@@ -284,11 +291,12 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
     /// Compute all forces in a contiguous array.
     /// Used in finite-difference Jacobian approximation.
-    void CalculateQ(const ChState& stateA_x,       ///< state positions for objA
-                    const ChStateDelta& stateA_w,  ///< state velocities for objA
-                    const ChState& stateB_x,       ///< state positions for objB
-                    const ChStateDelta& stateB_w,  ///< state velocities for objB
-                    ChVectorDynamic<>& Q           ///< output generalized forces
+    void CalculateQ(const ChState& stateA_x,            ///< state positions for objA
+                    const ChStateDelta& stateA_w,       ///< state velocities for objA
+                    const ChState& stateB_x,            ///< state positions for objB
+                    const ChStateDelta& stateB_w,       ///< state velocities for objB
+                    const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+                    ChVectorDynamic<>& Q                ///< output generalized forces
                     ) {
         // Express contact points in local frames.
         // We assume that these points remain fixed to their respective contactable objects.
@@ -323,7 +331,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ChVector<> vel2 = this->objB->GetContactPointSpeed(p2_loc, stateB_x, stateB_w);
 
         // Compute the contact force.
-        ChVector<> force = CalculateForce(delta, normal_dir, vel1, vel2);
+        ChVector<> force = CalculateForce(delta, normal_dir, vel1, vel2, mat);
 
         // Compute and load the generalized contact forces.
         this->objA->ContactForceLoadQ(-force, p1_abs, stateA_x, Q, 0);
@@ -363,7 +371,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     }
 
     /// Calculate Jacobian of generalized contact forces.
-    void CalculateJacobians() {
+    void CalculateJacobians(const ChMaterialCompositeSMC& mat) {
         // Compute a finite-difference approximations to the Jacobians of the contact forces and
         // load dQ/dx into m_Jac->m_K and dQ/dw into m_Jac->m_R.
         // Note that we only calculate these Jacobians whenever the contact force itself is calculated,
@@ -388,7 +396,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Compute Q at current state
         ChVectorDynamic<> Q0(ndofA_w + ndofB_w);
-        CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q0);
+        CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q0);
 
         // Finite-difference approximation perturbation.
         // Note that ChState and ChStateDelta are set to 0 on construction.
@@ -407,14 +415,14 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         for (int i = 0; i < ndofA_w; i++) {
             prtrbA(i) += perturbation;
             this->objA->ContactableIncrementState(stateA_x, prtrbA, stateA_x1);
-            CalculateQ(stateA_x1, stateA_w, stateB_x, stateB_w, Q1);
+            CalculateQ(stateA_x1, stateA_w, stateB_x, stateB_w, mat, Q1);
             prtrbA(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
             m_Jac->m_K.PasteMatrix(Jcolumn, 0, i);
 
             stateA_w(i) += perturbation;
-            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
+            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateA_w(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
@@ -425,14 +433,14 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         for (int i = 0; i < ndofB_w; i++) {
             prtrbB(i) += perturbation;
             this->objB->ContactableIncrementState(stateB_x, prtrbB, stateB_x1);
-            CalculateQ(stateA_x, stateA_w, stateB_x1, stateB_w, Q1);
+            CalculateQ(stateA_x, stateA_w, stateB_x1, stateB_w, mat, Q1);
             prtrbB(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change
             m_Jac->m_K.PasteMatrix(Jcolumn, 0, ndofA_w + i);
 
             stateB_w(i) += perturbation;
-            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, Q1);
+            CalculateQ(stateA_x, stateA_w, stateB_x, stateB_w, mat, Q1);
             stateB_w(i) -= perturbation;
 
             Jcolumn = (Q1 - Q0) * (-1 / perturbation);  // note sign change

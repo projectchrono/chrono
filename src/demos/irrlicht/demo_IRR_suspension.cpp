@@ -657,30 +657,32 @@ int main(int argc, char* argv[]) {
     MySimpleCar* mycar = new MySimpleCar(my_system, application.GetSceneManager(), application.GetVideoDriver());
 
     //
-    // CREATE A CUSTOM MATERIAL COMBINER
+    // CREATE A CUSTOM COMPOSITE MATERIAL
     //
 
-    //  Suppose you want that some places have different friction coefficient values,
-    //  how can you do this? By default, friction is the average of friction coefficient
-    //  of the two bodies in contact, but you can create an 'callback object' inherited from the
-    //  a ChCustomCollisionPointCallback class. This will be called per each contact point, and
-    //  it can modify the friction as in the very simple example below:
+    // Suppose you want that some places have different friction coefficient values,
+    // how can you do this? To change the default combination law for the friction
+    // coefficient of a contact pair, use a 'callback object'. This will be called for
+    // each contact point, as it is created, and can be used to modify the composite
+    // contact material properties.
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChAddContactCallback {
       public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCompositeNSC& material)                ///< you can modify this!
-        {
-            if (mcontactinfo.vpA.x() > 0)
-                material.static_friction = 0.7f;  // On the right of the plane, less friction...
+        virtual void ContactCallback(const collision::ChCollisionInfo& contactinfo,
+                                     ChMaterialComposite* const material) override {
+            // Downcast to appropriate composite material type
+            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+
+            if (contactinfo.vpA.x() > 0)
+                mat->static_friction = 0.7f;  // On the right of the plane, less friction...
             else
-                material.static_friction = 1.0f;  // On the left of the plane, more friction...
+                mat->static_friction = 1.0f;  // On the left of the plane, more friction...
         };
     };
 
-    MyContactCallback mycontact_callback;                            // create the callback object
-    my_system.SetCustomCollisionPointCallback(&mycontact_callback);  // tell the system to use that callback.
+    // Use the above callback to process each contact as it is created.
+    MyContactCallback mycontact_callback;
+    my_system.GetContactContainer()->SetAddContactCallback(&mycontact_callback);
 
     // Bind visualization assets.
     application.AssetBindAll();

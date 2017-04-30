@@ -198,7 +198,6 @@ ChSystem::ChSystem()
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
-      collisionpoint_callback(NULL),
       use_sleeping(false),
       G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
@@ -249,7 +248,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     ncontacts = other.ncontacts;
 
     collision_callbacks = other.collision_callbacks;
-    collisionpoint_callback = other.collisionpoint_callback;
 
     last_err = other.last_err;
 
@@ -1371,18 +1369,6 @@ void ChSystem::SynchronizeLastCollPositions() {
     }
 }
 
-class SystemAddCollisionPointCallback : public ChAddContactCallback {
-  public:
-    ChSystem* client_system;
-    virtual void ContactCallback(
-        const collision::ChCollisionInfo& mcontactinfo,  ///< pass info about contact (cannot change it)
-        ChMaterialCompositeNSC& material                 ///< you can modify this!
-        ) {
-        if (client_system->collisionpoint_callback)
-            client_system->collisionpoint_callback->ContactCallback(mcontactinfo, material);
-    }
-};
-
 double ChSystem::ComputeCollisions() {
     double mretC = 0.0;
 
@@ -1391,19 +1377,7 @@ double ChSystem::ComputeCollisions() {
     // Update all positions of collision models: delegate this to the ChAssembly
     SyncCollisionModels();
 
-    // Prepare the callback
-
-    // In case there is some user callback for each added point..
-    SystemAddCollisionPointCallback mpointcallback;
-    if (collisionpoint_callback) {
-        mpointcallback.client_system = this;
-        contact_container->SetAddContactCallback(&mpointcallback);
-    } else {
-        contact_container->SetAddContactCallback(0);
-    }
-
-    // !!! Perform the collision detection ( broadphase and narrowphase ) !!!
-
+    // Perform the collision detection ( broadphase and narrowphase )
     collision_system->Run();
 
     // Report and store contacts and/or proximities, if there are some
