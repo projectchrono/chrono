@@ -125,7 +125,7 @@ void ChRigidTire::RemoveVisualizationAssets() {
 // Callback class to process contacts on a rigid tire.
 // Accumulate contact forces and torques on the associated wheel body.
 // Express them in the global frame, as applied to the wheel center.
-class RigidTireContactReporter : public ChReportContactCallback {
+class RigidTireContactReporter : public ChContactContainerBase::ReportContactCallback {
   public:
     RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
 
@@ -136,14 +136,14 @@ class RigidTireContactReporter : public ChReportContactCallback {
     const ChVector<>& GetAccumulatedTorque() const { return m_torque; }
 
   private:
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& rforce,
-                                       const ChVector<>& rtorque,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& rforce,
+                                 const ChVector<>& rtorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
         // Filter contacts that involve the tire body.
         if (modA == m_body.get() || modB == m_body.get()) {
             // Express current contact force and torque in global frame

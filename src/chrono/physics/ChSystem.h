@@ -563,18 +563,23 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// This is mostly called automatically by time integration.
     double ComputeCollisions();
 
-    /// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
-    class ChApi ChCustomComputeCollisionCallback {
+    /// Class to be used as a callback interface for user defined actions performed 
+    /// at each collision detection step.  For example, additional contact points can
+    /// be added to the underlying contact container.
+    class ChApi CustomCollisionCallback {
       public:
-        virtual ~ChCustomComputeCollisionCallback() {}
-        virtual void PerformCustomCollision(ChSystem* msys) {}
+        virtual ~CustomCollisionCallback() {}
+        virtual void OnCustomCollision(ChSystem* msys) {}
     };
 
+    /// Specify a callback object to be invoked at each collision detection step.
+    /// Multiple such callback objects can be registered with a system. If present,
+    /// their OnCustomCollision() method is invoked 
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) {
+    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) {
         collision_callbacks.push_back(mcallb);
     }
 
@@ -818,7 +823,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
 
-    std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
+    std::vector<CustomCollisionCallback*> collision_callbacks;
 
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step

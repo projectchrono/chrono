@@ -92,7 +92,7 @@ void ChProximityContainerSPH::AddProximity(collision::ChCollisionModel* modA, co
     // Launch the proximity callback, if implemented by the user
 
     if (this->add_proximity_callback) {
-        this->add_proximity_callback->ProximityCallback(*modA, *modB);
+        this->add_proximity_callback->OnAddProximity(*modA, *modB);
     }
 
     // %%%%%%% Create and add a ChProximitySPH object
@@ -112,10 +112,10 @@ void ChProximityContainerSPH::AddProximity(collision::ChCollisionModel* modA, co
     n_added++;
 }
 
-void ChProximityContainerSPH::ReportAllProximities(ChReportProximityCallback* mcallback) {
+void ChProximityContainerSPH::ReportAllProximities(ReportProximityCallback* mcallback) {
     std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-        bool proceed = mcallback->ReportProximityCallback((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
+        bool proceed = mcallback->OnReportProximity((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
         if (!proceed)
             break;
         ++iterproximity;

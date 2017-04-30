@@ -319,10 +319,10 @@ void ChContactContainerSMC::ComputeContactForces() {
 }
 
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainerBase::ReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed = mcallback->ReportContactCallback(
+        bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
             (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
             VNULL,  // no react torques
@@ -333,7 +333,7 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback*
     }
 }
 
-void ChContactContainerSMC::ReportAllContacts(ChReportContactCallback* mcallback) {
+void ChContactContainerSMC::ReportAllContacts(ReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_3_3, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_6_6, mcallback);
@@ -347,7 +347,7 @@ void ChContactContainerSMC::ReportAllContacts(ChReportContactCallback* mcallback
     //***TODO*** rolling cont.
 }
 
-////////// STATE INTERFACE ////
+// STATE INTERFACE
 
 template <class Tcont>
 void _IntLoadResidual_F(std::list<Tcont*>& contactlist, ChVectorDynamic<>& R, const double c) {

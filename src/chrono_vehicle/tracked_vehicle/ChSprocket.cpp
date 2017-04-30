@@ -98,7 +98,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     }
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
-    chassis->GetSystem()->SetCustomComputeCollisionCallback(GetCollisionCallback(track));
+    chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));
 }
 
 // -----------------------------------------------------------------------------

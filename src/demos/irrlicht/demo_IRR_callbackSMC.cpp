@@ -32,19 +32,19 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting
 // -----------------------------------------------------------------------------
-class ContactReporter : public chrono::ChReportContactCallback {
+class ContactReporter : public ChContactContainerBase::ReportContactCallback {
   public:
     ContactReporter(std::shared_ptr<ChBody> box) : m_box(box) {}
 
   private:
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& cforce,
-                                       const ChVector<>& ctorque,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& cforce,
+                                 const ChVector<>& ctorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
         if (modA == m_box.get()) {
             printf("  %6.3f  %6.3f  %6.3f\n", pA.x(), pA.y(), pA.z());
         } else if (modB == m_box.get()) {
@@ -59,10 +59,10 @@ class ContactReporter : public chrono::ChReportContactCallback {
 // -----------------------------------------------------------------------------
 // Callback class for modifying composite material
 // -----------------------------------------------------------------------------
-class ContactMaterial : public ChAddContactCallback {
+class ContactMaterial : public ChContactContainerBase::AddContactCallback {
   public:
-    virtual void ContactCallback(const collision::ChCollisionInfo& contactinfo,
-                                 ChMaterialComposite* const material) override {
+    virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+                              ChMaterialComposite* const material) override {
         // Downcast to appropriate composite material type
         auto mat = static_cast<ChMaterialCompositeSMC* const>(material);
 
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     ContactReporter creporter(box1);
 
     ContactMaterial cmaterial;
-    system.GetContactContainer()->SetAddContactCallback(&cmaterial);
+    system.GetContactContainer()->RegisterAddContactCallback(&cmaterial);
 
     application.SetTimestep(1e-3);
 

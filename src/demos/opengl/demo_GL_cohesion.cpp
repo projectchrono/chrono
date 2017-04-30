@@ -143,10 +143,10 @@ int main(int argc, char* argv[]) {
     // the touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChAddContactCallback {
+    class MyContactCallback : public ChContactContainerBase::AddContactCallback {
       public:
-        virtual void ContactCallback(const collision::ChCollisionInfo& contactinfo,
-                                     ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+                                  ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
 
     // Use the above callback to process each contact as it is created.
-    mphysicalSystem.GetContactContainer()->SetAddContactCallback(&mycontact_callback);
+    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
 
     //
     // THE SOFT-REAL-TIME CYCLE

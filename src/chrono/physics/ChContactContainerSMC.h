@@ -110,9 +110,9 @@ class ChApi ChContactContainerSMC : public ChContactContainerBase {
     /// purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact() override;
 
-    /// Scans all the contacts and for each contact executes the ReportContactCallback()
-    /// function of the user object inherited from ChReportContactCallback.
-    virtual void ReportAllContacts(ChReportContactCallback* mcallback) override;
+    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// function of the provided callback object.
+    virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
 
     /// In detail, it computes jacobians, violations, etc. and stores
     /// results in inner structures of contacts.

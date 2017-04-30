@@ -194,10 +194,10 @@ void ChContactContainerNSC::ComputeContactForces() {
 }
 
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainerBase::ReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed = mcallback->ReportContactCallback(
+        bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
             (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(),
             VNULL,  // no react torques
@@ -209,10 +209,10 @@ void _ReportAllContacts(std::list<Tcont*>& contactlist, ChReportContactCallback*
 }
 
 template <class Tcont>
-void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCallback* mcallback) {
+void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChContactContainerBase::ReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        bool proceed = mcallback->ReportContactCallback(
+        bool proceed = mcallback->OnReportContact(
             (*itercontact)->GetContactP1(), (*itercontact)->GetContactP2(), (*itercontact)->GetContactPlane(),
             (*itercontact)->GetContactDistance(), (*itercontact)->GetContactForce(), (*itercontact)->GetContactTorque(),
             (*itercontact)->GetObjA(), (*itercontact)->GetObjB());
@@ -222,7 +222,7 @@ void _ReportAllContactsRolling(std::list<Tcont*>& contactlist, ChReportContactCa
     }
 }
 
-void ChContactContainerNSC::ReportAllContacts(ChReportContactCallback* mcallback) {
+void ChContactContainerNSC::ReportAllContacts(ReportContactCallback* mcallback) {
     _ReportAllContacts(contactlist_6_6, mcallback);
     _ReportAllContacts(contactlist_6_3, mcallback);
     _ReportAllContacts(contactlist_3_3, mcallback);

@@ -92,7 +92,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
         // Check for a user-provided callback to modify the material
         if (this->container->GetAddContactCallback()) {
-            this->container->GetAddContactCallback()->ContactCallback(cinfo, &mat);
+            this->container->GetAddContactCallback()->OnAddContact(cinfo, &mat);
         }
 
         Nx.SetFrictionCoefficient(mat.static_friction);

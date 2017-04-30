@@ -632,12 +632,11 @@ bool ChSystem::ManageSleepingBodies() {
 
     // Make this class for iterating through contacts
 
-    class _wakeup_reporter_class : public ChReportContactCallback {
+    class _wakeup_reporter_class : public ChContactContainerBase::ReportContactCallback {
       public:
         // Callback, used to report contact points already added to the container.
-        // This must be implemented by a child class of ChReportContactCallback.
         // If returns false, the contact scanning will be stopped.
-        virtual bool ReportContactCallback(
+        virtual bool OnReportContact(
             const ChVector<>& pA,             ///< get contact pA
             const ChVector<>& pB,             ///< get contact pB
             const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
@@ -1396,9 +1395,10 @@ double ChSystem::ComputeCollisions() {
         }
     }
 
-    // If some other collision engine could add further ChLinkContact into the list..
+    // Invoke the custom collision callbacks (if any). These can potentially add
+    // additional contacts to the contact container.
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
-        collision_callbacks[ic]->PerformCustomCollision(this);
+        collision_callbacks[ic]->OnCustomCollision(this);
 
     // Count the contacts of body-body type.
     ncontacts = contact_container->GetNcontacts();

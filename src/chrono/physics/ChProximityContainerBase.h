@@ -20,36 +20,6 @@
 
 namespace chrono {
 
-/// Class to be used as a callback interface for some user defined
-/// action to be taken each time a proximity info is added to the container.
-
-class ChApi ChAddProximityCallback {
-  public:
-    /// Callback, used to report proximity pairs being added to the container.
-    /// This must be implemented by a child class of ChAddProximityCallback
-    virtual void ProximityCallback(const collision::ChCollisionModel& modA,  ///< get contact model 1
-                                   const collision::ChCollisionModel& modB   ///< get contact model 2
-                                   ) = 0;
-};
-
-/// Class to be used as a callback interface for some user defined
-/// action to be taken for each proximity pair (already added to the container).
-/// The user should implement an inherited class and
-/// implement a custom ReportProximityCallback() function.
-
-class ChApi ChReportProximityCallback {
-  public:
-    /// Callback, used to report contact points already added to the container.
-    /// This must be implemented by a child class of ChReportContactCallback.
-    /// If returns false, the contact scanning will be stopped.
-    virtual bool ReportProximityCallback(
-        collision::ChCollisionModel*
-            modA,  ///< get model A (note: some containers may not support it and could be zero!)
-        collision::ChCollisionModel*
-            modB  ///< get model B (note: some containers may not support it and could be zero!)
-        ) = 0;
-};
-
 /// Class representing the interface for containers of proximity pairs,
 /// that is pairs of collision models that have been obtained from the
 /// broadphase collision.
@@ -60,13 +30,8 @@ class ChApi ChReportProximityCallback {
 /// This is only the basic interface with the features that are in common.
 
 class ChApi ChProximityContainerBase : public ChPhysicsItem {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChProximityContainerBase)
-
-  protected:
-    ChAddProximityCallback* add_proximity_callback;
-    ChReportProximityCallback* report_proximity_callback;
 
   public:
     ChProximityContainerBase() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
@@ -101,16 +66,44 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
     /// it does nothing.
     virtual void EndAddProximities() {}
 
-    /// Sets a callback to be used each time a proximity pair is
-    /// added to the container. Note that not all child classes can
-    /// support this function in all circumstances (example, the GPU container
-    /// won't launch the callback for all its points because of performance optimization)
-    void SetAddProximityCallback(ChAddProximityCallback* mcallback) { add_proximity_callback = mcallback; }
+    /// Class to be used as a callback interface for some user defined
+    /// action to be taken each time a proximity info is added to the container.
+    class ChApi AddProximityCallback {
+      public:
+        virtual ~AddProximityCallback() {}
 
-    /// Scans all the contacts and for each proximity pair executes the ReportProximityCallback()
-    /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this.
-    virtual void ReportAllProximities(ChReportProximityCallback* mcallback) = 0;
+        /// Callback used to process proximity pairs being added to the container.
+        /// A derived user-provided callback class must implement this.
+        virtual void OnAddProximity(const collision::ChCollisionModel& modA,  ///< contact model 1
+                                    const collision::ChCollisionModel& modB   ///< contact model 2
+                                    ) = 0;
+    };
+
+    /// Specify a callback object to be used each time a proximity pair is
+    /// added to the container. Note that not all derived classes can support this.
+    /// If supported, the OnAddProximity() method of the provided callback object
+    /// will be called for each proximity pair as it is created.
+    void RegisterAddProximityCallback(AddProximityCallback* mcallback) { add_proximity_callback = mcallback; }
+
+    /// Class to be used as a callback interface for some user defined action to be taken
+    /// for each proximity pair (already added to the container).
+    /// It can be used to report or post-process proximity pairs.
+    class ChApi ReportProximityCallback {
+      public:
+        virtual ~ReportProximityCallback() {}
+
+        /// Callback used to report contact points already added to the container.
+        /// If it returns false, the contact scanning will be stopped.
+        virtual bool OnReportProximity(
+            collision::ChCollisionModel* modA,  ///< model A (could be nullptr, if the container does not support it)
+            collision::ChCollisionModel* modB   ///< model B (could be nullptr, if the container does not support it)
+            ) = 0;
+    };
+
+    /// Scans all the proximity pairs and, for each pair, executes the OnReportProximity()
+    /// function of the provided callback object.
+    /// Derived classes of ChProximityContainerBase should try to implement this.
+    virtual void ReportAllProximities(ReportProximityCallback* mcallback) = 0;
 
     //
     // SERIALIZATION
@@ -121,6 +114,10 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
+
+  protected:
+    AddProximityCallback* add_proximity_callback;
+    ReportProximityCallback* report_proximity_callback;
 };
 
 }  // end namespace chrono

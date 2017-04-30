@@ -91,7 +91,7 @@ void ChProximityContainerMeshless::AddProximity(collision::ChCollisionModel* mod
     // Launch the proximity callback, if implemented by the user
 
     if (this->add_proximity_callback) {
-        this->add_proximity_callback->ProximityCallback(*modA, *modB);
+        this->add_proximity_callback->OnAddProximity(*modA, *modB);
     }
 
     // %%%%%%% Create and add a ChProximityMeshless object
@@ -111,10 +111,10 @@ void ChProximityContainerMeshless::AddProximity(collision::ChCollisionModel* mod
     n_added++;
 }
 
-void ChProximityContainerMeshless::ReportAllProximities(ChReportProximityCallback* mcallback) {
+void ChProximityContainerMeshless::ReportAllProximities(ReportProximityCallback* mcallback) {
     std::list<ChProximityMeshless*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-        bool proceed = mcallback->ReportProximityCallback((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
+        bool proceed = mcallback->OnReportProximity((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
         if (!proceed)
             break;
         ++iterproximity;

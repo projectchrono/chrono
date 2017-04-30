@@ -25,49 +25,11 @@
 
 namespace chrono {
 
-/// Class to be used as a callback interface for some user defined action to be taken
-/// each time a contact is added to the container.
-/// It can be used to modify the composite material properties for the contact pair.
-class ChApi ChAddContactCallback {
-  public:
-    virtual ~ChAddContactCallback() {}
-
-    /// Callback used to process contact points being added to the container.
-    /// A derived user-provided callback class must implement this. The provided
-    /// composite material should be downcast to the appropriate type.
-    virtual void ContactCallback(
-        const collision::ChCollisionInfo& contactinfo,  ///< information about the collision pair
-        ChMaterialComposite* const material             ///< composite material can be modified
-        ) = 0;
-};
-
-/// Class to be used as a callback interface for some user defined action to be taken
-/// for each contact (already added to the container, maybe with already computed forces).
-/// It can be used to report or post-process contacts.
-class ChApi ChReportContactCallback {
-  public:
-    virtual ~ChReportContactCallback() {}
-
-    /// Callback used to report contact points already added to the container.
-    /// If it returns false, the contact scanning will be stopped.
-    virtual bool ReportContactCallback(
-        const ChVector<>& pA,             ///< get contact pA
-        const ChVector<>& pB,             ///< get contact pB
-        const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
-        const double& distance,           ///< get contact distance
-        const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-        const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-        ChContactable* contactobjA,       ///< get model A (note: some containers may not support it and could be zero!)
-        ChContactable* contactobjB        ///< get model B (note: some containers may not support it and could be zero!)
-        ) = 0;
-};
-
 /// Class representing a container of many contacts.
 /// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
 /// Struct to store resultant contact force/torque applied on rigid body
 class ChApi ChContactContainerBase : public ChPhysicsItem {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactContainerBase)
 
@@ -102,19 +64,57 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     /// it does nothing.
     virtual void EndAddContact() {}
 
-    /// Sets a callback to be used each time a contact point is
-    /// added to the container. Note that not all child classes can
-    /// support this function in all circumstances (example, the GPU container
-    /// won't launch the callback for all its points because of performance optimization)
-    void SetAddContactCallback(ChAddContactCallback* mcallback) { add_contact_callback = mcallback; }
+    /// Class to be used as a callback interface for some user defined action to be taken
+    /// each time a contact is added to the container.
+    /// It can be used to modify the composite material properties for the contact pair.
+    class ChApi AddContactCallback {
+      public:
+        virtual ~AddContactCallback() {}
+
+        /// Callback used to process contact points being added to the container.
+        /// A derived user-provided callback class must implement this. The provided
+        /// composite material should be downcast to the appropriate type.
+        virtual void OnAddContact(
+            const collision::ChCollisionInfo& contactinfo,  ///< information about the collision pair
+            ChMaterialComposite* const material             ///< composite material can be modified
+            ) = 0;
+    };
+
+    /// Specify a callback object to be used each time a contact point is added
+    /// to the container. Note that not all derived classes can support this.
+    /// If supported, the OnAddContact() method of the provided callback object
+    /// will be called for each contact pair to allow modifying the composite
+    /// material properties.
+    void RegisterAddContactCallback(AddContactCallback* mcallback) { add_contact_callback = mcallback; }
 
     /// Gets the callback to be used each time a contact point is added to the container.
-    ChAddContactCallback* GetAddContactCallback() { return add_contact_callback; }
+    AddContactCallback* GetAddContactCallback() { return add_contact_callback; }
 
-    /// Scans all the contacts and for each contact executes the ReportContactCallback()
-    /// function of the user object inherited from ChReportContactCallback.
-    /// Child classes of ChContactContainerBase should try to implement this.
-    virtual void ReportAllContacts(ChReportContactCallback* mcallback) {}
+    /// Class to be used as a callback interface for some user defined action to be taken
+    /// for each contact (already added to the container, maybe with already computed forces).
+    /// It can be used to report or post-process contacts.
+    class ChApi ReportContactCallback {
+      public:
+        virtual ~ReportContactCallback() {}
+
+        /// Callback used to report contact points already added to the container.
+        /// If it returns false, the contact scanning will be stopped.
+        virtual bool OnReportContact(
+            const ChVector<>& pA,             ///< contact pA
+            const ChVector<>& pB,             ///< contact pB
+            const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
+            const double& distance,           ///< contact distance
+            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
+            ChContactable* contactobjB   ///< model B (note: some containers may not support it and could be nullptr)
+            ) = 0;
+    };
+
+    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// function of the provided callback object.
+    /// Derived classes of ChContactContainerBase should try to implement this.
+    virtual void ReportAllContacts(ReportContactCallback* mcallback) {}
 
     /// Compute contact forces on all contactable objects in this container.
     /// If implemented by a derived class, these forces must be stored in the hash table
@@ -140,8 +140,8 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     };
 
     std::unordered_map<ChContactable*, ForceTorque> contact_forces;
-    ChAddContactCallback* add_contact_callback;
-    ChReportContactCallback* report_contact_callback;
+    AddContactCallback* add_contact_callback;
+    ReportContactCallback* report_contact_callback;
 
     template <class Tcont>
     void SumAllContactForces(std::list<Tcont*>& contactlist,
@@ -193,7 +193,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     }
 };
 
-CH_CLASS_VERSION(ChContactContainerBase,0)
+CH_CLASS_VERSION(ChContactContainerBase, 0)
 
 }  // end namespace chrono
 

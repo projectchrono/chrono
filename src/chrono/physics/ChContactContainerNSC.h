@@ -85,9 +85,9 @@ class ChApi ChContactContainerNSC : public ChContactContainerBase {
     /// purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddContact() override;
 
-    /// Scans all the contacts and for each contact executes the ReportContactCallback()
-    /// function of the user object inherited from ChReportContactCallback.
-    virtual void ReportAllContacts(ChReportContactCallback* mcallback) override;
+    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// function of the provided callback object.
+    virtual void ReportAllContacts(ReportContactCallback* mcallback) override;
 
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)

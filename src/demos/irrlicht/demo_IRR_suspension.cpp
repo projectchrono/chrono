@@ -666,10 +666,10 @@ int main(int argc, char* argv[]) {
     // each contact point, as it is created, and can be used to modify the composite
     // contact material properties.
 
-    class MyContactCallback : public ChAddContactCallback {
+    class MyContactCallback : public ChContactContainerBase::AddContactCallback {
       public:
-        virtual void ContactCallback(const collision::ChCollisionInfo& contactinfo,
-                                     ChMaterialComposite* const material) override {
+        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+                                  ChMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
 
@@ -682,7 +682,7 @@ int main(int argc, char* argv[]) {
 
     // Use the above callback to process each contact as it is created.
     MyContactCallback mycontact_callback;
-    my_system.GetContactContainer()->SetAddContactCallback(&mycontact_callback);
+    my_system.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
 
     // Bind visualization assets.
     application.AssetBindAll();
