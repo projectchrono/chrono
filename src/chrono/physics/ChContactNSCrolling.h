@@ -81,8 +81,9 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rv.Get_tuple_b().SetVariables(*this->objB);
 
         // Calculate composite material properties
-        ChMaterialCompositeNSC mat(std::static_pointer_cast<ChMaterialSurfaceNSC>(objA->GetMaterialSurfaceBase()),
-                                   std::static_pointer_cast<ChMaterialSurfaceNSC>(objB->GetMaterialSurfaceBase()));
+        ChMaterialCompositeNSC mat(
+            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
+            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 
         Rx.SetRollingFrictionCoefficient(mat.rolling_friction);
         Rx.SetSpinningFrictionCoefficient(mat.spinning_friction);

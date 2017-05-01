@@ -87,8 +87,9 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Tv.Get_tuple_b().SetVariables(*this->objB);
 
         // Calculate composite material properties
-        ChMaterialCompositeNSC mat(std::static_pointer_cast<ChMaterialSurfaceNSC>(objA->GetMaterialSurfaceBase()),
-                                   std::static_pointer_cast<ChMaterialSurfaceNSC>(objB->GetMaterialSurfaceBase()));
+        ChMaterialCompositeNSC mat(
+            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
+            std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 
         // Check for a user-provided callback to modify the material
         if (this->container->GetAddContactCallback()) {

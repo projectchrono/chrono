@@ -94,8 +94,9 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         assert(cinfo.distance < 0);
 
         // Calculate composite material properties
-        ChMaterialCompositeSMC mat(std::static_pointer_cast<ChMaterialSurfaceSMC>(objA->GetMaterialSurfaceBase()),
-                                   std::static_pointer_cast<ChMaterialSurfaceSMC>(objB->GetMaterialSurfaceBase()));
+        ChMaterialCompositeSMC mat(
+            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurfaceBase()),
+            std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurfaceBase()));
 
         // Check for a user-provided callback to modify the material
         if (this->container->GetAddContactCallback()) {
