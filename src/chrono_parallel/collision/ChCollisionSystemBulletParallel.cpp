@@ -132,7 +132,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
         if (this->broad_callback)
-            do_narrow_contactgeneration = this->broad_callback->BroadCallback(icontact.modelA, icontact.modelB);
+            do_narrow_contactgeneration = this->broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
@@ -140,9 +140,8 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
             for (int j = 0; j < numContacts; j++) {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
 
-                if (pt.getDistance() <
-                    marginA + marginB)  // to discard "too far" constraints (the Bullet engine also has its threshold)
-                {
+                // Discard "too far" constraints (the Bullet engine also has its threshold)
+                if (pt.getDistance() < marginA + marginB) {
                     btVector3 ptA = pt.getPositionWorldOnA();
                     btVector3 ptB = pt.getPositionWorldOnB();
 
@@ -164,7 +163,7 @@ void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mco
 
                     // Execute some user custom callback, if any
                     if (this->narrow_callback)
-                        this->narrow_callback->NarrowCallback(icontact);
+                        this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
                     // mcontactcontainer->AddContact(icontact);
