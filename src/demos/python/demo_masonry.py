@@ -33,7 +33,7 @@ import math
 #  Create the simulation system and add items
 #
 
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 
 
 # Set the default outward/inward shape margins for collision detection,

@@ -15,7 +15,7 @@ import ChronoEngine_python_core as chrono
 
 
 # Create a physical system,
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 
 # Add two bodies
 my_shbodyA = chrono.ChBody()
@@ -62,10 +62,10 @@ my_shbodyB.SetMaterialSurface(my_shmaterial)
 ##my_system.SetCustomCollisionPointCallback(my_call)
 
 # Report Contact callback
-class MyReportContactCallback(chrono.ChReportContactCallback):
+class MyReportContactCallback(chrono.ChReportContactCallbackP):
     def __init__(self):
-         chrono.ChReportContactCallback.__init__(self)
-    def ReportContactCallback(self,vA,vB,cA,dist,force,torque,modA,modB):
+         chrono.ChReportContactCallbackP.__init__(self)
+    def OnReportContact(self,vA,vB,cA,dist,force,torque,modA,modB):
          print ('  contact: point A=' , vA,  '  dist=',dist)
          return True        # return False to stop reporting contacts
 

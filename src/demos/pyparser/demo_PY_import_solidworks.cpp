@@ -40,7 +40,7 @@ using namespace gui;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Set the collision margins. This is expecially important for
     // very large or very small objects! Do this before creating shapes.

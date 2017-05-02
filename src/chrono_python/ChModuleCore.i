@@ -158,6 +158,7 @@ using namespace chrono::geometry;
 %shared_ptr(chrono::ChImplicitTimestepper)
 %shared_ptr(chrono::ChSolver)
 %shared_ptr(chrono::ChSystem)
+%shared_ptr(chrono::ChSystemNSC)
 %shared_ptr(chrono::ChContactContainerBase)
 %shared_ptr(chrono::ChProximityContainerBase)
 
@@ -280,7 +281,6 @@ using namespace chrono::geometry;
 %include "ChPhysicsItem.i"
 %include "ChMaterialSurfaceBase.i"
 %include "ChMaterialSurfaceNSC.i"
-%include "ChMaterialCouple.i"
 %include "ChBodyFrame.i"
 %include "ChMarker.i"
 %include "ChForce.i"
@@ -293,6 +293,7 @@ using namespace chrono::geometry;
 %include "../chrono/timestepper/ChTimestepper.h"
 %include "../chrono/solver/ChSolver.h"
 %include "ChSystem.i"
+%include "ChSystemNSC.i"
 %include "ChContactContainerBase.i"
 %include "ChProximityContainerBase.i"
 %include "ChLinkBase.i"

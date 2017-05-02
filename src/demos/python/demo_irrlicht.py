@@ -31,7 +31,7 @@ print ("Example: create a system and visualize it in realtime 3D");
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystem()
+mysystem      = chrono.ChSystemNSC()
 
 # Create a fixed rigid body
 

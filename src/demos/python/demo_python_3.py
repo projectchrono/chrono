@@ -29,7 +29,7 @@ import os
 
 
 # Create a physical system,
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 my_systemB = my_system
 my_system.SetTol(2)
 print (my_systemB.GetTol())
