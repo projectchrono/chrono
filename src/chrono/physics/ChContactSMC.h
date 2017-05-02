@@ -28,7 +28,7 @@
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/solver/ChKblockGeneric.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystemSMC.h"
@@ -57,7 +57,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
   public:
     ChContactSMC() : m_Jac(NULL) {}
 
-    ChContactSMC(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactSMC(ChContactContainer* mcontainer,      ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair

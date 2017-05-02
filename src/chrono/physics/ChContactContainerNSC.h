@@ -17,7 +17,7 @@
 
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactNSC.h"
 #include "chrono/physics/ChContactNSCrolling.h"
 #include "chrono/physics/ChContactable.h"
@@ -30,7 +30,7 @@ namespace chrono {
 /// It might also contain ChContactNSCrolling objects (extended versions of ChContactNSC,
 /// with 6 reactions, that account also for rolling and spinning resistance), but also
 /// for '6dof vs 6dof' contactables.
-class ChApi ChContactContainerNSC : public ChContactContainerBase {
+class ChApi ChContactContainerNSC : public ChContactContainer {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactContainerNSC)
 

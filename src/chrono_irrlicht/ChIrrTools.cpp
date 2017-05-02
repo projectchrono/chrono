@@ -11,7 +11,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -63,7 +63,7 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const C
 // Draw contact points.
 // Uses the _draw_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _draw_reporter_class : public ChContactContainerBase::ReportContactCallback {
+class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
   public:
     virtual bool OnReportContact(const ChVector<>& pA,
                                  const ChVector<>& pB,
@@ -143,7 +143,7 @@ int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
 // Draw contact information as labels at the contact point.
 // Uses the _label_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _label_reporter_class : public ChContactContainerBase::ReportContactCallback {
+class _label_reporter_class : public ChContactContainer::ReportContactCallback {
   public:
     virtual bool OnReportContact(const ChVector<>& pA,
                                  const ChVector<>& pB,

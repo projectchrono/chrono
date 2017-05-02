@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHCONTACTCONTAINERBASE_H
-#define CHCONTACTCONTAINERBASE_H
+#ifndef CH_CONTACT_CONTAINER_H
+#define CH_CONTACT_CONTAINER_H
 
 #include <list>
 #include <unordered_map>
@@ -21,7 +21,7 @@
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {
 
@@ -29,14 +29,14 @@ namespace chrono {
 /// There might be implementations of this interface in form of plain CPU linked lists of contact objects,
 /// or highly optimized GPU buffers, etc. This is only the basic interface with the features that are in common.
 /// Struct to store resultant contact force/torque applied on rigid body
-class ChApi ChContactContainerBase : public ChPhysicsItem {
+class ChApi ChContactContainer : public ChPhysicsItem {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerBase)
+    CH_FACTORY_TAG(ChContactContainer)
 
   public:
-    ChContactContainerBase() : add_contact_callback(NULL), report_contact_callback(NULL) {}
-    ChContactContainerBase(const ChContactContainerBase& other);
-    virtual ~ChContactContainerBase() {}
+    ChContactContainer() : add_contact_callback(NULL), report_contact_callback(NULL) {}
+    ChContactContainer(const ChContactContainer& other);
+    virtual ~ChContactContainer() {}
 
     /// Get the number of added contacts. To be implemented by child classes.
     virtual int GetNcontacts() const = 0;
@@ -113,7 +113,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
 
     /// Scans all the contacts and for each contact executes the OnReportContact()
     /// function of the provided callback object.
-    /// Derived classes of ChContactContainerBase should try to implement this.
+    /// Derived classes of ChContactContainer should try to implement this.
     virtual void ReportAllContacts(ReportContactCallback* mcallback) {}
 
     /// Compute contact forces on all contactable objects in this container.
@@ -193,7 +193,7 @@ class ChApi ChContactContainerBase : public ChPhysicsItem {
     }
 };
 
-CH_CLASS_VERSION(ChContactContainerBase, 0)
+CH_CLASS_VERSION(ChContactContainer, 0)
 
 }  // end namespace chrono
 

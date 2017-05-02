@@ -49,7 +49,7 @@ void MakeWheel( ChSystemSMC& my_system,
                 const double tire_scale_W,
                 const double tire_w0,
                 const double tire_vel_z0,
-                std::shared_ptr<ChMaterialSurfaceBase> mysurfmaterial,
+                std::shared_ptr<ChMaterialSurface> mysurfmaterial,
                 std::shared_ptr<ChContinuumElastic>    mmaterial,
                 std::shared_ptr<ChBody>& mrim) {
     

@@ -13,7 +13,7 @@
 #define CHCONTACTABLE_H
 
 #include "chrono/solver/ChConstraintTuple.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/timestepper/ChState.h"
@@ -52,7 +52,7 @@ class ChContactable {
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() = 0;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;

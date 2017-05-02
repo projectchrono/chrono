@@ -12,19 +12,19 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChContactContainerBase) // NO, abstract class!
+//CH_FACTORY_REGISTER(ChContactContainer) // NO, abstract class!
 
-ChContactContainerBase::ChContactContainerBase(const ChContactContainerBase& other) : ChPhysicsItem(other) {
+ChContactContainer::ChContactContainer(const ChContactContainer& other) : ChPhysicsItem(other) {
     add_contact_callback = other.add_contact_callback;
     report_contact_callback = other.report_contact_callback;
 }
 
-ChVector<> ChContactContainerBase::GetContactableForce(ChContactable* contactable) {
+ChVector<> ChContactContainer::GetContactableForce(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.force;
@@ -32,7 +32,7 @@ ChVector<> ChContactContainerBase::GetContactableForce(ChContactable* contactabl
     return ChVector<>(0);
 }
 
-ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactable) {
+ChVector<> ChContactContainer::GetContactableTorque(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.torque;
@@ -40,17 +40,17 @@ ChVector<> ChContactContainerBase::GetContactableTorque(ChContactable* contactab
     return ChVector<>(0);
 }
 
-void ChContactContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChContactContainer::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite<ChContactContainerBase>();
+    marchive.VersionWrite<ChContactContainer>();
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
     // serialize all member data:
 }
 
-void ChContactContainerBase::ArchiveIN(ChArchiveIn& marchive) {
+void ChContactContainer::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead<ChContactContainerBase>();
+    int version = marchive.VersionRead<ChContactContainer>();
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
     // stream in all member data:

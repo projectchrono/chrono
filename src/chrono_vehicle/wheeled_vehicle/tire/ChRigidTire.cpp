@@ -20,7 +20,7 @@
 
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -69,11 +69,11 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::NSC:
+        case ChMaterialSurface::NSC:
             wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::SMC:
+        case ChMaterialSurface::SMC:
             wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
@@ -125,7 +125,7 @@ void ChRigidTire::RemoveVisualizationAssets() {
 // Callback class to process contacts on a rigid tire.
 // Accumulate contact forces and torques on the associated wheel body.
 // Express them in the global frame, as applied to the wheel center.
-class RigidTireContactReporter : public ChContactContainerBase::ReportContactCallback {
+class RigidTireContactReporter : public ChContactContainer::ReportContactCallback {
   public:
     RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
 

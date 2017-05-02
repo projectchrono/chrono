@@ -21,7 +21,7 @@
 
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -47,7 +47,7 @@ struct ChTrackContactInfo {
 };
 
 /// Class for monitoring contacts of tracked vehicle subsystems.
-class ChTrackContactManager : public ChContactContainerBase::ReportContactCallback {
+class ChTrackContactManager : public ChContactContainer::ReportContactCallback {
   public:
     ChTrackContactManager();
 

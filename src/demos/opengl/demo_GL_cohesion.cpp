@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     // the touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChContactContainerBase::AddContactCallback {
+    class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
         virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
                                   ChMaterialComposite* const material) override {

@@ -889,7 +889,7 @@ void ChPovRay::ExportData(const std::string& filename) {
               sprintf(pathcontacts, "%s.contacts", filename.c_str());
               ChStreamOutAsciiFile data_contacts(pathcontacts);
 
-              class _reporter_class : public ChContactContainerBase::ReportContactCallback {
+              class _reporter_class : public ChContactContainer::ReportContactCallback {
                 public:
                   virtual bool OnReportContact(
                       const ChVector<>& pA,             // contact pA

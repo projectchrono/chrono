@@ -24,8 +24,8 @@ namespace chrono {
 // forward references
 class ChBody;
 class ChVariablesBody;
-class ChContactContainerBase;
-class ChProximityContainerBase;
+class ChContactContainer;
+class ChProximityContainer;
 
 /// Namespace with classes for collision detection
 namespace collision {
@@ -68,7 +68,7 @@ class ChApi ChCollisionSystem {
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainerBase. For instance ChSystem, after each Run()
+    /// ChContactContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all contact containers in the system,
     /// Children classes _must_ implement this.
     /// The basic behavior of the implementation should be the following: collision system
@@ -78,11 +78,11 @@ class ChApi ChCollisionSystem {
     /// finds that the contact container is a specialized one (ex with a GPU buffer)
     /// it can call more performant methods to add directly the contacts in batches, for instance
     /// by recognizing that he can call, say, some special AddAllContactsAsGpuBuffer() instead of many AddContact().
-    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer) = 0;
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) = 0;
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainerBase. For instance ChSystem, after each Run()
+    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all proximity containers in the system,
     /// Children classes _must_ implement this.
     /// The basic behavior of the implementation should be the following: collision system
@@ -93,7 +93,7 @@ class ChApi ChCollisionSystem {
     /// it can call more performant methods to add directly the proximities in batches, for instance
     /// by recognizing that he can call, say, some special AddAllProximitiesAsGpuBuffer() instead of many
     /// AddProximity().
-    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer) = 0;
+    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) = 0;
 
     /// Class to be used as a callback interface for user-defined actions to be performed
     /// for each 'near enough' pair of collision shapes found by the broad-phase collision step.

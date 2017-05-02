@@ -61,7 +61,7 @@ void ChMaterialSurfaceNSC::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChMaterialSurfaceNSC>();
 
     // serialize parent class
-    ChMaterialSurfaceBase::ArchiveOUT(marchive);
+    ChMaterialSurface::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(static_friction);
@@ -82,7 +82,7 @@ void ChMaterialSurfaceNSC::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChMaterialSurfaceNSC>();
 
     // deserialize parent class
-    ChMaterialSurfaceBase::ArchiveIN(marchive);
+    ChMaterialSurface::ArchiveIN(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(static_friction);

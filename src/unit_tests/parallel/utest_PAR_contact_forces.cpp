@@ -89,15 +89,15 @@ double bin_length = 20;
 double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
+bool test_computecontact(ChMaterialSurface::ContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
 
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurfaceBase::SMC);
-    passed &= test_computecontact(ChMaterialSurfaceBase::NSC);
+    passed &= test_computecontact(ChMaterialSurface::SMC);
+    passed &= test_computecontact(ChMaterialSurface::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -105,15 +105,15 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
+bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Create system and contact material.
     char title[100];
     ChSystemParallel* system;
-    std::shared_ptr<ChMaterialSurfaceBase> material;
+    std::shared_ptr<ChMaterialSurface> material;
     double time_step;
 
     switch (method) {
-        case ChMaterialSurfaceBase::SMC: {
+        case ChMaterialSurface::SMC: {
             std::cout << "Using PENALTY method." << std::endl;
             sprintf(title, "Contact Force test (SMC)");
 
@@ -138,7 +138,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurfaceBase::NSC: {
+        case ChMaterialSurface::NSC: {
             std::cout << "Using COMPLEMENTARITY method." << std::endl;
             sprintf(title, "Contact Force test (NSC)");
 

@@ -12,19 +12,19 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChProximityContainerBase)  // NO! Abstract class
+//CH_FACTORY_REGISTER(ChProximityContainer)  // NO! Abstract class
 
-ChProximityContainerBase::ChProximityContainerBase(const ChProximityContainerBase& other) : ChPhysicsItem(other) {
+ChProximityContainer::ChProximityContainer(const ChProximityContainer& other) : ChPhysicsItem(other) {
     add_proximity_callback = other.add_proximity_callback;
     report_proximity_callback = other.report_proximity_callback;
 }
 
-void ChProximityContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
+void ChProximityContainer::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite(1);
     // serialize parent class
@@ -32,7 +32,7 @@ void ChProximityContainerBase::ArchiveOUT(ChArchiveOut& marchive) {
     // serialize all member data:
 }
 
-void ChProximityContainerBase::ArchiveIN(ChArchiveIn& marchive) {
+void ChProximityContainer::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead();
     // deserialize parent class

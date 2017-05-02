@@ -35,7 +35,7 @@ ChContactContainerSMC::ChContactContainerSMC()
       n_added_666_333(0),
       n_added_666_666(0) {}
 
-ChContactContainerSMC::ChContactContainerSMC(const ChContactContainerSMC& other) : ChContactContainerBase(other) {
+ChContactContainerSMC::ChContactContainerSMC(const ChContactContainerSMC& other) : ChContactContainer(other) {
     n_added_3_3 = 0;
     n_added_6_3 = 0;
     n_added_6_6 = 0;
@@ -54,7 +54,7 @@ ChContactContainerSMC::~ChContactContainerSMC() {
 
 void ChContactContainerSMC::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class, basically doing nothing :)
-    ChContactContainerBase::Update(mytime, update_assets);
+    ChContactContainer::Update(mytime, update_assets);
 }
 
 template <class Tcont, class Titer>
@@ -172,7 +172,7 @@ template <class Tcont, class Titer, class Ta, class Tb>
 void _OptimalContactInsert(std::list<Tcont*>& contactlist,
                            Titer& lastcontact,
                            int& n_added,
-                           ChContactContainerBase* mcontainer,
+                           ChContactContainer* mcontainer,
                            Ta* objA,  ///< collidable object A
                            Tb* objB,  ///< collidable object B
                            const collision::ChCollisionInfo& cinfo) {
@@ -319,7 +319,7 @@ void ChContactContainerSMC::ComputeContactForces() {
 }
 
 template <class Tcont>
-void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainerBase::ReportContactCallback* mcallback) {
+void _ReportAllContacts(std::list<Tcont*>& contactlist, ChContactContainer::ReportContactCallback* mcallback) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
         bool proceed = mcallback->OnReportContact(
@@ -424,7 +424,7 @@ void ChContactContainerSMC::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChContactContainerSMC>();
     // serialize parent class
-    ChContactContainerBase::ArchiveOUT(marchive);
+    ChContactContainer::ArchiveOUT(marchive);
     // serialize all member data:
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
@@ -434,7 +434,7 @@ void ChContactContainerSMC::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChContactContainerSMC>();
     // deserialize parent class
-    ChContactContainerBase::ArchiveIN(marchive);
+    ChContactContainer::ArchiveIN(marchive);
     // stream in all member data:
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed

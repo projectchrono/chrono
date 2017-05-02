@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
 
 #include "chrono_parallel/ChApiParallel.h"
@@ -19,7 +19,7 @@ namespace chrono {
 ///   and is therefore suitable for both NSC and SMC systems.
 /// * Currently, only contacts between rigid bodies are considered
 
-class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase {
+class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
 
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactContainerParallel)

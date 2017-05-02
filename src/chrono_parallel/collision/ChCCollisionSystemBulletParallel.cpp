@@ -90,7 +90,7 @@ void ChCollisionSystemBulletParallel::Run() {
   }
   data_manager->system_timer.stop("collision_broad");
 }
-void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemBulletParallel::ReportContacts(ChContactContainer* mcontactcontainer) {
   data_manager->system_timer.start("collision_narrow");
   data_manager->host_data.norm_rigid_rigid.clear();
   data_manager->host_data.cpta_rigid_rigid.clear();

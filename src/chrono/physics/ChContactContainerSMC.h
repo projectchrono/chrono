@@ -19,7 +19,7 @@
 #include <cmath>
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChContactable.h"
 
@@ -28,7 +28,7 @@ namespace chrono {
 /// Class representing a container of many smooth (penalty) contacts.
 /// This is implemented as a typical linked list of ChContactSMC objects
 /// (that is, contacts between two ChContactable objects).
-class ChApi ChContactContainerSMC : public ChContactContainerBase {
+class ChApi ChContactContainerSMC : public ChContactContainer {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactContainerSMC)
 

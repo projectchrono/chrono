@@ -21,7 +21,7 @@
 
 #include <vector>
 #include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/physics/ChSystem.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
@@ -44,7 +44,7 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     }
 
   protected:
-    HMMWV_Vehicle(ChMaterialSurfaceBase::ContactMethod contactMethod, DrivelineType driveType)
+    HMMWV_Vehicle(ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
         : ChWheeledVehicle(contactMethod), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
 
     HMMWV_Vehicle(ChSystem* system, DrivelineType driveType) : ChWheeledVehicle(system), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}

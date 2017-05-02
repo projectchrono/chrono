@@ -161,10 +161,10 @@ set(ChronoEngine_physics_SOURCES
     physics/ChNodeBase.cpp
     physics/ChNodeXYZ.cpp
     physics/ChMatterSPH.cpp
-    physics/ChContactContainerBase.cpp
+    physics/ChContactContainer.cpp
     physics/ChContactContainerNSC.cpp
     physics/ChContactContainerSMC.cpp
-    physics/ChProximityContainerBase.cpp
+    physics/ChProximityContainer.cpp
     physics/ChProximityContainerSPH.cpp
     physics/ChShaft.cpp
     physics/ChShaftsGear.cpp
@@ -194,7 +194,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBodyAuxRef.h
     physics/ChBodyEasy.h
     physics/ChGenericConstraint.h
-    physics/ChContactContainerBase.h
+    physics/ChContactContainer.h
     physics/ChContactContainerNSC.h
     physics/ChContactContainerSMC.h
     physics/ChController.h
@@ -236,7 +236,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChLinkRevoluteTranslational.h
     physics/ChLinkUniversal.h
     physics/ChMarker.h
-    physics/ChMaterialSurfaceBase.h
+    physics/ChMaterialSurface.h
     physics/ChMaterialSurfaceNSC.h
     physics/ChMaterialSurfaceSMC.h
     physics/ChMatterSPH.h
@@ -247,7 +247,7 @@ set(ChronoEngine_physics_HEADERS
     physics/ChParticlesClones.h
     physics/ChPhysicsItem.h
     physics/ChProbe.h
-    physics/ChProximityContainerBase.h
+    physics/ChProximityContainer.h
     physics/ChProximityContainerSPH.h
     physics/ChRef.h
     physics/ChShaft.h

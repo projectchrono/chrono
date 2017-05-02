@@ -20,8 +20,8 @@
 #include "chrono/core/ChApiCE.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChProximityContainerBase.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
+#include "chrono/physics/ChContactContainer.h"
 
 #include "chrono/collision/ChCCollisionSystem.h"
 #include "chrono/collision/ChCModelBullet.h"
@@ -73,21 +73,21 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainerBase. For instance ChSystem, after each Run()
+    /// ChContactContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all contact containers in the system,
     /// The basic behavior of the implementation is the following: collision system
     /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
     /// EndAddContact() of the contact container.
-    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer);
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer);
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainerBase. For instance ChSystem, after each Run()
+    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all proximity containers in the system,
     /// The basic behavior of the implementation is  the following: collision system
     /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
     /// EndAddProximities() of the proximity container.
-    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer) {}
+    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
 
     /// Perform a raycast (ray-hit test with the collision models).
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }

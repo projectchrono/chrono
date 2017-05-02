@@ -15,14 +15,14 @@
 #ifndef CH_MATERIALSURFACE_SMC_H
 #define CH_MATERIALSURFACE_SMC_H
 
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 namespace chrono {
 
 /// Material data for a surface for use with smooth (penalty) contact method.
 /// This data is used to define surface properties owned by ChBody rigid bodies and
 /// similar objects; it carries information that is used to make contacts.
-class ChApi ChMaterialSurfaceSMC : public ChMaterialSurfaceBase {
+class ChApi ChMaterialSurfaceSMC : public ChMaterialSurface {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChMaterialSurfaceSMC)
 

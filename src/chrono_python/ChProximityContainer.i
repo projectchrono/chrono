@@ -1,14 +1,14 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 
 using namespace collision;
 
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
-class ChReportProximityCallbackP : public chrono::ChProximityContainerBase::ReportProximityCallback {
+class ChReportProximityCallbackP : public chrono::ChProximityContainer::ReportProximityCallback {
     public:
         ChReportProximityCallbackP() {}
         virtual bool OnReportProximity(chrono::collision::ChCollisionModel* modA,
@@ -18,7 +18,7 @@ class ChReportProximityCallbackP : public chrono::ChProximityContainerBase::Repo
         }
 };
 
-class ChAddProximityCallbackP : public chrono::ChProximityContainerBase::AddProximityCallback {
+class ChAddProximityCallbackP : public chrono::ChProximityContainer::AddProximityCallback {
     public:
         ChAddProximityCallbackP() {}
         virtual void OnAddProximity(const chrono::collision::ChCollisionModel& modA,
@@ -55,7 +55,7 @@ class ChAddProximityCallbackP {
                                 const chrono::collision::ChCollisionModel& modB) {}
 };
 
-%extend chrono::ChProximityContainerBase
+%extend chrono::ChProximityContainer
 {
     void RegisterAddProximityCallback(::ChAddProximityCallbackP* callback) {
         $self->RegisterAddProximityCallback(callback);
@@ -66,10 +66,10 @@ class ChAddProximityCallbackP {
     }
 };
 
-%ignore chrono::ChProximityContainerBase::RegisterAddProximityCallback();
-%ignore chrono::ChProximityContainerBase::ReportAllProximities();
+%ignore chrono::ChProximityContainer::RegisterAddProximityCallback();
+%ignore chrono::ChProximityContainer::ReportAllProximities();
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/physics/ChProximityContainerBase.h"    
+%include "../chrono/physics/ChProximityContainer.h"    
 

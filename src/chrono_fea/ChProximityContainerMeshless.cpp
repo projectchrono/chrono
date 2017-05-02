@@ -32,7 +32,7 @@ ChProximityContainerMeshless::ChProximityContainerMeshless() : n_added(0) {
 }
 
 ChProximityContainerMeshless::ChProximityContainerMeshless(const ChProximityContainerMeshless& other)
-    : ChProximityContainerBase(other) {
+    : ChProximityContainer(other) {
     n_added = other.n_added;
     proximitylist = other.proximitylist;
     lastproximity = proximitylist.begin();
@@ -252,7 +252,7 @@ void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChProximityContainerMeshless>();
     // serialize parent class
-    ChProximityContainerBase::ArchiveOUT(marchive);
+    ChProximityContainer::ArchiveOUT(marchive);
     // serialize all member data:
 }
 
@@ -261,7 +261,7 @@ void ChProximityContainerMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChProximityContainerMeshless>();
     // deserialize parent class
-    ChProximityContainerBase::ArchiveIN(marchive);
+    ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:
 }
 

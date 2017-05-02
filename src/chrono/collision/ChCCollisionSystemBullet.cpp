@@ -14,8 +14,8 @@
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/ChCCollisionUtils.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
@@ -1263,7 +1263,7 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
-void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
@@ -1332,7 +1332,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
     mcontactcontainer->EndAddContact();
 }
 
-void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
+void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
     /*
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds(); 

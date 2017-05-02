@@ -22,7 +22,7 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChContactContainerNSC.h"
 
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
@@ -67,7 +67,7 @@ ChSystemNSC::ChSystemNSC(unsigned int max_objects, double scene_size, bool init_
 
 ChSystemNSC::ChSystemNSC(const ChSystemNSC& other) : ChSystem(other) {}
 
-void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
+void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     if (std::dynamic_pointer_cast<ChContactContainerNSC>(container))
         ChSystem::SetContactContainer(container);
 }

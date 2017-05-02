@@ -223,7 +223,7 @@ bool VerifySolution(double time,                                     // current 
 // -----------------------------------------------------------------------------
 // Worker function for performing the simulation with specified parameters.
 // -----------------------------------------------------------------------------
-bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system (SMC or NSC)
+bool TestLinActuator(ChMaterialSurface::ContactMethod cm,  // type of system (SMC or NSC)
                      const char* test_name,                    // name of this test
                      const ChQuaternion<>& rot,                // translation along Z axis
                      double speed,                             // imposed translation speed
@@ -261,10 +261,10 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   ChSystemParallel* msystem;
 
   switch (cm) {
-      case ChMaterialSurfaceBase::SMC:
+      case ChMaterialSurface::SMC:
           msystem = new ChSystemParallelSMC();
           break;
-      case ChMaterialSurfaceBase::NSC:
+      case ChMaterialSurface::NSC:
           msystem = new ChSystemParallelNSC();
           break;
   }
@@ -281,7 +281,7 @@ bool TestLinActuator(ChMaterialSurfaceBase::ContactMethod cm,  // type of system
   msystem->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   msystem->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (cm == ChMaterialSurfaceBase::NSC) {
+  if (cm == ChMaterialSurface::NSC) {
     ChSystemParallelNSC* msystemNSC = static_cast<ChSystemParallelNSC*>(msystem);
     msystemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     msystemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
@@ -393,12 +393,12 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Case 1 - Translation axis vertical, imposed speed 1 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 1 (SMC)", QUNIT, 1, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 1 (NSC)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurface::SMC, "Case 1 (SMC)", QUNIT, 1, animate);
+  test_passed &= TestLinActuator(ChMaterialSurface::NSC, "Case 1 (NSC)", QUNIT, 1, animate);
 
   // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::SMC, "Case 2 (SMC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
-  test_passed &= TestLinActuator(ChMaterialSurfaceBase::NSC, "Case 2 (NSC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurface::SMC, "Case 2 (SMC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
+  test_passed &= TestLinActuator(ChMaterialSurface::NSC, "Case 2 (NSC)", Q_from_AngY(CH_C_PI / 4), 0.5, animate);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

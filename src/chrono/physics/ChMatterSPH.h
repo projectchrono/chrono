@@ -146,7 +146,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual double GetContactableMass() override { return GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -234,7 +234,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
   private:
     std::vector<std::shared_ptr<ChNodeSPH> > nodes;     ///< the nodes (markers)
     ChContinuumSPH material;                            ///< continuum material properties
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
     bool do_collide;                                    ///< flag indicating whether or not nodes collide
 
   public:
@@ -279,10 +279,10 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void AddNode(ChVector<double> initial_state);
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS

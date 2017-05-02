@@ -94,15 +94,15 @@ double bin_length = 20;
 double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
+bool test_computecontact(ChMaterialSurface::ContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
 
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurfaceBase::SMC);
-    passed &= test_computecontact(ChMaterialSurfaceBase::NSC);
+    passed &= test_computecontact(ChMaterialSurface::SMC);
+    passed &= test_computecontact(ChMaterialSurface::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -110,13 +110,13 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
+bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Create system and contact material.
     ChSystem* system;
-    std::shared_ptr<ChMaterialSurfaceBase> material;
+    std::shared_ptr<ChMaterialSurface> material;
 
     switch (method) {
-        case ChMaterialSurfaceBase::SMC: {
+        case ChMaterialSurface::SMC: {
             GetLog() << "Using PENALTY method.\n";
 
             ChSystemSMC* sys = new ChSystemSMC;
@@ -139,7 +139,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurfaceBase::NSC: {
+        case ChMaterialSurface::NSC: {
             GetLog() << "Using COMPLEMENTARITY method.\n";
 
             system = new ChSystemNSC;
@@ -217,7 +217,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
     // Setup integrator
     // ----------------
 
-    if (method == ChMaterialSurfaceBase::SMC) {
+    if (method == ChMaterialSurface::SMC) {
         GetLog() << "Using HHT integrator.\n";
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());

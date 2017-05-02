@@ -18,7 +18,7 @@
 #include <list>
 
 #include "chrono/collision/ChCModelBullet.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 
 namespace chrono {
 
@@ -61,7 +61,7 @@ class ChApi ChProximitySPH {
 /// Particle Hydrodinamics and similar meshless force computations),
 /// as CPU typical linked list of ChProximitySPH objects.
 
-class ChApi ChProximityContainerSPH : public ChProximityContainerBase {
+class ChApi ChProximityContainerSPH : public ChProximityContainer {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChProximityContainerSPH)
 

@@ -21,7 +21,7 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactTuple.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
@@ -57,7 +57,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactNSC(ChContactContainer* mcontainer,      ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair

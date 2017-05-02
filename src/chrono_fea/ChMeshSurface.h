@@ -73,7 +73,7 @@ class ChApiFea ChMeshSurface {
   private:
     std::vector<std::shared_ptr<ChLoadableUV> > faces;  // the faces
 
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  // material for contacts
+    std::shared_ptr<ChMaterialSurface> matsurface;  // material for contacts
 
     ChMesh* mmesh;
 };

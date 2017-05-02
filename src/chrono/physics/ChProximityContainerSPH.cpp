@@ -33,7 +33,7 @@ ChProximityContainerSPH::ChProximityContainerSPH() : n_added(0) {
 }
 
 ChProximityContainerSPH::ChProximityContainerSPH(const ChProximityContainerSPH& other)
-    : ChProximityContainerBase(other) {
+    : ChProximityContainer(other) {
     n_added = other.n_added;
     proximitylist = other.proximitylist;
     lastproximity = proximitylist.begin();
@@ -216,7 +216,7 @@ void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChProximityContainerSPH>();
     // serialize parent class
-    ChProximityContainerBase::ArchiveOUT(marchive);
+    ChProximityContainer::ArchiveOUT(marchive);
     // serialize all member data:
 }
 
@@ -225,7 +225,7 @@ void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChProximityContainerSPH>();
     // deserialize parent class
-    ChProximityContainerBase::ArchiveIN(marchive);
+    ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:
 }
 

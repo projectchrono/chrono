@@ -52,7 +52,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainerBase* mcontainer,
+    ChContactNSCrolling(ChContactContainer* mcontainer,
                         Ta* mobjA,  ///< collidable object A
                         Tb* mobjB,  ///< collidable object B
                         const collision::ChCollisionInfo& cinfo)

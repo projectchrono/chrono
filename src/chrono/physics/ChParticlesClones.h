@@ -74,7 +74,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Return the pointer to the contact surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
@@ -179,7 +179,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
 
     collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
 
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
     bool do_collide;
     bool do_limit_speed;
@@ -237,10 +237,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
 
     /// Set the material surface for contacts
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for contacts
-    std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS

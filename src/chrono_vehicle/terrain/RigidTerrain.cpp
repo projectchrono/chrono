@@ -199,11 +199,11 @@ void RigidTerrain::SetContactMaterialCoefficients(float kn, float gn, float kt, 
 // -----------------------------------------------------------------------------
 void RigidTerrain::ApplyContactMaterial() {
     switch (m_ground->GetContactMethod()) {
-        case ChMaterialSurfaceBase::NSC:
+        case ChMaterialSurface::NSC:
             m_ground->GetMaterialSurfaceNSC()->SetFriction(m_friction);
             m_ground->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::SMC:
+        case ChMaterialSurface::SMC:
             m_ground->GetMaterialSurfaceSMC()->SetFriction(m_friction);
             m_ground->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
             m_ground->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);

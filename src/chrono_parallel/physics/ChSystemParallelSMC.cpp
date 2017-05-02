@@ -21,20 +21,20 @@ ChSystemParallelSMC::ChSystemParallelSMC(const ChSystemParallelSMC& other) : ChS
 
 ChBody* ChSystemParallelSMC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
 
-    return new ChBody(ChMaterialSurfaceBase::SMC);
+    return new ChBody(ChMaterialSurface::SMC);
 }
 
 ChBodyAuxRef* ChSystemParallelSMC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::SMC);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::SMC);
 
-    return new ChBodyAuxRef(ChMaterialSurfaceBase::SMC);
+    return new ChBodyAuxRef(ChMaterialSurface::SMC);
 }
 
 void ChSystemParallelSMC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::SMC);
+    assert(newbody->GetContactMethod() == ChMaterialSurface::SMC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().
@@ -72,7 +72,7 @@ void ChSystemParallelSMC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurfaceSMC since that returns a copy of the reference
     // counted shared pointer).
-    std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurfaceBase();
     ChMaterialSurfaceSMC* mat_ptr = static_cast<ChMaterialSurfaceSMC*>(mat.get());
 
     mass[index] = body->GetMass();

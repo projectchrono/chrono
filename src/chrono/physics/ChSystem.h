@@ -29,7 +29,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChControls.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
@@ -45,7 +45,7 @@ namespace chrono {
 
 // Forward references
 class ChSystemDescriptor;
-class ChContactContainerBase;
+class ChContactContainer;
 
 /// Physical system.
 ///
@@ -279,7 +279,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Return the contact method supported by this system.
     /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const = 0;
+    virtual ChMaterialSurface::ContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type
@@ -304,10 +304,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void RemoveAllControls();
 
     /// Replace the contact continer.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase> container);
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
 
     /// Get the contact container
-    std::shared_ptr<ChContactContainerBase> GetContactContainer() { return contact_container; }
+    std::shared_ptr<ChContactContainer> GetContactContainer() { return contact_container; }
 
     /// Given inserted markers and links, restores the
     /// pointers of links to markers given the information
@@ -783,7 +783,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
     std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
 
-    std::shared_ptr<ChContactContainerBase> contact_container;  ///< the container of contacts
+    std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
 

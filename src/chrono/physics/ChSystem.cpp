@@ -17,7 +17,7 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
@@ -436,7 +436,7 @@ void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     solver_stab = newsolver;
 }
 
-void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     assert(container);
     contact_container = container;
     contact_container->SetSystem(this);
@@ -632,7 +632,7 @@ bool ChSystem::ManageSleepingBodies() {
 
     // Make this class for iterating through contacts
 
-    class _wakeup_reporter_class : public ChContactContainerBase::ReportContactCallback {
+    class _wakeup_reporter_class : public ChContactContainer::ReportContactCallback {
       public:
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
@@ -1386,11 +1386,11 @@ double ChSystem::ComputeCollisions() {
     collision_system->ReportContacts(contact_container.get());
 
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainerBase>(otherphysicslist[ip])) {
+        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
             collision_system->ReportContacts(mcontactcontainer.get());
         }
 
-        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainerBase>(otherphysicslist[ip])) {
+        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
             collision_system->ReportProximities(mproximitycontainer.get());
         }
     }

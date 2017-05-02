@@ -666,7 +666,7 @@ int main(int argc, char* argv[]) {
     // each contact point, as it is created, and can be used to modify the composite
     // contact material properties.
 
-    class MyContactCallback : public ChContactContainerBase::AddContactCallback {
+    class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
         virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
                                   ChMaterialComposite* const material) override {

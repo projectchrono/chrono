@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHMATERIALSURFACEBASE_H
-#define CHMATERIALSURFACEBASE_H
+#ifndef CH_MATERIAL_SURFACE_H
+#define CH_MATERIAL_SURFACE_H
 
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/serialization/ChArchive.h"
@@ -21,10 +21,10 @@
 namespace chrono {
 
 /// Base class for specifying material properties for contact force generation.
-class ChApi ChMaterialSurfaceBase {
+class ChApi ChMaterialSurface {
 
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurfaceBase)
+    CH_FACTORY_TAG(ChMaterialSurface)
 
   public:
     enum ContactMethod {
@@ -32,10 +32,10 @@ class ChApi ChMaterialSurfaceBase {
         SMC   ///< smooth, penalty-based (a.k.a. soft-body) contact
     };
 
-    virtual ~ChMaterialSurfaceBase() {}
+    virtual ~ChMaterialSurface() {}
 
     /// "Virtual" copy constructor.
-    virtual ChMaterialSurfaceBase* Clone() const = 0;
+    virtual ChMaterialSurface* Clone() const = 0;
 
     virtual ContactMethod GetContactMethod()const  = 0;
 
@@ -43,16 +43,16 @@ class ChApi ChMaterialSurfaceBase {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) {
         // version number:
-        marchive.VersionWrite<ChMaterialSurfaceBase>();
+        marchive.VersionWrite<ChMaterialSurface>();
     }
 
     virtual void ArchiveIN(ChArchiveIn& marchive) {
         // version number:
-        int version = marchive.VersionRead<ChMaterialSurfaceBase>();
+        int version = marchive.VersionRead<ChMaterialSurface>();
     }
 };
 
-CH_CLASS_VERSION(ChMaterialSurfaceBase,0)
+CH_CLASS_VERSION(ChMaterialSurface,0)
 
 /// Base class for composite material for a contact pair.
 class ChApi ChMaterialComposite {

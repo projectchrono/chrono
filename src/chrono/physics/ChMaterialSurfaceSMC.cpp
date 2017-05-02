@@ -62,7 +62,7 @@ void ChMaterialSurfaceSMC::ArchiveOUT(ChArchiveOut& marchive) {
     marchive.VersionWrite<ChMaterialSurfaceSMC>();
 
     // serialize parent class
-    ChMaterialSurfaceBase::ArchiveOUT(marchive);
+    ChMaterialSurface::ArchiveOUT(marchive);
 
     // serialize all member data:
     marchive << CHNVP(young_modulus);
@@ -83,7 +83,7 @@ void ChMaterialSurfaceSMC::ArchiveIN(ChArchiveIn& marchive) {
     int version = marchive.VersionRead<ChMaterialSurfaceSMC>();
 
     // deserialize parent class
-    ChMaterialSurfaceBase::ArchiveIN(marchive);
+    ChMaterialSurface::ArchiveIN(marchive);
 
     // stream in all member data:
     marchive >> CHNVP(young_modulus);

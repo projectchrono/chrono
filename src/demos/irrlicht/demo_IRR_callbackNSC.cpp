@@ -32,7 +32,7 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 // Callback class for contact reporting
 // -----------------------------------------------------------------------------
-class ContactReporter : public ChContactContainerBase::ReportContactCallback {
+class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
     ContactReporter(std::shared_ptr<ChBody> box) : m_box(box) {}
 
@@ -59,7 +59,7 @@ class ContactReporter : public ChContactContainerBase::ReportContactCallback {
 // -----------------------------------------------------------------------------
 // Callback class for modifying composite material
 // -----------------------------------------------------------------------------
-class ContactMaterial : public ChContactContainerBase::AddContactCallback {
+class ContactMaterial : public ChContactContainer::AddContactCallback {
   public:
     virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
                               ChMaterialComposite* const material) override {

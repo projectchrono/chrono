@@ -34,9 +34,9 @@ ChSystemParallelNSC::ChSystemParallelNSC(const ChSystemParallelNSC& other) : ChS
 
 ChBody* ChSystemParallelNSC::NewBody() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
+        return new ChBody(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
 
-    return new ChBody(ChMaterialSurfaceBase::NSC);
+    return new ChBody(ChMaterialSurface::NSC);
 }
 
 void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
@@ -45,13 +45,13 @@ void ChSystemParallelNSC::ChangeSolverType(SolverType type) {
 
 ChBodyAuxRef* ChSystemParallelNSC::NewBodyAuxRef() {
     if (collision_system_type == CollisionSystemType::COLLSYS_PARALLEL)
-        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurfaceBase::NSC);
+        return new ChBodyAuxRef(std::make_shared<collision::ChCollisionModelParallel>(), ChMaterialSurface::NSC);
 
-    return new ChBodyAuxRef(ChMaterialSurfaceBase::NSC);
+    return new ChBodyAuxRef(ChMaterialSurface::NSC);
 }
 
 void ChSystemParallelNSC::AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) {
-    assert(newbody->GetContactMethod() == ChMaterialSurfaceBase::NSC);
+    assert(newbody->GetContactMethod() == ChMaterialSurface::NSC);
 
     // Reserve space for material properties for the specified body. Not that the
     // actual data is set in UpdateMaterialProperties().
@@ -69,7 +69,7 @@ void ChSystemParallelNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
     // material properties in a thread-safe manner (we cannot use the function
     // ChBody::GetMaterialSurfaceNSC since that returns a copy of the reference
     // counted shared pointer).
-    std::shared_ptr<ChMaterialSurfaceBase>& mat = body->GetMaterialSurfaceBase();
+    std::shared_ptr<ChMaterialSurface>& mat = body->GetMaterialSurfaceBase();
     ChMaterialSurfaceNSC* mat_ptr = static_cast<ChMaterialSurfaceNSC*>(mat.get());
 
     friction[index] = real3(mat_ptr->GetKfriction(), mat_ptr->GetRollingFriction(), mat_ptr->GetSpinningFriction());

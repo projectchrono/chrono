@@ -58,7 +58,7 @@ ChSystemSMC::ChSystemSMC(bool use_material_properties, unsigned int max_objects,
 
 ChSystemSMC::ChSystemSMC(const ChSystemSMC& other) : ChSystem(other) {}
 
-void ChSystemSMC::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
+void ChSystemSMC::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     if (std::dynamic_pointer_cast<ChContactContainerSMC>(container))
         ChSystem::SetContactContainer(container);
 }

@@ -1,14 +1,14 @@
 %{
 
 /* Includes the header in the wrapper code */
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 
 using namespace collision;
 
 
 // NESTED CLASSES: inherit stubs (not virtual) as outside classes
 
-class ChReportContactCallbackP : public chrono::ChContactContainerBase::ReportContactCallback {
+class ChReportContactCallbackP : public chrono::ChContactContainer::ReportContactCallback {
     public:
         ChReportContactCallbackP() {}
         virtual bool OnReportContact(const chrono::ChVector<>& pA,
@@ -24,7 +24,7 @@ class ChReportContactCallbackP : public chrono::ChContactContainerBase::ReportCo
         }
 };
 
-class ChAddContactCallbackP : public chrono::ChContactContainerBase::AddContactCallback {
+class ChAddContactCallbackP : public chrono::ChContactContainer::AddContactCallback {
     public:
         ChAddContactCallbackP() {}
         virtual void OnAddContact(const chrono::collision::ChCollisionInfo& contactinfo,
@@ -68,7 +68,7 @@ class ChAddContactCallbackP {
                               chrono::ChMaterialComposite* const material) {}
 };
 
-%extend chrono::ChContactContainerBase
+%extend chrono::ChContactContainer
 {
 	void RegisterAddContactCallback(::ChAddContactCallbackP* callback) {
 	    $self->RegisterAddContactCallback(callback);
@@ -79,10 +79,10 @@ class ChAddContactCallbackP {
 	}
 };
 
-%ignore chrono::ChContactContainerBase::RegisterAddContactCallback();
-%ignore chrono::ChContactContainerBase::ReportAllContacts();
+%ignore chrono::ChContactContainer::RegisterAddContactCallback();
+%ignore chrono::ChContactContainer::ReportAllContacts();
 
 
 /* Parse the header file to generate wrappers */
-%include "../chrono/physics/ChContactContainerBase.h"    
+%include "../chrono/physics/ChContactContainer.h"    
 

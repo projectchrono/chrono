@@ -67,7 +67,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChVector<> Scr_force;   ///< script force accumulator; (in abs space, applied to COG)
     ChVector<> Scr_torque;  ///< script torque accumulator;(in abs space)
 
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
     // Auxiliary, stores position/rotation once a while when collision detection
     // routines require to know the last time that coll. detect. was satisfied
@@ -87,11 +87,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
   public:
     /// Build a rigid body.
-    ChBody(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
+    ChBody(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
 
     /// Build a rigid body with a different collision model.
     ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model,
-           ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::NSC);
+           ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
 
     ChBody(const ChBody& other);
 
@@ -343,7 +343,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual void StreamOUTstate(ChStreamOutBinary& mstream) override;
 
     /// Infer the contact method from the underlying material properties object.
-    ChMaterialSurfaceBase::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
+    ChMaterialSurface::ContactMethod GetContactMethod() { return matsurface->GetContactMethod(); }
 
     /// Access the NSC material surface properties associated with this body.
     /// This function performs a dynamic cast (and returns an empty pointer
@@ -363,7 +363,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Set the material surface properties by passing a ChMaterialSurfaceNSC or
     /// ChMaterialSurfaceSMC object.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// The density of the rigid body, as [mass]/[unit volume]. Used just if
     /// the inertia tensor and mass are automatically recomputed from the
@@ -622,7 +622,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return the pointer to the surface material.
     /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override { return matsurface; }
 
     /// Get the resultant contact force acting on this body.
     ChVector<> GetContactForce();

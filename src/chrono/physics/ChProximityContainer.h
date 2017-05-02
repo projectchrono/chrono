@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHPROXIMITYCONTAINERBASE_H
-#define CHPROXIMITYCONTAINERBASE_H
+#ifndef CH_PROXIMITY_CONTAINER_H
+#define CH_PROXIMITY_CONTAINER_H
 
 #include "chrono/collision/ChCCollisionInfo.h"
 #include "chrono/physics/ChPhysicsItem.h"
@@ -29,14 +29,14 @@ namespace chrono {
 /// etc. etc.
 /// This is only the basic interface with the features that are in common.
 
-class ChApi ChProximityContainerBase : public ChPhysicsItem {
+class ChApi ChProximityContainer : public ChPhysicsItem {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChProximityContainerBase)
+    CH_FACTORY_TAG(ChProximityContainer)
 
   public:
-    ChProximityContainerBase() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
-    ChProximityContainerBase(const ChProximityContainerBase& other);
-    virtual ~ChProximityContainerBase() {}
+    ChProximityContainer() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}
+    ChProximityContainer(const ChProximityContainer& other);
+    virtual ~ChProximityContainer() {}
 
     /// Tell the number of added proximity pairs. To be implemented by child classes.
     virtual int GetNproximities() const = 0;
@@ -102,7 +102,7 @@ class ChApi ChProximityContainerBase : public ChPhysicsItem {
 
     /// Scans all the proximity pairs and, for each pair, executes the OnReportProximity()
     /// function of the provided callback object.
-    /// Derived classes of ChProximityContainerBase should try to implement this.
+    /// Derived classes of ChProximityContainer should try to implement this.
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) = 0;
 
     //
