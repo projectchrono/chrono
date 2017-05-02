@@ -73,9 +73,14 @@ class ChAddContactCallbackP {
 	void RegisterAddContactCallback(::ChAddContactCallbackP* callback) {
 	    $self->RegisterAddContactCallback(callback);
 	}
+
+	void ReportAllContacts(::ChReportContactCallbackP* callback) {
+	     $self->ReportAllContacts(callback);
+	}
 };
 
 %ignore chrono::ChContactContainerBase::RegisterAddContactCallback();
+%ignore chrono::ChContactContainerBase::ReportAllContacts();
 
 
 /* Parse the header file to generate wrappers */

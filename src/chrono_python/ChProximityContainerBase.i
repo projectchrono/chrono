@@ -60,9 +60,14 @@ class ChAddProximityCallbackP {
     void RegisterAddProximityCallback(::ChAddProximityCallbackP* callback) {
         $self->RegisterAddProximityCallback(callback);
     }
+
+    void ReportAllProximities(::ChReportProximityCallbackP* callback) {
+        $self->ReportAllProximities(callback);
+    }
 };
 
 %ignore chrono::ChProximityContainerBase::RegisterAddProximityCallback();
+%ignore chrono::ChProximityContainerBase::ReportAllProximities();
 
 
 /* Parse the header file to generate wrappers */
