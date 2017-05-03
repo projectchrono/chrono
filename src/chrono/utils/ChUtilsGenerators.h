@@ -54,18 +54,6 @@ class Generator;
 class MixtureIngredient;
 
 // -----------------------------------------------------------------------------
-// CallbackGenerator
-//
-// This class can be defined by the user as a callback function for a mixture
-// that is run after a Chbody has been created. Custom modifications can be done
-// to the bodies here
-class ChApi CallbackGenerator {
-  public:
-    // Implement this function if you want to provide the post creation callback.
-    virtual void PostCreation(std::shared_ptr<ChBody> mbody) = 0;
-};
-
-// -----------------------------------------------------------------------------
 // MixtureIngredient
 //
 // This class encapsulates an ingredient of one of the supported types in a
@@ -98,8 +86,19 @@ class ChApi MixtureIngredient {
                              const ChVector<>& size_min,
                              const ChVector<>& size_max);
 
-    // Set the callback function to execute at each particle generation
-    void SetCallbackPostCreation(CallbackGenerator* mc) { callback_post_creation = mc; }
+    /// Class to be used as a callback interface for some user-defined action to be taken each
+    /// time the generator creates and adds a body based on this mixture ingredient to the system.
+    class ChApi AddBodyCallback {
+      public:
+        virtual ~AddBodyCallback() {}
+
+        /// Callback used to process bodies as they are created and added to the system.
+        virtual void OnAddBody(std::shared_ptr<ChBody> body) = 0;
+    };
+
+    /// Specify a callback object to be used each time a body is generated using this
+    /// mixture ingredient specification.
+    void RegisterAddBodyCallback(AddBodyCallback* callback) { add_body_callback = callback; }
 
   private:
     void freeMaterialDist();
@@ -139,7 +138,7 @@ class ChApi MixtureIngredient {
     ChVector<> m_minSize, m_maxSize;
     std::normal_distribution<>* m_sizeDist;
 
-    CallbackGenerator* callback_post_creation;
+    AddBodyCallback* add_body_callback;
 
     friend class Generator;
 };

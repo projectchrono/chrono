@@ -43,7 +43,7 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_restitutionDist(nullptr),
       m_densityDist(nullptr),
       m_sizeDist(nullptr),
-      callback_post_creation(nullptr) {}
+      add_body_callback(nullptr) {}
 
 // Destructor:: free the various distribution associated with this ingredient
 MixtureIngredient::~MixtureIngredient() {
@@ -577,8 +577,8 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         m_system->AddBody(bodyPtr);
 
         // If the callback pointer is set, call the function with the body pointer
-        if (m_mixture[index]->callback_post_creation) {
-            m_mixture[index]->callback_post_creation->PostCreation(bodyPtr);
+        if (m_mixture[index]->add_body_callback) {
+            m_mixture[index]->add_body_callback->OnAddBody(bodyPtr);
         }
 
         m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, bodyPtr));

@@ -124,10 +124,12 @@ int main(int argc, char* argv[]) {
     mcreator_plastic->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
-    class MyCreator_plastic : public ChCallbackPostCreation {
+    class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
@@ -135,7 +137,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_plastic* callback_plastic = new MyCreator_plastic;
-    mcreator_plastic->SetCallbackPostCreation(callback_plastic);
+    mcreator_plastic->RegisterAddBodyCallback(callback_plastic);
 
     // Finally, tell to the emitter that it must use the creator above:
     emitter.SetParticleCreator(mcreator_plastic);
@@ -145,10 +147,12 @@ int main(int argc, char* argv[]) {
     //     A callback executed at each particle creation can be attached to the emitter.
     //     For example, we need that new particles will be bound to Irrlicht visualization:
 
-    // a- define a class that implement your custom PostCreation method...
-    class MyCreatorForAll : public ChCallbackPostCreation {
+    // a- define a class that implement your custom OnAddBody method...
+    class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Enable Irrlicht visualization for all particles
             airrlicht_application->AssetBind(mbody);
             airrlicht_application->AssetUpdate(mbody);
@@ -163,7 +167,7 @@ int main(int argc, char* argv[]) {
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
-    emitter.SetCallbackPostCreation(mcreation_callback);
+    emitter.RegisterAddBodyCallback(mcreation_callback);
 
     // Create the remover, i.e. an object that takes care
     // of removing particles that are inside or outside some volume.
