@@ -63,7 +63,7 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     /// Return the pitch angle of the prismatic joint.
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
-    /// Return the callback function for spring force.
+    /// Return the functor object for spring force.
     virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Return the free length for the tensioner spring.

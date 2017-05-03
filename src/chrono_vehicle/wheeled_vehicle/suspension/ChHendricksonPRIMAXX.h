@@ -218,14 +218,14 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockLBRestLength() const = 0;
-    /// Return the callback function for shock force.
+    /// Return the functor object for shock force.
     virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const = 0;
 
     // Axlehousing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;
-    /// Return the callback function for shock force.
+    /// Return the functor object for shock force.
     virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const = 0;
 
     std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)

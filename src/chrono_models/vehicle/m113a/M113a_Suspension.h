@@ -46,16 +46,16 @@ class CH_MODELS_API M113a_Suspension : public ChLinearDamperRWAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
-    /// Return the callback function for the torsional spring force.
-    virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const override { return m_spring_torqueCB; }
+    /// Return the functor object for the torsional spring force.
+    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueCallback() const override { return m_spring_torqueCB; }
 
-    /// Return the callback function for the translational shock force.
+    /// Return the functor object for the translational shock force.
     virtual ChLinkSpringCB::ForceFunctor* GetShockForceCallback() const override { return m_shock_forceCB; }
 
   private:
     VehicleSide m_side;
 
-    ChRotSpringTorqueCallback* m_spring_torqueCB;
+    ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
     ChLinkSpringCB::ForceFunctor* m_shock_forceCB;
 
     static const double m_arm_mass;

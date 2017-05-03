@@ -200,9 +200,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
-    /// Return the callback function for spring force.
+    /// Return the functor object for spring force.
     virtual ChLinkSpringCB::ForceFunctor* getSpringForceCallback() const = 0;
-    /// Return the callback function for shock force.
+    /// Return the functor object for shock force.
     virtual ChLinkSpringCB::ForceFunctor* getShockForceCallback() const = 0;
 
     std::shared_ptr<ChBody> m_axleTube;      ///< handles to the axle tube body

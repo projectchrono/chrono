@@ -55,6 +55,7 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
                                   ) = 0;
     };
 
+    /// Specify the functor object for calculating the force. 
     void RegisterForceFunctor(ForceFunctor* functor) { m_force_fun = functor; }
 
     /// Specialized initialization for springs, given the two bodies to be connected,

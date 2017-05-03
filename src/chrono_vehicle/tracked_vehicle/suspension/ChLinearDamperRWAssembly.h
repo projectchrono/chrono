@@ -100,10 +100,10 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
-    /// Return the callback function for the torsional spring force.
-    virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const = 0;
+    /// Return the functor object for the torsional spring force.
+    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueCallback() const = 0;
 
-    /// Return the callback function for the translational shock force.
+    /// Return the functor object for the translational shock force.
     virtual ChLinkSpringCB::ForceFunctor* GetShockForceCallback() const = 0;
 
     bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
