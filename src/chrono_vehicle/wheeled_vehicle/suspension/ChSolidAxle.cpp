@@ -265,14 +265,14 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_shock[side] = std::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
-    m_shock[side]->RegisterForceFunctor(getShockForceCallback());
+    m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = std::make_shared<ChLinkSpringCB>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
-    m_spring[side]->RegisterForceFunctor(getSpringForceCallback());
+    m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.

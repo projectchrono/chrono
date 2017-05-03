@@ -59,8 +59,8 @@ class CH_VEHICLE_API MultiLink : public ChMultiLink {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChLinkSpringCB::ForceFunctor* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChLinkSpringCB::ForceFunctor* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }

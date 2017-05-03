@@ -97,8 +97,8 @@ class CH_VEHICLE_API ChRotationalDamperRWAssembly : public ChRoadWheelAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const = 0;
 
-    /// Return the functor object for the torsional spring force.
-    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueCallback() const = 0;
+    /// Return the functor object for the torsional spring torque.
+    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const = 0;
 
     /// Return the functor object for the rotational shock force.
     virtual ChLinkRotSpringCB::TorqueFunctor* GetShockTorqueCallback() const = 0;
