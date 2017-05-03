@@ -29,6 +29,7 @@
 ///////////////////////////////////////////////////
 
 #include "chrono/core/ChRealtimeStep.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_cascade/ChBodyEasyCascade.h"
 #include "chrono_cascade/ChCascadeDoc.h"
@@ -58,8 +59,8 @@ using namespace cascade;
 int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system: all bodies and constraints
-    // will be handled by this ChSystem object.
-    ChSystem my_system;
+    // will be handled by this ChSystemNSC object.
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

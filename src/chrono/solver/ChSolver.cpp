@@ -30,7 +30,7 @@ class my_enum_mappers : public ChSolver {
     CH_ENUM_VAL(Type::PCG);
     CH_ENUM_VAL(Type::APGD);
     CH_ENUM_VAL(Type::MINRES);
-    CH_ENUM_VAL(Type::SOLVER_DEM);
+    CH_ENUM_VAL(Type::SOLVER_SMC);
     CH_ENUM_VAL(Type::CUSTOM);
     CH_ENUM_MAPPER_END(Type);
 };

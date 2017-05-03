@@ -45,19 +45,19 @@ void ChRigidChassis::Initialize(ChSystem* system,
 
     // Set chassis body contact material properties.
     switch (m_body->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_body->GetMaterialSurface()->SetFriction(m_friction);
-            m_body->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_body->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_body->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_body->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_body->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_body->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_body->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_body->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_body->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_body->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_body->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_body->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_body->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 

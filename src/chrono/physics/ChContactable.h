@@ -13,7 +13,7 @@
 #define CHCONTACTABLE_H
 
 #include "chrono/solver/ChConstraintTuple.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 #include "chrono/core/ChVectorDynamic.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/timestepper/ChState.h"
@@ -50,9 +50,9 @@ class ChContactable {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) = 0;
 
     /// Return the pointer to the surface material.
-    /// Use dynamic cast to understand if this is a ChMaterialSurfaceDEM, ChMaterialSurfaceDVI or others.
+    /// Use dynamic cast to understand if this is a ChMaterialSurfaceSMC, ChMaterialSurfaceNSC or others.
     /// This function returns a reference to the shared pointer member variable and is therefore THREAD SAFE.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() = 0;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() = 0;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) = 0;
@@ -85,7 +85,7 @@ class ChContactable {
                                    ChVectorDynamic<>& Q,
                                    int offset) = 0;
 
-    /// This can be useful in some DEM code:
+    /// This can be useful in some SMC code:
     virtual double GetContactableMass() = 0;
 
     /// This is only for backward compatibility. Note that in recent code
@@ -114,7 +114,7 @@ class ChContactable_1vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,
@@ -142,7 +142,7 @@ class ChContactable_2vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,
@@ -170,7 +170,7 @@ class ChContactable_3vars : public ChContactable, public ChVariableTupleCarrier_
                                                bool second) = 0;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(const ChVector<>& abs_point,
                                                       ChMatrix33<>& contact_plane,
                                                       type_constraint_tuple& jacobian_tuple_N,

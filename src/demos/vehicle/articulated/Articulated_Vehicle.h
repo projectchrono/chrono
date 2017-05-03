@@ -23,7 +23,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
@@ -32,7 +32,7 @@ class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
     Articulated_Vehicle(
         const bool fixed,
         chrono::vehicle::SuspensionType suspType,
-        chrono::ChMaterialSurfaceBase::ContactMethod contactMethod = chrono::ChMaterialSurfaceBase::DVI);
+        chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
 
     ~Articulated_Vehicle() {}
 

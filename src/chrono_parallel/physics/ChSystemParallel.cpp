@@ -25,7 +25,7 @@ using namespace chrono::collision;
 #ifdef LOGGINGENABLED
 INITIALIZE_EASYLOGGINGPP
 #endif
-ChSystemParallel::ChSystemParallel(unsigned int max_objects) : ChSystem(1000, 10000, false) {
+ChSystemParallel::ChSystemParallel() : ChSystem() {
     data_manager = new ChParallelDataManager();
 
     descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
@@ -93,7 +93,7 @@ bool ChSystemParallel::Integrate_Y() {
     collision_system->ReportContacts(this->contact_container.get());
 
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++) {
-        collision_callbacks[ic]->PerformCustomCollision(this);
+        collision_callbacks[ic]->OnCustomCollision(this);
     }
 
     data_manager->system_timer.stop("collision");

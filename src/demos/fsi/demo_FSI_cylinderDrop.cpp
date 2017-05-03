@@ -127,7 +127,7 @@ void SetArgumentsForMbdFromInput(int argc,
 // function to set the solver setting for the
 //------------------------------------------------------------------
 
-void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<> gravity, int argc, char* argv[]) {
+void InitializeMbdPhysicalSystem(ChSystemParallelNSC& mphysicalSystem, ChVector<> gravity, int argc, char* argv[]) {
     // Desired number of OpenMP threads (will be clamped to maximum available)
     int threads = 1;
     // Perform dynamic tuning of number of threads?
@@ -204,10 +204,10 @@ void InitializeMbdPhysicalSystem(ChSystemParallelDVI& mphysicalSystem, ChVector<
 // bce representation are created and added to the systems
 //------------------------------------------------------------------
 
-void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
+void CreateMbdPhysicalSystemObjects(ChSystemParallelNSC& mphysicalSystem,
                                     fsi::ChSystemFsi& myFsiSystem,
                                     fsi::SimParams* paramsH) {
-    std::shared_ptr<ChMaterialSurface> mat_g(new ChMaterialSurface);
+    std::shared_ptr<ChMaterialSurfaceNSC> mat_g(new ChMaterialSurfaceNSC);
     // Set common material Properties
     mat_g->SetFriction(0.8);
     mat_g->SetCohesion(0);
@@ -411,7 +411,7 @@ void CreateMbdPhysicalSystemObjects(ChSystemParallelDVI& mphysicalSystem,
 //------------------------------------------------------------------
 
 void SavePovFilesMBD(fsi::ChSystemFsi& myFsiSystem,
-                     ChSystemParallelDVI& mphysicalSystem,
+                     ChSystemParallelNSC& mphysicalSystem,
                      fsi::SimParams* paramsH,
                      int tStep,
                      double mTime) {
@@ -514,7 +514,7 @@ int main(int argc, char* argv[]) {
 #endif
     // ***************************** Create Fluid
     // ********************************************
-    ChSystemParallelDVI mphysicalSystem;
+    ChSystemParallelNSC mphysicalSystem;
     fsi::ChSystemFsi myFsiSystem(&mphysicalSystem, mHaveFluid);
     ChVector<> CameraLocation = ChVector<>(0, -10, 0);
     ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
@@ -581,7 +581,7 @@ int main(int argc, char* argv[]) {
 
     //*** Add sph data to the physics system
 
-    cout << " -- ChSystem size : " << mphysicalSystem.Get_bodylist()->size() << endl;
+    cout << " -- System size : " << mphysicalSystem.Get_bodylist()->size() << endl;
 
     // ***************************** System Initialize
     // ********************************************

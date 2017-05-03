@@ -56,19 +56,19 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
 
     switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_shoe->GetMaterialSurface()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_shoe->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_shoe->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_shoe->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_shoe->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_shoe->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_shoe->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_shoe->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_shoe->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_shoe->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_shoe->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_shoe->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_shoe->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 
@@ -93,36 +93,36 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Set contact material properties.
     switch (m_connector_L->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_connector_L->GetMaterialSurface()->SetFriction(m_friction);
-            m_connector_L->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_connector_L->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_connector_L->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_connector_L->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_connector_L->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_connector_L->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_connector_L->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_connector_L->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_connector_L->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_connector_L->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_connector_L->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_connector_L->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_connector_L->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_connector_L->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_connector_L->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_connector_L->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_connector_L->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_connector_L->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_connector_L->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 
     switch (m_connector_R->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_connector_R->GetMaterialSurface()->SetFriction(m_friction);
-            m_connector_R->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_connector_R->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_connector_R->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_connector_R->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_connector_R->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_connector_R->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_connector_R->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_connector_R->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_connector_R->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_connector_R->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_connector_R->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_connector_R->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_connector_R->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_connector_R->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_connector_R->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_connector_R->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_connector_R->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_connector_R->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_connector_R->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }

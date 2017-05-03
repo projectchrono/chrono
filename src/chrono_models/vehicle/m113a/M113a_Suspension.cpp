@@ -41,7 +41,7 @@ const double M113a_Suspension::m_torsion_upperstop = 47.59 / 180.0 * CH_C_PI;
 // -----------------------------------------------------------------------------
 // M113 spring functor class - implements a (non)linear rotational spring
 // -----------------------------------------------------------------------------
-class M113a_SpringTorque : public ChRotSpringTorqueCallback {
+class M113a_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
 public:
     M113a_SpringTorque(double k, double c, double t, double kstop, double lowerstop, double upperstop) 
         : m_k(k), m_c(c), m_t(t), m_kstop(kstop), m_lowerstop(lowerstop), m_upperstop(upperstop) {}
@@ -72,7 +72,7 @@ private:
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113a_ShockForce : public ChSpringForceCallback {
+class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113a_ShockForce(){}
 

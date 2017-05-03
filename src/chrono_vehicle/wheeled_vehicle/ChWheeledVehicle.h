@@ -53,7 +53,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
-    ChWheeledVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+    ChWheeledVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChVehicle(contact_method) {}
 
     /// Construct a vehicle system using the specified ChSystem.

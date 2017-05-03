@@ -50,7 +50,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// Construct a vehicle system with a default ChSystem.
     ChTrackedVehicle(
         const std::string& name,                                                          ///< [in] name of the system
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
+        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
         );
 
     /// Construct a vehicle system using the specified ChSystem.

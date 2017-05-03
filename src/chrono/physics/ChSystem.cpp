@@ -17,8 +17,7 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
-#include "chrono/physics/ChContactContainerDVI.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
@@ -185,10 +184,7 @@ class IteratorAllPhysics {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSystem)
-
-ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
+ChSystem::ChSystem()
     : ChAssembly(),
       end_time(1),
       step(0.04),
@@ -202,7 +198,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
-      collisionpoint_callback(NULL),
       use_sleeping(false),
       G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
@@ -217,28 +212,12 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
     // Set default number of threads to be equal to number of available cores
     parallel_thread_number = CHOMPfunctions::GetNumProcs();
 
-    // Set default contact container
-    if (init_sys) {
-        contact_container = std::make_shared<ChContactContainerDVI>();
-        contact_container->SetSystem(this);
-    }
-
-    // Set default collision engine
-    if (init_sys) {
-        collision_system = std::make_shared<ChCollisionSystemBullet>(max_objects, scene_size);
-    }
-
     // Set default collision envelope and margin.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
     // Set default timestepper.
     timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
-
-    // Set default solver
-    if (init_sys) {
-        SetSolverType(ChSolver::Type::SYMMSOR);
-    }
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
@@ -269,7 +248,6 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     ncontacts = other.ncontacts;
 
     collision_callbacks = other.collision_callbacks;
-    collisionpoint_callback = other.collisionpoint_callback;
 
     last_err = other.last_err;
 
@@ -311,9 +289,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
 
     descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
-
-    contact_container = std::make_shared<ChContactContainerDVI>();
-    contact_container->SetSystem(this);
 
     switch (type) {
         case ChSolver::Type::SOR:
@@ -461,7 +436,7 @@ void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     solver_stab = newsolver;
 }
 
-void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainerBase> container) {
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
     assert(container);
     contact_container = container;
     contact_container->SetSystem(this);
@@ -657,12 +632,11 @@ bool ChSystem::ManageSleepingBodies() {
 
     // Make this class for iterating through contacts
 
-    class _wakeup_reporter_class : public ChReportContactCallback {
+    class _wakeup_reporter_class : public ChContactContainer::ReportContactCallback {
       public:
         // Callback, used to report contact points already added to the container.
-        // This must be implemented by a child class of ChReportContactCallback.
         // If returns false, the contact scanning will be stopped.
-        virtual bool ReportContactCallback(
+        virtual bool OnReportContact(
             const ChVector<>& pA,             ///< get contact pA
             const ChVector<>& pB,             ///< get contact pB
             const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
@@ -1394,18 +1368,6 @@ void ChSystem::SynchronizeLastCollPositions() {
     }
 }
 
-class SystemAddCollisionPointCallback : public ChAddContactCallback {
-  public:
-    ChSystem* client_system;
-    virtual void ContactCallback(
-        const collision::ChCollisionInfo& mcontactinfo,  ///< pass info about contact (cannot change it)
-        ChMaterialCouple& material                       ///< you can modify this!
-        ) {
-        if (client_system->collisionpoint_callback)
-            client_system->collisionpoint_callback->ContactCallback(mcontactinfo, material);
-    }
-};
-
 double ChSystem::ComputeCollisions() {
     double mretC = 0.0;
 
@@ -1414,19 +1376,7 @@ double ChSystem::ComputeCollisions() {
     // Update all positions of collision models: delegate this to the ChAssembly
     SyncCollisionModels();
 
-    // Prepare the callback
-
-    // In case there is some user callback for each added point..
-    SystemAddCollisionPointCallback mpointcallback;
-    if (collisionpoint_callback) {
-        mpointcallback.client_system = this;
-        contact_container->SetAddContactCallback(&mpointcallback);
-    } else {
-        contact_container->SetAddContactCallback(0);
-    }
-
-    // !!! Perform the collision detection ( broadphase and narrowphase ) !!!
-
+    // Perform the collision detection ( broadphase and narrowphase )
     collision_system->Run();
 
     // Report and store contacts and/or proximities, if there are some
@@ -1436,18 +1386,19 @@ double ChSystem::ComputeCollisions() {
     collision_system->ReportContacts(contact_container.get());
 
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainerBase>(otherphysicslist[ip])) {
+        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
             collision_system->ReportContacts(mcontactcontainer.get());
         }
 
-        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainerBase>(otherphysicslist[ip])) {
+        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
             collision_system->ReportProximities(mproximitycontainer.get());
         }
     }
 
-    // If some other collision engine could add further ChLinkContact into the list..
+    // Invoke the custom collision callbacks (if any). These can potentially add
+    // additional contacts to the contact container.
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
-        collision_callbacks[ic]->PerformCustomCollision(this);
+        collision_callbacks[ic]->OnCustomCollision(this);
 
     // Count the contacts of body-body type.
     ncontacts = contact_container->GetNcontacts();

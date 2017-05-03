@@ -18,7 +18,7 @@
 // The global reference frame has Z up.
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 
@@ -45,7 +45,7 @@ void AddMixture(ChSystem* sys) {
 // Create the system
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    ChSystem msystem;
+    ChSystemNSC msystem;
 
     AddMixture(&msystem);
 

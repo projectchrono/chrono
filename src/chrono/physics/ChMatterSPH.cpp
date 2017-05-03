@@ -117,7 +117,7 @@ void ChNodeSPH::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChNodeSPH::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChNodeSPH::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -210,7 +210,7 @@ void ChContinuumSPH::ArchiveIN(ChArchiveIn& marchive) {
 CH_FACTORY_REGISTER(ChMatterSPH)
 
 ChMatterSPH::ChMatterSPH() : do_collide(false) {
-    matsurface = std::make_shared<ChMaterialSurface>();
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterSPH::ChMatterSPH(const ChMatterSPH& other) : ChIndexedNodes(other) {

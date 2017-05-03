@@ -14,8 +14,7 @@
 //     - loading an Abaqus tetahedron mesh
 //     - apply a load to the mesh using Chrono::Parallel
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadBodyMesh.h"
@@ -95,7 +94,7 @@ int main(int argc, char* argv[]) {
   double tire_w0 = tire_vel_z0/tire_rad;
 
   // Create a Chrono::Engine physical system
-  ChSystemDEM my_system;
+  ChSystemSMC my_system;
 #ifndef CHRONO_OPENGL
   // Create the Irrlicht visualization (open the Irrlicht device,
   // bind a simple user interface, etc. etc.)
@@ -118,7 +117,7 @@ int main(int argc, char* argv[]) {
   // Create the surface material, containing information
   // about friction etc.
 
-  auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+  auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
   mysurfmaterial->SetYoungModulus(10e4);
   mysurfmaterial->SetFriction(0.3f);
   mysurfmaterial->SetRestitution(0.2f);
@@ -252,7 +251,7 @@ int main(int argc, char* argv[]) {
 #endif
 
   // BEGIN PARALLEL SYSTEM INITIALIZATION
-  ChSystemParallelDVI* systemG = new ChSystemParallelDVI();
+  ChSystemParallelNSC* systemG = new ChSystemParallelNSC();
 
   // Set gravitational acceleration
   systemG->Set_G_acc(my_system.Get_G_acc());
@@ -272,7 +271,7 @@ int main(int argc, char* argv[]) {
   systemG->GetSettings()->collision.collision_envelope = 0.01;
   systemG->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-  auto triMat = std::make_shared<ChMaterialSurface>();
+  auto triMat = std::make_shared<ChMaterialSurfaceNSC>();
   triMat->SetFriction(0.4f);
 
   // Create the triangles for the tire geometry

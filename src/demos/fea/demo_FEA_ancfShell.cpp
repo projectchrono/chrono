@@ -18,7 +18,7 @@
 
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -35,7 +35,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)

@@ -12,39 +12,17 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CHLINKSPRINGCB_H
-#define CHLINKSPRINGCB_H
+#ifndef CH_LINK_SPRING_CB_H
+#define CH_LINK_SPRING_CB_H
 
 #include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-/// Base callback function for implementing a general spring-damper force
-/// A derived class must implement the virtual operator().
-
-class ChSpringForceCallback {
-  public:
-    virtual ~ChSpringForceCallback() {}
-
-    virtual double operator()(double time,         ///< current time
-                              double rest_length,  ///< undeformed length
-                              double length,       ///< current length
-                              double vel           ///< current velocity (positive when extending)
-                              ) = 0;
-};
-
-/// Class for spring-damper systems with the force specified through a
-/// callback object.
-
+/// Class for spring-damper systems with the force specified through a functor object.
 class ChApi ChLinkSpringCB : public ChLinkMarkers {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkSpringCB)
-
-  protected:
-    ChSpringForceCallback* m_force_fun;  ///< functor for force calculation
-    double m_rest_length;                ///< undeform length
-    double m_force;                      ///< resulting force in dist. coord
 
   public:
     ChLinkSpringCB();
@@ -55,14 +33,30 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
     virtual ChLinkSpringCB* Clone() const override { return new ChLinkSpringCB(*this); }
 
     // data fetch/store
-    double Get_SpringRestLength() const { return m_rest_length; }
-    double Get_SpringDeform() const { return dist - m_rest_length; }
-    double Get_SpringLength() const { return dist; }
-    double Get_SpringVelocity() const { return dist_dt; }
-    double Get_SpringReact() const { return m_force; }
+    double GetSpringRestLength() const { return m_rest_length; }
+    double GetSpringDeform() const { return dist - m_rest_length; }
+    double GetSpringLength() const { return dist; }
+    double GetSpringVelocity() const { return dist_dt; }
+    double GetSpringReact() const { return m_force; }
 
-    void Set_SpringRestLength(double len) { m_rest_length = len; }
-    void Set_SpringCallback(ChSpringForceCallback* force) { m_force_fun = force; }
+    void SetSpringRestLength(double len) { m_rest_length = len; }
+
+    /// Class to be used as a functor interface for calculating the general spring-damper force.
+    /// A derived class must implement the virtual operator().
+    class ForceFunctor {
+      public:
+        virtual ~ForceFunctor() {}
+
+        /// Calculate and return the general spring-damper force at the specified configuration.
+        virtual double operator()(double time,         ///< current time
+                                  double rest_length,  ///< undeformed length
+                                  double length,       ///< current length
+                                  double vel           ///< current velocity (positive when extending)
+                                  ) = 0;
+    };
+
+    /// Specify the functor object for calculating the force. 
+    void RegisterForceFunctor(ForceFunctor* functor) { m_force_fun = functor; }
 
     /// Specialized initialization for springs, given the two bodies to be connected,
     /// the positions of the two anchor endpoints of the spring (each expressed
@@ -105,9 +99,14 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    ForceFunctor* m_force_fun;  ///< functor for force calculation
+    double m_rest_length;       ///< undeform length
+    double m_force;             ///< resulting force in dist. coord
 };
 
-CH_CLASS_VERSION(ChLinkSpringCB,0)
+CH_CLASS_VERSION(ChLinkSpringCB, 0)
 
 }  // end namespace chrono
 

@@ -32,7 +32,7 @@ class CH_MODELS_API M113_Vehicle : public ChTrackedVehicle {
   public:
     M113_Vehicle(bool fixed,
                  TrackShoeType shoe_type,
-                 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     M113_Vehicle(bool fixed,

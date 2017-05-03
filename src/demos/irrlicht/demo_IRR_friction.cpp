@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -40,7 +40,7 @@ using namespace irr::gui;
 int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
                                                               true);             // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-7, mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->GetMaterialSurface()->SetFriction(0.4f);
+        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         msphereBody->AddAsset(textureasset);  // assets can be shared
 
         // Set initial speed: rolling in horizontal direction,
@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         msphereBody->SetPos_dt(ChVector<>(initial_linspeed, 0, 0));
 
         // Set a non zero value of rolling friction to have a rolling resisting torque:
-        msphereBody->GetMaterialSurface()->SetRollingFriction(((float)bi / 10) * 0.05f);
+        msphereBody->GetMaterialSurfaceNSC()->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         // Add to the system
         mphysicalSystem.Add(msphereBody);
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
             true);             // visualization?
         // Set some properties
         msphereBody->SetPos(ChVector<>(-8, 1 + mradius - 0.5, -5 + bi * mradius * 2.5));
-        msphereBody->GetMaterialSurface()->SetFriction(0.4f);
+        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         msphereBody->AddAsset(textureasset);  // assets can be shared
 
         // Set initial speed: spinning in vertical direction
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
         // Set a non zero value of spinning friction that brakes the spinning on vertical axis
         // of the contact:
-        msphereBody->GetMaterialSurface()->SetSpinningFriction(((float)bi / 10) * 0.02f);
+        msphereBody->GetMaterialSurfaceNSC()->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         // Add to the system
         mphysicalSystem.Add(msphereBody);
@@ -128,9 +128,9 @@ int main(int argc, char* argv[]) {
                                                       true);      // visualization?
     mfloorBody->SetPos(ChVector<>(0, -1, 0));
     mfloorBody->SetBodyFixed(true);
-    mfloorBody->GetMaterialSurface()->SetRollingFriction(
+    mfloorBody->GetMaterialSurfaceNSC()->SetRollingFriction(
         1);  // the min. of the two coeff. of the two contact surfaces will be used
-    mfloorBody->GetMaterialSurface()->SetSpinningFriction(
+    mfloorBody->GetMaterialSurfaceNSC()->SetSpinningFriction(
         1);  // the min. of the two coeff. of the two contact surfaces will be used
 
     mfloorBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("blu.png")));

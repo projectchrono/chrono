@@ -19,11 +19,10 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/physics/ChMaterialCouple.h"
 
 namespace chrono {
 
-class ChContactContainerBase;
+class ChContactContainer;
 
 /// Base class for contact between two generic ChContactable objects.
 /// T1 and T2 are of ChContactable sub classes.
@@ -35,7 +34,7 @@ class ChContactTuple {
     typedef typename Tb::type_variable_tuple_carrier typecarr_b;
 
   protected:
-    ChContactContainerBase* container;  ///< associated contact container
+    ChContactContainer* container;  ///< associated contact container
 
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
@@ -55,7 +54,7 @@ class ChContactTuple {
 
     ChContactTuple() {}
 
-    ChContactTuple(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactTuple(ChContactContainer* mcontainer,      ///< contact container
                    Ta* mobjA,                               ///< ChContactable object A
                    Tb* mobjB,                               ///< ChContactable object B
                    const collision::ChCollisionInfo& cinfo  ///< data for the contact pair

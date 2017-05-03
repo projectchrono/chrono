@@ -18,7 +18,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
 #include "chrono/assets/ChTexture.h"
@@ -41,7 +41,7 @@ using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -132,10 +132,12 @@ int main(int argc, char* argv[]) {
     mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
-    class MyCreator_boxes : public ChCallbackPostCreation {
+    class MyCreator_boxes : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
@@ -143,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_boxes* callback_boxes = new MyCreator_boxes;
-    mcreator_boxes->SetCallbackPostCreation(callback_boxes);
+    mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
     // Finally, tell to the emitter that it must use the 'mixer' above:
     emitter.SetParticleCreator(mcreator_boxes);
@@ -152,10 +154,12 @@ int main(int argc, char* argv[]) {
     //     A callback executed at each particle creation can be attached to the emitter.
     //     For example, we need that new particles will be bound to Irrlicht visualization:
 
-    // a- define a class that implement your custom PostCreation method...
-    class MyCreatorForAll : public ChCallbackPostCreation {
+    // a- define a class that implement your custom OnAddBody method...
+    class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Enable Irrlicht visualization for all particles
             airrlicht_application->AssetBind(mbody);
             airrlicht_application->AssetUpdate(mbody);
@@ -170,7 +174,7 @@ int main(int argc, char* argv[]) {
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
-    emitter.SetCallbackPostCreation(mcreation_callback);
+    emitter.RegisterAddBodyCallback(mcreation_callback);
 
     // Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)
     // Otherwise use application.AssetBind(myitem); on a per-item basis.

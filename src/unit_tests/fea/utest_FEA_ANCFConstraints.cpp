@@ -40,7 +40,7 @@
 #include <cmath>
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
@@ -91,7 +91,7 @@ utils::Data m_data;
 
 // ========================================================================
 
-void AddBodies(ChSystem& my_system) {
+void AddBodies(ChSystemNSC& my_system) {
     if (!include_bodies)
         return;
 
@@ -132,7 +132,7 @@ void AddBodies(ChSystem& my_system) {
 
 // ========================================================================
 
-void AddMesh(ChSystem& my_system) {
+void AddMesh(ChSystemNSC& my_system) {
     if (!include_mesh)
         return;
 
@@ -231,7 +231,7 @@ void AddMesh(ChSystem& my_system) {
 
 // ========================================================================
 
-void AddConstraints(ChSystem& my_system) {
+void AddConstraints(ChSystemNSC& my_system) {
     if (include_bodies && include_joints) {
         // Weld body_2 to ground body.
         my_link_12 = std::make_shared<ChLinkLockLock>();
@@ -262,7 +262,7 @@ void AddConstraints(ChSystem& my_system) {
 
 // ========================================================================
 
-void StoreData(ChSystem& my_system,
+void StoreData(ChSystemNSC& my_system,
                utils::CSV_writer& csv,
                int it,
                utils::Data& m_data,
@@ -304,7 +304,7 @@ int main(int argc, char* argv[]) {
     include_constraints = include_constraints && include_bodies && include_mesh;
 
     // Definition of the model
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 

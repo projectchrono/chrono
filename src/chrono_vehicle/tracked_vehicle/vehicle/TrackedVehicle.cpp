@@ -150,7 +150,7 @@ void TrackedVehicle::LoadDriveline(const std::string& filename) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TrackedVehicle::TrackedVehicle(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
+TrackedVehicle::TrackedVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
     : ChTrackedVehicle("", contact_method) {
     Create(filename);
 }

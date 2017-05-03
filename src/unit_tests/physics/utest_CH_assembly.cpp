@@ -22,7 +22,7 @@
 #include <iostream>
 #include <cmath>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 using namespace chrono;
@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
     ChQuaternion<> jointRot = Q_from_AngX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0.0, 0.0, -g));
 
     // Integrator settings

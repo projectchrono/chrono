@@ -32,7 +32,7 @@ using namespace chrono::collision;
 // -----------------------------------------------------------------------------
 // Create a parallel system of specified type and set solver options
 // -----------------------------------------------------------------------------
-ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
+ChSystemParallel* CreateSystem(ChMaterialSurface::ContactMethod cm) {
   // Settings
   int threads = 1;
   bool thread_tuning = false;
@@ -53,11 +53,11 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   ChSystemParallel* system;
 
   switch (cm) {
-      case ChMaterialSurfaceBase::DEM:
-          system = new ChSystemParallelDEM();
+      case ChMaterialSurface::SMC:
+          system = new ChSystemParallelSMC();
           break;
-      case ChMaterialSurfaceBase::DVI:
-          system = new ChSystemParallelDVI();
+      case ChMaterialSurface::NSC:
+          system = new ChSystemParallelNSC();
           break;
   }
 
@@ -72,13 +72,13 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
   system->GetSettings()->solver.clamp_bilaterals = clamp_bilaterals;
   system->GetSettings()->solver.bilateral_clamp_speed = bilateral_clamp_speed;
 
-  if (cm == ChMaterialSurfaceBase::DVI) {
-    ChSystemParallelDVI* systemDVI = static_cast<ChSystemParallelDVI*>(system);
-    systemDVI->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
-    systemDVI->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
-    systemDVI->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
-    systemDVI->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
-    systemDVI->ChangeSolverType(SolverType::APGD);
+  if (cm == ChMaterialSurface::NSC) {
+    ChSystemParallelNSC* systemNSC = static_cast<ChSystemParallelNSC*>(system);
+    systemNSC->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
+    systemNSC->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
+    systemNSC->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
+    systemNSC->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
+    systemNSC->ChangeSolverType(SolverType::APGD);
   }
 
   return system;
@@ -102,7 +102,7 @@ ChSystemParallel* CreateSystem(ChMaterialSurfaceBase::ContactMethod cm) {
 //    Tr2 = J2 * acc2
 //    Tr1 = -r * Tr2
 // -----------------------------------------------------------------------------
-bool TestShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
+bool TestShaftShaft(const char* test_name, ChMaterialSurface::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Parameters
@@ -216,7 +216,7 @@ bool TestShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod 
 //         Ta   <>---[ bs ]---||---[ t ]---*
 //
 // -----------------------------------------------------------------------------
-bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
+bool TestShaftBody(const char* test_name, ChMaterialSurface::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
@@ -329,7 +329,7 @@ bool TestShaftBody(const char* test_name, ChMaterialSurfaceBase::ContactMethod c
 //  Ta  ||---[ c ]---||
 //
 // -----------------------------------------------------------------------------
-bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
+bool TestClutch(const char* test_name, ChMaterialSurface::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
@@ -399,7 +399,7 @@ bool TestClutch(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool TestShaftShaftShaft(const char* test_name, ChMaterialSurfaceBase::ContactMethod cm) {
+bool TestShaftShaftShaft(const char* test_name, ChMaterialSurface::ContactMethod cm) {
   std::cout << test_name << std::endl;
 
   // Create the system
@@ -495,20 +495,20 @@ int main(int argc, char* argv[]) {
   bool test_passed = true;
 
   // Test shaft - shaft connection
-  test_passed &= TestShaftShaft("shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
-  test_passed &= TestShaftShaft("shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
+  test_passed &= TestShaftShaft("shaft-shaft (SMC)", ChMaterialSurface::SMC);
+  test_passed &= TestShaftShaft("shaft-shaft (NSC)", ChMaterialSurface::NSC);
 
   // Test shaft - body connection
-  test_passed &= TestShaftBody("shaft-body (DEM)", ChMaterialSurfaceBase::DEM);
-  test_passed &= TestShaftBody("shaft-body (DVI)", ChMaterialSurfaceBase::DVI);
+  test_passed &= TestShaftBody("shaft-body (SMC)", ChMaterialSurface::SMC);
+  test_passed &= TestShaftBody("shaft-body (NSC)", ChMaterialSurface::NSC);
 
   // Test clutch between shafts
-  ////test_passed &= TestClutch("clutch (DEM)", ChMaterialSurfaceBase::DEM);
-  ////test_passed &= TestClutch("clutch (DVI)", ChMaterialSurfaceBase::DVI);
+  ////test_passed &= TestClutch("clutch (SMC)", ChMaterialSurface::SMC);
+  ////test_passed &= TestClutch("clutch (NSC)", ChMaterialSurface::NSC);
 
   // Test shaft - shaft - shaft connection
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DEM)", ChMaterialSurfaceBase::DEM);
-  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (DVI)", ChMaterialSurfaceBase::DVI);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (SMC)", ChMaterialSurface::SMC);
+  ////test_passed &= TestShaftShaftShaft("shaft-shaft-shaft (NSC)", ChMaterialSurface::NSC);
 
   // Return 0 if all tests passed and 1 otherwise
   return !test_passed;

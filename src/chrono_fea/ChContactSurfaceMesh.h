@@ -209,7 +209,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
         //***TODO***!!!!!!!!!!!!!!!!!!!!
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
@@ -218,7 +218,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -503,7 +503,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
         //***TODO***!!!!!!!!!!!!!!!!!!!!
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
@@ -512,7 +512,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;

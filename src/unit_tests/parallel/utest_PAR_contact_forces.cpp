@@ -52,8 +52,8 @@ double rtol = 1e-3;  // validation relative error
 // ---------------------------
 
 bool use_mat_properties = false;
-ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
-ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::OneStep;
+ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
+ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;
@@ -89,15 +89,15 @@ double bin_length = 20;
 double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
+bool test_computecontact(ChMaterialSurface::ContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
 
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurfaceBase::DEM);
-    passed &= test_computecontact(ChMaterialSurfaceBase::DVI);
+    passed &= test_computecontact(ChMaterialSurface::SMC);
+    passed &= test_computecontact(ChMaterialSurface::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -105,25 +105,25 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
+bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Create system and contact material.
     char title[100];
     ChSystemParallel* system;
-    std::shared_ptr<ChMaterialSurfaceBase> material;
+    std::shared_ptr<ChMaterialSurface> material;
     double time_step;
 
     switch (method) {
-        case ChMaterialSurfaceBase::DEM: {
+        case ChMaterialSurface::SMC: {
             std::cout << "Using PENALTY method." << std::endl;
-            sprintf(title, "Contact Force test (DEM)");
+            sprintf(title, "Contact Force test (SMC)");
 
-            ChSystemParallelDEM* sys = new ChSystemParallelDEM;
+            ChSystemParallelSMC* sys = new ChSystemParallelSMC;
             sys->GetSettings()->solver.contact_force_model = force_model;
             sys->GetSettings()->solver.tangential_displ_mode = tdispl_model;
             sys->GetSettings()->solver.use_material_properties = use_mat_properties;
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -138,11 +138,11 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurfaceBase::DVI: {
+        case ChMaterialSurface::NSC: {
             std::cout << "Using COMPLEMENTARITY method." << std::endl;
-            sprintf(title, "Contact Force test (DVI)");
+            sprintf(title, "Contact Force test (NSC)");
 
-            ChSystemParallelDVI* sys = new ChSystemParallelDVI;
+            ChSystemParallelNSC* sys = new ChSystemParallelNSC;
             sys->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
             sys->GetSettings()->solver.max_iteration_normal = 0;
             sys->GetSettings()->solver.max_iteration_sliding = 100;
@@ -150,7 +150,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
             sys->ChangeSolverType(SolverType::APGD);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurface>();
+            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;

@@ -152,11 +152,11 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override;
 
-    /// Used by some DEM code
+    /// Used by some SMC code
     virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -203,7 +203,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     std::shared_ptr<ChContinuumElastoplastic> material;   ///< continuum material
     double viscosity;                                     ///< viscosity
     bool do_collide;                                      ///< flag indicating whether or not nodes collide
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;    ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;    ///< data for surface contact and impact
 
   public:
     /// Build a cluster of nodes for Meshless and meshless FEA.
@@ -243,10 +243,10 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     void AddNode(ChVector<double> initial_state);
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS

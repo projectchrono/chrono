@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/assets/ChPointPointDrawing.h"
 
@@ -30,7 +30,7 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
 
     // Create the ground body
     // ----------------------

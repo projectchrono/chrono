@@ -18,7 +18,7 @@
 // The vehicle model uses the utility class ChWheeledVehicleAssembly and is
 // based on JSON specification files from the Chrono data directory.
 //
-// Contact uses the DEM-P (penalty) formulation.
+// Contact uses the SMC (penalty) formulation.
 //
 // The global reference frame has Z up.
 // All units SI.
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
+    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -216,9 +216,9 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------------
     for (int i = 0; i < 4; i++) {
         auto wheelBody = my_hmmwv.GetVehicle().GetWheelBody(i);
-        wheelBody->GetMaterialSurfaceDEM()->SetFriction(mu_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetYoungModulus(Y_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetRestitution(cr_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
 
         CreateLuggedGeometry(wheelBody);
     }

@@ -157,14 +157,14 @@ bool ChTrackContactManager::InContact(TrackedCollisionFlag::Enum part) const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-bool ChTrackContactManager::ReportContactCallback(const ChVector<>& pA,
-                                                  const ChVector<>& pB,
-                                                  const ChMatrix33<>& plane_coord,
-                                                  const double& distance,
-                                                  const ChVector<>& react_forces,
-                                                  const ChVector<>& react_torques,
-                                                  ChContactable* modA,
-                                                  ChContactable* modB) {
+bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
+                                            const ChVector<>& pB,
+                                            const ChMatrix33<>& plane_coord,
+                                            const double& distance,
+                                            const ChVector<>& react_forces,
+                                            const ChVector<>& react_torques,
+                                            ChContactable* modA,
+                                            ChContactable* modB) {
     ChTrackContactInfo info;
 
     // Ignore contacts with zero force.

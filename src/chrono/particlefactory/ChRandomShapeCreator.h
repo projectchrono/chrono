@@ -30,15 +30,6 @@ namespace particlefactory {
 // Forward reference
 class ChRandomShapeCreator;
 
-/// Inherit from this class and pass an object to the PostCreation()
-/// functions of particle creator, to have the callback executed
-/// per each created particle. Ex. use this to add optional assets, custom
-/// materials or settings.
-class ChCallbackPostCreation {
-  public:
-    /// Implement this function if you want to provide the post creation callback.
-    virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) = 0;
-};
 
 /// BASE class for generators of random ChBody shapes
 class ChRandomShapeCreator {
@@ -62,12 +53,25 @@ class ChRandomShapeCreator {
         std::shared_ptr<ChBody> mbody = this->RandomGenerate(mcoords);
 
         if (callback_post_creation)
-            callback_post_creation->PostCreation(mbody, mcoords, *this);
+            callback_post_creation->OnAddBody(mbody, mcoords, *this);
         return mbody;
     }
+
+    /// Class to be used as a callback interface for some user-defined action to be
+    /// taken each time a body is generated and added to the system.
+    class AddBodyCallback {
+      public:
+        virtual ~AddBodyCallback() {}
+
+        /// Callback used to process bodies as they are created and added to the system.
+        /// A derived class must implement this function. It can be used to modify the
+        /// specified body (e.g., add optional assets, adjust material properties, etc)
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) = 0;
+    };
+
     /// Set the callback function to execute at each
     /// each particle generation
-    void SetCallbackPostCreation(ChCallbackPostCreation* mc) { callback_post_creation = mc; }
+    void RegisterAddBodyCallback(AddBodyCallback* callback) { callback_post_creation = callback; }
 
     /// Set if the created particles must include the collision
     /// shape(s). Note that this is ON by default. Switching off will
@@ -80,7 +84,7 @@ class ChRandomShapeCreator {
     void SetAddVisualizationAsset(bool addvisual) { this->add_visualization_asset = addvisual; }
 
   protected:
-    ChCallbackPostCreation* callback_post_creation;
+      AddBodyCallback* callback_post_creation;
     bool add_collision_shape;
     bool add_visualization_asset;
 };

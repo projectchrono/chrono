@@ -17,7 +17,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/particlefactory/ChParticleEmitter.h"
 #include "chrono/particlefactory/ChParticleRemover.h"
 #include "chrono/assets/ChTexture.h"
@@ -50,7 +50,7 @@ using namespace irr::gui;
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -156,10 +156,12 @@ int main(int argc, char* argv[]) {
     mcreator_spheres->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
-    class MyCreator_spheres : public ChCallbackPostCreation {
+    class MyCreator_spheres : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
@@ -171,7 +173,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_spheres* callback_spheres = new MyCreator_spheres;
-    mcreator_spheres->SetCallbackPostCreation(callback_spheres);
+    mcreator_spheres->RegisterAddBodyCallback(callback_spheres);
 
 
     // B)
@@ -184,10 +186,12 @@ int main(int argc, char* argv[]) {
     mcreator_boxes->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1000));
 
     // Optional: define a callback to be exectuted at each creation of a box particle:
-    class MyCreator_plastic : public ChCallbackPostCreation {
+    class MyCreator_plastic : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             // Here do a quick randomization of POV colors, without using the ChRandomShapeCreatorFromFamilies
             auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
@@ -203,7 +207,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_plastic* callback_boxes = new MyCreator_plastic;
-    mcreator_boxes->SetCallbackPostCreation(callback_boxes);
+    mcreator_boxes->RegisterAddBodyCallback(callback_boxes);
 
 
     // C)  
@@ -214,10 +218,12 @@ int main(int argc, char* argv[]) {
     mcreator_hulls->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
-    class MyCreator_hulls : public ChCallbackPostCreation {
+    class MyCreator_hulls : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             auto mvisual = std::make_shared<ChColorAsset>();
             mvisual->SetColor(ChColor(0.4f, 0.4f, 0.4f));
@@ -229,7 +235,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_hulls* callback_hulls = new MyCreator_hulls;
-    mcreator_hulls->SetCallbackPostCreation(callback_hulls);
+    mcreator_hulls->RegisterAddBodyCallback(callback_hulls);
 
 
     // D)  
@@ -243,10 +249,12 @@ int main(int argc, char* argv[]) {
     mcreator_shavings->SetDensityDistribution(std::make_shared<ChConstantDistribution>(1600));
 
     // Optional: define a callback to be exectuted at each creation of a sphere particle:
-    class MyCreator_shavings : public ChCallbackPostCreation {
+    class MyCreator_shavings : public ChRandomShapeCreator::AddBodyCallback {
         // Here do custom stuff on the just-created particle:
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Ex.: attach some optional assets, ex for visualization
             float acolscale = (float)ChRandom();
             auto mvisual = std::make_shared<ChColorAsset>();
@@ -255,7 +263,7 @@ int main(int argc, char* argv[]) {
         }
     };
     MyCreator_shavings* callback_shavings = new MyCreator_shavings;
-    mcreator_shavings->SetCallbackPostCreation(callback_shavings);
+    mcreator_shavings->RegisterAddBodyCallback(callback_shavings);
 
 
     // Create a parent ChRandomShapeCreator that 'mixes' some generators above,
@@ -279,10 +287,12 @@ int main(int argc, char* argv[]) {
     //     A callback executed at each particle creation can be attached to the emitter.
     //     For example, we need that new particles will be bound to Irrlicht visualization:
 
-    // a- define a class that implement your custom PostCreation method...
-    class MyCreatorForAll : public ChCallbackPostCreation {
+    // a- define a class that implement your custom OnAddBody method...
+    class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
       public:
-        virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) {
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody,
+                               ChCoordsys<> mcoords,
+                               ChRandomShapeCreator& mcreator) override {
             // Enable Irrlicht visualization for all particles
             airrlicht_application->AssetBind(mbody);
             airrlicht_application->AssetUpdate(mbody);
@@ -303,7 +313,7 @@ int main(int argc, char* argv[]) {
     // c- set callback own data that he might need...
     mcreation_callback->airrlicht_application = &application;
     // d- attach the callback to the emitter!
-    emitter.SetCallbackPostCreation(mcreation_callback);
+    emitter.RegisterAddBodyCallback(mcreation_callback);
 
 
     // Use this function for adding a ChIrrNodeAsset to all already created items (ex. the floor, etc.)

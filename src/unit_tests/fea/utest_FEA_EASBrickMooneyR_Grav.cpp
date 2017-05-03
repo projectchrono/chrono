@@ -29,7 +29,7 @@
 // ====================================================================================
 
 #include "chrono/core/ChFileutils.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     }
     // Create the physical system
 
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     auto my_mesh = std::make_shared<ChMesh>();

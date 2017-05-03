@@ -26,9 +26,10 @@
 
 #include "chrono/ChConfig.h"
 #include "chrono/solver/ChSolverMINRES.h"
-#include "chrono/solver/ChSolverDEM.h"
-#include "chrono/physics/ChContactContainerDEM.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/solver/ChSolverSMC.h"
+#include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/utils/ChUtilsCreators.h"
 
 using namespace chrono;
@@ -56,8 +57,8 @@ double rtol = 1e-3;  // validation relative error
 // ---------------------------
 
 bool use_mat_properties = false;
-ChSystemDEM::ContactForceModel force_model = ChSystemDEM::Hooke;
-ChSystemDEM::TangentialDisplacementModel tdispl_model = ChSystemDEM::OneStep;
+ChSystemSMC::ContactForceModel force_model = ChSystemSMC::Hooke;
+ChSystemSMC::TangentialDisplacementModel tdispl_model = ChSystemSMC::OneStep;
 
 float young_modulus = 2e4f;
 float friction = 0.4f;
@@ -93,15 +94,15 @@ double bin_length = 20;
 double bin_thickness = 0.1;
 
 // Forward declaration
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method);
+bool test_computecontact(ChMaterialSurface::ContactMethod method);
 
 // ====================================================================================
 
 int main(int argc, char* argv[]) {
 
     bool passed = true;
-    passed &= test_computecontact(ChMaterialSurfaceBase::DEM);
-    passed &= test_computecontact(ChMaterialSurfaceBase::DVI);
+    passed &= test_computecontact(ChMaterialSurface::SMC);
+    passed &= test_computecontact(ChMaterialSurface::NSC);
 
     // Return 0 if all tests passed.
     return !passed;
@@ -109,23 +110,23 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
+bool test_computecontact(ChMaterialSurface::ContactMethod method) {
     // Create system and contact material.
     ChSystem* system;
-    std::shared_ptr<ChMaterialSurfaceBase> material;
+    std::shared_ptr<ChMaterialSurface> material;
 
     switch (method) {
-        case ChMaterialSurfaceBase::DEM: {
+        case ChMaterialSurface::SMC: {
             GetLog() << "Using PENALTY method.\n";
 
-            ChSystemDEM* sys = new ChSystemDEM;
+            ChSystemSMC* sys = new ChSystemSMC;
             sys->UseMaterialProperties(use_mat_properties);
             sys->SetContactForceModel(force_model);
             sys->SetTangentialDisplacementModel(tdispl_model);
             sys->SetStiffContact(stiff_contact);
             system = sys;
 
-            auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+            auto mat = std::make_shared<ChMaterialSurfaceSMC>();
             mat->SetYoungModulus(young_modulus);
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
@@ -138,12 +139,12 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
 
             break;
         }
-        case ChMaterialSurfaceBase::DVI: {
+        case ChMaterialSurface::NSC: {
             GetLog() << "Using COMPLEMENTARITY method.\n";
 
-            system = new ChSystem;
+            system = new ChSystemNSC;
 
-            auto mat = std::make_shared<ChMaterialSurface>();
+            auto mat = std::make_shared<ChMaterialSurfaceNSC>();
             mat->SetRestitution(restitution);
             mat->SetFriction(friction);
             material = mat;
@@ -216,7 +217,7 @@ bool test_computecontact(ChMaterialSurfaceBase::ContactMethod method) {
     // Setup integrator
     // ----------------
 
-    if (method == ChMaterialSurfaceBase::DEM) {
+    if (method == ChMaterialSurface::SMC) {
         GetLog() << "Using HHT integrator.\n";
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());

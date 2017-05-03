@@ -2,7 +2,7 @@
 # List of all Irrlicht demos
 
 SET(DEMOS
-  demo_IRR_collision
+  demo_IRR_collisionNSC
   demo_IRR_bricks
   demo_IRR_cohesion
   demo_IRR_conveyor
@@ -21,8 +21,8 @@ SET(DEMOS
   demo_IRR_convergence
   demo_IRR_assets
   demo_IRR_soilbin
-  demo_IRR_ballDEM
-  demo_IRR_collisionDEM
+  demo_IRR_ballSMC
+  demo_IRR_collisionSMC
   demo_IRR_emitter
   demo_IRR_emit_cluster
   demo_IRR_emit_processor
@@ -40,6 +40,8 @@ SET(DEMOS
   demo_IRR_plane_plane
   demo_IRR_link_bushing
   demo_IRR_prismatic_limits
+  demo_IRR_callbackNSC
+  demo_IRR_callbackSMC
 )
 
 #--------------------------------------------------------------

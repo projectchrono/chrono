@@ -20,7 +20,7 @@
 
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -69,19 +69,19 @@ void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     wheel->GetCollisionModel()->BuildModel();
 
     switch (wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            wheel->GetMaterialSurface()->SetFriction(m_friction);
-            wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }
@@ -125,7 +125,7 @@ void ChRigidTire::RemoveVisualizationAssets() {
 // Callback class to process contacts on a rigid tire.
 // Accumulate contact forces and torques on the associated wheel body.
 // Express them in the global frame, as applied to the wheel center.
-class RigidTireContactReporter : public ChReportContactCallback {
+class RigidTireContactReporter : public ChContactContainer::ReportContactCallback {
   public:
     RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
 
@@ -136,14 +136,14 @@ class RigidTireContactReporter : public ChReportContactCallback {
     const ChVector<>& GetAccumulatedTorque() const { return m_torque; }
 
   private:
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& rforce,
-                                       const ChVector<>& rtorque,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& rforce,
+                                 const ChVector<>& rtorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
         // Filter contacts that involve the tire body.
         if (modA == m_body.get() || modB == m_body.get()) {
             // Express current contact force and torque in global frame

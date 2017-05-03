@@ -56,16 +56,16 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
 
     void Create(const rapidjson::Document& d);
 
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     ChVector<> m_points[NUM_POINTS];
 

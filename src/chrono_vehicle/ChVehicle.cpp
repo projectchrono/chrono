@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -30,8 +30,9 @@ namespace vehicle {
 // Constructor for a ChVehicle using a default Chrono Chsystem.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
-    m_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
+ChVehicle::ChVehicle(ChMaterialSurface::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
+    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                              : static_cast<ChSystem*>(new ChSystemSMC);
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -41,7 +42,7 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
+        case ChMaterialSurface::NSC:
             m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
             break;
         default:

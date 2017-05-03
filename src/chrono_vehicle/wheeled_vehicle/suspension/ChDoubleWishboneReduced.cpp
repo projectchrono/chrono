@@ -131,8 +131,8 @@ void ChDoubleWishboneReduced::InitializeSide(VehicleSide side,
     m_shock[side] = std::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
-    m_shock[side]->Set_SpringRestLength(getSpringRestLength());
-    m_shock[side]->Set_SpringCallback(getShockForceCallback());
+    m_shock[side]->SetSpringRestLength(getSpringRestLength());
+    m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle.

@@ -52,19 +52,19 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetCollide(true);
 
     switch (m_shoe->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_shoe->GetMaterialSurface()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_shoe->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_shoe->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_shoe->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_shoe->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_shoe->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_shoe->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_shoe->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_shoe->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_shoe->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_shoe->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_shoe->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_shoe->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_shoe->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_shoe->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_shoe->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_shoe->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_shoe->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 

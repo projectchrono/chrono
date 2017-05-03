@@ -40,7 +40,7 @@ using namespace gui;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Set the collision margins. This is expecially important for
     // very large or very small objects! Do this before creating shapes.
@@ -113,9 +113,9 @@ int main(int argc, char* argv[]) {
         mbalance->SetWvel_par(ChVector<>(0, 5, 0));
 
         // Set no friction in all parts
-        mbalance->GetMaterialSurface()->SetFriction(0);
-        mescape_wheel->GetMaterialSurface()->SetFriction(0);
-        manchor->GetMaterialSurface()->SetFriction(0);
+        mbalance->GetMaterialSurfaceNSC()->SetFriction(0);
+        mescape_wheel->GetMaterialSurfaceNSC()->SetFriction(0);
+        manchor->GetMaterialSurfaceNSC()->SetFriction(0);
     } else
         GetLog() << "Error: cannot one or more objects from their names in the C::E system! \n\n";
 

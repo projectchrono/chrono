@@ -52,12 +52,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedFront : public ChDoubleWishboneRe
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -96,12 +96,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneReducedRear : public ChDoubleWishboneRed
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;

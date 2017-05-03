@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurfaceBase::DVI);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
     }
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));

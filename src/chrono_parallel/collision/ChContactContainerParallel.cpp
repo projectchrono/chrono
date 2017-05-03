@@ -16,7 +16,7 @@ ChContactContainerParallel::ChContactContainerParallel(ChParallelDataManager* dc
 }
 
 ChContactContainerParallel::ChContactContainerParallel(const ChContactContainerParallel& other)
-    : ChContactContainerBase(other) {
+    : ChContactContainer(other) {
     //// TODO
 }
 

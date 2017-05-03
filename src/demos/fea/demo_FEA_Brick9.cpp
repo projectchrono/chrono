@@ -27,7 +27,7 @@
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChElementShellANCF.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
@@ -66,11 +66,11 @@ int main(int argc, char* argv[]) {
 // Soil Bin case testing Drucker-Prager Cap model
 void DPCapPress() {
 	FILE* outputfile;
-	ChSystemDEM my_system;
+	ChSystemSMC my_system;
 	my_system.UseMaterialProperties(false);
-	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
 	my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
 	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -184,7 +184,7 @@ void DPCapPress() {
 		m_DPVector2(i) = (m_DPVector2(i) + 210926.0 / tan(51.7848 * 3.141592653589793 / 180.0)) / (0.5*tan(51.7848 * 3.141592653589793 / 180.0) + 1.0);
 	}
 
-	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
 	my_surfacematerial->SetKn(3200);//(10e6);
 	my_surfacematerial->SetKt(3200);//(10e6);
 	my_surfacematerial->SetGn(32);// (10e3);
@@ -395,10 +395,10 @@ void DPCapPress() {
 // Test1 Case
 void ShellBrickContact() {
     FILE* outputfile;
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
     my_system.UseMaterialProperties(false);
-    my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-    my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+    my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+    my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -520,7 +520,7 @@ void ShellBrickContact() {
     ChVector<> nuS(0.3, 0.3, 0.3);                         // Poisson ratio
     ChVector<> GS(8.0769231e9, 8.0769231e9, 8.0769231e9);  // Modulus of rigidity
     auto mat = std::make_shared<ChMaterialShellANCF>(rhoS, ES, nuS, GS);
-    std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+    std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(3e6f);
     my_surfacematerial->SetKt(3e6f);
     my_surfacematerial->SetGn(3e3f);
@@ -754,10 +754,10 @@ void ShellBrickContact() {
 // Test Case
 void SimpleBoxContact() {
     FILE* outputfile;
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
     my_system.UseMaterialProperties(false);
-    my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-    my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
+    my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+    my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -843,7 +843,7 @@ void SimpleBoxContact() {
     material->Set_E(E.x());
     // material->Set_G(G.x());
     material->Set_v(nu.x());
-    std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+    std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
     my_surfacematerial->SetGn(6e2f);
@@ -1060,11 +1060,11 @@ void SimpleBoxContact() {
 // SoilBin Dynamic
 void SoilBin() {
 	FILE* outputfile;
-	ChSystemDEM my_system;
+	ChSystemSMC my_system;
 	my_system.UseMaterialProperties(false);
-	my_system.SetAdhesionForceModel(ChSystemDEM::AdhesionForceModel::Constant);
-	//my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::PlainCoulomb);
-	my_system.SetContactForceModel(ChSystemDEM::ContactForceModel::Hooke);
+	my_system.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
+	//my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+	my_system.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
 	my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
 	// Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1153,7 +1153,7 @@ void SoilBin() {
 	material->Set_E(E.x());
 	// material->Set_G(G.x());
 	material->Set_v(nu.x());
-	std::shared_ptr<ChMaterialSurfaceDEM> my_surfacematerial(new ChMaterialSurfaceDEM);
+	std::shared_ptr<ChMaterialSurfaceSMC> my_surfacematerial(new ChMaterialSurfaceSMC);
 	my_surfacematerial->SetKn(0.2e4);//0.2e6
 	my_surfacematerial->SetKt(0.2e4);//0.2e6
 	my_surfacematerial->SetGn(0.2e2);//0.2e4
@@ -1404,7 +1404,7 @@ void SoilBin() {
 // Axial Dynamic
 void AxialDynamics() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1671,7 +1671,7 @@ void AxialDynamics() {
 // QuasiStatic
 void BendingQuasiStatic() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -1912,7 +1912,7 @@ void BendingQuasiStatic() {
 // Swinging (Bricked) Shell
 void SwingingShell() {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)

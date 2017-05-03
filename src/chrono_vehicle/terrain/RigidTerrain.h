@@ -67,7 +67,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Set contact material properties.
     /// These values are used to calculate contact material coefficients (if the containing
-    /// system is so configured and if the DEM-P contact method is being used).
+    /// system is so configured and if the SMC contact method is being used).
     /// The default values are: Y = 2e5 and nu = 0.3
     void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
                                       float poisson_ratio   ///< [in] Poisson ratio
@@ -75,7 +75,7 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
 
     /// Set contact material coefficients.
     /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the DEM-P contact method is being used).
+    /// is so configured and if the SMC contact method is being used).
     /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
     void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
                                         float gn,  ///< [in] normal contact damping
