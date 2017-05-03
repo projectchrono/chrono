@@ -55,7 +55,7 @@ class M113_SpringTorque : public ChRotSpringTorqueCallback {
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113_ShockForce : public ChSpringForceCallback {
+class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 

@@ -50,13 +50,13 @@ class CH_MODELS_API M113a_Suspension : public ChLinearDamperRWAssembly {
     virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const override { return m_spring_torqueCB; }
 
     /// Return the callback function for the translational shock force.
-    virtual ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* GetShockForceCallback() const override { return m_shock_forceCB; }
 
   private:
     VehicleSide m_side;
 
     ChRotSpringTorqueCallback* m_spring_torqueCB;
-    ChSpringForceCallback* m_shock_forceCB;
+    ChLinkSpringCB::ForceFunctor* m_shock_forceCB;
 
     static const double m_arm_mass;
     static const ChVector<> m_arm_inertia;

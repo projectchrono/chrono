@@ -115,8 +115,8 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     m_tensioner = std::make_shared<ChLinkSpringCB>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
-    m_tensioner->Set_SpringCallback(GetTensionerForceCallback());
-    m_tensioner->Set_SpringRestLength(GetTensionerFreeLength());
+    m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
+    m_tensioner->SetSpringRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 

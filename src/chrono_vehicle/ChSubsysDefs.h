@@ -126,7 +126,7 @@ typedef std::vector<TrackShoeForce> TrackShoeForces;
 // -----------------------------------------------------------------------------
 
 /// Utility class for specifying a linear translational spring force.
-class LinearSpringForce : public ChSpringForceCallback {
+class LinearSpringForce : public ChLinkSpringCB::ForceFunctor {
   public:
     LinearSpringForce(double k) : m_k(k) {}
     virtual double operator()(double time, double rest_length, double length, double vel) override {
@@ -138,7 +138,7 @@ class LinearSpringForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a linear translational damper force.
-class LinearDamperForce : public ChSpringForceCallback {
+class LinearDamperForce : public ChLinkSpringCB::ForceFunctor {
   public:
     LinearDamperForce(double c) : m_c(c) {}
     virtual double operator()(double time, double rest_length, double length, double vel) override {
@@ -150,7 +150,7 @@ class LinearDamperForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a linear translational spring-damper force.
-class LinearSpringDamperForce : public ChSpringForceCallback {
+class LinearSpringDamperForce : public ChLinkSpringCB::ForceFunctor {
   public:
     LinearSpringDamperForce(double k, double c) : m_k(k), m_c(c) {}
     virtual double operator()(double time, double rest_length, double length, double vel) override {
@@ -163,7 +163,7 @@ class LinearSpringDamperForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a linear translational spring-damper force with pre-tension.
-class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
+class LinearSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
   public:
     LinearSpringDamperActuatorForce(double k, double c, double f) : m_k(k), m_c(c), m_f(f) {}
     virtual double operator()(double time, double rest_length, double length, double vel) override {
@@ -177,7 +177,7 @@ class LinearSpringDamperActuatorForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a map translational spring force.
-class MapSpringForce : public ChSpringForceCallback {
+class MapSpringForce : public ChLinkSpringCB::ForceFunctor {
   public:
     MapSpringForce() {}
     MapSpringForce(const std::vector<std::pair<double, double>>& data) {
@@ -195,7 +195,7 @@ class MapSpringForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a map translational damper force.
-class MapDamperForce : public ChSpringForceCallback {
+class MapDamperForce : public ChLinkSpringCB::ForceFunctor {
   public:
     MapDamperForce() {}
     MapDamperForce(const std::vector<std::pair<double, double>>& data) {
@@ -213,7 +213,7 @@ class MapDamperForce : public ChSpringForceCallback {
 };
 
 /// Utility class for specifying a map translational spring-damper force with pre-tension.
-class MapSpringDamperActuatorForce : public ChSpringForceCallback {
+class MapSpringDamperActuatorForce : public ChLinkSpringCB::ForceFunctor {
   public:
     MapSpringDamperActuatorForce() {}
     MapSpringDamperActuatorForce(const std::vector<std::pair<double, double>>& dataK,

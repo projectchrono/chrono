@@ -107,9 +107,9 @@ const double Generic_DoubleWishboneRear::m_springRestLength = (511.4685 + (300 -
 // -----------------------------------------------------------------------------
 // Generic shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class Genaric_ShockForce : public ChSpringForceCallback {
+class Generic_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
-    Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc);
+    Generic_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
     virtual double operator()(double time, double rest_length, double length, double vel);
 
@@ -119,12 +119,12 @@ class Genaric_ShockForce : public ChSpringForceCallback {
     double m_MinVel;
 };
 
-Genaric_ShockForce::Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {
+Generic_ShockForce::Generic_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {
     m_MaxVel = *std::max_element(std::begin(vel), std::end(vel));
     m_MinVel = *std::min_element(std::begin(vel), std::end(vel));
 }
 
-double Genaric_ShockForce::operator()(double time, double rest_length, double length, double vel) {
+double Generic_ShockForce::operator()(double time, double rest_length, double length, double vel) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;
@@ -163,7 +163,7 @@ Generic_DoubleWishboneFront::Generic_DoubleWishboneFront(const std::string& name
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Genaric_ShockForce(vel, frc);
+    m_shockForceCB = new Generic_ShockForce(vel, frc);
 }
 
 Generic_DoubleWishboneRear::Generic_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
@@ -174,7 +174,7 @@ Generic_DoubleWishboneRear::Generic_DoubleWishboneRear(const std::string& name) 
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Genaric_ShockForce(vel, frc);
+    m_shockForceCB = new Generic_ShockForce(vel, frc);
 }
 
 // -----------------------------------------------------------------------------

@@ -95,7 +95,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_shock = std::make_shared<ChLinkSpringCB>();
         m_shock->SetNameString(m_name + "_shock");
         m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
-        m_shock->Set_SpringCallback(GetShockForceCallback());
+        m_shock->RegisterForceFunctor(GetShockForceCallback());
         chassis->GetSystem()->AddLink(m_shock);
     }
 

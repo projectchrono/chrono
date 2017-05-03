@@ -134,7 +134,7 @@ class CH_VEHICLE_API ChIdler : public ChPart {
     virtual double GetPrismaticPitchAngle() const = 0;
 
     /// Return the callback function for spring force.
-    virtual ChSpringForceCallback* GetTensionerForceCallback() const = 0;
+    virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const = 0;
 
     /// Return the free length for the tensioner spring.
     virtual double GetTensionerFreeLength() const = 0;

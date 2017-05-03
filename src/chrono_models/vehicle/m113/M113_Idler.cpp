@@ -53,7 +53,7 @@ const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class M113_TensionerForce : public ChSpringForceCallback {
+class M113_TensionerForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
 

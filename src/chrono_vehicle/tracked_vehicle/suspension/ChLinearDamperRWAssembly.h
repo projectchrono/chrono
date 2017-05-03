@@ -104,7 +104,7 @@ class CH_VEHICLE_API ChLinearDamperRWAssembly : public ChRoadWheelAssembly {
     virtual ChRotSpringTorqueCallback* GetSpringTorqueCallback() const = 0;
 
     /// Return the callback function for the translational shock force.
-    virtual ChSpringForceCallback* GetShockForceCallback() const = 0;
+    virtual ChLinkSpringCB::ForceFunctor* GetShockForceCallback() const = 0;
 
     bool m_has_shock;                                ///< specifies whether or not the suspension has a damper
     std::shared_ptr<ChBody> m_arm;                   ///< handle to the trailing arm body

@@ -72,7 +72,7 @@ private:
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113a_ShockForce : public ChSpringForceCallback {
+class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113a_ShockForce(){}
 

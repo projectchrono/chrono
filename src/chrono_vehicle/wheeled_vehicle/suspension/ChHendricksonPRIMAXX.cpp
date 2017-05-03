@@ -259,14 +259,14 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_shockAH[side] = std::make_shared<ChLinkSpringCB>();
     m_shockAH[side]->SetNameString(m_name + "_shockAH" + suffix);
     m_shockAH[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
-    m_shockAH[side]->Set_SpringCallback(getShockAHForceCallback());
+    m_shockAH[side]->RegisterForceFunctor(getShockAHForceCallback());
     chassis->GetSystem()->AddLink(m_shockAH[side]);
 
     // Create and initialize the spring/damper between lower beam and chassis
     m_shockLB[side] = std::make_shared<ChLinkSpringCB>();
     m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
     m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
-    m_shockLB[side]->Set_SpringCallback(getShockLBForceCallback());
+    m_shockLB[side]->RegisterForceFunctor(getShockLBForceCallback());
     chassis->GetSystem()->AddLink(m_shockLB[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
