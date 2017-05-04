@@ -889,19 +889,20 @@ void ChPovRay::ExportData(const std::string& filename) {
               sprintf(pathcontacts, "%s.contacts", filename.c_str());
               ChStreamOutAsciiFile data_contacts(pathcontacts);
 
-              class _reporter_class : public chrono::ChReportContactCallback {
+              class _reporter_class : public ChContactContainer::ReportContactCallback {
                 public:
-                    virtual bool ReportContactCallback(
-                                                    const ChVector<>& pA,             ///< get contact pA
-                                                    const ChVector<>& pB,             ///< get contact pB
-                                                    const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
-                                                    const double& distance,           ///< get contact distance
-                                                    const ChVector<>& react_forces,   ///< get react.forces (if already computed). In coordsystem 'plane_coord'
-                                                    const ChVector<>& react_torques,  ///< get react.torques, if rolling friction (if already computed).
-                                                    ChContactable* contactobjA,       ///< get model A (note: some containers may not support it and could be zero!)
-                                                    ChContactable* contactobjB        ///< get model B (note: some containers may not support it and could be zero!)
-                                                    )  {
-                      if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 || fabs(react_forces.z()) > 1e-8) {
+                  virtual bool OnReportContact(
+                      const ChVector<>& pA,             // contact pA
+                      const ChVector<>& pB,             // contact pB
+                      const ChMatrix33<>& plane_coord,  // contact plane coordsystem (A column 'X' is contact normal)
+                      const double& distance,           // contact distance
+                      const ChVector<>& react_forces,   // react.forces (in coordsystem 'plane_coord')
+                      const ChVector<>& react_torques,  // react.torques (if rolling friction)
+                      ChContactable* contactobjA,       // model A (note: could be nullptr)
+                      ChContactable* contactobjB        // model B (note: could be nullptr)
+                      ) override {
+                      if (fabs(react_forces.x()) > 1e-8 || fabs(react_forces.y()) > 1e-8 ||
+                          fabs(react_forces.z()) > 1e-8) {
                           ChMatrix33<> localmatr(plane_coord);
                           ChVector<> n1 = localmatr.Get_A_Xaxis();
                           ChVector<> absreac = localmatr * react_forces;

@@ -11,7 +11,7 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolver.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -63,16 +63,16 @@ void ChIrrTools::alignIrrlichtNodeToChronoCsys(scene::ISceneNode* mnode, const C
 // Draw contact points.
 // Uses the _draw_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _draw_reporter_class : public ChReportContactCallback {
+class _draw_reporter_class : public ChContactContainer::ReportContactCallback {
   public:
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& react_forces,
-                                       const ChVector<>& react_torques,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& react_forces,
+                                 const ChVector<>& react_torques,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
         ChMatrix33<>& mplanecoord = const_cast<ChMatrix33<>&>(plane_coord);
         ChVector<> v1 = pA;
         ChVector<> v2;
@@ -143,16 +143,16 @@ int ChIrrTools::drawAllContactPoints(ChSystem& mphysicalSystem,
 // Draw contact information as labels at the contact point.
 // Uses the _label_reporter_class callback class.
 // -----------------------------------------------------------------------------
-class _label_reporter_class : public ChReportContactCallback {
+class _label_reporter_class : public ChContactContainer::ReportContactCallback {
   public:
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& react_forces,
-                                       const ChVector<>& react_torques,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override {
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& react_forces,
+                                 const ChVector<>& react_torques,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)pA.x(), (irr::f32)pA.y(), (irr::f32)pA.z());
         irr::core::position2d<s32> spos =

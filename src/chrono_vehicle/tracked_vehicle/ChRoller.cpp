@@ -46,19 +46,19 @@ void ChRoller::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<
 
     // Set roller contact material properties.
     switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_wheel->GetMaterialSurface()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 

@@ -234,7 +234,7 @@ typedef struct {
 */
 
 
-void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem)
+void ChPythonEngine::ImportSolidWorksSystem(const char* solidworks_py_file, ChSystemNSC& msystem)
 {
 	std::ostringstream sstream;
 

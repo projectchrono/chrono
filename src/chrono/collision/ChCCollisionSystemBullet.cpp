@@ -14,8 +14,8 @@
 #include "chrono/collision/gimpact/GIMPACT/Bullet/btGImpactCollisionAlgorithm.h"
 #include "chrono/collision/ChCCollisionUtils.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/collision/bullet/LinearMath/btPoolAllocator.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/btCylinderShape.h"
@@ -1263,7 +1263,7 @@ void ChCollisionSystemBullet::Run() {
     }
 }
 
-void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemBullet::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
@@ -1288,17 +1288,16 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
         // Execute custom broadphase callback, if any
         bool do_narrow_contactgeneration = true;
         if (this->broad_callback)
-            do_narrow_contactgeneration = this->broad_callback->BroadCallback(icontact.modelA, icontact.modelB);
+            do_narrow_contactgeneration = this->broad_callback->OnBroadphase(icontact.modelA, icontact.modelB);
 
         if (do_narrow_contactgeneration) {
             int numContacts = contactManifold->getNumContacts();
-//GetLog() << "numContacts=" << numContacts << "\n";
+            //GetLog() << "numContacts=" << numContacts << "\n";
             for (int j = 0; j < numContacts; j++) {
                 btManifoldPoint& pt = contactManifold->getContactPoint(j);
 
-                if (pt.getDistance() <
-                    marginA + marginB)  // to discard "too far" constraints (the Bullet engine also has its threshold)
-                {
+                // Discard "too far" constraints (the Bullet engine also has its threshold)
+                if (pt.getDistance() < marginA + marginB) {
                     btVector3 ptA = pt.getPositionWorldOnA();
                     btVector3 ptB = pt.getPositionWorldOnB();
 
@@ -1319,7 +1318,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
 
                     // Execute some user custom callback, if any
                     if (this->narrow_callback)
-                        this->narrow_callback->NarrowCallback(icontact);
+                        this->narrow_callback->OnNarrowphase(icontact);
 
                     // Add to contact container
                     mcontactcontainer->AddContact(icontact);
@@ -1333,7 +1332,7 @@ void ChCollisionSystemBullet::ReportContacts(ChContactContainerBase* mcontactcon
     mcontactcontainer->EndAddContact();
 }
 
-void ChCollisionSystemBullet::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
+void ChCollisionSystemBullet::ReportProximities(ChProximityContainer* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
     /*
     int numManifolds = bt_collision_world->getDispatcher()->getNumManifolds(); 

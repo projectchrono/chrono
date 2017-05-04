@@ -303,7 +303,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
     : ChWheeledVehicle(contact_method) {
     Create(filename);
 }

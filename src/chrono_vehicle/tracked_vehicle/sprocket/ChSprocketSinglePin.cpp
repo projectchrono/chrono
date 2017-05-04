@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCallback {
+class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
   public:
     SprocketSinglePinContactCB(ChTrackAssembly* track,  ///< containing track assembly
                                double envelope,         ///< collision detection envelope
@@ -60,7 +60,7 @@ class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCall
         m_Rhat_diff = m_gear_Rhat - m_shoe_Rhat;
     }
 
-    virtual void PerformCustomCollision(ChSystem* system) override;
+    virtual void OnCustomCollision(ChSystem* system) override;
 
   private:
     // Test collision of a shoe contact cylinder with the sprocket's gear profiles.
@@ -103,7 +103,7 @@ class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCall
     double m_Rhat_diff;  // test quantity for narrowphase check
 };
 
-void SprocketSinglePinContactCB::PerformCustomCollision(ChSystem* system) {
+void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sproket or track shoes.
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
@@ -233,7 +233,7 @@ ChSprocketSinglePin::ChSprocketSinglePin(const std::string& name) : ChSprocket(n
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::ChCustomComputeCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
+ChSystem::CustomCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeSinglePin>(track->GetTrackShoe(0));

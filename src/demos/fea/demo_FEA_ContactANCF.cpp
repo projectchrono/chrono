@@ -14,8 +14,7 @@
 #include "chrono/physics/ChLoadBodyMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoaderUV.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -65,7 +64,7 @@ int scaleFactor = 35;
 double dz = 0.01;
 
 int main(int argc, char* argv[]) {
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -88,9 +87,9 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc.
-    // It is a DEM-p (penalty) material that we will assign to
+    // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.5f);
@@ -138,7 +137,7 @@ int main(int argc, char* argv[]) {
     auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the DEM penalty contacts
+    mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
 
     TotalNumNodes = my_mesh->GetNnodes();
     TotalNumElements = my_mesh->GetNelements();

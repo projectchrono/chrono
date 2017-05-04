@@ -87,7 +87,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_spring = std::make_shared<ChLinkRotSpringCB>();
     m_spring->SetNameString(m_name + "_spring");
     m_spring->Initialize(chassis, m_arm, ChCoordsys<>(points[ARM_CHASSIS], susp_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
-    m_spring->Set_RotSpringCallback(GetSpringTorqueCallback());
+    m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
 
     // Create and initialize the translational shock force element.
@@ -95,7 +95,7 @@ void ChLinearDamperRWAssembly::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_shock = std::make_shared<ChLinkSpringCB>();
         m_shock->SetNameString(m_name + "_shock");
         m_shock->Initialize(chassis, m_arm, false, points[SHOCK_C], points[SHOCK_A]);
-        m_shock->Set_SpringCallback(GetShockForceCallback());
+        m_shock->RegisterForceFunctor(GetShockForceFunctor());
         chassis->GetSystem()->AddLink(m_shock);
     }
 

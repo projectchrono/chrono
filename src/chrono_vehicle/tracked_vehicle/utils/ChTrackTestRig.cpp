@@ -102,7 +102,7 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                const ChVector<>& location,
-                               ChMaterialSurfaceBase::ContactMethod contact_method)
+                               ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle(contact_method), m_location(location), m_max_torque(0) {
     // Open and parse the input file (track assembly JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
@@ -132,7 +132,7 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                const ChVector<>& location,
-                               ChMaterialSurfaceBase::ContactMethod contact_method)
+                               ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle(contact_method),
       m_track(assembly),
       m_location(location),

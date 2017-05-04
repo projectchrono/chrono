@@ -40,7 +40,7 @@ static const double lbf2N = 4.44822162;
 // -----------------------------------------------------------------------------
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
                                            DrivelineType drive_type,
-                                           ChMaterialSurfaceBase::ContactMethod contact_method,
+                                           ChMaterialSurface::ContactMethod contact_method,
                                            ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle(contact_method, drive_type) {
     Create(fixed, chassis_collision_type);

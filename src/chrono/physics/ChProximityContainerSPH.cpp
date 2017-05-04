@@ -33,7 +33,7 @@ ChProximityContainerSPH::ChProximityContainerSPH() : n_added(0) {
 }
 
 ChProximityContainerSPH::ChProximityContainerSPH(const ChProximityContainerSPH& other)
-    : ChProximityContainerBase(other) {
+    : ChProximityContainer(other) {
     n_added = other.n_added;
     proximitylist = other.proximitylist;
     lastproximity = proximitylist.begin();
@@ -92,7 +92,7 @@ void ChProximityContainerSPH::AddProximity(collision::ChCollisionModel* modA, co
     // Launch the proximity callback, if implemented by the user
 
     if (this->add_proximity_callback) {
-        this->add_proximity_callback->ProximityCallback(*modA, *modB);
+        this->add_proximity_callback->OnAddProximity(*modA, *modB);
     }
 
     // %%%%%%% Create and add a ChProximitySPH object
@@ -112,10 +112,10 @@ void ChProximityContainerSPH::AddProximity(collision::ChCollisionModel* modA, co
     n_added++;
 }
 
-void ChProximityContainerSPH::ReportAllProximities(ChReportProximityCallback* mcallback) {
+void ChProximityContainerSPH::ReportAllProximities(ReportProximityCallback* mcallback) {
     std::list<ChProximitySPH*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-        bool proceed = mcallback->ReportProximityCallback((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
+        bool proceed = mcallback->OnReportProximity((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
         if (!proceed)
             break;
         ++iterproximity;
@@ -216,7 +216,7 @@ void ChProximityContainerSPH::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChProximityContainerSPH>();
     // serialize parent class
-    ChProximityContainerBase::ArchiveOUT(marchive);
+    ChProximityContainer::ArchiveOUT(marchive);
     // serialize all member data:
 }
 
@@ -225,7 +225,7 @@ void ChProximityContainerSPH::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChProximityContainerSPH>();
     // deserialize parent class
-    ChProximityContainerBase::ArchiveIN(marchive);
+    ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:
 }
 

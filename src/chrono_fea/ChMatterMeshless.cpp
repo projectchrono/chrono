@@ -134,7 +134,7 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -150,8 +150,8 @@ ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
     // Default: VonMises material
     material = std::make_shared<ChContinuumPlasticVonMises>();
 
-    // Default: DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    // Default: NSC material
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNodes(other) {

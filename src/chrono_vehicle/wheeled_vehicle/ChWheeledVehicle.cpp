@@ -28,10 +28,7 @@ namespace vehicle {
 // vehicle subsystems (steering, suspensions, wheels, brakes, and driveline).
 // -----------------------------------------------------------------------------
 void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
-
-    // Set the collision family for the chassis body.
-    m_chassis->GetBody()->GetCollisionModel()->SetFamily(WheeledCollisionFamily::CHASSIS);
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 }
 
 // -----------------------------------------------------------------------------

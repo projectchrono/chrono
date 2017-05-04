@@ -63,9 +63,9 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     ChProjectNone ProjectNone;
 };
 
-class CH_PARALLEL_API ChIterativeSolverParallelDVI : public ChIterativeSolverParallel {
+class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverParallel {
   public:
-    ChIterativeSolverParallelDVI(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
+    ChIterativeSolverParallelNSC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
 
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
@@ -90,9 +90,9 @@ class CH_PARALLEL_API ChIterativeSolverParallelDVI : public ChIterativeSolverPar
     ChProjectConstraints ProjectFull;
 };
 
-class CH_PARALLEL_API ChIterativeSolverParallelDEM : public ChIterativeSolverParallel {
+class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverParallel {
   public:
-    ChIterativeSolverParallelDEM(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
+    ChIterativeSolverParallelSMC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
 
     virtual void RunTimeStep();
     virtual void ComputeImpulses();

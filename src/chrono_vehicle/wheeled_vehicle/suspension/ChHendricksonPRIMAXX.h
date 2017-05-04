@@ -98,25 +98,25 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->Get_SpringReact(); }
+    double GetShockLBForce(VehicleSide side) const { return m_shockLB[side]->GetSpringReact(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->Get_SpringLength(); }
+    double GetShockLBLength(VehicleSide side) const { return m_shockLB[side]->GetSpringLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->Get_SpringVelocity(); }
+    double GetShockLBVelocity(VehicleSide side) const { return m_shockLB[side]->GetSpringVelocity(); }
 
     /// Spring (coil or air) and damper element between chassis and axle housing (AH)
     /// Get the force in the air spring (coil or spring) and a damper element
 
     /// Get the force in the spring-damper element.
-    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->Get_SpringReact(); }
+    double GetShockAHForce(VehicleSide side) const { return m_shockAH[side]->GetSpringReact(); }
 
     /// Get the current length of the spring-damper element.
-    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->Get_SpringLength(); }
+    double GetShockAHLength(VehicleSide side) const { return m_shockAH[side]->GetSpringLength(); }
 
     /// Get the current deformation velocity of the spring-damper element.
-    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->Get_SpringVelocity(); }
+    double GetShockAHVelocity(VehicleSide side) const { return m_shockAH[side]->GetSpringVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -218,15 +218,15 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockLBRestLength() const = 0;
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* getShockLBForceCallback() const = 0;
+    /// Return the functor object for shock force.
+    virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const = 0;
 
     // Axlehousing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* getShockAHForceCallback() const = 0;
+    /// Return the functor object for shock force.
+    virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const = 0;
 
     std::shared_ptr<ChBody> m_knuckle[2];      ///< handles to the knuckle bodies (left/right)
     std::shared_ptr<ChBody> m_torquerod[2];    ///< handles to torquerod bodies (left/right)

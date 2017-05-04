@@ -25,7 +25,7 @@
 // the number of brick elements to achieve convergence.
 // =============================================================================
 #include "chrono/core/ChFileutils.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
     // Create the physical system
     // --------------------------
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     GetLog() << "-----------------------------------------------------------\n";
     GetLog() << "     Brick Element Unit Test \n";

@@ -200,7 +200,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          double displ_limit,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
-                                         ChMaterialSurfaceBase::ContactMethod contact_method)
+                                         ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle(contact_method), m_displ_limit(displ_limit) {
     // Open and parse the input file (vehicle JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
@@ -255,7 +255,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
-                                         ChMaterialSurfaceBase::ContactMethod contact_method)
+                                         ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle(contact_method) {
     // Open and parse the input file (rig JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");

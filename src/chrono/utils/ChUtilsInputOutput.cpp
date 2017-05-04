@@ -61,8 +61,8 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     for (; ibody != system->Get_bodylist()->end(); ++ibody) {
         std::shared_ptr<ChBody> body = *ibody;
 
-        // Infer body type (0: DVI, 1:DEM)
-        int btype = (body->GetContactMethod() == ChMaterialSurfaceBase::DVI) ? 0 : 1;
+        // Infer body type (0: NSC, 1:SMC)
+        int btype = (body->GetContactMethod() == ChMaterialSurface::NSC) ? 0 : 1;
 
         // Write body type, body identifier, the body fixed flag, and the collide flag
         csv << btype << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide();
@@ -81,14 +81,14 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Write material information
         if (btype == 0) {
-            // Write DVI material surface information
-            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            // Write NSC material surface information
+            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
             csv << mat->static_friction << mat->sliding_friction << mat->rolling_friction << mat->spinning_friction;
             csv << mat->restitution << mat->cohesion << mat->dampingf;
             csv << mat->compliance << mat->complianceT << mat->complianceRoll << mat->complianceSpin;
         } else {
-            // Write DEM material surface information
-            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            // Write SMC material surface information
+            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
             csv << mat->young_modulus << mat->poisson_ratio;
             csv << mat->static_friction << mat->sliding_friction;
             csv << mat->restitution << mat->constant_adhesion << mat->adhesionMultDMT;
@@ -189,12 +189,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Create a body of the appropriate type, read and apply material properties
         ChBody* body = system->NewBody();
         if (btype == 0) {
-            std::shared_ptr<ChMaterialSurface> mat = body->GetMaterialSurface();
+            std::shared_ptr<ChMaterialSurfaceNSC> mat = body->GetMaterialSurfaceNSC();
             iss2 >> mat->static_friction >> mat->sliding_friction >> mat->rolling_friction >> mat->spinning_friction;
             iss2 >> mat->restitution >> mat->cohesion >> mat->dampingf;
             iss2 >> mat->compliance >> mat->complianceT >> mat->complianceRoll >> mat->complianceSpin;
         } else {
-            std::shared_ptr<ChMaterialSurfaceDEM> mat = body->GetMaterialSurfaceDEM();
+            std::shared_ptr<ChMaterialSurfaceSMC> mat = body->GetMaterialSurfaceSMC();
             iss2 >> mat->young_modulus >> mat->poisson_ratio;
             iss2 >> mat->static_friction >> mat->sliding_friction;
             iss2 >> mat->restitution >> mat->constant_adhesion >> mat->adhesionMultDMT;

@@ -49,7 +49,7 @@ namespace generic {
 // -----------------------------------------------------------------------------
 Generic_Vehicle::Generic_Vehicle(const bool fixed,
                                  SuspensionType suspType,
-                                 ChMaterialSurfaceBase::ContactMethod contactMethod)
+                                 ChMaterialSurface::ContactMethod contactMethod)
     : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
     // -------------------------------------------
     // Create the chassis subsystem

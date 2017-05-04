@@ -64,8 +64,8 @@ using std::endl;
 // Comment the following line to use Chrono::Parallel
 //#define USE_SEQ
 
-// Comment the following line to use DVI contact
-//#define USE_DEM
+// Comment the following line to use NSC contact
+//#define USE_SMC
 
 // -----------------------------------------------------------------------------
 // Specification of the terrain
@@ -153,13 +153,13 @@ int out_fps = 60;
 
 double CreateParticles(ChSystem* system) {
     // Create a material
-#ifdef USE_DEM
-    auto mat_g = std::make_shared<ChMaterialSurfaceDEM>();
+#ifdef USE_SMC
+    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurface>();
+    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 
@@ -232,22 +232,22 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
     // ----  Sequential
-#ifdef USE_DEM
-    std::cout << "Create DEM system" << std::endl;
-    ChSystemDEM* system = new ChSystemDEM();
+#ifdef USE_SMC
+    std::cout << "Create SMC system" << std::endl;
+    ChSystemSMC* system = new ChSystemSMC();
 #else
-    std::cout << "Create DVI system" << std::endl;
-    ChSystem* system = new ChSystem();
+    std::cout << "Create NSC system" << std::endl;
+    ChSystemNSC* system = new ChSystemNSC();
 #endif
 
 #else
     // ----  Parallel
-#ifdef USE_DEM
-    std::cout << "Create Parallel DEM system" << std::endl;
-    ChSystemParallelDEM* system = new ChSystemParallelDEM();
+#ifdef USE_SMC
+    std::cout << "Create Parallel SMC system" << std::endl;
+    ChSystemParallelSMC* system = new ChSystemParallelSMC();
 #else
-    std::cout << "Create Parallel DVI system" << std::endl;
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
+    std::cout << "Create Parallel NSC system" << std::endl;
+    ChSystemParallelNSC* system = new ChSystemParallelNSC();
 #endif
 
 #endif
@@ -287,7 +287,7 @@ int main(int argc, char* argv[]) {
     system->GetSettings()->solver.use_full_inertia_tensor = false;
     system->GetSettings()->solver.tolerance = tolerance;
 
-#ifndef USE_DEM
+#ifndef USE_SMC
     system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
     system->ChangeSolverType(SolverType::APGD);
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
 #else
-    system->GetSettings()->solver.contact_force_model = ChSystemDEM::PlainCoulomb;
+    system->GetSettings()->solver.contact_force_model = ChSystemSMC::PlainCoulomb;
 #endif
 
     system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
@@ -309,13 +309,13 @@ int main(int argc, char* argv[]) {
     // -------------------
 
     // Contact material
-#ifdef USE_DEM
-    auto mat_g = std::make_shared<ChMaterialSurfaceDEM>();
+#ifdef USE_SMC
+    auto mat_g = std::make_shared<ChMaterialSurfaceSMC>();
     mat_g->SetYoungModulus(1e8f);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(0.4f);
 #else
-    auto mat_g = std::make_shared<ChMaterialSurface>();
+    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 

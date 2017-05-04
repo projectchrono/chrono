@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         double displ_limit,                  ///< limits for post displacement
         std::shared_ptr<ChTire> tire_left,   ///< left tire
         std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
+        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
         );
 
     /// Construct a test rig from specified file.
@@ -67,7 +67,7 @@ class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
         const std::string& filename,         ///< JSON file with test rig specification
         std::shared_ptr<ChTire> tire_left,   ///< left tire
         std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< contact method
+        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
         );
 
     /// Destructor

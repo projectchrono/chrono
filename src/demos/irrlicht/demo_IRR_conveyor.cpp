@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChConveyor.h"
 
@@ -138,8 +138,8 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                                  true);   // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
-            mrigidBody->GetMaterialSurface()->SetRestitution(0.8f);
+            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
+            mrigidBody->GetMaterialSurfaceNSC()->SetRestitution(0.8f);
             mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -163,7 +163,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                 true);  // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurface()->SetFriction(0.4f);
+            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
             mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_bluwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -182,7 +182,7 @@ void create_debris(ChIrrApp& application, double dt, double particles_second) {
                                                                    true);               // visualization?
             mrigidBody->SetPos(ChVector<>(-0.5 * xnozzlesize + ChRandom() * xnozzlesize, ynozzle + i * 0.005,
                                           -0.5 * znozzlesize + ChRandom() * znozzlesize));
-            mrigidBody->GetMaterialSurface()->SetFriction(0.2f);
+            mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
             mrigidBody->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("pinkwhite.png")));
 
             application.GetSystem()->Add(mrigidBody);
@@ -208,7 +208,7 @@ void purge_debris(ChIrrAppInterface& application, int nmaxparticles = 100) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -236,13 +236,13 @@ int main(int argc, char* argv[]) {
     mphysicalSystem.Add(mfence1);
     mfence1->SetPos(ChVector<>(0, 0, -0.325));
     mfence1->SetBodyFixed(true);
-    mfence1->GetMaterialSurface()->SetFriction(0.1f);
+    mfence1->GetMaterialSurfaceNSC()->SetFriction(0.1f);
     
     auto mfence2 = std::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true);
     mphysicalSystem.Add(mfence2);
     mfence2->SetPos(ChVector<>(0, 0,  0.325));
     mfence2->SetBodyFixed(true);
-    mfence2->GetMaterialSurface()->SetFriction(0.1f);
+    mfence2->GetMaterialSurfaceNSC()->SetFriction(0.1f);
 
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
 
     auto mconveyor = std::make_shared<ChConveyor>(2, 0.05, 0.6);
     mconveyor->SetBodyFixed(true);
-    mconveyor->GetMaterialSurface()->SetFriction(0.35f);
+    mconveyor->GetMaterialSurfaceNSC()->SetFriction(0.35f);
     mconveyor->SetConveyorSpeed(STATIC_speed);
     mconveyor->SetPos(ChVector<>(0, 0, 0));
 

@@ -14,7 +14,7 @@
 //
 // Simple brake created with constant torque opposing wheel rotation.
 // It just uses a speed-dependant torque, so it fits in ODEs because it does not
-// use DVI set valued constraints (the drawback is that it cannot simulate
+// use NSC set valued constraints (the drawback is that it cannot simulate
 // sticking brakes).
 //
 // =============================================================================
@@ -36,7 +36,7 @@ namespace vehicle {
 /// Template for a simple brake subsystem.
 /// Simple brake created with constant torque opposing wheel rotation.
 /// It just uses a speed-dependant torque, so it fits in ODEs because it does not
-/// use DVI set valued constraints (the drawback is that it cannot simulate
+/// use NSC set valued constraints (the drawback is that it cannot simulate
 /// sticking brakes).
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
   public:

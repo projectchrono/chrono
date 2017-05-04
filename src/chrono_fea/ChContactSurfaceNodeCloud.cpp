@@ -50,7 +50,7 @@ void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector<>& abs_point
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChContactNodeXYZ::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZ::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -93,7 +93,7 @@ void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector<>& abs_po
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChContactNodeXYZROT::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChContactNodeXYZROT::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 

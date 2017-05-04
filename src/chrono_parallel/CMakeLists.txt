@@ -213,8 +213,8 @@ SET(ChronoEngine_Parallel_PHYSICS
     physics/ChSystemParallel.h
     physics/Ch3DOFContainer.h
     physics/ChSystemParallel.cpp
-    physics/ChSystemParallelDVI.cpp
-    physics/ChSystemParallelDEM.cpp
+    physics/ChSystemParallelNSC.cpp
+    physics/ChSystemParallelSMC.cpp
     physics/Ch3DOFContainer.cpp
     physics/ChFluidContainer.cpp
     physics/ChFEAContainer.cpp
@@ -267,8 +267,8 @@ SET(ChronoEngine_Parallel_SOLVER
     solver/ChSystemDescriptorParallel.h
     solver/ChIterativeSolverParallel.h
     solver/ChIterativeSolverParallel.cpp
-    solver/ChIterativeSolverParallelDVI.cpp
-    solver/ChIterativeSolverParallelDEM.cpp
+    solver/ChIterativeSolverParallelNSC.cpp
+    solver/ChIterativeSolverParallelSMC.cpp
     solver/ChSolverParallel.h
     solver/ChSolverParallel.cpp
     solver/ChSolverParallelAPGD.cpp

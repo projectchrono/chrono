@@ -40,7 +40,7 @@ const double M113_Suspension::m_shock_c = 1e2;
 // -----------------------------------------------------------------------------
 // M113 spring functor class - implements a (non)linear rotational spring
 // -----------------------------------------------------------------------------
-class M113_SpringTorque : public ChRotSpringTorqueCallback {
+class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
   public:
     M113_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
 
@@ -55,7 +55,7 @@ class M113_SpringTorque : public ChRotSpringTorqueCallback {
 // -----------------------------------------------------------------------------
 // M113 shock functor class - implements a (non)linear translational damper
 // -----------------------------------------------------------------------------
-class M113_ShockForce : public ChSpringForceCallback {
+class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 

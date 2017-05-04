@@ -1,34 +1,26 @@
 //
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2011 Alessandro Tasora
-// All rights reserved.
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar
+// =============================================================================
+//
+// Demo code about advanced contact feature: cohesion (using complementarity
+// contact method)
+//
+// =============================================================================
 
-///////////////////////////////////////////////////
-//
-//   Demo code about
-//
-//     - advanced contact feature: cohesion
-//
-//       (This is just a possible method of integration
-//       of Chrono::Engine + Irrlicht: many others
-//       are possible.)
-//
-//	 CHRONO
-//   ------
-//   Multibody dinamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
-
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_opengl/ChOpenGLWindow.h"
 
@@ -48,7 +40,7 @@ float GLOBAL_dampingf = 0.1f;
 // Define a MyEventReceiver class which will be used to manage input
 // from the GUI graphical user interface
 
-void create_some_falling_items(ChSystem& mphysicalSystem) {
+void create_some_falling_items(ChSystemNSC& mphysicalSystem) {
     // From now on, all created collision models will have a large outward envelope (needed
     // to allow some compliance with the plastic deformation of cohesive bounds
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.3);
@@ -61,7 +53,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem) {
                                                              true,   // collide enable?
                                                              true);  // visualization?
         mrigidBody->SetPos(ChVector<>(-5 + ChRandom() * 10, 4 + bi * 0.05, -5 + ChRandom() * 10));
-        mrigidBody->GetMaterialSurface()->SetFriction(0.3f);
+        mrigidBody->GetMaterialSurfaceNSC()->SetFriction(0.3f);
 
         mphysicalSystem.Add(mrigidBody);
     }
@@ -120,7 +112,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem) {
                                                         true,      // collide enable?
                                                         true);     // visualization?
     rotatingBody->SetPos(ChVector<>(0, -1.6, 0));
-    rotatingBody->GetMaterialSurface()->SetFriction(0.4f);
+    rotatingBody->GetMaterialSurfaceNSC()->SetFriction(0.4f);
 
     mphysicalSystem.Add(rotatingBody);
 
@@ -135,7 +127,7 @@ void create_some_falling_items(ChSystem& mphysicalSystem) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create all the rigid bodies.
 
@@ -151,43 +143,44 @@ int main(int argc, char* argv[]) {
     // the touching bodies, but the user can override this value when each contact is created,
     // by instancing a callback as in the following example:
 
-    class MyContactCallback : public ChSystem::ChCustomCollisionPointCallback {
+    class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCouple& material)                      ///< you can modify this!
-        {
+        virtual void OnAddContact(const collision::ChCollisionInfo& contactinfo,
+                                  ChMaterialComposite* const material) override {
+            // Downcast to appropriate composite material type
+            auto mat = static_cast<ChMaterialCompositeNSC* const>(material);
+
             // Set friction according to user setting:
-            material.static_friction = GLOBAL_friction;
+            mat->static_friction = GLOBAL_friction;
 
             // Set compliance (normal and tangential at once)
-            material.compliance = GLOBAL_compliance;
-            material.complianceT = GLOBAL_compliance;
-            material.dampingf = GLOBAL_dampingf;
+            mat->compliance = GLOBAL_compliance;
+            mat->complianceT = GLOBAL_compliance;
+            mat->dampingf = GLOBAL_dampingf;
 
             // Set cohesion according to user setting:
             // Note that we must scale the cohesion force value by time step, because
             // the material 'cohesion' value has the dimension of an impulse.
             float my_cohesion_force = GLOBAL_cohesion;
-            material.cohesion =
-                (float)msystem->GetStep() * my_cohesion_force;  //<- all contacts will have this cohesion!
+            mat->cohesion = (float)msystem->GetStep() * my_cohesion_force;  //<- all contacts will have this cohesion!
 
-            if (mcontactinfo.distance > 0.12)
-                material.cohesion = 0;
+            if (contactinfo.distance > 0.12)
+                mat->cohesion = 0;
 
             // Note that here you might decide to modify the cohesion
             // depending on object sizes, type, time, position, etc. etc.
             // For example, after some time disable cohesion at all, just
             // add here:
-            //    if (msystem->GetChTime() > 10) material.cohesion = 0;
+            //    if (msystem->GetChTime() > 10) mat->cohesion = 0;
         };
-        ChSystem* msystem;
+        ChSystemNSC* msystem;
     };
 
     MyContactCallback mycontact_callback;           // create the callback object
     mycontact_callback.msystem = &mphysicalSystem;  // will be used by callback
-    // Tell the system to use the callback above, per each created contact!
-    mphysicalSystem.SetCustomCollisionPointCallback(&mycontact_callback);
+
+    // Use the above callback to process each contact as it is created.
+    mphysicalSystem.GetContactContainer()->RegisterAddContactCallback(&mycontact_callback);
 
     //
     // THE SOFT-REAL-TIME CYCLE

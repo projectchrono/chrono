@@ -177,6 +177,7 @@ typedef blaze::Subvector<const DynamicVector<real> > ConstSubVectorType;
 #define _EFFD_ subvector(_E_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
 // Viscosity
 #define _EFFV_ subvector(_E_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, 3 * _num_fluid_)
+
 ////======
 //#define _GAMMAN_ subvector(_gamma_, 0, _num_r_c_)
 //#define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
@@ -190,7 +191,8 @@ typedef blaze::Subvector<const DynamicVector<real> > ConstSubVectorType;
 //#define _GAMMAFFD_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
 //// Viscosity
 //#define _GAMMAFFV_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_,  3 * _num_fluid_)
-// The maximum number of shear history contacts per smaller body (DEM)
+
+// The maximum number of shear history contacts per smaller body (SMC)
 #define max_shear 20
 
 struct shape_container {
@@ -273,13 +275,13 @@ struct host_container {
     custom_vector<real4> face_marker_tet;
     custom_vector<int> c_counts_marker_tet;
 
-    // Contact forces (DEM)
+    // Contact forces (SMC)
     // These vectors hold the total contact force and torque, respectively,
     // for bodies that are involved in at least one contact.
     custom_vector<real3> ct_body_force;   // Total contact force on bodies
     custom_vector<real3> ct_body_torque;  // Total contact torque on these bodies
 
-    // Contact shear history (DEM)
+    // Contact shear history (SMC)
     custom_vector<vec3> shear_neigh;  // Neighbor list of contacting bodies and shapes
     custom_vector<real3> shear_disp;  // Accumulated shear displacement for each neighbor
 
@@ -334,12 +336,12 @@ struct host_container {
     custom_vector<real> shaft_inr;     // shaft inverse inertias
     custom_vector<char> shaft_active;  // shaft active (not sleeping nor fixed) flags
 
-    // Material properties (DVI)
+    // Material properties (NSC)
     custom_vector<real3> fric_data;
-    custom_vector<real> cohesion_data;  // constant cohesion forces (DEM and DVI)
+    custom_vector<real> cohesion_data;  // constant cohesion forces (NSC and SMC)
     custom_vector<real4> compliance_data;
 
-    // Material properties (DEM)
+    // Material properties (SMC)
     custom_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
     custom_vector<real> mu;               // Coefficient of friction
     custom_vector<real> cr;               // Coefficient of restitution
@@ -386,7 +388,7 @@ struct host_container {
     // therefore it is stored in a vector for performance reasons
     DynamicVector<real> E;
 
-    // Contact forces (DVI)
+    // Contact forces (NSC)
     DynamicVector<real> Fc;
 
     //========Broadphase Data========
@@ -447,7 +449,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     uint num_rigid_tet_node_contacts;  // The number of contacts between tetrahedron nodes and rigid bodies
     uint nnz_bilaterals;               // The number of non-zero entries in the bilateral Jacobian
 
-    // Flag indicating whether or not the contact forces are current (DVI only).
+    // Flag indicating whether or not the contact forces are current (NSC only).
     bool Fc_current;
     // This object hold all of the timers for the system
     ChTimerParallel system_timer;

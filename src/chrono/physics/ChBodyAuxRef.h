@@ -39,10 +39,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
 
   public:
-    ChBodyAuxRef(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+    ChBodyAuxRef(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChBody(contact_method) {}
     ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model,
-                 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+                 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChBody(new_coll_model, contact_method) {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
     ~ChBodyAuxRef() {}

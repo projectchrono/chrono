@@ -100,7 +100,8 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Initialize the chassis at the specified global position and orientation.
     virtual void Initialize(ChSystem* system,                ///< [in] containing system
                             const ChCoordsys<>& chassisPos,  ///< [in] absolute chassis position
-                            double chassisFwdVel             ///< [in] initial chassis forward velocity
+                            double chassisFwdVel,            ///< [in] initial chassis forward velocity
+                            int collision_family = 0         ///< [in] chassis collision family
                             );
 
     /// Enable/disable contact for the chassis. This function controls contact of

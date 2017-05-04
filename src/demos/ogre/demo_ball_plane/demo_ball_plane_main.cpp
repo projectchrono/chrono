@@ -20,7 +20,7 @@ int main(int argc, char** args) {
 
 	//ChOgreBodyHandle terrain = app.getScene()->loadHeightMap("example3.png", chrono::ChVector<>(20, 10, 20));
 	//terrain->SetPos(chrono::ChVector<>(0, 0, 0));
-	//terrain->GetMaterialSurface()->SetFriction(0.9);
+	//terrain->GetMaterialSurfaceNSC()->SetFriction(0.9);
 
 	ChOgreBodyHandle Epsilon = app.getScene()->spawnSphere("Spheere", 1, chrono::ChVector<>(0, 20, 0), 3, false);
 	Epsilon->SetInertiaXX(chrono::ChVector<>(

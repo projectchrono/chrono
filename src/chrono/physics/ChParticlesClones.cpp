@@ -70,7 +70,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChAparticle::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -247,8 +247,8 @@ ChParticlesClones::ChParticlesClones()
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
 
-    // default DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    // default non-smooth contact material
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {
@@ -262,7 +262,7 @@ ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexed
 
     particle_collision_model->ClearModel();
 
-    matsurface = std::shared_ptr<ChMaterialSurfaceBase>(other.matsurface->Clone());  // deep copy
+    matsurface = std::shared_ptr<ChMaterialSurface>(other.matsurface->Clone());  // deep copy
 
     ResizeNparticles((int)other.GetNparticles());
 

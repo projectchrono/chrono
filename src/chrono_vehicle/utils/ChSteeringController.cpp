@@ -16,6 +16,7 @@
 // implements the basic functionality to control the error between the location
 // of a sentinel point (a point at a look-ahead distance in front of the vehicle)
 // and the current target point.
+//
 // Derived classes differ in how they specify the target point.  This can be the
 // closest point to the sentinel point on a pre-defined curve path (currently
 // using a ChBezierCurve) or from some other external sources (e.g. interfacing
@@ -153,22 +154,18 @@ void ChSteeringController::WriteOutputFile(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // Implementation of the derived class ChPathSteeringController.
 // -----------------------------------------------------------------------------
-ChPathSteeringController::ChPathSteeringController(ChBezierCurve* path, bool isClosedPath) 
+ChPathSteeringController::ChPathSteeringController(std::shared_ptr<ChBezierCurve> path, bool isClosedPath)
     : m_path(path) {
     // Create a tracker object associated with the given path.
-    m_tracker = new ChBezierCurveTracker(path, isClosedPath);
+    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
 }
 
 ChPathSteeringController::ChPathSteeringController(const std::string& filename,
-                                                   ChBezierCurve* path, 
+                                                   std::shared_ptr<ChBezierCurve> path,
                                                    bool isClosedPath)
     : ChSteeringController(filename), m_path(path) {
     // Create a tracker object associated with the given path.
-    m_tracker = new ChBezierCurveTracker(path, isClosedPath);
-}
-
-ChPathSteeringController::~ChPathSteeringController() {
-    delete m_tracker;
+    m_tracker = std::unique_ptr<ChBezierCurveTracker>(new ChBezierCurveTracker(path, isClosedPath));
 }
 
 void ChPathSteeringController::CalcTargetLocation() {

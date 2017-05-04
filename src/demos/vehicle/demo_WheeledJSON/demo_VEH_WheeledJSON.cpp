@@ -26,7 +26,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
     ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);

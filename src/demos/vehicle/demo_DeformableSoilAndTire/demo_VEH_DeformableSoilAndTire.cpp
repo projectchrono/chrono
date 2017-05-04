@@ -18,8 +18,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -42,7 +41,7 @@ int main(int argc, char* argv[]) {
     double tire_w0 = tire_vel_z0/tire_rad;
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

@@ -41,7 +41,7 @@ using blaze::DynamicVector;
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
-class ChSystemParallelDVI;
+class ChSystemParallelNSC;
 class ChSystemParallelMPM;
 class ChParallelDataManager;
 class ChSolverParallel;
@@ -128,7 +128,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
-    ChFluidContainer(ChSystemParallelDVI* system);
+    ChFluidContainer(ChSystemParallelNSC* system);
     ~ChFluidContainer();
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
@@ -196,7 +196,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
-    ChFEAContainer(ChSystemParallelDVI* system);
+    ChFEAContainer(ChSystemParallelNSC* system);
     ~ChFEAContainer();
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uvec4>& indices);
@@ -254,7 +254,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
 
 class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
   public:
-    Ch3DOFRigidContainer(ChSystemParallelDVI* system);
+    Ch3DOFRigidContainer(ChSystemParallelNSC* system);
     ~Ch3DOFRigidContainer();
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);

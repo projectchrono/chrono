@@ -36,25 +36,28 @@ ChRigidChassis::ChRigidChassis(const std::string& name, bool fixed)
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    // Invoke the base class method.
+void ChRigidChassis::Initialize(ChSystem* system,
+                                const ChCoordsys<>& chassisPos,
+                                double chassisFwdVel,
+                                int collision_family) {
+    // Invoke the base class method to construct the frame body.
     ChChassis::Initialize(system, chassisPos, chassisFwdVel);
 
     // Set chassis body contact material properties.
     switch (m_body->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_body->GetMaterialSurface()->SetFriction(m_friction);
-            m_body->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_body->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_body->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_body->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_body->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_body->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_body->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_body->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_body->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_body->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_body->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_body->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_body->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_body->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_body->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_body->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_body->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_body->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_body->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 
@@ -66,6 +69,9 @@ void ChRigidChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos
         m_body->SetCollide(true);
 
         m_body->GetCollisionModel()->ClearModel();
+
+        m_body->GetCollisionModel()->SetFamily(collision_family);
+
         for (auto sphere : m_coll_spheres) {
             m_body->GetCollisionModel()->AddSphere(sphere.m_radius, sphere.m_pos);
         }

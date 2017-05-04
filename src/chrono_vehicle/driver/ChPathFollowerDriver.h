@@ -46,11 +46,11 @@ namespace vehicle {
 class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChPathFollowerDriver(ChVehicle& vehicle,            ///< associated vehicle
-                         ChBezierCurve* path,           ///< Bezier curve with target path
-                         const std::string& path_name,  ///< name of the path curve
-                         double target_speed,           ///< constant target speed
-                         bool isClosedPath = false      ///< Treat the path as a closed loop
+    ChPathFollowerDriver(ChVehicle& vehicle,                   ///< associated vehicle
+                         std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+                         const std::string& path_name,         ///< name of the path curve
+                         double target_speed,                  ///< constant target speed
+                         bool isClosedPath = false             ///< Treat the path as a closed loop
                          );
 
     /// Construct using JSON specification files.
@@ -59,7 +59,7 @@ class CH_VEHICLE_API ChPathFollowerDriver : public ChDriver {
     ChPathFollowerDriver(ChVehicle& vehicle,                    ///< associated vehicle
                          const std::string& steering_filename,  ///< JSON file with steering controller specification
                          const std::string& speed_filename,     ///< JSON file with speed controller specification
-                         ChBezierCurve* path,                   ///< Bezier curve with target path
+                         std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
                          const std::string& path_name,          ///< name of the path curve
                          double target_speed,                   ///< constant target speed
                          bool isClosedPath = false              ///< Treat the path as a closed loop

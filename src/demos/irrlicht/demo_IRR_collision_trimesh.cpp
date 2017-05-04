@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChParticlesClones.h"
 #include "chrono/assets/ChTexture.h"
@@ -41,7 +41,7 @@ using namespace irr::video;
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
                                                               true,             // collide enable?
                                                               true);            // visualization?
         msphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
-        msphereBody->GetMaterialSurface()->SetFriction(0.2f);
+        msphereBody->GetMaterialSurfaceNSC()->SetFriction(0.2f);
 
         auto mballcolor = std::make_shared<ChColorAsset>();
         mballcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));

@@ -14,9 +14,7 @@
 //
 //     - contacts in FEA
 
-
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -44,7 +42,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -66,7 +64,7 @@ int main(int argc, char* argv[]) {
     //
 
 
-    //collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemDEM
+    //collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.0); // not needed, already 0 when using ChSystemSMC
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.006); // max inside penetration - if not enough stiffness in material: troubles
 
     // Use this value for an outward additional layer around meshes, that can improve
@@ -75,10 +73,10 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc. 
-    // It is a DEM-p (penalty) material that we will assign to 
+    // It is a SMC (penalty) material that we will assign to 
     // all surfaces that might generate contacts.
 
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
@@ -215,7 +213,7 @@ int main(int argc, char* argv[]) {
 
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness); // do this after my_mesh->AddContactSurface
 
-    mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the DEM penalty contacts
+    mcontactsurf->SetMaterialSurface(mysurfmaterial); // use the SMC penalty contacts
 
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);

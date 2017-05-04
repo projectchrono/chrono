@@ -21,7 +21,7 @@
 
 #include <cstdio>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -39,7 +39,7 @@ double rest_angle = CH_C_PI / 6;
 // =============================================================================
 
 // Functor class implementing the torque for a ChLinkRotSpringCB link.
-class MySpringTorque : public ChRotSpringTorqueCallback {
+class MySpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
     virtual double operator()(double time,   // current time
                               double angle,  // relative angle of rotation
                               double vel     // relative angular speed
@@ -52,7 +52,7 @@ class MySpringTorque : public ChRotSpringTorqueCallback {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     //ChQuaternion<> rev_rot = QUNIT;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     MySpringTorque torque;
     auto spring = std::make_shared<ChLinkRotSpringCB>();
     spring->Initialize(body, ground, ChCoordsys<>(rev_pos, rev_rot));
-    spring->Set_RotSpringCallback(&torque);
+    spring->RegisterTorqueFunctor(&torque);
     system.AddLink(spring);
 
     // Create the Irrlicht application
@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
             GetLog() << "Body lin. vel." << body->GetPos_dt() << "\n";
             GetLog() << "Body absolute ang. vel." << body->GetWvel_par() << "\n";
             GetLog() << "Body local ang. vel." << body->GetWvel_loc() << "\n";
-            GetLog() << "Rot. spring-damper  " << spring->Get_RotSpringAngle() << "  " << spring->Get_RotSpringSpeed()
-                     << "  " << spring->Get_RotSpringTorque() << "\n";
+            GetLog() << "Rot. spring-damper  " << spring->GetRotSpringAngle() << "  " << spring->GetRotSpringSpeed()
+                     << "  " << spring->GetRotSpringTorque() << "\n";
             GetLog() << "---------------\n\n";
         }
 

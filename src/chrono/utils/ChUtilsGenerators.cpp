@@ -32,8 +32,8 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialDVI(std::make_shared<ChMaterialSurface>()),
-      m_defMaterialDEM(std::make_shared<ChMaterialSurfaceDEM>()),
+      m_defMaterialNSC(std::make_shared<ChMaterialSurfaceNSC>()),
+      m_defMaterialSMC(std::make_shared<ChMaterialSurfaceSMC>()),
       m_defDensity(1),
       m_defSize(ChVector<>(1, 1, 1)),
       m_frictionDist(nullptr),
@@ -43,7 +43,7 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_restitutionDist(nullptr),
       m_densityDist(nullptr),
       m_sizeDist(nullptr),
-      callback_post_creation(nullptr) {}
+      add_body_callback(nullptr) {}
 
 // Destructor:: free the various distribution associated with this ingredient
 MixtureIngredient::~MixtureIngredient() {
@@ -53,13 +53,13 @@ MixtureIngredient::~MixtureIngredient() {
 }
 
 // Set constant material properties for all objects based on this ingredient.
-void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurfaceBase> mat) {
+void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
-    if (mat->GetContactMethod() == ChMaterialSurfaceBase::DVI) {
-        m_defMaterialDVI = std::static_pointer_cast<ChMaterialSurface>(mat);
+    if (mat->GetContactMethod() == ChMaterialSurface::NSC) {
+        m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
     } else {
-        m_defMaterialDEM = std::static_pointer_cast<ChMaterialSurfaceDEM>(mat);
+        m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
     }
 
     freeMaterialDist();
@@ -157,10 +157,10 @@ void MixtureIngredient::freeMaterialDist() {
     m_restitutionDist = nullptr;
 }
 
-// Modify the specified DVI material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurface> mat) {
+// Modify the specified NSC material surface based on attributes of this ingredient.
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
     // Copy properties from the default material.
-    *mat = *m_defMaterialDVI;
+    *mat = *m_defMaterialNSC;
 
     // If using distributions for any of the supported properties, override those.
     if (m_frictionDist)
@@ -170,10 +170,10 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurface>
         mat->SetCohesion(sampleTruncatedDist<float>(*m_cohesionDist, m_minCohesion, m_maxCohesion));
 }
 
-// Modify the specified DEM material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceDEM> mat) {
+// Modify the specified SMC material surface based on attributes of this ingredient.
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
     // Copy properties from the default material.
-    *mat = *m_defMaterialDEM;
+    *mat = *m_defMaterialSMC;
 
     // If using distributions for any of the supported properties, override those.
     if (m_youngDist)
@@ -292,7 +292,7 @@ void Generator::createObjectsBox(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -325,9 +325,9 @@ void Generator::createObjectsBox(const ChVector<>& dist,
     // Normalize the mixture ratios
     normalizeMixture();
 
-    // When using DEM, make sure there is no shape overlap.
+    // When using SMC, make sure there is no shape overlap.
     ChVector<> distv;
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
         distv = calcMinSeparation(dist);
     else
         distv = dist;
@@ -354,7 +354,7 @@ void Generator::createObjectsCylinderX(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -386,7 +386,7 @@ void Generator::createObjectsCylinderY(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -418,7 +418,7 @@ void Generator::createObjectsCylinderZ(SamplingType sType,
     normalizeMixture();
 
     // Generate the object locations
-    if (m_system->GetContactMethod() == ChMaterialSurfaceBase::DEM)
+    if (m_system->GetContactMethod() == ChMaterialSurface::SMC)
         dist = calcMinSeparation(dist);
 
     PointVector points;
@@ -507,11 +507,11 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         ChBody* body = m_system->NewBody();
 
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurfaceBase::DVI:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurface());
+            case ChMaterialSurface::NSC:
+                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceNSC());
                 break;
-            case ChMaterialSurfaceBase::DEM:
-                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceDEM());
+            case ChMaterialSurface::SMC:
+                m_mixture[index]->setMaterialProperties(body->GetMaterialSurfaceSMC());
                 break;
         }
 
@@ -577,8 +577,8 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         m_system->AddBody(bodyPtr);
 
         // If the callback pointer is set, call the function with the body pointer
-        if (m_mixture[index]->callback_post_creation) {
-            m_mixture[index]->callback_post_creation->PostCreation(bodyPtr);
+        if (m_mixture[index]->add_body_callback) {
+            m_mixture[index]->add_body_callback->OnAddBody(bodyPtr);
         }
 
         m_bodies.push_back(BodyInfo(m_mixture[index]->m_type, density, size, bodyPtr));
@@ -597,12 +597,12 @@ void Generator::writeObjectInfo(const std::string& filename) {
         csv << m_bodies[i].m_density << m_bodies[i].m_body->GetMass();
 
         switch (m_system->GetContactMethod()) {
-            case ChMaterialSurfaceBase::DVI: {
-                std::shared_ptr<ChMaterialSurface> mat = m_bodies[i].m_body->GetMaterialSurface();
+            case ChMaterialSurface::NSC: {
+                std::shared_ptr<ChMaterialSurfaceNSC> mat = m_bodies[i].m_body->GetMaterialSurfaceNSC();
                 csv << mat->GetSfriction() << mat->GetCohesion();
             } break;
-            case ChMaterialSurfaceBase::DEM: {
-                std::shared_ptr<ChMaterialSurfaceDEM> mat = m_bodies[i].m_body->GetMaterialSurfaceDEM();
+            case ChMaterialSurface::SMC: {
+                std::shared_ptr<ChMaterialSurfaceSMC> mat = m_bodies[i].m_body->GetMaterialSurfaceSMC();
                 csv << mat->GetYoungModulus() << mat->GetPoissonRatio() << mat->GetSfriction() << mat->GetRestitution();
             } break;
         }

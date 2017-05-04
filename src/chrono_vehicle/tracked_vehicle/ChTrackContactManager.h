@@ -21,7 +21,7 @@
 
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
@@ -47,7 +47,7 @@ struct ChTrackContactInfo {
 };
 
 /// Class for monitoring contacts of tracked vehicle subsystems.
-class ChTrackContactManager : public chrono::ChReportContactCallback {
+class ChTrackContactManager : public ChContactContainer::ReportContactCallback {
   public:
     ChTrackContactManager();
 
@@ -67,14 +67,14 @@ class ChTrackContactManager : public chrono::ChReportContactCallback {
 
     /// Callback, used to report contact points already added to the container.
     /// If it returns false, the contact scanning will be stopped.
-    virtual bool ReportContactCallback(const ChVector<>& pA,
-                                       const ChVector<>& pB,
-                                       const ChMatrix33<>& plane_coord,
-                                       const double& distance,
-                                       const ChVector<>& react_forces,
-                                       const ChVector<>& react_torques,
-                                       ChContactable* modA,
-                                       ChContactable* modB) override;
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& react_forces,
+                                 const ChVector<>& react_torques,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override;
 
     bool m_initialized;  ///< true if the contact manager was initialized
     int m_flags;         ///< contact bit flags

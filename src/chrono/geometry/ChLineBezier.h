@@ -34,12 +34,11 @@ class ChApi ChLineBezier : public ChLine {
     CH_FACTORY_TAG(ChLineBezier)
 
   public:
-    ChLineBezier() : m_own_data(false), m_path(NULL) {}
-    ChLineBezier(ChBezierCurve* path);
+    ChLineBezier() {}
+    ChLineBezier(std::shared_ptr<ChBezierCurve> path);
     ChLineBezier(const std::string& filename);
     ChLineBezier(const ChLineBezier& source);
-    ChLineBezier(const ChLineBezier* source);
-    ~ChLineBezier();
+    ~ChLineBezier() {}
 
     virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
 
@@ -58,7 +57,6 @@ class ChApi ChLineBezier : public ChLine {
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_own_data);
         marchive << CHNVP(m_path);
     }
 
@@ -69,13 +67,11 @@ class ChApi ChLineBezier : public ChLine {
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_own_data);
         marchive >> CHNVP(m_path);
     }
 
   private:
-    bool m_own_data;        ///< flag indicating if this object owns the data
-    ChBezierCurve* m_path;  ///< pointer to a Bezier curve
+    std::shared_ptr<ChBezierCurve> m_path;  ///< handle to a Bezier curve
 };
 
 }  // end of namespace geometry

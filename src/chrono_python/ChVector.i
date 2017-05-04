@@ -6,6 +6,18 @@
 %}
 
 
+// HACK to deal with SWIG changing references to pointers
+%extend chrono::ChVector<double> {
+	double x() {return self->x();}
+	double y() {return self->y();}
+	double z() {return self->z();}
+};
+
+%ignore chrono::ChVector<double>::x();
+%ignore chrono::ChVector<double>::y();
+%ignore chrono::ChVector<double>::z();
+
+
 /* Parse the header file to generate wrappers */
 %include "../chrono/core/ChVector.h"  
 

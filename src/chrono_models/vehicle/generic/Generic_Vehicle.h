@@ -23,7 +23,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
@@ -37,7 +37,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
                     SuspensionType suspType,
-                    ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                    ChMaterialSurface::ContactMethod contactMethod = ChMaterialSurface::NSC);
 
     ~Generic_Vehicle() {}
 

@@ -22,7 +22,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"

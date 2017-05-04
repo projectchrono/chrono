@@ -45,12 +45,14 @@ void ChDoubleIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVe
 
     m_wheel->SetCollide(true);
 
+    m_wheel->GetCollisionModel()->ClearModel();
+
     m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::IDLERS);
     m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
 
-    m_wheel->GetCollisionModel()->ClearModel();
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, offset, 0));
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2, ChVector<>(0, -offset, 0));
+
     m_wheel->GetCollisionModel()->BuildModel();
 }
 

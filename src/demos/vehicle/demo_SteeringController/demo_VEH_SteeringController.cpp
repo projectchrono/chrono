@@ -40,7 +40,7 @@ using namespace chrono::vehicle::hmmwv;
 // Problem parameters
 
 // Contact method type
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
+ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = TireModelType::RIGID;
@@ -222,7 +222,7 @@ int main(int argc, char* argv[]) {
     // Create the Bezier path
     // ----------------------
 
-    ChBezierCurve* path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ////path->write("my_path.txt");
 
     // ---------------------------------------

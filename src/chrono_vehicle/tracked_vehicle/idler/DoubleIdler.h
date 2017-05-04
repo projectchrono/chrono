@@ -50,7 +50,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
 
-    virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
     virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -76,7 +76,7 @@ class CH_VEHICLE_API DoubleIdler : public ChDoubleIdler {
 
     double m_pitch_angle;
 
-    ChSpringForceCallback* m_tensionerForceCB;
+    ChLinkSpringCB::ForceFunctor* m_tensionerForceCB;
     double m_tensioner_l0;
 
     bool m_has_mesh;

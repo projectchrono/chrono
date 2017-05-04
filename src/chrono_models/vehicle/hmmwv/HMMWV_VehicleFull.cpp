@@ -32,7 +32,7 @@ namespace hmmwv {
 // -----------------------------------------------------------------------------
 HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      DrivelineType drive_type,
-                                     ChMaterialSurfaceBase::ContactMethod contact_method,
+                                     ChMaterialSurface::ContactMethod contact_method,
                                      ChassisCollisionType chassis_collision_type)
     : HMMWV_Vehicle(contact_method, drive_type) {
     Create(fixed, chassis_collision_type);

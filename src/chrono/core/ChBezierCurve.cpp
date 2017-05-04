@@ -180,7 +180,7 @@ void ChBezierCurve::solveTriDiag(size_t n, double* rhs, double* x) {
 // returned curve is a general Bezier curve using the specified knots and
 // control polygons.
 // -----------------------------------------------------------------------------
-ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
+std::shared_ptr<ChBezierCurve> ChBezierCurve::read(const std::string& filename) {
     // Open input file stream
     std::ifstream ifile;
     std::string line;
@@ -214,7 +214,7 @@ ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
         }
 
         ifile.close();
-        return new ChBezierCurve(points);
+        return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points));
     }
 
     if (numCols == 9) {
@@ -238,7 +238,7 @@ ChBezierCurve* ChBezierCurve::read(const std::string& filename) {
         }
 
         ifile.close();
-        return new ChBezierCurve(points, inCV, outCV);
+        return std::shared_ptr<ChBezierCurve>(new ChBezierCurve(points, inCV, outCV));
     }
 
     // Not the expected number of columns.  Close the file and throw an exception.

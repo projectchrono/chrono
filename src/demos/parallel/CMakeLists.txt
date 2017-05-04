@@ -24,13 +24,13 @@ ENDIF()
 
 # Programs that can work with or without OpenGL
 SET(DEMOS
-    demo_PAR_ballsDEM
-    demo_PAR_ballsDVI
-    demo_PAR_mixerDEM
-    demo_PAR_mixerDVI
-    demo_PAR_fluidDVI
+    demo_PAR_ballsSMC
+    demo_PAR_ballsNSC
+    demo_PAR_mixerSMC
+    demo_PAR_mixerNSC
+    demo_PAR_fluidNSC
     demo_PAR_snowMPM
-    demo_PAR_rigid3DOFDVI
+    demo_PAR_rigid3DOFNSC
     demo_PAR_friction
 )
 

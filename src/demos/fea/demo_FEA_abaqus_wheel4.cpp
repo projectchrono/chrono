@@ -16,8 +16,7 @@
 //     - using it as a wheel with contacts to ground
 
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
@@ -43,14 +42,14 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 
-void MakeWheel( ChSystem& my_system,
+void MakeWheel( ChSystemSMC& my_system,
                 const ChVector<> tire_center,
                 const ChQuaternion<> tire_alignment,
                 const double tire_scale_R,
                 const double tire_scale_W,
                 const double tire_w0,
                 const double tire_vel_z0,
-                std::shared_ptr<ChMaterialSurfaceBase> mysurfmaterial,
+                std::shared_ptr<ChMaterialSurface> mysurfmaterial,
                 std::shared_ptr<ChContinuumElastic>    mmaterial,
                 std::shared_ptr<ChBody>& mrim) {
     
@@ -174,7 +173,7 @@ int main(int argc, char* argv[]) {
 
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -194,12 +193,12 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
-    auto mysurfmaterial2 = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial2 = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(26e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

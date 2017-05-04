@@ -29,11 +29,10 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChAssembly.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChControls.h"
 #include "chrono/physics/ChGlobal.h"
 #include "chrono/physics/ChLinksAll.h"
-#include "chrono/physics/ChMaterialCouple.h"
 #include "chrono/physics/ChProbe.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
@@ -46,7 +45,7 @@ namespace chrono {
 
 // Forward references
 class ChSystemDescriptor;
-class ChContactContainerBase;
+class ChContactContainer;
 
 /// Physical system.
 ///
@@ -73,25 +72,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
   public:
     /// Create a physical system.
-    /// Note, in case you will use collision detection, the values of
-    /// 'max_objects' and 'scene_size' can be used to initialize the broadphase
-    /// collision algorithm in an optimal way. Scene size should be approximately
-    /// the radius of the expected area where colliding objects will move.
-    /// Note that currently, by default, the collision broadphase is a btDbvtBroadphase
-    /// that does not make use of max_objects and scene_size, but one might plug-in
-    /// other collision engines that might use those parameters.
-    /// If init_sys is false it does not initialize the collision system or solver
-    /// assumes that the user will do so.
-    ChSystem(unsigned int max_objects = 16000, double scene_size = 500, bool init_sys = true);
+    ChSystem();
 
     /// Copy constructor
     ChSystem(const ChSystem& other);
 
     /// Destructor
     virtual ~ChSystem();
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystem* Clone() const override { return new ChSystem(*this); }
 
     //
     // PROPERTIES
@@ -133,8 +120,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Set the method for time integration (time stepper type).
     /// <pre>
-    ///   - Suggested for fast dynamics with hard (DVI) contacts: EULER_IMPLICIT_LINEARIZED
-    ///   - Suggested for fast dynamics with hard (DVI) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
+    ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
+    ///   - Suggested for fast dynamics with hard (NSC) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
     ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
     /// NOTES:
     ///   - for more advanced customization, use SetTimestepper()
@@ -292,19 +279,19 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Return the contact method supported by this system.
     /// Bodies added to this system must be compatible.
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+    virtual ChMaterialSurface::ContactMethod GetContactMethod() const = 0;
 
     /// Create and return the pointer to a new body.
     /// The returned body is created with a contact model consistent with the type
     /// of this Chsystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBody* NewBody() { return new ChBody(ChMaterialSurfaceBase::DVI); }
+    virtual ChBody* NewBody() = 0;
 
     /// Create and return the pointer to a new body with auxiliary reference frame.
     /// The returned body is created with a contact model consistent with the type
     /// of this Chsystem and with the collision system currently associated with this
     /// ChSystem.  Note that the body is *not* attached to this system.
-    virtual ChBodyAuxRef* NewBodyAuxRef() { return new ChBodyAuxRef(ChMaterialSurfaceBase::DVI); }
+    virtual ChBodyAuxRef* NewBodyAuxRef() = 0;
 
     /// Attach a probe to this system.
     void AddProbe(const std::shared_ptr<ChProbe>& newprobe);
@@ -317,10 +304,10 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     void RemoveAllControls();
 
     /// Replace the contact continer.
-    virtual void SetContactContainer(std::shared_ptr<ChContactContainerBase> container);
+    virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
 
     /// Get the contact container
-    std::shared_ptr<ChContactContainerBase> GetContactContainer() { return contact_container; }
+    std::shared_ptr<ChContactContainer> GetContactContainer() { return contact_container; }
 
     /// Given inserted markers and links, restores the
     /// pointers of links to markers given the information
@@ -576,35 +563,25 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// This is mostly called automatically by time integration.
     double ComputeCollisions();
 
-    /// Class to be inherited by user and to use in SetCustomComputeCollisionCallback()
-    class ChApi ChCustomComputeCollisionCallback {
+    /// Class to be used as a callback interface for user defined actions performed 
+    /// at each collision detection step.  For example, additional contact points can
+    /// be added to the underlying contact container.
+    class ChApi CustomCollisionCallback {
       public:
-        virtual ~ChCustomComputeCollisionCallback() {}
-        virtual void PerformCustomCollision(ChSystem* msys) {}
+        virtual ~CustomCollisionCallback() {}
+        virtual void OnCustomCollision(ChSystem* msys) {}
     };
 
+    /// Specify a callback object to be invoked at each collision detection step.
+    /// Multiple such callback objects can be registered with a system. If present,
+    /// their OnCustomCollision() method is invoked 
     /// Use this if you want that some specific callback function is executed at each
     /// collision detection step (ex. all the times that ComputeCollisions() is automatically
     /// called by the integration method). For example some other collision engine could
     /// add further contacts using this callback.
-    void SetCustomComputeCollisionCallback(ChCustomComputeCollisionCallback* mcallb) {
+    void RegisterCustomCollisionCallback(CustomCollisionCallback* mcallb) {
         collision_callbacks.push_back(mcallb);
     }
-
-    /// Class to be inherited by user and to use in SetCustomCollisionPointCallback()
-    class ChApi ChCustomCollisionPointCallback {
-      public:
-        virtual void ContactCallback(
-            const collision::ChCollisionInfo& mcontactinfo,  ///< get info about contact (cannot change it)
-            ChMaterialCouple& material                       ///< you can modify this!
-            ) = 0;
-    };
-
-    /// Use this if you want that some specific callback function is executed soon after
-    /// each contact point is created. The callback will be called many times, once for each contact.
-    /// Example: it can be used to modify the friction coefficients for each created
-    /// contact (otherwise, by default, would be the average of the two frict.coeff.)
-    void SetCustomCollisionPointCallback(ChCustomCollisionPointCallback* mcallb) { collisionpoint_callback = mcallb; }
 
     /// For higher performance (ex. when GPU coprocessors are available) you can create your own custom
     /// collision engine (inherited from ChCollisionSystem) and plug it into the system using this function. 
@@ -806,7 +783,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::vector<std::shared_ptr<ChProbe> > probelist;        ///< list of 'probes' (variable-recording objects)
     std::vector<std::shared_ptr<ChControls> > controlslist;  ///< list of 'controls' script objects
 
-    std::shared_ptr<ChContactContainerBase> contact_container;  ///< the container of contacts
+    std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
     ChVector<> G_acc;  ///< gravitational acceleration
 
@@ -846,7 +823,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::shared_ptr<collision::ChCollisionSystem> collision_system;  ///< collision engine
 
-    std::vector<ChCustomComputeCollisionCallback*> collision_callbacks;
+    std::vector<CustomCollisionCallback*> collision_callbacks;
 
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step
@@ -858,10 +835,6 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
-  public:
-    ChCustomCollisionPointCallback* collisionpoint_callback;
-
-  private:
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
 };
 

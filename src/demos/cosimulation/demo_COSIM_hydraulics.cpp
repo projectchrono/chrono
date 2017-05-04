@@ -21,7 +21,7 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_cosimulation/ChCosimulation.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         // 1) Create a very simple ChronoEngine system, without user interface
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create rigid bodies and add them to the system:
         auto my_body_A = std::make_shared<ChBody>();  // truss

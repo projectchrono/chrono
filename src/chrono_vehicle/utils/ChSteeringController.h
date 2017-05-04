@@ -161,21 +161,20 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     /// Construct a steering controller to track the specified path.
     /// This version uses default controller parameters (zero gains).
     /// The user is responsible for calling SetGains and SetLookAheadDistance.
-    ChPathSteeringController(ChBezierCurve* path, bool isClosedPath = false);
+    ChPathSteeringController(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false);
 
     /// Construct a steering controller to track the specified path.
     /// This version reads controller gains and lookahead distance from the
     /// specified JSON file.
-    ChPathSteeringController(const std::string& filename, 
-                             ChBezierCurve* path, 
-                             bool isClosedPath = false
-                             );
+    ChPathSteeringController(const std::string& filename,
+                             std::shared_ptr<ChBezierCurve> path,
+                             bool isClosedPath = false);
 
     /// Destructor for ChPathSteeringController.
-    ~ChPathSteeringController();
+    ~ChPathSteeringController() {}
 
     /// Return a pointer to the Bezier curve
-    ChBezierCurve* GetPath() const { return m_path; }
+    std::shared_ptr<ChBezierCurve> GetPath() const { return m_path; }
 
     /// Reset the PID controller.
     /// This function resets the underlying path tracker using the current location
@@ -188,8 +187,8 @@ class CH_VEHICLE_API ChPathSteeringController : public ChSteeringController {
     virtual void CalcTargetLocation() override;
 
   private:
-    ChBezierCurve* m_path;            ///< tracked path (piecewise cubic Bezier curve)
-    ChBezierCurveTracker* m_tracker;  ///< path tracker
+    std::shared_ptr<ChBezierCurve> m_path;            ///< tracked path (piecewise cubic Bezier curve)
+    std::unique_ptr<ChBezierCurveTracker> m_tracker;  ///< path tracker
 };
 
 /// @} vehicle_utils

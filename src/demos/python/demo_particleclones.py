@@ -24,7 +24,7 @@ import os
 
 
 # Create a physical system,
-my_system = chrono.ChSystem()
+my_system = chrono.ChSystemNSC()
 
 
 # Set the default margins for collision detection, this is epecially

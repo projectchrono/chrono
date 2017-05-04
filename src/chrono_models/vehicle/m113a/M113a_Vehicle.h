@@ -31,7 +31,7 @@ namespace m113 {
 class CH_MODELS_API M113a_Vehicle : public ChTrackedVehicle {
   public:
     M113a_Vehicle(bool fixed,
-                  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI,
+                  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
                   ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     M113a_Vehicle(bool fixed, ChSystem* system, ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);

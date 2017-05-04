@@ -46,32 +46,32 @@ namespace vehicle {
 class CH_VEHICLE_API ChPathFollowerACCDriver : public ChDriver {
   public:
     /// Construct using the specified Bezier curve.
-    ChPathFollowerACCDriver(ChVehicle& vehicle,         ///< associated vehicle
-                         ChBezierCurve* path,           ///< Bezier curve with target path
-                         const std::string& path_name,  ///< name of the path curve
-                         double target_speed,           ///< constant target speed
-                         double target_following_time,  ///< seconds of following time
-                         double target_min_distance,    ///< min following distance
-                         double current_distance,       ///< current distance to the vehicle in front
-                         bool isClosedPath = false      ///< Treat the path as a closed loop
-                         );
+    ChPathFollowerACCDriver(ChVehicle& vehicle,                   ///< associated vehicle
+                            std::shared_ptr<ChBezierCurve> path,  ///< Bezier curve with target path
+                            const std::string& path_name,         ///< name of the path curve
+                            double target_speed,                  ///< constant target speed
+                            double target_following_time,         ///< seconds of following time
+                            double target_min_distance,           ///< min following distance
+                            double current_distance,              ///< current distance to the vehicle in front
+                            bool isClosedPath = false             ///< Treat the path as a closed loop
+                            );
 
     /// Construct using JSON specification files.
     /// The two files must contain specification for the path-follower steering controller
     /// and the constant-speed controller, respectively.
-    ChPathFollowerACCDriver(ChVehicle& vehicle,                 ///< associated vehicle
-                         const std::string& steering_filename,  ///< JSON file with steering controller specification
-                         const std::string& speed_filename,     ///< JSON file with speed controller specification
-                         ChBezierCurve* path,                   ///< Bezier curve with target path
-                         const std::string& path_name,          ///< name of the path curve
-                         double target_speed,                   ///< constant target speed
-                         double target_following_time,          ///< seconds of following time
-                         double target_min_distance,            ///< min following distance
-                         double current_distance,               ///< current distance to the vehicle in front
-                         bool isClosedPath = false              ///< Treat the path as a closed loop
-                         );
+    ChPathFollowerACCDriver(ChVehicle& vehicle,                    ///< associated vehicle
+                            const std::string& steering_filename,  ///< JSON file with steering controller specification
+                            const std::string& speed_filename,     ///< JSON file with speed controller specification
+                            std::shared_ptr<ChBezierCurve> path,   ///< Bezier curve with target path
+                            const std::string& path_name,          ///< name of the path curve
+                            double target_speed,                   ///< constant target speed
+                            double target_following_time,          ///< seconds of following time
+                            double target_min_distance,            ///< min following distance
+                            double current_distance,               ///< current distance to the vehicle in front
+                            bool isClosedPath = false              ///< Treat the path as a closed loop
+                            );
 
-      ~ChPathFollowerACCDriver() {}
+    ~ChPathFollowerACCDriver() {}
 
     /// Set the desired vehicle speed.
     void SetDesiredSpeed(double val) { m_target_speed = val; }

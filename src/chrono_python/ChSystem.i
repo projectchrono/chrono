@@ -16,29 +16,17 @@ typedef chrono::ChSystem::IteratorBodies IteratorBodies;
 typedef chrono::ChSystem::IteratorLinks  IteratorLinks;
 typedef chrono::ChSystem::IteratorOtherPhysicsItems IteratorOtherPhysicsItems;
 typedef chrono::ChSystem::IteratorPhysicsItems IteratorPhysicsItems;
-//typedef chrono::ChSystem::ChCustomCollisionPointCallback ChCustomCollisionPointCallback;
-//typedef chrono::ChSystem::ChCustomComputeCollisionCallback ChCustomComputeCollisionCallback;
 
-// for these two other nested classes it is enough to inherit stubs (not virtual) as outside classes
-class ChCustomCollisionPointCallbackP : public chrono::ChSystem::ChCustomCollisionPointCallback
-{
-	public:	
-		ChCustomCollisionPointCallbackP() {};
-		virtual void ContactCallback(
-							const chrono::collision::ChCollisionInfo& mcontactinfo,				
-							chrono::ChMaterialCouple&  material 			  		
-							) { GetLog() << "You must implement ContactCallback() ! \n"; };
-};
-class ChCustomComputeCollisionCallbackP  : public chrono::ChSystem::ChCustomComputeCollisionCallback
-{
+// for this nested class, inherit stubs (not virtual) as outside class
+class ChCustomCollisionCallbackP : public chrono::ChSystem::CustomCollisionCallback {
 	public: 
-		ChCustomComputeCollisionCallbackP() {};
-		virtual void PerformCustomCollision(chrono::ChSystem* msys) { GetLog() << "You must implement PerformCustomCollision() ! \n"; };
+		ChCustomCollisionCallbackP() {}
+		virtual void OnCustomCollision(chrono::ChSystem* msys) {
+		    GetLog() << "You must implement OnCustomCollision()!\n";
+		}
 };
-
 
 %}
-
 
 
 // Forward ref
@@ -48,8 +36,7 @@ class ChCustomComputeCollisionCallbackP  : public chrono::ChSystem::ChCustomComp
 
 // Cross-inheritance between Python and c++ for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
-%feature("director") ChCustomCollisionPointCallbackP;
-%feature("director") ChCustomComputeCollisionCallbackP;
+%feature("director") ChCustomCollisionCallbackP;
 
 
 // NESTED CLASSES - trick - step 2
@@ -81,18 +68,10 @@ class IteratorPhysicsItems
       bool operator==(const IteratorPhysicsItems& other);
       bool operator!=(const IteratorPhysicsItems& other);
     };
-class ChCustomCollisionPointCallbackP
-	{
-	public:	
-	  virtual void ContactCallback(
-							const chrono::collision::ChCollisionInfo& mcontactinfo, 
-							chrono::ChMaterialCouple&  material 			  		
-													);
-	};
-class ChCustomComputeCollisionCallbackP
+class ChCustomCollisionCallbackP
 {
 	public: 
-		virtual void PerformCustomCollision(chrono::ChSystem* msys) {};
+		virtual void OnCustomCollision(chrono::ChSystem* msys) {}
 };
 
 // NESTED CLASSES - trick - step 3
@@ -191,13 +170,10 @@ class ChCustomComputeCollisionCallbackP
 	  {
 			return $self->IterEndPhysicsItems();
 	  }
-	void SetCustomCollisionPointCallback(::ChCustomCollisionPointCallbackP* mcallb)  // note the :: at the beginning
+
+	void RegisterCustomCollisionCallback(::ChCustomCollisionCallbackP* mcallb)  // note the :: at the beginning
 	  {
-		  $self->SetCustomCollisionPointCallback(mcallb);
-	  }
-	void SetCustomComputeCollisionCallback(::ChCustomComputeCollisionCallbackP* mcallb)  // note the :: at the beginning
-	  {
-		  $self->SetCustomComputeCollisionCallback(mcallb);
+		  $self->RegisterCustomCollisionCallback(mcallb);
 	  }
 };
 
@@ -215,8 +191,7 @@ class ChCustomComputeCollisionCallbackP
 %ignore chrono::ChSystem::IterEndOtherPhysicsItems();
 %ignore chrono::ChSystem::IterBeginPhysicsItems();
 %ignore chrono::ChSystem::IterEndPhysicsItems();
-%ignore chrono::ChSystem::SetCustomCollisionPointCallback();
-%ignore chrono::ChSystem::SetCustomComputeCollisionCallback();
+%ignore chrono::ChSystem::RegisterCustomCollisionCallback();
 
 
 /* Parse the header file to generate wrappers */

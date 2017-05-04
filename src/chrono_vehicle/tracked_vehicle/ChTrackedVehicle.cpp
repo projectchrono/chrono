@@ -27,7 +27,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChMaterialSurfaceBase::ContactMethod contact_method)
+ChTrackedVehicle::ChTrackedVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
     : ChVehicle(contact_method), m_name(name), m_contacts(new ChTrackContactManager) {
 }
 
@@ -46,12 +46,10 @@ ChTrackedVehicle::~ChTrackedVehicle() {
 // vehicle subsystems (the two track assemblies and the driveline).
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, TrackedCollisionFamily::CHASSIS);
 
-    // Set the collision family for the chassis body and disable contacts with
-    // all other tracked vehicle subsystems, except the track shoes.
-    m_chassis->GetBody()->GetCollisionModel()->SetFamily(TrackedCollisionFamily::CHASSIS);
-
+    // Disable contacts between chassis with all other tracked vehicle subsystems,
+    // except the track shoes.
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::WHEELS);
     m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::ROLLERS);
