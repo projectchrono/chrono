@@ -35,7 +35,7 @@ class ChDomainDistributed;
 class ChCommDistributed;
 class ChDataManagerDistr;
 
-class CH_DISTR_API ChSystemDistributed : public ChSystemParallelDEM {
+class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
 
 	friend class ChCommDistributed;
 

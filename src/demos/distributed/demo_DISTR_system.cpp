@@ -51,13 +51,13 @@ void AddContainer(ChSystemDistributed* sys) {
     int binId = -200;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -85,7 +85,7 @@ void AddContainer(ChSystemDistributed* sys) {
 // -----------------------------------------------------------------------------
 void AddFallingBalls(ChSystemDistributed* sys) {
     // Common material
-    auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
+    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
@@ -103,7 +103,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     		for (int iy = -count_Y; iy <= count_Y; iy++) {
     			ChVector<> pos(0.4 * ix, 0.4 * iy, z);
 
-    			auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+    			auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     			ball->SetMaterialSurface(ballMat);
 
     			ball->SetIdentifier(ballId++);
@@ -167,8 +167,8 @@ int main(int argc, char *argv[])
 	my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
     my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    my_sys.GetSettings()->solver.contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
-    my_sys.GetSettings()->solver.adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
+    my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
 
 	print("Setting and dividing the domain...\n");

@@ -43,7 +43,7 @@ struct exchange
 
 	double mass;	///< Mass
 
-	// Material DEM
+	// Material SMC
 	double mu; ///< Static Friction
 	double adhesionMultDMT; ///< Adhesion
 

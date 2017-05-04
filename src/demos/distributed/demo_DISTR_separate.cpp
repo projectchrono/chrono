@@ -59,13 +59,13 @@ void AddContainer(ChSystemDistributed* sys) {
     int binId = -200;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mat = std::make_shared<ChMaterialSurfaceSMC>();
     mat->SetYoungModulus(Y);
     mat->SetFriction(mu);
     mat->SetRestitution(cr);
 
     // Create the containing bin (4 x 4 x 1)
-    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+    auto bin = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     bin->SetMaterialSurface(mat);
     bin->SetIdentifier(binId);
     bin->SetMass(1);
@@ -96,7 +96,7 @@ void AddContainer(ChSystemDistributed* sys) {
 void AddBalls0(ChSystemDistributed *sys)
 {
 	// Common material
-	auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
+	auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
 	ballMat->SetYoungModulus(Y);
 	ballMat->SetFriction(mu);
 	ballMat->SetRestitution(cr);
@@ -115,7 +115,7 @@ void AddBalls0(ChSystemDistributed *sys)
 
 				ChVector<> pos(x, y, z);
 
-				auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+				auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 				ball->SetMaterialSurface(ballMat);
 
 				ball->SetIdentifier(ballId++);
@@ -148,7 +148,7 @@ void AddBalls1(ChSystemDistributed *sys)
 {
 
 	// Common material
-	auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
+	auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
 	ballMat->SetYoungModulus(Y);
 	ballMat->SetFriction(mu);
 	ballMat->SetRestitution(cr);
@@ -166,7 +166,7 @@ void AddBalls1(ChSystemDistributed *sys)
 			{
 				ChVector<> pos(x, y, z);
 
-				auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+				auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 				ball->SetMaterialSurface(ballMat);
 
 				ball->SetIdentifier(ballId++);
@@ -228,8 +228,8 @@ int main(int argc, char *argv[])
 	sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
     sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    sys.GetSettings()->solver.contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
-    sys.GetSettings()->solver.adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
+    sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
 
 	AddContainer(&sys);

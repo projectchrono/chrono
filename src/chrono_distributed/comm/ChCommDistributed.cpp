@@ -28,7 +28,7 @@
 #include "chrono/core/ChVector.h"
 #include "chrono/core/ChMatrix33.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 
 using namespace chrono;
 using namespace collision;
@@ -76,7 +76,7 @@ void ChCommDistributed::ProcessBuffer(int num_recv, double* buf, int updown)
 			// a new body to add
 			if (first_empty == data_manager->num_rigid_bodies)
 			{
-				body = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+				body = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
 				body->SetId(data_manager->num_rigid_bodies);
 			}
 			// If an empty space was found in the body manager
@@ -521,7 +521,7 @@ int ChCommDistributed::PackExchange(double *buf, int index)
 	// Mass
 	buf[m++] = data_manager->host_data.mass_rigid[index];
 
-	// Material DEM
+	// Material SMC
 	buf[m++] = data_manager->host_data.mu[index]; // Static Friction
 	buf[m++] = data_manager->host_data.adhesionMultDMT_data[index]; // Adhesion
 
@@ -616,8 +616,8 @@ int ChCommDistributed::UnpackExchange(double *buf, std::shared_ptr<ChBody> body)
 	// Mass
 	body->SetMass(buf[m++]);
 
-	// Material DEM
-	std::shared_ptr<ChMaterialSurfaceDEM> mat = std::make_shared<ChMaterialSurfaceDEM>();
+	// Material SMC
+	std::shared_ptr<ChMaterialSurfaceSMC> mat = std::make_shared<ChMaterialSurfaceSMC>();
 
 	mat->SetFriction(buf[m++]);  //Static Friction
 	mat->adhesionMultDMT = buf[m++];

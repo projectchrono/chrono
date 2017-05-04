@@ -62,7 +62,7 @@ bool ChSystemDistributed::Integrate_Y()
 {
 	assert(domain->IsSplit());
 
-	bool ret = ChSystemParallelDEM::Integrate_Y();
+	bool ret = ChSystemParallelSMC::Integrate_Y();
 	if (num_ranks != 1)
 	{
 		comm->Exchange();
@@ -176,7 +176,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody)
     data_manager->host_data.active_rigid.push_back(true);
     data_manager->host_data.collide_rigid.push_back(true);
 	// Let derived classes reserve space for specific material surface data
-	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
+	ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 }
 
 void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status)
@@ -200,7 +200,7 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
     data_manager->host_data.collide_rigid.push_back(true);
 
 	// Let derived classes reserve space for specific material surface data
-	ChSystemParallelDEM::AddMaterialSurfaceData(newbody);
+	ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
 	GetLog() << "End AddBodyExchange\n";
 }
 
@@ -232,17 +232,17 @@ void ChSystemDistributed::PrintBodyStatus()
 		ChVector<double> vel = (*bl_itr)->GetPos_dt();
 		if (ddm->comm_status[i] != distributed::EMPTY)
 		{
-			/*float adhesion = (*bl_itr)->GetMaterialSurfaceDEM()->adhesionMultDMT;
-			float const_ad = (*bl_itr)->GetMaterialSurfaceDEM()->constant_adhesion;
-			float gn = (*bl_itr)->GetMaterialSurfaceDEM()->gn;
-			float gt = (*bl_itr)->GetMaterialSurfaceDEM()->gt;
-			float kn = (*bl_itr)->GetMaterialSurfaceDEM()->kn;
-			float kt = (*bl_itr)->GetMaterialSurfaceDEM()->kt;
-			float poisson = (*bl_itr)->GetMaterialSurfaceDEM()->poisson_ratio;
-			float restit = (*bl_itr)->GetMaterialSurfaceDEM()->restitution;
-			float sliding_fric = (*bl_itr)->GetMaterialSurfaceDEM()->sliding_friction;
-			float static_fric = (*bl_itr)->GetMaterialSurfaceDEM()->static_friction;
-			float young = (*bl_itr)->GetMaterialSurfaceDEM()->young_modulus;
+			/*float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
+			float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
+			float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
+			float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
+			float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
+			float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
+			float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
+			float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
+			float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
+			float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
+			float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
 			*/
 
 			printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n",

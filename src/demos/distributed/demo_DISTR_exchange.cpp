@@ -55,7 +55,7 @@ void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
 void AddFallingBall(ChSystemDistributed* sys)
 {
     // Common material
-    auto ballMat = std::make_shared<ChMaterialSurfaceDEM>();
+    auto ballMat = std::make_shared<ChMaterialSurfaceSMC>();
     ballMat->SetYoungModulus(Y);
     ballMat->SetFriction(mu);
     ballMat->SetRestitution(cr);
@@ -76,7 +76,7 @@ void AddFallingBall(ChSystemDistributed* sys)
 
 
 
-    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurfaceBase::DEM);
+    auto ball = std::make_shared<ChBody>(std::make_shared<ChCollisionModelDistributed>(), ChMaterialSurface::SMC);
     ball->SetMaterialSurface(ballMat);
 
     ball->SetIdentifier(ballId++);
@@ -128,8 +128,8 @@ int main(int argc, char *argv[])
 	my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
     my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
-    my_sys.GetSettings()->solver.contact_force_model = ChSystemDEM::ContactForceModel::Hertz;
-    my_sys.GetSettings()->solver.adhesion_force_model = ChSystemDEM::AdhesionForceModel::Constant;
+    my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
+    my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
 	ChVector<double> domlo(-5, -5, 0);
 	ChVector<double> domhi(5, 5, 100);
