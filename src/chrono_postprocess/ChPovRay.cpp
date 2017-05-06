@@ -19,6 +19,7 @@
 #include "chrono/assets/ChCylinderShape.h"
 #include "chrono/assets/ChObjShapeFile.h"
 #include "chrono/assets/ChSphereShape.h"
+#include "chrono/assets/ChEllipsoidShape.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -70,6 +71,7 @@ ChPovRay::ChPovRay(ChSystem* system) : ChPostProcessBase(system) {
     this->contacts_colormap_startscale = 0;
     this->contacts_colormap_endscale = 10;
     this->contacts_do_colormap = true;
+    this->single_asset_file = true;
 }
 
 void ChPovRay::Add(std::shared_ptr<ChPhysicsItem> mitem) {
@@ -420,8 +422,16 @@ void ChPovRay::ExportScript(const std::string& filename) {
 			} \n";
     }
 
-    // Populate the assets
-    this->ExportAssets();
+    // If using a single-file asset, update it (because maybe that during the
+    // animation someone created an object with asset)
+    if (single_asset_file) {
+        // open asset file in append mode
+        std::string assets_filename = this->out_script_filename + ".assets";
+        ChStreamOutAsciiFile assets_file(assets_filename.c_str(), std::ios::app);
+        // populate assets (note that already present
+        // assets won't be appended!)
+        this->ExportAssets(assets_file);
+    }
 }
 
 void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist,
@@ -559,6 +569,29 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
                 assets_file << "#end \n";
             }
 
+            // *) asset k of object i is an ellipsoid ?
+            if (auto myobjshapeasset = std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset)) {
+                // POV macro to build the asset - begin
+                assets_file << "#macro sh_" << (size_t)k_asset.get()
+                            << "()\n";  //"(apx, apy, apz, aq0, aq1, aq2, aq3)\n";
+
+                // POV will make the sphere
+                assets_file << "sphere  {\n";
+
+                assets_file << " <" << myobjshapeasset->GetEllipsoidGeometry().center.x();
+                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().center.y();
+                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().center.z() << ">\n";
+                assets_file << " " <<  1.0 << "\n";
+                assets_file << " scale ";
+                assets_file << "<" <<  myobjshapeasset->GetEllipsoidGeometry().rad.x();
+                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().rad.y();
+                assets_file << "," <<  myobjshapeasset->GetEllipsoidGeometry().rad.z() << ">\n";
+                assets_file << "}\n";
+
+                // POV macro - end
+                assets_file << "#end \n";
+            }
+
             // *) asset k of object i is a cylinder ?
             if (auto myobjshapeasset = std::dynamic_pointer_cast<ChCylinderShape>(k_asset)) {
                 // POV macro to build the asset - begin
@@ -678,11 +711,8 @@ void ChPovRay::_recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& asse
     }  // end loop on assets of i-th object
 }
 
-void ChPovRay::ExportAssets() {
-    // open asset file in append mode.
-    std::string assets_filename = this->out_script_filename + ".assets";
-    ChStreamOutAsciiFile assets_file(assets_filename.c_str(), std::ios::app);
-
+void ChPovRay::ExportAssets(ChStreamOutAsciiFile& assets_file) {
+    
     // This will scan all the ChPhysicsItem added objects, and if
     // they have some reference to renderizable assets, write geoemtries in
     // the POV assets script.
@@ -696,7 +726,7 @@ void ChPovRay::ExportAssets() {
 void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
                                      ChFrame<> parentframe,
                                      ChStreamOutAsciiFile& mfilepov) {
-    mfilepov << "union{\n";  // begin union
+    mfilepov << "union{\n";   // begin union
 
     // Scan assets in object and write the macro to set their position
     for (unsigned int k = 0; k < assetlist.size(); k++) {
@@ -705,7 +735,9 @@ void ChPovRay::_recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& ass
         // asset k of object i references a mesh, a box, a sphere, i.e. any exported shape?
         if (std::dynamic_pointer_cast<ChObjShapeFile>(k_asset) ||
             std::dynamic_pointer_cast<ChTriangleMeshShape>(k_asset) ||
-            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
+            std::dynamic_pointer_cast<ChSphereShape>(k_asset) || 
+            std::dynamic_pointer_cast<ChEllipsoidShape>(k_asset) || 
+            std::dynamic_pointer_cast<ChCylinderShape>(k_asset) ||
             std::dynamic_pointer_cast<ChBoxShape>(k_asset)) {
             mfilepov << "sh_" << (size_t)k_asset.get() << "()\n";
         }
@@ -764,12 +796,16 @@ void ChPovRay::ExportData(const std::string& filename) {
 
     this->SetupLists();
 
-    // Populate the assets (because maybe that during the
-    // animation someone created an object with asset, after
-    // the initial call to ExportScript() - but note that already present
-    // assets won't be appended!)
-
-    this->ExportAssets();
+    // If using a single-file asset, update it (because maybe that during the
+    // animation someone created an object with asset)
+    if (single_asset_file) {
+        // open asset file in append mode
+        std::string assets_filename = this->out_script_filename + ".assets";
+        ChStreamOutAsciiFile assets_file(assets_filename.c_str(), std::ios::app);
+        // populate assets (note that already present
+        // assets won't be appended!)
+        this->ExportAssets(assets_file);
+    }
 
     // Generate the nnnn.dat and nnnn.pov files:
 
@@ -783,6 +819,12 @@ void ChPovRay::ExportData(const std::string& filename) {
         ChStreamOutAsciiFile mfilepov(pathpov);
 
         this->camera_found_in_assets = false;
+
+        // If embedding assets in the .pov file:
+        if (!single_asset_file) {
+            this->pov_assets.clear();
+            this->ExportAssets(mfilepov);
+        }
 
         // Write custom data commands, if provided by the user
         if (this->custom_data.size() > 0) {

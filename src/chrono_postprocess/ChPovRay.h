@@ -195,9 +195,17 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// As ExportScript(), but overrides the automatically computed filename.
     virtual void ExportData(const std::string& filename);
 
+    /// Set if the assets for the entre scenes at all timesteps must be appended into one
+    /// single large file "rendering_frames.pov.assets". If not, assets will be written inside 
+    /// each state0001.dat, state0002.dat, etc files; this would waste more disk space but would be
+    /// a bit faster in POV parsing and would allow assets whose settings change during time (ex time-changing colors)
+    void SetUseSingleAssetFile(bool muse) {
+        this->single_asset_file = muse;
+    }
+
   protected:
     virtual void SetupLists();
-    virtual void ExportAssets();
+    virtual void ExportAssets(ChStreamOutAsciiFile& assets_file);
     void _recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
 
     void _recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
@@ -252,6 +260,8 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
 
     std::string custom_script;
     std::string custom_data;
+
+    bool single_asset_file;
 };
 
 }  // end namespace postprocess
