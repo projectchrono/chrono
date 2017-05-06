@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<ChBody> > mspheres;
 void create_items(ChIrrAppInterface& application) {
     // Create some spheres in a vertical stack
 
-    auto material = std::make_shared<ChMaterialSurface>();
+    auto material = std::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(0.4f);
     material->SetCompliance(0.001f / 700);                // as 1/K, in m/N. es: 1mm/700N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
@@ -157,7 +157,7 @@ void create_items(ChIrrAppInterface& application) {
                                                        true);      // visualization?
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->GetMaterialSurface()->SetFriction(0.6f);
+    mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
     mrigidFloor->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
@@ -180,7 +180,7 @@ void align_spheres(ChIrrAppInterface& application) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

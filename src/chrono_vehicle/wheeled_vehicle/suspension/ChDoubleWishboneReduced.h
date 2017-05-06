@@ -140,8 +140,8 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
 
     /// Return the free (rest) length of the spring-damper element.
     virtual double getSpringRestLength() const = 0;
-    /// Return the callback function for shock force (spring-damper).
-    virtual ChSpringForceCallback* getShockForceCallback() const = 0;
+    /// Return the functor object for shock force (spring-damper).
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_upright[2];  ///< handles to the upright bodies (left/right)
 

@@ -58,8 +58,6 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
                 contact_active_pairs[i] =
                     bool2(data_manager->host_data.active_rigid[b1] != 0, data_manager->host_data.active_rigid[b2] != 0);
 
-                ////real coh = Max(
-                ////    (data_manager->host_data.cohesion_data[b1] + data_manager->host_data.cohesion_data[b2]) * .5, 0.0);
                 real coh = Min(data_manager->host_data.cohesion_data[b1], data_manager->host_data.cohesion_data[b2]);
                 data_manager->host_data.coh_rigid_rigid[i] = coh;
 
@@ -67,9 +65,10 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
                 real3 f_b = data_manager->host_data.fric_data[b2];
                 real3 mu;
 
-                mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
+                ////mu.x = (f_a.x == 0 || f_b.x == 0) ? 0 : (f_a.x + f_b.x) * .5;
                 ////mu.y = (f_a.y == 0 || f_b.y == 0) ? 0 : (f_a.y + f_b.y) * .5;
                 ////mu.z = (f_a.z == 0 || f_b.z == 0) ? 0 : (f_a.z + f_b.z) * .5;
+                mu.x = Min(f_a.x, f_b.x);  // sliding
                 mu.y = Min(f_a.y, f_b.y);  // rolling
                 mu.z = Min(f_a.z, f_b.z);  // spinning
 

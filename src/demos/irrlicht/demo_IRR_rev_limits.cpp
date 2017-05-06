@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -35,7 +35,7 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
 
     // Create the ground body
     // ----------------------

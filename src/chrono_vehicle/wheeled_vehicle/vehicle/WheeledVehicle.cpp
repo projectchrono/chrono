@@ -303,7 +303,7 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurfaceBase::ContactMethod contact_method)
+WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
     : ChWheeledVehicle(contact_method) {
     Create(filename);
 }
@@ -442,7 +442,8 @@ void WheeledVehicle::Create(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystems.
     for (int i = 0; i < m_num_strs; i++) {

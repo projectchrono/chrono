@@ -53,7 +53,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
-    ChWheeledVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+    ChWheeledVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChVehicle(contact_method) {}
 
     /// Construct a vehicle system using the specified ChSystem.
@@ -134,6 +134,18 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     /// Set visualization type for the wheel subsystems.
     /// This function should be called only after vehicle initialization.
     void SetWheelVisualizationType(VisualizationType vis);
+
+    /// Enable/disable collision between the chassis and all other vehicle subsystems.
+    /// This only controls collisions between the chassis and the tire systems.
+    virtual void SetChassisVehicleCollide(bool state) override;
+
+    /// Initialize this vehicle at the specified global location and orientation.
+    /// This base class implementation only initializes the chassis subsystem.
+    /// Derived classes must extend this function to initialize all other wheeled
+    /// vehicle subsystems (steering, suspensions, wheels, brakes, and driveline).
+    virtual void Initialize(const ChCoordsys<>& chassisPos,  ///< [in] initial global position and orientation
+                            double chassisFwdVel = 0         ///< [in] initial chassis forward velocity
+                            ) override;
 
     /// Update the state of this vehicle at the current time.
     /// The vehicle system is provided the current driver inputs (throttle between

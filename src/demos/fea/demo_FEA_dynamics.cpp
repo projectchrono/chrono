@@ -16,7 +16,7 @@
 
 // Include some headers used by this tutorial...
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementSpring.h"
@@ -42,7 +42,7 @@ void test_1() {
     GetLog() << "TEST: spring FEM dynamics,  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -124,7 +124,7 @@ void test_2() {
     GetLog() << "TEST: bar FEM dynamics,  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -210,7 +210,7 @@ void test_2b() {
     GetLog() << "TEST: spring FEM dynamics compare to bar \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -292,7 +292,7 @@ void test_3() {
     GetLog() << "TEST: tetahedron FEM dynamics, implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -388,7 +388,7 @@ void test_4() {
     GetLog() << "TEST: bar FEM dynamics (2 elements),  implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.

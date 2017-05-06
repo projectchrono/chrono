@@ -26,7 +26,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -55,6 +54,8 @@ using namespace chrono::vehicle;
 
 // JSON file for vehicle model
 std::string vehicle_file("M113/vehicle/M113_Vehicle.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_box.json");
+////std::string vehicle_file("M113/vehicle/M113_Vehicle_mesh.json");
 
 // JSON file for powertrain
 std::string simplepowertrain_file("M113/powertrain/M113_SimplePowertrain.json");
@@ -100,7 +101,7 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
+    TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -113,7 +114,14 @@ int main(int argc, char* argv[]) {
     vehicle.SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetIdlerVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetRoadWheelAssemblyVisualizationType(VisualizationType::PRIMITIVES);
+    vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
+
+    // Disable all contacts for vehicle chassis (if chassis collision was defined)
+    ////vehicle.SetChassisCollide(false);
+
+    // Disable only contact between chassis and track shoes (if chassis collision was defined)
+    ////vehicle.SetChassisVehicleCollide(false);
 
     // Solver settings.
     vehicle.GetSystem()->SetMaxItersSolverSpeed(50);
@@ -128,7 +136,7 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_IRRLICHT
 
-    ChVehicleIrrApp app(&vehicle, &powertrain, L"Tracked Vehicle Demo");
+    ChVehicleIrrApp app(&vehicle, &powertrain, L"JSON Tracked Vehicle Demo");
 
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);

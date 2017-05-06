@@ -18,8 +18,7 @@
 //       that is perform a cosimulation.
 
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadBodyMesh.h"
@@ -112,7 +111,7 @@ int main(int argc, char* argv[]) {
 
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -133,7 +132,7 @@ int main(int argc, char* argv[]) {
     // Create the surface material, containing information
     // about friction etc.
 
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(10e4);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);

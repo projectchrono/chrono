@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -50,7 +50,7 @@ IGUIStaticText* text_enginespeed = 0;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystem* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
+    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         msystem = asystem;
         mdevice = adevice;
@@ -87,14 +87,14 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChSystem* msystem;
+    ChSystemNSC* msystem;
     IrrlichtDevice* mdevice;
     std::shared_ptr<ChLinkEngine> mengine;
 };
 
 int main(int argc, char* argv[]) {
     // 1- Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

@@ -17,7 +17,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChProximityContainerSPH.h"
 #include "chrono/physics/ChMatterSPH.h"
@@ -31,7 +31,7 @@ using namespace chrono::irrlicht;
 // Use the main namespaces of Irrlicht
 using namespace irr;
 
-void create_some_falling_items(ChSystem& system) {
+void create_some_falling_items(ChSystemNSC& system) {
     // box data
     double xsize = 0.5;
     double zsize = 0.5;
@@ -68,7 +68,7 @@ void create_some_falling_items(ChSystem& system) {
     wall1->SetPos(ChVector<>(0, -thick * 0.5, 0));
     wall1->SetBodyFixed(true);
     wall1->SetMass(100);
-    wall1->GetMaterialSurface()->SetFriction(0);
+    wall1->GetMaterialSurfaceNSC()->SetFriction(0);
     wall1->AddAsset(texture);
     system.Add(wall1);
 
@@ -76,7 +76,7 @@ void create_some_falling_items(ChSystem& system) {
     wall2->SetPos(ChVector<>(-xsize * 0.5 - thick * 0.5, height * 0.5, 0));
     wall2->SetBodyFixed(true);
     wall2->SetMass(100);
-    wall2->GetMaterialSurface()->SetFriction(0);
+    wall2->GetMaterialSurfaceNSC()->SetFriction(0);
     wall2->AddAsset(texture);
     system.Add(wall2);
 
@@ -84,7 +84,7 @@ void create_some_falling_items(ChSystem& system) {
     wall3->SetPos(ChVector<>(xsize * 0.5 + thick * 0.5, height * 0.5, 0));
     wall3->SetBodyFixed(true);
     wall3->SetMass(100);
-    wall3->GetMaterialSurface()->SetFriction(0);
+    wall3->GetMaterialSurfaceNSC()->SetFriction(0);
     wall3->AddAsset(texture);
     system.Add(wall3);
 
@@ -92,7 +92,7 @@ void create_some_falling_items(ChSystem& system) {
     wall4->SetPos(ChVector<>(0, height * 0.5, -zsize * 0.5 - thick * 0.5));
     wall4->SetBodyFixed(true);
     wall4->SetMass(100);
-    wall4->GetMaterialSurface()->SetFriction(0);
+    wall4->GetMaterialSurfaceNSC()->SetFriction(0);
     wall4->AddAsset(texture);
     system.Add(wall4);
 
@@ -101,7 +101,7 @@ void create_some_falling_items(ChSystem& system) {
     wall5->SetPos(ChVector<>(opening, height * 0.5, zsize * 0.5 + thick * 0.5));
     wall5->SetBodyFixed(true);
     wall5->SetMass(100);
-    wall5->GetMaterialSurface()->SetFriction(0);
+    wall5->GetMaterialSurfaceNSC()->SetFriction(0);
     wall5->AddAsset(texture);
     system.Add(wall5);
 
@@ -110,7 +110,7 @@ void create_some_falling_items(ChSystem& system) {
     floor->SetPos(ChVector<>(0, -0.5, 0));
     floor->SetBodyFixed(true);
     floor->SetMass(100);
-    floor->GetMaterialSurface()->SetFriction(0.2f);
+    floor->GetMaterialSurfaceNSC()->SetFriction(0.2f);
     system.Add(floor);
 
     // Create floating balls.
@@ -120,7 +120,7 @@ void create_some_falling_items(ChSystem& system) {
     for (int ib = 0; ib < 12; ib++) {
         auto ball = std::make_shared<ChBodyEasySphere>(0.02 + ChRandom() * 0.02, 100, true, true);
         ball->SetPos(ChVector<>(ChRandom() * 0.3 - 0.15, 0.2, ChRandom() * 0.3 - 0.15));
-        ball->GetMaterialSurface()->SetFriction(0.0f);
+        ball->GetMaterialSurfaceNSC()->SetFriction(0.0f);
         ball->AddAsset(textureball);
         system.Add(ball);
     }
@@ -128,7 +128,7 @@ void create_some_falling_items(ChSystem& system) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
         application.DrawAll();
 
-        ChSystem::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
+        ChSystemNSC::IteratorOtherPhysicsItems myiter = mphysicalSystem.IterBeginOtherPhysicsItems();
         while (myiter != mphysicalSystem.IterEndOtherPhysicsItems()) {
             if (ChMatterSPH* myfluid = dynamic_cast<ChMatterSPH*>((*myiter).get())) {
                 for (unsigned int ip = 0; ip < myfluid->GetNnodes(); ip++) {

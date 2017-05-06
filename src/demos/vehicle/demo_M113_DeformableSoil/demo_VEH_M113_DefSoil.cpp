@@ -89,14 +89,14 @@ void AddMovingObstacles(ChSystem* system);
 // =============================================================================
 int main(int argc, char* argv[]) {
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::DEM);
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
     use_mkl = false;
 #endif
 
-    // Solver and integrator settings.
+    // Solver and integrator settings
     if (use_mkl) {
 #ifdef CHRONO_MKL
         GetLog() << "Using MKL solver\n";
@@ -119,10 +119,10 @@ int main(int argc, char* argv[]) {
         vehicle.GetSystem()->SetMaxItersSolverStab(50);
     }
 
-    // Control steering type (enable crossdrive capability).
+    // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Initialize the vehicle at the specified position.
+    // Initialize the vehicle at the specified position
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -134,8 +134,14 @@ int main(int argc, char* argv[]) {
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring.
-    ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
+
+    // Disable contact for all tracked vehicle parts
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+
+    // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+
+    // Collect contact information
     ////vehicle.SetContactCollection(true);
 
     // Create the terrain
@@ -313,15 +319,15 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            obstacle->GetMaterialSurface()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurface()->SetRestitution(restitution_coefficient);
+        case ChMaterialSurface::NSC:
+            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            obstacle->GetMaterialSurfaceDEM()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceDEM()->SetPoissonRatio(poisson_ratio);
+        case ChMaterialSurface::SMC:
+            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
+            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
             break;
     }
 
@@ -337,7 +343,7 @@ void AddMovingObstacles(ChSystem* system) {
     ChVector<> init_ang_vel(0, 30, 0);
 
     // Create a material
-    auto material = std::make_shared<ChMaterialSurfaceDEM>();
+    auto material = std::make_shared<ChMaterialSurfaceSMC>();
     material->SetRestitution(0.1f);
     material->SetFriction(0.4f);
 

@@ -22,7 +22,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -79,7 +79,7 @@ class MySimpleTank {
     // Build and initialize the tank, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleTank(ChSystem& my_system,           ///< the chrono::engine physical system
+    MySimpleTank(ChSystemNSC& my_system,           ///< the chrono::engine physical system
                  ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                  IVideoDriver* mdriver          ///< the Irrlicht video driver
                  ) {
@@ -124,7 +124,7 @@ class MySimpleTank {
         wheelRF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRF->GetMaterialSurface()->SetFriction(1.0);
+        wheelRF->GetMaterialSurfaceNSC()->SetFriction(1.0);
 
         wheelRF->GetCollisionModel()->ClearModel();
         wheelRF->GetCollisionModel()->AddCylinder(wheeldiameter / 2, wheeldiameter / 2, cyl_hthickness, cyl_displA);
@@ -152,7 +152,7 @@ class MySimpleTank {
         wheelLF->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLF->GetMaterialSurface()->SetFriction(1.0);
+        wheelLF->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLF->AddAsset(color_wheel);
 
         wheelLF->GetCollisionModel()->ClearModel();
@@ -177,7 +177,7 @@ class MySimpleTank {
         wheelRB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelRB->GetMaterialSurface()->SetFriction(1.0);
+        wheelRB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelRB->AddAsset(color_wheel);
 
         wheelRB->GetCollisionModel()->ClearModel();
@@ -203,7 +203,7 @@ class MySimpleTank {
         wheelLB->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_X));
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector<>(1.2, 1.2, 1.2));
-        wheelLB->GetMaterialSurface()->SetFriction(1.0);
+        wheelLB->GetMaterialSurfaceNSC()->SetFriction(1.0);
         wheelLB->AddAsset(color_wheel);
 
         wheelLB->GetCollisionModel()->ClearModel();
@@ -367,7 +367,7 @@ class MySimpleTank {
              std::shared_ptr<ChBody> template_shoe,  // collision geometry will be shared with this body, to save memory&cpu time.
              ChVector<> position,                    // position
              ChQuaternion<> rotation,                // orientation
-             ChSystem& my_system,                    // the physical system
+             ChSystemNSC& my_system,                    // the physical system
              chrono::ChVector<> joint_displacement   // position of shoe-shoe constraint, relative to COG.
              ) {
         auto rigidBodyShoe = std::shared_ptr<ChBody>(template_shoe.get()->Clone());
@@ -480,8 +480,8 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
-    ChSystem my_system;
+    //    will be handled by this ChSystemNSC object.
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
         &my_system, application.GetSceneManager(), 1.0, ChVector<>(0, -1, 0), QUNIT, ChVector<>(60, 2, 60));
     my_ground->GetBody()->SetBodyFixed(true);
     my_ground->GetBody()->SetCollide(true);
-    my_ground->GetBody()->GetMaterialSurface()->SetFriction(1.0);
+    my_ground->GetBody()->GetMaterialSurfaceNSC()->SetFriction(1.0);
     video::ITexture* groundMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("blu.png").c_str());
     my_ground->setMaterialTexture(0, groundMap);
 

@@ -141,7 +141,7 @@ void ChOpenGLHUD::GenerateHelp() {
     text.Render("2: Wireframe (slow)", LEFT, TOP - SPACING * 10, sx, sy);
     text.Render("3: Solid", LEFT, TOP - SPACING * 11, sx, sy);
 
-    text.Render("C: Show/Hide Contacts (DVI only)", LEFT, TOP - SPACING * 13, sx, sy);
+    text.Render("C: Show/Hide Contacts (NSC only)", LEFT, TOP - SPACING * 13, sx, sy);
 
     text.Render("Space: Pause Simulation (not rendering)", LEFT, TOP - SPACING * 15, sx, sy);
     text.Render("P: Pause Rendering (not simulating)", LEFT, TOP - SPACING * 16, sx, sy);
@@ -351,7 +351,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
     GenerateRenderer();
 }
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
-    // if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    // if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
     //  ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
     //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));

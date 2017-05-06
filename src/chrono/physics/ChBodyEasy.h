@@ -44,7 +44,7 @@ class ChBodyEasySphere : public ChBody {
     /// on density.
     /// Sphere is assumed with center at body reference coordsystem.
     ChBodyEasySphere(double radius, double mdensity, bool collide = false, bool visual_asset = true,
-			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+			  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
         double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
@@ -81,7 +81,7 @@ class ChBodyEasyEllipsoid : public ChBody {
     /// on density.
     /// Ellipsoid is assumed with center at body reference coordsystem.
     ChBodyEasyEllipsoid(ChVector<> radius, double mdensity, bool collide = false, bool visual_asset = true,
-			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+			  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         double mmass = mdensity * ((4.0 / 3.0) * CH_C_PI * radius.x()*radius.y()*radius.z());
         double inertiax = (1.0 / 5.0) * mmass * (pow(radius.y(), 2)+pow(radius.z(),2));
         double inertiay = (1.0 / 5.0) * mmass * (pow(radius.x(), 2)+pow(radius.z(),2));
@@ -120,7 +120,7 @@ class ChBodyEasyCylinder : public ChBody {
     /// on density.
     /// Cylinder is assumed with body Y axis as vertical, and reference is at half height.
     ChBodyEasyCylinder(double radius, double height, double mdensity, bool collide = false, bool visual_asset = true,
-			  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+			  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         double mmass = mdensity * (CH_C_PI * pow(radius, 2) * height);
 
         this->SetDensity((float)mdensity);
@@ -163,7 +163,7 @@ class ChBodyEasyBox : public ChBody {
                   double mdensity,
                   bool collide = false,
                   bool visual_asset = true,
-				  ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+				  ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         double mmass = mdensity * (Xsize * Ysize * Zsize);
 
         this->SetDensity((float)mdensity);
@@ -204,7 +204,7 @@ class ChBodyEasyConvexHull : public ChBody {
                          double mdensity,
                          bool collide = false,
                          bool visual_asset = true,
-						 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+						 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
@@ -264,7 +264,7 @@ class ChBodyEasyConvexHullAuxRef : public ChBodyAuxRef {
         double mdensity,
         bool collide = false,
         bool visual_asset = true,
-		ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBodyAuxRef(contact_method) {
+		ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBodyAuxRef(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         collision::ChConvexHullLibraryWrapper lh;
         lh.ComputeHull(points, vshape->GetMesh());
@@ -329,7 +329,7 @@ class ChBodyEasyMesh : public ChBodyAuxRef {
         bool collide = false,
         double sphere_swept = 0.001,  ///< radius of 'inflating' of mesh, leads to more robust collision detection
         bool visual_asset = true,
-		ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBodyAuxRef(contact_method) {
+		ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBodyAuxRef(contact_method) {
         auto vshape = std::make_shared<ChTriangleMeshShape>();
         vshape->GetMesh().LoadWavefrontMesh(filename, true, true);
         this->AddAsset(vshape);  // assets are respect to REF c.sys
@@ -386,7 +386,7 @@ class ChBodyEasyClusterOfSpheres : public ChBody {
                                double mdensity,
                                bool collide = false,
                                bool visual_asset = true,
-							   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI) : ChBody(contact_method) {
+							   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC) : ChBody(contact_method) {
         assert(positions.size() == radii.size());
 
         double totmass = 0;

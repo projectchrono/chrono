@@ -57,13 +57,13 @@ ChFluidContainer* mpm_container;
 // blade attached through a revolute joint to ground. The mixer is constrained
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
-void AddBody(ChSystemParallelDVI* sys) {
+void AddBody(ChSystemParallelNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurface>();
+    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
@@ -89,13 +89,13 @@ void AddBody(ChSystemParallelDVI* sys) {
     sys->AddBody(bin);
 }
 
-void AddContainer(ChSystemParallelDVI* sys) {
+void AddContainer(ChSystemParallelNSC* sys) {
     // IDs for the two bodies
     int binId = -200;
     int mixerId = -201;
 
     // Create a common material
-    auto mat = std::make_shared<ChMaterialSurface>();
+    auto mat = std::make_shared<ChMaterialSurfaceNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
@@ -123,7 +123,7 @@ void AddContainer(ChSystemParallelDVI* sys) {
 // -----------------------------------------------------------------------------
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
-void AddFluid(ChSystemParallelDVI* sys) {
+void AddFluid(ChSystemParallelNSC* sys) {
 #if USE_RIGID
     mpm_container = new Ch3DOFRigidContainer(sys);
 #else
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     // Create system
     // -------------
 
-    ChSystemParallelDVI msystem;
+    ChSystemParallelNSC msystem;
     // omp_set_num_threads(4);
     // Set number of threads.
     //    int max_threads = 2;//CHOMPfunctions::GetNumProcs();

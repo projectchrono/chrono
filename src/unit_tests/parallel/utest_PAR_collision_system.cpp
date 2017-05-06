@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
 }
 
 // ====================================================================================
-bool check_collisionsystemcount(ChSystemParallelDVI* system, const int count) {
+bool check_collisionsystemcount(ChSystemParallelNSC* system, const int count) {
 	ChParallelDataManager* data_manager = system->data_manager;
 
 	if (count != data_manager->shape_data.ObA_rigid.size()) { std::cout << "ObA_rigid " << data_manager->shape_data.ObA_rigid.size() << std::endl; return false; }
@@ -69,9 +69,9 @@ bool check_collisionsystemcount(ChSystemParallelDVI* system, const int count) {
 }
 bool test_collisionsystem() {
 	//create parallel system
-	ChSystemParallelDVI* system = new ChSystemParallelDVI();
+	ChSystemParallelNSC* system = new ChSystemParallelNSC();
 	bool passed = true;
-	auto material = std::make_shared<ChMaterialSurface>();
+	auto material = std::make_shared<ChMaterialSurfaceNSC>();
 
 	//add a chbody with a sphere model
 	std::shared_ptr<ChBody> sphere_model = std::make_shared<ChBody>(new ChCollisionModelParallel);

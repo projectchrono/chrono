@@ -20,7 +20,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelDVI* physics_system) {
+Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelNSC* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
     body_offset = 0;

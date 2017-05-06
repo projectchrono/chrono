@@ -63,6 +63,11 @@ class CH_VEHICLE_API ChRoadWheelAssembly : public ChPart {
     /// Return a handle to the carrier body.
     virtual std::shared_ptr<ChBody> GetCarrierBody() const = 0;
 
+    /// Return the current pitch angle of the carrir body.
+    /// This angle is measured in the x-z transversal plane, from the initial configuration,
+    /// and follows the right-hand rule.
+    virtual double GetCarrierAngle() const = 0;
+
     /// Get a handle to the road wheel body.
     std::shared_ptr<ChBody> GetWheelBody() const { return m_road_wheel->GetWheelBody(); }
 

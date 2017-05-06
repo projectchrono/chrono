@@ -16,6 +16,7 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/collision/ChCConvexDecomposition.h"
 
@@ -552,8 +553,8 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
-    ChSystem my_system;
+    //    will be handled by this ChSystemNSC object.
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)

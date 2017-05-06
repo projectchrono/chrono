@@ -95,22 +95,22 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     virtual double GetMass() const override;
 
     /// Get the force in the spring element.
-    double GetSpringForce(VehicleSide side) const { return m_spring[side]->Get_SpringReact(); }
+    double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
 
     /// Get the current length of the spring element
-    double GetSpringLength(VehicleSide side) const { return m_spring[side]->Get_SpringLength(); }
+    double GetSpringLength(VehicleSide side) const { return m_spring[side]->GetSpringLength(); }
 
     /// Get the current deformation of the spring element.
-    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->Get_SpringDeform(); }
+    double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
 
     /// Get the force in the shock (damper) element.
-    double GetShockForce(VehicleSide side) const { return m_shock[side]->Get_SpringReact(); }
+    double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }
 
     /// Get the current length of the shock (damper) element.
-    double GetShockLength(VehicleSide side) const { return m_shock[side]->Get_SpringLength(); }
+    double GetShockLength(VehicleSide side) const { return m_shock[side]->GetSpringLength(); }
 
     /// Get the current deformation velocity of the shock (damper) element.
-    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->Get_SpringVelocity(); }
+    double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetSpringVelocity(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;
@@ -201,10 +201,10 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
 
     /// Return the free (rest) length of the spring element.
     virtual double getSpringRestLength() const = 0;
-    /// Return the callback function for spring force.
-    virtual ChSpringForceCallback* getSpringForceCallback() const = 0;
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* getShockForceCallback() const = 0;
+    /// Return the functor object for spring force.
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const = 0;
+    /// Return the functor object for shock force.
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const = 0;
 
     std::shared_ptr<ChBody> m_arm[2];    ///< handles to the trailing arm bodies (left/right)
     std::shared_ptr<ChBody> m_upper[2];  ///< handles to the upper links (left/right)

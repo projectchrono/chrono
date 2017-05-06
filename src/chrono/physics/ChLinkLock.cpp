@@ -1203,21 +1203,21 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Q
     }
     if (limit_Y && limit_Y->Get_active()) {
         if (limit_Y->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-limit_Y->Get_min() + relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-limit_Y->Get_min() + relM.pos.y()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (limit_Y->Get_max() - relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (limit_Y->Get_max() - relM.pos.y()), -recovery_clamp);
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->Get_active()) {
         if (limit_Z->constr_lower.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (-limit_Z->Get_min() + relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (-limit_Z->Get_min() + relM.pos.z()), -recovery_clamp);
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            Qc(off_L + local_offset) += ChMax(c * (limit_Z->Get_max() - relM.pos.x()), -recovery_clamp);
+            Qc(off_L + local_offset) += ChMax(c * (limit_Z->Get_max() - relM.pos.z()), -recovery_clamp);
             ++local_offset;
         }
     }

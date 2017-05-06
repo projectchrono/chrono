@@ -17,8 +17,8 @@
 
 #include "chrono_fea/ChElementBase.h"
 #include "chrono/physics/ChContactable.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
 
 namespace chrono {
 namespace fea {
@@ -26,16 +26,16 @@ namespace fea {
 /// Base class for contact surfaces in FEA meshes.
 /// Use children classes like ChContactSurfaceNodeCloud or ChContactSurfaceMesh
 /// that implement practical functionalities.
-/// The contact surface has a material of ChMaterialSurfaceBase type (DVI material
-/// by default, but it can be also switched to a DEM material, etc, using Set).
+/// The contact surface has a material of ChMaterialSurface type (non-smooth contact material
+/// by default, but it can be also switched to a smooth (penalty) contact material, using Set).
 class ChApiFea ChContactSurface {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactSurface)
 
   public:
     ChContactSurface(ChMesh* parentmesh = 0) {
-        // default DVI material
-        matsurface = std::make_shared<ChMaterialSurface>();
+        // default non-smooth contact material
+        matsurface = std::make_shared<ChMaterialSurfaceNSC>();
         mmesh = parentmesh;
     }
 
@@ -52,10 +52,10 @@ class ChApiFea ChContactSurface {
     void SetMesh(ChMesh* mm) { mmesh = mm; }
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     /// Functions to interface this with ChPhysicsItem container
     virtual void SurfaceSyncCollisionModels() = 0;
@@ -63,7 +63,7 @@ class ChApiFea ChContactSurface {
     virtual void SurfaceRemoveCollisionModelsFromSystem(ChSystem* msys) = 0;
 
   protected:
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< material for contacts
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< material for contacts
 
     ChMesh* mmesh;
 };

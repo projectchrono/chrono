@@ -52,14 +52,14 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     ChTrackTestRig(
         const std::string& filename,  ///< [in] JSON file with test rig specification
         const ChVector<>& location,   ///< [in] track assembly location
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
+        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
         );
 
     /// Construct a test rig using the specified track assembly and subsystem locations.
     ChTrackTestRig(
         std::shared_ptr<ChTrackAssembly> assembly,  ///< [in] handle to the track assembly
         const ChVector<>& location,                 ///< [in] track assembly location
-        ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI  ///< [in] contact method
+        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
         );
 
     /// Destructor

@@ -76,7 +76,7 @@ void RotationalDamperRWAssembly::LoadRoadWheel(const std::string& filename) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filename, bool has_shock)
-    : ChRotationalDamperRWAssembly("", has_shock), m_torsion_force(nullptr), m_shock_torqueCB(nullptr) {
+    : ChRotationalDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
     FILE* fp = fopen(filename.c_str(), "r");
 
     char readBuffer[65536];
@@ -93,13 +93,13 @@ RotationalDamperRWAssembly::RotationalDamperRWAssembly(const std::string& filena
 }
 
 RotationalDamperRWAssembly::RotationalDamperRWAssembly(const rapidjson::Document& d, bool has_shock)
-    : ChRotationalDamperRWAssembly("", has_shock), m_torsion_force(nullptr), m_shock_torqueCB(nullptr) {
+    : ChRotationalDamperRWAssembly("", has_shock), m_spring_torqueCB(nullptr), m_shock_torqueCB(nullptr) {
     Create(d);
 }
 
 RotationalDamperRWAssembly::~RotationalDamperRWAssembly() {
     delete m_shock_torqueCB;
-    //// NOTE: Do not delete m_torsion_force here (it is deleted in the destructor for the revolute joint)
+    delete m_spring_torqueCB;
 }
 
 void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
@@ -129,11 +129,7 @@ void RotationalDamperRWAssembly::Create(const rapidjson::Document& d) {
     double torsion_k = d["Torsional Spring"]["Spring Constant"].GetDouble();
     double torsion_c = d["Torsional Spring"]["Damping Coefficient"].GetDouble();
     double torsion_t = d["Torsional Spring"]["Preload"].GetDouble();
-    m_torsion_force = new ChLinkForce;
-    m_torsion_force->Set_active(1);
-    m_torsion_force->Set_K(torsion_k);
-    m_torsion_force->Set_R(torsion_c);
-    m_torsion_force->Set_iforce(torsion_t);
+    m_spring_torqueCB = new LinearSpringDamperActuatorTorque(torsion_k, torsion_c, torsion_t);
 
     // Read linear shock data
     assert(d.HasMember("Damper"));

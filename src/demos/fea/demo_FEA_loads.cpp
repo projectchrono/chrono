@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementBar.h"
@@ -46,7 +46,7 @@ void test_1() {
     GetLog() << "TEST: load applied to a beam                       \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh:
     auto my_mesh = std::make_shared<ChMesh>();
@@ -100,7 +100,7 @@ void test_1() {
     // APPLY SOME LOADS!
 
     // First: loads must be added to "load containers", 
-    // and load containers must be added to your ChSystem 
+    // and load containers must be added to your system 
     auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 

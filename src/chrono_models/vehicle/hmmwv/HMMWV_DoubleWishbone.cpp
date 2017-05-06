@@ -93,7 +93,7 @@ const double HMMWV_DoubleWishboneRear::m_springRestLength = 0.382;
 // -----------------------------------------------------------------------------
 // HMMWV shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class HMMWV_ShockForce : public ChSpringForceCallback {
+class HMMWV_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     HMMWV_ShockForce(double midstroke_compression_slope,
                      double midstroke_rebound_slope,

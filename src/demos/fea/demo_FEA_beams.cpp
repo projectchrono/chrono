@@ -18,7 +18,7 @@
      
 // Include some headers used by this tutorial...
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -51,7 +51,7 @@ using namespace irr;
 int main(int argc, char* argv[])
 {
 	// Create a Chrono::Engine physical system
-	ChSystem my_system;
+	ChSystemNSC my_system;
 
 
 	// Create the Irrlicht visualization (open the Irrlicht device, 

@@ -87,18 +87,26 @@ std::string simplepowertrain_file("generic/powertrain/SimplePowertrain.json");
 
 // Forward declarations
 void AddFixedObstacles(ChSystem* system);
+void AddFallingObjects(ChSystem* system);
 
 // =============================================================================
 int main(int argc, char* argv[]) {
+    // --------------------------
     // Construct the M113 vehicle
-    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurfaceBase::DEM);
+    // --------------------------
+
+    ChassisCollisionType chassis_collision_type = ChassisCollisionType::PRIMITIVES;
+    M113_Vehicle vehicle(false, TrackShoeType::SINGLE_PIN, ChMaterialSurface::SMC, chassis_collision_type);
 
 #ifndef CHRONO_MKL
     // Do not use MKL if not available
     use_mkl = false;
 #endif
 
-    // Solver and integrator settings.
+    // ------------------------------
+    // Solver and integrator settings
+    // ------------------------------
+
     if (use_mkl) {
 #ifdef CHRONO_MKL
         auto mkl_solver = std::make_shared<ChSolverMKL<>>();
@@ -126,12 +134,16 @@ int main(int argc, char* argv[]) {
         ////vehicle.GetSystem()->SetSolverSharpnessParam(1.0);
     }
 
+    // Disable gravity in this simulation
     ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
 
-    // Control steering type (enable crossdrive capability).
+    // Control steering type (enable crossdrive capability)
     ////vehicle.GetDriveline()->SetGyrationMode(true);
 
-    // Initialize the vehicle at the specified position.
+    // ------------------------------------------------
+    // Initialize the vehicle at the specified position
+    // ------------------------------------------------
+
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
 
     // Set visualization type for vehicle components.
@@ -142,13 +154,38 @@ int main(int argc, char* argv[]) {
     vehicle.SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    // Control internal collisions and contact monitoring.
-    ////vehicle.SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT));
-    ////vehicle.SetCollide(TrackCollide::NONE);
-    ////vehicle.MonitorContacts(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT | TrackCollide::IDLER_LEFT);
+    // --------------------------------------------------
+    // Control internal collisions and contact monitoring
+    // --------------------------------------------------
+
+    // Enable contact on all tracked vehicle parts, except the left sprocket
+    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+
+    // Disable contact for all tracked vehicle parts
+    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+
+    // Disable all contacts for vehicle chassis (if chassis collision was defined)
+    ////vehicle.SetChassisCollide(false);
+
+    // Disable only contact between chassis and track shoes (if chassis collision was defined)
+    ////vehicle.SetChassisVehicleCollide(false);
+
+    // Monitor internal contacts for the chassis, left sprocket, left idler, and first shoe on the left track.
+    ////vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS | TrackedCollisionFlag::SPROCKET_LEFT |
+    ////                        TrackedCollisionFlag::SHOES_LEFT | TrackedCollisionFlag::IDLER_LEFT);
+
+    // Monitor only contacts involving the chassis.
+    vehicle.MonitorContacts(TrackedCollisionFlag::CHASSIS);
+
+    // Collect contact information.
+    // If enabled, number of contacts and local contact point locations are collected for all
+    // monitored parts.  Data can be written to a file by invoking ChTrackedVehicle::WriteContacts().
     ////vehicle.SetContactCollection(true);
 
+    // ------------------
     // Create the terrain
+    // ------------------
+
     RigidTerrain terrain(vehicle.GetSystem());
     terrain.SetContactFrictionCoefficient(0.9f);
     terrain.SetContactRestitutionCoefficient(0.01f);
@@ -157,13 +194,24 @@ int main(int argc, char* argv[]) {
     terrain.SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth);
 
-    AddFixedObstacles(vehicle.GetSystem());
+    // --------------------------------
+    // Add fixed and/or falling objects
+    // --------------------------------
 
+    AddFixedObstacles(vehicle.GetSystem());
+    ////AddFallingObjects(vehicle.GetSystem());
+
+    // ----------------------------
     // Create the powertrain system
+    // ----------------------------
+
     M113_SimplePowertrain powertrain;
     powertrain.Initialize(vehicle.GetChassisBody(), vehicle.GetDriveshaft());
 
+    // ---------------------------------------
     // Create the vehicle Irrlicht application
+    // ---------------------------------------
+
     ChTrackedVehicleIrrApp app(&vehicle, &powertrain, L"M113 Vehicle Demo");
     app.SetSkyBox();
     app.AddTypicalLights(irr::core::vector3df(30.f, -30.f, 100.f), irr::core::vector3df(30.f, 50.f, 100.f), 250, 130);
@@ -174,7 +222,10 @@ int main(int argc, char* argv[]) {
     app.AssetBindAll();
     app.AssetUpdateAll();
 
+    // ------------------------
     // Create the driver system
+    // ------------------------
+
     ChIrrGuiDriver driver(app);
 
     // Set the time response for keyboard inputs.
@@ -187,7 +238,10 @@ int main(int argc, char* argv[]) {
 
     driver.Initialize();
 
+    // -----------------
     // Initialize output
+    // -----------------
+
     if (ChFileutils::MakeDirectory(out_dir.c_str()) < 0) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
@@ -248,6 +302,16 @@ int main(int argc, char* argv[]) {
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
+            cout << "      L suspensions (arm angles):" << endl;
+            for (size_t i = 0; i < vehicle.GetTrackAssembly(LEFT)->GetNumRoadWheelAssemblies(); i++) {
+                cout << " " << vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetRoadWheelAssembly(i)->GetCarrierAngle();
+            }
+            cout << endl;
+            cout << "      R suspensions (arm angles):" << endl;
+            for (size_t i = 0; i < vehicle.GetTrackAssembly(RIGHT)->GetNumRoadWheelAssemblies(); i++) {
+                cout << " " << vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetRoadWheelAssembly(i)->GetCarrierAngle();
+            }
+            cout << endl;
         }
 
         // Render scene
@@ -295,6 +359,11 @@ int main(int argc, char* argv[]) {
         vehicle.Advance(step_size);
         app.Advance(step_size);
 
+        // Report if the chassis experienced a collision
+        if (vehicle.IsPartInContact(TrackedCollisionFlag::CHASSIS)) {
+            std::cout << time << "  chassis contact" << std::endl;
+        }
+
         // Increment frame number
         step_number++;
     }
@@ -306,8 +375,8 @@ int main(int argc, char* argv[]) {
 
 // =============================================================================
 void AddFixedObstacles(ChSystem* system) {
-    double radius = 2;
-    double length = 10;
+    double radius = 2.2;
+    double length = 6;
 
     float friction_coefficient = 0.9f;
     float restitution_coefficient = 0.01f;
@@ -341,17 +410,46 @@ void AddFixedObstacles(ChSystem* system) {
     obstacle->GetCollisionModel()->BuildModel();
 
     switch (obstacle->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            obstacle->GetMaterialSurface()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurface()->SetRestitution(restitution_coefficient);
+        case ChMaterialSurface::NSC:
+            obstacle->GetMaterialSurfaceNSC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceNSC()->SetRestitution(restitution_coefficient);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            obstacle->GetMaterialSurfaceDEM()->SetFriction(friction_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetRestitution(restitution_coefficient);
-            obstacle->GetMaterialSurfaceDEM()->SetYoungModulus(young_modulus);
-            obstacle->GetMaterialSurfaceDEM()->SetPoissonRatio(poisson_ratio);
+        case ChMaterialSurface::SMC:
+            obstacle->GetMaterialSurfaceSMC()->SetFriction(friction_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetRestitution(restitution_coefficient);
+            obstacle->GetMaterialSurfaceSMC()->SetYoungModulus(young_modulus);
+            obstacle->GetMaterialSurfaceSMC()->SetPoissonRatio(poisson_ratio);
             break;
     }
 
     system->AddBody(obstacle);
+}
+
+// =============================================================================
+void AddFallingObjects(ChSystem* system) {
+    double radius = 0.1;
+    double mass = 10;
+
+    auto ball = std::shared_ptr<ChBody>(system->NewBody());
+    ball->SetMass(mass);
+    ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector<>(1, 1, 1));
+    ball->SetPos(initLoc + ChVector<>(-3, 0, 2));
+    ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
+    ball->SetPos_dt(ChVector<>(3, 0, 0));
+    ball->SetBodyFixed(false);
+
+    ball->SetCollide(true);
+    ball->GetCollisionModel()->ClearModel();
+    ball->GetCollisionModel()->AddSphere(radius);
+    ball->GetCollisionModel()->BuildModel();
+
+    auto sphere = std::make_shared<ChSphereShape>();
+    sphere->GetSphereGeometry().rad = radius;
+    ball->AddAsset(sphere);
+
+    auto mtexture = std::make_shared<ChTexture>();
+    mtexture->SetTextureFilename(GetChronoDataFile("bluwhite.png"));
+    ball->AddAsset(mtexture);
+
+    system->AddBody(ball);
 }

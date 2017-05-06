@@ -29,7 +29,7 @@ namespace chrono {
 class ChApi ChNodeBase {
 
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurfaceBase)
+    CH_FACTORY_TAG(ChMaterialSurface)
 
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)

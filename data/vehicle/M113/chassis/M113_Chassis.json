@@ -25,7 +25,32 @@
 
   "Visualization":
   {
-    "Mesh Filename":  "M113/Chassis.obj",
-    "Mesh Name":      "Chassis_POV_geom"
+    "Mesh": 
+    {
+       "Filename":  "M113/Chassis.obj",
+       "Name":      "Chassis_POV_geom"
+    },
+    "Primitives":
+    [
+      {
+        "Type": "SPHERE",
+        "Location": [-2.006, 0, 0.406],
+        "Radius": 0.1
+      },
+      {
+        "Type": "CYLINDER",
+        "Location": [-2.006, 0, 0.406],
+        "Orientation": [1, 0, 0, 0],
+        "Radius": 0.02,
+        "Length": 0.6
+      },
+      {
+        "Type": "CYLINDER",
+        "Location": [-2.006, 0, 0.406],
+        "Orientation": [0.7071, 0, 0, 0.7071],
+        "Radius": 0.02,
+        "Length": 0.6
+      }
+   ]
   }
 }

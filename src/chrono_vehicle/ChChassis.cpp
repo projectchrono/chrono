@@ -43,7 +43,10 @@ ChVector<> ChChassis::GetDriverPos() const {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+void ChChassis::Initialize(ChSystem* system,
+                           const ChCoordsys<>& chassisPos,
+                           double chassisFwdVel,
+                           int collision_family) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
     m_body->SetName("chassis");
@@ -56,22 +59,6 @@ void ChChassis::Initialize(ChSystem* system, const ChCoordsys<>& chassisPos, dou
     m_body->SetPos_dt(chassisFwdVel * chassisPos.TransformDirectionLocalToParent(ChVector<>(1, 0, 0)));
 
     system->Add(m_body);
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChChassis::AddVisualizationAssets(VisualizationType vis) {
-    if (vis == VisualizationType::NONE)
-        return;
-
-    auto sphere = std::make_shared<ChSphereShape>();
-    sphere->GetSphereGeometry().rad = 0.1;
-    sphere->Pos = GetLocalPosCOM();
-    m_body->AddAsset(sphere);
-}
-
-void ChChassis::RemoveVisualizationAssets() {
-    m_body->GetAssets().clear();
 }
 
 }  // end namespace vehicle

@@ -64,12 +64,12 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -125,12 +125,12 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+      ChLinkSpringCB::ForceFunctor* m_springForceCB;
+      ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -185,12 +185,12 @@ class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;

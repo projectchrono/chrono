@@ -325,14 +325,14 @@ void AddTriangleMeshConvexDecompositionV2(ChBody* body,
 
 // -----------------------------------------------------------------------------
 
-//// TODO: extend this to also work for DEM systems.
+//// TODO: extend this to also work for smooth (penalty) contact systems.
 
 void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                              const std::string& obj_filename,
                                              const std::string& name,
                                              const ChVector<>& pos,
                                              const ChQuaternion<>& rot,
-                                             std::shared_ptr<ChMaterialSurface>& material,
+                                             std::shared_ptr<ChMaterialSurfaceNSC>& material,
                                              double total_mass) {
     assert(material->GetContactMethod() == system->GetContactMethod());
 
@@ -519,7 +519,7 @@ void AddTorusGeometry(ChBody* body,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                            int id,
-                                           std::shared_ptr<ChMaterialSurfaceBase> mat,
+                                           std::shared_ptr<ChMaterialSurface> mat,
                                            const ChVector<>& hdim,
                                            double hthick,
                                            const ChVector<>& pos,
@@ -594,7 +594,7 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                                             int id,
-                                                            std::shared_ptr<ChMaterialSurfaceBase> mat,
+                                                            std::shared_ptr<ChMaterialSurface> mat,
                                                             const ChVector<>& hdim,
                                                             double hthick,
                                                             int numBoxes,
@@ -674,7 +674,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
 // -----------------------------------------------------------------------------
 void InitializeObject(std::shared_ptr<ChBody> body,
                       double mass,
-                      std::shared_ptr<ChMaterialSurfaceBase> mat,
+                      std::shared_ptr<ChMaterialSurface> mat,
                       const ChVector<>& pos,
                       const ChQuaternion<>& rot,
                       bool collide,

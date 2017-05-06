@@ -298,7 +298,7 @@ endif()
 
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/chrono_thirdparty
         DESTINATION include
-        FILES_MATCHING PATTERN "*.h")
+	FILES_MATCHING PATTERN "*.h" PATTERN "*.cuh" PATTERN "*.hpp")
 
 #------------------------------------------------------------
 # Generate and install the Chrono configuration header
@@ -449,6 +449,12 @@ configure_file("${PROJECT_SOURCE_DIR}/cmake/ChronoConfig.cmake.in"
                "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
                @ONLY)
 
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    set(CH_CONFIG_INSTALL_PATH "cmake")
+else()
+    set(CH_CONFIG_INSTALL_PATH "lib64/cmake")
+endif()
+
 install(FILES "${PROJECT_BINARY_DIR}/cmake/ChronoConfig.cmake.install"
-        DESTINATION lib64/cmake
+        DESTINATION ${CH_CONFIG_INSTALL_PATH}
         RENAME ChronoConfig.cmake)

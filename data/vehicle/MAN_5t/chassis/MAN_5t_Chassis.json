@@ -25,7 +25,10 @@
 
   "Visualization":
   {
-    "Mesh Filename":  "MAN_5t/MAN_5t_chassis.obj",
-    "Mesh Name":      "MAN_5t_chassis_POV_geom"
+    "Mesh":
+    {
+       "Filename":  "MAN_5t/MAN_5t_chassis.obj",
+       "Name":      "MAN_5t_chassis_POV_geom"
+    }
   }
 }

@@ -118,7 +118,7 @@ enum class NarrowPhaseType {
 
 // This is set so that parts of the code that have been "flattened" can know what
 // type of system is used.
-enum class SystemType { SYSTEM_DVI, SYSTEM_DEM };
+enum class SystemType { SYSTEM_NSC, SYSTEM_SMC };
 
 // Types of bilateral constraints.
 enum BilateralType { BODY_BODY, SHAFT_SHAFT, SHAFT_SHAFT_SHAFT, SHAFT_BODY, SHAFT_SHAFT_BODY, UNKNOWN };

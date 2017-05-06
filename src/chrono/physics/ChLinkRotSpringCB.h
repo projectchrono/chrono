@@ -12,40 +12,22 @@
 // Authors: Radu Serban
 // =============================================================================
 
-#ifndef CHLINKROTSPRINGCB_H
-#define CHLINKROTSPRINGCB_H
+#ifndef CH_LINK_ROTSPRING_CB_H
+#define CH_LINK_ROTSPRING_CB_H
 
 #include "chrono/physics/ChLinkMarkers.h"
 
 namespace chrono {
 
-/// Base callback function for implementing a general rotational spring-damper force.
-/// A derived class must implement the virtual operator().
-
-class ChRotSpringTorqueCallback {
-  public:
-    virtual ~ChRotSpringTorqueCallback() {}
-
-    virtual double operator()(double time,   ///< current time
-                              double angle,  ///< relative angle of rotation
-                              double vel     ///< relative angular speed
-                              ) = 0;
-};
-
 /// Class for rotational spring-damper systems with the torque specified through a
-/// callback object.
+/// functor object.
 /// It is ASSUMED that the two bodies are joined such that they have a rotational
 /// degree of freedom about the z axis of the specified link reference frame (i.e.,
 /// they are connected through a revolute, cylindrical, or screw joint). The
 /// relative angle and relative angular speed of this link are about the common axis.
-
 class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChLinkRotSpringCB)
-
-  protected:
-    ChRotSpringTorqueCallback* m_torque_fun;  ///< functor for torque calculation
-    double m_torque;                          ///< resulting torque along relative axis of rotation
 
   public:
     ChLinkRotSpringCB();
@@ -56,16 +38,29 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
     virtual ChLinkRotSpringCB* Clone() const override { return new ChLinkRotSpringCB(*this); }
 
     /// Get the current relative angle about the common rotation axis.
-    double Get_RotSpringAngle() const { return relAngle; }
+    double GetRotSpringAngle() const { return relAngle; }
 
     /// Get the current relative angular speed about the common rotation axis.
-    double Get_RotSpringSpeed() const { return Vdot(relWvel, relAxis); }
+    double GetRotSpringSpeed() const { return Vdot(relWvel, relAxis); }
 
     /// Get the current generated torque.
-    double Get_RotSpringTorque() const { return m_torque; }
+    double GetRotSpringTorque() const { return m_torque; }
 
-    /// Set the torque calculation callback functor.
-    void Set_RotSpringCallback(ChRotSpringTorqueCallback* torque) { m_torque_fun = torque; }
+    /// Class to be used as a functor interface for calculating the general spring-damper torque.
+    /// A derived class must implement the virtual operator().
+    class TorqueFunctor {
+      public:
+        virtual ~TorqueFunctor() {}
+
+        /// Calculate and return the general spring-damper torque at the specified configuration.
+        virtual double operator()(double time,   ///< current time
+                                  double angle,  ///< relative angle of rotation
+                                  double vel     ///< relative angular speed
+                                  ) = 0;
+    };
+
+    /// Specify the functor object for calculating the torque.
+    void RegisterTorqueFunctor(TorqueFunctor* functor) { m_torque_fun = functor; }
 
     /// Include the rotational spring custom torque.
     virtual void UpdateForces(double time) override;
@@ -75,10 +70,13 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
+
+  protected:
+    TorqueFunctor* m_torque_fun;  ///< functor for torque calculation
+    double m_torque;              ///< resulting torque along relative axis of rotation
 };
 
-CH_CLASS_VERSION(ChLinkRotSpringCB,0)
-
+CH_CLASS_VERSION(ChLinkRotSpringCB, 0)
 
 }  // end namespace chrono
 

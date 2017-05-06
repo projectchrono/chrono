@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create a 1-degree-of-freedom '1D' mechanical object, that
         // is a ChShaft (an item that can oly rotate, with one inertia value
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 
         // Create another shaft. Note that we use shared pointers for ChShaft
         // objects, as we did for ChBody objects. Also, note that we must add them
-        // to the ChSystem.
+        // to the ChSystemNSC.
         auto my_shaftB = std::make_shared<ChShaft>();
         my_shaftB->SetInertia(100);
         my_shaftB->SetShaftFixed(false);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create a ChShaft that starts with nonzero angular velocity
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
         //                   C
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create shaft A, with applied torque
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create 'A', a 1D shaft
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create 'A', a 1D shaft
         auto my_shaftA = std::make_shared<ChShaft>();

@@ -45,27 +45,27 @@ class ChParticleEmitter {
         FLOW_MASSPERSECOND,
     };
 
-    ChParticleEmitter() {
+    ChParticleEmitter()
+        : flow_mode(FLOW_PARTICLESPERSECOND),
+          particles_per_second(100),
+          mass_per_second(1),
+          creation_callback(nullptr),
+          use_particle_reservoir(false),
+          use_mass_reservoir(false),
+          particle_reservoir(1000),
+          mass_reservoir(1),
+          created_particles(0),
+          created_mass(0),
+          off_mass(0),
+          off_count(0),
+          inherit_owner_speed(true),
+          jitter_declustering(true) {
         // defaults:
-        flow_mode = FLOW_PARTICLESPERSECOND;
-        particles_per_second = 100;
-        mass_per_second = 1;
         particle_creator = std::make_shared<ChRandomShapeCreatorSpheres>();
         particle_positioner = std::make_shared<ChRandomParticlePositionRectangleOutlet>();
         particle_aligner = std::make_shared<ChRandomParticleAlignmentUniform>();
         particle_velocity = std::make_shared<ChRandomParticleVelocity>();
         particle_angular_velocity = std::make_shared<ChRandomParticleVelocity>();
-        creation_callback = 0;
-        use_praticle_reservoir = false;
-        use_mass_reservoir = false;
-        particle_reservoir = 1000;
-        mass_reservoir = 1;
-        created_particles = 0;
-        created_mass = 0;
-        off_mass = 0;
-        off_count = 0;
-        inherit_owner_speed = true;
-        jitter_declustering = true;
     }
 
     /// Function that creates random particles with random shape, position
@@ -81,7 +81,7 @@ class ChParticleEmitter {
         // Loop for creating particles at the timestep. Note that
         // it would run forever, if there were no returns when flow amount is reached.
         while (true) {
-            if ((use_praticle_reservoir) && (this->particle_reservoir <= 0))
+            if ((use_particle_reservoir) && (this->particle_reservoir <= 0))
                 return;
 
             if ((use_mass_reservoir) && (this->mass_reservoir <= 0))
@@ -154,7 +154,7 @@ class ChParticleEmitter {
             msystem.AddBatch(mbody);  // the Add() alone woud not be thread safe if called from items inserted in system's lists
 
             if (this->creation_callback)
-                this->creation_callback->PostCreation(mbody, mcoords_abs, *particle_creator.get());
+                this->creation_callback->OnAddBody(mbody, mcoords_abs, *particle_creator.get());
 
             this->particle_reservoir -= 1;
             this->mass_reservoir -= mbody->GetMass();
@@ -170,7 +170,7 @@ class ChParticleEmitter {
 
     /// Pass an object from a ChPostCreationCallback-inherited class if you want to
     /// set additional stuff on each created particle (ex.set some random asset, set some random material, or such)
-    void SetCallbackPostCreation(ChCallbackPostCreation* mcallback) { this->creation_callback = mcallback; }
+    void RegisterAddBodyCallback(ChRandomShapeCreator::AddBodyCallback* callback) { this->creation_callback = callback; }
 
     /// Set the particle creator, that is an object whose class is
     /// inherited from ChRandomShapeCreator
@@ -207,7 +207,7 @@ class ChParticleEmitter {
     double& MassPerSecond() { return mass_per_second; }
 
     /// Turn on this to limit on max amount of particles.
-    void SetUseParticleReservoir(bool ml) { this->use_praticle_reservoir = ml; }
+    void SetUseParticleReservoir(bool ml) { this->use_particle_reservoir = ml; }
 
     /// Turn on this to limit on max mass of particles.
     void SetUseMassReservoir(bool ml) { this->use_mass_reservoir = ml; }
@@ -237,15 +237,17 @@ class ChParticleEmitter {
     eChFlowMode flow_mode;
     double particles_per_second;
     double mass_per_second;
+
     std::shared_ptr<ChRandomShapeCreator> particle_creator;
     std::shared_ptr<ChRandomParticlePosition> particle_positioner;
     std::shared_ptr<ChRandomParticleAlignment> particle_aligner;
     std::shared_ptr<ChRandomParticleVelocity> particle_velocity;
     std::shared_ptr<ChRandomParticleVelocity> particle_angular_velocity;
-    ChCallbackPostCreation* creation_callback;
+
+    ChRandomShapeCreator::AddBodyCallback* creation_callback;
 
     int particle_reservoir;
-    bool use_praticle_reservoir;
+    bool use_particle_reservoir;
 
     double mass_reservoir;
     bool use_mass_reservoir;

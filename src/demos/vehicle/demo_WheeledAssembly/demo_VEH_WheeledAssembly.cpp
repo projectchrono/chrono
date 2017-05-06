@@ -150,7 +150,7 @@ class MyCylindricalTire : public ChTireContactCallback {
         wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);
         wheelBody->GetCollisionModel()->BuildModel();
 
-        wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+        wheelBody->GetMaterialSurfaceNSC()->SetFriction(mu_t);
 
         auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0.127, 0);
@@ -164,7 +164,7 @@ class MyCylindricalTire : public ChTireContactCallback {
 
 double CreateParticles(ChSystem* system) {
     // Create a material
-    auto mat_g = std::make_shared<ChMaterialSurface>();
+    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 
     // Create a particle generator and a mixture entirely made out of spheres
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Create system.
     // --------------
 
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
+    ChSystemParallelNSC* system = new ChSystemParallelNSC();
 
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    ground->GetMaterialSurface()->SetFriction(mu_g);
+    ground->GetMaterialSurfaceNSC()->SetFriction(mu_g);
 
     ground->GetCollisionModel()->ClearModel();
 

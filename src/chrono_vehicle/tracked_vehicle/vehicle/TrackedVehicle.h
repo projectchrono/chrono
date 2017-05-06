@@ -21,7 +21,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 
@@ -35,7 +35,7 @@ namespace vehicle {
 class CH_VEHICLE_API TrackedVehicle : public ChTrackedVehicle {
   public:
     TrackedVehicle(const std::string& filename,
-                   ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+                   ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
 
     TrackedVehicle(ChSystem* system, const std::string& filename);
 

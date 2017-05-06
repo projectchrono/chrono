@@ -32,7 +32,7 @@
 
 #include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
 
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
 
     // ----------------

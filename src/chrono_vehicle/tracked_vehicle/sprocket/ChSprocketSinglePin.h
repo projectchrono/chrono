@@ -47,7 +47,7 @@ class CH_VEHICLE_API ChSprocketSinglePin : public ChSprocket {
     virtual std::shared_ptr<geometry::ChLinePath> GetProfile() override;
 
     /// Return the custom collision callback object.
-    virtual ChSystem::ChCustomComputeCollisionCallback* GetCollisionCallback(
+    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) override;
 

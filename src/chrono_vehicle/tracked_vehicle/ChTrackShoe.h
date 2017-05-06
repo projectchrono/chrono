@@ -71,49 +71,6 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// Get the mass of the track shoe assembly.
     virtual double GetMass() const = 0;
 
-    /// Set coefficient of friction.
-    /// The default value is 0.8
-    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
-
-    /// Set coefficient of restiturion.
-    /// The default value is 0.1
-    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
-
-    /// Set contact material properties.
-    /// These values are used to calculate contact material coefficients (if the containing
-    /// system is so configured and if the DEM-P contact method is being used).
-    /// The default values are: Y = 1e7 and nu = 0.3
-    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                      float poisson_ratio   ///< [in] Poisson ratio
-                                      );
-
-    /// Set contact material coefficients.
-    /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the DEM-P contact method is being used).
-    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                        float gn,  ///< [in] normal contact damping
-                                        float kt,  ///< [in] tangential contact stiffness
-                                        float gt   ///< [in] tangential contact damping
-                                        );
-
-    /// Get coefficient of friction for contact material.
-    float GetCoefficientFriction() const { return m_friction; }
-    /// Get coefficient of restitution for contact material.
-    float GetCoefficientRestitution() const { return m_restitution; }
-    /// Get Young's modulus of elasticity for contact material.
-    float GetYoungModulus() const { return m_young_modulus; }
-    /// Get Poisson ratio for contact material.
-    float GetPoissonRatio() const { return m_poisson_ratio; }
-    /// Get normal stiffness coefficient for contact material.
-    float GetKn() const { return m_kn; }
-    /// Get tangential stiffness coefficient for contact material.
-    float GetKt() const { return m_kt; }
-    /// Get normal viscous damping coefficient for contact material.
-    float GetGn() const { return m_gn; }
-    /// Get tangential viscous damping coefficient for contact material.
-    float GetGt() const { return m_gt; }
-
     /// Turn on/off collision flag for the shoe body.
     void SetCollide(bool val) { m_shoe->SetCollide(val); }
 
@@ -138,15 +95,6 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
 
     size_t m_index;                  ///< index of this track shoe within its containing track assembly
     std::shared_ptr<ChBody> m_shoe;  ///< handle to the shoe body
-
-    float m_friction;       ///< contact coefficient of friction
-    float m_restitution;    ///< contact coefficient of restitution
-    float m_young_modulus;  ///< contact material Young modulus
-    float m_poisson_ratio;  ///< contact material Poisson ratio
-    float m_kn;             ///< normal contact stiffness
-    float m_gn;             ///< normal contact damping
-    float m_kt;             ///< tangential contact stiffness
-    float m_gt;             ///< tangential contact damping
 
     friend class ChTrackAssembly;
 };

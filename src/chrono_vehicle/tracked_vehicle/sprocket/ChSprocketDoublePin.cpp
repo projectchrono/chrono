@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCallback {
+class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
   public:
     SprocketDoublePinContactCB(ChTrackAssembly* track,  ///< containing track assembly
                                double envelope,         ///< collision detection envelope
@@ -62,7 +62,7 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
         m_cbeta = std::cos(m_beta / 2);
     }
 
-    virtual void PerformCustomCollision(ChSystem* system) override;
+    virtual void OnCustomCollision(ChSystem* system) override;
 
   private:
     // Test collision between a connector body and the sprocket's gear profiles.
@@ -127,7 +127,7 @@ class SprocketDoublePinContactCB : public ChSystem::ChCustomComputeCollisionCall
 };
 
 // Add contacts between the sprocket and track shoes.
-void SprocketDoublePinContactCB::PerformCustomCollision(ChSystem* system) {
+void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sproket.
     if (!m_sprocket->GetGearBody()->GetCollide())
         return;
@@ -336,7 +336,7 @@ ChSprocketDoublePin::ChSprocketDoublePin(const std::string& name) : ChSprocket(n
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::ChCustomComputeCollisionCallback* ChSprocketDoublePin::GetCollisionCallback(ChTrackAssembly* track) {
+ChSystem::CustomCollisionCallback* ChSprocketDoublePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeDoublePin>(track->GetTrackShoe(0));

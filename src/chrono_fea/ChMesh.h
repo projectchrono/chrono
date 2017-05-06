@@ -21,7 +21,7 @@
 #include "chrono/core/ChTimer.h"
 #include "chrono/physics/ChContinuumMaterial.h"
 #include "chrono/physics/ChIndexedNodes.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono_fea/ChContactSurface.h"
 #include "chrono_fea/ChElementBase.h"
 #include "chrono_fea/ChMeshSurface.h"
@@ -34,8 +34,8 @@ namespace fea {
 /// @addtogroup fea_module
 /// @{
 
-/// Class which defines a mesh of finite elements of class ChFelem,
-/// between nodes of class  ChFnode.
+/// Class which defines a mesh of finite elements of class ChElementBase,
+/// between nodes of class ChNodeFEAbase.
 
 class ChApiFea ChMesh : public ChIndexedNodes {
     // Tag needed for class factory in archive (de)serialization:

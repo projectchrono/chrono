@@ -45,32 +45,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
 
     virtual ~ChRigidTire();
 
-    /// Set coefficient of friction.
-    /// The default value is 0.7
-    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
-
-    /// Set coefficient of restiturion.
-    /// The default value is 0.1
-    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
-
-    /// Set contact material properties.
-    /// These values are used to calculate contact material coefficients (if the containing
-    /// system is so configured and if the DEM-P contact method is being used).
-    /// The default values are: Y = 2e5 and nu = 0.3
-    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                      float poisson_ratio   ///< [in] Poisson ratio
-                                      );
-
-    /// Set contact material coefficients.
-    /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the DEM-P contact method is being used).
-    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                        float gn,  ///< [in] normal contact damping
-                                        float kt,  ///< [in] tangential contact stiffness
-                                        float gt   ///< [in] tangential contact damping
-                                        );
-
     /// Set Wavefront OBJ file for contact mesh.
     void SetMeshFilename(const std::string& mesh_file,   ///< [in] name of Wavefront file
                          double sweep_sphere_radius = 0  ///< [in] radius of sweeping sphere
@@ -130,15 +104,6 @@ class CH_VEHICLE_API ChRigidTire : public ChTire {
     bool m_use_contact_mesh;         ///< flag indicating use of a contact mesh
     std::string m_contact_meshFile;  ///< name of the OBJ file for contact mesh
     double m_sweep_sphere_radius;    ///< radius of sweeping sphere for mesh contact
-
-    float m_friction;
-    float m_restitution;
-    float m_young_modulus;
-    float m_poisson_ratio;
-    float m_kn;
-    float m_gn;
-    float m_kt;
-    float m_gt;
 
     geometry::ChTriangleMeshConnected* m_trimesh;  ///< contact mesh
 

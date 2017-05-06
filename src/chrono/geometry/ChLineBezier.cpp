@@ -27,31 +27,18 @@ namespace geometry {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineBezier)
 
-ChLineBezier::ChLineBezier(ChBezierCurve* path) : m_own_data(false), m_path(path) {
+ChLineBezier::ChLineBezier(std::shared_ptr<ChBezierCurve> path) : m_path(path) {
     complexityU = static_cast<int>(m_path->getNumPoints());
 }
 
 ChLineBezier::ChLineBezier(const std::string& filename) {
     m_path = ChBezierCurve::read(filename);
-    m_own_data = true;
     complexityU = static_cast<int>(m_path->getNumPoints());
 }
 
 ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
     m_path = source.m_path;
-    m_own_data = false;
     complexityU = source.complexityU;
-}
-
-ChLineBezier::ChLineBezier(const ChLineBezier* source) : ChLine(*source) {
-    m_path = source->m_path;
-    m_own_data = false;
-    complexityU = source->complexityU;
-}
-
-ChLineBezier::~ChLineBezier() {
-    if (m_own_data)
-        delete m_path;
 }
 
 void ChLineBezier::Evaluate(ChVector<>& pos, const double parU, const double parV, const double parW) const {

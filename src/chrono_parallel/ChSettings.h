@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/parallel/ChOpenMP.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real3.h"
@@ -58,7 +58,7 @@ class collision_settings {
 
     real3 min_bounding_point, max_bounding_point;
     // This parameter, similar to the one in chrono inflates each collision shape
-    // by a certain amount. This is necessary when using DVI as it creates the
+    // by a certain amount. This is necessary when using NSC as it creates the
     // contact constraints before objects acutally come into contact. In general
     // this helps with stability.
     real collision_envelope;
@@ -111,9 +111,9 @@ class solver_settings {
         solver_mode = SolverMode::SLIDING;
         local_solver_mode = SolverMode::NORMAL;
 
-        contact_force_model = ChSystemDEM::Hertz;
-        adhesion_force_model = ChSystemDEM::Constant;
-        tangential_displ_mode = ChSystemDEM::OneStep;
+        contact_force_model = ChSystemSMC::Hertz;
+        adhesion_force_model = ChSystemSMC::Constant;
+        tangential_displ_mode = ChSystemSMC::OneStep;
         use_material_properties = true;
         characteristic_vel = 1;
         min_slip_vel = 1e-4;
@@ -126,7 +126,7 @@ class solver_settings {
     }
 
     // The solver type variable defines name of the solver that will be used to
-    // solve the DVI problem
+    // solve the NSC problem
     SolverType solver_type;
     // There are three possible solver modes
     // NORMAL will only solve for the normal and bilateral constraints.
@@ -166,15 +166,15 @@ class solver_settings {
     int max_power_iteration;
     real power_iter_tolerance;
 
-    // Contact force model for DEM
-    ChSystemDEM::ContactForceModel contact_force_model;
-    // Contact force model for DEM
-    ChSystemDEM::AdhesionForceModel adhesion_force_model;
+    // Contact force model for SMC
+    ChSystemSMC::ContactForceModel contact_force_model;
+    // Contact force model for SMC
+    ChSystemSMC::AdhesionForceModel adhesion_force_model;
     // Tangential contact displacement history. None indicates no tangential stiffness,
     // OneStep indicates estimating tangential displacement using only current velocity,
     // MultiStep uses full contact history over multiple steps.
-    ChSystemDEM::TangentialDisplacementModel tangential_displ_mode;
-    // Flag specifying how the stiffness and damping coefficients in the DEM contact
+    ChSystemSMC::TangentialDisplacementModel tangential_displ_mode;
+    // Flag specifying how the stiffness and damping coefficients in the SMC contact
     // force models are calculated. If true, these coefficients are derived from
     // physical material properties. Otherwise, the user specifies the coefficients
     // directly.
@@ -228,7 +228,7 @@ class settings_container {
         // I don't really check to see if max_threads is > than min_threads
         // not sure if that is a huge issue
         perform_thread_tuning = ((min_threads == max_threads) ? false : true);
-        system_type = SystemType::SYSTEM_DVI;
+        system_type = SystemType::SYSTEM_NSC;
         step_size = .01;
     }
 
@@ -253,8 +253,8 @@ class settings_container {
     // setting it has no effect.
     real step_size;
     real3 gravity;
-    // The system type defines if the system is solving the DVI frictional contact
-    // problem or a DEM penalty based
+    // The system type defines if the system is solving the NSC frictional contact
+    // problem or a SMC penalty based
     SystemType system_type;
 };
 

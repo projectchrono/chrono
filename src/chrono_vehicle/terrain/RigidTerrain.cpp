@@ -19,8 +19,8 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -199,19 +199,19 @@ void RigidTerrain::SetContactMaterialCoefficients(float kn, float gn, float kt, 
 // -----------------------------------------------------------------------------
 void RigidTerrain::ApplyContactMaterial() {
     switch (m_ground->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_ground->GetMaterialSurface()->SetFriction(m_friction);
-            m_ground->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_ground->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_ground->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_ground->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_ground->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_ground->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_ground->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_ground->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_ground->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_ground->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_ground->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_ground->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_ground->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_ground->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_ground->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_ground->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_ground->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_ground->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_ground->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }

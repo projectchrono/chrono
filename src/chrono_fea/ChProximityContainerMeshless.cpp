@@ -32,7 +32,7 @@ ChProximityContainerMeshless::ChProximityContainerMeshless() : n_added(0) {
 }
 
 ChProximityContainerMeshless::ChProximityContainerMeshless(const ChProximityContainerMeshless& other)
-    : ChProximityContainerBase(other) {
+    : ChProximityContainer(other) {
     n_added = other.n_added;
     proximitylist = other.proximitylist;
     lastproximity = proximitylist.begin();
@@ -91,7 +91,7 @@ void ChProximityContainerMeshless::AddProximity(collision::ChCollisionModel* mod
     // Launch the proximity callback, if implemented by the user
 
     if (this->add_proximity_callback) {
-        this->add_proximity_callback->ProximityCallback(*modA, *modB);
+        this->add_proximity_callback->OnAddProximity(*modA, *modB);
     }
 
     // %%%%%%% Create and add a ChProximityMeshless object
@@ -111,10 +111,10 @@ void ChProximityContainerMeshless::AddProximity(collision::ChCollisionModel* mod
     n_added++;
 }
 
-void ChProximityContainerMeshless::ReportAllProximities(ChReportProximityCallback* mcallback) {
+void ChProximityContainerMeshless::ReportAllProximities(ReportProximityCallback* mcallback) {
     std::list<ChProximityMeshless*>::iterator iterproximity = proximitylist.begin();
     while (iterproximity != proximitylist.end()) {
-        bool proceed = mcallback->ReportProximityCallback((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
+        bool proceed = mcallback->OnReportProximity((*iterproximity)->GetModelA(), (*iterproximity)->GetModelB());
         if (!proceed)
             break;
         ++iterproximity;
@@ -252,7 +252,7 @@ void ChProximityContainerMeshless::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
     marchive.VersionWrite<ChProximityContainerMeshless>();
     // serialize parent class
-    ChProximityContainerBase::ArchiveOUT(marchive);
+    ChProximityContainer::ArchiveOUT(marchive);
     // serialize all member data:
 }
 
@@ -261,7 +261,7 @@ void ChProximityContainerMeshless::ArchiveIN(ChArchiveIn& marchive) {
     // version number
     int version = marchive.VersionRead<ChProximityContainerMeshless>();
     // deserialize parent class
-    ChProximityContainerBase::ArchiveIN(marchive);
+    ChProximityContainer::ArchiveIN(marchive);
     // stream in all member data:
 }
 

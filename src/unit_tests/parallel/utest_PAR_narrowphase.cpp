@@ -96,7 +96,7 @@ double rho_g = 1000;  // [kg/m^3] density of granules
 float mu_g = 0.5f;
 
 void CreateMechanismBodies(ChSystemParallel* system) {
-  auto mat_walls = std::make_shared<ChMaterialSurface>();
+  auto mat_walls = std::make_shared<ChMaterialSurfaceNSC>();
   mat_walls->SetFriction(mu_walls);
 
   std::shared_ptr<ChBody> container(system->NewBody());
@@ -129,7 +129,7 @@ void CreateMechanismBodies(ChSystemParallel* system) {
 
 void CreateGranularMaterial(ChSystemParallel* sys) {
   // Common material
-  auto ballMat = std::make_shared<ChMaterialSurface>();
+  auto ballMat = std::make_shared<ChMaterialSurfaceNSC>();
   ballMat->SetFriction(1.0);
 
   // Create the falling balls
@@ -167,7 +167,7 @@ void CreateGranularMaterial(ChSystemParallel* sys) {
 }
 // =============================================================================
 
-void SetupSystem(ChSystemParallelDVI* msystem) {
+void SetupSystem(ChSystemParallelNSC* msystem) {
   msystem->Set_G_acc(ChVector<>(0, 0, -gravity));
 
   msystem->GetSettings()->solver.tolerance = tolerance;
@@ -286,8 +286,8 @@ int main(int argc, char* argv[]) {
   // No animation by default (i.e. when no program arguments)
   bool animate = (argc > 1);
 
-  ChSystemParallelDVI* msystem_mpr = new ChSystemParallelDVI();
-  ChSystemParallelDVI* msystem_r = new ChSystemParallelDVI();
+  ChSystemParallelNSC* msystem_mpr = new ChSystemParallelNSC();
+  ChSystemParallelNSC* msystem_r = new ChSystemParallelNSC();
 
 #ifdef BULLET
   msystem_mpr->ChangeCollisionSystem(CollisionSystemType::COLLSYS_BULLET_PARALLEL);

@@ -27,7 +27,7 @@
 
 #include "chrono_python/ChApiPyParser.h"
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 
 namespace chrono 
@@ -100,7 +100,7 @@ public:
 			/// in a C++ program, call this function: it will parse the .py textblock and add the created
 			/// items to the ChSystem.
 			/// If fails, it throws an exception, so it is wise to put it inside try..catch blocks.
-	void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystem& msystem); 
+	void ImportSolidWorksSystem(const char* solidworks_py_file, ChSystemNSC& msystem); 
 
 };
 

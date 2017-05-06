@@ -16,7 +16,6 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 
 // Use the namespace of Chrono

@@ -35,30 +35,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChIdler::ChIdler(const std::string& name)
-    : ChPart(name),
-      m_friction(0.7f),
-      m_restitution(0.1f),
-      m_young_modulus(1e8f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20) {}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChIdler::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChIdler::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
+ChIdler::ChIdler(const std::string& name) : ChPart(name) {}
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -86,19 +63,19 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
 
     // Set wheel contact material properties.
     switch (m_wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_wheel->GetMaterialSurface()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 
@@ -138,8 +115,8 @@ void ChIdler::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector<>
     m_tensioner = std::make_shared<ChLinkSpringCB>();
     m_tensioner->SetNameString(m_name + "_tensioner");
     m_tensioner->Initialize(chassis, m_carrier, false, points[TSDA_CHASSIS], points[TSDA_CARRIER]);
-    m_tensioner->Set_SpringCallback(GetTensionerForceCallback());
-    m_tensioner->Set_SpringRestLength(GetTensionerFreeLength());
+    m_tensioner->RegisterForceFunctor(GetTensionerForceCallback());
+    m_tensioner->SetSpringRestLength(GetTensionerFreeLength());
     chassis->GetSystem()->AddLink(m_tensioner);
 }
 

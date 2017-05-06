@@ -187,9 +187,9 @@ ChVector<double> Q_to_NasaAngles(const ChQuaternion<double>& q1) {
 }
 
 void Q_to_AngAxis(const ChQuaternion<double>& quat, double& angle, ChVector<double>& axis) {
-    if (quat.e0() < 0.99999999) {
+    if (fabs(quat.e0()) < 0.99999999) {
         double arg = acos(quat.e0());
-        double invsine = 1 / (sin(arg));
+        double invsine = 1 / sin(arg);
         ChVector<double> vtemp;
         vtemp.x() = invsine * quat.e1();
         vtemp.y() = invsine * quat.e2();

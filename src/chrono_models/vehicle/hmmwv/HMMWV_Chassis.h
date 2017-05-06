@@ -21,18 +21,21 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
 namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
 /// HMMWV chassis subsystem.
-class CH_MODELS_API HMMWV_Chassis : public ChChassis {
+class CH_MODELS_API HMMWV_Chassis : public ChRigidChassis {
   public:
-    HMMWV_Chassis(const std::string& name, bool fixed = false);
+    HMMWV_Chassis(const std::string& name,
+                  bool fixed = false,
+                  ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
     ~HMMWV_Chassis() {}
 
     /// Return the mass of the chassis body.
@@ -48,9 +51,6 @@ class CH_MODELS_API HMMWV_Chassis : public ChChassis {
     /// This is a coordinate system relative to the chassis reference frame.
     virtual ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
 
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(VisualizationType vis) override;
-
   protected:
     ChMatrix33<> m_inertia;
 
@@ -59,9 +59,6 @@ class CH_MODELS_API HMMWV_Chassis : public ChChassis {
     static const ChVector<> m_inertiaXY;
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
-
-    static const std::string m_meshName;
-    static const std::string m_meshFile;
 };
 
 }  // end namespace hmmwv

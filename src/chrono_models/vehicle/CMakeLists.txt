@@ -12,6 +12,7 @@ message(STATUS "Models for the VEHICLE module...")
 
 set(CVM_COMMON_FILES
     ../ChApiModels.h
+    ChVehicleModelDefs.h
 )
 source_group("" FILES ${CVM_COMMON_FILES})
 
@@ -58,7 +59,7 @@ if(ENABLE_MODULE_FEA)
   set(CVM_HMMWV_FEA_FILES
       hmmwv/HMMWV_ANCFTire.cpp
       hmmwv/HMMWV_ANCFTire.h
-	  hmmwv/HMMWV_ReissnerTire.cpp
+      hmmwv/HMMWV_ReissnerTire.cpp
       hmmwv/HMMWV_ReissnerTire.h
   )
 else()
@@ -88,20 +89,20 @@ set(CVM_GENERIC_FILES
     generic/Generic_RackPinion.cpp
     generic/Generic_RigidTire.h
     generic/Generic_RigidTire.cpp
-	generic/Generic_FialaTire.h
-	generic/Generic_FialaTire.cpp
+    generic/Generic_FialaTire.h
+    generic/Generic_FialaTire.cpp
     generic/Generic_SimplePowertrain.h
     generic/Generic_SimplePowertrain.cpp
-	generic/Generic_SimpleMapPowertrain.cpp
-	generic/Generic_SimpleMapPowertrain.h
+    generic/Generic_SimpleMapPowertrain.cpp
+    generic/Generic_SimpleMapPowertrain.h
     generic/Generic_SolidAxle.cpp
     generic/Generic_SolidAxle.h
     generic/Generic_Vehicle.cpp
     generic/Generic_Vehicle.h
     generic/Generic_Wheel.h
     generic/Generic_Wheel.cpp
-	generic/Generic_SimpleDriveline.cpp
-	generic/Generic_SimpleDriveline.h
+    generic/Generic_SimpleDriveline.cpp
+    generic/Generic_SimpleDriveline.h
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
 

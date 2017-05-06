@@ -21,9 +21,9 @@
 
 #include <string>
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-class Articulated_Chassis : public chrono::vehicle::ChChassis {
+class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
   public:
     Articulated_Chassis(const std::string& name);
     ~Articulated_Chassis() {}
@@ -40,9 +40,6 @@ class Articulated_Chassis : public chrono::vehicle::ChChassis {
     /// Get the local driver position and orientation.
     /// This is a coordinate system relative to the chassis reference frame.
     virtual chrono::ChCoordsys<> GetLocalDriverCoordsys() const override { return m_driverCsys; }
-
-    /// Add visualization of the road wheel.
-    virtual void AddVisualizationAssets(chrono::vehicle::VisualizationType vis) override;
 
   protected:
     chrono::ChMatrix33<> m_inertia;

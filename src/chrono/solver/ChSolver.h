@@ -57,7 +57,7 @@ class ChApi ChSolver {
           PCG,
           APGD,
           MINRES,
-          SOLVER_DEM,
+          SOLVER_SMC,
           CUSTOM,
       };
 
