@@ -1,6 +1,5 @@
 #=============================================================================
-# CMake configuration file for the ARTICULATED_VEHICLE demo.
-# This example program works with and without Irrlicht run-time visualization
+# CMake configuration file for the TRACTOR_TRAILER demo.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -11,16 +10,16 @@ ENDIF()
 # List all model files for this demo
 
 SET(MODEL_FILES
-    ../articulated/Articulated_Vehicle.h
-    ../articulated/Articulated_Vehicle.cpp
-    ../articulated/Articulated_Chassis.h
-    ../articulated/Articulated_Chassis.cpp
-    ../articulated/Articulated_Trailer.h
-    ../articulated/Articulated_Trailer.cpp
+    subsystems/TT_Tractor.h
+    subsystems/TT_Tractor.cpp
+    subsystems/TT_Chassis.h
+    subsystems/TT_Chassis.cpp
+    subsystems/TT_Trailer.h
+    subsystems/TT_Trailer.cpp
 )
 
 SET(DEMO
-    demo_VEH_ArticulatedVehicle
+    demo_VEH_TractorTrailer
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
@@ -29,7 +28,7 @@ SOURCE_GROUP("" FILES ${DEMO}.cpp)
 #--------------------------------------------------------------
 # Additional include directories
 
-INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/src/demos/vehicle")
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_LIST_DIR})
 INCLUDE_DIRECTORIES(${CH_IRRLICHTINC})
 
 #--------------------------------------------------------------
