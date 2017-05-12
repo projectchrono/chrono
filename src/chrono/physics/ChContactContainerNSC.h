@@ -38,22 +38,53 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSC_6_6;
     typedef ChContactNSC<ChContactable_1vars<6>, ChContactable_1vars<3> > ChContactNSC_6_3;
     typedef ChContactNSC<ChContactable_1vars<3>, ChContactable_1vars<3> > ChContactNSC_3_3;
+    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<3> > ChContactNSC_333_3;
+    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_1vars<6> > ChContactNSC_333_6;
+    typedef ChContactNSC<ChContactable_3vars<3, 3, 3>, ChContactable_3vars<3, 3, 3> > ChContactNSC_333_333;
+    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<3> > ChContactNSC_666_3;
+    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_1vars<6> > ChContactNSC_666_6;
+    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<3, 3, 3> > ChContactNSC_666_333;
+    typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_666_666;
+
     typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
 
   protected:
     std::list<ChContactNSC_6_6*> contactlist_6_6;
     std::list<ChContactNSC_6_3*> contactlist_6_3;
     std::list<ChContactNSC_3_3*> contactlist_3_3;
+    std::list<ChContactNSC_333_3*> contactlist_333_3;
+    std::list<ChContactNSC_333_6*> contactlist_333_6;
+    std::list<ChContactNSC_333_333*> contactlist_333_333;
+    std::list<ChContactNSC_666_3*> contactlist_666_3;
+    std::list<ChContactNSC_666_6*> contactlist_666_6;
+    std::list<ChContactNSC_666_333*> contactlist_666_333;
+    std::list<ChContactNSC_666_666*> contactlist_666_666;
+
     std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
 
     int n_added_6_6;
     int n_added_6_3;
     int n_added_3_3;
+    int n_added_333_3;
+    int n_added_333_6;
+    int n_added_333_333;
+    int n_added_666_3;
+    int n_added_666_6;
+    int n_added_666_333;
+    int n_added_666_666;
     int n_added_6_6_rolling;
 
     std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
     std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
     std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
+    std::list<ChContactNSC_333_3*>::iterator lastcontact_333_3;
+    std::list<ChContactNSC_333_6*>::iterator lastcontact_333_6;
+    std::list<ChContactNSC_333_333*>::iterator lastcontact_333_333;
+    std::list<ChContactNSC_666_3*>::iterator lastcontact_666_3;
+    std::list<ChContactNSC_666_6*>::iterator lastcontact_666_6;
+    std::list<ChContactNSC_666_333*>::iterator lastcontact_666_333;
+    std::list<ChContactNSC_666_666*>::iterator lastcontact_666_666;
+
     std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
 
   public:
@@ -65,7 +96,11 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
     /// Tell the number of added contacts
-    virtual int GetNcontacts() const override { return n_added_6_6 + n_added_6_3 + n_added_3_3 + n_added_6_6_rolling; }
+    virtual int GetNcontacts() const override {
+        return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+               n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 +
+               n_added_6_6_rolling;
+    }
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() override;
@@ -92,7 +127,9 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Tell the number of scalar bilateral constraints (actually, friction
     /// constraints aren't exactly as unilaterals, but count them too)
     virtual int GetDOC_d() override {
-        return 3 * (n_added_6_6 + n_added_6_3 + n_added_3_3) + 6 * (n_added_6_6_rolling);
+        return 3 *   (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
+                      n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) 
+               + 6 * (n_added_6_6_rolling);
     }
 
     /// In detail, it computes jacobians, violations, etc. and stores
