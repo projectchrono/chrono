@@ -206,7 +206,42 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        
+        // compute the triangular area-parameters s1 s2 s3:
+        double s2, s3;
+        double dist;
+        int is_into;
+        ChVector<> p_projected;
+        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
+                                    this->GetNode1()->pos, 
+                                    this->GetNode2()->pos, 
+                                    this->GetNode3()->pos, 
+                                    s2, s3, is_into, p_projected);
+        double s1 = 1 - s2 - s3;
+
+        ChMatrix33<> Jx1;
+
+        Jx1.CopyFromMatrixT(contact_plane);
+        if (!second)
+            Jx1.MatrNeg();
+        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
     }
 
     /// Might be needed by some SMC models
@@ -500,7 +535,41 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        // compute the triangular area-parameters s1 s2 s3:
+        double s2, s3;
+        double dist;
+        int is_into;
+        ChVector<> p_projected;
+        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
+                                    this->GetNode1()->coord.pos, 
+                                    this->GetNode2()->coord.pos, 
+                                    this->GetNode3()->coord.pos, 
+                                    s2, s3, is_into, p_projected);
+        double s1 = 1 - s2 - s3;
+
+        ChMatrix33<> Jx1;
+
+        Jx1.CopyFromMatrixT(contact_plane);
+        if (!second)
+            Jx1.MatrNeg();
+        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
     }
 
     /// Might be needed by some SMC models
