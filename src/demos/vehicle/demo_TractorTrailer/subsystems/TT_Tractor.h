@@ -12,29 +12,24 @@
 // Authors: Radu Serban, Justin Madsen, Daniel Melanz, Alessandro Tasora
 // =============================================================================
 //
-// Articulated vehicle model.
+// Tractor for the tractor-trailer vehicle model.
 // Can be constructed either with solid-axle or with multi-link suspensions.
 // Always uses a articulated rack-pinion steering and a 2WD driveline model.
 //
 // =============================================================================
 
-#ifndef ARTICULATED_VEHICLE_H
-#define ARTICULATED_VEHICLE_H
-
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#ifndef TT_TRACTOR_H
+#define TT_TRACTOR_H
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-class Articulated_Vehicle : public chrono::vehicle::ChWheeledVehicle {
+class TT_Tractor : public chrono::vehicle::ChWheeledVehicle {
   public:
-    Articulated_Vehicle(
-        const bool fixed,
-        chrono::vehicle::SuspensionType suspType,
-        chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
+    TT_Tractor(const bool fixed,
+               chrono::vehicle::SuspensionType suspType,
+               chrono::ChMaterialSurface::ContactMethod contactMethod = chrono::ChMaterialSurface::NSC);
 
-    ~Articulated_Vehicle() {}
+    ~TT_Tractor() {}
 
     virtual int GetNumberAxles() const override { return 2; }
 

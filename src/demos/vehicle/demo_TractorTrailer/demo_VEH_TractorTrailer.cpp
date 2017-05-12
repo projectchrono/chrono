@@ -37,18 +37,14 @@
 #include "chrono_models/vehicle/generic/Generic_RigidTire.h"
 #include "chrono_models/vehicle/generic/Generic_FuncDriver.h"
 
-#include "articulated/Articulated_Vehicle.h"
-#include "articulated/Articulated_Trailer.h"
-
-// If Irrlicht support is available...
-#ifdef CHRONO_IRRLICHT
-// ...include additional headers
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
-// ...and specify whether the demo should actually use Irrlicht
+#include "subsystems/TT_Tractor.h"
+#include "subsystems/TT_Trailer.h"
+
+// Comment the following line to disable Irrlicht visualization
 #define USE_IRRLICHT
-#endif
 
 // DEBUGGING:  Uncomment the following line to print shock data
 //#define DEBUG_LOG
@@ -100,9 +96,9 @@ int main(int argc, char* argv[]) {
     // Create the various modules
     // --------------------------
 
-    // Create the vehicle: specify if chassis is fixed, the suspension type
+    // Create the tractor: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Vehicle vehicle(false, SuspensionType::MULTI_LINK);
+    TT_Tractor vehicle(false, SuspensionType::MULTI_LINK);
     vehicle.Initialize(ChCoordsys<>(initLoc + ChVector<>(0, 0, 0), initRot));
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -111,7 +107,7 @@ int main(int argc, char* argv[]) {
 
     // Create the trailer: specify if chassis is fixed, the suspension type
     // (SOLID_AXLE or MULTI_LINK) and the wheel visualization (PRIMITIVES or NONE)
-    Articulated_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK);
+    TT_Trailer trailer(vehicle.GetSystem(), false, SuspensionType::MULTI_LINK);
     trailer.Initialize(ChCoordsys<>(initLoc + ChVector<>(-6, 0, 0), initRot), true, vehicle.GetChassisBody());
     trailer.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     trailer.SetWheelVisualizationType(VisualizationType::NONE);

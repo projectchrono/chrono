@@ -12,21 +12,21 @@
 // Authors: Radu Serban
 // =============================================================================
 //
-// Chassis subsystem for the articulated vehicle.
+// Chassis subsystem for the tractor vehicle.
 //
 // =============================================================================
 
-#ifndef ARTICULATED_CHASSIS_H
-#define ARTICULATED_CHASSIS_H
+#ifndef TT_CHASSIS_H
+#define TT_CHASSIS_H
 
 #include <string>
 
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-class Articulated_Chassis : public chrono::vehicle::ChRigidChassis {
+class TT_Chassis : public chrono::vehicle::ChRigidChassis {
   public:
-    Articulated_Chassis(const std::string& name);
-    ~Articulated_Chassis() {}
+    TT_Chassis(const std::string& name);
+    ~TT_Chassis() {}
 
     /// Return the mass of the chassis body.
     virtual double GetMass() const override { return m_mass; }
