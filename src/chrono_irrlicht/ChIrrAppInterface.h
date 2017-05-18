@@ -105,6 +105,14 @@ class ChApiIrr ChIrrAppInterface {
     void SetLinksLabelMode(ChIrrTools::eCh_LinkLabelMode mm) { this->gad_labellinks->setSelected((int)mm); }
     /// Set the draw mode for links
     void SetLinksDrawMode(ChIrrTools::eCh_LinkDrawMode mm) { this->gad_drawlinks->setSelected((int)mm); }
+	/// Set if the AABB collision shapes will be plotted
+    void SetPlotAABB(bool val) { this->gad_plot_aabb->setChecked(val); }
+	/// Set if the COG frames will be plotted
+	void SetPlotCOGFrames(bool val) { this->gad_plot_cogs->setChecked(val); }
+	/// Set if the link frames will be plotted
+    void SetPlotLinkFrames(bool val) { this->gad_plot_linkframes->setChecked(val); }
+	/// Set if the COG frames will be plotted
+    void SetPlotConvergence(bool val) { this->gad_plot_convergence->setChecked(val); }
 
     /// Set the scale for symbol drawing (link frames, COGs, etc.)
     void SetSymbolscale(double val);
