@@ -203,8 +203,10 @@ void ChCBroadphase::OneLevelBroadphase() {
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
     	if (obj_data_id[i] == UINT_MAX)
+    	{
+    		bin_intersections[i] = 0;
     		continue;
-
+    	}
 
         f_Count_AABB_BIN_Intersection(i, inv_bin_size, aabb_min, aabb_max, bin_intersections);
     }

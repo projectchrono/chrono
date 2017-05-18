@@ -43,7 +43,6 @@ float cr = 0.4f;
 
 const char* out_folder = "../BALLS_DEM/POVRAY";
 
-
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
     char filename[100];
     sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);

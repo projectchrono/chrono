@@ -55,7 +55,7 @@ ChSystemDistributed::~ChSystemDistributed()
 {
 	delete domain;
 	delete comm;
-	delete ddm;
+	//delete ddm;
 }
 
 bool ChSystemDistributed::Integrate_Y()
@@ -66,7 +66,7 @@ bool ChSystemDistributed::Integrate_Y()
 	if (num_ranks != 1)
 	{
 		comm->Exchange();
-		comm->CheckExchange(); // TODO: Not every timestep
+	//	comm->CheckExchange(); // TODO: Not every timestep
 	}
 
 	return ret;
@@ -208,9 +208,19 @@ void ChSystemDistributed::RemoveBodyExchange(int index)
 {
 	ddm->comm_status[index] = distributed::EMPTY;
 	bodylist[index]->SetBodyFixed(true);
-	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove - but this does nothing
-	//TODO change the body index for the shape in the data manager to UINT_MAX
+	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove 
+}
 
+//Trusts the ID to be correct on the body
+void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body)
+{
+	int index = body->GetId();
+	if (bodylist.size() <= index || body.get() != bodylist[index].get())
+		return;
+
+	ddm->comm_status[index] = distributed::EMPTY;
+	bodylist[index]->SetBodyFixed(true);
+	bodylist[index]->SetCollide(false);
 }
 
 // Used to end the program on an error and print a message.
@@ -336,7 +346,7 @@ void ChSystemDistributed::PrintShapeData()
 // Outputs all bodies in the system to a CSV file
 void ChSystemDistributed::WriteCSV(int fileCounter)
 {
-	const std::string file_name = "../granular/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
+	const std::string file_name = "../parallel/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
 
 	std::ofstream file;
 	file.open(file_name);

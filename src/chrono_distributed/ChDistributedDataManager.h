@@ -40,7 +40,7 @@ public:
 
 	std::vector<int> body_shape_start; ///< Start index in body_shapes of the shapes associated with this BODY
 	std::vector<int> body_shape_count; ///< Number of shapes associated with this BODY
-	std::vector<int> body_shapes; ///< Indices of shapes in data_manager->shape_data for a given SHAPE
+	std::vector<int> body_shapes; ///< Indices of shape in DATA_MANAGER->shape_data for a given SHAPE
 
 	// TODO: Need to track open spots in: data_manager->shape_data, this->body_shapes
 	// DON'T need to track open spots in this->body_shape_start/count because those correspond with a BODY index

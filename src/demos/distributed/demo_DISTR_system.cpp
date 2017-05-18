@@ -3,17 +3,21 @@
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <memory>
 
 #include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
 #define MASTER 0
 
 using namespace chrono;
 using namespace chrono::collision;
+
+std::vector<std::shared_ptr<ChBody>> bodies;
 
 int my_rank;
 int num_ranks;
@@ -35,6 +39,27 @@ float cr = 0.4f;
 const char* out_folder = "../BALLS_DEM/POVRAY";
 
 void print(std::string msg);
+
+void Monitor(chrono::ChSystem* system) {
+    double TIME = system->GetChTime();
+    double STEP = system->GetTimerStep();
+    double BROD = system->GetTimerCollisionBroad();
+    double NARR = system->GetTimerCollisionNarrow();
+    double SOLVER = system->GetTimerSolver();
+    double UPDT = system->GetTimerUpdate();
+    int BODS = system->GetNbodies();
+    int CNTC = system->GetNcontacts();
+    double RESID = 0;
+    int REQ_ITS = 0;
+    if (chrono::ChSystemParallel* parallel_sys = dynamic_cast<chrono::ChSystemParallel*>(system)) {
+        RESID = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetResidual();
+        REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
+    }
+
+    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", TIME, STEP, BROD, NARR, SOLVER,
+        UPDT, BODS, CNTC, REQ_ITS, RESID);
+}
+
 
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
     char filename[100];
@@ -77,6 +102,7 @@ void AddContainer(ChSystemDistributed* sys) {
     utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->BuildModel();
 
+    bodies.push_back(bin);
     sys->AddBody(bin);
 }
 
@@ -97,6 +123,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     double radius = 0.15;
     ChVector<> inertia = (2.0 / 5.0) * mass * radius * radius * ChVector<>(1, 1, 1);
 
+    //TODO generate randomly. Need to seed though.
     for (double z = 4; z < 14; z++)
     {
     	for (int ix = -count_X; ix <= count_X; ix++) {
@@ -118,6 +145,7 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     			utils::AddSphereGeometry(ball.get(), radius);
     			ball->GetCollisionModel()->BuildModel();
 
+			bodies.push_back(ball);
     			sys->AddBody(ball);
     		}
     	}
@@ -145,7 +173,7 @@ int main(int argc, char *argv[])
 	std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
 	double time_step = 1e-3;
-    double time_end = 100;
+    double time_end = 10;
 
     double out_fps = 50;
 
@@ -187,6 +215,13 @@ int main(int argc, char *argv[])
     int out_frame = 0;
     double time = 0;
 
+	my_sys.DoStepDynamics(time_step);
+
+	for (int i = 1; i < 10; i++)
+	{
+		my_sys.RemoveBody(bodies[i]);
+	}
+	
     for (int i = 0; i < num_steps; i++)
     {
         if (i % out_steps == 0)
@@ -197,6 +232,9 @@ int main(int argc, char *argv[])
          //   my_sys.PrintShapeData();
            my_sys.WriteCSV(i);
         }
+       // my_sys.PrintBodyStatus();
+       // my_sys.PrintShapeData();
+        Monitor(&my_sys);
         my_sys.DoStepDynamics(time_step);
         time += time_step;
     }

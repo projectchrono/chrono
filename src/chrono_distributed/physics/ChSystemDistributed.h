@@ -54,6 +54,7 @@ public:
 
 
 	void AddBody(std::shared_ptr<ChBody> newbody) override;
+	void RemoveBody(std::shared_ptr<ChBody> body) override;
 	virtual bool Integrate_Y() override;
     virtual void UpdateRigidBodies() override;
 

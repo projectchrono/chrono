@@ -37,14 +37,8 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 // TODO: only works for initial add. Since it is called so much, it needs to be able to work on transfer too
 void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
 {
-
-	//TODO: This may just need to gut chCollisionSystemParallel::Add and use it in pieces.
-
-
-
-
 	ChParallelDataManager* dm = ddm->data_manager;
-    ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
+	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
 
 
 /*
@@ -64,7 +58,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
 */
 
 
-	// If no free spaces to insert into
+	// If no free spaces to insert into, add to end
     this->ChCollisionSystemParallel::Add(model); //TODO This adds ALL shapes, but we want to check if there are free spaces for individual shapes before this
 
 
@@ -74,16 +68,12 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
    ddm->body_shape_count.push_back(count);
    ddm->body_shape_start.push_back(ddm->body_shapes.size()); // TODO: does this work??
 
-/*
-   ddm->body_shape_count[id] = count;
-   ddm->body_shape_start[id] = ddm->body_shapes.size();
-*/
-
-   for (int i = 0; i < pmodel->GetNObjects(); i++)
+   for (int i = 0; i < count; i++)
    {
 	   ddm->body_shapes.push_back(ddm->data_manager->num_rigid_shapes - count + i);
-	   ddm->my_free_shapes.push_back(false);
-	   ddm->dm_free_shapes.push_back(false);
+	   GetLog() <<  "body_shapes at end " << ddm->body_shapes[ddm->body_shapes.size()-1] << "\n";
+	 // ddm->my_free_shapes.push_back(false);
+	 // ddm->dm_free_shapes.push_back(false);
    }
 }
 
@@ -98,10 +88,9 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel *model)
 	for (int i = 0; i < count; i++)
 	{
 		int index = start + i;
-		ddm->my_free_shapes[index] = true; // Marks the spot in ddm->body_shapes as open
-		ddm->dm_free_shapes[ddm->body_shapes[index]] = true; // Marks the spot in data_manager->shape_data as open
+		// ddm->my_free_shapes[index] = true; // Marks the spot in ddm->body_shapes as open
+		// ddm->dm_free_shapes[ddm->body_shapes[index]] = true; // Marks the spot in data_manager->shape_data as open
 
 		ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX; // Forces the broadphase to ignore this shape
-		GetLog() << "Changing shape body id to " << ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] << "at index " << ddm->body_shapes[index] << "\n";
 	}
 }
