@@ -16,6 +16,7 @@ ADD_SUBDIRECTORY(demo_WheeledGeneric)
 ADD_SUBDIRECTORY(demo_WheeledJSON)
 ADD_SUBDIRECTORY(demo_SuspensionTest)
 ADD_SUBDIRECTORY(demo_TractorTrailer)
+ADD_SUBDIRECTORY(demo_ArticulatedVehicle)
 ADD_SUBDIRECTORY(demo_WheeledAssembly)
 ADD_SUBDIRECTORY(demo_SteeringController)
 
