@@ -265,6 +265,8 @@ set(CV_WV_SUSPENSION_FILES
     wheeled_vehicle/suspension/ChSemiTrailingArm.cpp
     wheeled_vehicle/suspension/ChThreeLinkIRS.h
     wheeled_vehicle/suspension/ChThreeLinkIRS.cpp
+    wheeled_vehicle/suspension/ChRigidSuspension.h
+    wheeled_vehicle/suspension/ChRigidSuspension.cpp
 
     wheeled_vehicle/suspension/DoubleWishbone.h
     wheeled_vehicle/suspension/DoubleWishbone.cpp
