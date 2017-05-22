@@ -64,6 +64,20 @@ namespace chrono
         mumps_id.irn = Z.GetCOO_RowIndexArray();
         mumps_id.jcn = Z.GetCOO_ColIndexArray();
         mumps_id.a = Z.GetCOO_ValuesAddress();
+
+		switch(Z.GetType())
+		{
+		case ChSparseMatrix::GENERAL: mumps_id.sym = mumps_SYM::UNSYMMETRIC; break;
+		case ChSparseMatrix::SYMMETRIC_POSDEF: mumps_id.sym = mumps_SYM::SYMMETRIC_POSDEF; break;
+		case ChSparseMatrix::SYMMETRIC_INDEF: mumps_id.sym = mumps_SYM::SYMMETRIC_GENERAL; break;
+		case ChSparseMatrix::STRUCTURAL_SYMMETRIC: mumps_id.sym = mumps_SYM::UNSYMMETRIC; break;
+		default: mumps_SYM::UNSYMMETRIC; break;
+		}
+	}
+
+	void ChMumpsEngine::SetMatrixSymmetry(mumps_SYM mat_type)
+    {
+		mumps_id.sym = mat_type;
     }
 
     void ChMumpsEngine::SetRhsVector(const ChMatrix<>& b)
