@@ -16,7 +16,7 @@
 //
 // This concrete suspension subsystem is defined with respect to a right-handed
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChDoubleWishbone) and origin in the chassis midplane.
+// by the base class ChMacPhersonStrut) and origin in the chassis midplane.
 //
 // All point locations are provided for the left half of the supspension.
 //
