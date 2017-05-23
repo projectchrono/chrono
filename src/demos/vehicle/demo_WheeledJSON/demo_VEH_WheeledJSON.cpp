@@ -56,10 +56,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // JSON file for vehicle model
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
+std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 // std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");

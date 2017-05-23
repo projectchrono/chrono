@@ -3,19 +3,23 @@
   "Type":                       "Steering",
   "Template":                   "PitmanArm",
 
+  "Vehicle-Frame Inertia":      "false",
+
   "Steering Link":
   {
     "Mass":                     9.072,
-    "COM":                      [ 0.129, 0, 0],
-    "Inertia":                  [1, 1, 1],
+    "COM":                      [0.129, 0, 0],
+    "Moments of Inertia":       [1, 1, 1],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.03
   },
 
   "Pitman Arm":
   {
     "Mass":                     2.259,
-    "COM":                      [ 0.064, 0.249, 0],
-    "Inertia":                  [1, 1, 1],
+    "COM":                      [0.064, 0.249, 0],
+    "Moments of Inertia":       [1, 1, 1],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.02
   },
 

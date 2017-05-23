@@ -38,8 +38,10 @@ class CH_MODELS_API HMMWV_PitmanArm : public ChPitmanArm {
     virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getSteeringLinkInertia() const override { return m_steeringLinkInertia; }
-    virtual const ChVector<>& getPitmanArmInertia() const override { return m_pitmanArmInertia; }
+    virtual const ChVector<>& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
+    virtual const ChVector<>& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
+    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
@@ -55,8 +57,10 @@ class CH_MODELS_API HMMWV_PitmanArm : public ChPitmanArm {
 
     static const double m_maxAngle;
 
-    static const ChVector<> m_steeringLinkInertia;
-    static const ChVector<> m_pitmanArmInertia;
+    static const ChVector<> m_steeringLinkInertiaMoments;
+    static const ChVector<> m_steeringLinkInertiaProducts;
+    static const ChVector<> m_pitmanArmInertiaMoments;
+    static const ChVector<> m_pitmanArmInertiaProducts;
 };
 
 }  // end namespace hmmwv
