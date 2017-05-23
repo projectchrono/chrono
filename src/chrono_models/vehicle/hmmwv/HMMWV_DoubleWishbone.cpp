@@ -49,14 +49,14 @@ const double HMMWV_DoubleWishboneFront::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneFront::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneFront::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117,
-                                                             0.07352,
-                                                             0.04117);          // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertia(0.03, 0.03, 0.06276);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertia(0.1656,
-                                                             0.1934,
-                                                             0.04367);  // TODO: This is not the correct value
+// TODO: Fix these values
+const ChVector<> HMMWV_DoubleWishboneFront::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector<> HMMWV_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector<> HMMWV_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector<> HMMWV_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
 
 const double HMMWV_DoubleWishboneFront::m_axleInertia = 0.4;
 
@@ -76,14 +76,14 @@ const double HMMWV_DoubleWishboneRear::m_LCARadius = 0.03;
 const double HMMWV_DoubleWishboneRear::m_UCARadius = 0.02;
 const double HMMWV_DoubleWishboneRear::m_uprightRadius = 0.04;
 
-const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117,
-                                                            0.07352,
-                                                            0.04117);          // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertia(0.03, 0.03, 0.06276);  // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertia(0.4, 0.4, 0.8938);     // TODO: This is not the correct value
-const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertia(0.1656,
-                                                            0.1934,
-                                                            0.04367);  // TODO: This is not the correct value
+// TODO: Fix these values
+const ChVector<> HMMWV_DoubleWishboneRear::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertiaMoments(0.03, 0.03, 0.06276);
+const ChVector<> HMMWV_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaMoments(0.4, 0.4, 0.8938);
+const ChVector<> HMMWV_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaMoments(0.1656, 0.1934, 0.04367);
+const ChVector<> HMMWV_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
 
 const double HMMWV_DoubleWishboneRear::m_axleInertia = 0.4;
 

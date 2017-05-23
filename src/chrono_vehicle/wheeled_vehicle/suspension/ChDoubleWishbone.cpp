@@ -114,7 +114,8 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
-    m_upright[side]->SetInertiaXX(getUprightInertia());
+    m_upright[side]->SetInertiaXX(getUprightInertiaMoments());
+    m_upright[side]->SetInertiaXY(getUprightInertiaProducts());
     chassis->GetSystem()->AddBody(m_upright[side]);
 
     // Unit vectors for orientation matrices.
@@ -138,7 +139,8 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_UCA[side]->SetPos(points[UCA_CM]);
     m_UCA[side]->SetRot(rot);
     m_UCA[side]->SetMass(getUCAMass());
-    m_UCA[side]->SetInertiaXX(getUCAInertia());
+    m_UCA[side]->SetInertiaXX(getUCAInertiaMoments());
+    m_UCA[side]->SetInertiaXY(getUCAInertiaProducts());
     chassis->GetSystem()->AddBody(m_UCA[side]);
 
     // Create and initialize Lower Control Arm body.
@@ -156,7 +158,8 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     m_LCA[side]->SetPos(points[LCA_CM]);
     m_LCA[side]->SetRot(rot);
     m_LCA[side]->SetMass(getLCAMass());
-    m_LCA[side]->SetInertiaXX(getLCAInertia());
+    m_LCA[side]->SetInertiaXX(getLCAInertiaMoments());
+    m_LCA[side]->SetInertiaXY(getLCAInertiaProducts());
     chassis->GetSystem()->AddBody(m_LCA[side]);
 
     // Create and initialize the revolute joint between upright and spindle.

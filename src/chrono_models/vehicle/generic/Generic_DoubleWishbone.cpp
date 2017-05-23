@@ -48,9 +48,12 @@ const double Generic_DoubleWishbone::m_UCARadius = 0.02;
 const double Generic_DoubleWishbone::m_LCARadius = 0.03;
 
 const ChVector<> Generic_DoubleWishbone::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishbone::m_uprightInertia(0.0138, 0.0146, 0.00283);
-const ChVector<> Generic_DoubleWishbone::m_UCAInertia(0.00591, 0.00190, 0.00769);
-const ChVector<> Generic_DoubleWishbone::m_LCAInertia(0.0151, 0.0207, 0.0355);
+const ChVector<> Generic_DoubleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector<> Generic_DoubleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishbone::m_UCAInertiaMoments(0.00591, 0.00190, 0.00769);
+const ChVector<> Generic_DoubleWishbone::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishbone::m_LCAInertiaMoments(0.0151, 0.0207, 0.0355);
+const ChVector<> Generic_DoubleWishbone::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishbone::m_axleInertia = 0.4;
 
@@ -72,9 +75,12 @@ const double Generic_DoubleWishboneFront::m_UCARadius = 0.015;
 const double Generic_DoubleWishboneFront::m_LCARadius = 0.015;
 
 const ChVector<> Generic_DoubleWishboneFront::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishboneFront::m_uprightInertia(0.0138, 0.0146, 0.00283);
-const ChVector<> Generic_DoubleWishboneFront::m_UCAInertia(0.00470, 0.00311, 0.00769);
-const ChVector<> Generic_DoubleWishboneFront::m_LCAInertia(0.0151, 0.0211, 0.0351);
+const ChVector<> Generic_DoubleWishboneFront::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector<> Generic_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneFront::m_UCAInertiaMoments(0.00470, 0.00311, 0.00769);
+const ChVector<> Generic_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneFront::m_LCAInertiaMoments(0.0151, 0.0211, 0.0351);
+const ChVector<> Generic_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishboneFront::m_axleInertia = 0.0007;
 
@@ -95,9 +101,12 @@ const double Generic_DoubleWishboneRear::m_UCARadius = 0.015;
 const double Generic_DoubleWishboneRear::m_LCARadius = 0.015;
 
 const ChVector<> Generic_DoubleWishboneRear::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishboneRear::m_uprightInertia(0.0115, 0.0118, 0.00327);
-const ChVector<> Generic_DoubleWishboneRear::m_UCAInertia(0.00470, 0.00311, 0.00769);
-const ChVector<> Generic_DoubleWishboneRear::m_LCAInertia(0.0151, 0.0210, 0.0351);
+const ChVector<> Generic_DoubleWishboneRear::m_uprightInertiaMoments(0.0115, 0.0118, 0.00327);
+const ChVector<> Generic_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneRear::m_UCAInertiaMoments(0.00470, 0.00311, 0.00769);
+const ChVector<> Generic_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneRear::m_LCAInertiaMoments(0.0151, 0.0210, 0.0351);
+const ChVector<> Generic_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishboneRear::m_axleInertia = 0.0007;
 
@@ -132,16 +141,14 @@ double Generic_ShockForce::operator()(double time, double rest_length, double le
 
     if ((vel >= m_MinVel) && (vel <= m_MaxVel)) {
         m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
-    }
-    else if ((vel <= m_MinVel)){
+    } else if ((vel <= m_MinVel)) {
         m_ShockTable.Evaluate(m_MinVel, force, dcurve, ddcurve);
-        std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ", modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
-        force -= dcurve*(m_MinVel - vel);
-    }
-    else {
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ", modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
+        force -= dcurve * (m_MinVel - vel);
+    } else {
         m_ShockTable.Evaluate(m_MaxVel, force, dcurve, ddcurve);
-        std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ", modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
-        force += dcurve*(m_MaxVel - vel);
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ", modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
+        force += dcurve * (m_MaxVel - vel);
     }
 
     return force;

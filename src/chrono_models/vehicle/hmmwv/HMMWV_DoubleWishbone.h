@@ -51,9 +51,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
     virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
-    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -79,9 +82,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
     static const double m_uprightRadius;
 
     static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertia;
-    static const ChVector<> m_LCAInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector<> m_UCAInertiaMoments;
+    static const ChVector<> m_UCAInertiaProducts;
+    static const ChVector<> m_LCAInertiaMoments;
+    static const ChVector<> m_LCAInertiaProducts;
+    static const ChVector<> m_uprightInertiaMoments;
+    static const ChVector<> m_uprightInertiaProducts;
 
     static const double m_axleInertia;
 
@@ -108,9 +114,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
 
     virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getUCAInertia() const override { return m_UCAInertia; }
-    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector<>& getUCAInertiaMoments() const override { return m_UCAInertiaMoments; }
+    virtual const ChVector<>& getUCAInertiaProducts() const override { return m_UCAInertiaProducts; }
+    virtual const ChVector<>& getLCAInertiaMoments() const override { return m_LCAInertiaMoments; }
+    virtual const ChVector<>& getLCAInertiaProducts() const override { return m_LCAInertiaProducts; }
+    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -136,9 +145,12 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     static const double m_uprightRadius;
 
     static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_UCAInertia;
-    static const ChVector<> m_LCAInertia;
-    static const ChVector<> m_uprightInertia;
+    static const ChVector<> m_UCAInertiaMoments;
+    static const ChVector<> m_UCAInertiaProducts;
+    static const ChVector<> m_LCAInertiaMoments;
+    static const ChVector<> m_LCAInertiaProducts;
+    static const ChVector<> m_uprightInertiaMoments;
+    static const ChVector<> m_uprightInertiaProducts;
 
     static const double m_axleInertia;
 

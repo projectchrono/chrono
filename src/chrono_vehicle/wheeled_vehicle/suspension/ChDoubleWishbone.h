@@ -167,12 +167,21 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
 
     /// Return the moments of inertia of the spindle body.
     virtual const ChVector<>& getSpindleInertia() const = 0;
+
     /// Return the moments of inertia of the upper control arm body.
-    virtual const ChVector<>& getUCAInertia() const = 0;
+    virtual const ChVector<>& getUCAInertiaMoments() const = 0;
+    /// Return the products of inertia of the upper control arm body.
+    virtual const ChVector<>& getUCAInertiaProducts() const = 0;
+
     /// Return the moments of inertia of the lower control arm body.
-    virtual const ChVector<>& getLCAInertia() const = 0;
+    virtual const ChVector<>& getLCAInertiaMoments() const = 0;
+    /// Return the products of inertia of the lower control arm body.
+    virtual const ChVector<>& getLCAInertiaProducts() const = 0;
+
     /// Return the moments of inertia of the upright body.
-    virtual const ChVector<>& getUprightInertia() const = 0;
+    virtual const ChVector<>& getUprightInertiaMoments() const = 0;
+    /// Return the products of inertia of the upright body.
+    virtual const ChVector<>& getUprightInertiaProducts() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
