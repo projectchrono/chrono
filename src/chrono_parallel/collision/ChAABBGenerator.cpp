@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 
 #include "chrono_parallel/collision/ChCollision.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
@@ -121,6 +122,8 @@ void ChCAABBGenerator::GenerateAABB() {
             int start = start_rigid[index];
 
             // Body data
+            if (id == UINT_MAX)
+                continue;
 
             real3 position = pos_rigid[id];
             quaternion rotation = Mult(body_rot[id], local_rot);

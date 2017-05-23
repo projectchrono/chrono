@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 
 #include <chrono_parallel/collision/ChCollision.h>
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
@@ -202,6 +203,10 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
+        if (obj_data_id[i] == UINT_MAX) {
+            bin_intersections[i] = 0;
+            continue;
+        }
         f_Count_AABB_BIN_Intersection(i, inv_bin_size, aabb_min, aabb_max, bin_intersections);
     }
 
@@ -217,6 +222,8 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
+        if (obj_data_id[i] == UINT_MAX)
+            continue;
         f_Store_AABB_BIN_Intersection(i, bins_per_axis, inv_bin_size, aabb_min, aabb_max, bin_intersections, bin_number,
                                       bin_aabb_number);
     }
@@ -256,9 +263,10 @@ void ChCBroadphase::OneLevelBroadphase() {
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
                                        obj_collide, obj_data_id, contact_pairs);
     }
+
     contact_pairs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
-//======
-}
-}
+
+} // end namespace collision
+} // end namespace chrono
