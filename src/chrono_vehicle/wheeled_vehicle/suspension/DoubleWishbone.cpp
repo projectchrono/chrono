@@ -82,6 +82,13 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
+    // Read flag indicating that inertia matrices are expressed in
+    // vehicle-aligned centroidal frame.
+    if (d.HasMember("Vehicle-Frame Inertia")) {
+        bool flag = d["Vehicle-Frame Inertia"].GetBool();
+        SetVehicleFrameInertiaFlag(flag);
+    }
+
     // Read Spindle data
     assert(d.HasMember("Spindle"));
     assert(d["Spindle"].IsObject());

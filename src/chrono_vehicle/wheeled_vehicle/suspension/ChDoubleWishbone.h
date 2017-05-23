@@ -53,9 +53,6 @@ namespace vehicle {
 /// the right side.
 class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
   public:
-    ChDoubleWishbone(const std::string& name  ///< [in] name of the subsystem
-                     );
-
     virtual ~ChDoubleWishbone() {}
 
     /// Specify whether or not this suspension can be steered.
@@ -152,6 +149,18 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
         NUM_POINTS
     };
 
+    /// Protected constructor.
+    ChDoubleWishbone(
+        const std::string& name,            ///< [in] name of the subsystem
+        bool vehicle_frame_inertia = false  ///< [in] inertia specified in vehicle-aligned centroidal frames?
+        );
+
+    /// Indicate whether or not inertia matrices are specified with respect to a
+    /// vehicle-aligned centroidal frame (flag=true) or with respect to the body
+    /// centroidal frame (flag=false).  Note that this function must be called
+    /// before Initialize().
+    void SetVehicleFrameInertiaFlag(bool val) { m_vehicle_frame_inertia = val; }
+
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
     virtual const ChVector<> getLocation(PointId which) = 0;
@@ -214,6 +223,10 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
+    // Flag indicating that the inertia matrices for the upright and control arms
+    // are provided in vehicle-aligned centroidal frames
+    bool m_vehicle_frame_inertia;
+
     // Hardpoint absolute locations
     std::vector<ChVector<>> m_pointsL;
     std::vector<ChVector<>> m_pointsR;

@@ -3,6 +3,8 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishbone",
 
+  "Vehicle-Frame Inertia":      "false",
+
   "Spindle" :
   {
     "Mass":                     15.91,
