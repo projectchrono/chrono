@@ -23,8 +23,6 @@
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChDataManager.h"
 
-#include <climits>
-
 #include <thrust/pair.h>
 #include <thrust/functional.h>
 

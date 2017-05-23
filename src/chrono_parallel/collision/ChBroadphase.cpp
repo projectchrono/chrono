@@ -245,7 +245,6 @@ void ChCBroadphase::OneLevelBroadphase() {
     bin_num_contact.resize(number_of_bins_active + 1);
     bin_num_contact[number_of_bins_active] = 0;
 
-
 #pragma omp parallel for
     for (int i = 0; i < (signed)number_of_bins_active; i++) {
         f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
@@ -257,7 +256,6 @@ void ChCBroadphase::OneLevelBroadphase() {
     number_of_contacts_possible = bin_num_contact.back();
     contact_pairs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
-
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)number_of_bins_active; index++) {
