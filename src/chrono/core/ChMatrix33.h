@@ -61,12 +61,31 @@ class ChMatrix33 : public ChMatrixNM<Real, 3, 3> {
         this->Set33Element(2, 2, val);
     }
 
-    /// Construct a 3x3 matrix with the specifid vector as its diagonal.
+    /// Construct a 3x3 matrix with the specified vector as its diagonal.
     template <class RealB>
     ChMatrix33(const ChVector<RealB>& vec) : ChMatrixNM<Real, 3, 3>() {
         this->Set33Element(0, 0, vec.x());
         this->Set33Element(1, 1, vec.y());
         this->Set33Element(2, 2, vec.z());
+    }
+
+    /// Construct a symmetric 3x3 matrix with the specified vectors for the
+    /// diagonal and off-diagonal.  The off-diagonal vector is assumed to contain
+    /// the elements A(0,1), A(0,2), A(1,2) in this order.
+    template <class RealB>
+    ChMatrix33(const ChVector<RealB>& diag, const ChVector<>& off_diag) : ChMatrixNM<Real, 3, 3>() {
+        this->Set33Element(0, 0, diag.x());
+        this->Set33Element(1, 1, diag.y());
+        this->Set33Element(2, 2, diag.z());
+
+        this->Set33Element(0, 1, off_diag.x());
+        this->Set33Element(1, 0, off_diag.x());
+
+        this->Set33Element(0, 2, off_diag.y());
+        this->Set33Element(2, 0, off_diag.y());
+
+        this->Set33Element(1, 2, off_diag.z());
+        this->Set33Element(2, 1, off_diag.z());
     }
 
     /// The constructor which builds a 3x3 matrix given a quaternion representing rotation.
