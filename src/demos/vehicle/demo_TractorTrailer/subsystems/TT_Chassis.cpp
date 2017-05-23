@@ -16,12 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/assets/ChTriangleMeshShape.h"
-#include "chrono/utils/ChUtilsInputOutput.h"
-
-#include "chrono_vehicle/ChVehicleModelData.h"
-
-#include "articulated/Articulated_Chassis.h"
+#include "subsystems/TT_Chassis.h"
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -29,15 +24,15 @@ using namespace chrono::vehicle;
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
-const double Articulated_Chassis::m_mass = 3500;
-const ChVector<> Articulated_Chassis::m_inertiaXX(125.8, 497.4, 531.4);
-const ChVector<> Articulated_Chassis::m_inertiaXY(0, 0, 0);
-const ChVector<> Articulated_Chassis::m_COM_loc(-0.2, 0, 0.8);
-const ChCoordsys<> Articulated_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const double TT_Chassis::m_mass = 3500;
+const ChVector<> TT_Chassis::m_inertiaXX(125.8, 497.4, 531.4);
+const ChVector<> TT_Chassis::m_inertiaXY(0, 0, 0);
+const ChVector<> TT_Chassis::m_COM_loc(-0.2, 0, 0.8);
+const ChCoordsys<> TT_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-Articulated_Chassis::Articulated_Chassis(const std::string& name) : ChRigidChassis(name) {
+TT_Chassis::TT_Chassis(const std::string& name) : ChRigidChassis(name) {
     m_inertia.SetElement(0, 0, m_inertiaXX.x());
     m_inertia.SetElement(1, 1, m_inertiaXX.y());
     m_inertia.SetElement(2, 2, m_inertiaXX.z());

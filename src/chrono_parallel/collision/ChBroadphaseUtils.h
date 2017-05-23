@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include <climits>
+
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/ChParallelMath.h"
 #include "chrono_parallel/ChDataManager.h"
@@ -383,8 +385,7 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
         uint bodyA = body_id[shapeA];
 
         if (bodyA == UINT_MAX)
-        	continue;
-
+            continue;
         if (body_collide[bodyA] == 0)
             continue;
 
@@ -394,9 +395,8 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
             real3 Bmin = aabb_min_data[shapeB];
             real3 Bmax = aabb_max_data[shapeB];
 
-            if(bodyB == UINT_MAX)
-            	continue;
-
+            if (bodyB == UINT_MAX)
+                continue;
             if (shapeA == shapeB)
                 continue;
             if (bodyA == bodyB)

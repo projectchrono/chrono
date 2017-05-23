@@ -88,4 +88,40 @@ void ChContactContainerParallel::AddContact(const collision::ChCollisionInfo& mc
     }
 }
 
+static inline chrono::ChVector<> ToChVector(const real3& a) {
+    return chrono::ChVector<>(a.x, a.y, a.z);
+}
+
+void ChContactContainerParallel::ReportAllContacts(ReportContactCallback* callback) {
+    // Readibility
+    auto& ptA = data_manager->host_data.cpta_rigid_rigid;
+    auto& ptB = data_manager->host_data.cptb_rigid_rigid;
+    auto& nrm = data_manager->host_data.norm_rigid_rigid;
+    auto& depth = data_manager->host_data.dpth_rigid_rigid;
+    auto& bids = data_manager->host_data.bids_rigid_rigid;
+
+    // Grab the list of bodies.
+    // NOTE: we assume that bodies were added in the order of their IDs!
+    auto bodylist = *GetSystem()->Get_bodylist();
+
+    // No reaction forces or torques reported!
+    ChVector<> zero(0, 0, 0);
+
+    // Contact plane
+    ChVector<> plane_x, plane_y, plane_z;
+    ChMatrix33<> contact_plane;
+
+    for (uint i = 0; i < data_manager->num_rigid_contacts; i++) {
+        // Contact plane coordinate system (normal in x direction)
+        XdirToDxDyDz(ToChVector(nrm[i]), VECT_Y, plane_x, plane_y, plane_z);
+        contact_plane.Set_A_axis(plane_x, plane_y, plane_z);
+
+        // Invoke callback function
+        bool proceed = callback->OnReportContact(ToChVector(ptA[i]), ToChVector(ptB[i]), contact_plane, depth[i], zero,
+                                                 zero, bodylist[bids[i].x].get(), bodylist[bids[i].y].get());
+        if (!proceed)
+            break;
+    }
+}
+
 }  // end namespace chrono

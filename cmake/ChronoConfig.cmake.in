@@ -211,6 +211,12 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cascade")
       list(APPEND CHRONO_LIBRARIES "@CH_CASCADELIBS@")
       list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cascade.dll")
+	  
+	elseif(${COMPONENT_UPPER} MATCHES "COSIMULATION")
+	
+      list(APPEND CHRONO_LIBRARIES "@CH_SOCKET_LIB@")
+      list(APPEND CHRONO_LIB_NAMES "ChronoEngine_cosimulation")
+      list(APPEND CHRONO_DLL_NAMES "ChronoEngine_cosimulation.dll")
 
     elseif(${COMPONENT_UPPER} MATCHES "PYTHON")
 

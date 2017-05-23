@@ -12,28 +12,20 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 //
-// Trailer for articulated vehicle model.
+// Trailer for the tractor-trailer vehicle model.
 //
 // =============================================================================
 
-#ifndef ARTICULATED_TRAILER_H
-#define ARTICULATED_TRAILER_H
+#ifndef TT_TRAILER_H
+#define TT_TRAILER_H
 
-#include "chrono/core/ChCoordsys.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
-#include "chrono_vehicle/ChVehicle.h"
-#include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
-#include "chrono_models/vehicle/generic/Generic_Wheel.h"
-#include "chrono_models/vehicle/generic/Generic_BrakeSimple.h"
-
-class Articulated_Trailer {
+class TT_Trailer {
   public:
-    Articulated_Trailer(chrono::ChSystem* mysystem,
-                        const bool fixed,
-                        chrono::vehicle::SuspensionType suspType);
+    TT_Trailer(chrono::ChSystem* mysystem, const bool fixed, chrono::vehicle::SuspensionType suspType);
 
-    ~Articulated_Trailer() {}
+    ~TT_Trailer() {}
 
     virtual int GetNumberAxles() const { return 2; }
 
@@ -66,9 +58,9 @@ class Articulated_Trailer {
 
     std::shared_ptr<chrono::ChBodyAuxRef> m_chassis;    ///< handle to the chassis body
     std::shared_ptr<chrono::ChBodyAuxRef> m_frontaxle;  ///< handle to the steering axle
-    chrono::vehicle::ChSuspensionList m_suspensions;        ///< list of handles to suspension subsystems
-    chrono::vehicle::ChWheelList m_wheels;                  ///< list of handles to wheel subsystems
-    chrono::vehicle::ChBrakeList m_brakes;                  ///< list of handles to brake subsystems
+    chrono::vehicle::ChSuspensionList m_suspensions;    ///< list of handles to suspension subsystems
+    chrono::vehicle::ChWheelList m_wheels;              ///< list of handles to wheel subsystems
+    chrono::vehicle::ChBrakeList m_brakes;              ///< list of handles to brake subsystems
 
     std::shared_ptr<chrono::ChLinkLockSpherical> m_joint;   ///< handle to the joint between chassis and front axle
     std::shared_ptr<chrono::ChLinkLockSpherical> m_puller;  ///< handle to the joint between trailer and pulling vehicle

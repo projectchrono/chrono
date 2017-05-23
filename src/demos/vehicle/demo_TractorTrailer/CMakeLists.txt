@@ -1,5 +1,5 @@
 #=============================================================================
-# CMake configuration file for the ARTICULATED_VEHICLE demo.
+# CMake configuration file for the TRACTOR_TRAILER demo.
 #=============================================================================
 
 IF(NOT ENABLE_MODULE_IRRLICHT)
@@ -10,18 +10,20 @@ ENDIF()
 # List all model files for this demo
 
 SET(MODEL_FILES
-    subsystems/Articulated_Front.h
-    subsystems/Articulated_Front.cpp
-    subsystems/Articulated_Rear.h
-    subsystems/Articulated_Rear.cpp
+    subsystems/TT_Tractor.h
+    subsystems/TT_Tractor.cpp
+    subsystems/TT_Chassis.h
+    subsystems/TT_Chassis.cpp
+    subsystems/TT_Trailer.h
+    subsystems/TT_Trailer.cpp
 )
 
 SET(DEMO
-    demo_VEH_ArticulatedVehicle
+    demo_VEH_TractorTrailer
 )
 
 SOURCE_GROUP("subsystems" FILES ${MODEL_FILES})
-SOURCE_GROUP("" FILES ${DEMO}.cpp ${MODEL_FILES})
+SOURCE_GROUP("" FILES ${DEMO}.cpp)
 
 #--------------------------------------------------------------
 # Additional include directories

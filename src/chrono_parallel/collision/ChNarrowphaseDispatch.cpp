@@ -123,7 +123,7 @@ void ChCNarrowphaseDispatch::PreprocessLocalToParent() {
         // Get the identifier for the object associated with this collision shape
         uint ID = obj_data_ID[index];
         if (ID == UINT_MAX)
-        	continue;
+            continue;
 
         real3 pos = body_pos[ID];       // Get the global object position
         quaternion rot = body_rot[ID];  // Get the global object rotation

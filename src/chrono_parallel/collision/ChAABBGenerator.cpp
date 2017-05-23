@@ -123,7 +123,7 @@ void ChCAABBGenerator::GenerateAABB() {
 
             // Body data
             if (id == UINT_MAX)
-            	continue;
+                continue;
 
             real3 position = pos_rigid[id];
             quaternion rotation = Mult(body_rot[id], local_rot);

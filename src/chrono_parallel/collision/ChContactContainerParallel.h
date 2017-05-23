@@ -41,6 +41,11 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
     virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
     virtual void EndAddContact() override;
 
+    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// function of the provided callback object.
+    /// Note: currently, the contact reaction force and torque are not set (always zero).
+    virtual void ReportAllContacts(ReportContactCallback* callback) override;
+
     /// Return the list of contacts between rigid bodies
     const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
 

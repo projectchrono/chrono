@@ -30,6 +30,7 @@ ChSystemParallel::ChSystemParallel() : ChSystem() {
 
     descriptor = std::make_shared<ChSystemDescriptorParallel>(data_manager);
     contact_container = std::make_shared<ChContactContainerParallel>(data_manager);
+    contact_container->SetSystem(this);
     collision_system = std::make_shared<ChCollisionSystemParallel>(data_manager);
 
     collision_system_type = CollisionSystemType::COLLSYS_PARALLEL;

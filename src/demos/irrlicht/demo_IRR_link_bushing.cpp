@@ -24,6 +24,8 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/physics/ChLinkBushing.h"
 #include "chrono/physics/ChLinkForce.h"
+#include "chrono/physics/ChLoadsBody.h"
+#include "chrono/physics/ChLoadContainer.h"
 
 using namespace chrono;
 using namespace chrono::irrlicht;
@@ -77,15 +79,47 @@ int main(int argc, char* argv[]) {
     // ChLinkBushing::Spherical: Rotational dofs are free, translational defined by stiffness/damping matrices
     // ChLinkBushing::Revolute: One rotational dof is free, rest of dofs defined by stiffness/damping matrices
     // ChLinkBushing::Mount: All six dofs defined by stiffness/damping matrices
-
+/*
     auto my_linkbushing = std::make_shared<ChLinkBushing>(ChLinkBushing::Mount);
     my_linkbushing->Initialize(body, ground, ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),
                                K_matrix, R_matrix);
     system.AddLink(my_linkbushing);
-
+*/
     auto my_linkrevolute = std::make_shared<ChLinkLockLock>();
     my_linkrevolute->Initialize(body_ij, ground, ChCoordsys<>(ChVector<>(0.5, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)));
     system.AddLink(my_linkrevolute);
+
+    // Create a bushing load
+    auto my_loadcontainer = std::make_shared<ChLoadContainer>();
+    system.Add(my_loadcontainer);
+
+    auto my_loadbushing = std::make_shared<ChLoadBodyBodyBushingMate>(
+                                    body, // body A
+                                    ground, // body B
+                                    ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
+                                    ChVector<>(95000.0),    // K stiffness in local frame  [N/m]
+                                    ChVector<>(100.0),      // R damping in local frame  [N/m/s]
+                                    ChVector<>(95000.0),    // K rotational stiffness,in local frame [Nm/rad]
+                                    ChVector<>(100.0)       // R rotational damping, in local frame [Nm/rad/s]
+                                    ); 
+    // my_loadcontainer->Add(my_loadbushing);
+
+     auto my_loadbushingp = std::make_shared<ChLoadBodyBodyBushingPlastic>(
+                                    body, // body A
+                                    ground, // body B
+                                    ChFrame<>(ChVector<>(0.5, 0.0, 0.0)), //initial frame of bushing in abs space
+                                    ChVector<>(95000.0),    // K stiffness in local frame  [N/m]
+                                    ChVector<>(100.0),      // R damping in local frame  [N/m/s]
+                                    ChVector<>(18000.0)     // plastic yeld [N/m]
+                                    );  
+    my_loadcontainer->Add(my_loadbushingp);
+
+    auto my_loadforce = std::make_shared<ChLoadBodyForce>(
+                                    body, 
+                                    ChVector<>(0,0, 2000), 
+                                    false, 
+                                    ChVector<>(1,0,0));
+    my_loadcontainer->Add(my_loadforce);
 
     // Create the Irrlicht application
     ChIrrApp application(&system, L"ChLinkBushing", irr::core::dimension2d<irr::u32>(800, 600), false, true);
@@ -99,10 +133,11 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.001);
-    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    system.SetMaxItersSolverSpeed(20000);
-    system.SetTolForce(1e-7);
+    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED); 
+    system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // does NOT support stiffness matrices, so explicit integration holds for stiff bushings 
+ // system.SetSolverType(ChSolver::Type::MINRES); // supports stiffness matrices, so implicit integration holds for stiff bushings 
+    system.SetMaxItersSolverSpeed(2000);
+//    system.SetTolForce(1e-12);
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
