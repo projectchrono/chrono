@@ -55,5 +55,30 @@ void ChPart::SetVisualizationType(VisualizationType vis) {
     AddVisualizationAssets(vis);
 }
 
+// -----------------------------------------------------------------------------
+// Utility function for transforming inertia tensors between centroidal frames.
+// It converts an inertia matrix specified in a centroidal frame aligned with the
+// vehicle reference frame to an inertia matrix expressed in a centroidal body
+// reference frame.
+// -----------------------------------------------------------------------------
+ChMatrix33<> ChPart::TransformInertiaMatrix(
+    const ChVector<>& moments,        // moments of inertia in vehicle-aligned centroidal frame
+    const ChVector<>& products,       // products of inertia in vehicle-aligned centroidal frame
+    const ChMatrix33<>& vehicle_rot,  // vehicle absolute orientation matrix
+    const ChMatrix33<>& body_rot      // body absolute orientation matrix
+    ) {
+    // Calculate rotation matrix body-to-vehicle
+    ChMatrix33<> R;
+    R.MatrTMultiply(vehicle_rot, body_rot);
+
+    // Assemble the inertia matrix in vehicle-aligned centroidal frame
+    ChMatrix33<> J_vehicle(moments, products);
+
+    // Calculate transformed inertia matrix:  (R' * J_vehicle * R)
+    ChMatrix33<> tmp;
+    tmp.MatrTMultiply(R, J_vehicle);
+    return tmp * R;
+}
+
 }  // end namespace vehicle
 }  // end namespace chrono
