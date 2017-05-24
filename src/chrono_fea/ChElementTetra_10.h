@@ -769,7 +769,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                            ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
-        ChMatrixNM<double, 1, 4> N;
+        ChMatrixNM<double, 1, 10> N;
         this->ShapeFunctions(
             N, U, V, W);  // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
 
