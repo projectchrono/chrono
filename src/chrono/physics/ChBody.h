@@ -49,23 +49,24 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     CH_FACTORY_TAG(ChBody)
 
   protected:
-    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< Pointer to the collision model
+    std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< pointer to the collision model
 
-    unsigned int body_id;  ///< body specific identifier, used for indexing (internal use only)
+    unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
+    unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
 
-    std::vector<std::shared_ptr<ChMarker> > marklist;  ///< list of child markers
-    std::vector<std::shared_ptr<ChForce> > forcelist;  ///< list of child forces
+    std::vector<std::shared_ptr<ChMarker>> marklist;  ///< list of markers
+    std::vector<std::shared_ptr<ChForce>> forcelist;  ///< list of forces
 
     ChVector<> gyro;  ///< gyroscopic torque, i.e. Qm = Wvel x (XInertia*Wvel)
 
-    ChVector<> Xforce;   ///< force  acting on body, applied to COG -in abs. coords-
-    ChVector<> Xtorque;  ///< torque acting on body  -in body rel. coords-
+    ChVector<> Xforce;   ///< force  acting on body, applied to COG (in absolute coords)
+    ChVector<> Xtorque;  ///< torque acting on body  (in body relative coords)
 
-    ChVector<> Force_acc;   ///< force accumulator; (in abs space, applied to COG)
-    ChVector<> Torque_acc;  ///< torque accumulator;(in abs space)
+    ChVector<> Force_acc;   ///< force accumulator, applied to COG (in absolute coords)
+    ChVector<> Torque_acc;  ///< torque accumulator (in abs space)
 
-    ChVector<> Scr_force;   ///< script force accumulator; (in abs space, applied to COG)
-    ChVector<> Scr_torque;  ///< script torque accumulator;(in abs space)
+    ChVector<> Scr_force;   ///< script force accumulator, applied to COG (in absolute coords)
+    ChVector<> Scr_torque;  ///< script torque accumulator (in absolute coords)
 
     std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
@@ -77,8 +78,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     ChVariablesBodyOwnMass variables;  ///< interface to solver (store inertia and coordinates)
 
-    float max_speed;  ///< limit on linear speed (useful for VR & videogames)
-    float max_wvel;   ///< limit on angular vel. (useful for VR & videogames)
+    float max_speed;  ///< limit on linear speed
+    float max_wvel;   ///< limit on angular velocity
 
     float sleep_time;
     float sleep_minspeed;
@@ -186,11 +187,17 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// nor is it in "sleep" mode. Return false otherwise.
     bool IsActive();
 
-    /// Set body id for indexing (used only internally)
+    /// Set body id for indexing (internal use only)
     void SetId(int id) { body_id = id; }
 
-    /// Set body id for indexing (used only internally)
+    /// Set body id for indexing (internal use only)
     unsigned int GetId() { return body_id; }
+
+    /// Set global body index (internal use only)
+    void SetGid(unsigned int id) { body_gid = id; }
+
+    /// Get the global body index (internal use only)
+    unsigned int GetGid() const { return body_gid; }
 
     //
     // FUNCTIONS
