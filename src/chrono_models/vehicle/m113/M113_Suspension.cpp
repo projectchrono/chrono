@@ -44,7 +44,9 @@ class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
   public:
     M113_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
 
-    virtual double operator()(double time, double angle, double vel) override { return m_t - m_k * angle - m_c * vel; }
+    virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override {
+        return m_t - m_k * angle - m_c * vel;
+    }
 
   private:
     double m_k;
@@ -59,7 +61,13 @@ class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_c * vel; }
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        return -m_c * vel;
+    }
 
   private:
     double m_c;

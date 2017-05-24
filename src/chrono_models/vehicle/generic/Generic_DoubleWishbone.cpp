@@ -120,7 +120,11 @@ class Generic_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     Generic_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
-    virtual double operator()(double time, double rest_length, double length, double vel);
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override;
 
   private:
     ChCubicSpline m_ShockTable;
@@ -133,7 +137,11 @@ Generic_ShockForce::Generic_ShockForce(std::vector<double> vel, std::vector<doub
     m_MinVel = *std::min_element(std::begin(vel), std::end(vel));
 }
 
-double Generic_ShockForce::operator()(double time, double rest_length, double length, double vel) {
+double Generic_ShockForce::operator()(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      ChLinkSpringCB* link) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;
