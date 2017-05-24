@@ -89,6 +89,9 @@ class CH_VEHICLE_API ChDoubleWishboneReduced : public ChSuspension {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
+    /// Get a handle to the specified shock (spring-damper) element.
+    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
+
     /// Specify the left body for a possible antirollbar subsystem.
     /// Return a handle to the left upright.
     virtual std::shared_ptr<ChBody> GetLeftBody() const override { return m_upright[0]; }
