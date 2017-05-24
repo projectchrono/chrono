@@ -57,7 +57,11 @@ class M113_TensionerForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) override {
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
         return m_f - m_k * (length - m_l0) - m_c * vel;
     }
 

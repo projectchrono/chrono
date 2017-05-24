@@ -48,14 +48,15 @@ class ChApi ChLinkSpringCB : public ChLinkMarkers {
         virtual ~ForceFunctor() {}
 
         /// Calculate and return the general spring-damper force at the specified configuration.
-        virtual double operator()(double time,         ///< current time
-                                  double rest_length,  ///< undeformed length
-                                  double length,       ///< current length
-                                  double vel           ///< current velocity (positive when extending)
+        virtual double operator()(double time,          ///< current time
+                                  double rest_length,   ///< undeformed length
+                                  double length,        ///< current length
+                                  double vel,           ///< current velocity (positive when extending)
+                                  ChLinkSpringCB* link  ///< back-pointer to associated link
                                   ) = 0;
     };
 
-    /// Specify the functor object for calculating the force. 
+    /// Specify the functor object for calculating the force.
     void RegisterForceFunctor(ForceFunctor* functor) { m_force_fun = functor; }
 
     /// Specialized initialization for springs, given the two bodies to be connected,

@@ -46,11 +46,12 @@ double damping_coef = 1;
 
 // Functor class implementing the force for a ChLinkSpringCB link.
 class MySpringForce : public ChLinkSpringCB::ForceFunctor {
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel)          // current velocity (positive when extending)
-    {
+    virtual double operator()(double time,          // current time
+                              double rest_length,   // undeformed length
+                              double length,        // current length
+                              double vel,           // current velocity (positive when extending)
+                              ChLinkSpringCB* link  // back-pointer to associated link
+                              ) override {
         double force = -spring_coef * (length - rest_length) - damping_coef * vel;
         return force;
     }

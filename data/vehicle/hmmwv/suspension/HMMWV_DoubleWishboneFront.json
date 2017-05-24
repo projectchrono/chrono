@@ -3,6 +3,8 @@
   "Type":                       "Suspension",
   "Template":                   "DoubleWishbone",
 
+  "Vehicle-Frame Inertia":      "false",
+
   "Spindle" :
   {
     "Mass":                     14.705,
@@ -16,7 +18,8 @@
   {
     "Mass":                     19.450,
     "COM":                      [-0.040, 0.751, -0.026],
-    "Inertia":                  [0.1656, 0.1934, 0.04367],
+    "Moments of Inertia":       [0.1656, 0.1934, 0.04367],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.025
   },
 
@@ -24,7 +27,8 @@
   {
     "Mass":                     5.813,
     "COM":                      [-0.106, 0.589, 0.218],
-    "Inertia":                  [0.03, 0.03, 0.06276],
+    "Moments of Inertia":       [0.03, 0.03, 0.06276],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.02,
     "Location Chassis Front":   [-0.048, 0.446, 0.245],
     "Location Chassis Back":    [-0.268, 0.478, 0.196],
@@ -35,7 +39,8 @@
   {
     "Mass":                     23.965,
     "COM":                      [0.000, 0.547, -0.059],
-    "Inertia":                  [0.4, 0.4, 0.8938],
+    "Moments of Inertia":       [0.4, 0.4, 0.8938],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.03,
     "Location Chassis Front":   [0.223, 0.307, 0.000],
     "Location Chassis Back":    [-0.223, 0.307, 0.000],

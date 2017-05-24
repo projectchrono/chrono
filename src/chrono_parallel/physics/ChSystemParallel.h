@@ -60,13 +60,13 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
-    void Update();
-    void UpdateBilaterals();
-    void UpdateLinks();
-    void UpdateOtherPhysics();
-    void UpdateRigidBodies();
-    void UpdateShafts();
-    void Update3DOFBodies();
+    virtual void Update();
+    virtual void UpdateBilaterals();
+    virtual void UpdateLinks();
+    virtual void UpdateOtherPhysics();
+    virtual void UpdateRigidBodies();
+    virtual void UpdateShafts();
+    virtual void Update3DOFBodies();
     void RecomputeThreads();
 
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
@@ -75,10 +75,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void ChangeCollisionSystem(CollisionSystemType type);
 
     virtual void PrintStepStats();
-    int GetNumBodies();
-    int GetNumShafts();
-    int GetNumContacts();
-    int GetNumBilaterals();
+    unsigned int GetNumBodies();
+    unsigned int GetNumShafts();
+    unsigned int GetNumContacts();
+    unsigned int GetNumBilaterals();
 
     /// Gets the time (in seconds) spent for computing the time step
     virtual double GetTimerStep() override;

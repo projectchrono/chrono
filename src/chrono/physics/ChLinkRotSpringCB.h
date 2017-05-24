@@ -53,9 +53,10 @@ class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
         virtual ~TorqueFunctor() {}
 
         /// Calculate and return the general spring-damper torque at the specified configuration.
-        virtual double operator()(double time,   ///< current time
-                                  double angle,  ///< relative angle of rotation
-                                  double vel     ///< relative angular speed
+        virtual double operator()(double time,             ///< current time
+                                  double angle,            ///< relative angle of rotation
+                                  double vel,              ///< relative angular speed
+                                  ChLinkRotSpringCB* link  ///< back-pointer to associated link
                                   ) = 0;
     };
 

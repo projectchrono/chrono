@@ -91,6 +91,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     /// Get the total mass of the suspension subsystem.
     virtual double GetMass() const override;
 
+    /// Get a handle to the specified spring element.
+    std::shared_ptr<ChLinkSpringCB> GetSpring(VehicleSide side) const { return m_spring[side]; }
+
     /// Get the force in the spring element.
     double GetSpringForce(VehicleSide side) const { return m_spring[side]->GetSpringReact(); }
 
@@ -99,6 +102,9 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
 
     /// Get the current deformation of the spring element.
     double GetSpringDeformation(VehicleSide side) const { return m_spring[side]->GetSpringDeform(); }
+
+    /// Get a handle to the specified shock (damper) element.
+    std::shared_ptr<ChLinkSpringCB> GetShock(VehicleSide side) const { return m_shock[side]; }
 
     /// Get the force in the shock (damper) element.
     double GetShockForce(VehicleSide side) const { return m_shock[side]->GetSpringReact(); }

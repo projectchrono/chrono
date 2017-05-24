@@ -82,6 +82,13 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
+    // Read flag indicating that inertia matrices are expressed in
+    // vehicle-aligned centroidal frame.
+    if (d.HasMember("Vehicle-Frame Inertia")) {
+        bool flag = d["Vehicle-Frame Inertia"].GetBool();
+        SetVehicleFrameInertiaFlag(flag);
+    }
+
     // Read Spindle data
     assert(d.HasMember("Spindle"));
     assert(d["Spindle"].IsObject());
@@ -98,7 +105,8 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     m_uprightMass = d["Upright"]["Mass"].GetDouble();
     m_points[UPRIGHT] = loadVector(d["Upright"]["COM"]);
-    m_uprightInertia = loadVector(d["Upright"]["Inertia"]);
+    m_uprightInertiaMoments = loadVector(d["Upright"]["Moments of Inertia"]);
+    m_uprightInertiaProducts = loadVector(d["Upright"]["Products of Inertia"]);
     m_uprightRadius = d["Upright"]["Radius"].GetDouble();
 
     // Read UCA data
@@ -107,7 +115,8 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     m_UCAMass = d["Upper Control Arm"]["Mass"].GetDouble();
     m_points[UCA_CM] = loadVector(d["Upper Control Arm"]["COM"]);
-    m_UCAInertia = loadVector(d["Upper Control Arm"]["Inertia"]);
+    m_UCAInertiaMoments = loadVector(d["Upper Control Arm"]["Moments of Inertia"]);
+    m_UCAInertiaProducts = loadVector(d["Upper Control Arm"]["Products of Inertia"]);
     m_UCARadius = d["Upper Control Arm"]["Radius"].GetDouble();
     m_points[UCA_F] = loadVector(d["Upper Control Arm"]["Location Chassis Front"]);
     m_points[UCA_B] = loadVector(d["Upper Control Arm"]["Location Chassis Back"]);
@@ -119,7 +128,8 @@ void DoubleWishbone::Create(const rapidjson::Document& d) {
 
     m_LCAMass = d["Lower Control Arm"]["Mass"].GetDouble();
     m_points[LCA_CM] = loadVector(d["Lower Control Arm"]["COM"]);
-    m_LCAInertia = loadVector(d["Lower Control Arm"]["Inertia"]);
+    m_LCAInertiaMoments = loadVector(d["Lower Control Arm"]["Moments of Inertia"]);
+    m_LCAInertiaProducts = loadVector(d["Lower Control Arm"]["Products of Inertia"]);
     m_LCARadius = d["Lower Control Arm"]["Radius"].GetDouble();
     m_points[LCA_F] = loadVector(d["Lower Control Arm"]["Location Chassis Front"]);
     m_points[LCA_B] = loadVector(d["Lower Control Arm"]["Location Chassis Back"]);

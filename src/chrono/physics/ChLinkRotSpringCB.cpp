@@ -36,7 +36,7 @@ void ChLinkRotSpringCB::UpdateForces(double time) {
     double angle = relAngle;
     double angle_dt = Vdot(relWvel, relAxis);
 
-    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt) : 0;
+    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt, this) : 0;
 
     // Add to existing torque.
     C_torque += Vmul(relAxis, m_torque);

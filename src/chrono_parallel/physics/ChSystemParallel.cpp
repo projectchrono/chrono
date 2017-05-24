@@ -724,19 +724,19 @@ void ChSystemParallel::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-int ChSystemParallel::GetNumBodies() {
+unsigned int ChSystemParallel::GetNumBodies() {
     return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
 }
 
-int ChSystemParallel::GetNumShafts() {
+unsigned int ChSystemParallel::GetNumShafts() {
     return data_manager->num_shafts;
 }
 
-int ChSystemParallel::GetNumContacts() {
+unsigned int ChSystemParallel::GetNumContacts() {
     return data_manager->num_rigid_contacts + data_manager->num_rigid_fluid_contacts + data_manager->num_fluid_contacts;
 }
 
-int ChSystemParallel::GetNumBilaterals() {
+unsigned int ChSystemParallel::GetNumBilaterals() {
     return data_manager->num_bilaterals;
 }
 

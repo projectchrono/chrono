@@ -46,7 +46,7 @@ public:
     M113a_SpringTorque(double k, double c, double t, double kstop, double lowerstop, double upperstop) 
         : m_k(k), m_c(c), m_t(t), m_kstop(kstop), m_lowerstop(lowerstop), m_upperstop(upperstop) {}
 
-    virtual double operator()(double time, double angle, double vel) override {
+    virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override {
         double force = m_t - m_k * angle - m_c * vel;
 
         //Apply bump stop spring rates if needed
@@ -76,8 +76,12 @@ class M113a_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113a_ShockForce(){}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) {
-        // Clip the velocity to within +/- 0.254 m/s [10 in/s] 
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        // Clip the velocity to within +/- 0.254 m/s [10 in/s]
         ChClampValue(vel, -0.254, 0.254);
 
         // Velocity is positive in extension.

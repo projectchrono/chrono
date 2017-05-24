@@ -16,7 +16,8 @@
   {
     "Mass":                     1.397,
     "COM":                      [-0.040, 0.880, -0.026],
-    "Inertia":                  [0.0138, 0.0146, 0.00283],
+    "Moments of Inertia":       [0.0138, 0.0146, 0.00283],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.025
   },
 
@@ -24,7 +25,8 @@
   {
     "Mass":                     1.032,
     "COM":                      [-0.196, 0.645, 0.245],
-    "Inertia":                  [0.00591, 0.00190, 0.00769],
+    "Moments of Inertia":       [0.00591, 0.00190, 0.00769],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.02,
     "Location Chassis Front":   [-0.160, 0.539, 0.243],
     "Location Chassis Back":    [-0.339, 0.587, 0.249],
@@ -35,7 +37,8 @@
   {
     "Mass":                     1.611,
     "COM":                      [-0.040, 0.639, -0.224],
-    "Inertia":                  [0.0151, 0.0207, 0.0355],
+    "Moments of Inertia":       [0.0151, 0.0207, 0.0355],
+    "Products of Inertia":      [0, 0, 0],
     "Radius":                   0.03,
     "Location Chassis Front":   [0.199, 0.479, -0.206],
     "Location Chassis Back":    [-0.279, 0.539, -0.200],
