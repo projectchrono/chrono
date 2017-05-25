@@ -13,9 +13,10 @@
 // =============================================================================
 //
 // Implementation of a suspension testing mechanism (as a vehicle).
-// The tested suspension can be specified through a stand-alone JSON file (and
-// may or may not include a steering subsystem), or as a specified axle in a
-// vehicle JSON specification file.
+// The tested suspension can be specified:
+// - through a stand-alone JSON file (may or may not include a steering subsystem)
+// - as a specified axle in a vehicle JSON specification file
+// - as a specified axle in an existing vehicle (which must have been initialized)
 //
 // The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -48,7 +49,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Defintion of a chassis for a suspension test rig
+// Definition of a chassis for a suspension test rig
 // -----------------------------------------------------------------------------
 class ChSuspensionTestRigChassis : public ChRigidChassis {
   public:
@@ -195,6 +196,36 @@ void ChSuspensionTestRig::LoadWheel(const std::string& filename, int side) {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
+                                         int axle_index,
+                                         double displ_limit,
+                                         std::shared_ptr<ChTire> tire_left,
+                                         std::shared_ptr<ChTire> tire_right,
+                                         ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle(contact_method), m_displ_limit(displ_limit) {
+    assert(axle_index >= 0 && axle_index < vehicle.GetNumberAxles());
+
+    // Load suspension subsystem
+    m_suspension = vehicle.GetSuspension(axle_index);
+    m_suspLoc = m_suspension->GetLocation();
+
+    // Load wheel subsystems
+    m_wheel[LEFT] = vehicle.GetWheel(WheelID(axle_index, LEFT));
+    m_wheel[RIGHT] = vehicle.GetWheel(WheelID(axle_index, RIGHT));
+
+    // Load steering subsystem (if needed)
+    int steering_index = m_suspension->GetSteeringIndex();
+    if (steering_index >= 0) {
+        m_steering = vehicle.GetSteering(steering_index);
+        m_steeringLoc = m_steering->GetPosition().pos;
+        m_steeringRot = m_steering->GetPosition().rot;
+    }
+
+    // Cache tires
+    m_tire[LEFT] = tire_left;
+    m_tire[RIGHT] = tire_right;
+}
+
 ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          int axle_index,
                                          double displ_limit,
@@ -318,9 +349,9 @@ void ChSuspensionTestRig::Initialize(const ChCoordsys<>& chassisPos, double chas
     // Initialize the suspension and steering subsystems.
     if (HasSteering()) {
         m_steering->Initialize(m_chassis->GetBody(), m_steeringLoc, m_steeringRot);
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink());
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_steering->GetSteeringLink(), 0);
     } else {
-        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody());
+        m_suspension->Initialize(m_chassis->GetBody(), m_suspLoc, m_chassis->GetBody(), -1);
     }
 
     // Initialize the two wheels

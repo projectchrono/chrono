@@ -13,9 +13,10 @@
 // =============================================================================
 //
 // Definition of a suspension testing mechanism (as a vehicle).
-// The tested suspension can be specified through a stand-alone JSON file (and
-// may or may not include a steering subsystem), or as a specified axle in a
-// vehicle JSON specification file.
+// The tested suspension can be specified:
+// - through a stand-alone JSON file (may or may not include a steering subsystem)
+// - as a specified axle in a vehicle JSON specification file
+// - as a specified axle in an existing vehicle (which must have been initialized)
 //
 // The reference frame follows the ISO standard: Z-axis up, X-axis
 // pointing forward, and Y-axis towards the left of the vehicle.
@@ -30,7 +31,7 @@
 
 #include "chrono/assets/ChColor.h"
 
-#include "chrono_vehicle/ChVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSteering.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
@@ -53,22 +54,31 @@ namespace vehicle {
 class CH_VEHICLE_API ChSuspensionTestRig : public ChVehicle {
   public:
     /// Construct a test rig for a specified axle of a given vehicle.
-    ChSuspensionTestRig(
-        const std::string& filename,         ///< JSON file with vehicle specification
-        int axle_index,                      ///< index of the suspension to be tested
-        double displ_limit,                  ///< limits for post displacement
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-        );
+    /// This version uses a concrete vehicle object.
+    ChSuspensionTestRig(ChWheeledVehicle& vehicle,           ///< vehicle source
+                        int axle_index,                      ///< index of the suspension to be tested
+                        double displ_limit,                  ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,   ///< left tire
+                        std::shared_ptr<ChTire> tire_right,  ///< right tire
+                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+                        );
 
-    /// Construct a test rig from specified file.
-    ChSuspensionTestRig(
-        const std::string& filename,         ///< JSON file with test rig specification
-        std::shared_ptr<ChTire> tire_left,   ///< left tire
-        std::shared_ptr<ChTire> tire_right,  ///< right tire
-        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
-        );
+    /// Construct a test rig for a specified axle of a given vehicle.
+    /// This version assumes the vehicle is specified through a JSON file.
+    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with vehicle specification
+                        int axle_index,                      ///< index of the suspension to be tested
+                        double displ_limit,                  ///< limits for post displacement
+                        std::shared_ptr<ChTire> tire_left,   ///< left tire
+                        std::shared_ptr<ChTire> tire_right,  ///< right tire
+                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+                        );
+
+    /// Construct a test rig from specified (JSON) file.
+    ChSuspensionTestRig(const std::string& filename,         ///< JSON file with test rig specification
+                        std::shared_ptr<ChTire> tire_left,   ///< left tire
+                        std::shared_ptr<ChTire> tire_right,  ///< right tire
+                        ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< contact method
+                        );
 
     /// Destructor
     ~ChSuspensionTestRig() {}
