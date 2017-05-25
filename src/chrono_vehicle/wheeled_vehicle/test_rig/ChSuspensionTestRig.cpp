@@ -32,12 +32,18 @@
 #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRig.h"
+
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishbone.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/DoubleWishboneReduced.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/SolidAxle.h"
 #include "chrono_vehicle/wheeled_vehicle/suspension/MultiLink.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/MacPhersonStrut.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/SemiTrailingArm.h"
+#include "chrono_vehicle/wheeled_vehicle/suspension/ThreeLinkIRS.h"
+
 #include "chrono_vehicle/wheeled_vehicle/steering/PitmanArm.h"
 #include "chrono_vehicle/wheeled_vehicle/steering/RackPinion.h"
+
 #include "chrono_vehicle/wheeled_vehicle/wheel/Wheel.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
@@ -161,6 +167,12 @@ void ChSuspensionTestRig::LoadSuspension(const std::string& filename) {
         m_suspension = std::make_shared<SolidAxle>(d);
     } else if (subtype.compare("MultiLink") == 0) {
         m_suspension = std::make_shared<MultiLink>(d);
+    } else if (subtype.compare("MacPhersonStrut") == 0) {
+        m_suspension = std::make_shared<MacPhersonStrut>(d);
+    } else if (subtype.compare("SemiTrailingArm") == 0) {
+        m_suspension = std::make_shared<SemiTrailingArm>(d);
+    } else if (subtype.compare("ThreeLinkIRS") == 0) {
+        m_suspension = std::make_shared<ThreeLinkIRS>(d);
     }
 
     GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
