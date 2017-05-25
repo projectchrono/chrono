@@ -109,7 +109,7 @@ void Articulated_Front::Initialize(const ChCoordsys<>& chassisPos, double chassi
 
     // Initialize the suspension subsystem (specify the suspension's frame, relative
     // to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.5, 0, 0), m_chassis->GetBody());
+    m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(0.5, 0, 0), m_chassis->GetBody(), -1);
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));

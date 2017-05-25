@@ -454,9 +454,9 @@ void WheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     for (int i = 0; i < m_num_axles; i++) {
         if (m_suspSteering[i] >= 0)
             m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i],
-                                         m_steerings[m_suspSteering[i]]->GetSteeringLink());
+                                         m_steerings[m_suspSteering[i]]->GetSteeringLink(), m_suspSteering[i]);
         else
-            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody());
+            m_suspensions[i]->Initialize(m_chassis->GetBody(), m_suspLocations[i], m_chassis->GetBody(), -1);
 
         m_wheels[2 * i]->Initialize(m_suspensions[i]->GetSpindle(LEFT));
         m_wheels[2 * i + 1]->Initialize(m_suspensions[i]->GetSpindle(RIGHT));

@@ -64,8 +64,12 @@ ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {
 void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              std::shared_ptr<ChBody> tierod_body,
+                             int steering_index,
                              double left_ang_vel,
                              double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;

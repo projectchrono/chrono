@@ -58,6 +58,10 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Specify whether or not this is an independent suspension.
     virtual bool IsIndependent() const = 0;
 
+    /// Get the location of the suspension subsystem relative to the chassis reference frame.
+    /// The suspension reference frame is always aligned with the chassis reference frame.
+    const ChVector<>& GetLocation() const { return m_location; }
+
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
 
@@ -88,6 +92,9 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the angular speed of the axle on the specified side.
     double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
 
+    /// Get the index of the associated steering index (-1 if non-steered).
+    int GetSteeringIndex() const { return m_steering_index; }
+
     /// Update the suspension subsystem: apply the provided tire forces.
     /// The given tire force and moment is applied to the specified (left or
     /// right) spindle body. This function provides the interface to the tire
@@ -110,12 +117,15 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always aligned with the chassis reference frame.
-    /// Finally, tierod_body is a handle to the body to which the suspension
-    /// tierods are to be attached. For a steerable suspension, this will be the
-    /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
+    /// 'tierod_body' is a handle to the body to which the suspension tierods
+    /// are to be attached. For a steered suspension, this will be the steering
+    /// (central) link of a suspension subsystem.  Otherwise, this is the chassis.
+    /// If this suspension is steered, 'steering_index' indicates the index of the
+    /// associated steering mechanism in the vehicle's list (-1 for a non-steered suspension).
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector<>& location,             ///< [in] location relative to the chassis frame
                             std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            int steering_index,                     ///< [in] index of the associated steering mechanism
                             double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
                             double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
                             ) = 0;
@@ -148,6 +158,8 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     virtual void LogConstraintViolations(VehicleSide side) {}
 
   protected:
+    ChVector<> m_location;                               ///< location relative to chassis
+    int m_steering_index;                                ///< index of associated steering mechanism
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

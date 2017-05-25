@@ -124,8 +124,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
     m_suspensions[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039),
-                                 m_steerings[0]->GetSteeringLink(), m_omega[0], m_omega[1]);
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(),
+                                 m_steerings[0]->GetSteeringLink(), 0, m_omega[0], m_omega[1]);
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(), -1,
                                  m_omega[2], m_omega[3]);
 
     // Initialize wheels

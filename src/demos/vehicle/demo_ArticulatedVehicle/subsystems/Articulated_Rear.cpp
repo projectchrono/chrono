@@ -114,7 +114,7 @@ void Articulated_Rear::Initialize() {
 
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
-    m_suspensions[0]->Initialize(m_chassis, ChVector<>(-0.5, 0, 0), m_chassis);
+    m_suspensions[0]->Initialize(m_chassis, ChVector<>(-0.5, 0, 0), m_chassis, -1);
 
     // Initialize wheels
     m_wheels[0]->Initialize(m_suspensions[0]->GetSpindle(LEFT));

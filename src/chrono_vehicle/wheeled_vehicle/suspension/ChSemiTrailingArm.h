@@ -69,16 +69,15 @@ class CH_VEHICLE_API ChSemiTrailingArm : public ChSuspension {
     /// chassis body at the specified location (with respect to and expressed in
     /// the reference frame of the chassis). It is assumed that the suspension
     /// reference frame is always aligned with the chassis reference frame.
-    /// Finally, tierod_body is a handle to the body to which the suspension
-    /// tierods are to be attached. For a steerable suspension, this will be the
-    /// steering link of a suspension subsystem.  Otherwise, this is the chassis.
-    virtual void Initialize(
-        std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
-        const ChVector<>& location,             ///< [in] location relative to the chassis frame
-        std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected (ignored)
-        double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
-        double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
-        ) override;
+    /// This suspension is non-steerable; as such 'tierod_body' and 'suspension_index'
+    /// are ignored.
+    virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
+                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            std::shared_ptr<ChBody> tierod_body,    ///< [in] body to which tireods are connected
+                            int steering_index,                     ///< [in] index of the associated steering mechanism
+                            double left_ang_vel = 0,                ///< [in] initial angular velocity of left wheel
+                            double right_ang_vel = 0                ///< [in] initial angular velocity of right wheel
+                            ) override;
 
     /// Add visualization assets for the suspension subsystem.
     /// This default implementation uses primitives.
