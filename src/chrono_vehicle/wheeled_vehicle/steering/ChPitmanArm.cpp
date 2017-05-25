@@ -38,6 +38,8 @@ ChPitmanArm::ChPitmanArm(const std::string& name, bool vehicle_frame_inertia)
 void ChPitmanArm::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
     ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();

@@ -48,6 +48,10 @@ class CH_VEHICLE_API ChSteering : public ChPart {
 
     virtual ~ChSteering() {}
 
+    /// Get the position (location and orientation) of the steering subsystem
+    ///  relative to the chassis reference frame.
+    const ChCoordsys<>& GetPosition() const { return m_position; }
+
     /// Get a handle to the main link of the steering subsystems.
     /// Return a handle to the body to which the tierods of a steerbale
     /// suspension subsystem are attached.
@@ -78,6 +82,7 @@ class CH_VEHICLE_API ChSteering : public ChPart {
     virtual void LogConstraintViolations() {}
 
   protected:
+    ChCoordsys<> m_position;         ///< location and orientation relative to chassis
     std::shared_ptr<ChBody> m_link;  ///< handle to the main steering link
 };
 

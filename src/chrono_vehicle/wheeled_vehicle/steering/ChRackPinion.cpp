@@ -43,6 +43,8 @@ ChRackPinion::ChRackPinion(const std::string& name) : ChSteering(name) {}
 void ChRackPinion::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                               const ChVector<>& location,
                               const ChQuaternion<>& rotation) {
+    m_position = ChCoordsys<>(location, rotation);
+
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
     steering_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
