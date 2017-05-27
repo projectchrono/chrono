@@ -105,6 +105,8 @@ set(CVM_GENERIC_FILES
     generic/Generic_SimpleDriveline.h
     generic/Generic_RigidSuspension.h
     generic/Generic_RigidSuspension.cpp
+    generic/Generic_RigidPinnedAxle.h
+    generic/Generic_RigidPinnedAxle.cpp
 )
 source_group("generic" FILES ${CVM_GENERIC_FILES})
 
