@@ -218,35 +218,24 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_tierod;        ///< handles to the tierod body
     std::shared_ptr<ChBody> m_bellCrank;     ///< handles to the bellcrank body
     std::shared_ptr<ChBody> m_draglink;      ///< handles to the draglink body
-    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (left/right)
-    std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (left/right)
-    std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (left/right)
+    std::shared_ptr<ChBody> m_knuckle[2];    ///< handles to the knuckle bodies (L/R)
+    std::shared_ptr<ChBody> m_upperLink[2];  ///< handles to the upper link bodies (L/R)
+    std::shared_ptr<ChBody> m_lowerLink[2];  ///< handles to the lower link bodies (L/R)
 
-    std::shared_ptr<ChLinkLockRevolute>
-        m_revoluteKingpin[2];     ///< handles to the knuckle-axle tube revolute joints (left/right)
-    std::shared_ptr<ChLinkLockRevolute>
-        m_revoluteBellCrank;      ///< handles to the bellCrank-axle revolute joint (left)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalTierod;        ///< handles to the knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalDraglink;      ///< handles to the draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalDraglink;      ///< handles to the draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalTierod;        ///< handles to the knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalUpperLink[2];  ///< handles to the upper link-axle tube spherical joints (left/right)
-    std::shared_ptr<ChLinkLockSpherical>
-        m_sphericalLowerLink[2];  ///< handles to the lower link-axle tube spherical joints (left/right)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalUpperLink[2];  ///< handles to the upper link-chassis universal joints (left/right)
-    std::shared_ptr<ChLinkUniversal>
-        m_universalLowerLink[2];  ///< handles to the lower link-chassis universal joints (left/right)
-    std::shared_ptr<ChLinkLockPointPlane>
-        m_pointPlaneBellCrank;    ///< handles to the bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteBellCrank;       ///< bellCrank-axle revolute joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockPointPlane> m_pointPlaneBellCrank;   ///< bellCrank-tierod point-plane joint (left)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalUpperLink[2];  ///< upper link-axle tube spherical joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalLowerLink[2];  ///< lower link-axle tube spherical joints (L/R)
+    std::shared_ptr<ChLinkUniversal> m_universalUpperLink[2];      ///< upper link-chassis universal joints (L/R)
+    std::shared_ptr<ChLinkUniversal> m_universalLowerLink[2];      ///< lower link-chassis universal joints (L/R)
 
-    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (left/right)
-    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (left/right)
+    std::shared_ptr<ChLinkSpringCB> m_shock[2];   ///< handles to the spring links (L/R)
+    std::shared_ptr<ChLinkSpringCB> m_spring[2];  ///< handles to the shock links (L/R)
 
   private:
     // Hardpoint absolute locations
