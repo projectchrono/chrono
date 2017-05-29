@@ -40,13 +40,9 @@
 #   https://code.ros.org/trac/opencv/browser/trunk/opencv/OpenCVFindIPP.cmake
 # Many portions taken from FindBoost.cmake
 
-# TODO:
-# - caller needs to link with libiomp5md.lib or /Qopenmp...
-# - runtime DLLs:
-#   <Composer XE directory> -> C:\Program Files\Intel\ComposerXE-2011
-#     redist\ia32\mkl
-#     redist\intel64\mkl
-# Intel from version 2016 seems to provide a common path for Win and Linux: <intel_dir>/compilers_and_libraries/${OS}/mkl and so on...
+# The user must:
+# - have the the runtime libraries directory in PATH:
+# (from Parallel Studio XE 2016) <install_parent_folder>/IntelSWTools/compilers_and_libraries/<OS>/redist/<ARCH>/mkl
 
 set(_MKL_IA32 FALSE)
 set(_MKL_INTEL64 FALSE)
@@ -60,10 +56,10 @@ endif()
 
 # Versions should be listed is decreasing order of preference
 set(_MKL_TEST_VERSIONS ${MKL_ADDITIONAL_VERSIONS}
-    "2011"
+    "2011" "2013" "2015"
     # alternative form: "2011.xxx.y"
     # (y is the release-update number and xxx is the package number)
-)
+) # no other 'years' should be added since the install directory is not influenced by that after 2015
 
 if (MKL_FIND_VERSION AND NOT MKL_FIND_QUIETLY)
     message(WARNING "Requesting a specific version of Intel(R) MKL is not supported")
@@ -105,11 +101,13 @@ set(_MKL_ROOT_SEARCH_DIRS
   ${MKL_ROOT}
 )
 
-
+# Add the default install location to the search path
 if (WIN32)
-	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
-	list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{ProgramFiles}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
-else()
+	SET(PROGRAM_FILE_ENVVAR "PROGRAMFILES(x86)")
+	FILE(TO_CMAKE_PATH "$ENV{${PROGRAM_FILE_ENVVAR}}" PRG_FOLD)
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "${PRG_FOLD}/Intel/Composer XE/mkl") # default until ParallelStudioXE2015
+	list(APPEND _MKL_ROOT_SEARCH_DIRS "${PRG_FOLD}/IntelSWTools/compilers_and_libraries/windows/mkl") # default for ParallelStudioXE2016 and later
+elseif(UNIX AND NOT APPLE)
 	foreach (_MKL_VER ${_MKL_TEST_VERSIONS})
 		list(APPEND _MKL_ROOT_SEARCH_DIRS "/opt/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (root permissions)
 		list(APPEND _MKL_ROOT_SEARCH_DIRS "$ENV{HOME}/intel/composerxe-${_MKL_VER}/mkl") # default until ParallelStudioXE2015 (no root permissions)
@@ -124,6 +122,7 @@ if (MKL_FIND_DEBUG)
                    "_MKL_ROOT_SEARCH_DIRS = ${_MKL_ROOT_SEARCH_DIRS}")
 endif()
 
+# Find MKL include directory
 find_path(MKL_INCLUDE_DIR
     NAMES mkl.h
     PATHS ${_MKL_ROOT_SEARCH_DIRS}
@@ -145,7 +144,6 @@ else()
 endif()
 
 # Find MKL library directory
-
 set(_INTEL_LIBRARY_DIR_SUFFIXES "lib")
 if (_MKL_IA32)
     list(APPEND _INTEL_LIBRARY_DIR_SUFFIXES "lib/ia32")
@@ -263,6 +261,8 @@ else()
         message(STATUS "[ ${CMAKE_CURRENT_LIST_FILE}:${CMAKE_CURRENT_LIST_LINE} ] "
                        "Found IOMP5_LIBRARY: ${IOMP5_LIBRARY}")
     endif()
+    
+    #######################################
 
     get_filename_component(_MKL_LIB_PATH "${IOMP5_LIBRARY}" PATH)
     list(APPEND MKL_LIBRARY_DIRS ${_MKL_LIB_PATH})
@@ -341,8 +341,11 @@ if (MKL_FIND_DEBUG)
     endif()
 endif()
 
-mark_as_advanced(
-    MKL_INCLUDE_DIR
-    MKL_INCLUDE_DIRS
-    MKL_LIBRARY_DIRS
+mark_as_advanced(FORCE
+	MATH_LIBRARY
+	IOMP5_LIBRARY
+	MKL_INCLUDE_DIR
+	MKL_INCLUDE_DIRS
+	MKL_LIBRARY_DIRS
+	MKL_ROOT
 )
