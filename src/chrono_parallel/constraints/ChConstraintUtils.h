@@ -77,7 +77,7 @@ static void inline AppendRow6Weak(T& D, const int row, const int col, const real
     D.weakAppend(row, col + 4, init);
     D.weakAppend(row, col + 5, init);
 }
-//
+
 template <typename T>
 static void inline SetRow3Check(T& D, const int row, const int col, const real3& A) {
     //    printf("%d [%d %d %d]\n", row, col + 0, col + 1, col + 2);
@@ -185,6 +185,7 @@ static void inline SetCol6(T& D, const int row, const int col, const real3& A, c
     D.set(row + 4, col, B.y);
     D.set(row + 5, col, B.z);
 }
+
 CH_PARALLEL_API
 void Orthogonalize(real3& Vx, real3& Vy, real3& Vz);
 
@@ -252,7 +253,10 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
     }
 
 CH_PARALLEL_API
-bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu);
+bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, real mu);
+
+CH_PARALLEL_API
+bool Cone_single_rigid(real& gamma_n, real& gamma_s, real mu);
 
 CH_PARALLEL_API
 void AppendRigidFluidBoundary(const real contact_mu,

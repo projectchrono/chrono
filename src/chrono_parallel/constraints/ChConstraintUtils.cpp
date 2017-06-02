@@ -66,7 +66,7 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
 }
 
 CH_PARALLEL_API
-bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
+bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, real mu) {
     real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
 
     // inside upper cone? keep untouched!
@@ -87,6 +87,30 @@ bool Cone_generalized_rigid(real& gamma_n, real& gamma_u, real& gamma_v, const r
     real tproj_div_t = (gamma_n * mu) / f_tang;
     gamma_u *= tproj_div_t;
     gamma_v *= tproj_div_t;
+
+    return true;
+}
+
+CH_PARALLEL_API
+bool Cone_single_rigid(real& gamma_n, real& gamma_s, real mu) {
+    real f_tang = fabs(gamma_s);
+
+    // inside upper cone? keep untouched!
+    if (f_tang < (mu * gamma_n)) {
+        return false;
+    }
+
+    // inside lower cone? reset  normal,u,v to zero!
+    if ((f_tang) < -(1 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+        gamma_n = 0;
+        gamma_s = 0;
+        return false;
+    }
+
+    // remaining case: project orthogonally to generator segment of upper cone
+    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
+    real tproj_div_t = (gamma_n * mu) / f_tang;
+    gamma_s *= tproj_div_t;
 
     return true;
 }
@@ -175,7 +199,7 @@ void ProjectRigidFluidBoundary(const real contact_mu,
                 continue;
             }
 
-            if (Cone_generalized_rigid(gam.x, gam.y, gam.z, friction)) {}
+            Cone_generalized_rigid(gam.x, gam.y, gam.z, friction);
 
             gamma[start_boundary + index] = gam.x - cohesion;                          //
             gamma[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = gam.y;  //

@@ -4,59 +4,12 @@
 #include "chrono_parallel/ChConfigParallel.h"
 #include "chrono_parallel/constraints/ChConstraintRigidRigid.h"
 #include "chrono_parallel/constraints/ChConstraintUtils.h"
-//#include "chrono_parallel/math/quartic.h"
 
 #include <thrust/iterator/constant_iterator.h>
 
 using namespace chrono;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
-    real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
-
-    // inside upper cone? keep untouched!
-    if (f_tang < (mu * gamma_n)) {
-        return false;
-    }
-
-    // inside lower cone? reset  normal,u,v to zero!
-    if ((f_tang) < -(1 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
-        gamma_n = 0;
-        gamma_u = 0;
-        gamma_v = 0;
-        return false;
-    }
-
-    // remaining case: project orthogonally to generator segment of upper cone
-    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
-    real tproj_div_t = (gamma_n * mu) / f_tang;
-    gamma_u *= tproj_div_t;
-    gamma_v *= tproj_div_t;
-
-    return true;
-}
-
-void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
-    real f_tang = fabs(gamma_s);
-
-    // inside upper cone? keep untouched!
-    if (f_tang < (mu * gamma_n)) {
-        return;
-    }
-
-    // inside lower cone? reset  normal,u,v to zero!
-    if ((f_tang) < -(1 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
-        gamma_n = 0;
-        gamma_s = 0;
-        return;
-    }
-
-    // remaining case: project orthogonally to generator segment of upper cone
-    gamma_n = (f_tang * mu + gamma_n) / (mu * mu + 1);
-    real tproj_div_t = (gamma_n * mu) / f_tang;
-    gamma_s *= tproj_div_t;
-}
 
 void ChConstraintRigidRigid::func_Project_normal(int index, const vec2* ids, const real* cohesion, real* gamma) {
     real gamma_x = gamma[index * 1 + 0];
@@ -108,8 +61,7 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
         return;
     }
 
-    if (Cone_generalized(gamma.x, gamma.y, gamma.z, mu)) {
-    }
+    Cone_generalized_rigid(gamma.x, gamma.y, gamma.z, mu);
 
     gam[index * 1 + 0] = gamma.x - coh;
     gam[data_manager->num_rigid_contacts + index * 2 + 0] = gamma.y;
@@ -183,8 +135,8 @@ void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, c
 	gam[index * 1 + 0] = f_n_proj;
 	gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
 	gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
-
 }
+
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 void ChConstraintRigidRigid::host_Project_single(int index, vec2* ids, real3* friction, real* cohesion, real* gamma) {

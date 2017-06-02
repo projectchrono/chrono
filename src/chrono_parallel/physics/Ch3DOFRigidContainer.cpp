@@ -454,8 +454,7 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
                 continue;
             }
 
-            if (Cone_generalized_rigid(gam.x, gam.y, gam.z, mu)) {
-            }
+            Cone_generalized_rigid(gam.x, gam.y, gam.z, mu);
 
             gamma[start_contact + index] = gam.x - cohesion;
             gamma[start_contact + num_rigid_contacts + index * 2 + 0] = gam.y;
