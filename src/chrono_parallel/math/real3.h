@@ -28,7 +28,7 @@ namespace chrono {
 
 class CH_PARALLEL_API real3 {
   public:
-    CUDA_HOST_DEVICE inline real3() {}
+    CUDA_HOST_DEVICE inline real3() { array[3] = 0; }
     CUDA_HOST_DEVICE inline explicit real3(real a) {
         array[0] = a;
         array[1] = a;
