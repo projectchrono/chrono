@@ -66,17 +66,15 @@ uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
             break;
     }
 }
+
 ChFEAContainer::ChFEAContainer(ChSystemParallelNSC* system) {
     data_manager = system->data_manager;
     data_manager->AddFEAContainer(this);
+
     num_rigid_constraints = 0;
     rigid_constraint_recovery_speed = 1;
-    family.x = 1;
-    family.y = 0x7FFF;
     beta = 0;
 }
-
-ChFEAContainer::~ChFEAContainer() {}
 
 void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;

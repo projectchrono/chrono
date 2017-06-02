@@ -50,7 +50,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
     // Constructors
     Ch3DOFContainer();
-    ~Ch3DOFContainer();
+    virtual ~Ch3DOFContainer() {}
 
     Ch3DOFContainer(const Ch3DOFContainer& other);             // Copy constructor
     Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
@@ -130,7 +130,8 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
     ChFluidContainer(ChSystemParallelNSC* system);
-    ~ChFluidContainer();
+    ~ChFluidContainer() {}
+
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
@@ -198,7 +199,8 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
     ChFEAContainer(ChSystemParallelNSC* system);
-    ~ChFEAContainer();
+    ~ChFEAContainer() {}
+
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uvec4>& indices);
     void AddConstraint(const uint node, std::shared_ptr<ChBody>& body);
@@ -256,7 +258,8 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
 class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
   public:
     Ch3DOFRigidContainer(ChSystemParallelNSC* system);
-    ~Ch3DOFRigidContainer();
+    ~Ch3DOFRigidContainer() {}
+
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
