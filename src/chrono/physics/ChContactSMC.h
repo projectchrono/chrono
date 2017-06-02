@@ -95,6 +95,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeSMC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceSMC>(this->objB->GetMaterialSurfaceBase()));
 

@@ -128,7 +128,9 @@ class ChApi ChMaterialCompositeSMC : public ChMaterialComposite {
 
     ChMaterialCompositeSMC();
 
-    ChMaterialCompositeSMC(std::shared_ptr<ChMaterialSurfaceSMC> mat1, std::shared_ptr<ChMaterialSurfaceSMC> mat2);
+    ChMaterialCompositeSMC(ChMaterialCompositionStrategy<float>* strategy,
+                           std::shared_ptr<ChMaterialSurfaceSMC> mat1,
+                           std::shared_ptr<ChMaterialSurfaceSMC> mat2);
 };
 
 }  // end namespace chrono

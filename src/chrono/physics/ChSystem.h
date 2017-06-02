@@ -16,7 +16,7 @@
 #define CHSYSTEM_H
 
 #include <cfloat>
-#include <memory.h>
+#include <memory>
 #include <cstdlib>
 #include <cmath>
 #include <cstring>
@@ -147,7 +147,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Sets tolerance (in m) for assembly constraints. When trying to keep constraints together,
     /// the iterative process is stopped if this tolerance (or max.number of iterations ) is reached
-    void SetTol(double m_tol) { tol = m_tol; }
+    void SetTol(double tolerance) { tol = tolerance; }
     /// Gets current tolerance for assembly constraints.
     double GetTol() const { return tol; }
 
@@ -155,9 +155,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// The tolerance specified here is in fact a tolerance at the force level.
     /// this value is multiplied by the value of the current time step and then
     /// used as a stopping criteria for the iterative speed solver.
-    void SetTolForce(double mtol) { tol_force = mtol; }
+    void SetTolForce(double tolerance) { tol_force = tolerance; }
     /// Return the current value of the tolerance used in the speed solver.
     double GetTolForce() const { return tol_force; }
+
+    /// Change the default composition laws for contact surface materials
+    /// (coefficient of friction, cohesion, compliance, etc.)
+    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy);
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -825,6 +829,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     std::vector<CustomCollisionCallback*> collision_callbacks;
 
+    std::unique_ptr<ChMaterialCompositionStrategy<float>> composition_strategy; /// material composition strategy
+
     // timers for profiling execution speed
     ChTimer<double> timer_step;              ///< timer for integration step
     ChTimer<double> timer_solver;            ///< timer for solver (excluding setup phase)
@@ -836,9 +842,20 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     std::shared_ptr<ChTimestepper> timestepper;  ///< time-stepper object
 
     bool last_err;  ///< indicates error over the last kinematic/dynamics/statics
+
+    // Friend class declarations
+
+    template <class Ta, class Tb>
+    friend class ChContactNSC;
+
+    template <class Ta, class Tb>
+    friend class ChContactNSCrolling;
+
+    template <class Ta, class Tb>
+    friend class ChContactSMC;
 };
 
-CH_CLASS_VERSION(ChSystem,0)
+CH_CLASS_VERSION(ChSystem, 0)
 
 }  // end namespace chrono
 

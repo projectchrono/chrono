@@ -204,10 +204,10 @@ ChSystem::ChSystem()
       solvecount(0),
       setupcount(0),
       dump_matrices(false),
-      last_err(false)
-
-{
-    system = this;  // as needed by ChAssembly
+      last_err(false),
+      composition_strategy(new ChMaterialCompositionStrategy<float>) {
+    // Required by ChAssembly
+    system = this;
 
     // Set default number of threads to be equal to number of available cores
     parallel_thread_number = CHOMPfunctions::GetNumProcs();
@@ -221,7 +221,8 @@ ChSystem::ChSystem()
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
-    system = this;  // as needed by ChAssembly
+    // Required by ChAssembly
+    system = this;
 
     G_acc = other.G_acc;
     end_time = other.end_time;
@@ -446,6 +447,10 @@ void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsyst
     assert(GetNbodies() == 0);
     assert(newcollsystem);
     collision_system = newcollsystem;
+}
+
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy) {
+    composition_strategy = std::move(strategy);
 }
 
 // Initial system setup before analysis.
