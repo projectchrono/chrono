@@ -344,22 +344,17 @@ struct host_container {
     custom_vector<real4> compliance_data;
 
     // Material properties (SMC)
-    custom_vector<real2> elastic_moduli;  // Young's modulus and Poisson ratio
-    custom_vector<real> mu;               // Coefficient of friction
-    custom_vector<real> cr;               // Coefficient of restitution
-    custom_vector<real4> dem_coeffs;      // Stiffness and damping coefficients
-    custom_vector<real>
-        adhesionMultDMT_data;  // adhesion multipliers used in Derjaguin, Muller and Toporov (DMT) model.
-    // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w, adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
-    // Given the equilibrium penetration distance, y_eq, adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
+    custom_vector<real2> elastic_moduli;       // Young's modulus and Poisson ratio
+    custom_vector<real> mu;                    // Coefficient of friction
+    custom_vector<real> cr;                    // Coefficient of restitution
+    custom_vector<real4> smc_coeffs;           // Stiffness and damping coefficients
+    custom_vector<real> adhesionMultDMT_data;  // adhesion multipliers used in DMT model
+    // Derjaguin-Muller-Toporov (DMT) model:
+    // adhesion = adhesionMult * Sqrt(R_eff). Given the surface energy, w,
+    //    adhesionMult = 2 * CH_C_PI * w * Sqrt(R_eff).
+    // Given the equilibrium penetration distance, y_eq,
+    //    adhesionMult = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
 
-    // For the variables below the convention is:
-    //_n is normal
-    //_t is tangential
-    //_s is rolling and spinning
-    //_b is bilateral
-    //_T is transpose
-    //_inv is inverse
     // This matrix, if used will hold D^TxM^-1xD in sparse form
     CompressedMatrix<real> Nshur;
     // The D Matrix hold the Jacobian for the entire system

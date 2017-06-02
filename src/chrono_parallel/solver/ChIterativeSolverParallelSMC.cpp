@@ -61,7 +61,7 @@ void function_CalcContactForces(
     real* vel,                                            // body linear and angular velocities
     real2* elastic_moduli,                                // Young's modulus (per body)
     real* cr,                                             // coefficient of restitution (per body)
-    real4* dem_coeffs,                                    // stiffness and damping coefficients (per body)
+    real4* smc_coeffs,                                    // stiffness and damping coefficients (per body)
     real* mu,                                             // coefficient of friction (per body)
     real* adhesion,                                       // constant force (per body)
     real* adhesionMultDMT,                                // Adhesion force multiplier (per body), in DMT model.
@@ -147,10 +147,10 @@ void function_CalcContactForces(
         G_eff = 1 / inv_G;
         cr_eff = strategy->CombineRestitution(cr[body1], cr[body2]);
     } else {
-        user_kn = strategy->CombineStiffnessCoefficient(dem_coeffs[body1].x, dem_coeffs[body2].x);
-        user_kt = strategy->CombineStiffnessCoefficient(dem_coeffs[body1].y, dem_coeffs[body2].y);
-        user_gn = strategy->CombineDampingCoefficient(dem_coeffs[body1].z, dem_coeffs[body2].z);
-        user_gt = strategy->CombineDampingCoefficient(dem_coeffs[body1].w, dem_coeffs[body2].w);
+        user_kn = strategy->CombineStiffnessCoefficient(smc_coeffs[body1].x, smc_coeffs[body2].x);
+        user_kt = strategy->CombineStiffnessCoefficient(smc_coeffs[body1].y, smc_coeffs[body2].y);
+        user_gn = strategy->CombineDampingCoefficient(smc_coeffs[body1].z, smc_coeffs[body2].z);
+        user_gt = strategy->CombineDampingCoefficient(smc_coeffs[body1].w, smc_coeffs[body2].w);
     }
 
     // Contact force
@@ -440,7 +440,7 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
             data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
             data_manager->host_data.pos_rigid.data(), data_manager->host_data.rot_rigid.data(),
             data_manager->host_data.v.data(), data_manager->host_data.elastic_moduli.data(),
-            data_manager->host_data.cr.data(), data_manager->host_data.dem_coeffs.data(),
+            data_manager->host_data.cr.data(), data_manager->host_data.smc_coeffs.data(),
             data_manager->host_data.mu.data(), data_manager->host_data.cohesion_data.data(),
             data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
             shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
