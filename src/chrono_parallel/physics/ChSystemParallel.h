@@ -21,7 +21,7 @@
 
 #include <cstdlib>
 #include <cfloat>
-#include <memory.h>
+#include <memory>
 #include <algorithm>
 
 #include "chrono/physics/ChSystem.h"
@@ -73,6 +73,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
     virtual void Setup() override;
     virtual void ChangeCollisionSystem(CollisionSystemType type);
+
+    /// Change the default composition laws for contact surface materials
+    /// (coefficient of friction, cohesion, compliance, etc.)
+    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();

@@ -31,6 +31,7 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelNSC* physics_system) 
     start_boundary = 0;
     start_contact = 0;
     mpm_iterations = 0;
+
     nu = .2;
     youngs_modulus = 1.4e5;
     hardening_coefficient = 10;
@@ -40,9 +41,11 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelNSC* physics_system) 
     theta_c = 2.5e-2;
     alpha_flip = .95;
     mpm_init = false;
+
     family.x = 1;
     family.y = 0x7FFF;
 }
+
 Ch3DOFRigidContainer::~Ch3DOFRigidContainer() {}
 
 void Ch3DOFRigidContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
@@ -364,7 +367,8 @@ void Ch3DOFRigidContainer::Build_b() {
                                  start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
-        int index = 0;
+        int index = 0;  // incremented in Loop_Over_Fluid_Neighbors()
+
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {

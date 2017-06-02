@@ -11,6 +11,7 @@
 using namespace chrono;
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& mu) {
     real f_tang = sqrt(gamma_u * gamma_u + gamma_v * gamma_v);
 
@@ -20,7 +21,7 @@ bool Cone_generalized(real& gamma_n, real& gamma_u, real& gamma_v, const real& m
     }
 
     // inside lower cone? reset  normal,u,v to zero!
-    if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+    if ((f_tang) < -(1 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
         gamma_n = 0;
         gamma_u = 0;
         gamma_v = 0;
@@ -45,7 +46,7 @@ void Cone_single(real& gamma_n, real& gamma_s, const real& mu) {
     }
 
     // inside lower cone? reset  normal,u,v to zero!
-    if ((f_tang) < -(1.0 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
+    if ((f_tang) < -(1 / mu) * gamma_n || (fabs(gamma_n) < 10e-15)) {
         gamma_n = 0;
         gamma_s = 0;
         return;
@@ -367,10 +368,10 @@ void ChConstraintRigidRigid::Build_E() {
         real4 cA = data_manager->host_data.compliance_data[body.x];
         real4 cB = data_manager->host_data.compliance_data[body.y];
 
-        real compliance_normal = (cA.x == 0 || cB.x == 0) ? 0 : (cA.x + cB.x) * .5;
-        real compliance_sliding = (cA.y == 0 || cB.y == 0) ? 0 : (cA.y + cB.y) * .5;
-        real compliance_spinning = (cA.z == 0 || cB.z == 0) ? 0 : (cA.z + cB.z) * .5;
-        real compliance_rolling = (cA.w == 0 || cB.w == 0) ? 0 : (cA.w + cB.w) * .5;
+        real compliance_normal = data_manager->composition_strategy->CombineCompliance(cA.x, cB.x);
+        real compliance_sliding = data_manager->composition_strategy->CombineCompliance(cA.y, cB.y);
+        real compliance_spinning = data_manager->composition_strategy->CombineCompliance(cA.z, cB.z);
+        real compliance_rolling = data_manager->composition_strategy->CombineCompliance(cA.z, cB.z);
 
         E[index * 1 + 0] = inv_hhpa * compliance_normal;
         if (solver_mode == SolverMode::SLIDING) {

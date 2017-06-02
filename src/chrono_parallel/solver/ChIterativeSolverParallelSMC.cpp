@@ -50,6 +50,7 @@ void function_CalcContactForces(
     ChSystemSMC::ContactForceModel contact_model,         // contact force model
     ChSystemSMC::AdhesionForceModel adhesion_model,       // contact force model
     ChSystemSMC::TangentialDisplacementModel displ_mode,  // type of tangential displacement history
+    ChMaterialCompositionStrategy<real>* strategy,        // material composition strategy
     bool use_mat_props,                                   // flag specifying how coefficients are obtained
     real char_vel,                                        // characteristic velocity (Hooke)
     real min_slip_vel,                                    // threshold tangential velocity
@@ -127,9 +128,9 @@ void function_CalcContactForces(
 
     real m_eff = mass[body1] * mass[body2] / (mass[body1] + mass[body2]);
 
-    real mu_eff = Min(mu[body1], mu[body2]);
-    real adhesion_eff = Min(adhesion[body1], adhesion[body2]);
-    real adhesionMultDMT_eff = Min(adhesionMultDMT[body1], adhesionMultDMT[body2]);
+    real mu_eff = strategy->CombineFriction(mu[body1], mu[body2]);
+    real adhesion_eff = strategy->CombineCohesion(adhesion[body1], adhesion[body2]);
+    real adhesionMultDMT_eff = strategy->CombineAdhesionMultiplier(adhesionMultDMT[body1], adhesionMultDMT[body2]);
 
     real E_eff, G_eff, cr_eff;
     real user_kn, user_kt, user_gn, user_gt;
@@ -144,12 +145,12 @@ void function_CalcContactForces(
 
         E_eff = 1 / inv_E;
         G_eff = 1 / inv_G;
-        cr_eff = (cr[body1] + cr[body2]) / 2;
+        cr_eff = strategy->CombineRestitution(cr[body1], cr[body2]);
     } else {
-        user_kn = (dem_coeffs[body1].x + dem_coeffs[body2].x) / 2;
-        user_kt = (dem_coeffs[body1].y + dem_coeffs[body2].y) / 2;
-        user_gn = (dem_coeffs[body1].z + dem_coeffs[body2].z) / 2;
-        user_gt = (dem_coeffs[body1].w + dem_coeffs[body2].w) / 2;
+        user_kn = strategy->CombineStiffnessCoefficient(dem_coeffs[body1].x, dem_coeffs[body2].x);
+        user_kt = strategy->CombineStiffnessCoefficient(dem_coeffs[body1].y, dem_coeffs[body2].y);
+        user_gn = strategy->CombineDampingCoefficient(dem_coeffs[body1].z, dem_coeffs[body2].z);
+        user_gt = strategy->CombineDampingCoefficient(dem_coeffs[body1].w, dem_coeffs[body2].w);
     }
 
     // Contact force
@@ -434,19 +435,19 @@ void ChIterativeSolverParallelSMC::host_CalcContactForces(custom_vector<int>& ex
         function_CalcContactForces(
             index, data_manager->settings.solver.contact_force_model,
             data_manager->settings.solver.adhesion_force_model, data_manager->settings.solver.tangential_displ_mode,
-            data_manager->settings.solver.use_material_properties, data_manager->settings.solver.characteristic_vel,
-            data_manager->settings.solver.min_slip_vel, data_manager->settings.step_size,
-            data_manager->host_data.mass_rigid.data(), data_manager->host_data.pos_rigid.data(),
-            data_manager->host_data.rot_rigid.data(), data_manager->host_data.v.data(),
-            data_manager->host_data.elastic_moduli.data(), data_manager->host_data.cr.data(),
-            data_manager->host_data.dem_coeffs.data(), data_manager->host_data.mu.data(),
-            data_manager->host_data.cohesion_data.data(), data_manager->host_data.adhesionMultDMT_data.data(),
-            data_manager->host_data.bids_rigid_rigid.data(), shape_pairs.data(),
-            data_manager->host_data.cpta_rigid_rigid.data(), data_manager->host_data.cptb_rigid_rigid.data(),
-            data_manager->host_data.norm_rigid_rigid.data(), data_manager->host_data.dpth_rigid_rigid.data(),
-            data_manager->host_data.erad_rigid_rigid.data(), data_manager->host_data.shear_neigh.data(),
-            shear_touch.data(), data_manager->host_data.shear_disp.data(), ext_body_id.data(), ext_body_force.data(),
-            ext_body_torque.data());
+            data_manager->composition_strategy.get(), data_manager->settings.solver.use_material_properties,
+            data_manager->settings.solver.characteristic_vel, data_manager->settings.solver.min_slip_vel,
+            data_manager->settings.step_size, data_manager->host_data.mass_rigid.data(),
+            data_manager->host_data.pos_rigid.data(), data_manager->host_data.rot_rigid.data(),
+            data_manager->host_data.v.data(), data_manager->host_data.elastic_moduli.data(),
+            data_manager->host_data.cr.data(), data_manager->host_data.dem_coeffs.data(),
+            data_manager->host_data.mu.data(), data_manager->host_data.cohesion_data.data(),
+            data_manager->host_data.adhesionMultDMT_data.data(), data_manager->host_data.bids_rigid_rigid.data(),
+            shape_pairs.data(), data_manager->host_data.cpta_rigid_rigid.data(),
+            data_manager->host_data.cptb_rigid_rigid.data(), data_manager->host_data.norm_rigid_rigid.data(),
+            data_manager->host_data.dpth_rigid_rigid.data(), data_manager->host_data.erad_rigid_rigid.data(),
+            data_manager->host_data.shear_neigh.data(), shear_touch.data(), data_manager->host_data.shear_disp.data(),
+            ext_body_id.data(), ext_body_force.data(), ext_body_torque.data());
     }
 }
 

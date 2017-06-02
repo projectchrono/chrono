@@ -20,6 +20,8 @@
 
 #pragma once
 
+#include <memory>
+
 // Chrono::Parallel headers
 #include "chrono_parallel/ChTimerParallel.h"
 #include "chrono_parallel/ChParallelDefines.h"
@@ -61,14 +63,14 @@ class ChMPMContainer;
 class ChFLIPContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
+template <typename T>
+class ChMaterialCompositionStrategy;
 
 namespace collision {
 class ChCBroadphase;           // forward declaration
 class ChCNarrowphaseDispatch;  // forward declaration
 class ChCAABBGenerator;        // forward declaration
 }
-template <typename TT>
-class ChSharedPtr;
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real> > SubMatrixType;
@@ -457,6 +459,9 @@ class CH_PARALLEL_API ChParallelDataManager {
     // and the solver
     settings_container settings;
     measures_container measures;
+
+    /// Material composition strategy.
+    std::unique_ptr<ChMaterialCompositionStrategy<real>> composition_strategy;
 
     // Output a vector (one dimensional matrix) from blaze to a file
     int OutputBlazeVector(DynamicVector<real> src, std::string filename);

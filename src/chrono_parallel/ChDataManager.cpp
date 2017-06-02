@@ -4,6 +4,7 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -25,7 +26,8 @@ ChParallelDataManager::ChParallelDataManager()
       num_rigid_tet_contacts(0),
       num_rigid_tet_node_contacts(0),
       num_marker_tet_contacts(0),
-      nnz_bilaterals(0) {
+      nnz_bilaterals(0),
+      composition_strategy(new ChMaterialCompositionStrategy<real>) {
     node_container = new Ch3DOFContainer();
     fea_container = new Ch3DOFContainer();
 

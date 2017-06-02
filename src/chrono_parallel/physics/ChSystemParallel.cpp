@@ -770,3 +770,9 @@ double ChSystemParallel::GetTimerCollision() {
 settings_container* ChSystemParallel::GetSettings() {
     return &(data_manager->settings);
 }
+
+// -------------------------------------------------------------
+
+void ChSystemParallel::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy) {
+    data_manager->composition_strategy = std::move(strategy);
+}
