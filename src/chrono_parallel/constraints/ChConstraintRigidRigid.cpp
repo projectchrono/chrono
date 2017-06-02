@@ -115,40 +115,74 @@ void ChConstraintRigidRigid::func_Project_sliding(int index,
     gam[data_manager->num_rigid_contacts + index * 2 + 1] = gamma.z;
 }
 void ChConstraintRigidRigid::func_Project_spinning(int index, const vec2* ids, const real3* fric, real* gam) {
-    // real3 gamma_roll = R3(0);
     real rollingfriction = fric[index].y;
     real spinningfriction = fric[index].z;
 
-    //	if(rollingfriction||spinningfriction){
-    //		gam[index + number_of_contacts * 1] = 0;
-    //		gam[index + number_of_contacts * 2] = 0;
-    //	}
+    real f_n = gam[index * 1 + 0];
+    real t_n = gam[3 * data_manager->num_rigid_contacts + index * 3 + 0];
+    real t_u = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
+    real t_v = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
 
-    real gamma_n = gam[index * 1 + 0];
-    real gamma_s = gam[3 * data_manager->num_rigid_contacts + index * 3 + 0];
-    real gamma_tu = gam[3 * data_manager->num_rigid_contacts + index * 3 + 1];
-    real gamma_tv = gam[3 * data_manager->num_rigid_contacts + index * 3 + 2];
+	real t_tang = sqrt(t_v * t_v + t_u * t_u);
+	real t_sptang = fabs(t_n);  // = sqrt(t_n*t_n);
 
-    if (spinningfriction == 0) {
-        gamma_s = 0;
+	if (spinningfriction) {
+		if (t_sptang < spinningfriction * f_n) {
+			// inside upper cone? keep untouched!
+		}
+		else {
+			// inside lower cone? reset  normal,u,v to zero!
+			if ((t_sptang < -(1 / spinningfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+				gam[index * 1 + 0] = 0;
+				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = 0;
+			}
+			else {
+				// remaining case: project orthogonally to generator segment of upper cone (CAN BE simplified)
+				real f_n_proj = (t_sptang * spinningfriction + f_n) / (spinningfriction * spinningfriction + 1);
+				real t_tang_proj = f_n_proj * spinningfriction;
+				real tproj_div_t = t_tang_proj / t_sptang;
+				real t_n_proj = tproj_div_t * t_n;
 
-    } else {
-        Cone_single(gamma_n, gamma_s, spinningfriction);
-    }
+				gam[index * 1 + 0] = f_n_proj;
+				gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = t_n_proj;
 
-    if (rollingfriction == 0) {
-        gamma_tu = 0;
-        gamma_tv = 0;
-        //		if (gamma_n < 0) {
-        //			gamma_n = 0;
-        //		}
-    } else {
-        Cone_generalized(gamma_n, gamma_tu, gamma_tv, rollingfriction);
-    }
-    gam[index * 1 + 0] = gamma_n;
-    gam[3 * data_manager->num_rigid_contacts + index * 3 + 0] = gamma_s;
-    gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = gamma_tu;
-    gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = gamma_tv;
+			}
+		}
+	}
+
+	if (!rollingfriction) {
+		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = 0;
+		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = 0;
+
+
+		if (f_n < 0)
+			gam[index * 1 + 0] = 0;
+		return;
+	}
+	if (t_tang < rollingfriction * f_n)
+		return;
+
+	if ((t_tang < -(1 / rollingfriction) * f_n) || (fabs(f_n) < 10e-15)) {
+		real f_n_proj = 0;
+		real t_u_proj = 0;
+		real t_v_proj = 0;
+
+		gam[index * 1 + 0] = f_n_proj;
+		gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+		gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
+
+		return;
+	}
+	real f_n_proj = (t_tang * rollingfriction + f_n) / (rollingfriction * rollingfriction + 1);
+	real t_tang_proj = f_n_proj * rollingfriction;
+	real tproj_div_t = t_tang_proj / t_tang;
+	real t_u_proj = tproj_div_t * t_u;
+	real t_v_proj = tproj_div_t * t_v;
+
+	gam[index * 1 + 0] = f_n_proj;
+	gam[3 * data_manager->num_rigid_contacts + index * 3 + 1] = t_u_proj;
+	gam[3 * data_manager->num_rigid_contacts + index * 3 + 2] = t_v_proj;
+
 }
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
