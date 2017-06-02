@@ -79,6 +79,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     void SetFamily(short family, short mask_no_collision);
 
     // Helper Functions
+    uint GetNumParticles() const { return num_fluid_bodies; }
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
