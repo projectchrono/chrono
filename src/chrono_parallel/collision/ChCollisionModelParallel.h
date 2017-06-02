@@ -29,7 +29,7 @@ class ChBody;
 
 namespace collision {
 
-/// @addtogroup parallel_module
+/// @addtogroup parallel_collision
 /// @{
 
 /// Class to encapsulate description of a convex collision shape.
@@ -206,7 +206,7 @@ class CH_PARALLEL_API ChCollisionModelParallel : public ChCollisionModel {
     unsigned int nObjects;
 };
 
-/// @} parallel_module
+/// @} parallel_collision
 
 }  // end namespace collision
 }  // end namespace chrono

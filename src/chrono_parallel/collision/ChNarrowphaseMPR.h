@@ -22,6 +22,9 @@ namespace collision {
 
 class ConvexBase;
 
+/// @addtogroup parallel_collision
+/// @{
+
 CH_PARALLEL_API
 bool MPRContact(const ConvexBase* ShapeA,
                 const ConvexBase* ShapeB,
@@ -29,6 +32,7 @@ bool MPRContact(const ConvexBase* ShapeA,
                 real3& returnNormal,
                 real3& point,
                 real& depth);
+
 CH_PARALLEL_API
 bool MPRCollision(const ConvexBase* ShapeA,
                   const ConvexBase* ShapeB,
@@ -37,6 +41,7 @@ bool MPRCollision(const ConvexBase* ShapeA,
                   real3& pointA,
                   real3& pointB,
                   real& depth);
+
 CH_PARALLEL_API
 void MPRGetPoints(const ConvexBase* ShapeA,
                   const ConvexBase* ShapeB,
@@ -49,5 +54,7 @@ void MPRGetPoints(const ConvexBase* ShapeA,
 CH_PARALLEL_API
 bool MPRSphereSphere(const ConvexBase* ShapeA, const ConvexBase* ShapeB, real3& N, real& dist, real3& p1, real3& p2);
 
-}  // end namespace collision
-}  // end namespace chrono
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

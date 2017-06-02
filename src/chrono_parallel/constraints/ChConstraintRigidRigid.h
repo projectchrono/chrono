@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_constraint
+/// @{
+
 class CH_PARALLEL_API ChConstraintRigidRigid {
   public:
     ChConstraintRigidRigid() {
@@ -126,4 +129,7 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
 };
-}
+
+/// @} parallel_colision
+
+} // end namespace chrono

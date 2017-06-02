@@ -29,6 +29,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup parallel_collision
+/// @{
+
 typedef thrust::pair<real3, real3> bbox;
 
 // reduce a pair of bounding boxes (a,b) to a bounding box containing a and b
@@ -421,5 +424,8 @@ static inline void f_Store_AABB_AABB_Intersection(const uint index,
         }
     }
 }
-}
-}
+
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

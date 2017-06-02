@@ -46,6 +46,11 @@ class ChSystemParallelMPM;
 class ChParallelDataManager;
 class ChSolverParallel;
 
+/// @addtogroup parallel_physics
+/// @{
+
+/// Base class for containers of elements with 3 degrees of freedom
+/// (fluid nodes, particles, FEA nodes).
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
     Ch3DOFContainer();
@@ -129,6 +134,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     friend class ChSystemParallelNSC;
 };
 
+/// Container of fluid particles.
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
     ChFluidContainer();
@@ -198,6 +204,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     uint body_offset;
 };
 
+/// Container of FEA nodes.
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
     ChFEAContainer();
@@ -257,6 +264,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_rigid_constraints;
 };
 
+/// Container of rigid particles (3 DOF).
 class CH_PARALLEL_API ChParticleContainer : public Ch3DOFContainer {
   public:
     ChParticleContainer();
@@ -311,5 +319,7 @@ class CH_PARALLEL_API ChParticleContainer : public Ch3DOFContainer {
   private:
     uint body_offset;
 };
+
+/// @} parallel_physics
 
 } // end namespace chrono

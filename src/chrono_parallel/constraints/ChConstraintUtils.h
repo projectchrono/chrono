@@ -20,6 +20,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_constraint
+/// @{
+
 template <typename T>
 static void inline SetRow3(T& D, const int row, const int col, const real3& A) {
     D.set(row, col + 0, A.x);
@@ -295,4 +298,7 @@ void BuildRigidFluidBoundary(const real contact_mu,
                              const uint body_offset,
                              const uint start_boundary,
                              ChParallelDataManager* data_manager);
-}
+
+/// @} parallel_colision
+
+} // end namespace chrono

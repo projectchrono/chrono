@@ -26,6 +26,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_math
+/// @{
+
+/// Chrono::Parallel triplet (3-dimensional vector).
 class CH_PARALLEL_API real3 {
   public:
     CUDA_HOST_DEVICE inline real3() { array[3] = 0; }
@@ -145,4 +149,7 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 OrthogonalVector(const real3& v);
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 UnitOrthogonalVector(const real3& v);
 CUDA_HOST_DEVICE CH_PARALLEL_API void Sort(real& a, real& b, real& c);
 CUDA_HOST_DEVICE CH_PARALLEL_API void Print(real3 v, const char* name);
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

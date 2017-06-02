@@ -28,6 +28,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_module
+/// @{
+
 struct TimerData {
     TimerData() : runs(0) {}
 
@@ -102,4 +105,7 @@ class CH_PARALLEL_API ChTimerParallel {
     std::map<std::string, TimerData> timer_list;
     std::map<std::string, TimerData>::iterator it;
 };
-}
+
+/// @} parallel_module
+
+} // end namespace chrono

@@ -47,6 +47,10 @@ namespace chrono {
 class ChParallelDataManager;
 class settings_container;
 
+/// @addtogroup parallel_physics
+/// @{
+
+/// Base class for parallel systems.
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallel)
@@ -144,7 +148,10 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     std::vector<ChShaft*> shaftlist;
 };
+
 //====================================================================================================
+
+/// Parallel systems using non-smooth contact (complementarity-based) method.
 class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallelNSC)
@@ -181,6 +188,8 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
 };
 
 //====================================================================================================
+
+/// Parallel systems using smooth contact (penalty-based) method.
 class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallelSMC)
@@ -212,5 +221,7 @@ class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
         return data_manager->system_timer.GetTime("ChIterativeSolverParallelSMC_ProcessContact");
     }
 };
+
+/// @} parallel_physics
 
 }  // end namespace chrono

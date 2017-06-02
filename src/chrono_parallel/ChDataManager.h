@@ -197,6 +197,10 @@ typedef blaze::Subvector<const DynamicVector<real> > ConstSubVectorType;
 // The maximum number of shear history contacts per smaller body (SMC)
 #define max_shear 20
 
+/// @addtogroup parallel_module
+/// @{
+
+/// Structure of arrays containing contact shape information.
 struct shape_container {
     custom_vector<short2> fam_rigid;      // Family information
     custom_vector<uint> id_rigid;         // Body identifier for each shape
@@ -219,6 +223,7 @@ struct shape_container {
     custom_vector<quaternion> obj_data_R_global;
 };
 
+/// Structure of arrays containing simulation data.
 struct host_container {
     // Collision data
 
@@ -398,6 +403,7 @@ struct host_container {
     custom_vector<uint> bin_num_contact;
 };
 
+/// Global data manager for Chrono::Parallel.
 class CH_PARALLEL_API ChParallelDataManager {
   public:
     ChParallelDataManager();
@@ -466,4 +472,7 @@ class CH_PARALLEL_API ChParallelDataManager {
     int ExportCurrentSystem(std::string output_dir);
     void PrintMatrix(CompressedMatrix<real> src);
 };
-}
+
+/// @} parallel_module
+
+} // end namespace chrono

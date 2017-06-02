@@ -28,8 +28,12 @@
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
 
 namespace chrono {
-// collision_measures, like the name implies is the structure that contains all
-// measures associated with the collision detection step of chrono parallel
+
+/// @addtogroup parallel_module
+/// @{
+
+/// Collision_measures.
+/// This structure contains all measures associated with the collision detection step of chrono parallel.
 class collision_measures {
   public:
     collision_measures() {
@@ -83,8 +87,9 @@ class collision_measures {
     real3 mpm_max_bounding_point;
     vec3 mpm_bins_per_axis;
 };
-// solver_measures, like the name implies is the structure that contains all
-// measures associated with the parallel solver.
+
+/// Solver measures.
+/// This structure contains all measures associated with the parallel solver.
 class solver_measures {
   public:
     solver_measures() {
@@ -117,9 +122,13 @@ class solver_measures {
     std::vector<real> violation;
 };
 
+/// Aggregate of collision and solver measures.
 class measures_container {
   public:
     collision_measures collision;
     solver_measures solver;
 };
-}
+
+/// @} parallel_module
+
+} // end namespace chrono

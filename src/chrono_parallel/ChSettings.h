@@ -30,8 +30,8 @@ namespace chrono {
 /// @addtogroup parallel_module
 /// @{
 
-// collision_settings, like the name implies is the structure that contains all
-// settings associated with the collision detection step of chrono parallel
+/// Chrono::Parallel collision_settings.
+/// This structure that contains all settings associated with the collision detection phase.
 class collision_settings {
   public:
     // The default values are specified in the constructor, use these as
@@ -84,8 +84,8 @@ class collision_settings {
     bool fixed_bins;
 };
 
-// solver_settings, like the name implies is the structure that contains all
-// settings associated with the parallel solver.
+/// Chrono::Parallel solver_settings.
+/// This structure contains all ettings associated with the parallel solver.
 class solver_settings {
   public:
     solver_settings() {
@@ -211,6 +211,7 @@ class solver_settings {
     int skip_residual;
 };
 
+/// Aggregate of all settings for Chrono::Parallel.
 class settings_container {
   public:
     settings_container() {
@@ -259,4 +260,5 @@ class settings_container {
 };
 
 /// @} parallel_module
-}
+
+} // end namespace chrono

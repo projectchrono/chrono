@@ -25,6 +25,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_math
+/// @{
+
 // If the user specified using doubles, define the real type as double
 // Also set some constants. The same is done if floats were specified.
 typedef double real;
@@ -95,4 +98,7 @@ CUDA_HOST_DEVICE static inline real Round(const real a) {
 CUDA_HOST_DEVICE static inline real Log(const real a) {
     return log(a);
 }
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

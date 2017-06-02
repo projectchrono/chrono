@@ -39,11 +39,11 @@ class ChParallelDataManager;
 
 namespace collision {
 
-///
+/// @addtogroup parallel_collision
+/// @{
+
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
-///
-
 class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem {
   public:
     ChCollisionSystemBulletParallel(ChParallelDataManager* dc,
@@ -105,6 +105,8 @@ class CH_PARALLEL_API ChCollisionSystemBulletParallel : public ChCollisionSystem
 
     unsigned int counter;
 };
+
+/// @} parallel_colision
 
 }  // end namespace collision
 }  // end namespace chrono

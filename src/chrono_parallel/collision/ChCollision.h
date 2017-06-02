@@ -29,6 +29,10 @@ namespace collision {
 
 class ConvexShape;
 
+/// @addtogroup parallel_collision
+/// @{
+
+/// Generator for Axis-Aligned Bounding Boxes.
 class CH_PARALLEL_API ChCAABBGenerator {
   public:
     ChCAABBGenerator();
@@ -36,6 +40,7 @@ class CH_PARALLEL_API ChCAABBGenerator {
     ChParallelDataManager* data_manager;
 };
 
+/// Class for performing broad-phase collision detection.
 class CH_PARALLEL_API ChCBroadphase {
   public:
     ChCBroadphase();
@@ -52,6 +57,7 @@ class CH_PARALLEL_API ChCBroadphase {
   private:
 };
 
+/// Class for performing narrow-phase collision detection.
 class CH_PARALLEL_API ChCNarrowphaseDispatch {
   public:
     ChCNarrowphaseDispatch() {}
@@ -162,5 +168,8 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
     custom_vector<uint> t_bin_fluid_number;
     custom_vector<uint> t_bin_start_index;
 };
-}
-}
+
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

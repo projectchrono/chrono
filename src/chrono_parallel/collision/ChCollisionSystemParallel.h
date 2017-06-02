@@ -34,6 +34,9 @@ class ChSystemParallel;  // forward declaration
 
 namespace collision {
 
+/// @addtogroup parallel_collision
+/// @{
+
 ///
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
@@ -108,6 +111,8 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     custom_vector<char> body_active;
     friend class chrono::ChSystemParallel;
 };
+
+/// @} parallel_colision
 
 }  // end namespace collision
 }  // end namespace chrono
