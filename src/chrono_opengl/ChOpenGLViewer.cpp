@@ -576,9 +576,9 @@ void ChOpenGLViewer::RenderFluid() {
             dynamic_cast<ChFluidContainer*>(parallel_system->data_manager->node_container)) {
         fluid.SetPointSize(float(fluid_container->kernel_radius * .75));
     }
-    if (Ch3DOFRigidContainer* rigid_container =
-            dynamic_cast<Ch3DOFRigidContainer*>(parallel_system->data_manager->node_container)) {
-        fluid.SetPointSize(float(rigid_container->kernel_radius * .75));
+    if (ChParticleContainer* particle_container =
+            dynamic_cast<ChParticleContainer*>(parallel_system->data_manager->node_container)) {
+        fluid.SetPointSize(float(particle_container->kernel_radius * .75));
     }
     fluid.Update(fluid_data);
     glm::mat4 model(1);

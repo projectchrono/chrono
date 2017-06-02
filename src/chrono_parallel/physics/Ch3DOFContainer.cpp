@@ -80,4 +80,5 @@ void Ch3DOFContainer::SetFamily(short mfamily, short mask_no_collision) {
     family.x = (1 << mfamily);
     family.y &= ~(1 << mask_no_collision);
 }
+
 }  // end namespace chrono

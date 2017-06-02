@@ -45,7 +45,9 @@
 using namespace chrono;
 using namespace chrono::collision;
 double time_step = 1e-3;
-Ch3DOFRigidContainer* fluid_container;
+
+ChParticleContainer* fluid_container;
+
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -70,7 +72,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelNSC* sys) {
-    fluid_container = new Ch3DOFRigidContainer(sys);
+    fluid_container = new ChParticleContainer(sys);
 
     fluid_container->contact_cohesion = 0;
     fluid_container->kernel_radius = .016;

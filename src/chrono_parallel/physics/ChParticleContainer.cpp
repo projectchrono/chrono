@@ -20,7 +20,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelNSC* physics_system) {
+ChParticleContainer::ChParticleContainer(ChSystemParallelNSC* physics_system) {
     data_manager = physics_system->data_manager;
     data_manager->Add3DOFContainer(this);
 
@@ -44,7 +44,7 @@ Ch3DOFRigidContainer::Ch3DOFRigidContainer(ChSystemParallelNSC* physics_system) 
     mpm_init = false;
 }
 
-void Ch3DOFRigidContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
+void ChParticleContainer::AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_fluid = data_manager->host_data.pos_3dof;
     custom_vector<real3>& vel_fluid = data_manager->host_data.vel_3dof;
 
@@ -54,7 +54,7 @@ void Ch3DOFRigidContainer::AddBodies(const std::vector<real3>& positions, const 
     vel_fluid.resize(pos_fluid.size());
     data_manager->num_fluid_bodies = (uint)pos_fluid.size();
 }
-void Ch3DOFRigidContainer::Update(double ChTime) {
+void ChParticleContainer::Update(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -123,7 +123,7 @@ void Ch3DOFRigidContainer::Update(double ChTime) {
     }
 }
 
-void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
+void ChParticleContainer::UpdatePosition(double ChTime) {
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
     uint num_rigid_bodies = data_manager->num_rigid_bodies;
     uint num_shafts = data_manager->num_shafts;
@@ -199,7 +199,7 @@ void Ch3DOFRigidContainer::UpdatePosition(double ChTime) {
     //    }
 }
 
-int Ch3DOFRigidContainer::GetNumConstraints() {
+int ChParticleContainer::GetNumConstraints() {
     int num_fluid_fluid = 0;
     if (mu == 0) {
         num_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2;
@@ -216,7 +216,7 @@ int Ch3DOFRigidContainer::GetNumConstraints() {
     return num_fluid_fluid;
 }
 
-int Ch3DOFRigidContainer::GetNumNonZeros() {
+int ChParticleContainer::GetNumNonZeros() {
     int nnz_fluid_fluid = 0;
     if (mu == 0) {
         nnz_fluid_fluid = (data_manager->num_fluid_contacts - data_manager->num_fluid_bodies) / 2 * 6;
@@ -234,7 +234,7 @@ int Ch3DOFRigidContainer::GetNumNonZeros() {
     return nnz_fluid_fluid;
 }
 
-void Ch3DOFRigidContainer::ComputeInvMass(int offset) {
+void ChParticleContainer::ComputeInvMass(int offset) {
     CompressedMatrix<real>& M_inv = data_manager->host_data.M_inv;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
@@ -249,7 +249,7 @@ void Ch3DOFRigidContainer::ComputeInvMass(int offset) {
     }
 }
 
-void Ch3DOFRigidContainer::ComputeMass(int offset) {
+void ChParticleContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
 
@@ -264,7 +264,7 @@ void Ch3DOFRigidContainer::ComputeMass(int offset) {
     }
 }
 
-void Ch3DOFRigidContainer::Setup(int start_constraint) {
+void ChParticleContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
 
     start_boundary = start_constraint;
@@ -278,7 +278,7 @@ void Ch3DOFRigidContainer::Setup(int start_constraint) {
     num_rigid_contacts = (num_fluid_contacts - num_fluid_bodies) / 2;
 }
 
-void Ch3DOFRigidContainer::Initialize() {
+void ChParticleContainer::Initialize() {
 #ifdef CHRONO_PARALLEL_USE_CUDA
     temp_settings.dt = (float)data_manager->settings.step_size;
     temp_settings.kernel_radius = (float)kernel_radius;
@@ -313,10 +313,10 @@ void Ch3DOFRigidContainer::Initialize() {
 #endif
 }
 
-void Ch3DOFRigidContainer::Build_D() {
+void ChParticleContainer::Build_D() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
 
-    LOG(INFO) << "Ch3DOFRigidContainer::Build_D"
+    LOG(INFO) << "ChParticleContainer::Build_D"
               << " " << D_T.rows() << " " << D_T.columns();
     BuildRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
@@ -354,7 +354,7 @@ void Ch3DOFRigidContainer::Build_D() {
     LOG(INFO) << "ChConstraintRigid3DOF::JACOBIAN OF RIGID";
 }
 
-void Ch3DOFRigidContainer::Build_b() {
+void ChParticleContainer::Build_b() {
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
 
     DynamicVector<real>& b = data_manager->host_data.b;
@@ -387,7 +387,7 @@ void Ch3DOFRigidContainer::Build_b() {
     }
 }
 
-void Ch3DOFRigidContainer::Build_E() {
+void ChParticleContainer::Build_E() {
     DynamicVector<real>& E = data_manager->host_data.E;
 
     ComplianceRigidFluidBoundary(contact_mu, contact_compliance, alpha, start_boundary, data_manager);
@@ -416,7 +416,7 @@ void Ch3DOFRigidContainer::Build_E() {
     }
 }
 
-void Ch3DOFRigidContainer::Project(real* gamma) {
+void ChParticleContainer::Project(real* gamma) {
     ProjectRigidFluidBoundary(contact_mu, contact_cohesion, num_fluid_bodies, start_boundary, gamma, data_manager);
 
     if (mu == 0) {
@@ -447,9 +447,9 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
     }
 }
 
-void Ch3DOFRigidContainer::GenerateSparsity() {
+void ChParticleContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    LOG(INFO) << "Ch3DOFRigidContainer::GenerateSparsity";
+    LOG(INFO) << "ChParticleContainer::GenerateSparsity";
     AppendRigidFluidBoundary(contact_mu, num_fluid_bodies, body_offset, start_boundary, data_manager);
 
     if (num_rigid_contacts > 0) {
@@ -494,12 +494,12 @@ void Ch3DOFRigidContainer::GenerateSparsity() {
     }
 }
 
-void Ch3DOFRigidContainer::CalculateContactForces() {
+void ChParticleContainer::CalculateContactForces() {
     uint num_contacts = data_manager->num_rigid_fluid_contacts;
     if (num_contacts <= 0) {
         return;
     }
-    LOG(INFO) << "Ch3DOFRigidContainer::CalculateContactForces() ";
+    LOG(INFO) << "ChParticleContainer::CalculateContactForces() ";
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;
     SubVectorType gamma_n = subvector(gamma, start_boundary, _num_rf_c_);
@@ -515,21 +515,21 @@ void Ch3DOFRigidContainer::CalculateContactForces() {
     }
 }
 
-real3 Ch3DOFRigidContainer::GetBodyContactForce(uint body_id) {
+real3 ChParticleContainer::GetBodyContactForce(uint body_id) {
     if (data_manager->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 0], contact_forces[body_id * 6 + 1], contact_forces[body_id * 6 + 2]);
 }
 
-real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
+real3 ChParticleContainer::GetBodyContactTorque(uint body_id) {
     if (data_manager->num_rigid_fluid_contacts <= 0) {
         return real3(0);
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
 
-void Ch3DOFRigidContainer::PreSolve() {
+void ChParticleContainer::PreSolve() {
 #ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_thread.joinable()) {
         mpm_thread.join();
@@ -544,9 +544,9 @@ void Ch3DOFRigidContainer::PreSolve() {
 #endif
 }
 
-void Ch3DOFRigidContainer::PostSolve() {}
+void ChParticleContainer::PostSolve() {}
 
-void Ch3DOFRigidContainer::GetFluidForce(custom_vector<real3>& forc) {
+void ChParticleContainer::GetFluidForce(custom_vector<real3>& forc) {
     forc.resize(num_fluid_bodies);
 
     DynamicVector<real>& gamma = data_manager->host_data.gamma;

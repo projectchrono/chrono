@@ -255,10 +255,10 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_rigid_constraints;
 };
 
-class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
+class CH_PARALLEL_API ChParticleContainer : public Ch3DOFContainer {
   public:
-    Ch3DOFRigidContainer(ChSystemParallelNSC* system);
-    ~Ch3DOFRigidContainer() {}
+    ChParticleContainer(ChSystemParallelNSC* system);
+    ~ChParticleContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
@@ -280,6 +280,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real3 GetBodyContactForce(uint body_id);
     real3 GetBodyContactTorque(uint body_id);
     void GetFluidForce(custom_vector<real3>& forc);
+
     uint start_boundary;
     uint start_contact;
     real compliance;
@@ -288,7 +289,6 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mass;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
     real yield_stress;
-    //
 
     real nu;
     real youngs_modulus;
@@ -309,4 +309,5 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
   private:
     uint body_offset;
 };
-}
+
+} // end namespace chrono

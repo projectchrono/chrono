@@ -48,7 +48,7 @@ using namespace chrono::collision;
 #define USE_RIGID 1
 
 #if USE_RIGID
-Ch3DOFRigidContainer* mpm_container;
+ChParticleContainer* mpm_container;
 #else
 ChFluidContainer* mpm_container;
 #endif
@@ -125,7 +125,7 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelNSC* sys) {
 #if USE_RIGID
-    mpm_container = new Ch3DOFRigidContainer(sys);
+    mpm_container = new ChParticleContainer(sys);
 #else
     mpm_container = new ChFluidContainer(sys);
 
