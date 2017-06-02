@@ -225,18 +225,18 @@ void Compute_Jacobian_Rolling(const quaternion& quat,
                               real3& T2,
                               real3& T3);
 
-#define Loop_Over_Rigid_Neighbors(X)                    \
-    for (int p = 0; p < (signed)num_fluid_bodies; p++) {\
-        int start = contact_counts[p];                  \
-        int end = contact_counts[p + 1];                \
-        for (int index = start; index < end; index++) { \
-            int i = index - start;                      \
-            X                                           \
-        }                                               \
+#define Loop_Over_Rigid_Neighbors(X)                     \
+    for (int p = 0; p < (signed)num_fluid_bodies; p++) { \
+        int start = contact_counts[p];                   \
+        int end = contact_counts[p + 1];                 \
+        for (int index = start; index < end; index++) {  \
+            int i = index - start;                       \
+            X                                            \
+        }                                                \
     }
 
 #define Loop_Over_Fluid_Neighbors(X)                                                             \
-    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {                                  \
+    for (int body_a = 0; body_a < (signed)num_fluid_bodies; body_a++) {                          \
         real3 pos_p = sorted_pos[body_a];                                                        \
         for (int i = 0; i < data_manager->host_data.c_counts_3dof_3dof[body_a]; i++) {           \
             int body_b = data_manager->host_data.neighbor_3dof_3dof[body_a * max_neighbors + i]; \

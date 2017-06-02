@@ -241,6 +241,7 @@ void ComplianceRigidFluidBoundary(const real contact_mu,
         }
     }
 }
+
 CH_PARALLEL_API
 void CorrectionRigidFluidBoundary(const real contact_mu,
                                   const real contact_cohesion,
@@ -249,43 +250,39 @@ void CorrectionRigidFluidBoundary(const real contact_mu,
                                   const uint num_fluid_bodies,
                                   const uint start_boundary,
                                   ChParallelDataManager* data_manager) {
-    real inv_h = 1 / data_manager->settings.step_size;
     real inv_hpa = 1 / (data_manager->settings.step_size + alpha);
-    real inv_hhpa = inv_h * inv_hpa;
 
-    real dt = data_manager->settings.step_size;
     DynamicVector<real>& b = data_manager->host_data.b;
     custom_vector<real>& dpth_rigid_fluid = data_manager->host_data.dpth_rigid_fluid;
     uint num_rigid_fluid_contacts = data_manager->num_rigid_fluid_contacts;
+
     if (num_rigid_fluid_contacts > 0) {
         custom_vector<int>& neighbor_rigid_fluid = data_manager->host_data.neighbor_rigid_fluid;
         custom_vector<int>& contact_counts = data_manager->host_data.c_counts_rigid_fluid;
 
         if (contact_mu == 0) {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];              //
-                                      real bi = 0;                                                             //
-                                      if (contact_cohesion) { depth = Min(depth, 0); }                         //
-                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }  //
-                                      else { bi = std::max((1 / dt) * depth, -contact_recovery_speed); }
-
-                                      b[start_boundary + index + 0] = bi;  //
-                                      // printf("Depth: %f %f %f\n", depth, kernel_radius, bi);
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];  //
+                                      real bi = 0;                                                 //
+                                      if (contact_cohesion != 0) { depth = Min(depth, 0); }        //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);     //
+                                      b[start_boundary + index + 0] = bi;                          //
+                                      ////printf("Depth: %f bi: %f\n", depth, bi);                 //
                                       );
         } else {
 #pragma omp parallel for
-            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];              //
-                                      real bi = 0;                                                             //
-                                      if (contact_cohesion) { depth = Min(depth, 0); }                         //
-                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }  //
-                                      else { bi = std::max((1 / dt) * depth, -contact_recovery_speed); }
-
-                                      b[start_boundary + index + 0] = bi;
-                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;
-                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;);
+            Loop_Over_Rigid_Neighbors(real depth = dpth_rigid_fluid[p * max_rigid_neighbors + i];        //
+                                      real bi = 0;                                                       //
+                                      if (contact_cohesion != 0) { depth = Min(depth, 0); }              //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);           //
+                                      b[start_boundary + index + 0] = bi;                                //
+                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 0] = 0;  //
+                                      b[start_boundary + num_rigid_fluid_contacts + index * 2 + 1] = 0;  //
+                                      );
         }
     }
 }
+
 CH_PARALLEL_API
 void BuildRigidFluidBoundary(const real contact_mu,
                              const uint num_fluid_bodies,
@@ -335,4 +332,5 @@ void BuildRigidFluidBoundary(const real contact_mu,
         }
     }
 }
-}
+
+}  // end namespace chrono

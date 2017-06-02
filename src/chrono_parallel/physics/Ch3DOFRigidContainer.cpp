@@ -355,11 +355,8 @@ void Ch3DOFRigidContainer::Build_D() {
 }
 
 void Ch3DOFRigidContainer::Build_b() {
-    real inv_h = 1 / data_manager->settings.step_size;
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
-    real inv_hhpa = inv_h * inv_hpa;
 
-    real dt = data_manager->settings.step_size;
     DynamicVector<real>& b = data_manager->host_data.b;
 
     CorrectionRigidFluidBoundary(contact_mu, contact_cohesion, alpha, contact_recovery_speed, num_fluid_bodies,
@@ -371,23 +368,21 @@ void Ch3DOFRigidContainer::Build_b() {
         custom_vector<real3>& sorted_pos = data_manager->host_data.sorted_pos_3dof;
 
         if (mu == 0) {
-            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;                                //
-                                      real bi = 0;                                                             //
-                                      if (cohesion) { depth = Min(depth, 0); }                                 //
-                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }  //
-                                      else { bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }
-
-                                      b[start_contact + index + 0] = bi;);
+            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;                 //
+                                      real bi = 0;                                              //
+                                      if (cohesion != 0) { depth = Min(depth, 0); }             //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);  //
+                                      b[start_contact + index + 0] = bi;                        //
+                                      );
         } else {
-            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;                                //
-                                      real bi = 0;                                                             //
-                                      if (cohesion) { depth = Min(depth, 0); }                                 //
-                                      if (alpha) { bi = std::max(inv_hpa * depth, -contact_recovery_speed); }  //
-                                      else { bi = std::max(real(1.0) / dt * depth, -contact_recovery_speed); }
-
+            Loop_Over_Fluid_Neighbors(real depth = Length(xij) - kernel_radius;                   //
+                                      real bi = 0;                                                //
+                                      if (cohesion != 0) { depth = Min(depth, 0); }               //
+                                      bi = std::max(inv_hpa * depth, -contact_recovery_speed);    //
                                       b[start_contact + index + 0] = bi;                          //
                                       b[start_contact + num_rigid_contacts + index * 2 + 0] = 0;  //
-                                      b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;);
+                                      b[start_contact + num_rigid_contacts + index * 2 + 1] = 0;  //
+                                      );
         }
     }
 }
