@@ -26,49 +26,6 @@
 
 namespace chrono {
 
-/// A type corresponding to an exchange message
-struct exchange
-{
-	// distributed::EXCHANGE;
-
-	unsigned int gid;	///< Global Id
-
-	double pos[3];	///< Position
-
-	double rot[4];	///< Rotation
-
-	double vel[3];	///< Velocity
-
-	double omega[3];	///< Angular Velocity
-
-	double mass;	///< Mass
-
-	// Material SMC
-	double mu; ///< Static Friction
-	double adhesionMultDMT; ///< Adhesion
-
-	// TODO:
-
-	double dem_data[4]; // At largest 4
-};
-
-/// A type corresponding to an  update message
-struct update
-{
-	int update_type;
-
-	unsigned int gid;	///< Global Id
-
-	double pos[3];	///< Position
-
-	double rot[4];	///< Rotation
-
-	double vel[3];	///< Velocity
-
-	double omega[3];	///< Angular Velocity
-};
-
-
 class ChDistributedDataManager;
 class ChSystemDistributed;
 

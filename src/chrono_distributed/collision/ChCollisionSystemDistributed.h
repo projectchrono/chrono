@@ -22,12 +22,20 @@
 namespace chrono {
 namespace collision {
 
+/// This class scaffolds on ChCollisionSystemParallel in order to manage
+/// collision data for the system during MPI exchanges.
+/// Maintains a mapping from a body to its shapes
 class ChCollisionSystemDistributed : public ChCollisionSystemParallel {
 public:
 	ChCollisionSystemDistributed(ChParallelDataManager *dm, ChDistributedDataManager *ddm);
 	virtual ~ChCollisionSystemDistributed();
 
+	/// Adds the collision model to the collision system and creates
+	/// a mapping entry from the associated body to its collision shapes
 	virtual void Add(ChCollisionModel *model) override;
+
+	/// Deactivates the body in the data manager of
+	/// chrono::parallel and marks the space as free
 	virtual void Remove(ChCollisionModel *model) override;
 protected:
 	ChDistributedDataManager *ddm;

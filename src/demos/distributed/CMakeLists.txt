@@ -3,6 +3,7 @@ set(DISTRIBUTED_TESTS
     demo_DISTR_system
     demo_DISTR_exchange
     demo_DISTR_separate
+    demo_DISTR_settling
 )
 
 set(COMPILER_FLAGS "${CH_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}")
@@ -26,7 +27,7 @@ foreach(PROGRAM ${DISTRIBUTED_TESTS})
 
     set_target_properties(${PROGRAM} PROPERTIES
         FOLDER tests
-        COMPILE_FLAGS "${COMPILER_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
+        COMPILE_FLAGS "${COMPILER_FLAGS} ${CH_CXX_COMPILE_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
         LINK_FLAGS "${LINKER_FLAGS}"
     )
 

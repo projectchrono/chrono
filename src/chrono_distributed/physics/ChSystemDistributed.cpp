@@ -16,6 +16,7 @@
 #include <string>
 #include <memory>
 #include <numeric>
+#include <string>
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/collision/ChCCollisionSystem.h"
@@ -40,6 +41,9 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 	this->world = world;
 	MPI_Comm_size(world, &num_ranks);
 	MPI_Comm_rank(world, &my_rank);
+	int name_len;
+	node_name = new char[50];
+	MPI_Get_processor_name(node_name, &name_len);
 
 	ddm = new ChDistributedDataManager(this);
 	domain = new ChDomainDistributed(this);
@@ -47,6 +51,9 @@ ChSystemDistributed::ChSystemDistributed(MPI_Comm world, double ghost_layer, uns
 
 	this->ghost_layer = ghost_layer;
 	this->num_bodies_global = 0;
+
+	data_manager->system_timer.AddTimer("Send");
+	data_manager->system_timer.AddTimer("Recv");
 
 	collision_system = std::make_shared<ChCollisionSystemDistributed>(data_manager, ddm);
 }
@@ -66,7 +73,7 @@ bool ChSystemDistributed::Integrate_Y()
 	if (num_ranks != 1)
 	{
 		comm->Exchange();
-	//	comm->CheckExchange(); // TODO: Not every timestep
+//		comm->CheckExchange(); // TODO: Not every timestep
 	}
 
 	return ret;
@@ -103,7 +110,7 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody)
 
 		newbody->GetCollisionModel()->GetAABB(min, max);
 
-		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
+//		printf("AABB: Min: %.3f %.3f %.3f  Max: %.3f %.3f %.3f\n", min.x(), min.y(), min.z(), max.x(), max.y(), max.z());
 
 		// If the part of the body lies in this sub-domain, add it
 		if ((min.x() <= subhi.x() && sublo.x() <= max.x()) &&
@@ -181,17 +188,14 @@ void ChSystemDistributed::AddBody(std::shared_ptr<ChBody> newbody)
 
 void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status)
 {
-	GetLog() << "AddBodyExchange " << my_rank << "\n";
-
 	ddm->comm_status.push_back(status);
 	ddm->global_id.push_back(newbody->GetGid());
 	newbody->SetId(data_manager->num_rigid_bodies);
 	bodylist.push_back(newbody);
 	data_manager->num_rigid_bodies++;
-
-	newbody->SetSystem(this); //TODO adds the collision model to the collisionsystem
-
 	newbody->SetBodyFixed(false);
+
+	newbody->SetSystem(this); // Calls collisionsystem::add
 
 	// Actual data is set in UpdateBodies()
     data_manager->host_data.pos_rigid.push_back(real3());
@@ -201,14 +205,15 @@ void ChSystemDistributed::AddBodyExchange(std::shared_ptr<ChBody> newbody, distr
 
 	// Let derived classes reserve space for specific material surface data
 	ChSystemParallelSMC::AddMaterialSurfaceData(newbody);
-	GetLog() << "End AddBodyExchange\n";
 }
 
 void ChSystemDistributed::RemoveBodyExchange(int index)
 {
 	ddm->comm_status[index] = distributed::EMPTY;
 	bodylist[index]->SetBodyFixed(true);
-	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove 
+	bodylist[index]->SetCollide(false); //Note: this calls collisionsystem::remove
+	if (index < ddm->first_empty)
+		ddm->first_empty = index;
 }
 
 //Trusts the ID to be correct on the body
@@ -221,6 +226,8 @@ void ChSystemDistributed::RemoveBody(std::shared_ptr<ChBody> body)
 	ddm->comm_status[index] = distributed::EMPTY;
 	bodylist[index]->SetBodyFixed(true);
 	bodylist[index]->SetCollide(false);
+	if (index < ddm->first_empty)
+		ddm->first_empty = index;
 }
 
 // Used to end the program on an error and print a message.
@@ -242,7 +249,7 @@ void ChSystemDistributed::PrintBodyStatus()
 		ChVector<double> vel = (*bl_itr)->GetPos_dt();
 		if (ddm->comm_status[i] != distributed::EMPTY)
 		{
-			/*float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
+			float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
 			float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
 			float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
 			float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
@@ -253,16 +260,16 @@ void ChSystemDistributed::PrintBodyStatus()
 			float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
 			float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
 			float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
-			*/
+			double mass = (*bl_itr)->GetMass();
 
-			printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n",
-					(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide());
-
-			/*printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d\n"
+			printf("\tGlobal ID: %d Pos: %.2f,%.2f,%.2f. Active: %d Collide: %d Rank: %d\n",
+					(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(), my_rank);
+			/*
 					"Adhesion: %.3f, gn: %.3f, gt: %.3f, kn: %.3f, kt: %.3f, poisson: %.3f,"
-					"restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f\n",
+					"restit: %.3f, sliding fric: %.3f, static fric: %.3f, young: %.3f, mass: %.3f\n",
 				(*bl_itr)->GetGid(), pos.x(), pos.y(), pos.z(), (*bl_itr)->IsActive(), (*bl_itr)->GetCollide(),
-				adhesion, const_ad, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young);*/
+				adhesion, gn, gt, kn, kt, poisson, restit, sliding_fric, static_fric, young, mass);
+			*/
 		}
 	}
 
@@ -304,10 +311,9 @@ void ChSystemDistributed::PrintBodyStatus()
 			}
 
 			real3 pos = data_manager->host_data.pos_rigid[i];
-			fprintf(stdout, " Pos: %.2f,%.2f,%.2f\n",pos.x, pos.y, pos.z);
+			fprintf(stdout, " Pos: %.2f,%.2f,%.2f RANK: %d\n",pos.x, pos.y, pos.z, my_rank);
 		}
 	}
-
 }
 
 void ChSystemDistributed::PrintShapeData()
@@ -341,17 +347,21 @@ void ChSystemDistributed::PrintShapeData()
 			printf("\n");
 		}
 	}
+
+	printf("NumShapes: %d NumBodies: %d\n", ddm->data_manager->shape_data.id_rigid.size(), i);
+	printf("num_rigid_shapes: %d, num_rigid_bodies: %d\n", ddm->data_manager->num_rigid_shapes, ddm->data_manager->num_rigid_bodies);
 }
 
 // Outputs all bodies in the system to a CSV file
-void ChSystemDistributed::WriteCSV(int fileCounter)
+void ChSystemDistributed::WriteCSV(int fileCounter, std::string fileprefix)
 {
-	const std::string file_name = "../parallel/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
+	const std::string file_name = fileprefix + "/csv" + std::to_string(my_rank) + "/data" + std::to_string(fileCounter) + ".csv";
 
 	std::ofstream file;
 	file.open(file_name);
 	std::stringstream ss_particles;
-	ss_particles << "X,Y,Z,vx,vy,vz,U,r\n";
+	ss_particles << "x,y,z,vx,vy,vz,U,r\n";
+//			",adhesion,const_ad,gn,gt,kn,kt,poisson,restit,sliding_fric,static_fric,young,mass\n";
 
 	std::vector<std::shared_ptr<ChBody>>::iterator bl_itr = bodylist.begin();
 	int i = 0;
@@ -361,7 +371,26 @@ void ChSystemDistributed::WriteCSV(int fileCounter)
 		{
 			ChVector<> pos = (*bl_itr)->GetPos();
 			ChVector<> vel = (*bl_itr)->GetPos_dt();
-			ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << "," << vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length() << "," << 0.15 << std::endl;
+			double r = 0.15;
+//			float adhesion = (*bl_itr)->GetMaterialSurfaceSMC()->adhesionMultDMT;
+//			float const_ad = (*bl_itr)->GetMaterialSurfaceSMC()->constant_adhesion;
+//			float gn = (*bl_itr)->GetMaterialSurfaceSMC()->gn;
+//			float gt = (*bl_itr)->GetMaterialSurfaceSMC()->gt;
+//			float kn = (*bl_itr)->GetMaterialSurfaceSMC()->kn;
+//			float kt = (*bl_itr)->GetMaterialSurfaceSMC()->kt;
+//			float poisson = (*bl_itr)->GetMaterialSurfaceSMC()->poisson_ratio;
+//			float restit = (*bl_itr)->GetMaterialSurfaceSMC()->restitution;
+//			float sliding_fric = (*bl_itr)->GetMaterialSurfaceSMC()->sliding_friction;
+//			float static_fric = (*bl_itr)->GetMaterialSurfaceSMC()->static_friction;
+//			float young = (*bl_itr)->GetMaterialSurfaceSMC()->young_modulus;
+//			double mass = (*bl_itr)->GetMass();
+
+
+			ss_particles << pos.x() << "," << pos.y() << "," << pos.z() << ","
+					<< vel.x() << "," << vel.y() << "," << vel.z() << "," << vel.Length()
+					<< "," << r << std::endl;
+//					<< "," << adhesion << "," << const_ad  << "," << gn << "," << gt << "," << kn << "," << kt << "," << poisson << ","
+//					<< restit << "," << sliding_fric << "," << static_fric << "," << young << "," << mass << std::endl;
 		}
 	}
 

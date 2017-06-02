@@ -250,7 +250,7 @@ int main(int argc, char *argv[])
             sys.PrintBodyStatus();
         }
         sys.DoStepDynamics(time_step);
-        sys.WriteCSV(i);
+        //sys.WriteCSV(i);
         time += time_step;
     }
 

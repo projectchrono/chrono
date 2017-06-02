@@ -34,7 +34,6 @@ ChCollisionSystemDistributed::~ChCollisionSystemDistributed() {}
 
 
 // Called by chcollisionmodel::buildmodel (if system set), chbody::setcollide(true), chbody::setsystem (if system set) (called by addbody AND addbodyexchange)
-// TODO: only works for initial add. Since it is called so much, it needs to be able to work on transfer too
 void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
 {
 	ChParallelDataManager* dm = ddm->data_manager;
@@ -42,7 +41,7 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
 
 
 /*
-	// Check for free spaces (of the same shape type) to insert into TODO
+	// Check for free spaces (don't need same shape type) to insert into
     for(int i = 0; i < pmodel->nObjects; i++)
     {
     	for (int j = 0; j < dm->shape_data.id_rigid.size(); j++)
@@ -59,29 +58,28 @@ void ChCollisionSystemDistributed::Add(ChCollisionModel *model)
 
 
 	// If no free spaces to insert into, add to end
-    this->ChCollisionSystemParallel::Add(model); //TODO This adds ALL shapes, but we want to check if there are free spaces for individual shapes before this
+	//TODO This adds ALL shapes, but we want to check if there are free spaces for individual shapes before this
+	this->ChCollisionSystemParallel::Add(model);
 
+	int count = pmodel->GetNObjects();
 
-   auto id = pmodel->GetBody()->GetId();
-   int count = pmodel->GetNObjects();
+	ddm->body_shape_count.push_back(count);
+	ddm->body_shape_start.push_back(ddm->body_shapes.size());
 
-   ddm->body_shape_count.push_back(count);
-   ddm->body_shape_start.push_back(ddm->body_shapes.size()); // TODO: does this work??
-
-   for (int i = 0; i < count; i++)
-   {
-	   ddm->body_shapes.push_back(ddm->data_manager->num_rigid_shapes - count + i);
-	   GetLog() <<  "body_shapes at end " << ddm->body_shapes[ddm->body_shapes.size()-1] << "\n";
-	 // ddm->my_free_shapes.push_back(false);
-	 // ddm->dm_free_shapes.push_back(false);
-   }
+	for (int i = 0; i < count; i++)
+	{
+		ddm->body_shapes.push_back(ddm->data_manager->num_rigid_shapes - count + i);
+		// ddm->my_free_shapes.push_back(false);
+		// ddm->dm_free_shapes.push_back(false);
+	}
 }
 
+// Deactivates all shapes associated with the collision model
 void ChCollisionSystemDistributed::Remove(ChCollisionModel *model)
 {
 	ChCollisionModelParallel* pmodel = static_cast<ChCollisionModelParallel*>(model);
 
-	auto id = pmodel->GetBody()->GetId();
+	uint id = pmodel->GetBody()->GetId();
 	int count = pmodel->GetNObjects();
 	int start = ddm->body_shape_start[id];
 
@@ -91,6 +89,7 @@ void ChCollisionSystemDistributed::Remove(ChCollisionModel *model)
 		// ddm->my_free_shapes[index] = true; // Marks the spot in ddm->body_shapes as open
 		// ddm->dm_free_shapes[ddm->body_shapes[index]] = true; // Marks the spot in data_manager->shape_data as open
 
-		ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX; // Forces the broadphase to ignore this shape
+		// Forces collision detection to ignore this shape
+		ddm->data_manager->shape_data.id_rigid[ddm->body_shapes[index]] = UINT_MAX;
 	}
 }

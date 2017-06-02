@@ -35,8 +35,8 @@ public:
 	std::vector<unsigned int> global_id; ///< Global id of each body
 	std::vector<distributed::COMM_STATUS> comm_status; ///< Communication status of each body
 
-	ChParallelDataManager *data_manager;
-	ChSystemDistributed *my_sys;
+	ChParallelDataManager *data_manager;	///< Pointer to the main Chrono::Parallel Data Manager
+	ChSystemDistributed *my_sys;	///< Pointer to the main dynamical system
 
 	std::vector<int> body_shape_start; ///< Start index in body_shapes of the shapes associated with this BODY
 	std::vector<int> body_shape_count; ///< Number of shapes associated with this BODY
@@ -52,15 +52,7 @@ public:
 	std::vector<bool> my_free_shapes;	///< Indicates that the free spaces in body_shapes
 	std::vector<bool> dm_free_shapes;	///< Indicates that the space in the data_manager->shape_data is available
 
-
-
-	//std::vector<int> ghosts; // TODO
-/*
-	int num_sharedup;
-	int num_shareddown;
-	int num_ghostup;
-	int num_ghostdown;
-*/
+	int first_empty;	///< Index of the first unused body in the bodylist
 
 	/// Returns the local index of a body, given its global id
 	int GetLocalIndex(unsigned int gid);

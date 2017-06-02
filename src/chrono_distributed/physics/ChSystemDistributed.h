@@ -17,6 +17,7 @@
 #include <mpi.h>
 #include <string>
 #include <memory>
+#include <string>
 
 #include "chrono/physics/ChBody.h"
 
@@ -24,10 +25,10 @@
 #include "chrono_distributed/comm/ChCommDistributed.h"
 #include "chrono_distributed/ChDistributedDataManager.h"
 #include "chrono_distributed/other_types.h"
+#include "chrono_distributed/physics/ChDomainDistributed.h"
 
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/physics/ChSystemParallel.h"
-#include "ChDomainDistributed.h"
 
 namespace chrono {
 
@@ -35,11 +36,16 @@ class ChDomainDistributed;
 class ChCommDistributed;
 class ChDataManagerDistr;
 
-class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
+/// This is the main user interface for Chrono::Distributed
+/// Add bodies and set all settings through the systems
+/// The simulation runs on all ranks given in the world parameter
+class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC
+{
 
 	friend class ChCommDistributed;
 
 public:
+	/// world specifies on which MPI_Comm the simulation should run.
 	ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
 	virtual ~ChSystemDistributed();
 
@@ -64,11 +70,13 @@ public:
 	void ErrorAbort(std::string msg);
 	void PrintBodyStatus();
 	void PrintShapeData();
-	void WriteCSV(int fileCounter);
+	void WriteCSV(int fileCounter, std::string fileprefix);
 
 	MPI_Comm GetMPIWorld() {return world;}
 
 	ChDistributedDataManager *ddm;
+
+	char *node_name;
 
 protected:
 	// MPI

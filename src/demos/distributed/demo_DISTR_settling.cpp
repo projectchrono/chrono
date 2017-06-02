@@ -7,17 +7,14 @@
 
 #include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
+
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_parallel/solver/ChIterativeSolverParallel.h"
 
-#define MASTER 0
-
 using namespace chrono;
 using namespace chrono::collision;
-
-std::vector<std::shared_ptr<ChBody>> bodies;
 
 int my_rank;
 int num_ranks;
@@ -25,10 +22,10 @@ int num_ranks;
 int num_threads;
 
 // Tilt angle (about global Y axis) of the container.
-double tilt_angle = 1 * CH_C_PI / 20;
+double tilt_angle = 1 * CH_C_PI / 20; //TODO
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
-int count_X = 20;
+int count_X = 20; //TODO
 int count_Y = 4;
 
 // Material properties (same on bin and balls)
@@ -36,19 +33,14 @@ float Y = 2e6f;
 float mu = 0.4f;
 float cr = 0.4f;
 
-const char* out_folder = "../BALLS_DEM/POVRAY";
-
-void print(std::string msg);
-
-void Monitor(chrono::ChSystemParallel* system) {
+void Monitor(chrono::ChSystem* system)
+{
     double TIME = system->GetChTime();
     double STEP = system->GetTimerStep();
     double BROD = system->GetTimerCollisionBroad();
     double NARR = system->GetTimerCollisionNarrow();
     double SOLVER = system->GetTimerSolver();
     double UPDT = system->GetTimerUpdate();
-    double SEND = system->data_manager->system_timer.GetTime("Send");
-    double RECV = system->data_manager->system_timer.GetTime("Recv");
     int BODS = system->GetNbodies();
     int CNTC = system->GetNcontacts();
     double RESID = 0;
@@ -58,15 +50,12 @@ void Monitor(chrono::ChSystemParallel* system) {
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverParallel>(system->GetSolver())->GetTotalIterations();
     }
 
-    printf("   %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f | %7.4f | %7.4f\n", TIME, STEP, BROD, NARR, SOLVER,
-        UPDT, BODS, CNTC, REQ_ITS, RESID, SEND, RECV);
+    printf("   %3d | %8.5f | %7.4f | %7.4f | %7.4f | %7.4f | %7.4f | %7d | %7d | %7d | %7.4f\n", my_rank, TIME, STEP, BROD, NARR, SOLVER,
+        UPDT, BODS, CNTC, REQ_ITS, RESID);
 }
 
-
 void OutputData(ChSystemDistributed* sys, int out_frame, double time) {
-    char filename[100];
-    sprintf(filename, "%s/data_%03d.dat", out_folder, out_frame);
-    utils::WriteShapesPovray(sys, filename);
+    sys->WriteCSV(out_frame, "../granular"); //TODO
     std::cout << "time = " << time << std::flush << std::endl;
 }
 
@@ -93,7 +82,7 @@ void AddContainer(ChSystemDistributed* sys) {
     bin->SetCollide(true);
     bin->SetBodyFixed(true);
 
-    ChVector<> hdim(10, 10, 10); //5,5,10
+    ChVector<> hdim(10, 10, 10); //5,5,10 //TODO
     double hthick = 0.1;
 
     bin->GetCollisionModel()->ClearModel();
@@ -104,7 +93,6 @@ void AddContainer(ChSystemDistributed* sys) {
     utils::AddBoxGeometry(bin.get(), ChVector<>(hdim.x(), hthick, hdim.z()), ChVector<>(0, hdim.y() + hthick, hdim.z()));
     bin->GetCollisionModel()->BuildModel();
 
-    bodies.push_back(bin);
     sys->AddBody(bin);
 }
 
@@ -147,29 +135,12 @@ void AddFallingBalls(ChSystemDistributed* sys) {
     			utils::AddSphereGeometry(ball.get(), radius);
     			ball->GetCollisionModel()->BuildModel();
 
-			bodies.push_back(ball);
     			sys->AddBody(ball);
     		}
     	}
     }
 }
 
-void Simulate(int num_steps, int out_steps, ChSystemDistributed *my_sys,
-		int out_frame, double time, double time_step) {
-	for (int i = 0; i < num_steps; i++) {
-		if (i % out_steps == 0) {
-			OutputData(my_sys, out_frame, time);
-			out_frame++;
-			//my_sys.PrintBodyStatus();
-			//my_sys.PrintShapeData();
-			my_sys->WriteCSV(i, "../granular");
-		}
-		Monitor(my_sys);
-		//my_sys.PrintBodyStatus();
-		my_sys->DoStepDynamics(time_step);
-		time += time_step;
-	}
-}
 
 int main(int argc, char *argv[])
 {
@@ -185,6 +156,7 @@ int main(int argc, char *argv[])
 
 	omp_set_num_threads(num_threads);
 
+
 	int thread_count = 0;
 #pragma omp parallel reduction(+:thread_count)
 	{
@@ -194,36 +166,27 @@ int main(int argc, char *argv[])
 	std::cout << "Running on " << num_ranks << " MPI ranks.\n";
 	std::cout << "Running on " << thread_count << " OpenMP threads.\n";
 
-	double time_step = 1e-3;
-    double time_end = 1;
 
+	double time_step = 1e-3; //TODO
+    double time_end = 10; //TODO
     double out_fps = 50;
-
     unsigned int max_iteration = 100;
     double tolerance = 1e-3;
 
-	print("Constructing the system...\n");
 	ChSystemDistributed my_sys(MPI_COMM_WORLD, 1.0, 100000);
-
-	std::cout << "Node " << my_sys.node_name << "\n";
-
 	my_sys.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
-
 	my_sys.Set_G_acc(ChVector<double>(0,0,-9.8));
 
     // Set solver parameters
     my_sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;
     my_sys.GetSettings()->solver.tolerance = tolerance;
-
 	my_sys.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_R;
     my_sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
-
     my_sys.GetSettings()->solver.contact_force_model = ChSystemSMC::ContactForceModel::Hertz;
     my_sys.GetSettings()->solver.adhesion_force_model = ChSystemSMC::AdhesionForceModel::Constant;
 
-
-	ChVector<double> domlo(-10,-10,-1);
+	ChVector<double> domlo(-10,-10,-1);//TODO
 	ChVector<double> domhi(10,10,15);
 	my_sys.GetDomain()->SetSimDomain(domlo.x(),domhi.x(),domlo.y(),domhi.y(), domlo.z(),domhi.z());
 	my_sys.GetDomain()->PrintDomain();
@@ -237,16 +200,19 @@ int main(int argc, char *argv[])
     int out_frame = 0;
     double time = 0;
 
-	
-    Simulate(num_steps, out_steps, &my_sys, out_frame, time, time_step);
+    for (int i = 0; i < num_steps; i++)
+    {
+        if (i % out_steps == 0)
+        {
+            OutputData(&my_sys, out_frame, time);
+            out_frame++;
+        }
+
+        Monitor(&my_sys);
+        my_sys.DoStepDynamics(time_step);
+        time += time_step;
+    }
 
     MPI_Finalize();
-
 	return 0;
-}
-
-void print(std::string msg)
-{
-	if (my_rank == MASTER)
-		std::cout << msg;
 }

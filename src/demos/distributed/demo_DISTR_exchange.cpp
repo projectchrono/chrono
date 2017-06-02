@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <vector>
 #include <cmath>
+#include <string>
 
 #include "../../chrono_distributed/physics/ChSystemDistributed.h"
 #include "../../chrono_distributed/collision/ChCollisionModelDistributed.h"
@@ -144,13 +145,14 @@ int main(int argc, char *argv[])
     int out_frame = 0;
     double time = 0;
 
+    std::string fileprefix = "../exchangepar";
     for (int i = 0; i < num_steps; i++) {
         if (i % out_steps == 0) {
             OutputData(&my_sys, out_frame, time);
             out_frame++;
-            my_sys.PrintBodyStatus();
-            my_sys.PrintShapeData();
-            my_sys.WriteCSV(i);
+           // my_sys.PrintBodyStatus();
+            //my_sys.PrintShapeData();
+            my_sys.WriteCSV(i, fileprefix);
         }
         my_sys.DoStepDynamics(time_step);
         time += time_step;
