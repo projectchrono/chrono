@@ -48,7 +48,6 @@ class ChSolverParallel;
 
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
-    // Constructors
     Ch3DOFContainer();
     virtual ~Ch3DOFContainer() {}
 
@@ -125,11 +124,14 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_shafts;
     uint num_fea_tets;
     uint num_fea_nodes;
+
+    friend class ChParallelDataManager;
+    friend class ChSystemParallelNSC;
 };
 
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
-    ChFluidContainer(ChSystemParallelNSC* system);
+    ChFluidContainer();
     ~ChFluidContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
@@ -198,7 +200,7 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
 
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
-    ChFEAContainer(ChSystemParallelNSC* system);
+    ChFEAContainer();
     ~ChFEAContainer() {}
 
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
@@ -257,7 +259,7 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
 
 class CH_PARALLEL_API ChParticleContainer : public Ch3DOFContainer {
   public:
-    ChParticleContainer(ChSystemParallelNSC* system);
+    ChParticleContainer();
     ~ChParticleContainer() {}
 
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);

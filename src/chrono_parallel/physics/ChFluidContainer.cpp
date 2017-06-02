@@ -21,10 +21,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-ChFluidContainer::ChFluidContainer(ChSystemParallelNSC* physics_system) {
-    data_manager = physics_system->data_manager;
-    data_manager->Add3DOFContainer(this);
-
+ChFluidContainer::ChFluidContainer() {
     body_offset = 0;
     epsilon = 1e-3;
     tau = 4 * .001;

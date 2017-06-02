@@ -290,7 +290,8 @@ void ChSystemParallel::AddMesh(std::shared_ptr<fea::ChMesh> mesh) {
             // printf("%d [%f %f %f]\n", i + current_nodes, node->GetPos().x(), node->GetPos().y(), node->GetPos().z());
         }
     }
-    ChFEAContainer* container = (ChFEAContainer*)data_manager->fea_container;
+
+    auto container = std::static_pointer_cast<ChFEAContainer>(data_manager->fea_container);
 
     std::vector<uvec4> elements(num_elements);
 

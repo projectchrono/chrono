@@ -402,8 +402,7 @@ class CH_PARALLEL_API ChParallelDataManager {
   public:
     ChParallelDataManager();
     ~ChParallelDataManager();
-    void Add3DOFContainer(Ch3DOFContainer* container);
-    void AddFEAContainer(ChFEAContainer* container);
+
     // Structure that contains the data on the host, the naming convention is
     // from when the code supported the GPU (host vs device)
     host_container host_data;
@@ -411,8 +410,8 @@ class CH_PARALLEL_API ChParallelDataManager {
     // This pointer is used by the bilarerals for computing the jacobian and other terms
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
 
-    Ch3DOFContainer* node_container;
-    Ch3DOFContainer* fea_container;
+    std::shared_ptr<Ch3DOFContainer> node_container;
+    std::shared_ptr<Ch3DOFContainer> fea_container;
 
     ChConstraintRigidRigid* rigid_rigid;
     ChConstraintBilateral* bilateral;

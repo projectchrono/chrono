@@ -67,10 +67,7 @@ uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
     }
 }
 
-ChFEAContainer::ChFEAContainer(ChSystemParallelNSC* system) {
-    data_manager = system->data_manager;
-    data_manager->AddFEAContainer(this);
-
+ChFEAContainer::ChFEAContainer() {
     num_rigid_constraints = 0;
     rigid_constraint_recovery_speed = 1;
     beta = 0;

@@ -20,10 +20,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-ChParticleContainer::ChParticleContainer(ChSystemParallelNSC* physics_system) {
-    data_manager = physics_system->data_manager;
-    data_manager->Add3DOFContainer(this);
-
+ChParticleContainer::ChParticleContainer() {
     body_offset = 0;
     compliance = 0;
     mu = 0;
