@@ -215,6 +215,7 @@ int Ch3DOFRigidContainer::GetNumConstraints() {
 
     return num_fluid_fluid;
 }
+
 int Ch3DOFRigidContainer::GetNumNonZeros() {
     int nnz_fluid_fluid = 0;
     if (mu == 0) {
@@ -247,6 +248,7 @@ void Ch3DOFRigidContainer::ComputeInvMass(int offset) {
         M_inv.finalize(offset + i * 3 + 2);
     }
 }
+
 void Ch3DOFRigidContainer::ComputeMass(int offset) {
     CompressedMatrix<real>& M = data_manager->host_data.M;
     uint num_fluid_bodies = data_manager->num_fluid_bodies;
@@ -261,6 +263,7 @@ void Ch3DOFRigidContainer::ComputeMass(int offset) {
         M.finalize(offset + i * 3 + 2);
     }
 }
+
 void Ch3DOFRigidContainer::Setup(int start_constraint) {
     Ch3DOFContainer::Setup(start_constraint);
 
@@ -388,6 +391,7 @@ void Ch3DOFRigidContainer::Build_b() {
         }
     }
 }
+
 void Ch3DOFRigidContainer::Build_E() {
     DynamicVector<real>& E = data_manager->host_data.E;
 
@@ -439,17 +443,6 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
 
             gam.x += cohesion;
 
-            if (mu == 0) {
-                gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
-                gam.y = gam.z = 0;
-
-                gamma[start_contact + index] = gam.x;
-                gamma[start_contact + num_rigid_contacts + index * 2 + 0] = gam.y;
-                gamma[start_contact + num_rigid_contacts + index * 2 + 1] = gam.z;
-
-                continue;
-            }
-
             Cone_generalized_rigid(gam.x, gam.y, gam.z, mu);
 
             gamma[start_contact + index] = gam.x - cohesion;
@@ -458,6 +451,7 @@ void Ch3DOFRigidContainer::Project(real* gamma) {
         }
     }
 }
+
 void Ch3DOFRigidContainer::GenerateSparsity() {
     CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
     LOG(INFO) << "Ch3DOFRigidContainer::GenerateSparsity";
@@ -539,6 +533,7 @@ real3 Ch3DOFRigidContainer::GetBodyContactTorque(uint body_id) {
     }
     return real3(contact_forces[body_id * 6 + 3], contact_forces[body_id * 6 + 4], contact_forces[body_id * 6 + 5]);
 }
+
 void Ch3DOFRigidContainer::PreSolve() {
 #ifdef CHRONO_PARALLEL_USE_CUDA
     if (mpm_thread.joinable()) {
@@ -553,6 +548,7 @@ void Ch3DOFRigidContainer::PreSolve() {
     }
 #endif
 }
+
 void Ch3DOFRigidContainer::PostSolve() {}
 
 void Ch3DOFRigidContainer::GetFluidForce(custom_vector<real3>& forc) {
