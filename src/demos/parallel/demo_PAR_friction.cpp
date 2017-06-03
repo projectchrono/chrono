@@ -1,4 +1,3 @@
-
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
@@ -47,7 +46,7 @@ int main(int argc, char** argv) {
     uint max_iteration_sliding = 0;
     uint max_iteration_spinning = 100;
     uint max_iteration_bilateral = 0;
-    
+
     // ------------------------
     // Create the parallel system
     // --------------------------
@@ -58,12 +57,12 @@ int main(int argc, char** argv) {
     // Set number of threads
     system.SetParallelThreadNumber(num_threads);
     CHOMPfunctions::SetNumThreads(num_threads);
-////#pragma omp parallel
-////#pragma omp master
-////    {
-////        // Sanity check: print number of threads in a parallel region
-////        std::cout << "Actual number of OpenMP threads: " << omp_get_num_threads() << std::endl;
-////    }
+    ////#pragma omp parallel
+    ////#pragma omp master
+    ////    {
+    ////        // Sanity check: print number of threads in a parallel region
+    ////        std::cout << "Actual number of OpenMP threads: " << omp_get_num_threads() << std::endl;
+    ////    }
 
     // Set solver settings
     system.ChangeSolverType(SolverType::APGD);
@@ -76,7 +75,7 @@ int main(int argc, char** argv) {
     system.GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system.GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
     system.GetSettings()->solver.alpha = 0;
-    system.GetSettings()->solver.contact_recovery_speed =1e32;
+    system.GetSettings()->solver.contact_recovery_speed = 1e32;
     system.GetSettings()->solver.use_full_inertia_tensor = false;
     system.GetSettings()->solver.tolerance = 0;
 
@@ -98,7 +97,7 @@ int main(int argc, char** argv) {
 
     container->SetCollide(true);
     container->GetCollisionModel()->ClearModel();
-	utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20)/2.0, ChVector<>(0, -1, 0));
+    utils::AddBoxGeometry(container.get(), ChVector<>(20, 1, 20) / 2.0, ChVector<>(0, -1, 0));
     utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(-10, 0, 0));
     utils::AddBoxGeometry(container.get(), ChVector<>(1, 2, 20.99) / 2.0, ChVector<>(10, 0, 0));
     utils::AddBoxGeometry(container.get(), ChVector<>(20.99, 2, 1) / 2.0, ChVector<>(0, 0, -10));
@@ -138,31 +137,30 @@ int main(int argc, char** argv) {
     }
 
     // Create some spheres that spin in place, with increasing spinning friction values
-	for (int bi = 0; bi < 10; bi++) {
-		auto ball = std::shared_ptr<ChBody>(system.NewBody());
-		ball->SetIdentifier(bi);
-		ball->SetMass(mass);
-		ball->SetInertiaXX(ChVector<>(inertia));
+    for (int bi = 0; bi < 10; bi++) {
+        auto ball = std::shared_ptr<ChBody>(system.NewBody());
+        ball->SetIdentifier(bi);
+        ball->SetMass(mass);
+        ball->SetInertiaXX(ChVector<>(inertia));
 
-		// Initial position and velocity
-		ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
-		ball->SetPos_dt(ChVector<>(0, 0, 0));
-		ball->SetWvel_par(ChVector<>(0, 0, 20));
+        // Initial position and velocity
+        ball->SetPos(ChVector<>(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
+        ball->SetPos_dt(ChVector<>(0, 0, 0));
+        ball->SetWvel_par(ChVector<>(0, 0, 20));
 
-		// Contact geometry
-		ball->SetCollide(true);
-		ball->GetCollisionModel()->ClearModel();
-		utils::AddSphereGeometry(ball.get(), radius);
-		ball->GetCollisionModel()->BuildModel();
+        // Contact geometry
+        ball->SetCollide(true);
+        ball->GetCollisionModel()->ClearModel();
+        utils::AddSphereGeometry(ball.get(), radius);
+        ball->GetCollisionModel()->BuildModel();
 
-		// Sliding and rolling friction coefficients
-		ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
+        // Sliding and rolling friction coefficients
+        ball->GetMaterialSurfaceNSC()->SetFriction(0.4f);
         ball->GetMaterialSurfaceNSC()->SetSpinningFriction((bi / 10.0f) * 0.02f);
 
         // Add to the system
-		system.Add(ball);
-	}
-
+        system.Add(ball);
+    }
 
 #ifdef CHRONO_OPENGL
     // -------------------------------
@@ -200,7 +198,7 @@ int main(int argc, char** argv) {
 #ifdef CHRONO_OPENGL
         opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
         if (gl_window.Active()) {
-			gl_window.DoStepDynamics(time_step);
+            gl_window.DoStepDynamics(time_step);
             gl_window.Render();
         } else {
             break;

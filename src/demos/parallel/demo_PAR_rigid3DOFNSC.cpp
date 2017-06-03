@@ -168,12 +168,15 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "Particles NSC", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetCamera(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.Pause();
+
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
     // gl_window.StartDrawLoop(time_step);
     // return 0;
+
     while (true) {
         if (gl_window.Active()) {
             gl_window.DoStepDynamics(time_step);
