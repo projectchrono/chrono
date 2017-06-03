@@ -1,21 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demos code about
+// FEA (basic introduction)
 //
-//     - FEA (basic introduction)
-//
-
-// Include some headers used by this tutorial...
+// =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -28,17 +27,13 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
-
 using namespace chrono;
 using namespace fea;
 
-//////////////////////////////////////////
-// ====================================	//
-// Test 1								//
-// First example: SPRING ELEMENT		//
-// ==================================== //
+// ====================================
+// Test 1
+// First example: SPRING ELEMENT
+// ====================================
 void test_1() {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: spring element FEM  \n\n";
@@ -58,8 +53,8 @@ void test_1() {
     auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // For example, you can attach local 'point masses' (FE node masses are zero by default)
-    mnodeA->SetMass(0.01); 
-    mnodeB->SetMass(0.01);  
+    mnodeA->SetMass(0.01);
+    mnodeB->SetMass(0.01);
 
     // For example, set an applied force to a node:
     mnodeB->SetForce(ChVector<>(0, 5, 0));
@@ -88,8 +83,8 @@ void test_1() {
     // Create a constraint between a node and the truss
     auto constraintA = std::make_shared<ChLinkPointFrame>();
 
-    constraintA->Initialize(mnodeA,   // node to connect
-                            truss);   // body to be connected to
+    constraintA->Initialize(mnodeA,  // node to connect
+                            truss);  // body to be connected to
 
     my_system.Add(constraintA);
 
