@@ -48,7 +48,7 @@ print ("Load a model exported by SolidWorks");
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystem()
+mysystem      = chrono.ChSystemNSC()
 
 parts = chrono.ImportSolidWorksSystem('./spider_robot');
 
