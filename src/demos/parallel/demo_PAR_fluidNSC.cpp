@@ -12,10 +12,7 @@
 // Authors: Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel test program using penalty method for frictional contact.
-//
-// The model simulated here consists of a number of spherical objects falling
-// onto a mixer blade attached through a revolute joint to the ground.
+// ChronoParallel test program using a fluid container.
 //
 // The global reference frame has Z up.
 //
@@ -44,8 +41,10 @@
 
 using namespace chrono;
 using namespace chrono::collision;
+
 double time_step = 1e-3;
-ChFluidContainer* fluid_container;
+double kernel_radius = .016 * 2;
+
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -70,12 +69,13 @@ void AddContainer(ChSystemParallelNSC* sys) {
 // Create the fluid in the shape of a sphere.
 // -----------------------------------------------------------------------------
 void AddFluid(ChSystemParallelNSC* sys) {
-    fluid_container = new ChFluidContainer(sys);
+    auto fluid_container = std::make_shared<ChFluidContainer>();
+    sys->Add3DOFContainer(fluid_container);
 
     fluid_container->tau = time_step * 4;
     fluid_container->contact_cohesion = 0;
     fluid_container->epsilon = 1e-3;
-    fluid_container->kernel_radius = .016 * 2;
+    fluid_container->kernel_radius = kernel_radius;
     fluid_container->mass = .007 * 5.5;
     fluid_container->viscosity = .01;
     fluid_container->enable_viscosity = false;
@@ -86,7 +86,7 @@ void AddFluid(ChSystemParallelNSC* sys) {
     // msystem.GetSettings()->fluid.max_interactions = 30;
     fluid_container->artificial_pressure = true;
     fluid_container->artificial_pressure_k = .01;
-    fluid_container->artificial_pressure_dq = .2 * fluid_container->kernel_radius;
+    fluid_container->artificial_pressure_dq = .2 * kernel_radius;
     fluid_container->artificial_pressure_n = 4;
     fluid_container->collision_envelope = 0;  // fluid_container->kernel_ra dius * .05;
 
@@ -99,18 +99,10 @@ void AddFluid(ChSystemParallelNSC* sys) {
     std::vector<real3> pos_fluid;
     std::vector<real3> vel_fluid;
 
-    double dist = fluid_container->kernel_radius * .9;
+    double dist = kernel_radius * .9;
     utils::HCPSampler<> sampler(dist);
     vol = dist * dist * dist * .8;
-#if 1
     utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
-// vol = 4.0 / 3.0 * CH_C_PI * pow(radius, 3) / real(points.size());
-
-#else
-    ChVector<> hdim(.5, .5, .5);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z()), hdim);
-// vol = hdim.x() * hdim.y() * hdim.z() / real(points.size());
-#endif
 
     pos_fluid.resize(points.size());
     vel_fluid.resize(points.size());
@@ -174,7 +166,7 @@ int main(int argc, char* argv[]) {
 
     AddFluid(&msystem);
 
-    msystem.GetSettings()->collision.collision_envelope = (fluid_container->kernel_radius * .05);
+    msystem.GetSettings()->collision.collision_envelope = (kernel_radius * .05);
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
@@ -188,12 +180,15 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "fluidNSC", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetCamera(ChVector<>(0, -2.5, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.Pause();
+
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
     // gl_window.StartDrawLoop(time_step);
     // return 0;
+
     while (true) {
         if (gl_window.Active()) {
             gl_window.DoStepDynamics(time_step);

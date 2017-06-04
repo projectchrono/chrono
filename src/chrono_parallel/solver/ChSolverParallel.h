@@ -27,6 +27,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_solver
+/// @{
+
+/// Functor class for performing projection on the hyper-cone.
 class CH_PARALLEL_API ChProjectConstraints {
   public:
     ChProjectConstraints() {}
@@ -40,6 +44,8 @@ class CH_PARALLEL_API ChProjectConstraints {
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
 };
+
+/// Functor class for performing a single cone projection.
 class CH_PARALLEL_API ChProjectNone : public ChProjectConstraints {
   public:
     ChProjectNone() {}
@@ -48,8 +54,8 @@ class CH_PARALLEL_API ChProjectNone : public ChProjectConstraints {
     // Project the Lagrange multipliers
     virtual void operator()(real* data) {}
 };
-//========================================================================================================
 
+/// Functor class for calculating the Shur product of the matrix of unilateral constraints.
 class CH_PARALLEL_API ChShurProduct {
   public:
     ChShurProduct();
@@ -64,6 +70,7 @@ class CH_PARALLEL_API ChShurProduct {
     ChParallelDataManager* data_manager;
 };
 
+/// Functor class for performing the Shur product of the matrix of bilateral constraints.
 class CH_PARALLEL_API ChShurProductBilateral : public ChShurProduct {
   public:
     ChShurProductBilateral() {}
@@ -76,6 +83,7 @@ class CH_PARALLEL_API ChShurProductBilateral : public ChShurProduct {
     CompressedMatrix<real> NshurB;
 };
 
+/// Functor class for performing the Shur product.
 class CH_PARALLEL_API ChShurProductFEM : public ChShurProduct {
   public:
     ChShurProductFEM() {}
@@ -89,6 +97,8 @@ class CH_PARALLEL_API ChShurProductFEM : public ChShurProduct {
 };
 
 //========================================================================================================
+
+/// Base class for all Chrono::Parallel solvers.
 class CH_PARALLEL_API ChSolverParallel {
   public:
     ChSolverParallel();
@@ -134,6 +144,8 @@ class CH_PARALLEL_API ChSolverParallel {
 };
 
 //========================================================================================================
+
+/// Accelerated Projected Gradient Descent (APGD) solver. Reference implementation.
 class CH_PARALLEL_API ChSolverParallelAPGDREF : public ChSolverParallel {
   public:
     ChSolverParallelAPGDREF() : ChSolverParallel() {}
@@ -160,6 +172,7 @@ class CH_PARALLEL_API ChSolverParallelAPGDREF : public ChSolverParallel {
     DynamicVector<real> gammaNew, g, y, yNew, tmp;
 };
 
+/// Accelerated Projected Gradient Descent (APGD) solver.
 class CH_PARALLEL_API ChSolverParallelAPGD : public ChSolverParallel {
   public:
     ChSolverParallelAPGD();
@@ -186,6 +199,7 @@ class CH_PARALLEL_API ChSolverParallelAPGD : public ChSolverParallel {
     real dot_g_temp, norm_ms;
 };
 
+/// Barzilai-Borwein solver.
 class CH_PARALLEL_API ChSolverParallelBB : public ChSolverParallel {
   public:
     ChSolverParallelBB();
@@ -206,6 +220,8 @@ class CH_PARALLEL_API ChSolverParallelBB : public ChSolverParallel {
     DynamicVector<real> temp, ml, mg, mg_p, ml_candidate, ms, my, mdir, ml_p;
     DynamicVector<real> mD, invmD;
 };
+
+/// MINRES solver.
 class CH_PARALLEL_API ChSolverParallelMinRes : public ChSolverParallel {
   public:
     ChSolverParallelMinRes() : ChSolverParallel() {}
@@ -223,6 +239,7 @@ class CH_PARALLEL_API ChSolverParallelMinRes : public ChSolverParallel {
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
 };
 
+/// Spectral Projected Gradient solver.
 class CH_PARALLEL_API ChSolverParallelSPGQP : public ChSolverParallel {
   public:
     ChSolverParallelSPGQP();
@@ -245,6 +262,7 @@ class CH_PARALLEL_API ChSolverParallelSPGQP : public ChSolverParallel {
     std::vector<real> f_hist;
 };
 
+/// Conjugate gradient solver.
 class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
   public:
     ChSolverParallelCG() : ChSolverParallel() {}
@@ -262,6 +280,7 @@ class CH_PARALLEL_API ChSolverParallelCG : public ChSolverParallel {
     DynamicVector<real> r, q, s;
 };
 
+/// Jacobi solver.
 class CH_PARALLEL_API ChSolverParallelJacobi : public ChSolverParallel {
   public:
     ChSolverParallelJacobi() {}
@@ -278,6 +297,7 @@ class CH_PARALLEL_API ChSolverParallelJacobi : public ChSolverParallel {
     DynamicVector<real> ml_old, ml;
 };
 
+/// Gauss Seidel solver.
 class CH_PARALLEL_API ChSolverParallelGS : public ChSolverParallel {
   public:
     ChSolverParallelGS() {}
@@ -293,4 +313,7 @@ class CH_PARALLEL_API ChSolverParallelGS : public ChSolverParallel {
                );
     DynamicVector<real> ml_old, ml;
 };
-}
+
+/// @} parallel_solver
+
+} // end namespace chrono

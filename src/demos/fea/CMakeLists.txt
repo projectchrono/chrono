@@ -23,29 +23,23 @@ SET(FEA_DEMOS_IRR
 
 # List all FEA demos that use both Irrlicht and Matlab
 SET(FEA_DEMOS_IRR_MATLAB
-    demo_FEA_miniature
     demo_FEA_cablesMATLAB
 )
 
 # List all FEA demos that use both Irrlicht and MKL
 SET(FEA_DEMOS_IRR_MKL
     demo_FEA_beams
-    demo_FEA_beamsconstr
+    demo_FEA_beams_static
+    demo_FEA_beams_constr
     demo_FEA_cablesMKL
     demo_FEA_abaqus_wheel
-    demo_FEA_abaqus_wheel4
-	demo_FEA_shells
+    demo_FEA_shells
     demo_FEA_ContactANCF
     demo_FEA_Brick9
 )
 
 # List all FEA demos that use Irrlicht, Matlab, and MKL
 SET(FEA_DEMOS_IRR_MATLAB_MKL
-)
-
-# List all FEA demos that use Irrlicht, Parallel, and OpenGL
-SET(FEA_DEMOS_IRR_PARALLEL_OPENGL
-    demo_FEA_cosimulate_granular
 )
 
 INCLUDE_DIRECTORIES(CMAKE_CURRENT_SOURCE_DIR)
@@ -126,36 +120,6 @@ IF(ENABLE_MODULE_IRRLICHT)
         INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
     
     ENDFOREACH()
-
-    IF(ENABLE_MODULE_PARALLEL AND ENABLE_MODULE_OPENGL)
-        INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES} ${CH_OPENGL_INCLUDES} )
-
-        FOREACH(PROGRAM ${FEA_DEMOS_IRR_PARALLEL_OPENGL})
-            MESSAGE(STATUS "...add ${PROGRAM}")
-
-            ADD_EXECUTABLE(${PROGRAM}  "${PROGRAM}.cpp")
-            SOURCE_GROUP(""  FILES  "${PROGRAM}.cpp")
-            SET_TARGET_PROPERTIES(${PROGRAM} PROPERTIES 
-                FOLDER demos
-                COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_IRRLICHT_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS}"
-                LINK_FLAGS "${CH_LINKERFLAG_EXE}")
-            TARGET_LINK_LIBRARIES(${PROGRAM}
-                ${CH_IRRLICHTLIB}
-                ${CH_MATLABLIB}
-                ChronoEngine
-                ChronoEngine_fea
-                ChronoEngine_irrlicht
-                ChronoEngine_parallel
-                ChronoEngine_opengl)
-            ADD_DEPENDENCIES(${PROGRAM}
-                ChronoEngine
-                ChronoEngine_fea
-                ChronoEngine_irrlicht
-                ChronoEngine_parallel
-                ChronoEngine_opengl)
-            INSTALL(TARGETS ${PROGRAM} DESTINATION ${CH_INSTALL_DEMO})
-        ENDFOREACH()
-    ENDIF()
 
     IF(ENABLE_MODULE_MATLAB)
         INCLUDE_DIRECTORIES( ${CH_MATLABINC} )

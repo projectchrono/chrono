@@ -1,20 +1,21 @@
-
-
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+//
+// FEA using the brick element
+//
+// =============================================================================
 
-//   Demos code about
-//
-//     - FEA using ANCF (introduction to dynamics)
-//
-//// Include some headers used by this tutorial...
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementSpring.h"
@@ -24,9 +25,6 @@
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChVisualizationFEAmesh.h"
 #include "chrono_irrlicht/ChIrrApp.h"
-
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -119,7 +117,7 @@ int main(int argc, char* argv[]) {
 
         NumNodes(i, 0) = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         NumNodes(i, 1) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;
+        NumNodes(i, 2) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
         NumNodes(i, 3) = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
         NumNodes(i, 4) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 0);
         NumNodes(i, 5) = (numDiv_x + 1) * (numDiv_y + 1) + NumNodes(i, 1);
@@ -133,7 +131,7 @@ int main(int argc, char* argv[]) {
         ElemLengthXY(i, 1) = dy;
         ElemLengthXY(i, 2) = dz;
 
-        if (MaxLayNum < LayNum(i, 0)) { 
+        if (MaxLayNum < LayNum(i, 0)) {
             MaxLayNum = LayNum(i, 0);
         }
     }
@@ -187,18 +185,18 @@ int main(int argc, char* argv[]) {
         InertFlexVec(2, 0) = ElemLengthXY(elemcount, 2);
         element->SetInertFlexVec(InertFlexVec);
         element->SetNodes(std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 0))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 2))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 3))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 4))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 5))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 6))),
-            std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 1))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 2))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 3))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 4))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 5))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 6))),
+                          std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(NumNodes(elemcount, 7))));
 
         element->SetMaterial(mmaterial);
         element->SetElemNum(elemcount);            // for EAS
-        element->SetGravityOn(true);     // turn gravity on/off from within the element
-        element->SetMooneyRivlin(false);  // turn on/off Mooney Rivlin (Linear Isotropic by default)
+        element->SetGravityOn(true);               // turn gravity on/off from within the element
+        element->SetMooneyRivlin(false);           // turn on/off Mooney Rivlin (Linear Isotropic by default)
         ChMatrixNM<double, 9, 1> stock_alpha_EAS;  //
         stock_alpha_EAS.Reset();
         element->SetStockAlpha(stock_alpha_EAS(0, 0), stock_alpha_EAS(1, 0), stock_alpha_EAS(2, 0),
@@ -209,7 +207,7 @@ int main(int argc, char* argv[]) {
     }
     // Deactivate automatic gravity in mesh
     my_mesh->SetAutomaticGravity(false);
-    my_system.Set_G_acc(ChVector<>(0,0,-9.81));
+    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     // Remember to add the mesh to the system!
     my_system.Add(my_mesh);
 

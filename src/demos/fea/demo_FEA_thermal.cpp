@@ -1,20 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
+// FEA visualization using Irrlicht
 //
-//     - FEA visualization using Irrlicht
-
-// Include some headers used by this tutorial...
+// =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
@@ -181,7 +181,7 @@ int main(int argc, char* argv[]) {
     // (not a transient thermal solution, but rather the steady-state solution),
     // at this point you can uncomment the following line:
     //
-    //	 my_system.DoStaticLinear();
+    //  my_system.DoStaticLinear();
     //
     // Also, in the following while() loop, remove  application.DoStep();
     // so you can spin the 3D view and look at the solution.

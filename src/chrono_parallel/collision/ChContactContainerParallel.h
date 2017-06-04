@@ -10,7 +10,7 @@
 
 namespace chrono {
 
-/// @addtogroup parallel_module
+/// @addtogroup parallel_collision
 /// @{
 
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
@@ -57,5 +57,6 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
     std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
 
-/// @} parallel_module
-}
+/// @} parallel_colision
+
+} // end namespace chrono

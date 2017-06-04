@@ -220,7 +220,8 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_OPENGL
   opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
   gl_window.Initialize(1280, 720, "mixerNSC", &msystem);
-  gl_window.SetCamera(ChVector<>(0, -10, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+  gl_window.SetCamera(ChVector<>(0, -3, 2), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1));
+  gl_window.SetRenderMode(opengl::WIREFRAME);
 
   // Uncomment the following two lines for the OpenGL manager to automatically
   // run the simulation in an infinite loop.

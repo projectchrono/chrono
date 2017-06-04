@@ -20,6 +20,11 @@
 #include "chrono_parallel/math/real.h"
 
 namespace chrono {
+
+/// @addtogroup parallel_math
+/// @{
+
+/// Chrono::Parallel pair (2-dimensional vector).
 class real2 {
   public:
     CUDA_HOST_DEVICE real2() : x(0.0f), y(0.0f) {}
@@ -69,4 +74,7 @@ CUDA_HOST_DEVICE real Dot(const real2& v);
 CUDA_HOST_DEVICE real Length2(const real2& v1);
 CUDA_HOST_DEVICE real2 Normalize(const real2& v1);
 CUDA_HOST_DEVICE void Print(real2 v, const char* name);
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

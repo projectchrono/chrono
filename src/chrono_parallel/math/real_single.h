@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_math
+/// @{
+
 typedef float real;
 #define C_LARGE_REAL FLT_MAX
 #define C_EPSILON FLT_EPSILON
@@ -98,4 +101,7 @@ CUDA_HOST_DEVICE static inline real Round(const real a) {
 CUDA_HOST_DEVICE static inline real Log(const real a) {
     return logf(a);
 }
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

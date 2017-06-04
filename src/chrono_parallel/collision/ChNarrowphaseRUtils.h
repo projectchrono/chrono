@@ -26,10 +26,12 @@
 namespace chrono {
 namespace collision {
 
-// ----------------------------------------------------------------------------
-// This utility function returns the normal to the triangular face defined by
-// the vertices A, B, and C. The face is assumed to be non-degenerate.
-// Note that order of vertices is important!
+/// @addtogroup parallel_collision
+/// @{
+
+/// This utility function returns the normal to the triangular face defined by
+/// the vertices A, B, and C. The face is assumed to be non-degenerate.
+/// Note that order of vertices is important!
 real3 face_normal(const real3& A, const real3& B, const real3& C) {
     real3 v1 = B - A;
     real3 v2 = C - A;
@@ -39,14 +41,13 @@ real3 face_normal(const real3& A, const real3& B, const real3& C) {
     return n / len;
 }
 
-// ----------------------------------------------------------------------------
-// This utility function takes the location 'P' and snaps it to the closest
-// point on the triangular face with given vertices (A, B, and C). The result
-// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
-// the same frame as the face vertices. This function returns 'true' if the
-// result is on an edge of this face and 'false' if the result is inside the
-// triangle.
-// Code from Ericson, "Real-time collision detection", 2005, pp. 141
+/// This utility function takes the location 'P' and snaps it to the closest
+/// point on the triangular face with given vertices (A, B, and C). The result
+/// is returned in 'res'. Both 'P' and 'res' are assumed to be specified in
+/// the same frame as the face vertices. This function returns 'true' if the
+/// result is on an edge of this face and 'false' if the result is inside the
+/// triangle.
+/// Code from Ericson, "Real-time collision detection", 2005, pp. 141
 bool snap_to_face(const real3& A, const real3& B, const real3& C, const real3& P, real3& res) {
     real3 AB = B - A;
     real3 AC = C - A;
@@ -114,16 +115,15 @@ bool snap_to_face(const real3& A, const real3& B, const real3& C, const real3& P
     return false;
 }
 
-// ----------------------------------------------------------------------------
-// This utility function snaps the specified location to a point on a cylinder
-// with given radius and half-length. The in/out location is assumed to be
-// specified in the frame of the cylinder (in this frame the cylinder is assumed
-// to be centered at the origin and aligned with the Y axis).  The return code
-// indicates the feature of the cylinder that caused snapping.
-//   code = 0 indicates and interior point
-//   code = 1 indicates snapping to one of the cylinder caps
-//   code = 2 indicates snapping to the cylinder side
-//   code = 3 indicates snapping to one of the cylinder edges
+/// This utility function snaps the specified location to a point on a cylinder
+/// with given radius and half-length. The in/out location is assumed to be
+/// specified in the frame of the cylinder (in this frame the cylinder is assumed
+/// to be centered at the origin and aligned with the Y axis).  The return code
+/// indicates the feature of the cylinder that caused snapping.
+///   code = 0 indicates and interior point
+///   code = 1 indicates snapping to one of the cylinder caps
+///   code = 2 indicates snapping to the cylinder side
+///   code = 3 indicates snapping to one of the cylinder edges
 uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
     uint code = 0;
 
@@ -147,19 +147,19 @@ uint snap_to_cylinder(const real& rad, const real& hlen, real3& loc) {
     return code;
 }
 
-// ----------------------------------------------------------------------------
-// This utility function snaps the specified location to a point on a box with
-// given half-dimensions. The in/out location is assumed to be specified in
-// the frame of the box (which is therefore assumed to be an AABB centered at
-// the origin).  The return code indicates the box axes that caused snapping.
-//   - first bit (least significant) corresponds to x-axis
-//   - second bit corresponds to y-axis
-//   - third bit corresponds to z-axis
-// Therefore:
-//   code = 0 indicates an interior point
-//   code = 1 or code = 2 or code = 4  indicates snapping to a face
-//   code = 3 or code = 5 or code = 6  indicates snapping to an edge
-//   code = 7 indicates snapping to a corner
+/// This utility function snaps the specified location to a point on a box with
+/// given half-dimensions. The in/out location is assumed to be specified in
+/// the frame of the box (which is therefore assumed to be an AABB centered at
+/// the origin).  The return code indicates the box axes that caused snapping.
+///   - first bit (least significant) corresponds to x-axis
+///   - second bit corresponds to y-axis
+///   - third bit corresponds to z-axis
+///
+/// Therefore:
+///   code = 0 indicates an interior point
+///   code = 1 or code = 2 or code = 4  indicates snapping to a face
+///   code = 3 or code = 5 or code = 6  indicates snapping to an edge
+///   code = 7 indicates snapping to a corner
 uint snap_to_box(const real3& hdims, real3& loc) {
     uint code = 0;
 
@@ -179,10 +179,8 @@ uint snap_to_box(const real3& hdims, real3& loc) {
     return code;
 }
 
-// ----------------------------------------------------------------------------
-// These utility functions return the corner of a box of given dimensions that
-// if farthest and closest in the direction 'dir', respectively. The direction
-// 'dir' is assumed to be given in the frame of the box.
+/// This utility function returns the corner of a box of given dimensions that
+/// if farthest in the direction 'dir', which is assumed to be given in the frame of the box.
 real3 box_farthest_corner(const real3& hdims, const real3& dir) {
     real3 corner;
     corner.x = (dir.x < 0) ? hdims.x : -hdims.x;
@@ -191,6 +189,8 @@ real3 box_farthest_corner(const real3& hdims, const real3& dir) {
     return corner;
 }
 
+/// This utility function returns the corner of a box of given dimensions that
+/// if closest in the direction 'dir', which is assumed to be given in the frame of the box.
 real3 box_closest_corner(const real3& hdims, const real3& dir) {
     real3 corner;
     corner.x = (dir.x > 0) ? hdims.x : -hdims.x;
@@ -199,34 +199,33 @@ real3 box_closest_corner(const real3& hdims, const real3& dir) {
     return corner;
 }
 
-// ----------------------------------------------------------------------------
-// This utility function returns a code that indicates the closest feature of
-// a box in the specified direction. The direction 'dir' is assumed to be
-// given in the frame of the box. The return code encodes the box axes that
-// define the closest feature:
-//   - first bit (least significant) corresponds to x-axis
-//   - second bit corresponds to y-axis
-//   - third bit corresponds to z-axis
-// Therefore:
-//   code = 0 indicates a degenerate direction (within a threshold)
-//   code = 1 or code = 2 or code = 4  indicates a face
-//   code = 3 or code = 5 or code = 6  indicates an edge
-//   code = 7 indicates a corner
+/// This utility function returns a code that indicates the closest feature of
+/// a box in the specified direction. The direction 'dir' is assumed to be
+/// given in the frame of the box. The return code encodes the box axes that
+/// define the closest feature:
+///   - first bit (least significant) corresponds to x-axis
+///   - second bit corresponds to y-axis
+///   - third bit corresponds to z-axis
+///
+/// Therefore:
+///   code = 0 indicates a degenerate direction (within a threshold)
+///   code = 1 or code = 2 or code = 4  indicates a face
+///   code = 3 or code = 5 or code = 6  indicates an edge
+///   code = 7 indicates a corner
 uint box_closest_feature(const real3& dir) {
     const real threshold = 0.01;
 
     return ((Abs(dir.x) > threshold) << 0) | ((Abs(dir.y) > threshold) << 1) | ((Abs(dir.z) > threshold) << 2);
 }
 
-// ----------------------------------------------------------------------------
-// This function returns a boolean indicating whether or not a box1 with
-// dimensions hdims1 intersects a second box with the dimensions hdims2.
-// The check is performed in the local frame of box1. The transform from the
-// other box is given through 'pos' and 'rot'. If an intersection exists, the
-// direction of smallest intersection is returned in 'dir'.
-//
-// This check is performed by testing 15 possible separating planes between the
-// two boxes (Gottschalk, Lin, Manocha - Siggraph96).
+/// This function returns a boolean indicating whether or not a box1 with
+/// dimensions hdims1 intersects a second box with the dimensions hdims2.
+/// The check is performed in the local frame of box1. The transform from the
+/// other box is given through 'pos' and 'rot'. If an intersection exists, the
+/// direction of smallest intersection is returned in 'dir'.
+///
+/// This check is performed by testing 15 possible separating planes between the
+/// two boxes (Gottschalk, Lin, Manocha - Siggraph96).
 bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& pos, const quaternion& rot, real3& dir) {
     Mat33 R(rot);
     Mat33 Rabs = Abs(R);
@@ -300,7 +299,8 @@ bool box_intersects_box(const real3& hdims1, const real3& hdims2, const real3& p
     return false;
 }
 
-// ----------------------------------------------------------------------------
 
-}  // end namespace collision
-}  // end namespace chrono
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

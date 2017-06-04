@@ -46,11 +46,15 @@ class ChSystemParallelMPM;
 class ChParallelDataManager;
 class ChSolverParallel;
 
+/// @addtogroup parallel_physics
+/// @{
+
+/// Base class for containers of elements with 3 degrees of freedom
+/// (fluid nodes, particles, FEA nodes).
 class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
   public:
-    // Constructors
     Ch3DOFContainer();
-    ~Ch3DOFContainer();
+    virtual ~Ch3DOFContainer() {}
 
     Ch3DOFContainer(const Ch3DOFContainer& other);             // Copy constructor
     Ch3DOFContainer& operator=(const Ch3DOFContainer& other);  // Assignment operator
@@ -79,6 +83,7 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     void SetFamily(short family, short mask_no_collision);
 
     // Helper Functions
+    uint GetNumParticles() const { return num_fluid_bodies; }
     virtual int GetNumConstraints() { return 0; }
     virtual int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
@@ -124,12 +129,17 @@ class CH_PARALLEL_API Ch3DOFContainer : public ChPhysicsItem {
     uint num_shafts;
     uint num_fea_tets;
     uint num_fea_nodes;
+
+    friend class ChParallelDataManager;
+    friend class ChSystemParallelNSC;
 };
 
+/// Container of fluid particles.
 class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
   public:
-    ChFluidContainer(ChSystemParallelNSC* system);
-    ~ChFluidContainer();
+    ChFluidContainer();
+    ~ChFluidContainer() {}
+
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
@@ -194,10 +204,12 @@ class CH_PARALLEL_API ChFluidContainer : public Ch3DOFContainer {
     uint body_offset;
 };
 
+/// Container of FEA nodes.
 class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
   public:
-    ChFEAContainer(ChSystemParallelNSC* system);
-    ~ChFEAContainer();
+    ChFEAContainer();
+    ~ChFEAContainer() {}
+
     void AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void AddElements(const std::vector<uvec4>& indices);
     void AddConstraint(const uint node, std::shared_ptr<ChBody>& body);
@@ -252,10 +264,12 @@ class CH_PARALLEL_API ChFEAContainer : public Ch3DOFContainer {
     uint num_rigid_constraints;
 };
 
-class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
+/// Container of rigid particles (3 DOF).
+class CH_PARALLEL_API ChParticleContainer : public Ch3DOFContainer {
   public:
-    Ch3DOFRigidContainer(ChSystemParallelNSC* system);
-    ~Ch3DOFRigidContainer();
+    ChParticleContainer();
+    ~ChParticleContainer() {}
+
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     void Update(double ChTime);
     void UpdatePosition(double ChTime);
@@ -276,6 +290,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real3 GetBodyContactForce(uint body_id);
     real3 GetBodyContactTorque(uint body_id);
     void GetFluidForce(custom_vector<real3>& forc);
+
     uint start_boundary;
     uint start_contact;
     real compliance;
@@ -284,7 +299,6 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
     real mass;
     uint num_rigid_contacts;  // number of rigid contacts without duplicates or self contacts
     real yield_stress;
-    //
 
     real nu;
     real youngs_modulus;
@@ -305,4 +319,7 @@ class CH_PARALLEL_API Ch3DOFRigidContainer : public Ch3DOFContainer {
   private:
     uint body_offset;
 };
-}
+
+/// @} parallel_physics
+
+} // end namespace chrono

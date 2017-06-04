@@ -38,9 +38,12 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup parallel_collision
+/// @{
+
 static const real edge_radius = 0.1;
 
-// Primitive collision functions
+/// Analytical sphere vs. sphere collision function.
 bool sphere_sphere(const real3& pos1,
                    const real& radius1,
                    const real3& pos2,
@@ -52,6 +55,7 @@ bool sphere_sphere(const real3& pos1,
                    real3& pt2,
                    real& eff_radius);
 
+/// Analytical capsule vs. sphere collision function.
 bool capsule_sphere(const real3& pos1,
                     const quaternion& rot1,
                     const real& radius1,
@@ -65,6 +69,7 @@ bool capsule_sphere(const real3& pos1,
                     real3& pt2,
                     real& eff_radius);
 
+/// Analytical cylinder vs. sphere collision function.
 bool cylinder_sphere(const real3& pos1,
                      const quaternion& rot1,
                      const real& radius1,
@@ -78,6 +83,7 @@ bool cylinder_sphere(const real3& pos1,
                      real3& pt2,
                      real& eff_radius);
 
+/// Analytical rounded cylinder vs. sphere collision function.
 bool roundedcyl_sphere(const real3& pos1,
                        const quaternion& rot1,
                        const real& radius1,
@@ -92,6 +98,7 @@ bool roundedcyl_sphere(const real3& pos1,
                        real3& pt2,
                        real& eff_radius);
 
+/// Analytical box vs. sphere collision function.
 bool box_sphere(const real3& pos1,
                 const quaternion& rot1,
                 const real3& hdims1,
@@ -104,6 +111,7 @@ bool box_sphere(const real3& pos1,
                 real3& pt2,
                 real& eff_radius);
 
+/// Analytical rounded box vs. sphere collision function.
 bool roundedbox_sphere(const real3& pos1,
                        const quaternion& rot1,
                        const real3& hdims1,
@@ -117,6 +125,7 @@ bool roundedbox_sphere(const real3& pos1,
                        real3& pt2,
                        real& eff_radius);
 
+/// Analytical triangle face vs. sphere collision function.
 bool face_sphere(const real3& A1,
                  const real3& B1,
                  const real3& C1,
@@ -129,6 +138,7 @@ bool face_sphere(const real3& A1,
                  real3& pt2,
                  real& eff_radius);
 
+/// Analytical capsule vs. capsule collision function.
 int capsule_capsule(const real3& pos1,
                     const quaternion& rot1,
                     const real& radius1,
@@ -144,6 +154,7 @@ int capsule_capsule(const real3& pos1,
                     real3* pt2,
                     real* eff_radius);
 
+/// Analytical box vs. capsule collision function.
 int box_capsule(const real3& pos1,
                 const quaternion& rot1,
                 const real3& hdims1,
@@ -158,6 +169,7 @@ int box_capsule(const real3& pos1,
                 real3* pt2,
                 real* eff_radius);
 
+/// Analytical box vs. box collision function (not yet completed).
 int box_box(const real3& pos1,
             const quaternion& rot1,
             const real3& hdims1,
@@ -170,6 +182,7 @@ int box_box(const real3& pos1,
             real3* pt2,
             real* eff_radius);
 
+/// Dispatcher for analytic collision functions.
 CH_PARALLEL_API
 bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                 const ConvexBase* shapeB,  ///< second candidate shape
@@ -181,5 +194,8 @@ bool RCollision(const ConvexBase* shapeA,  ///< first candidate shape
                 real* ct_eff_rad,          ///< [output] effective contact radius (per contact pair)
                 int& nC);                  ///< [output] number of contacts found
 
-}  // end namespace collision
-}  // end namespace chrono
+
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
         // Adjacent nodes
         int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;        
-        int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();

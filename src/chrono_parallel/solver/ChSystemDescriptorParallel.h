@@ -10,6 +10,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_solver
+/// @{
+
+/// System descriptor for Chrono::Parallel.
 class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
   public:
     ChSystemDescriptorParallel(ChParallelDataManager* dc) : data_manager(dc) {}
@@ -59,4 +63,6 @@ class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
     ChParallelDataManager* data_manager;
 };
 
-}  // end namespace chrono
+/// @} parallel_solver
+
+} // end namespace chrono

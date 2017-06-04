@@ -22,6 +22,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_constraint
+/// @{
+
 class CH_PARALLEL_API ChConstraintBilateral {
   public:
     ChConstraintBilateral() {}
@@ -44,4 +47,7 @@ class CH_PARALLEL_API ChConstraintBilateral {
     // Pointer to the system's data manager
     ChParallelDataManager* data_manager;
 };
-}
+
+/// @} parallel_colision
+
+} // end namespace chrono

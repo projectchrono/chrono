@@ -52,4 +52,12 @@
     For additional information, see:
     - the [installation guide](@ref module_parallel_installation)
     - the [tutorials](@ref tutorial_root)
+
+    @{
+        @defgroup parallel_physics Physics objects
+        @defgroup parallel_constraint Unilateral constraints
+        @defgroup parallel_collision Collision objects
+        @defgroup parallel_solver Solvers
+        @defgroup parallel_math Math utilities
+    @}
 */

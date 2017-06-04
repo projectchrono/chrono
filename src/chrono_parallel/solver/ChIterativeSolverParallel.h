@@ -31,6 +31,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_solver
+/// @{
+
+/// Base class for all iterative solvers.
 class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
   public:
     virtual ~ChIterativeSolverParallel();
@@ -63,6 +67,7 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
     ChProjectNone ProjectNone;
 };
 
+/// Wrapper class for all complementarity solvers.
 class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverParallel {
   public:
     ChIterativeSolverParallelNSC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
@@ -70,19 +75,19 @@ class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverPar
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
 
-    ///< Compute the constraint Jacobian matrix.
+    /// Compute the constraint Jacobian matrix.
     void ComputeD();
-    ///< Compute the compliance matrix.
+    /// Compute the compliance matrix.
     void ComputeE();
-    ///< Compute the RHS vector. This will not change depending on the solve
+    /// Compute the RHS vector. This will not change depending on the solve
     void ComputeR();
-    ///< Compute the Shur matrix N.
+    /// Compute the Shur matrix N.
     void ComputeN();
-    ///< Set the RHS vector depending on the local solver mode
+    /// Set the RHS vector depending on the local solver mode
     void SetR();
-    ///< This function computes an initial guess for each contact
+    /// This function computes an initial guess for each contact
     void PreSolve();
-    ///< This function is used to change the solver algorithm.
+    /// This function is used to change the solver algorithm.
     void ChangeSolverType(SolverType type);
 
   private:
@@ -90,6 +95,7 @@ class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverPar
     ChProjectConstraints ProjectFull;
 };
 
+/// Iterative solver for SMC (penalty-based) problems.
 class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverParallel {
   public:
     ChIterativeSolverParallelSMC(ChParallelDataManager* dc) : ChIterativeSolverParallel(dc) {}
@@ -118,4 +124,6 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     void host_SetContactForcesMap(uint ct_body_count, const custom_vector<int>& ct_body_id);
 };
 
-}  // end namespace chrono
+/// @} parallel_solver
+
+} // end namespace chrono

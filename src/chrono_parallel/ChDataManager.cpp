@@ -4,6 +4,7 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -25,9 +26,12 @@ ChParallelDataManager::ChParallelDataManager()
       num_rigid_tet_contacts(0),
       num_rigid_tet_node_contacts(0),
       num_marker_tet_contacts(0),
-      nnz_bilaterals(0) {
-    node_container = new Ch3DOFContainer();
-    fea_container = new Ch3DOFContainer();
+      nnz_bilaterals(0),
+      composition_strategy(new ChMaterialCompositionStrategy<real>) {
+    node_container = std::make_shared<Ch3DOFContainer>();
+    fea_container = std::make_shared<Ch3DOFContainer>();
+    node_container->data_manager = this;
+    fea_container->data_manager = this;
 
     broadphase = new ChCBroadphase;
     narrowphase = new ChCNarrowphaseDispatch;
@@ -41,8 +45,6 @@ ChParallelDataManager::~ChParallelDataManager() {
     delete narrowphase;
     delete broadphase;
     delete aabb_generator;
-    delete node_container;
-    delete fea_container;
 }
 
 int ChParallelDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
@@ -135,13 +137,4 @@ void ChParallelDataManager::PrintMatrix(CompressedMatrix<real> src) {
         }
         std::cout << "\n";
     }
-}
-
-void ChParallelDataManager::Add3DOFContainer(Ch3DOFContainer* container) {
-    delete node_container;
-    node_container = container;
-}
-void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
-    delete fea_container;
-    fea_container = container;
 }

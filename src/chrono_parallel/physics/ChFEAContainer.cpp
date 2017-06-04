@@ -66,17 +66,12 @@ uvec3 UnSortedFace(int face, const uvec4& tetrahedron) {
             break;
     }
 }
-ChFEAContainer::ChFEAContainer(ChSystemParallelNSC* system) {
-    data_manager = system->data_manager;
-    data_manager->AddFEAContainer(this);
+
+ChFEAContainer::ChFEAContainer() {
     num_rigid_constraints = 0;
     rigid_constraint_recovery_speed = 1;
-    family.x = 1;
-    family.y = 0x7FFF;
     beta = 0;
 }
-
-ChFEAContainer::~ChFEAContainer() {}
 
 void ChFEAContainer::AddNodes(const std::vector<real3>& positions, const std::vector<real3>& velocities) {
     custom_vector<real3>& pos_node = data_manager->host_data.pos_node_fea;
@@ -430,9 +425,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary + index];
@@ -441,8 +437,7 @@ void ChFEAContainer::Project(real* gamma) {
 
                 gam.x += cohesion;
 
-                real mu = friction;
-                if (mu == 0) {
+                if (friction == 0) {
                     gam.x = gam.x < 0 ? 0 : gam.x - cohesion;
                     gam.y = gam.z = 0;
 
@@ -452,7 +447,7 @@ void ChFEAContainer::Project(real* gamma) {
                     continue;
                 }
 
-                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, mu)) {
+                if (Cone_generalized_rnode(gam.x, gam.y, gam.z, friction)) {
                 }
 
                 gamma[start_boundary + index] = gam.x - cohesion;
@@ -473,9 +468,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                        // index that goes from 0
                 int rigid = neighbor_rigid_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->host_data.fric_data[rigid].x;
-                real cohesion = Max((data_manager->host_data.cohesion_data[rigid] + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary_node + index];
@@ -517,9 +513,10 @@ void ChFEAContainer::Project(real* gamma) {
             for (int index = start; index < end; index++) {
                 int i = index - start;                                         // index that goes from 0
                 int rigid = neighbor_marker_tet[p * max_rigid_neighbors + i];  // rigid is stored in the first index
-                real rigid_fric = data_manager->node_container->contact_mu;
-                real cohesion = Max((data_manager->node_container->contact_cohesion + coh) * .5, 0.0);
-                real friction = (rigid_fric == 0 || mu == 0) ? 0 : (rigid_fric + mu) * .5;
+                real rigid_coh = data_manager->host_data.cohesion_data[rigid];
+                real rigid_mu = data_manager->host_data.fric_data[rigid].x;
+                real cohesion = data_manager->composition_strategy->CombineCohesion(rigid_coh, coh);
+                real friction = data_manager->composition_strategy->CombineFriction(rigid_mu, mu);
 
                 real3 gam;
                 gam.x = gamma[start_boundary_marker + index];
@@ -1004,6 +1001,8 @@ void ChFEAContainer::Build_E() {
     real inv_hpa = 1.0 / (data_manager->settings.step_size + alpha);
     real inv_hhpa = inv_h * inv_hpa;
     real com = 0;
+    //// TODO: This uses the same compliance value, for all interactions.
+    ////       Consider using a combination law.
     if (alpha) {
         com = inv_hhpa * contact_compliance;
     }

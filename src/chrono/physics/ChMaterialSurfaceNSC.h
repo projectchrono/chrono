@@ -151,7 +151,9 @@ class ChApi ChMaterialCompositeNSC : public ChMaterialComposite {
 
     ChMaterialCompositeNSC();
 
-    ChMaterialCompositeNSC(std::shared_ptr<ChMaterialSurfaceNSC> mat1, std::shared_ptr<ChMaterialSurfaceNSC> mat2);
+    ChMaterialCompositeNSC(ChMaterialCompositionStrategy<float>* strategy,
+                           std::shared_ptr<ChMaterialSurfaceNSC> mat1,
+                           std::shared_ptr<ChMaterialSurfaceNSC> mat2);
 };
 
 }  // end namespace chrono

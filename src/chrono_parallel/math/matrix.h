@@ -24,6 +24,9 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_math
+/// @{
+
 class CH_PARALLEL_API Mat33 {
   public:
     // Zero constructor
@@ -330,4 +333,7 @@ CUDA_HOST_DEVICE CH_PARALLEL_API void PrintLine(const SymMat22& A, const char* n
 //[U.x,V.x,W.x][x]
 //[U.y,V.y,W.y][y]
 //[U.z,V.z,W.z][z]
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

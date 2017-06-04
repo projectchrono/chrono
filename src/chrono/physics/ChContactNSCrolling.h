@@ -52,10 +52,11 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         Rx.SetNormalConstraint(&this->Nx);
     }
 
-    ChContactNSCrolling(ChContactContainer* mcontainer,
-                        Ta* mobjA,  ///< collidable object A
-                        Tb* mobjB,  ///< collidable object B
-                        const collision::ChCollisionInfo& cinfo)
+    ChContactNSCrolling(ChContactContainer* mcontainer,          ///< contact container
+                        Ta* mobjA,                               ///< collidable object A
+                        Tb* mobjB,                               ///< collidable object B
+                        const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
+                        )
         : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
         Rx.SetRollingConstraintU(&this->Ru);
         Rx.SetRollingConstraintV(&this->Rv);
@@ -82,6 +83,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeNSC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 

@@ -57,7 +57,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainer* mcontainer,      ///< contact container
+    ChContactNSC(ChContactContainer* mcontainer,          ///< contact container
                  Ta* mobjA,                               ///< collidable object A
                  Tb* mobjB,                               ///< collidable object B
                  const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
@@ -88,6 +88,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
 
         // Calculate composite material properties
         ChMaterialCompositeNSC mat(
+            this->container->GetSystem()->composition_strategy.get(),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objA->GetMaterialSurfaceBase()),
             std::static_pointer_cast<ChMaterialSurfaceNSC>(this->objB->GetMaterialSurfaceBase()));
 

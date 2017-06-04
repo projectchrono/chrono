@@ -22,6 +22,9 @@
 namespace chrono {
 namespace collision {
 
+/// @addtogroup parallel_collision
+/// @{
+
 class ConvexBase {
   public:
     ConvexBase() {}
@@ -118,5 +121,7 @@ class ConvexShapeTriangle : public ConvexBase {
     real3 tri[3];
 };
 
-}  // end namespace collision
-}  // end namespace chrono
+/// @} parallel_colision
+
+} // end namespace collision
+} // end namespace chrono

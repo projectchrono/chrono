@@ -15,6 +15,8 @@
 #ifndef CH_MATERIAL_SURFACE_H
 #define CH_MATERIAL_SURFACE_H
 
+#include <algorithm>
+
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/serialization/ChArchive.h"
 
@@ -58,6 +60,26 @@ CH_CLASS_VERSION(ChMaterialSurface,0)
 class ChApi ChMaterialComposite {
   public:
     virtual ~ChMaterialComposite() {}
+};
+
+/// Base class for material composition strategy.
+/// Implements the default combination laws for coefficients of friction, cohesion, compliance, etc.
+/// Derived classes can override one or more of these combination laws.
+/// Enabling the use of a customized composition strategy is system type-dependent.
+template <typename T>
+class ChMaterialCompositionStrategy {
+  public:
+    virtual ~ChMaterialCompositionStrategy() {}
+
+    virtual T CombineFriction(T a1, T a2) const { return std::min<T>(a1, a2); }
+    virtual T CombineCohesion(T a1, T a2) const { return std::min<T>(a1, a2); }
+    virtual T CombineRestitution(T a1, T a2) const { return std::min<T>(a1, a2); }
+    virtual T CombineDamping(T a1, T a2) const { return std::min<T>(a1, a2); }
+    virtual T CombineCompliance(T a1, T a2) const { return a1 + a2; }
+
+    virtual T CombineAdhesionMultiplier(T a1, T a2) const { return std::min<T>(a1, a2); }
+    virtual T CombineStiffnessCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
+    virtual T CombineDampingCoefficient(T a1, T a2) const { return (a1 + a2) / 2; }
 };
 
 }  // end namespace chrono

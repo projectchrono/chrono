@@ -12,10 +12,8 @@
 // Authors: Radu Serban, Hammad Mazhar
 // =============================================================================
 //
-// ChronoParallel test program using penalty method for frictional contact.
-//
-// The model simulated here consists of a number of spherical objects falling
-// onto a mixer blade attached through a revolute joint to the ground.
+// ChronoParallel test program using a container of uniform particles (3DOF).
+// Uses NSC (complementarity-based) method for frictional contact.
 //
 // The global reference frame has Z up.
 //
@@ -44,8 +42,10 @@
 
 using namespace chrono;
 using namespace chrono::collision;
+
 double time_step = 1e-3;
-Ch3DOFRigidContainer* fluid_container;
+real diameter = 0.016;
+
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground and a mixer
 // blade attached through a revolute joint to ground. The mixer is constrained
@@ -67,52 +67,43 @@ void AddContainer(ChSystemParallelNSC* sys) {
 }
 
 // -----------------------------------------------------------------------------
-// Create the fluid in the shape of a sphere.
+// Create the 3DOF particles with spherical contact
 // -----------------------------------------------------------------------------
-void AddFluid(ChSystemParallelNSC* sys) {
-    fluid_container = new Ch3DOFRigidContainer(sys);
+void AddParticles(ChSystemParallelNSC* sys) {
+    auto particle_container = std::make_shared<ChParticleContainer>();
+    sys->Add3DOFContainer(particle_container);
 
-    fluid_container->contact_cohesion = 0;
-    fluid_container->kernel_radius = .016;
-    fluid_container->mass = .1;
-    fluid_container->contact_mu = 0;
-    fluid_container->mu = 0;
-    fluid_container->alpha = .1;
-    fluid_container->compliance = 1e-6;
-    fluid_container->cohesion = 0;
-    fluid_container->contact_recovery_speed = .3;
-    fluid_container->collision_envelope = fluid_container->kernel_radius * .01;
+    particle_container->contact_cohesion = 0;
+    particle_container->kernel_radius = diameter;
+    particle_container->mass = .1;
+    particle_container->contact_mu = 0;
+    particle_container->mu = 0;
+    particle_container->alpha = .1;
+    particle_container->compliance = 1e-6;
+    particle_container->cohesion = 0;
+    particle_container->contact_recovery_speed = .3;
+    particle_container->collision_envelope = diameter * .01;
 
-    real radius = .1;  //*5
-    real dens = 30;
-    real3 num_fluid = real3(10, 10, 10);
+    real radius = .1;
     real3 origin(0, 0, -.2);
 
-    std::vector<real3> pos_fluid;
-    std::vector<real3> vel_fluid;
+    std::vector<real3> pos_particles;
+    std::vector<real3> vel_particles;
 
-    double dist = fluid_container->kernel_radius;
-    utils::GridSampler<> sampler(dist);
-#if 1
+    utils::GridSampler<> sampler(diameter);
     utils::Generator::PointVector points = sampler.SampleSphere(ChVector<>(0, 0, 0), radius);
-// vol = 4.0 / 3.0 * CH_C_PI * pow(radius, 3) / real(points.size());
 
-#else
-    ChVector<> hdim(.5, .5, .5);
-    utils::Generator::PointVector points = sampler.SampleBox(ChVector<>(0, 0, -hdim.z()), hdim);
-// vol = hdim.x() * hdim.y() * hdim.z() / real(points.size());
-#endif
-
-    pos_fluid.resize(points.size());
-    vel_fluid.resize(points.size());
+    pos_particles.resize(points.size());
+    vel_particles.resize(points.size());
     for (int i = 0; i < points.size(); i++) {
-        pos_fluid[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
-        vel_fluid[i] = real3(0, 0, 0);
+        pos_particles[i] = real3(points[i].x(), points[i].y(), points[i].z()) + origin;
+        vel_particles[i] = real3(0, 0, 0);
     }
 
-    fluid_container->UpdatePosition(0);
-    fluid_container->AddBodies(pos_fluid, vel_fluid);
+    particle_container->UpdatePosition(0);
+    particle_container->AddBodies(pos_particles, vel_particles);
 }
+
 // -----------------------------------------------------------------------------
 // Create the system, specify simulation parameters, and run simulation loop.
 // -----------------------------------------------------------------------------
@@ -161,9 +152,9 @@ int main(int argc, char* argv[]) {
     msystem.ChangeSolverType(SolverType::BB);
     msystem.GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
 
-    AddFluid(&msystem);
+    AddParticles(&msystem);
 
-    msystem.GetSettings()->collision.collision_envelope = (fluid_container->kernel_radius * .05);
+    msystem.GetSettings()->collision.collision_envelope = (diameter * .05);
     msystem.GetSettings()->collision.bins_per_axis = vec3(2, 2, 2);
     msystem.SetLoggingLevel(LoggingLevel::LOG_TRACE, true);
     msystem.SetLoggingLevel(LoggingLevel::LOG_INFO, true);
@@ -176,13 +167,16 @@ int main(int argc, char* argv[]) {
 
 #ifdef CHRONO_OPENGL
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
-    gl_window.Initialize(1280, 720, "fluidNSC", &msystem);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
+    gl_window.Initialize(1280, 720, "Particles NSC", &msystem);
+    gl_window.SetCamera(ChVector<>(0, -2, -1), ChVector<>(0, 0, -1), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetRenderMode(opengl::WIREFRAME);
     gl_window.Pause();
+
     // Uncomment the following two lines for the OpenGL manager to automatically
     // run the simulation in an infinite loop.
     // gl_window.StartDrawLoop(time_step);
     // return 0;
+
     while (true) {
         if (gl_window.Active()) {
             gl_window.DoStepDynamics(time_step);
