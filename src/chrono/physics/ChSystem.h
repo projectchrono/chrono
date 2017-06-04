@@ -63,6 +63,11 @@ class ChContactContainer;
 /// order to perform simulations (you'll insert rigid bodies and
 /// links into it..)
 ///
+/// Note that this is an abstract class, in your code you must
+/// create a system from one of the concrete classes: 
+///   @ref chrono::ChSystemNSC (for non-smooth contacts) or
+///   @ref chrono::ChSystemSMC (for smooth 'penalty' contacts).
+///
 /// Further info at the @ref simulation_system  manual page.
 
 class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
