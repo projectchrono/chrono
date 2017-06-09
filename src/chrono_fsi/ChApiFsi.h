@@ -31,4 +31,34 @@
 #define CH_FSI_API ChApiIMPORT
 #endif
 
-#endif /* CHAPIFSI_H_ */
+/**
+    @defgroup fsi FSI module
+    @brief Fluid-Solid Interation modeling and simulation
+
+    This module provides support for modeling multi-phase systems for
+    fluid-soild interaction problems.
+
+    For additional information, see:
+    - the [installation guide](@ref module_fsi_installation)
+    - the [tutorials](@ref tutorial_table_of_content_chrono_fsi)
+
+    @{
+        @defgroup fsi_physics Physics objects
+        @defgroup fsi_collision Collision objects
+        @defgroup fsi_solver Solvers
+        @defgroup fsi_math Math utilities
+    @}
+*/
+
+namespace chrono {
+
+/// @addtogroup fsi
+/// @{
+
+/// Namespace with classes for the FSI module.
+namespace fsi {}
+
+/// @}
+}
+
+#endif
