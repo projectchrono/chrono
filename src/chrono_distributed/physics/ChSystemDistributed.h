@@ -39,62 +39,59 @@ class ChDataManagerDistr;
 /// This is the main user interface for Chrono::Distributed
 /// Add bodies and set all settings through the systems
 /// The simulation runs on all ranks given in the world parameter
-class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC
-{
+class CH_DISTR_API ChSystemDistributed : public ChSystemParallelSMC {
+    friend class ChCommDistributed;
 
-	friend class ChCommDistributed;
+  public:
+    /// world specifies on which MPI_Comm the simulation should run.
+    ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
+    virtual ~ChSystemDistributed();
 
-public:
-	/// world specifies on which MPI_Comm the simulation should run.
-	ChSystemDistributed(MPI_Comm world, double ghost_layer, unsigned int max_objects);
-	virtual ~ChSystemDistributed();
+    int GetNumRanks() { return num_ranks; }
+    int GetMyRank() { return my_rank; }
 
-	int GetNumRanks() {return num_ranks;}
-	int GetMyRank() {return my_rank;}
+    double GetGhostLayer() { return ghost_layer; }
 
-	double GetGhostLayer() {return ghost_layer;}
+    /// A running count of the number of global bodies for
+    /// identification purposes
+    int GetNumBodiesGlobal() { return num_bodies_global; }
 
-	/// A running count of the number of global bodies for
-	/// identification purposes
-	int GetNumBodiesGlobal() {return num_bodies_global;}
-
-
-	void AddBody(std::shared_ptr<ChBody> newbody) override;
-	void RemoveBody(std::shared_ptr<ChBody> body) override;
-	virtual bool Integrate_Y() override;
+    void AddBody(std::shared_ptr<ChBody> newbody) override;
+    void RemoveBody(std::shared_ptr<ChBody> body) override;
+    virtual bool Integrate_Y() override;
     virtual void UpdateRigidBodies() override;
 
     void RemoveBodyExchange(int index);
-	ChDomainDistributed* GetDomain() {return domain;}
-	ChCommDistributed* GetComm() {return comm;}
-	void ErrorAbort(std::string msg);
-	void PrintBodyStatus();
-	void PrintShapeData();
-	void WriteCSV(int fileCounter, std::string fileprefix);
+    ChDomainDistributed* GetDomain() { return domain; }
+    ChCommDistributed* GetComm() { return comm; }
+    void ErrorAbort(std::string msg);
+    void PrintBodyStatus();
+    void PrintShapeData();
+    void WriteCSV(int fileCounter, std::string fileprefix);
 
-	MPI_Comm GetMPIWorld() {return world;}
+    MPI_Comm GetMPIWorld() { return world; }
 
-	ChDistributedDataManager *ddm;
+    ChDistributedDataManager* ddm;
 
-	char *node_name;
+    char* node_name;
 
-protected:
-	// MPI
-	int num_ranks;
-	int my_rank;
+  protected:
+    // MPI
+    int num_ranks;
+    int my_rank;
 
-	double ghost_layer;
+    double ghost_layer;
 
-	unsigned int num_bodies_global;
+    unsigned int num_bodies_global;
 
-	// World of MPI ranks for the simulation
-	MPI_Comm world;
+    // World of MPI ranks for the simulation
+    MPI_Comm world;
 
-	// Class for domain decomposition
-	ChDomainDistributed *domain;
+    // Class for domain decomposition
+    ChDomainDistributed* domain;
 
-	// Class for MPI communication
-	ChCommDistributed *comm;
+    // Class for MPI communication
+    ChCommDistributed* comm;
 
     void AddBodyExchange(std::shared_ptr<ChBody> newbody, distributed::COMM_STATUS status);
 };

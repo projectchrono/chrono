@@ -105,58 +105,60 @@ class ChSystemDistributed;
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
 
 class CH_DISTR_API ChDomainDistributed {
+  public:
+    ChDomainDistributed(ChSystemDistributed* sys);
+    virtual ~ChDomainDistributed();
 
-public:
-	ChDomainDistributed(ChSystemDistributed *sys);
-	virtual ~ChDomainDistributed();
+    /// Defines the global space used for simulation. This space cannot be changed once set and
+    /// needs to encompass all of the possible simulation region. If a body leaves the specified
+    /// simulation domain, it may be removed from the simulation entirely.
+    void SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi);
 
-	/// Defines the global space used for simulation. This space cannot be changed once set and
-	/// needs to encompass all of the possible simulation region. If a body leaves the specified
-	/// simulation domain, it may be removed from the simulation entirely.
-	void SetSimDomain(double xlo, double xhi, double ylo, double yhi, double zlo, double zhi);
-	
-	/// Return the location of the specified body within this rank based on the data manager
-	virtual distributed::COMM_STATUS GetBodyRegion(int index);
-	/// Returns the location of the specified body within this rank based on the body-list
+    /// Return the location of the specified body within this rank based on the data manager
+    virtual distributed::COMM_STATUS GetBodyRegion(int index);
+    /// Returns the location of the specified body within this rank based on the body-list
 
-	virtual distributed::COMM_STATUS GetBodyRegion(std::shared_ptr<ChBody> body);
+    virtual distributed::COMM_STATUS GetBodyRegion(std::shared_ptr<ChBody> body);
 
-	/// Get the lower bounds of the global simulation domain
-	ChVector<double> GetBoxLo() {return boxlo;}
-	/// Get the upper bounds of the global simulation domain
-	ChVector<double> GetBoxHi() {return boxhi;}
+    /// Get the lower bounds of the global simulation domain
+    ChVector<double> GetBoxLo() { return boxlo; }
+    /// Get the upper bounds of the global simulation domain
+    ChVector<double> GetBoxHi() { return boxhi; }
 
-	/// Get the lower bounds of the local sub-domain
-	ChVector<double> GetSubLo() {return sublo;}
-	/// Get the upper bounds of the local sub-domain
-	ChVector<double> GetSubHi() {return subhi;}
+    /// Get the lower bounds of the local sub-domain
+    ChVector<double> GetSubLo() { return sublo; }
+    /// Get the upper bounds of the local sub-domain
+    ChVector<double> GetSubHi() { return subhi; }
 
-	/// x = 0, y = 1, z = 2
-	int GetLongAxis() {return long_axis;}
+    /// Sets the axis along which the domain will be split x=0, y=1, z=2
+    void SetSplitAxis(int i);
+    /// x = 0, y = 1, z = 2
+    int GetSplitAxis() { return split_axis; }
 
-	/// Returns true if the domain has been set.
-	bool IsSplit() {return split;}
+    /// Returns true if the domain has been set.
+    bool IsSplit() { return split; }
 
-	/// Prints basic information about the domain decomposition
-	virtual void PrintDomain();
+    /// Prints basic information about the domain decomposition
+    virtual void PrintDomain();
 
-protected:
-	ChSystemDistributed *my_sys;
+  protected:
+    ChSystemDistributed* my_sys;
 
-	int long_axis; ///< Index of the dimension of the longest edge of the global domain
+    int split_axis;  ///< Index of the dimension of the longest edge of the global domain
 
-	ChVector<double> boxlo; ///< Lower coordinates of the global domain
-	ChVector<double> boxhi; ///< Upper coordinates of the global domain
+    ChVector<double> boxlo;  ///< Lower coordinates of the global domain
+    ChVector<double> boxhi;  ///< Upper coordinates of the global domain
 
-	ChVector<double> sublo; ///< Lower coordinates of this subdomain
-	ChVector<double> subhi; ///< Upper coordinates of this subdomain
+    ChVector<double> sublo;  ///< Lower coordinates of this subdomain
+    ChVector<double> subhi;  ///< Upper coordinates of this subdomain
 
-	/// Calculates the borders of this subdomain based on the rank
-	virtual void SplitDomain();
-	bool split;
+    /// Calculates the borders of this subdomain based on the rank
+    virtual void SplitDomain();
+    bool split;
+    bool axis_set;
 
-private:
-	distributed::COMM_STATUS GetRegion(double pos);
+  private:
+    distributed::COMM_STATUS GetRegion(double pos);
 };
 
 } /* namespace chrono */

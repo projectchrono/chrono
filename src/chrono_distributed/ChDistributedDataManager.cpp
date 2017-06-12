@@ -16,24 +16,20 @@
 
 using namespace chrono;
 
-ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed *my_sys)
-{
-	this->my_sys = my_sys;
-	data_manager = my_sys->data_manager;
-	first_empty = 0;
+ChDistributedDataManager::ChDistributedDataManager(ChSystemDistributed* my_sys) {
+    this->my_sys = my_sys;
+    data_manager = my_sys->data_manager;
+    first_empty = 0;
 }
 
-ChDistributedDataManager::~ChDistributedDataManager(){}
+ChDistributedDataManager::~ChDistributedDataManager() {}
 
 // TODO make much better search
-int ChDistributedDataManager::GetLocalIndex(unsigned int gid)
-{
-	for (int i = 0; i < data_manager->num_rigid_bodies; i++)
-	{
-		if (global_id[i] == gid && comm_status[i] != distributed::EMPTY)
-		{
-			return i;
-		}
-	}
-	return -1;
+int ChDistributedDataManager::GetLocalIndex(unsigned int gid) {
+    for (int i = 0; i < data_manager->num_rigid_bodies; i++) {
+        if (global_id[i] == gid && comm_status[i] != distributed::EMPTY) {
+            return i;
+        }
+    }
+    return -1;
 }

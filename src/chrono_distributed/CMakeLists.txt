@@ -84,7 +84,7 @@ SET(ChronoEngine_distributed_PHYSICS
     physics/ChSystemDistributed.cpp
 	physics/ChDomainDistributed.cpp
     )
-    
+
 SOURCE_GROUP(physics FILES ${ChronoEngine_distributed_PHYSICS})
 
 SET(ChronoEngine_distributed_COLLISION
@@ -107,7 +107,7 @@ SET(ChronoEngine_distributed_SOLVER
 	)
 
 SOURCE_GROUP(solver FILES ${ChronoEngine_distributed_SOLVER})
-	
+
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_distributed library
 # ------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ ADD_LIBRARY(ChronoEngine_distributed SHARED
 			${ChronoEngine_distributed_COSIMULATION}
 			${ChronoEngine_distributed_SOLVER}
 			)
- 
+
 SET_TARGET_PROPERTIES(ChronoEngine_distributed PROPERTIES
 	                  COMPILE_FLAGS "${CH_CXX_FLAGS} ${CH_PARALLEL_CXX_FLAGS} ${CH_DISTRIBUTED_CXX_FLAGS}"
                       LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_DISTRIBUTED_LINK_FLAGS}"

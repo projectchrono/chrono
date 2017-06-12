@@ -29,7 +29,6 @@ namespace chrono {
 class ChDistributedDataManager;
 class ChSystemDistributed;
 
-
 /// This class holds functions for processing the system's bodies to determine
 /// when a body needs to be sent to another rank for either an update or for
 /// creation of a ghost. The class also decides how to update the comm_status of
@@ -46,48 +45,48 @@ class ChSystemDistributed;
 /// A body with a GHOST comm_status will become OWNED when it moves into the owned region of this rank.
 /// A body with a GHOST comm_status will be removed when it moves into the one of this rank's unowned regions.
 class CH_DISTR_API ChCommDistributed {
-public:
-	ChCommDistributed(ChSystemDistributed *my_sys);
-	virtual ~ChCommDistributed();
+  public:
+    ChCommDistributed(ChSystemDistributed* my_sys);
+    virtual ~ChCommDistributed();
 
-	/// Scans the system's data structures for bodies that:
-	///	- need to be sent to another rank to create ghosts
-	///  - need to be sent to another rank to update ghosts
-	///	- need to update their comm_status
-	/// Sends updates via mpi to the appropriate rank
-	/// Processes incoming updates from other ranks
-	void Exchange();
+    /// Scans the system's data structures for bodies that:
+    ///	- need to be sent to another rank to create ghosts
+    ///  - need to be sent to another rank to update ghosts
+    ///	- need to update their comm_status
+    /// Sends updates via mpi to the appropriate rank
+    /// Processes incoming updates from other ranks
+    void Exchange();
 
-	/// Packages the body data into buf.
-	/// Returns the number of elements which the body took in the buffer
-	int PackExchange(double *buf, int index);
+    /// Packages the body data into buf.
+    /// Returns the number of elements which the body took in the buffer
+    int PackExchange(double* buf, int index);
 
-	/// Unpacks a sphere body from the buffer into body object.
-	int UnpackExchange(double *buf, std::shared_ptr<ChBody> body);
+    /// Unpacks a sphere body from the buffer into body object.
+    int UnpackExchange(double* buf, std::shared_ptr<ChBody> body);
 
-	/// Packs a body to be sent to update its ghost on another rank
-	int PackUpdate(double *buf, int index, int update_type);
-	
-	/// Unpacks an incoming body to update a ghost
-	int UnpackUpdate(double *buf, std::shared_ptr<ChBody> body);
+    /// Packs a body to be sent to update its ghost on another rank
+    int PackUpdate(double* buf, int index, int update_type);
 
-	int PackUpdateTake(double *buf, int index);
+    /// Unpacks an incoming body to update a ghost
+    int UnpackUpdate(double* buf, std::shared_ptr<ChBody> body);
 
-	/// Checks for consistency in comm status between ranks
-	void CheckExchange();
+    int PackUpdateTake(double* buf, int index);
 
-	ChParallelDataManager* data_manager;
-	ChDistributedDataManager *ddm;
+    /// Checks for consistency in comm status between ranks
+    void CheckExchange();
 
-protected:
-	ChSystemDistributed *my_sys;
-	double *sendup_buf;
-	double *senddown_buf;
-	int num_sendup;
-	int num_senddown;
+    ChParallelDataManager* data_manager;
+    ChDistributedDataManager* ddm;
 
-private:
-	void ProcessBuffer(int num_recv, double* buf, int updown);
+  protected:
+    ChSystemDistributed* my_sys;
+    double* sendup_buf;
+    double* senddown_buf;
+    int num_sendup;
+    int num_senddown;
+
+  private:
+    void ProcessBuffer(int num_recv, double* buf, int updown);
 };
 
 } /* namespace chrono */

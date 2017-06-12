@@ -14,29 +14,22 @@
 
 #pragma once
 
-namespace chrono
-{
-namespace distributed
-{
+namespace chrono {
+namespace distributed {
 typedef enum COMM_STATUS {
-	EMPTY = 0,
-	OWNED,
-	GHOST_UP,
-	GHOST_DOWN,
-	SHARED_UP,
-	SHARED_DOWN,
-	UNOWNED_UP,
-	UNOWNED_DOWN,
-	GLOBAL,
-	UNDEFINED
+    EMPTY = 0,
+    OWNED,
+    GHOST_UP,
+    GHOST_DOWN,
+    SHARED_UP,
+    SHARED_DOWN,
+    UNOWNED_UP,
+    UNOWNED_DOWN,
+    GLOBAL,
+    UNDEFINED
 } COMM_STATUS;
 
-typedef enum MESSAGE_TYPE {
-	EXCHANGE,
-	UPDATE,
-	FINAL_UPDATE_GIVE,
-	FINAL_UPDATE_TAKE
-} MESSAGE_TYPE;
+typedef enum MESSAGE_TYPE { EXCHANGE, UPDATE, FINAL_UPDATE_GIVE, FINAL_UPDATE_TAKE } MESSAGE_TYPE;
 
-} // End namespace distributed
-} // End namespace chrono
+}  // End namespace distributed
+}  // End namespace chrono

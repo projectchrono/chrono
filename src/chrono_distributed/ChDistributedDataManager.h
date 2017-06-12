@@ -49,7 +49,7 @@ public:
 	// When receiving a body and adding its collision shapes, need 1)to find a spot in body shapes large enough for all of the
 	// body's shapes, 2) Find individual slots in data_manager->shape_data to index to from body_shapes
 
-	std::vector<bool> my_free_shapes;	///< Indicates that the free spaces in body_shapes
+	std::vector<bool> my_free_shapes;	///< Indicates that the free spaces in this->body_shapes
 	std::vector<bool> dm_free_shapes;	///< Indicates that the space in the data_manager->shape_data is available
 
 	int first_empty;	///< Index of the first unused body in the bodylist
