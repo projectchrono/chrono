@@ -41,6 +41,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
   public:
     ChBrakeSimple(const std::string& name);
+
     virtual ~ChBrakeSimple() {}
 
     /// Initialize the brake by providing the wheel's revolute link.

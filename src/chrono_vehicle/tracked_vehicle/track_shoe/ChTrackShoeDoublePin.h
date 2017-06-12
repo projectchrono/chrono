@@ -36,6 +36,8 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoe {
     ChTrackShoeDoublePin(const std::string& name  ///< [in] name of the subsystem
                          );
 
+    virtual ~ChTrackShoeDoublePin() {}
+
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
     /// Return the pitch length of the track shoe.

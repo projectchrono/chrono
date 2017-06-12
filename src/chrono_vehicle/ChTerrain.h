@@ -40,6 +40,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTerrain {
   public:
     ChTerrain() {}
+
     virtual ~ChTerrain() {}
 
     /// Update the state of the terrain system at the specified time.

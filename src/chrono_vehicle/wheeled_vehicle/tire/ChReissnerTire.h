@@ -34,6 +34,8 @@ class CH_VEHICLE_API ChReissnerTire : public ChDeformableTire {
   public:
     ChReissnerTire(const std::string& name);
 
+    virtual ~ChReissnerTire() {}
+
   protected:
     /// Create the ChLoad for applying pressure to the tire.
     virtual void CreatePressureLoad() override final;

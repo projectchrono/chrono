@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChTrackAssemblyDoublePin : public ChTrackAssembly {
                              )
         : ChTrackAssembly(name, side) {}
 
-    ~ChTrackAssemblyDoublePin() {}
+    virtual ~ChTrackAssemblyDoublePin() {}
 
     /// Get the number of track shoes.
     virtual size_t GetNumTrackShoes() const override { return m_shoes.size(); }

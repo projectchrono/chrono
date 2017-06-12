@@ -38,6 +38,8 @@ class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoe {
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
                          );
 
+    virtual ~ChTrackShoeSinglePin() {}
+
     /// Get the mass of the track shoe.
     virtual double GetMass() const override;
 

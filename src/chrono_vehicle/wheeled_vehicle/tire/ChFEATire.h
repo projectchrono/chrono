@@ -33,6 +33,8 @@ class CH_VEHICLE_API ChFEATire : public ChDeformableTire {
   public:
     ChFEATire(const std::string& name);
 
+    virtual ~ChFEATire() {}
+
   protected:
     /// Return list of internal nodes.
     /// These nodes define the mesh surface over which pressure loads are applied.

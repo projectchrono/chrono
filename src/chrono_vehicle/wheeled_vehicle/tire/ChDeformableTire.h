@@ -50,6 +50,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     ChDeformableTire(const std::string& name  ///< [in] name of this tire system
                      );
 
+    virtual ~ChDeformableTire() {}
+
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
     ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }

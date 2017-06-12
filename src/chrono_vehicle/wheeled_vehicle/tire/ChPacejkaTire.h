@@ -52,7 +52,6 @@ struct relaxationL;
 struct bessel;
 
 /// Concrete tire class that implements the Pacejka tire model.
-/// Detailed description goes here...
 class CH_VEHICLE_API ChPacejkaTire : public ChTire {
   public:
     /// Default constructor for a Pacejka tire.

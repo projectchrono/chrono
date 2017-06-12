@@ -51,6 +51,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
   public:
     ChTire(const std::string& name  ///< [in] name of this tire system
            );
+
     virtual ~ChTire() {}
 
     /// Initialize this tire subsystem.

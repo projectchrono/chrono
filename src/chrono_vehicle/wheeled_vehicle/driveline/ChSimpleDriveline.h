@@ -36,6 +36,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSimpleDriveline : public ChDriveline {
   public:
     ChSimpleDriveline(const std::string& name);
+
     virtual ~ChSimpleDriveline() {}
 
     /// Return the number of driven axles.

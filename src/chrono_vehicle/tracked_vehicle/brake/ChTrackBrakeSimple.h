@@ -37,7 +37,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     ChTrackBrakeSimple(const std::string& name  ///< [in] name of the subsystem
                        );
 
-    ~ChTrackBrakeSimple() {}
+    virtual ~ChTrackBrakeSimple() {}
 
     /// Initialize the brake by providing the sprocket's revolute link.
     virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
