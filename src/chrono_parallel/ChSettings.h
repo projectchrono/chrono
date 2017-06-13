@@ -34,8 +34,8 @@ namespace chrono {
 /// This structure that contains all settings associated with the collision detection phase.
 class collision_settings {
   public:
-    // The default values are specified in the constructor, use these as
-    // guidelines when experimenting with your own simulation setup.
+    /// The default values are specified in the constructor, use these as
+    /// guidelines when experimenting with your own simulation setup.
     collision_settings() {
         // by default the bounding box is not active and the default values for the
         // bounding box size are not specified.
@@ -57,35 +57,37 @@ class collision_settings {
     }
 
     real3 min_bounding_point, max_bounding_point;
-    // This parameter, similar to the one in chrono inflates each collision shape
-    // by a certain amount. This is necessary when using NSC as it creates the
-    // contact constraints before objects acutally come into contact. In general
-    // this helps with stability.
+
+    /// This parameter, similar to the one in chrono inflates each collision shape
+    /// by a certain amount. This is necessary when using NSC as it creates the
+    /// contact constraints before objects acutally come into contact. In general
+    /// this helps with stability.
     real collision_envelope;
-    // Chrono parallel has an optional feature that allows the user to set a
-    // bounding box that automatically freezes (makes inactive) any object that
-    // exits the bounding box
+    /// Chrono parallel has an optional feature that allows the user to set a
+    /// bounding box that automatically freezes (makes inactive) any object that
+    /// exits the bounding box.
     bool use_aabb_active;
-    // The size of the bounding box (if set to active) is specified by its min and
-    // max extents
-    real3 aabb_min, aabb_max;
-    // This variable is the primary method to control the granularity of the
-    // collision detection grid used for the broadphase.
-    // As the name suggests, it is the number of slices along each axis. During
-    // the broadphase stage the extents of the simulation are computed and then
-    // sliced according to the variable.
+    /// The size of the bounding box (if set to active) is specified by its min and max extents.
+    real3 aabb_min;
+    /// The size of the bounding box (if set to active) is specified by its min and max extents.
+    real3 aabb_max;
+    /// This variable is the primary method to control the granularity of the
+    /// collision detection grid used for the broadphase.
+    /// As the name suggests, it is the number of slices along each axis. During
+    /// the broadphase stage the extents of the simulation are computed and then
+    /// sliced according to the variable.
     vec3 bins_per_axis;
-    // There are multiple narrowphase algorithms implemented in the collision
-    // detection code. The narrowphase_algorithm parameter can be used to change
-    // the type of narrowphase used at runtime.
+    /// There are multiple narrowphase algorithms implemented in the collision
+    /// detection code. The narrowphase_algorithm parameter can be used to change
+    /// the type of narrowphase used at runtime.
     NarrowPhaseType narrowphase_algorithm;
     real grid_density;
-    // use fixed number of bins instead of tuning them
+    /// Use fixed number of bins instead of tuning them.
     bool fixed_bins;
 };
 
 /// Chrono::Parallel solver_settings.
-/// This structure contains all ettings associated with the parallel solver.
+/// This structure contains all settings associated with the parallel solver.
 class solver_settings {
   public:
     solver_settings() {
@@ -125,37 +127,37 @@ class solver_settings {
         skip_residual = 1;
     }
 
-    // The solver type variable defines name of the solver that will be used to
-    // solve the NSC problem
+    /// The solver type variable defines name of the solver that will be used to
+    /// solve the NSC problem
     SolverType solver_type;
-    // There are three possible solver modes
-    // NORMAL will only solve for the normal and bilateral constraints.
-    // SLIDING will only solve for the normal, sliding and bilateral constraints.
-    // SPINNING will solve for all of the constraints.
-    // The purpose of this settings is to allow the user to completely ignore
-    // different types of friction. In chrono parallel all constraints support
-    // friction and sliding friction so this is how you can improve performance
-    // when you know that you don't need spinning/rolling friction or want to solve
-    // a problem frictionless
+    /// There are three possible solver modes
+    /// NORMAL will only solve for the normal and bilateral constraints.
+    /// SLIDING will only solve for the normal, sliding and bilateral constraints.
+    /// SPINNING will solve for all of the constraints.
+    /// The purpose of this settings is to allow the user to completely ignore
+    /// different types of friction. In chrono parallel all constraints support
+    /// friction and sliding friction so this is how you can improve performance
+    /// when you know that you don't need spinning/rolling friction or want to solve
+    /// a problem frictionless.
     SolverMode solver_mode;
 
-    // This should not be set by the user, depending on how the iterations are set
-    // The variable is used to specify what type of solve is currently being done
+    /// This should not be set by the user, depending on how the iterations are set
+    /// The variable is used to specify what type of solve is currently being done.
     SolverMode local_solver_mode;
 
-    // this parameter is a constant used when solving a problem with compliance
+    /// This parameter is a constant used when solving a problem with compliance.
     real alpha;
-    // The contact recovery speed parameter controls how "hard" a contact is
-    // enforced when two objects are penetrating. The larger the value is the
-    // faster the two objects will separate
+    /// The contact recovery speed parameter controls how "hard" a contact is
+    /// enforced when two objects are penetrating. The larger the value is the
+    /// faster the two objects will separate.
     real contact_recovery_speed;
-    // This parameter is the same as the one for contacts, it controls how fast two
-    // objects will move in order to resolve constraint drift.
+    /// This parameter is the same as the one for contacts, it controls how fast two
+    /// objects will move in order to resolve constraint drift.
     real bilateral_clamp_speed;
-    // It is possible to disable clamping for bilaterals entirely. When set to true
-    // bilateral_clamp_speed is ignored
+    /// It is possible to disable clamping for bilaterals entirely. When set to true
+    /// bilateral_clamp_speed is ignored.
     bool clamp_bilaterals;
-    // Experimental options that probably don't work for all solvers
+    /// Experimental options that probably don't work for all solvers.
     bool update_rhs;
     bool compute_N;
     bool test_objective;
@@ -166,48 +168,48 @@ class solver_settings {
     int max_power_iteration;
     real power_iter_tolerance;
 
-    // Contact force model for SMC
+    /// Contact force model for SMC.
     ChSystemSMC::ContactForceModel contact_force_model;
-    // Contact force model for SMC
+    /// Contact force model for SMC.
     ChSystemSMC::AdhesionForceModel adhesion_force_model;
-    // Tangential contact displacement history. None indicates no tangential stiffness,
-    // OneStep indicates estimating tangential displacement using only current velocity,
-    // MultiStep uses full contact history over multiple steps.
+    /// Tangential contact displacement history. None indicates no tangential stiffness,
+    /// OneStep indicates estimating tangential displacement using only current velocity,
+    /// MultiStep uses full contact history over multiple steps.
     ChSystemSMC::TangentialDisplacementModel tangential_displ_mode;
-    // Flag specifying how the stiffness and damping coefficients in the SMC contact
-    // force models are calculated. If true, these coefficients are derived from
-    // physical material properties. Otherwise, the user specifies the coefficients
-    // directly.
+    /// Flag specifying how the stiffness and damping coefficients in the SMC contact
+    /// force models are calculated. If true, these coefficients are derived from
+    /// physical material properties. Otherwise, the user specifies the coefficients
+    /// directly.
     bool use_material_properties;
-    // Characteristic velocity (Hooke contact force model)
+    /// Characteristic velocity (Hooke contact force model).
     real characteristic_vel;
-    // Threshold tangential velocity
+    /// Threshold tangential velocity.
     real min_slip_vel;
 
-    // Along with setting the solver mode, the total number of iterations for each
-    // type of constraints can be performed.
+    /// Along with setting the solver mode, the total number of iterations for each
+    /// type of constraints can be performed.
     uint max_iteration;
-    // If the normal iterations are set, iterations are performed for just the
-    // normal part of the constraints. This will essentially precondition the
-    // solver and stiffen the contacts, making objects penetrate less. For visual
-    // accuracy this is really useful in my opinion. Bilaterals are still solved
+    /// If the normal iterations are set, iterations are performed for just the
+    /// normal part of the constraints. This will essentially precondition the
+    /// solver and stiffen the contacts, making objects penetrate less. For visual
+    /// accuracy this is really useful in my opinion. Bilaterals are still solved.
     uint max_iteration_normal;
-    // Similarly sliding iterations are only performed on the sliding constraints.
-    // Bilaterals are still solved
+    /// Similarly sliding iterations are only performed on the sliding constraints.
+    /// Bilaterals are still solved.
     uint max_iteration_sliding;
-    // Similarly spinning iterations are only performed on the spinning constraints
-    // Bilaterals are still solved
+    /// Similarly spinning iterations are only performed on the spinning constraints
+    /// Bilaterals are still solved.
     uint max_iteration_spinning;
     uint max_iteration_bilateral;
     uint max_iteration_fem;
 
-    // This variable is the tolerance for the solver in terms of speeds
+    /// This variable is the tolerance for the solver in terms of speeds.
     real tolerance;
     real tol_speed;
-    // This variable defines the tolerance if the solver is using the objective
-    // termination condition
+    /// This variable defines the tolerance if the solver is using the objective.
+    /// termination condition
     real tolerance_objective;
-    // Compute residual every x iterations
+    /// Compute residual every x iterations.
     int skip_residual;
 };
 
@@ -215,50 +217,50 @@ class solver_settings {
 class settings_container {
   public:
     settings_container() {
-        // The default minimum number of threads is 1, set this to your max threads
-        // if you already know that it will run the fastest with that configuration.
-        // In some cases simulations start with a few objects but more are added
-        // later. By setting it to a low value initially the simulation will run
-        // as more objects are added chrono parallel will automatically increase
-        // the number of threads. If min threads is > max threads, weird stuff might
-        // happen!
+        /// The default minimum number of threads is 1, set this to your max threads
+        /// if you already know that it will run the fastest with that configuration.
+        /// In some cases simulations start with a few objects but more are added
+        /// later. By setting it to a low value initially the simulation will run
+        /// as more objects are added chrono parallel will automatically increase
+        /// the number of threads. If min threads is > max threads, weird stuff might
+        /// happen!
         min_threads = 1;
-        // The default maximum threads is equal to the number visible via openMP
+        /// The default maximum threads is equal to the number visible via openMP.
         max_threads = CHOMPfunctions::GetNumProcs();
-        // Only perform thread tuning if max threads is greater than min_threads;
-        // I don't really check to see if max_threads is > than min_threads
-        // not sure if that is a huge issue
+        /// Only perform thread tuning if max threads is greater than min_threads;
+        /// I don't really check to see if max_threads is > than min_threads
+        /// not sure if that is a huge issue.
         perform_thread_tuning = ((min_threads == max_threads) ? false : true);
         system_type = SystemType::SYSTEM_NSC;
         step_size = .01;
     }
 
-    // The settings for the collision detection
+    /// The settings for the collision detection.
     collision_settings collision;
-    // The settings for the solver
+    /// The settings for the solver.
     solver_settings solver;
 
-    // System level settings
-    // If set to true chrono parallel will automatically check to see if increasing
-    // the number of threads will improve performance. If performance is improved
-    // it changes the number of threads, if not, it decreases the number of threads
-    // back to the original value.
+    /// System level settings.
+    /// If set to true chrono parallel will automatically check to see if increasing
+    /// the number of threads will improve performance. If performance is improved
+    /// it changes the number of threads, if not, it decreases the number of threads
+    /// back to the original value.
     bool perform_thread_tuning;
-    // The minimum number of threads that will ever be used by this simulation.
-    // If you know a good number of threads for your simulation set the minimum so
-    // that the simulation is running optimally from the start
+    /// The minimum number of threads that will ever be used by this simulation.
+    /// If you know a good number of threads for your simulation set the minimum so
+    /// that the simulation is running optimally from the start.
     int min_threads;
-    // This is the number of threads that the simulation will not exceed
+    // This is the number of threads that the simulation will not exceed.
     int max_threads;
-    // The timestep of the simulation. This value is copied from chrono currently,
-    // setting it has no effect.
+    /// The timestep of the simulation. This value is copied from chrono currently,
+    /// setting it has no effect.
     real step_size;
     real3 gravity;
-    // The system type defines if the system is solving the NSC frictional contact
-    // problem or a SMC penalty based
+    /// The system type defines if the system is solving the NSC frictional contact
+    /// problem or a SMC penalty based.
     SystemType system_type;
 };
 
 /// @} parallel_module
 
-} // end namespace chrono
+}  // end namespace chrono

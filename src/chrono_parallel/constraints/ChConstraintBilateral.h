@@ -25,6 +25,7 @@ namespace chrono {
 /// @addtogroup parallel_constraint
 /// @{
 
+/// Bilateral (joint) constraints.
 class CH_PARALLEL_API ChConstraintBilateral {
   public:
     ChConstraintBilateral() {}
@@ -32,20 +33,19 @@ class CH_PARALLEL_API ChConstraintBilateral {
 
     void Setup(ChParallelDataManager* data_container_) { data_manager = data_container_; }
 
-    // Compute the vector of corrections
+    /// Compute the vector of corrections.
     void Build_b();
-    // Compute the diagonal compliance matrix
+    /// Compute the diagonal compliance matrix.
     void Build_E();
-    // Compute the jacobian matrix, no allocation is performed here,
-    // GenerateSparsity should take care of that
+    /// Compute the jacobian matrix, no allocation is performed here,
+    /// GenerateSparsity should take care of that.
     void Build_D();
 
-    // Fill-in the non zero entries in the bilateral jacobian with ones.
+    //// Fill-in the non zero entries in the bilateral jacobian with ones.
     // This operation is sequential.
     void GenerateSparsity();
 
-    // Pointer to the system's data manager
-    ChParallelDataManager* data_manager;
+    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager.
 };
 
 /// @} parallel_colision

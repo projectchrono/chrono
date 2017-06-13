@@ -26,6 +26,7 @@ namespace chrono {
 /// @addtogroup parallel_constraint
 /// @{
 
+/// Unilateral (contact) constraints.
 class CH_PARALLEL_API ChConstraintRigidRigid {
   public:
     ChConstraintRigidRigid() {
@@ -105,29 +106,30 @@ class CH_PARALLEL_API ChConstraintRigidRigid {
     void Dx(const DynamicVector<real>& x, DynamicVector<real>& output);
     void D_Tx(const DynamicVector<real>& x, DynamicVector<real>& output);
 
-    // Compute the vector of corrections
+    /// Compute the vector of corrections.
     void Build_b();
-    // Compute the diagonal compliance matrix
+    /// Compute the diagonal compliance matrix.
     void Build_E();
-    // Compute the jacobian matrix, no allocation is performed here,
-    // GenerateSparsity should take care of that
+    /// Compute the jacobian matrix, no allocation is performed here,
+    /// GenerateSparsity should take care of that.
     void Build_D();
     void Build_s();
-    // Fill-in the non zero entries in the bilateral jacobian with ones.
-    // This operation is sequential.
+    /// Fill-in the non zero entries in the bilateral jacobian with ones.
+    /// This operation is sequential.
     void GenerateSparsity();
     int offset;
 
   protected:
     custom_vector<bool2> contact_active_pairs;
 
-    real inv_h;
-    real inv_hpa;
-    real inv_hhpa;
+    real inv_h;     ///< reciprocal of time step, 1/h
+    real inv_hpa;   ///< 1 / (h+a)
+    real inv_hhpa;  ///< 1 / h*(h+a)
+
     custom_vector<real3_int> rotated_point_a, rotated_point_b;
     custom_vector<quaternion> quat_a, quat_b;
-    // Pointer to the system's data manager
-    ChParallelDataManager* data_manager;
+
+    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// @} parallel_colision

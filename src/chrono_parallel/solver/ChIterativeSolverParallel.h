@@ -39,18 +39,18 @@ class CH_PARALLEL_API ChIterativeSolverParallel : public ChIterativeSolver {
   public:
     virtual ~ChIterativeSolverParallel();
 
-    ///< Each child class must define its own solve method
+    /// Each child class must define its own solve method.
     virtual double Solve(ChSystemDescriptor& sysd) { return 0; }
-    ///< Similarly, the run timestep function needs to be defined
+    /// Similarly, the run timestep function needs to be defined.
     virtual void RunTimeStep() = 0;
-    ///< This function computes the new velocities based on the lagrange multipliers
+    /// This function computes the new velocities based on the lagrange multipliers.
     virtual void ComputeImpulses() = 0;
 
-    ///< Compute the inverse mass matrix and the term v+M_inv*hf
+    /// Compute the inverse mass matrix and the term v+M_inv*hf.
     void ComputeInvMassMatrix();
-    // Compute mass matrix
+    /// Compute mass matrix.
     void ComputeMassMatrix();
-    ///< Solves just the bilaterals so that they can be warm started
+    /// Solves just the bilaterals so that they can be warm started.
     void PerformStabilization();
 
     real GetResidual();
@@ -79,13 +79,13 @@ class CH_PARALLEL_API ChIterativeSolverParallelNSC : public ChIterativeSolverPar
     void ComputeD();
     /// Compute the compliance matrix.
     void ComputeE();
-    /// Compute the RHS vector. This will not change depending on the solve
+    /// Compute the RHS vector. This will not change depending on the solve.
     void ComputeR();
     /// Compute the Shur matrix N.
     void ComputeN();
-    /// Set the RHS vector depending on the local solver mode
+    /// Set the RHS vector depending on the local solver mode.
     void SetR();
-    /// This function computes an initial guess for each contact
+    /// This function computes an initial guess for each contact.
     void PreSolve();
     /// This function is used to change the solver algorithm.
     void ChangeSolverType(SolverType type);
@@ -103,11 +103,11 @@ class CH_PARALLEL_API ChIterativeSolverParallelSMC : public ChIterativeSolverPar
     virtual void RunTimeStep();
     virtual void ComputeImpulses();
 
-    ///< Compute the constraint Jacobian matrix.
+    /// Compute the constraint Jacobian matrix.
     void ComputeD();
-    ///< Compute the compliance matrix.
+    /// Compute the compliance matrix.
     void ComputeE();
-    ///< Compute the RHS vector.
+    /// Compute the RHS vector.
     void ComputeR();
 
     void ProcessContacts();

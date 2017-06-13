@@ -80,7 +80,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void ChangeCollisionSystem(CollisionSystemType type);
 
     /// Change the default composition laws for contact surface materials
-    /// (coefficient of friction, cohesion, compliance, etc.)
+    /// (coefficient of friction, cohesion, compliance, etc.).
     void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
 
     virtual void PrintStepStats();
@@ -89,18 +89,18 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     unsigned int GetNumContacts();
     unsigned int GetNumBilaterals();
 
-    /// Gets the time (in seconds) spent for computing the time step
+    /// Gets the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() override;
-    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step
+    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step.
     virtual double GetTimerSolver() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
     virtual double GetTimerCollisionBroad() override;
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
     virtual double GetTimerCollisionNarrow() override;
-    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
+    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step.
     virtual double GetTimerUpdate() override;
 
-    /// Gets the total time for the collision detection step
+    /// Gets the total time for the collision detection step.
     double GetTimerCollision();
 
     /// Calculate cummulative contact forces for all bodies in the system.
@@ -117,8 +117,8 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     settings_container* GetSettings();
 
-    // based on the passed logging level and the state of that level, enable or
-    // disable logging level
+    // Based on the specified logging level and the state of that level, enable or
+    // disable logging level.
     void SetLoggingLevel(LoggingLevel level, bool state = true);
 
     /// Calculate the (linearized) bilateral constraint violations.

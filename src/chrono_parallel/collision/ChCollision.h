@@ -62,17 +62,17 @@ class CH_PARALLEL_API ChCNarrowphaseDispatch {
   public:
     ChCNarrowphaseDispatch() {}
     ~ChCNarrowphaseDispatch() {}
-    // clear contact data structures
+    /// Clear contact data structures.
     void ClearContacts();
-    // Perform collision detection
+    /// Perform collision detection.
     void ProcessRigids();
 
     void PreprocessCount();
-    // Transform the shape data to the global reference frame
-    // Perform this as a preprocessing step to improve performance
-    // Performance is improved because the amount of data loaded is still the same
-    // but it does not have to be transformed per contact pair, now it is
-    // transformed once per shape
+    /// Transform the shape data to the global reference frame.
+    /// Perform this as a preprocessing step to improve performance.
+    /// Performance is improved because the amount of data loaded is still the same
+    /// but it does not have to be transformed per contact pair, now it is
+    /// transformed once per shape.
     void PreprocessLocalToParent();
 
     // For each contact pair decide what to do.

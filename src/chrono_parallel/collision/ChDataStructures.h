@@ -25,6 +25,7 @@ namespace collision {
 /// @addtogroup parallel_collision
 /// @{
 
+/// Base class for convex contact shapes.
 class ConvexBase {
   public:
     ConvexBase() {}
@@ -43,6 +44,7 @@ class ConvexBase {
     virtual const real3* TetNodes() const { return 0; }
 };
 
+/// Convex contact shape.
 class ConvexShape : public ConvexBase {
   public:
     ConvexShape() {}
@@ -64,6 +66,7 @@ class ConvexShape : public ConvexBase {
     virtual const inline int start() const { return data->start_rigid[index]; }
 };
 
+/// Sphere contact shape.
 class ConvexShapeSphere : public ConvexBase {
   public:
     ConvexShapeSphere(real3 p, real r) : position(p), radius(r) {}
@@ -75,6 +78,7 @@ class ConvexShapeSphere : public ConvexBase {
     real radius;
 };
 
+/// Custom contact shape.
 class ConvexShapeCustom : public ConvexBase {
   public:
     ConvexShapeCustom() {}
@@ -95,10 +99,11 @@ class ConvexShapeCustom : public ConvexBase {
     real radius;
 };
 
-class ConvexShapeTetradhedron : public ConvexBase {
+/// Tetrahedron contact shape.
+class ConvexShapeTetrahedron : public ConvexBase {
   public:
-    ConvexShapeTetradhedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
-    virtual ~ConvexShapeTetradhedron() {}
+    ConvexShapeTetrahedron(uvec4 i, real3* n) : indices(i), nodes(n) {}
+    virtual ~ConvexShapeTetrahedron() {}
     const inline int Type() const { return TETRAHEDRON; }
     const inline real3 A() const { return real3(0); }
     const uvec4 TetIndex() const { return indices; }
@@ -107,6 +112,7 @@ class ConvexShapeTetradhedron : public ConvexBase {
     real3* nodes;
 };
 
+/// Triangle contact shape.
 class ConvexShapeTriangle : public ConvexBase {
   public:
     ConvexShapeTriangle(real3& t1, real3& t2, real3 t3) {

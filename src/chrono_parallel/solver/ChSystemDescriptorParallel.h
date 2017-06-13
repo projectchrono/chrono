@@ -60,7 +60,7 @@ class CH_PARALLEL_API ChSystemDescriptorParallel : public ChSystemDescriptor {
     //}
 
   private:
-    ChParallelDataManager* data_manager;
+    ChParallelDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
 /// @} parallel_solver
