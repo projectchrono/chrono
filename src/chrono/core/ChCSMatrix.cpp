@@ -14,13 +14,13 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChCSR3Matrix.h"
+#include "chrono/core/ChCSMatrix.h"
 #include "chrono/core/ChMapMatrix.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
 namespace chrono {
 
-	ChCSR3Matrix::ChCSR3Matrix(int nrows, int ncols, bool row_major_format_on, int nonzeros):
+	ChCSMatrix::ChCSMatrix(int nrows, int ncols, bool row_major_format_on, int nonzeros):
 		ChSparseMatrix(nrows,ncols), row_major_format(row_major_format_on)
 	{
 		// link dimensions to rows and column depending on format
@@ -31,8 +31,7 @@ namespace chrono {
 	}
 
 
-	/// Put a new element in the matrix following CSR conventions.
-	void ChCSR3Matrix::SetElement(int row_sel, int col_sel, double insval, bool overwrite)
+	void ChCSMatrix::SetElement(int row_sel, int col_sel, double insval, bool overwrite)
 	{
 		auto lead_sel = row_major_format ? row_sel : col_sel;
 		auto trail_sel = row_major_format ? col_sel : row_sel;
@@ -54,7 +53,7 @@ namespace chrono {
 				return;
 			}
 
-			// the requested element DOES NOT esist yet AND
+			// the requested element DOES NOT exist yet AND
 			// another element with greater index has already been stored, SO
 			// that element has to be pushed further!
 			if (trailIndex[trail_i]>trail_sel)
@@ -82,7 +81,7 @@ namespace chrono {
 
 	}
 
-	double ChCSR3Matrix::GetElement(int row_sel, int col_sel) const
+	double ChCSMatrix::GetElement(int row_sel, int col_sel) const
 	{
 		auto lead_sel = row_major_format ? row_sel : col_sel;
 		auto trail_sel = row_major_format ? col_sel : row_sel;
@@ -96,7 +95,7 @@ namespace chrono {
 		return 0.0;
 	}
 
-	double& ChCSR3Matrix::Element(int row_sel, int col_sel)
+	double& ChCSMatrix::Element(int row_sel, int col_sel)
     {
         auto lead_sel = row_major_format ? row_sel : col_sel;
         auto trail_sel = row_major_format ? col_sel : row_sel;
@@ -114,7 +113,7 @@ namespace chrono {
                 return values[trail_i];
             }
 
-            // the requested element DOES NOT esist yet AND
+            // the requested element DOES NOT exist yet AND
             // another element with greater index has already been stored, SO
             // that element has to be pushed further!
             if (trailIndex[trail_i]>trail_sel)
@@ -141,15 +140,8 @@ namespace chrono {
 
     }
 
-	/// The function assures that the matrix will have \a nrows rows and \a ncols columns.
-	/// The \a nonzeros_hint value is just a hint!
-	/// The matrix can be _fully_ reset, or _partially_ reset (i.e. mantaining the sparsity pattern).
-	/// For _partial_ reset the following must apply:
-	/// - \a nrows and \a ncols must not differ from the current ones
-	/// - \a nonzeros_hint must not be provided (or must equal 0)
-	/// - #m_lock must be set
-	/// otherwise a _full_ reset will occur.
-	void ChCSR3Matrix::Reset(int nrows, int ncols, int nonzeros_hint)
+
+	void ChCSMatrix::Reset(int nrows, int ncols, int nonzeros_hint)
 	{
 		auto lead_dim_new = row_major_format ? nrows : ncols;
 		auto trail_dim_new = row_major_format ? ncols : nrows;
@@ -171,25 +163,25 @@ namespace chrono {
 
 	}
 
-	int* ChCSR3Matrix::GetCSR_LeadingIndexArray() const
+	int* ChCSMatrix::GetCS_LeadingIndexArray() const
 	{
-		if (!isCompressed) const_cast<ChCSR3Matrix*>(this)->Compress();
+		if (!isCompressed) const_cast<ChCSMatrix*>(this)->Compress();
 		return const_cast<int*>(leadIndex.data());
 	}
 
-	int* ChCSR3Matrix::GetCSR_TrailingIndexArray() const
+	int* ChCSMatrix::GetCS_TrailingIndexArray() const
 	{
-		if (!isCompressed) const_cast<ChCSR3Matrix*>(this)->Compress();
+		if (!isCompressed) const_cast<ChCSMatrix*>(this)->Compress();
 		return const_cast<int*>(trailIndex.data());
 	}
 
-	double* ChCSR3Matrix::GetCSR_ValueArray() const
+	double* ChCSMatrix::GetCS_ValueArray() const
 	{
-		if (!isCompressed) const_cast<ChCSR3Matrix*>(this)->Compress();
+		if (!isCompressed) const_cast<ChCSMatrix*>(this)->Compress();
 		return const_cast<double*>(values.data());
 	}
 
-	bool ChCSR3Matrix::Compress()
+	bool ChCSMatrix::Compress()
 	{
 		if (isCompressed)
 			return false;
@@ -216,7 +208,7 @@ namespace chrono {
 		return trail_i_dest!= trail_i;
 	}
 
-	int ChCSR3Matrix::Inflate(int storage_augm, int lead_sel, int trail_sel)
+	int ChCSMatrix::Inflate(int storage_augm, int lead_sel, int trail_sel)
 	{
 		assert(lead_sel >= 0 && lead_sel < m_num_rows && "Cannot inflate a row that does not exist");
 		if (trail_sel == -1)
@@ -265,7 +257,7 @@ namespace chrono {
 
 	}
 
-	void ChCSR3Matrix::Trim()
+	void ChCSMatrix::Trim()
 	{
 		trailIndex.resize(leadIndex[*leading_dimension]);
 		values.resize(leadIndex[*leading_dimension]);
@@ -278,7 +270,7 @@ namespace chrono {
 	}
 
 
-	void ChCSR3Matrix::Prune(double pruning_threshold)
+	void ChCSMatrix::Prune(double pruning_threshold)
 	{
 		int trail_i_dest = 0;
 		for (auto lead_i = 0; lead_i<*leading_dimension; ++lead_i)
@@ -299,14 +291,8 @@ namespace chrono {
 		isCompressed = true;
 	}
 
-	/// Verify if the matrix respects the CSR standard.
-	///  3 - warning message: in the row there are no initialized elements
-	///  1 - warning message: the matrix is not compressed
-	///  0 - all good!
-	/// -1 - error message: leadIndex is not strictly ascending
-	/// -2 - error message: there's a row that has some an uninitialized element NOT at the end of its space in trailIndex
-	/// -4 - error message: trailIndex has not ascending indexes within the rows
-	int ChCSR3Matrix::VerifyMatrix() const {
+
+	int ChCSMatrix::VerifyMatrix() const {
 		bool uninitialized_elements_found = false;
 		for (int lead_sel = 0; lead_sel < *leading_dimension; lead_sel++) {
 			// Check ascending order of leadIndex
@@ -360,7 +346,7 @@ namespace chrono {
 		return (uninitialized_elements_found) ? 1 : 0;
 	}
 
-	void ChCSR3Matrix::ImportFromDatFile(std::string path, bool row_major_format_on) {
+	void ChCSMatrix::ImportFromDatFile(std::string path, bool row_major_format_on) {
 		std::ifstream a_file, ia_file, ja_file;
 		a_file.open(path + "/a.dat");
 		ja_file.open(path + "/ja.dat");
@@ -395,7 +381,7 @@ namespace chrono {
 		ia_file.close();
 	}
 
-	void ChCSR3Matrix::ExportToDatFile(std::string filepath, int precision) const {
+	void ChCSMatrix::ExportToDatFile(std::string filepath, int precision) const {
 		std::ofstream a_file, ia_file, ja_file;
 		a_file.open(filepath + "/a.dat");
 		ja_file.open(filepath + "/ja.dat");
@@ -418,20 +404,9 @@ namespace chrono {
 		ia_file.close();
 	}
 
-	//TODO: work in progress
-	//void ChCSR3Matrix::LoadFromMapMatrix(ChMapMatrix& map_mat)
-	//{
-	//	map_mat.ConvertToCSR(leadIndex, trailIndex, values);
-	//	*leading_dimension = leadIndex.size()-1;
-	//	*trailing_dimension = *leading_dimension;
-	//	auto nnz = leadIndex[*leading_dimension];
-	//	initialized_element.assign(nnz, true);
-	//	isCompressed = true;
-	//}
-
 	/// Acquire information about the sparsity pattern of the elements that _will_ be put into this matrix.
 	/// The information is provided by #m_sysd.
-	void ChCSR3Matrix::LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner)
+	void ChCSMatrix::LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner)
 	{
 		auto& row_lists = sparsity_learner.GetSparsityPattern();
 		*leading_dimension = sparsity_learner.IsRowMajor() ? sparsity_learner.GetNumRows() : sparsity_learner.GetNumColumns();
@@ -453,7 +428,7 @@ namespace chrono {
 		isCompressed = true;
 	}
 
-	void ChCSR3Matrix::distribute_integer_range_on_vector(index_vector_t& vector, int initial_number, int final_number)
+	void ChCSMatrix::distribute_integer_range_on_vector(index_vector_t& vector, int initial_number, int final_number)
 	{
 		double delta = static_cast<double>(final_number - initial_number) / (vector.size()-1);
 		for (auto el_sel = 0; el_sel<vector.size(); el_sel++)
@@ -462,7 +437,7 @@ namespace chrono {
 		}
 	}
 
-	void ChCSR3Matrix::reset_arrays(int lead_dim, int trail_dim, int nonzeros)
+	void ChCSMatrix::reset_arrays(int lead_dim, int trail_dim, int nonzeros)
 	{
 		
 		// break sparsity lock
@@ -481,14 +456,17 @@ namespace chrono {
         values.resize(nonzeros);
         initialized_element.assign(nonzeros, false);
 
-		// make rowIndex span over available space
+		// make leadIndex span over available space
 		distribute_integer_range_on_vector(leadIndex, 0, nonzeros);
+
+		//// set the number of max shifts
+		//max_shifts = GetNNZ() * 2 / *leading_dimension;
 
 		isCompressed = false;
 
 	}
 
-	void ChCSR3Matrix::insert(int& trail_i_sel, const int& lead_sel)
+	void ChCSMatrix::insert(int& trail_i_sel, const int& lead_sel)
 	{
 		isCompressed = false;
 		m_lock_broken = true;
@@ -616,7 +594,7 @@ namespace chrono {
 	} // end insert
 
 
-	void ChCSR3Matrix::copy_and_distribute(const index_vector_t& trailIndex_src,
+	void ChCSMatrix::copy_and_distribute(const index_vector_t& trailIndex_src,
 										   const values_vector_t& values_src,
 										   const std::vector<bool>& initialized_element_src,
 										   index_vector_t& trailIndex_dest,

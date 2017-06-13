@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Dario Magnoni, Radu Serban
+// Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 //
 // FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
@@ -51,9 +51,9 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
-    // coordinates and vertex colours as in the FEM elements.
+    // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a coloured ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
     auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     my_system.SetSolver(mkl_solver);
 
     // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
-    // Look at ChCSR3Matrix::SetElement comments to further details.
+    // Look at ChCSMatrix::SetElement comments to further details.
     my_system.Update();
 
     // Change type of integrator:

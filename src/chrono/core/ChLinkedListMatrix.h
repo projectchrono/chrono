@@ -182,13 +182,13 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     /// Method to allow serializing transient data into in ASCII format.
     void StreamOUT(ChStreamOutAscii& mstream);
 
-    // Functions used to convert to CSR3 format (ChEigenMatrix)
+    // Functions used to convert to CSR3 format (ChCSMatrix)
 
-    /// Used to convert to CSR3 format (ChEigenMatrix).
+    /// Used to convert to CSR3 format (ChCSMatrix).
     /// Returns the array to 1st column elements.
     ChMelement* GetElarrayDereferenced() { return *elarray; }  // used to scan the matrix faster than GetElement
 
-    /// Used to convert to CSR3 format (ChEigenMatrix).
+    /// Used to convert to CSR3 format (ChCSMatrix).
     /// Returns a pointer to an array/vector of type \areserveSizeType.
     /// reserveSizeType[i] gives the number of non-zero elements in the i-th row;
     /// \areserveSize must have the same row-dimension as ChLinkedListMatrix instance.

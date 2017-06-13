@@ -12,7 +12,7 @@
 // Authors: Dario Mangoni, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChCSR3Matrix.h"
+#include "chrono/core/ChCSMatrix.h"
 #include "chrono/core/ChMatrixDynamic.h"
 
 using namespace chrono;
@@ -35,12 +35,12 @@ void PrintMatrix(ChSparseMatrix& mat) {
 	std::cout << std::endl;
 }
 
-void PrintMatrixCSR(const ChCSR3Matrix& mat) {
+void PrintMatrixCS(const ChCSMatrix& mat) {
     int ncols = mat.GetNumColumns();
     int nrows = mat.GetNumRows();
-    int* rowindex = mat.GetCSR_LeadingIndexArray();
-    int* colindex = mat.GetCSR_TrailingIndexArray();
-    double* values = mat.GetCSR_ValueArray();
+    int* rowindex = mat.GetCS_LeadingIndexArray();
+    int* colindex = mat.GetCS_TrailingIndexArray();
+    double* values = mat.GetCS_ValueArray();
     int nnz = rowindex[nrows];
 
     std::cout << "Num. rows: " << nrows << std::endl;
@@ -79,7 +79,7 @@ bool CompareMatrix(const mat1_t& mat1, const mat2_t& mat2)
 }
 
 // true if error
-bool CompareMatrix(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tolerate_uncompressed) {
+bool CompareMatrix(const ChCSMatrix& mat1, const ChCSMatrix& mat2, bool tolerate_uncompressed) {
     auto rows = mat1.GetNumRows();
     auto rows_temp = mat2.GetNumRows();
 
@@ -93,29 +93,29 @@ bool CompareMatrix(const ChCSR3Matrix& mat1, const ChCSR3Matrix& mat2, bool tole
     }
 
     for (int cont = 0; cont <= rows; cont++) {
-        if (mat1.GetCSR_LeadingIndexArray()[cont] != mat2.GetCSR_LeadingIndexArray()[cont]) {
+        if (mat1.GetCS_LeadingIndexArray()[cont] != mat2.GetCS_LeadingIndexArray()[cont]) {
             std::cout << "Row indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetCSR_LeadingIndexArray()[cont];
-            std::cout << "   mat2 -> " << mat2.GetCSR_LeadingIndexArray()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCS_LeadingIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCS_LeadingIndexArray()[cont] << std::endl;
             return true;
         }
     }
 
-    for (int cont = 0; cont < mat1.GetCSR_LeadingIndexArray()[rows]; cont++) {
+    for (int cont = 0; cont < mat1.GetCS_LeadingIndexArray()[rows]; cont++) {
 
-        if (mat1.GetCSR_TrailingIndexArray()[cont] != mat2.GetCSR_TrailingIndexArray()[cont]) {
+        if (mat1.GetCS_TrailingIndexArray()[cont] != mat2.GetCS_TrailingIndexArray()[cont]) {
             std::cout << "Column indexes do not match at entry " << cont << ":";
-            std::cout << "   mat1 -> " << mat1.GetCSR_TrailingIndexArray()[cont];
-            std::cout << "   mat2 -> " << mat2.GetCSR_TrailingIndexArray()[cont] << std::endl;
+            std::cout << "   mat1 -> " << mat1.GetCS_TrailingIndexArray()[cont];
+            std::cout << "   mat2 -> " << mat2.GetCS_TrailingIndexArray()[cont] << std::endl;
             return true;
         }
 
-        if (mat1.GetCSR_TrailingIndexArray()[cont] != -1 && mat2.GetCSR_TrailingIndexArray()[cont] != -1)
+        if (mat1.GetCS_TrailingIndexArray()[cont] != -1 && mat2.GetCS_TrailingIndexArray()[cont] != -1)
         {
-            if (mat1.GetCSR_ValueArray()[cont] != mat2.GetCSR_ValueArray()[cont]) {
+            if (mat1.GetCS_ValueArray()[cont] != mat2.GetCS_ValueArray()[cont]) {
                 std::cout << "Values do not match at entry " << cont << ":";
-                std::cout << "   mat1 -> " << mat1.GetCSR_ValueArray()[cont];
-                std::cout << "   mat2 -> " << mat2.GetCSR_ValueArray()[cont] << std::endl;
+                std::cout << "   mat1 -> " << mat1.GetCS_ValueArray()[cont];
+                std::cout << "   mat2 -> " << mat2.GetCS_ValueArray()[cont] << std::endl;
                 return true;
             }
         }
@@ -149,14 +149,14 @@ void CopyMatrix(matrixOUT& mat_out, const matrixIN& mat_in) {
 bool testColumnMajor()
 {
 	int n = 3;
-	ChCSR3Matrix matCM(n, n, false);
+	ChCSMatrix matCM(n, n, false);
 	matCM.SetElement(0, 0, 3);
 	matCM.SetElement(0, 1, 5);
 	matCM.SetElement(1, 0, 7);
 	matCM.SetElement(1, 2, 9);
 	matCM.SetElement(2, 2, 11);
 
-	ChCSR3Matrix matRM(n, n, true);
+	ChCSMatrix matRM(n, n, true);
 	matRM.SetElement(0, 0, 3);
 	matRM.SetElement(0, 1, 5);
 	matRM.SetElement(1, 0, 7);
@@ -181,7 +181,7 @@ bool testColumnMajor()
 
 bool test_Compress()
 {
-	ChCSR3Matrix mat(3, 3, true, 6);
+	ChCSMatrix mat(3, 3, true, 6);
 	mat.SetSparsityPatternLock(true);
 
 	mat.SetElement(0, 0, 10.0);
@@ -211,7 +211,7 @@ bool test_Compress()
 bool test_sparsity_lock()
 {
 	const int n = 4;
-	ChCSR3Matrix mat(n, n, true, 15);
+	ChCSMatrix mat(n, n, true, 15);
 	mat.SetSparsityPatternLock(true);
 
 	mat.SetElement(0, 0, 10.0);
@@ -229,9 +229,9 @@ bool test_sparsity_lock()
 
 	mat.Compress();
 
-	double* a = mat.GetCSR_ValueArray();
-	int* ia = mat.GetCSR_LeadingIndexArray();
-	int* ja = mat.GetCSR_TrailingIndexArray();
+	double* a = mat.GetCS_ValueArray();
+	int* ia = mat.GetCS_LeadingIndexArray();
+	int* ja = mat.GetCS_TrailingIndexArray();
 
 	for(auto row_sel = 0; row_sel<=n; ++row_sel)
 	{

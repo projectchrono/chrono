@@ -87,8 +87,6 @@ set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
 set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_IOPENMP_LINKERFLAG}")
 
 ADD_LIBRARY(ChronoEngine_mkl SHARED
-            ${ChronoEngine_CSR3_HEADERS}
-            ${ChronoEngine_CSR3_SOURCES}
             ${ChronoEngine_MKL_SOURCES}
             ${ChronoEngine_MKL_HEADERS})
 

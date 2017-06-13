@@ -5,7 +5,7 @@ Install the MKL module {#module_mkl_installation}
 
 This is an optional module that enables Chrono::Engine to use the Intel MKL Pardiso solver.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modules.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 Chrono::Engine usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
@@ -19,8 +19,9 @@ This module provides an interface to the third-party Intel MKL Pardiso solver.
 
 The MKL module allows to plug the Intel MKL Pardiso solver into Chrono::Engine and provides two interface:
 - an interface for Chrono - namely @ref chrono::ChSolverMKL<> - that is **not** intended to be used directly by the user.<br>
+This is the interface that the user should plug into the Chrono environment.
 - an interface for the end-user - namely @ref chrono::ChMklEngine - that allows to directly operate with Pardiso using the Chrono data classes (if the user would ever have this need).<br>
-For this very naive usage please refer to @ref demo_MKL_MklEngine.cpp.
+The demo_MKL_MklEngine.cpp shows its usage, but the average usare should not be interested in it.
 
 Two Chrono-specific features are implemented:
 - **sparsity pattern _lock_**<br>
@@ -67,14 +68,14 @@ The Intel MKL Library is now [distributed for **free**](https://software.intel.c
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window,<br>
     you must set `ENABLE_MODULE_MKL` as 'on'.<br>
     The CMake output window, on Windows OS, should return the following:
-````
+```
 Find MKL libraries
 MKL include dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/include
 MKL libraries:     C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_rt.lib
 IOMP5 library:     C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libiomp5md.lib
 MATH library:      C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libmmd.lib
 MKL library dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64;C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64
-````
+```
     Please mind that the MATH library is not required.
 
 3. Press 'Generate'.
