@@ -40,11 +40,15 @@ ChMarker::ChMarker()
     UpdateState();
 }
 
-ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt) {
-    SetName(myname);
-    Body = myBody;
+ChMarker::ChMarker(const std::string& name,
+                   ChBody* body,
+                   const ChCoordsys<>& rel_pos,
+                   const ChCoordsys<>& rel_pos_dt,
+                   const ChCoordsys<>& rel_pos_dtdt) {
+    SetNameString(name);
+    Body = body;
 
-    motion_X = std::make_shared<ChFunction_Const>(0);   // default: no motion
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
     motion_Y = std::make_shared<ChFunction_Const>(0); 
     motion_Z = std::make_shared<ChFunction_Const>(0); 
     motion_ang = std::make_shared<ChFunction_Const>(0); 
@@ -54,9 +58,9 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
 
     motion_type = M_MOTION_FUNCTIONS;
 
-    SetCoord(myrel_pos);
-    SetCoord_dt(myrel_pos_dt);
-    SetCoord_dtdt(myrel_pos_dtdt);
+    SetCoord(rel_pos);
+    SetCoord_dt(rel_pos_dt);
+    SetCoord_dtdt(rel_pos_dtdt);
 
     last_rel_coord = CSYSNORM;
     last_rel_coord_dt = CSYSNULL;
