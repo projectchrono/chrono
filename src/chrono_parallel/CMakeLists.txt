@@ -205,6 +205,7 @@ SET(ChronoEngine_Parallel_BASE
     ChDataManager.h
     ChTimerParallel.h
     ChDataManager.cpp
+    ChCudaDefines.h
     )
 
 SOURCE_GROUP("" FILES ${ChronoEngine_Parallel_BASE})
