@@ -111,11 +111,12 @@ class ChSolverMKL : public ChSolver {
             // If an NNZ value for the underlying matrix was specified, perform an initial resizing, *before*
             // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
             // Otherwise, do this only at the first call, using the default sparsity fill-in.
-            if (m_nnz != 0) {
-                m_mat.Reset(m_dim, m_dim, m_nnz);
-            } else if (m_setup_call == 0) {
-                m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
-            }
+
+			if (m_nnz == 0 && !m_lock || m_setup_call == 0)
+				m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
+			else if ( m_nnz>0 )
+				m_mat.Reset(m_dim, m_dim, m_nnz);
+
         }
 
         sysd.ConvertToMatrixForm(&m_mat, nullptr);

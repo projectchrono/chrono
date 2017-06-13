@@ -216,6 +216,55 @@ namespace chrono {
 		return trail_i_dest!= trail_i;
 	}
 
+	int ChCSR3Matrix::Inflate(int storage_augm, int lead_sel, int trail_sel)
+	{
+		assert(lead_sel >= 0 && lead_sel < m_num_rows && "Cannot inflate a row that does not exist");
+		if (trail_sel == -1)
+			trail_sel = leadIndex[lead_sel + 1];
+
+		assert(trail_sel >= 0 && trail_sel < trailIndex.size() && "Cannot inflate the values and trail-dimension index array in the given position");
+
+
+		auto new_size = trailIndex.size() + storage_augm;
+		if (new_size >= trailIndex.capacity()) // the space required does NOT fit into the current array capacity
+		{
+			// create new arrays in which the new elements will be stored
+			index_vector_t trailIndex_new;
+			values_vector_t values_new;
+			std::vector<bool> initialized_element_new;
+
+			// resize to desired values //TODO: do not initialize elements
+			trailIndex_new.resize(new_size);
+			values_new.resize(new_size);
+			initialized_element_new.assign(new_size, false);
+
+			// copy the array values over new vectors
+			copy_and_distribute(trailIndex, values, initialized_element,
+				trailIndex_new, values_new, initialized_element_new,
+				trail_sel, lead_sel, storage_augm);
+
+			// move
+			values = std::move(values_new);
+			trailIndex = std::move(trailIndex_new);
+			initialized_element = std::move(initialized_element_new);
+		}
+		else
+		{
+			// resize to desired values
+			trailIndex.resize(new_size);
+			values.resize(new_size);
+			initialized_element.resize(new_size, false);
+			copy_and_distribute(trailIndex, values, initialized_element,
+				trailIndex, values, initialized_element,
+				trail_sel, lead_sel, storage_augm);
+		}
+
+
+
+		return trail_sel;
+
+	}
+
 	void ChCSR3Matrix::Trim()
 	{
 		trailIndex.resize(leadIndex[*leading_dimension]);
@@ -355,12 +404,12 @@ namespace chrono {
 		ja_file << std::scientific << std::setprecision(precision);
 		ia_file << std::scientific << std::setprecision(precision);
 
-		for (int trailInd_sel = 0; trailInd_sel < leadIndex[*leading_dimension]; trailInd_sel++) {
+		for (auto trailInd_sel = 0; trailInd_sel < leadIndex[*leading_dimension]; trailInd_sel++) {
 			a_file << values[trailInd_sel] << "\n";
 			ja_file << trailIndex[trailInd_sel] << "\n";
 		}
 
-		for (int leadInd_sel = 0; leadInd_sel <= *leading_dimension; leadInd_sel++) {
+		for (auto leadInd_sel = 0; leadInd_sel <= *leading_dimension; leadInd_sel++) {
 			ia_file << leadIndex[leadInd_sel] << "\n";
 		}
 
@@ -385,8 +434,8 @@ namespace chrono {
 	void ChCSR3Matrix::LoadSparsityPattern(ChSparsityPatternLearner& sparsity_learner)
 	{
 		auto& row_lists = sparsity_learner.GetSparsityPattern();
-		*leading_dimension = sparsity_learner.isRowMajor() ? sparsity_learner.GetNumRows() : sparsity_learner.GetNumColumns();
-		*trailing_dimension = sparsity_learner.isRowMajor() ? sparsity_learner.GetNumColumns() : sparsity_learner.GetNumRows();
+		*leading_dimension = sparsity_learner.IsRowMajor() ? sparsity_learner.GetNumRows() : sparsity_learner.GetNumColumns();
+		*trailing_dimension = sparsity_learner.IsRowMajor() ? sparsity_learner.GetNumColumns() : sparsity_learner.GetNumRows();
         auto nnz = sparsity_learner.GetNNZ();
         leadIndex.resize(*leading_dimension+1);
 		trailIndex.resize(nnz);
@@ -439,7 +488,7 @@ namespace chrono {
 
 	}
 
-	void ChCSR3Matrix::insert(int& trail_sel, const int& lead_sel)
+	void ChCSR3Matrix::insert(int& trail_i_sel, const int& lead_sel)
 	{
 		isCompressed = false;
 		m_lock_broken = true;
@@ -454,7 +503,7 @@ namespace chrono {
 		//TODO: optimize?
 		// look for not-initialized elements FORWARD
 		auto lead_sel_fw = lead_sel;
-		for (auto trail_i = trail_sel + 1; trail_i < trailIndexlength && (trail_i - trail_sel) < max_shifts; ++trail_i)
+		for (auto trail_i = trail_i_sel + 1; trail_i < trailIndexlength && (trail_i - trail_i_sel) < max_shifts; ++trail_i)
 		{
 			if (!initialized_element[trail_i]) // look for not initialized elements
 			{
@@ -470,7 +519,7 @@ namespace chrono {
 					if (leadIndex[lead_sel_fw - 1] + 1 >= leadIndex[lead_sel_fw])
 						continue;
 				}
-				shift_fw = trail_i - trail_sel;
+				shift_fw = trail_i - trail_i_sel;
 				break;
 			}
 		}
@@ -479,7 +528,7 @@ namespace chrono {
 		auto lead_sel_bw = lead_sel;
 		if (OK_also_out_of_row) // do it only if 'out of row' insertions are allowed
 		{
-			for (auto trail_i = trail_sel - 1; trail_i >= 0 && (trail_sel - trail_i) < std::min(max_shifts, std::max(shift_fw, 1)); --trail_i)
+			for (auto trail_i = trail_i_sel - 1; trail_i >= 0 && (trail_i_sel - trail_i) < std::min(max_shifts, std::max(shift_fw, 1)); --trail_i)
 			{
 				if (!initialized_element[trail_i]) // look for not initialized elements
 				{
@@ -491,7 +540,7 @@ namespace chrono {
 						if (leadIndex[lead_sel_bw + 1] - 1 <= leadIndex[lead_sel_bw])
 							continue;
 					}
-					shift_bw = trail_i - trail_sel;
+					shift_bw = trail_i - trail_i_sel;
 					break;
 				}
 			}
@@ -502,88 +551,60 @@ namespace chrono {
 		if (shift_bw==0 && shift_fw==0)
 		{
 			// no viable position found
-			// some space has to be make right where trail_sel points
-			// meanwhile we give some space also to all the other rows
-			// so trail_sel WILL CHANGE
+			// some space has to be made right where trail_i_sel is pointing
+			// meanwhile we create some additional space also to all the other rows
+			// in order to reduce the risk of another redistribution
+			// so trail_i_sel WILL CHANGE
 
-			auto desired_trailIndex_length = static_cast<int>(std::max(GetTrailingIndexLength()*1.2, GetTrailingIndexLength()+1.0));
-			auto expansion_factor = 1.5;
-
-			if (desired_trailIndex_length>=trailIndex.size())
-			{
-				auto new_size = std::max(static_cast<int>(trailIndex.size() * expansion_factor), desired_trailIndex_length);
-				index_vector_t trailIndex_new;
-				values_vector_t values_new;
-				std::vector<bool> initialized_element_new;
-
-				// resize to desired values //TODO: do not initialize elements
-                trailIndex_new.resize(new_size);
-                values_new.resize(new_size);
-                initialized_element_new.assign(new_size, false);
-
-				// copy the array values over new vectors
-				copy_and_distribute(trailIndex, values, initialized_element,
-									trailIndex_new, values_new, initialized_element_new,
-									trail_sel, lead_sel, desired_trailIndex_length - GetTrailingIndexLength());
-
-				// move
-				values = std::move(values_new);
-				trailIndex = std::move(trailIndex_new);
-				initialized_element = std::move(initialized_element_new);
-			}
-			else
-			{
-				// resize to desired values
-				copy_and_distribute(trailIndex, values, initialized_element,
-									trailIndex, values, initialized_element,
-									trail_sel, lead_sel, desired_trailIndex_length - GetTrailingIndexLength());
-			}
+			auto desired_storage_augmentation = static_cast<int>(std::max(GetTrailingIndexLength()*0.2, 1.0));
+			trail_i_sel = Inflate(desired_storage_augmentation, lead_sel, trail_i_sel);
+			
 
 		}
 		else
 		{
-			// shift the elements in order to have a not initialized position where trail_sel points
-			// trail_sel WILL CHANGE if backward, WON'T CHANGE if forward
+			// shift the elements in order to have a not initialized position where trail_i_sel points
+			// trail_i_sel WILL CHANGE if backward, WON'T CHANGE if forward
 			// WARNING! move_backward is actually forward (towards the end of the array)
 			if (shift_bw<0 && -shift_bw<shift_fw)
 			{
 				if (shift_bw<-1)
 				{
 					// move is not actually 'moving'; it's just for cleaner code!
-					std::move(trailIndex.begin() + trail_sel + shift_bw+1,
-							  trailIndex.begin() + trail_sel,
-							  trailIndex.begin() + trail_sel + shift_bw);
-					std::move(values.begin() + trail_sel + shift_bw + 1,
-							  values.begin() + trail_sel,
-							  values.begin() + trail_sel + shift_bw);
-					std::move(initialized_element.begin() + trail_sel + shift_bw + 1,
-							  initialized_element.begin() + trail_sel,
-							  initialized_element.begin() + trail_sel + shift_bw);
+					std::move(trailIndex.begin() + trail_i_sel + shift_bw+1,
+							  trailIndex.begin() + trail_i_sel,
+							  trailIndex.begin() + trail_i_sel + shift_bw);
+					std::move(values.begin() + trail_i_sel + shift_bw + 1,
+							  values.begin() + trail_i_sel,
+							  values.begin() + trail_i_sel + shift_bw);
+					std::move(initialized_element.begin() + trail_i_sel + shift_bw + 1,
+							  initialized_element.begin() + trail_i_sel,
+							  initialized_element.begin() + trail_i_sel + shift_bw);
 				}
 				
 
-				for (lead_sel_bw = lead_sel; leadIndex[lead_sel_bw] >trail_sel + shift_bw; --lead_sel_bw)
+				for (lead_sel_bw = lead_sel; leadIndex[lead_sel_bw] >trail_i_sel + shift_bw; --lead_sel_bw)
 				{
 					leadIndex[lead_sel_bw]--;
 				}
 
-				trail_sel--;
+				trail_i_sel--;
 
 			}
 			else
 			{
 				// move is not actually 'moving'; it's just for cleaner code!
-				std::move_backward(trailIndex.begin() + trail_sel,
-								   trailIndex.begin() + trail_sel + shift_fw,
-								   trailIndex.begin() + trail_sel + shift_fw+1);
-				std::move_backward(values.begin() + trail_sel,
-								   values.begin() + trail_sel + shift_fw,
-								   values.begin() + trail_sel + shift_fw+1);
-				std::move_backward(initialized_element.begin() + trail_sel,
-								   initialized_element.begin() + trail_sel + shift_fw,
-								   initialized_element.begin() + trail_sel + shift_fw+1);
+				std::move_backward(trailIndex.begin() + trail_i_sel,
+								   trailIndex.begin() + trail_i_sel + shift_fw,
+								   trailIndex.begin() + trail_i_sel + shift_fw+1);
+				std::move_backward(values.begin() + trail_i_sel,
+								   values.begin() + trail_i_sel + shift_fw,
+								   values.begin() + trail_i_sel + shift_fw+1);
+				std::move_backward(initialized_element.begin() + trail_i_sel,
+								   initialized_element.begin() + trail_i_sel + shift_fw,
+								   initialized_element.begin() + trail_i_sel + shift_fw+1);
 
-				for (lead_sel_fw = lead_sel+1; leadIndex[lead_sel_fw] <= trail_sel + shift_fw; ++lead_sel_fw)
+				for (lead_sel_fw = lead_sel+1; leadIndex[lead_sel_fw] <= trail_i_sel + shift_fw; ++lead_sel_fw)
 				{
 					leadIndex[lead_sel_fw]++;
 				}
@@ -605,8 +626,8 @@ namespace chrono {
 										   int storage_augm)
 	{
 		assert(storage_augm>0);
-		assert(trail_ins <= leadIndex[*leading_dimension]);
-		assert(leadIndex[*leading_dimension] + storage_augm <= values_dest.capacity());
+		assert(trail_ins <= leadIndex[*leading_dimension]); // a new element can be added at most at leadIndex[*leading_dimension] and not beyond
+		assert(leadIndex[*leading_dimension] + storage_augm <= values_dest.size()); // the destination arrays must already be fit to accommodate the new size
 
 		double storage_delta = static_cast<double>(storage_augm - 1) / *leading_dimension;
 

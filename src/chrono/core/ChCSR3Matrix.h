@@ -188,6 +188,10 @@ class ChApi ChCSR3Matrix : public ChSparseMatrix {
     /// Compress the internal arrays and purge all uninitialized elements.
     bool Compress() override;
 
+	/// Add not-initialized element to the matrix. If many new element should be inserted
+	/// it can improve the speed.
+	int Inflate(int storage_augm, int lead_sel = 0, int trail_sel = -1);
+
     /// Trims the internal arrays to have exactly the dimension needed, nothing more.
 	/// The underlying vectors are not resized (see Trim() for this), nor moved. 
     void Trim();
