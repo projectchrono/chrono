@@ -32,6 +32,8 @@ Installation Guides {#tutorial_table_of_content_install}
 
 -   @subpage module_parallel_installation
 
+-   @subpage module_mkl_installation
+
 
 	
 ## How to install auxiliary tools
