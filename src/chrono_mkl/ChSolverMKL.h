@@ -34,7 +34,7 @@ namespace chrono {
 template <typename Matrix = ChCSR3Matrix>
 class ChSolverMKL : public ChSolver {
   public:
-    ChSolverMKL() {}
+    ChSolverMKL() { SetSparsityPatternLock(true); }
 
     ~ChSolverMKL() override {}
 
