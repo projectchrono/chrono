@@ -49,7 +49,7 @@ void ChChassis::Initialize(ChSystem* system,
                            int collision_family) {
     m_body = std::shared_ptr<ChBodyAuxRef>(system->NewBodyAuxRef());
     m_body->SetIdentifier(0);
-    m_body->SetName("chassis");
+    m_body->SetNameString(m_name + "_body");
     m_body->SetMass(GetMass());
     m_body->SetFrame_COG_to_REF(ChFrame<>(GetLocalPosCOM(), ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertia(GetInertia());
