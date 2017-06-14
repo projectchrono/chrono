@@ -37,7 +37,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// Physical system for fluid-solid interaction problem.
+/// @brief Physical system for fluid-solid interaction problem.
 ///
 /// This class is used to represent a fluid-solid interaction problem consist of
 /// fluid dynamics and multibody system. Each of the two underlying physics are
@@ -68,27 +68,30 @@ class CH_FSI_API ChSystemFsi : public ChFsiGeneral {
     /// copying from the full step
     virtual void CopyDeviceDataToHalfStep();
 
-    /// Function to fill out the dependent data based on the independent one. For instance,
+    /// Fill out the dependent data based on the independent one. For instance,
     /// it copies the position of the rigid bodies from the multibody dynamics system
     /// to arrays in fsi system since they are needed for internal use.
     virtual void FinalizeData();
 
-    /// Function to return the pointer to the data manager.
+    /// Get a pointer to the data manager.
     ChFsiDataManager* GetDataManager() { return fsiData; }
 
-    /// Function to return the pointer to the data.
+    /// Get a pointer to the parameters used to set up the simulation.
     SimParams* GetSimParams() { return paramsH; }
 
-    /// Function to return the pointer to the fsi bodies. The pointer to all fsi bodies; i.e.,
-    /// the bodies with two representation in fluid and multibody systems, are stored in a vector.
+    /// Get a pointer to the fsi bodies.
+    /// fsi bodies are the ones seen by the fluid dynamics system.
+    /// These ChBodies are stored in a std::vector using their shared pointers.
     std::vector<std::shared_ptr<ChBody>>* GetFsiBodiesPtr() { return &fsiBodeisPtr; }
 
-    /// Initialize the graphics interface of the chrono system.
+    /// Initialize the graphics openGL interface for visualization.
     void InitializeChronoGraphics(chrono::ChVector<> CameraLocation = chrono::ChVector<>(1, 0, 0),
                                   chrono::ChVector<> CameraLookAt = chrono::ChVector<>(0, 0, 0));
 
-    /// Finzalize data by calling FinalizeData function and finalize fluid and bce
-    /// objects if the system have fluid.
+    /// Finalize the construction of the fsi system.
+    /// This function must be called when the fsi system is constructed,
+    /// before the simulation starts. This function calls FinalizeData function
+    /// and also finalizes the fluid and bce objects if the system have fluid.
     virtual void Finalize();
 
   private:

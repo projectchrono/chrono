@@ -27,27 +27,30 @@
 namespace chrono {
 namespace fsi {
 
+/// Class for converting Chrono data structure to/from FSI data structure.
 class CH_FSI_API ChFsiTypeConvert {
-public:
-  static ChVector<> Real3ToChVector(Real3 p3);
-  static ChVector<> Real4ToChVector(Real4 p4);
-  static ChQuaternion<> Real4ToChQuaternion(Real4 q4);
-  static Real3 ChVectorToReal3(ChVector<> v3);
-  static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
-  static Real4 ChQuaternionToReal4(ChQuaternion<> q4);
+  public:
+    /// Converts a Real3 data structure to a ChVector data structure.
+    static ChVector<> Real3ToChVector(Real3 p3);
 
-private:
+    /// Converts the first 3 argument of a Real4 data structure to a ChVector data structure.
+    static ChVector<> Real4ToChVector(Real4 p4);
+
+    /// Converts a Real4 data structure to a ChQuaternion data structure.
+    static ChQuaternion<> Real4ToChQuaternion(Real4 q4);
+
+    /// Converts a ChVector data structure to a Real3 data structure.
+    static Real3 ChVectorToReal3(ChVector<> v3);
+
+    /// Converts a ChVector and a scalar to a Real4 data structure.
+    static Real4 ChVectorRToReal4(ChVector<> v3, Real m);
+
+    /// Converts a ChQuaternion data structure to a Real4 data structure.
+    static Real4 ChQuaternionToReal4(ChQuaternion<> q4);
+
+  private:
 };
 
-// namespace utils {
-
-// ChVector<> ConvertRealToChVector(Real3 p3);
-// ChVector<> ConvertRealToChVector(Real4 p4);
-// ChQuaternion<> ConvertToChQuaternion(Real4 q4);
-// Real3 ConvertChVectorToR3(ChVector<> v3);
-// Real4 ConvertChVectorToR4(ChVector<> v3, Real m);
-// Real4 ConvertChQuaternionToR4(ChQuaternion<> q4);
-
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 #endif
