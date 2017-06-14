@@ -34,7 +34,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(const bool fixed,
                                      DrivelineType drive_type,
                                      ChMaterialSurface::ContactMethod contact_method,
                                      ChassisCollisionType chassis_collision_type)
-    : HMMWV_Vehicle(contact_method, drive_type) {
+    : HMMWV_Vehicle("HMMWVfull", contact_method, drive_type) {
     Create(fixed, chassis_collision_type);
 }
 
@@ -42,7 +42,7 @@ HMMWV_VehicleFull::HMMWV_VehicleFull(ChSystem* system,
                                      const bool fixed,
                                      DrivelineType drive_type,
                                      ChassisCollisionType chassis_collision_type)
-    : HMMWV_Vehicle(system, drive_type) {
+    : HMMWV_Vehicle("HMMWVfull", system, drive_type) {
     Create(fixed, chassis_collision_type);
 }
 

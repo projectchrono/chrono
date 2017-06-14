@@ -304,11 +304,11 @@ void WheeledVehicle::LoadBrake(const std::string& filename, int axle, int side) 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 WheeledVehicle::WheeledVehicle(const std::string& filename, ChMaterialSurface::ContactMethod contact_method)
-    : ChWheeledVehicle(contact_method) {
+    : ChWheeledVehicle("", contact_method) {
     Create(filename);
 }
 
-WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle(system) {
+WheeledVehicle::WheeledVehicle(ChSystem* system, const std::string& filename) : ChWheeledVehicle("", system) {
     Create(filename);
 }
 
@@ -332,6 +332,14 @@ void WheeledVehicle::Create(const std::string& filename) {
     assert(d.HasMember("Type"));
     assert(d.HasMember("Template"));
     assert(d.HasMember("Name"));
+
+    std::string name = d["Name"].GetString();
+    std::string type = d["Type"].GetString();
+    std::string subtype = d["Template"].GetString();
+    assert(type.compare("Vehicle") == 0);
+    assert(subtype.compare("WheeledVehicle") == 0);
+
+    SetName(name);
 
     // ----------------------------
     // Validations of the JSON file

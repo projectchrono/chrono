@@ -214,7 +214,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(ChWheeledVehicle& vehicle,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method), m_displ_limit(displ_limit) {
+    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
     assert(axle_index >= 0 && axle_index < vehicle.GetNumberAxles());
 
     // Load suspension subsystem
@@ -244,7 +244,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method), m_displ_limit(displ_limit) {
+    : ChVehicle("SuspensionTestRig", contact_method), m_displ_limit(displ_limit) {
     // Open and parse the input file (vehicle JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -299,7 +299,7 @@ ChSuspensionTestRig::ChSuspensionTestRig(const std::string& filename,
                                          std::shared_ptr<ChTire> tire_left,
                                          std::shared_ptr<ChTire> tire_right,
                                          ChMaterialSurface::ContactMethod contact_method)
-    : ChVehicle(contact_method) {
+    : ChVehicle("SuspensionTestRig", contact_method) {
     // Open and parse the input file (rig JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 

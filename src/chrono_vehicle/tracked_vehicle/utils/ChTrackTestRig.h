@@ -46,7 +46,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
   public:
     /// Default constructor.
-    ChTrackTestRig() {}
+    ChTrackTestRig() : ChVehicle("TrackTestRig") {}
 
     /// Construct a test rig from specified track assembly JSON file.
     ChTrackTestRig(

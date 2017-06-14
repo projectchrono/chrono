@@ -38,12 +38,12 @@ namespace m113 {
 M113a_Vehicle::M113a_Vehicle(bool fixed,
                              ChMaterialSurface::ContactMethod contact_method,
                              ChassisCollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113 Vehicle", contact_method) {
+    : ChTrackedVehicle("M113a", contact_method) {
     Create(fixed, chassis_collision_type);
 }
 
 M113a_Vehicle::M113a_Vehicle(bool fixed, ChSystem* system, ChassisCollisionType chassis_collision_type)
-    : ChTrackedVehicle("M113 Vehicle", system) {
+    : ChTrackedVehicle("M113a", system) {
     Create(fixed, chassis_collision_type);
 }
 

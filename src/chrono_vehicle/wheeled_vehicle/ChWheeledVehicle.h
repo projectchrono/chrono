@@ -53,11 +53,14 @@ namespace vehicle {
 class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
   public:
     /// Construct a vehicle system with a default ChSystem.
-    ChWheeledVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
-        : ChVehicle(contact_method) {}
+    ChWheeledVehicle(const std::string& name,                                                  ///< [in] vehicle name
+                     ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+                     );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChWheeledVehicle(ChSystem* system) : ChVehicle(system) {}
+    ChWheeledVehicle(const std::string& name,  ///< [in] vehicle name
+                     ChSystem* system          ///< [in] containing mechanical system
+                     );
 
     /// Destructor.
     virtual ~ChWheeledVehicle() {}

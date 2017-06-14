@@ -36,10 +36,8 @@ using namespace chrono::vehicle::generic;
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-TT_Tractor::TT_Tractor(const bool fixed,
-                                         SuspensionType suspType,
-                                         ChMaterialSurface::ContactMethod contactMethod)
-    : ChWheeledVehicle(contactMethod), m_suspType(suspType) {
+TT_Tractor::TT_Tractor(const bool fixed, SuspensionType suspType, ChMaterialSurface::ContactMethod contactMethod)
+    : ChWheeledVehicle("Tractor", contactMethod), m_suspType(suspType) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
@@ -143,9 +141,11 @@ void TT_Tractor::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel
 double TT_Tractor::GetSpringForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetSpringForce(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringForce(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetSpringForce(wheel_id.side());
         default:
             return -1;
     }
@@ -154,9 +154,11 @@ double TT_Tractor::GetSpringForce(const WheelID& wheel_id) const {
 double TT_Tractor::GetSpringLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetSpringLength(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringLength(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetSpringLength(wheel_id.side());
         default:
             return -1;
     }
@@ -165,9 +167,11 @@ double TT_Tractor::GetSpringLength(const WheelID& wheel_id) const {
 double TT_Tractor::GetSpringDeformation(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetSpringDeformation(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetSpringDeformation(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetSpringDeformation(wheel_id.side());
         default:
             return -1;
     }
@@ -178,9 +182,11 @@ double TT_Tractor::GetSpringDeformation(const WheelID& wheel_id) const {
 double TT_Tractor::GetShockForce(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetShockForce(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockForce(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetShockForce(wheel_id.side());
         default:
             return -1;
     }
@@ -189,9 +195,11 @@ double TT_Tractor::GetShockForce(const WheelID& wheel_id) const {
 double TT_Tractor::GetShockLength(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetShockLength(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockLength(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetShockLength(wheel_id.side());
         default:
             return -1;
     }
@@ -200,9 +208,11 @@ double TT_Tractor::GetShockLength(const WheelID& wheel_id) const {
 double TT_Tractor::GetShockVelocity(const WheelID& wheel_id) const {
     switch (m_suspType) {
         case SuspensionType::SOLID_AXLE:
-            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+            return std::static_pointer_cast<ChSolidAxle>(m_suspensions[wheel_id.axle()])
+                ->GetShockVelocity(wheel_id.side());
         case SuspensionType::MULTI_LINK:
-            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])->GetShockVelocity(wheel_id.side());
+            return std::static_pointer_cast<ChMultiLink>(m_suspensions[wheel_id.axle()])
+                ->GetShockVelocity(wheel_id.side());
         default:
             return -1;
     }

@@ -44,10 +44,11 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
     }
 
   protected:
-    HMMWV_Vehicle(ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
-        : ChWheeledVehicle(contactMethod), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
+    HMMWV_Vehicle(const std::string& name, ChMaterialSurface::ContactMethod contactMethod, DrivelineType driveType)
+        : ChWheeledVehicle(name, contactMethod), m_driveType(driveType), m_omega({0, 0, 0, 0}) {}
 
-    HMMWV_Vehicle(ChSystem* system, DrivelineType driveType) : ChWheeledVehicle(system), m_driveType(driveType), m_omega({ 0, 0, 0, 0 }) {}
+    HMMWV_Vehicle(const std::string& name, ChSystem* system, DrivelineType driveType)
+        : ChWheeledVehicle(name, system), m_driveType(driveType), m_omega({0, 0, 0, 0}) {}
 
     DrivelineType m_driveType;
     std::vector<double> m_omega;

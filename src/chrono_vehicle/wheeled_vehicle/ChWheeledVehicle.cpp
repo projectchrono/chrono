@@ -22,6 +22,13 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle(name, contact_method) {}
+
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}
+
+// -----------------------------------------------------------------------------
 // Initialize this vehicle at the specified global location and orientation.
 // This base class implementation only initializes the chassis subsystem.
 // Derived classes must extend this function to initialize all other wheeled

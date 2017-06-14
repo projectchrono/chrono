@@ -40,6 +40,12 @@ class CH_VEHICLE_API ChVehicle {
     /// Destructor.
     virtual ~ChVehicle();
 
+    /// Get the name identifier for this vehicle.
+    const std::string& GetName() const { return m_name; }
+
+    /// Set the name identifier for this vehicle.
+    void SetName(const std::string& name) { m_name = name; }
+
     /// Get a pointer to the Chrono ChSystem.
     ChSystem* GetSystem() { return m_system; }
 
@@ -119,12 +125,18 @@ class CH_VEHICLE_API ChVehicle {
     virtual void LogConstraintViolations() = 0;
 
   protected:
-    /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC);
+    /// Construct a vehicle system with an underlying ChSystem.
+    ChVehicle(const std::string& name,                                                  ///< [in] vehicle name
+              ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+              );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChVehicle(ChSystem* system);
+    /// All physical components of the vehicle will be added to that system.
+    ChVehicle(const std::string& name,  ///< [in] vehicle name
+              ChSystem* system          ///< [in] containing mechanical system
+              );
 
+    std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 
