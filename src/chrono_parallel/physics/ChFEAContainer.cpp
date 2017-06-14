@@ -20,10 +20,7 @@ namespace chrono {
 using namespace collision;
 using namespace geometry;
 
-//////////////////////////////////////
-//////////////////////////////////////
-
-/// CLASS FOR TETRAHEDRAL FEA ELEMENTS
+// CLASS FOR TETRAHEDRAL FEA ELEMENTS
 uvec3 SortedFace(int face, const uvec4& tetrahedron) {
     int i = tetrahedron.x;
     int j = tetrahedron.y;
@@ -611,32 +608,32 @@ void ChFEAContainer::Build_D() {
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.y * 3, A2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.z * 3, A3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 0, b_off + tet_ind.w * 3, A4.row(0));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.x * 3, A1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.y * 3, A2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.z * 3, A3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 1, b_off + tet_ind.w * 3, A4.row(1));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.x * 3, A1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.y * 3, A2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.z * 3, A3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 2, b_off + tet_ind.w * 3, A4.row(2));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.x * 3, B1.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.y * 3, B2.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.z * 3, B3.row(0));
         SetRow3Check(D_T, start_tet + i * 7 + 3, b_off + tet_ind.w * 3, B4.row(0));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.x * 3, B1.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.y * 3, B2.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.z * 3, B3.row(1));
         SetRow3Check(D_T, start_tet + i * 7 + 4, b_off + tet_ind.w * 3, B4.row(1));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.x * 3, B1.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.y * 3, B2.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.z * 3, B3.row(2));
         SetRow3Check(D_T, start_tet + i * 7 + 5, b_off + tet_ind.w * 3, B4.row(2));
-        ///==================================================================================================================================
+        //==================================================================================================================================
         // Volume
 
         SetRow3Check(D_T, start_tet + i * 7 + 6, b_off + tet_ind.x * 3, r0);
@@ -1082,7 +1079,7 @@ void ChFEAContainer::GenerateSparsity() {
 
         AppendRow12(D_T, start_tet + i * 7 + 2, body_offset, tet_ind, 0);
         D_T.finalize(start_tet + i * 7 + 2);
-        ///==================================================================================================================================
+        //==================================================================================================================================
 
         AppendRow12(D_T, start_tet + i * 7 + 3, body_offset, tet_ind, 0);
         D_T.finalize(start_tet + i * 7 + 3);

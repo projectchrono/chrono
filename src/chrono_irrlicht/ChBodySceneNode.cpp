@@ -82,7 +82,7 @@ ChBodySceneNode::ChBodySceneNode(ChSystem* msystem,
     msystem->AddBody(GetBody());
 }
 
-/// Destructor.
+// Destructor.
 ChBodySceneNode::~ChBodySceneNode() {
     // Automatically remove from the Chrono::Engine system, if currently inserted
     // in a system.

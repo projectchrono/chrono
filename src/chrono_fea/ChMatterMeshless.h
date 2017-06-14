@@ -47,26 +47,28 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     // FUNCTIONS
     //
 
-    // Reference (initial) position of the node - in absolute csys.
-    // Note that the simulation algorithm might reset this once in a while, exp. for highly plastic objects.
+    /// Reference (initial) position of the node - in absolute csys.
+    /// Note that the simulation algorithm might reset this once in a while, exp. for highly plastic objects.
     ChVector<> GetPosReference() { return pos_ref; }
-    // Reference (initial) position of the node - in absolute csys.
+    /// Reference (initial) position of the node - in absolute csys.
     void SetPosReference(const ChVector<>& mpos) { pos_ref = mpos; }
 
-    // Get the kernel radius (max. radius while checking surrounding particles)
+    /// Get the kernel radius (max. radius while checking surrounding particles).
     double GetKernelRadius() { return h_rad; }
+    /// Set the kernel radius (max. radius while checking surrounding particles).
     void SetKernelRadius(double mr);
 
-    // Set collision radius (for colliding with bodies, boundaries, etc.)
+    /// Get collision radius (for colliding with bodies, boundaries, etc.).
     double GetCollisionRadius() { return coll_rad; }
+    /// Set collision radius (for colliding with bodies, boundaries, etc.)
     void SetCollisionRadius(double mr);
 
-    // Set the mass of the node
+    /// Set the mass of the node.
     void SetMass(double mmass) override { this->variables.SetNodeMass(mmass); }
-    // Get the mass of the node
+    /// Get the mass of the node.
     double GetMass() const override { return variables.GetNodeMass(); }
 
-    // Access the variables of the node
+    /// Access the variables of the node.
     virtual ChVariablesNode& Variables() override { return variables; }
 
     // Get the SPH container
@@ -78,10 +80,10 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     // INTERFACE TO ChContactable
     //
 
-    /// Access variables
+    /// Access variables.
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
-    /// Tell if the object must be considered in collision detection
+    /// Tell if the object must be considered in collision detection.
     virtual bool IsContactActive() override { return true; }
 
     /// Get the number of DOFs affected by this object (position part).
@@ -90,10 +92,10 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
     /// Get the number of DOFs affected by this object (speed part).
     virtual int ContactableGet_ndof_w() override { return 3; }
 
-    /// Get all the DOFs packed in a single vector (position part)
+    /// Get all the DOFs packed in a single vector (position part).
     virtual void ContactableGetStateBlock_x(ChState& x) override { x.PasteVector(this->pos, 0, 0); }
 
-    /// Get all the DOFs packed in a single vector (speed part)
+    /// Get all the DOFs packed in a single vector (speed part).
     virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.PasteVector(this->pos_dt, 0, 0); }
 
     /// Increment the provided state of this object by the given state-delta increment.
@@ -152,13 +154,13 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override;
 
-    /// Used by some SMC code
+    /// Used by some SMC code.
     virtual double GetContactableMass() override { return this->GetMass(); }
 
     /// Return the pointer to the surface material.
     virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
-    /// This is only for backward compatibility
+    /// This is only for backward compatibility.
     virtual ChPhysicsItem* GetPhysicsItem() override;
 
     //
@@ -193,7 +195,6 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 /// Class for clusters of nodes that can simulate a visco-elasto-plastic deformable
 /// solid using the approach in Mueller ("Point based.." 2004 paper), that is with
 /// a 'meshless' FEA approach.
-
 class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChMatterMeshless)
@@ -203,7 +204,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     std::shared_ptr<ChContinuumElastoplastic> material;   ///< continuum material
     double viscosity;                                     ///< viscosity
     bool do_collide;                                      ///< flag indicating whether or not nodes collide
-    std::shared_ptr<ChMaterialSurface> matsurface;    ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;        ///< data for surface contact and impact
 
   public:
     /// Build a cluster of nodes for Meshless and meshless FEA.
@@ -222,13 +223,13 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     void SetCollide(bool mcoll);
     virtual bool GetCollide() const override { return do_collide; }
 
-    /// Get the number of scalar coordinates (variables), if any, in this item
+    /// Get the number of scalar coordinates (variables), if any, in this item.
     virtual int GetDOF() override { return 3 * GetNnodes(); }
 
-    /// Get the number of nodes
+    /// Get the number of nodes.
     virtual unsigned int GetNnodes() const override { return (unsigned int)nodes.size(); }
 
-    /// Access the N-th node
+    /// Access the N-th node.
     virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) override {
         assert(n < nodes.size());
         return nodes[n];
@@ -242,17 +243,18 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     /// vector as initial position.
     void AddNode(ChVector<double> initial_state);
 
-    /// Set the material surface for 'boundary contact'
+    /// Set the material surface for 'boundary contact'.
     void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
-    /// Set the material surface for 'boundary contact'
+    /// Set the material surface for 'boundary contact'.
     virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
     //
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -285,8 +287,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // SOLVER INTERFACE
     //
 
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver))
+    // Override/implement system functions of ChPhysicsItem (to assemble/manage data for system solver))
 
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
@@ -298,7 +299,7 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
 
     // Other functions
 
-    /// Set no speed and no accelerations (but does not change the position)
+    /// Set no speed and no accelerations (but does not change the position).
     void SetNoSpeedNoAcceleration() override;
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
@@ -308,15 +309,16 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
 
     void UpdateParticleCollisionModels();
 
-    /// Access the material
+    /// Access the material.
     std::shared_ptr<ChContinuumElastoplastic>& GetMaterial() { return material; }
+
     /// Change the default material (by default it is a ChContinuumPlasticVonMises )
     /// with a new one, that you create and handle with smart pointer, so you do not have to worry about deletion.
     void ReplaceMaterial(std::shared_ptr<ChContinuumElastoplastic> newmaterial);
 
-    /// Set the Newtonian viscosity of the material
+    /// Set the Newtonian viscosity of the material.
     void SetViscosity(double mvisc) { viscosity = mvisc; }
-    /// Get the Newtonian viscosity of the material
+    /// Get the Newtonian viscosity of the material.
     double GetViscosity() const { return viscosity; }
 
     /// Initialize the material as a prismatic region filled with nodes,
@@ -338,9 +340,9 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // UPDATE FUNCTIONS
     //
 
-    /// Update all auxiliary data of the particles
+    /// Update all auxiliary data of the particles.
     virtual void Update(double mytime, bool update_assets = true) override;
-    /// Update all auxiliary data of the particles
+    /// Update all auxiliary data of the particles.
     virtual void Update(bool update_assets = true) override;
 
     //

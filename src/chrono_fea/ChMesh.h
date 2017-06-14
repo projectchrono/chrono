@@ -36,7 +36,6 @@ namespace fea {
 
 /// Class which defines a mesh of finite elements of class ChElementBase,
 /// between nodes of class ChNodeFEAbase.
-
 class ChApiFea ChMesh : public ChIndexedNodes {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChMesh)
@@ -99,7 +98,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual int GetDOF() override { return n_dofs; }
     virtual int GetDOF_w() override { return n_dofs_w; }
 
-    /// Override default in ChPhysicsItem
+    /// Override default in ChPhysicsItem.
     virtual bool GetCollide() const override { return true; }
 
     /// Reset counters for internal force and Jacobian evaluations.
@@ -122,38 +121,38 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Get cumulative time for Jacobian load calls.
     double GetTimeJacobianLoad() { return timer_KRMload(); }
 
-    /// Add a contact surface
+    /// Add a contact surface.
     void AddContactSurface(std::shared_ptr<ChContactSurface> m_surf);
 
-    /// Access the N-th contact surface
+    /// Access the N-th contact surface.
     std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
 
-    /// Get number of added contact surfaces
+    /// Get number of added contact surfaces.
     unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
 
-    /// Remove all contact surfaces
+    /// Remove all contact surfaces.
     void ClearContactSurfaces();
 
-    /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure, etc.)
+    /// Add a mesh surface (set of ChLoadableUV items that support area loads such as pressure).
     void AddMeshSurface(std::shared_ptr<ChMeshSurface> m_surf);
 
-    /// Access the N-th mesh surface
+    /// Access the N-th mesh surface.
     std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }
 
     /// Get number of added mesh surfaces
     unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
 
-    /// Remove all mesh surfaces
+    /// Remove all mesh surfaces.
     void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
 
     /// Set reference position of nodes as current position, for all nodes.
     void Relax();
 
-    /// Set no speed and no accelerations in nodes (but does not change reference positions)
+    /// Set no speed and no accelerations in nodes (but does not change reference positions).
     void SetNoSpeedNoAcceleration() override;
 
     /// This recomputes the number of DOFs, constraints,
-    /// as well as state offsets of contained items
+    /// as well as state offsets of contained items.
     virtual void Setup() override;
 
     /// Update time dependent data, for all elements.
@@ -172,7 +171,7 @@ class ChApiFea ChMesh : public ChIndexedNodes {
         automatic_gravity_load = mg;
         num_points_gravity = num_points;
     }
-    /// Tell if this mesh will add automatically a gravity load to all contained elements
+    /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 
     /// Get ChMesh mass properties
@@ -237,17 +236,17 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     virtual void VariablesFbReset() override;
 
     /// Adds the current forces (applied to item) into the
-    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor
+    /// encapsulated ChVariables, in the 'fb' part: qf+=forces*factor.
     virtual void VariablesFbLoadForces(double factor = 1) override;
 
     /// Initialize the 'qb' part of the ChVariables with the
     /// current value of speeds. Note: since 'qb' is the unknown, this
-    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
+    /// function seems unnecessary, unless used before VariablesFbIncrementMq().
     virtual void VariablesQbLoadSpeed() override;
 
     /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
     /// with v_old using VariablesQbLoadSpeed, this method can be used in
-    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
+    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt.
     virtual void VariablesFbIncrementMq() override;
 
     /// Fetches the item speed (ex. linear and angular vel.in rigid bodies) from the
@@ -259,7 +258,9 @@ class ChApiFea ChMesh : public ChIndexedNodes {
 
     /// Increment item positions by the 'qb' part of the ChVariables,
     /// multiplied by a 'step' factor.
-    ///     pos+=qb*step
+    /// <pre>
+    ///     pos += qb * step
+    /// </pre>
     /// If qb is a speed, this behaves like a single step of 1-st order
     /// numerical integration (Eulero integration).
     virtual void VariablesQbIncrementPosition(double step) override;
@@ -273,8 +274,10 @@ class ChApiFea ChMesh : public ChIndexedNodes {
     /// Initial setup (before analysis).
     /// This function is called from ChSystem::SetupInitial, marking a point where system
     /// construction is completed.
-    /// - Computes the total number of degrees of freedom
-    /// - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
+    /// <pre>
+    ///   - Computes the total number of degrees of freedom
+    ///   - Precompute auxiliary data, such as (local) stiffness matrices Kl, if any, for each element.
+    /// </pre>
     virtual void SetupInitial() override;
 };
 
