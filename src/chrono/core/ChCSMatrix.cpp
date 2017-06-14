@@ -214,7 +214,7 @@ namespace chrono {
 		if (trail_sel == -1)
 			trail_sel = leadIndex[lead_sel + 1];
 
-		assert(trail_sel >= 0 && trail_sel < trailIndex.size() && "Cannot inflate the values and trail-dimension index array in the given position");
+		assert(trail_sel >= 0 && trail_sel <= leadIndex[*leading_dimension] && "Cannot inflate the values and trail-dimension index array in the given position");
 
 
 		auto new_size = trailIndex.size() + storage_augm;
