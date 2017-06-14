@@ -116,7 +116,7 @@ void ChLinkClearance::UpdateForces(double mytime) {
     Vector m_friction_F_abs = VNULL;
     double m_norm_force = -this->react_force.x();
 
-    // Just add coloumb kinematic friction...
+    // Just add Coulomb kinematic friction...
 
     if (((ChLinkMaskLF*)(this->GetMask()))->Constr_X().IsActive()) {
         Vector temp = Get_contact_P_abs();

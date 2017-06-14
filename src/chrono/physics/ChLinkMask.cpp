@@ -147,7 +147,7 @@ int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
     return mcount;
 }
 
-// set lock =ON for costraints which were disabled because redundant
+// set lock =ON for constraints which were disabled because redundant
 int ChLinkMask::RestoreRedundant() {
     int tot = 0;
     for (int j = 0; j < nconstr; j++) {

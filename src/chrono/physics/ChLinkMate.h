@@ -28,7 +28,7 @@ namespace chrono {
 /// are created in assemblies of 3D CAD tools (parallel
 /// axis, or face-to-face, etc.).
 /// Note that most of the ChLinkMate constraints can be
-/// done also with the contraints inherited from ChLinkLock...
+/// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
 /// reference two ChMarker objects, tht can also move, but
 /// this is could be an unnecessary complication in most cases.
@@ -76,9 +76,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool c_ry;
     bool c_rz;
 
-    int ndoc;    ///< number of DOC, degrees of costraint
-    int ndoc_c;  ///< number of DOC, degrees of costraint (only bilaterals)
-    int ndoc_d;  ///< number of DOC, degrees of costraint (only unilaterals)
+    int ndoc;    ///< number of DOC, degrees of constraint
+    int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
+    int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
 
     ChLinkMask* mask;
 
@@ -137,7 +137,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialization based on passing two vectors (point + dir) on the
     /// two bodies, they will represent the X axes of the two frames (Y and Z will
-    /// be built from the X vector via Gramm Schmidt orthonomralization).
+    /// be built from the X vector via Gram Schmidt orthonormalization).
     /// Use the other ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
@@ -514,7 +514,7 @@ CH_CLASS_VERSION(ChLinkMateOrthogonal,0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint that completly fix one frame's rotation and translation
+/// Mate constraint that completely fix one frame's rotation and translation
 /// respect to the other frame.
 
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {

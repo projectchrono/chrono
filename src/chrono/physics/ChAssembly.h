@@ -67,7 +67,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// of adding it to the proper list: of bodies, of links, or of other generic
     /// physic item. (i.e. it calls AddBody(), AddLink() or AddOtherPhysicsItem() ).
     /// Note, you cannot call Add() during an Update (ie. items like particle generators that
-    /// are already inserted in thesystem cannot call this) because not thread safe: rather
+    /// are already inserted in the system cannot call this) because not thread safe: rather
     /// use AddBatch().
     void Add(std::shared_ptr<ChPhysicsItem> newitem);
 
@@ -386,14 +386,14 @@ class ChApi ChAssembly : public ChPhysicsItem {
     int nlinks;         ///< number of links
     int nphysicsitems;  ///< number of other physics items
     int ncoords;        ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;           ///< number of scalar costraints (including constr. on quaternions)
+    int ndoc;           ///< number of scalar constraints (including constr. on quaternions)
     int nsysvars;       ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
     int ncoords_w;      ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;         ///< number of scalar costraints  when using 3 rot. dof. per body;  for all active bodies
+    int ndoc_w;         ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
     int nsysvars_w;     ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
     int ndof;           ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;       ///< number of scalar costraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;       ///< number of scalar costraints D, when using 3 rot. dof. per body (only unilaterals)
+    int ndoc_w_C;       ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int ndoc_w_D;       ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
     int nbodies_sleep;  ///< number of bodies that are sleeping
     int nbodies_fixed;  ///< number of bodies that are fixed
 };

@@ -114,7 +114,7 @@ double ChSolverPCG::Solve(ChSystemDescriptor& sysd  ///< system description with
         double alpha = up / pNp;                      // 4)  alpha =  u'*p / p'*N*p
 
         if (fabs(pNp) < 10e-10)
-            GetLog() << "Rayleygh quotient pNp breakdown \n";
+            GetLog() << "Rayleigh quotient pNp breakdown \n";
 
         // l = l + alpha * p;
         mtmp.CopyFromMatrix(mp);

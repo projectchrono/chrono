@@ -207,7 +207,7 @@ bool ConvexBuilder::combineHulls(void)
 		{
 			ChUll *match = mChulls[j];
 
-			if ( cr != match ) // don't try to merge a hull with itself, that be stoopid
+			if ( cr != match ) // don't try to merge a hull with itself, that be stupid
 			{
 
 				ChUll *merge = canMerge(cr,match); // if we can merge these two....
@@ -272,7 +272,7 @@ unsigned int ConvexBuilder::process(const DecompDesc &desc)
 	calcConvexDecomposition(desc.mVcount, desc.mVertices, desc.mTcount, desc.mIndices,this,0,0);
 
 
-	while ( combineHulls() ); // keep combinging hulls until I can't combine any more...
+	while ( combineHulls() ); // keep combining hulls until I can't combine any more...
 
 	int i;
 	for (i=0;i<mChulls.size();i++)

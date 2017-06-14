@@ -22,7 +22,7 @@ namespace chrono {
 /// Class for defining a user-defined torque between two one-degree-of-freedom parts;
 /// i.e., shafts that can be used to build 1D models of powertrains. This is more
 /// efficient than simulating power trains modeled with full 3D ChBody objects.
-/// Two shaftsa are needed, because one gets the torque, and the other is the
+/// Two shafts are needed, because one gets the torque, and the other is the
 /// 'reference' that gets the negative torque as a reaction. For instance, a
 /// thermal engine applies a torque T to a crankshaft, but also applies -T to the
 /// engine block!

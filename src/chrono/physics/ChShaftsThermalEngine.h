@@ -23,7 +23,7 @@ namespace chrono {
 /// Class for defining a thermal engine between two one-degree-of-freedom parts;
 /// i.e., shafts that can be used to build 1D models of power trains.
 /// The first shaft is the 'crankshaft' to whom the torque is applied, the second
-/// is the botor block, that receives the negative torque.
+/// is the motor block, that receives the negative torque.
 
 class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
 
@@ -54,7 +54,7 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
     /// the torque is exactly T=T(w), otherwise it is linearly
     /// scaled as T=T(w)*s.
     /// This is a simplified model of real torque modulation, but
-    /// nough for a basic model. An advanced approach would require a 2D map T(w,s)
+    /// enough for a basic model. An advanced approach would require a 2D map T(w,s)
     void SetThrottle(double mt) { throttle = mt; }
     /// Get the current throttle value
     double GetThrottle() const { return throttle; }

@@ -1,30 +1,17 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHC_MODELSPHERESET_H
 #define CHC_MODELSPHERESET_H
-
-//////////////////////////////////////////////////
-//
-//   ChCModelSphereSet.h
-//
-//   A wrapper to use CPU CD between sphere sets
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include <vector>
 #include "collision/ChCCollisionModel.h"
@@ -113,8 +100,8 @@ class ChApi ChModelSphereSet : public ChCollisionModel {
     /// when possible, prefer simplified representations as compounds of convex
     /// shapes of boxes/spheres/etc.. type.
     virtual bool AddTriangleMeshConcave(const geometry::ChTriangleMesh& trimesh,  ///< the concave triangle mesh
-                                        ChVector<>* pos = 0,
-                                        ChMatrix33<>* rot = 0  ///< displacement respect to COG (optional)
+                                        ChVector<>* pos = 0,   ///< displacement respect to COG (optional)
+                                        ChMatrix33<>* rot = 0  ///< rotation respect to COG (optional)
                                         );
     /// CUSTOM for this class only: add a concave triangle mesh that will be decomposed
     /// into a compound of convex shapes. Decomposition could be more efficient than
@@ -125,8 +112,8 @@ class ChApi ChModelSphereSet : public ChCollisionModel {
     /// shapes of boxes/spheres/etc.. type.
     virtual bool AddTriangleMeshConcaveDecomposed(
         ChConvexDecomposition& mydecomposition,  ///< the concave triangle mesh, already decomposed
-        ChVector<>* pos = 0,
-        ChMatrix33<>* rot = 0  ///< displacement respect to COG (optional)
+        ChVector<>* pos = 0,   ///< displacement respect to COG (optional)
+        ChMatrix33<>* rot = 0  ///< rotation respect to COG (optional)
         );
 
     /// Add a barrel-like shape to this model (main axis on Y direction), for collision purposes.

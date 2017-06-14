@@ -64,7 +64,7 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() const { return 3; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints
     virtual int GetDOC_c() override { return 1; }
 
     //
@@ -109,7 +109,7 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Use this function after planetary gear creation, to initialize it, given
     /// three shafts to join.
     /// Although there's no special requirement, you may think of the three
-    /// typical moving parts of an apycycloidal reducer: the carrier, the
+    /// typical moving parts of an epicycloidal reducer: the carrier, the
     /// input gear, and the gear with inner teeth that usually is kept fixed (but the
     /// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you)
     /// Each shaft must belong to the same ChSystem.

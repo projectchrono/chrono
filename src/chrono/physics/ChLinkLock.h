@@ -33,9 +33,9 @@ class ChApi ChLinkLock : public ChLinkMasked {
     CH_FACTORY_TAG(ChLinkLock)
 
   protected:
-    Coordsys relC;       ///< relative costraint position: relC = (relM-deltaC)
-    Coordsys relC_dt;    ///< relative costraint speed
-    Coordsys relC_dtdt;  ///< relative costraint acceleration
+    Coordsys relC;       ///< relative constraint position: relC = (relM-deltaC)
+    Coordsys relC_dt;    ///< relative constraint speed
+    Coordsys relC_dtdt;  ///< relative constraint acceleration
 
     Coordsys deltaC;       ///< user-imposed rel. position
     Coordsys deltaC_dt;    ///< user-imposed rel. speed
@@ -113,7 +113,7 @@ class ChApi ChLinkLock : public ChLinkMasked {
     virtual void UpdateTime(double mytime) override;
 
     // Updates coords relM, relM_dt, relM_dtdt;
-    // dist, dist_dt et similia, just like in parent class, but
+    // dist, dist_dt et simila, just like in parent class, but
     // overrides parent implementation of ChLinkMarkers because it can save some
     // temporary vectors (q_4, q_8 etc.) which can be useful in UpdateState(),
     // for speed reasons.
@@ -297,7 +297,7 @@ CH_CLASS_VERSION(ChLinkLock,0)
 // ---------------------------------------------------------------------------------------
 
 /// Revolute joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockRevolute : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -311,7 +311,7 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 };
 
 /// 6-dof locked joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockLock : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -325,7 +325,7 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 };
 
 /// Spherical joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockSpherical : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -339,7 +339,7 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 };
 
 /// Cylindrical joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -367,7 +367,7 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 };
 
 /// Point-plane joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -381,7 +381,7 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 };
 
 /// Point-line joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPointLine : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -395,7 +395,7 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 };
 
 /// Plane-plane joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPlanePlane : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -409,7 +409,7 @@ class ChApi ChLinkLockPlanePlane : public ChLinkLock {
 };
 
 /// Oldham joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockOldham : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -423,7 +423,7 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 };
 
 /// Free joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockFree : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -437,7 +437,7 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 };
 
 /// Align joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockAlign : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -451,7 +451,7 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 };
 
 /// Parallel joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockParallel : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:
@@ -465,7 +465,7 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 };
 
 /// Perpendicularity joint , with the 'ChLinkLock' formulation.
-/// (allows a simplier creation of a link as a sub-type of ChLinkLock).
+/// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 
 class ChApi ChLinkLockPerpend : public ChLinkLock {
     // Tag needed for class factory in archive (de)serialization:

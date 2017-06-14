@@ -404,7 +404,7 @@ bool ChTimestepperHHT::CheckConvergence(double scaling_factor) {
     return converged;
 }
 
-// Calculate the error weight vector correspondiong to the specified solution vector x,
+// Calculate the error weight vector corresponding to the specified solution vector x,
 // using the given relative and absolute tolerances.
 void ChTimestepperHHT::CalcErrorWeights(const ChVectorDynamic<>& x, double rtol, double atol, ChVectorDynamic<>& ewt) {
     ewt.Reset(x.GetLength());

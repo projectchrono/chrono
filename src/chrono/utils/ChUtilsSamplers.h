@@ -87,7 +87,7 @@ struct Types {
     typedef std::list<ChVector<T>> PointList;
 };
 
-// Convenience shrotcuts
+// Convenience shortcuts
 typedef Types<double>::PointVector PointVectorD;
 typedef Types<float>::PointVector PointVectorF;
 

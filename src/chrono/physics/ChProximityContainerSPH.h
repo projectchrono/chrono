@@ -58,7 +58,7 @@ class ChApi ChProximitySPH {
 };
 
 /// Class for container of many proximity pairs for SPH (Smooth
-/// Particle Hydrodinamics and similar meshless force computations),
+/// Particle Hydrodynamics and similar meshless force computations),
 /// as CPU typical linked list of ChProximitySPH objects.
 
 class ChApi ChProximityContainerSPH : public ChProximityContainer {
@@ -106,7 +106,7 @@ class ChApi ChProximityContainerSPH : public ChProximityContainer {
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
-    // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
+    // into the connected pairs of particles (summation into particle's  J, Amoment, m_v, UserForce -viscous only- )
     // Will be called by the ChMatterSPH item.
     void AccumulateStep1();
 

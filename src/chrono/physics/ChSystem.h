@@ -124,15 +124,14 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     double GetStepMax() const { return step_max; }
 
     /// Set the method for time integration (time stepper type).
-    /// <pre>
     ///   - Suggested for fast dynamics with hard (NSC) contacts: EULER_IMPLICIT_LINEARIZED
     ///   - Suggested for fast dynamics with hard (NSC) contacts and low inter-penetration: EULER_IMPLICIT_PROJECTED
     ///   - Suggested for finite element smooth dynamics: HHT, EULER_IMPLICIT_LINEARIZED
-    /// NOTES:
+    ///
+    /// *Notes*:
     ///   - for more advanced customization, use SetTimestepper()
     ///   - old methods ANITESCU and TASORA were replaced by EULER_IMPLICIT_LINEARIZED and EULER_IMPLICIT_PROJECTED,
     ///     respectively
-    /// </pre>
     void SetTimestepperType(ChTimestepper::Type type);
 
     /// Get the current method for time integration (time stepper type).
@@ -185,16 +184,15 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
-    /// <pre>
     ///   - Suggested solver for speed, but lower precision: SOR
     ///   - Suggested solver for higher precision: BARZILAIBORWEIN or APGD
     ///   - For problems that involve a stiffness matrix: MINRES
-    /// NOTES:
+    ///
+    /// *Notes*:
     ///   - Do not use CUSTOM type, as this type is reserved for external solvers
-    ///     (set using SetSolver and/or SetStabSolver)
+    ///     (set using SetSolver() and/or SetStabSolver())
     ///   - This function is a shortcut, internally equivalent to two calls to
     ///     SetSolver() and SetStabSolve()
-    /// </pre>
     virtual void SetSolverType(ChSolver::Type type);
 
     /// Gets the current solver type.
@@ -312,7 +310,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// Remove all controls from this system.
     void RemoveAllControls();
 
-    /// Replace the contact continer.
+    /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container);
 
     /// Get the contact container
@@ -639,13 +637,13 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// reached, but current time step may be automatically "retouched" to
     /// meet exactly the m_endtime after n steps.
     /// Useful when you want to advance the simulation in a
-    /// simulations (3d modeling software etc.) wihch needs updates
+    /// simulations (3d modeling software etc.) which needs updates
     /// of the screen at a fixed rate (ex.30th of second)  while
     /// the integration must use more steps.
     bool DoFrameDynamics(double m_endtime);
 
     /// Given the current state, the sw simulates the
-    /// dynamical behaviour of the system, until the end
+    /// dynamical behavior of the system, until the end
     /// time is reached, repeating many steps (maybe the step size
     /// will be automatically changed if the integrator method supports
     /// step size adaption).
@@ -682,7 +680,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     ///    dump_f.dat   has the applied loads
     ///    dump_b.dat   has the constraint rhs
     /// as passed to the solver in the problem
-    ///  | H -Cq'|*|q|- | f|= |0| , l \in Y, c \in Ny, normal cone to Y
+    ///  | H -Cq'|*|q|- | f|= |0| , l \f$\in Y, c \in Ny\f$, normal cone to Y
     ///  | Cq -E | |l|  |-b|  |c|
 
     void SetDumpSolverMatrices(bool md) { dump_matrices = md; }
@@ -731,7 +729,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     bool DoFrameKinematics(double m_endtime);
 
     /// Given the current state, this kinematic simulation
-    /// satisfies all the costraints with the "DoStepKinematics"
+    /// satisfies all the constraints with the "DoStepKinematics"
     /// procedure for each time step, from the current time
     /// to the end time.
     bool DoEntireKinematics();
@@ -742,7 +740,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     /// a Newton-Raphson iteration loop. Used iteratively in inverse kinematics.
     /// Action can be one of AssemblyLevel::POSITION, AssemblyLevel::VELOCITY, or 
     /// AssemblyLevel::ACCELERATION (or a combination of these)
-    /// Returns true if no errors and false if an error occured (impossible assembly?)
+    /// Returns true if no errors and false if an error occurred (impossible assembly?)
     bool DoAssembly(int action);
 
     /// Shortcut for full position/velocity/acceleration assembly.
@@ -764,8 +762,8 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
     /// Finds the position of static equilibrium (and the
     /// reactions) starting from the current position.
-    /// Since a truncated iterative metod is used, you may need
-    /// to call this method multiple times in case of large nonlienarities
+    /// Since a truncated iterative method is used, you may need
+    /// to call this method multiple times in case of large nonlinearities
     /// before coming to the precise static solution.
     bool DoStaticRelaxing(int nsteps = 10);
 
@@ -780,7 +778,7 @@ class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 
     /// Process a ".chr" binary file containing the full system object
-    /// hierarchy as exported -for example- by the R3D modeler, with chrono plugin version,
+    /// hierarchy as exported -for example- by the R3D modeler, with chrono plug-in version,
     /// or by using the FileWriteChR() function.
     int FileProcessChR(ChStreamInBinary& m_file);
 

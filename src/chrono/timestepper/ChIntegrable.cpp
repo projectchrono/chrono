@@ -132,7 +132,7 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
 
     if (y.GetRows() == this->GetNcoords_y()) {
         // Incrementing y in y={x, dx/dt}.
-        // PERFORMANCE WARNING! temporary vecotrs allocated on heap. This is only to support
+        // PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
         // compatibility with 1st order integrators.
         ChState mx(this->GetNcoords_x(), y.GetIntegrable());
         ChStateDelta mv(this->GetNcoords_v(), y.GetIntegrable());

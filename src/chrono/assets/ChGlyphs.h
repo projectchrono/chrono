@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHGLYPHS_H
 #define CHGLYPHS_H
@@ -18,7 +19,7 @@
 
 namespace chrono {
 
-/// Class for referencing a set of 'glyps', that are simple symbols
+/// Class for referencing a set of 'glyphs', that are simple symbols
 /// such as arrows or points to be drawn for showing vector directions etc.
 /// Remember that depending on the type of visualization system
 /// (POVray, Irrlicht,etc.) this asset might not be supported.

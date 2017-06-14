@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
+    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 enable_testing()

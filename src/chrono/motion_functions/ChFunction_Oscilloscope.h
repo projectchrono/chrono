@@ -54,8 +54,8 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     virtual double Get_y(double x) const override;
 
     /// Add a point at the head (right side of point array).
-    /// Note that it is user's responsability to add points
-    /// which are spaced uniformily (by dx) on the X axis!
+    /// Note that it is user's responsibility to add points
+    /// which are spaced uniformly (by dx) on the X axis!
     /// No checks are done on the correctness of the dx spacing,
     /// except that if you enter a point whose mx is less than the
     /// mx of the one you previously entered, the array is cleared.

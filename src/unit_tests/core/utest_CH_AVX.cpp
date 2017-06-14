@@ -95,7 +95,7 @@ bool CheckMatMultT(int M, int N, int K, double tolerance) {
 }
 
 int main(int argc, char* argv[]) {
-    // Print differences between standard and AVX-based multiplicaitons
+    // Print differences between standard and AVX-based multiplications
     bool printMul = true;
 
     // Tolerance for comparing matrices

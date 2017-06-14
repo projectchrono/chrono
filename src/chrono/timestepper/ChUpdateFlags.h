@@ -20,7 +20,7 @@
 namespace chrono {
 
 /// Flags to be passed to objects being updated during time stepping.
-/// They are useful for optimizating the computations, and other reasons.
+/// They are useful for optimizing the computations, and other reasons.
 /// In fact it happens that not all update functions require the same 'level of completeness'
 /// in recomputing the data in the objects, for example a ChTimestepper might require
 /// multiple StateScatter() calls before advancing to the next timestep (for instance in 

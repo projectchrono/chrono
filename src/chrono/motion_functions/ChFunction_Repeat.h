@@ -24,12 +24,12 @@ namespace chrono {
 ///     y = __/__/__/
 ///
 /// Repeats a 'window' of a function, periodically.
-/// Evalutates a fa(t) function as:
+/// Evaluates a fa(t) function as:
 ///
 ///   fa(t) = fa(window_start + mod(t + window_phase, window_length))
 ///
 /// Note: for infinite window_length and zero window_start, you can use 
-/// window_phase to simply 'translate' the function on absyssa.
+/// window_phase to simply 'translate' the function on abscissa.
 
 class ChApi ChFunction_Repeat : public ChFunction {
 

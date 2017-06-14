@@ -108,7 +108,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    /// Easy in this case because there are no roations..
+    /// Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return pos_dt; }
 
     /// Return the coordinate system for the associated collision model.
@@ -123,7 +123,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -175,7 +175,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     double pressure;
 };
 
-/// Class for SPH fluid material, with basic property of uncompressible fluid.
+/// Class for SPH fluid material, with basic property of incompressible fluid.
 
 class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 
@@ -188,8 +188,8 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
     double pressure_stiffness;
 
   public:
-    /// Create a continuum isothropic elastoplastic material,
-    /// where you can define also plastic and elastic max. stress (yeld limits
+    /// Create a continuum isotropic elastoplastic material,
+    /// where you can define also plastic and elastic max. stress (yield limits
     /// for transition elastic->blastic and plastic->fracture).
     ChContinuumSPH(double m_refdensity = 1000, double mviscosity = 0.1, double mtension = 0)
         : viscosity(mviscosity),

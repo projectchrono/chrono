@@ -64,7 +64,7 @@ class ChApi ChSystemNSC : public ChSystem {
     /// collision model used by this system.  The returned body is not added to the system.
     virtual ChBodyAuxRef* NewBodyAuxRef() override { return new ChBodyAuxRef(ChMaterialSurface::NSC); }
 
-    /// Replace the contact continer.
+    /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     // SERIALIZATION

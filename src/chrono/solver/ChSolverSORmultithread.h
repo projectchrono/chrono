@@ -19,6 +19,10 @@
 #include "chrono/parallel/ChThreads.h"
 
 namespace chrono {
+/// An iterative solver based on projective fixed point method, with overrelaxation
+/// and immediate variable update as in SOR methods. Multi-threaded.\n
+/// See ChSystemDescriptor for more information about the problem formulation and the data structures
+/// passed to the solver.
 
 class ChApi ChSolverSORmultithread : public ChIterativeSolver {
 

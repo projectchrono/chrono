@@ -23,7 +23,7 @@ namespace chrono {
 /// Class for defining a 'transmission ratio' (a 1D gear) between two one-degree-of-freedom
 /// parts; i.e., shafts that can be used to build 1D models of powertrains. This is more
 /// efficient than simulating power trains modeled with full 3D ChBody objects.
-/// Note that this really simple constraint does not provide a way to trasmit a reaction
+/// Note that this really simple constraint does not provide a way to transmit a reaction
 /// force to the truss, if this is needed, just use the ChShaftsPlanetary with a fixed
 /// carrier shaft, or the ChShaftGearbox.
 
@@ -95,8 +95,8 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeths z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeths (or epicycloidal reducer), etc.
+    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
+    /// a gear with inner teeth (or epicycloidal reducer), etc.
     void SetTransmissionRatio(double mt) { ratio = mt; }
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
     double GetTransmissionRatio() const { return ratio; }

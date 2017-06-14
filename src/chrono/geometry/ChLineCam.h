@@ -121,7 +121,7 @@ class ChApi ChLineCam : public ChLine {
     double Get_d() const { return d; }
     double Get_b0() const { return b0; }
 
-    /// Sets the data for the sliding follower (if eccentrical, with me eccentricity)
+    /// Sets the data for the sliding follower (if eccentric, with me eccentricity)
     void Set_sliding_eccentrical(double me) { e = me; };
     double Get_e() const { return e; }
     double Get_s() const { return sqrt(Rb * Rb - e * e); }

@@ -110,7 +110,7 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
 
         case thread_data::STAGE3_LOOPCONSTRAINTS: {
             //     For all items with variables, add the effect of initial (guessed)
-            //     lagrangian reactions of contraints, if a warm start is desired.
+            //     lagrangian reactions of constraints, if a warm start is desired.
             //     Otherwise, if no warm start, simply resets initial lagrangians to zero.
             //
             if (tdata->solver->GetWarmStart()) {
@@ -231,11 +231,11 @@ void SolverThreadFunc(void* userPtr, void* lsMemory) {
 
                 }  // end loop on constraints
 
-                // For recording into violaiton history, if debugging
+                // For recording into violation history, if debugging
                 // if (this->record_violation_history)
                 //	AtIterationEnd(maxviolation, maxdeltalambda, iter);  //***TO DO***
 
-                // Terminate the loop if violation in constraints has been succesfully limited.
+                // Terminate the loop if violation in constraints has been successfully limited.
                 if (maxviolation < tdata->solver->GetTolerance())
                     break;
 

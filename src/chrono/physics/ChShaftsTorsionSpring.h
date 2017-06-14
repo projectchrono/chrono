@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// Class for defining a torsional spring-damper between between two 1D parts;
+/// Class for defining a torsional spring-damper between two 1D parts;
 /// i.e., shafts that can be used to build 1D models of powertrains. This is
 /// more efficient than simulating power trains modeled with full 3D ChBody
 /// objects.

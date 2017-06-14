@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChShaftsTorque)
 ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsTorqueBase(other) {}
 
 double ChShaftsTorque::ComputeTorque() {
-    // Simply return the user-sspecified torque
+    // Simply return the user-specified torque
     return torque;
 }
 

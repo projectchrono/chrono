@@ -140,7 +140,7 @@ double ChTriangle::PointTriangleDistance(ChVector<> B,
 
     double dylen = Vlength(Dy);
 
-    if (fabs(dylen) < EPS_TRIDEGENERATE)  // degenere triangle
+    if (fabs(dylen) < EPS_TRIDEGENERATE)  // degenerate triangle
         return mdistance;
 
     Dy = Vmul(Dy, 1.0 / dylen);

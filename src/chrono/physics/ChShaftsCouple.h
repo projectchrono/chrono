@@ -75,7 +75,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Children classes might overload this.
     virtual double GetTorqueReactionOn2() const { return 0; }
 
-    /// Get the actual reative angle in terms of phase of shaft 1 respect to 2.
+    /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
     double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
     double GetRelativeRotation_dt() const { return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt()); }

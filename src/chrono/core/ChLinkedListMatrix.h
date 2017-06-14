@@ -164,7 +164,7 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     /// Note that the matrix is modified in-place to contain the LU factors.
     int SolveSymmetric(const ChMatrix<>& b, ChMatrix<>& x);
 
-    /// Get the pivot indices after the last factorization.
+    /// Get the pivot indexes after the last factorization.
     const std::vector<int>& GetPivots() const { return m_pindices; }
 
     /// Get matrix determinant.
@@ -189,9 +189,9 @@ class ChApi ChLinkedListMatrix : public ChSparseMatrix {
     ChMelement* GetElarrayDereferenced() { return *elarray; }  // used to scan the matrix faster than GetElement
 
     /// Used to convert to CSR3 format (ChCSMatrix).
-    /// Returns a pointer to an array/vector of type \areserveSizeType.
+    /// Returns a pointer to an array/vector of type \a reserveSizeType.
     /// reserveSizeType[i] gives the number of non-zero elements in the i-th row;
-    /// \areserveSize must have the same row-dimension as ChLinkedListMatrix instance.
+    /// \a reserveSize must have the same row-dimension as ChLinkedListMatrix instance.
     template <typename reserveSizeType>
     void CountNonZeros(reserveSizeType& reserveSize, int offset = 0) {
         ChMelement* el_temp;

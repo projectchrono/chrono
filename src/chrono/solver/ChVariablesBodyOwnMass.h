@@ -92,7 +92,7 @@ class ChApi ChVariablesBodyOwnMass : public ChVariablesBody {
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
+    /// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {

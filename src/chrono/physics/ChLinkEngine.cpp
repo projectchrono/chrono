@@ -230,7 +230,7 @@ void ChLinkEngine::UpdateTime(double mytime) {
     mot_rerot_dt = mot_rot_dt / mot_tau;
     mot_rerot_dtdt = mot_rot_dtdt / mot_tau;
 
-    // nothing more to do here fortorque control
+    // nothing more to do here for torque control
     if (eng_mode == ENG_MODE_TORQUE)
         return;
 

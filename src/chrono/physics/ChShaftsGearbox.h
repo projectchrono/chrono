@@ -65,7 +65,7 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() const { return 6 + 1 + 1; }
 
-    /// Number of scalar costraints
+    /// Number of scalar constraints
     virtual int GetDOC_c() override { return 1; }
 
     //
@@ -126,8 +126,8 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeths z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeths (or epicycloidal reducer), etc.
+    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
+    /// a gear with inner teeth (or epicycloidal reducer), etc.
     /// Also the t0 ordinary equivalent ratio of the inverted planetary,
     /// if the 3D body is rotating as in planetary gears.
     void SetTransmissionRatio(double t0) {

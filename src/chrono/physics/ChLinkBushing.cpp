@@ -13,7 +13,7 @@
 //
 // Class that inherits from ChLinkLock as a free joint. Compliances are added
 // to the relative motion between two rigid bodies. Out of the 6 possible dofs
-// available to apply compliance, only those corresponsing the bushing type
+// available to apply compliance, only those corresponding the bushing type
 // selected by the user are introduced.
 //
 // =============================================================================

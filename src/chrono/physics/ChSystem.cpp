@@ -727,7 +727,7 @@ bool ChSystem::ManageSleepingBodies() {
             }
         }
 
-        // scan all contacts and wake neighbouring bodies
+        // scan all contacts and wake neighboring bodies
         contact_container->ReportAllContacts(&my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
@@ -1570,7 +1570,7 @@ bool ChSystem::Integrate_Y() {
     CustomEndOfStep();
 
     // If there are some probe objects in the probe list,
-    // tell them to record their variables (ususally x-y couples)
+    // tell them to record their variables (usually x-y couples)
     RecordAllProbes();
 
     // Call method to gather contact forces/torques in rigid bodies
@@ -1583,7 +1583,7 @@ bool ChSystem::Integrate_Y() {
 }
 
 // -----------------------------------------------------------------------------
-// **** SATISFY ALL COSTRAINT EQUATIONS WITH NEWTON
+// **** SATISFY ALL CONSTRAINT EQUATIONS WITH NEWTON
 // **** ITERATION, UNTIL TOLERANCE SATISFIED, THEN UPDATE
 // **** THE "Y" STATE WITH SetY (WHICH AUTOMATICALLY UPDATES
 // **** ALSO AUXILIARY MATRICES).
@@ -1737,7 +1737,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if (err) {
         last_err = true;
-        GetLog() << "WARNING: some costraints may be redundant, but couldn't be eliminated \n";
+        GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
     }
     return last_err;
 }
@@ -1782,8 +1782,8 @@ bool ChSystem::DoEntireDynamics() {
     Setup();
 
     // the system may have wrong layout, or too large
-    // clearances in costraints, so it is better to
-    // check for costraint violation each time the integration starts
+    // clearances in constraints, so it is better to
+    // check for constraint violation each time the integration starts
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     // Perform the integration steps until the end
@@ -1881,7 +1881,7 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     return true;
 }
 
-// Like DoFrameDynamics, but performs kinematics instead of dinamics
+// Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double m_endtime) {
     double frame_step;

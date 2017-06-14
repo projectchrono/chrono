@@ -24,7 +24,7 @@ namespace chrono {
 class ChSystem;
 
 ///  Class for one-degree-of-freedom mechanical parts with associated
-///  inertia (mass, or J moment of intertial for rotating parts).
+///  inertia (mass, or J moment of inertial for rotating parts).
 ///  In most cases these represent shafts that can be used to build 1D models
 ///  of power trains. This is more efficient than simulating power trains
 ///  modeled with full 3D ChBody objects.

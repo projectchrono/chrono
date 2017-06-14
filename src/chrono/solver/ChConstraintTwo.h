@@ -22,7 +22,7 @@ namespace chrono {
 
 /// This class is inherited by the base ChConstraint(),
 /// which does almost nothing. So here this class implements
-/// the functionality for a constrint between a COUPLE of TWO
+/// the functionality for a constraint between a COUPLE of TWO
 /// objects of type ChVariables(), and defines two constraint
 /// matrices, whose column number automatically matches the number
 /// of elements in variables vectors.

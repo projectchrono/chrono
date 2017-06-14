@@ -109,7 +109,7 @@ class ChApi ChBox : public ChGeometry {
         marchive << CHNVP(Pos);
         marchive << CHNVP(Rot);
         ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
     }
 
     /// Method to allow de serialization of transient data from archives.
@@ -122,7 +122,7 @@ class ChApi ChBox : public ChGeometry {
         marchive >> CHNVP(Pos);
         marchive >> CHNVP(Rot);
         ChVector<> Lengths;
-        marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
         SetLengths(Lengths);
     }
 };

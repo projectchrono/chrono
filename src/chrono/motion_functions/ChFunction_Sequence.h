@@ -87,8 +87,7 @@ class ChApi ChFseqNode {
     }
 };
 
-CH_CLASS_VERSION(ChFseqNode,0)
-
+CH_CLASS_VERSION(ChFseqNode, 0)
 
 /// Sequence function:
 ///   y = sequence_of_functions(f1(y), f2(y), f3(y))
@@ -97,7 +96,6 @@ CH_CLASS_VERSION(ChFseqNode,0)
 /// laws can be created by sequencing many basic ChFunctions.
 
 class ChApi ChFunction_Sequence : public ChFunction {
-
     CH_FACTORY_TAG(ChFunction_Sequence)
 
   private:
@@ -144,10 +142,11 @@ class ChApi ChFunction_Sequence : public ChFunction {
     bool InsertFunct(std::shared_ptr<ChFunction> myfx,  ///< the function to insert
                      double duration,                   ///< duration of the time segment for this function
                      double weight = 1,                 ///< optional weight scalar
-                     bool c0 = false,
-                     bool c1 = false,
-                     bool c2 = false,     ///< impose continuity to previous f() by offsetting/slanting
-                     int position = -1);  ///< position index, 0,1,2,3.. (if -1 insert at the end)
+                     bool c0 = false,                   ///< impose continuity to previous f() by offsetting/slanting
+                     bool c1 = false,                   ///< impose continuity to previous f() by offsetting/slanting
+                     bool c2 = false,                   ///< impose continuity to previous f() by offsetting/slanting
+                     int position = -1                  ///< position index, 0,1,2,3.. (if -1 insert at the end)
+    );
 
     /// Remove and deletes function with defined "position", and returns true.
     ///	 - If position = 0, removes always head (beginning),

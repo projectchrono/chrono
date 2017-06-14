@@ -33,7 +33,7 @@ namespace chrono {
 /// When a ChMatlabEngine object is instanced, a Matlab engine
 /// is started (assuming Matlab is properly installed and its
 /// dll are available on the system) and following funcitons can
-/// be used to copy variables from/to chrono::engine, and
+/// be used to copy variables from/to Chrono, and
 /// to execute commands in Matlab. Useful also to exploit the
 /// powerful plotting features of Matlab.
 /// Note! to compile programs that include this header, your

@@ -81,14 +81,14 @@ class ChApi ChLine : public ChGeometry {
     }
 
     /// Returns adimensional information on "how much" this curve is similar to another
-    /// in its overall shape (doesnot matter parametrization or start point). Try with 20 samples.
+    /// in its overall shape (does not matter parametrization or start point). Try with 20 samples.
     /// The return value is somewhat the "average distance between the two curves".
     /// Note that the result is affected by "weight" of curves. If it chnges from default 1.0, the
-    /// distance extimation is higher/lower (ex: if a curve defines low 'weight' in its central segment,
+    /// distance estimation is higher/lower (ex: if a curve defines low 'weight' in its central segment,
     /// its CurveCurveDistance from another segment is not much affected by errors near the central segment).
     double CurveCurveDist(ChLine* compline, int samples) const;
 
-    /// Same as before, but returns "how near" is complinesegm to
+    /// Same as before, but returns "how near" is \a complinesegm to
     /// whatever segment of this line (does not matter the percentual of line).
     /// Again, this is affected by "weight" of curves. If weight changes along curves ->'weighted' distance
     double CurveSegmentDist(ChLine* complinesegm, int samples) const;

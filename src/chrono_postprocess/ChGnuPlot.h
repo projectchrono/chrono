@@ -292,7 +292,7 @@ class ChGnuPlot {
     }
 
     /// Set plot in a window.
-    /// For multiple windows, call this with icreasing windownum, interleaving with Plot() statements etc.
+    /// For multiple windows, call this with increasing windownum, interleaving with Plot() statements etc.
     /// Call this before Plot() statements. Otherwise call Replot() just after.
     void OutputWindow(int windownum = 0) {
         FlushPlots(commandfile);

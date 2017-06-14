@@ -1,13 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2010-2012 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #include <memory>
 #include <array>
@@ -560,7 +563,7 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
                                    !added_vertexes[mesh->m_face_v_indices[it].x()],
                                    !added_vertexes[mesh->m_face_v_indices[it].y()],
                                    !added_vertexes[mesh->m_face_v_indices[it].z()],
-                                   // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
+                                   // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
                                    wingedgeA->second.first != -1,
                                    wingedgeB->second.first != -1,
                                    wingedgeC->second.first != -1,
@@ -613,9 +616,9 @@ bool ChModelBullet::AddTriangleMesh(const geometry::ChTriangleMesh& trimesh,
             ChConvexDecompositionJR mydecompositionJR;
             mydecompositionJR.AddTriangleMesh(trimesh);
             mydecompositionJR.SetParameters(0,      // skin width
-                                            9, 64,  // depht, max vertices in hull
+                                            9, 64,  // depth, max vertices in hull
                                             5,      // concavity percent
-                                            5,      // merge treshold percent
+                                            5,      // merge threshold percent
                                             5,      // split threshold percent
                                             true,   // use initial island generation
                                             false   // use island generation (unsupported-disabled)
@@ -874,7 +877,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
                 if (mshape)
                     bt_collision_object->setCollisionShape(mshape);
 
-                // Update the list of sharedpointers to newly created shapes, so that
+                // Update the list of shared pointers to newly created shapes, so that
                 // the deletion will be automatic
                 __recurse_add_newcollshapes(mshape, this->shapes);
             }

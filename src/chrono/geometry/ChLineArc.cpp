@@ -47,7 +47,7 @@ void ChLineArc::Evaluate(ChVector<>& pos, const double parU, const double parV, 
     }
     double mangle = ang1 * (1 - parU) + ang2 * (parU);
     ChVector<> localP(radius * cos(mangle), radius * sin(mangle), 0);
-    pos = localP >> origin;  // translform to absolute coordinates
+    pos = localP >> origin;  // transform to absolute coordinates
 }
 
 }  // end namespace geometry

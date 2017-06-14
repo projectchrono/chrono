@@ -64,8 +64,8 @@ class ChApi ChLinkGear : public ChLinkLock {
     /// Set the transmission ratio. Its value is assumed always positive,
     /// both for inner and outer gears (so use Set_epicyclic() to distinguish)
     void Set_tau(double mset) { tau = fabs(mset); }
-    /// Set the transmission ratio given the number of teeths (or radius) of 1st gear
-    /// and the number of teeths (or radius) of 2nd gear
+    /// Set the transmission ratio given the number of teeth (or radius) of 1st gear
+    /// and the number of teeth (or radius) of 2nd gear
     void Set_tau(double mz1, double mz2) { tau = fabs(mz1 / mz2); }
 
     /// Get the pressure angle (usually 20° for typical gears)

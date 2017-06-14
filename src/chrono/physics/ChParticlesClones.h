@@ -87,7 +87,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    /// Easy in this case because there are no roations..
+    /// Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
@@ -102,7 +102,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -162,11 +162,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// collision shape.
 /// If you have N different families of shapes in your
 /// granular simulations (ex. 50% of particles are large
-/// spheres, 25% are small spheres and 25% are polihedrons)
+/// spheres, 25% are small spheres and 25% are polyhedrons)
 /// you can simply add three ChParticlesClones objects to the
 /// ChSystem. This would be more efficient anyway than
 /// creating all shapes as ChBody.
-
 class ChApi ChParticlesClones : public ChIndexedParticles {
 
     // Tag needed for class factory in archive (de)serialization:
@@ -300,7 +299,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// Set no speed and no accelerations (but does not change the position)
     void SetNoSpeedNoAcceleration() override;
 
-    /// Acess the collision model for the collision engine: this is the 'sample'
+    /// Access the collision model for the collision engine: this is the 'sample'
     /// collision model that is used by all particles.
     /// To get a non-null pointer, remember to SetCollide(true), before.
     collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
@@ -328,10 +327,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetInertiaXX(const ChVector<>& iner);
     /// Get the diagonal part of the inertia tensor of each particle
     ChVector<> GetInertiaXX() const;
-    /// Set the extradiagonal part of the inertia tensor of each particle
+    /// Set the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extradiagonal part of the inertia tensor of each particle
+    /// Get the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     ChVector<> GetInertiaXY() const;
 

@@ -16,7 +16,7 @@
 //
 // The model consists of a rigid double pendulum moving under gravity.
 // The test compares the simulation results (location and velocity of the center
-// of mass of the second pendulum) against the solution obtained byintegrating
+// of mass of the second pendulum) against the solution obtained by integrating
 // the ODEs in minimal coordinates q = (phi1, phi2).
 //
 // =============================================================================

@@ -126,7 +126,7 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get reference to the inner 'absolute frame' auxiliary
     /// coordinates. This object (coordinates/speeds/accel. of marker
-    /// expressed in absolute coordinates) is useful for performace
+    /// expressed in absolute coordinates) is useful for performance
     /// reasons. Note! it is updated only after each Update() function.
     const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
 

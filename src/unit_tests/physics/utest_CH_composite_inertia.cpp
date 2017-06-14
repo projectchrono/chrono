@@ -92,7 +92,7 @@ bool test_boxes() {
     double hz = 6;
     double rho = 100;
 
-    // Create composite of multipel boxes in all 3 directions
+    // Create composite of multiple boxes in all 3 directions
     int nx = 5;
     int ny = 3;
     int nz = 2;

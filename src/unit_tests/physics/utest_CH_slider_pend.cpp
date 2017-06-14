@@ -15,7 +15,7 @@
 // Tests for timesteppers.
 //
 // The model consists of a pendulum attached to a slider. The slider is
-// connected to ground through a horixontal prismatic joint, while the pendulum
+// connected to ground through a horizontal prismatic joint, while the pendulum
 // is connected to the slider through a revolute joint. A horizontal spring is
 // attached to the slider and the mechanism moves under gravity.
 // The test compares the simulation results (location of the pendulum center of

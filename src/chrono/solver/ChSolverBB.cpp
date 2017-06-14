@@ -329,8 +329,8 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd  ///< system description with 
 
         tot_iterations++;
 
-        // Terminate the loop if violation in constraints has been succesfully limited.
-        // ***TO DO*** a reliable termination creterion..
+        // Terminate the loop if violation in constraints has been successfully limited.
+        // ***TO DO*** a reliable termination criterion..
         /*
         if (maxd < this->tolerance)
         {

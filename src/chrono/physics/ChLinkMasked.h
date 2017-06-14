@@ -43,9 +43,9 @@ class ChApi ChLinkMasked : public ChLinkMarkers {
     ChLinkMask* mask;  ///< scalar constraints
 
     // the following counters are cached here for optimization purposes
-    int ndoc;    ///< number of DOC, degrees of costraint
-    int ndoc_c;  ///< number of DOC, degrees of costraint (only bilaterals)
-    int ndoc_d;  ///< number of DOC, degrees of costraint (only unilaterals)
+    int ndoc;    ///< number of DOC, degrees of constraint
+    int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
+    int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
 
     // internal forces
     ChLinkForce* force_D;   ///< the force acting on the straight line m1-m2 (distance)
