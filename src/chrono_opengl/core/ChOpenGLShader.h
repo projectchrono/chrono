@@ -28,7 +28,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Sample shader class that loads and compiles the vertex and fragment shaders.
@@ -66,7 +66,9 @@ class CH_OPENGL_API ChOpenGLShader : public ChOpenGLBase {
     glm::ivec2 viewport_size;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

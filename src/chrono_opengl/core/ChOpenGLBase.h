@@ -44,13 +44,14 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 #ifndef BAD_GL_VALUE
 #define BAD_GL_VALUE GLuint(-1)
 #endif
 
+/// Convert error enum to error string.
 static std::string GetErrorString(GLenum error) {
     std::string ret_val;
     switch (error) {
@@ -113,7 +114,8 @@ class CH_OPENGL_API ChOpenGLBase {
     }
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
 

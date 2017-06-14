@@ -25,7 +25,7 @@ namespace chrono {
 /// Namespace with classes for the Chrono::OpenGL module.
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Manager for the OpenGL context and window.
@@ -123,7 +123,9 @@ class CH_OPENGL_API ChOpenGLWindow {
     int poll_frame;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif
