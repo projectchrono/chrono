@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2015 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -55,7 +55,7 @@ void ChFialaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
 
     SetFialaParams();
 
-    // Initialize contact patach state variables to 0;
+    // Initialize contact patch state variables to 0;
     m_states.cp_long_slip = 0;
     m_states.cp_side_slip = 0;
 }
@@ -110,7 +110,7 @@ void ChFialaTire::Synchronize(double time, const WheelState& wheel_state, const 
     ChMatrix33<> A(wheel_state.rot);
     ChVector<> disc_normal = A.Get_A_Yaxis();
 
-    // Assuuming the tire is a disc, check contact with terrain
+    // Assuming the tire is a disc, check contact with terrain
     m_data.in_contact =
         disc_terrain_contact(terrain, wheel_state.pos, disc_normal, m_unloaded_radius, m_data.frame, m_data.depth);
     if (m_data.in_contact) {
@@ -160,8 +160,7 @@ void ChFialaTire::Advance(double step) {
             double h = std::min<>(m_stepsize, step - t);
 
             // Advance state for longitudinal direction
-			// integrate using trapezoidal rule intergration since this equation is linear
-			// ref: https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)
+			// integrate using trapezoidal rule integration since this equation is linear
 			// cp_long_slip_dot = -1/m_relax_length_x*(Vsx+(abs(Vx)*cp_long_slip))
             m_states.cp_long_slip =
                 ((2 * m_relax_length_x - h * m_states.abs_vx) * m_states.cp_long_slip - 2 * h * m_states.vsx) /
@@ -169,7 +168,6 @@ void ChFialaTire::Advance(double step) {
 
 #if(fialaUseSmallAngle == 0)
 			// integrate using RK2 since this equation is non-linear
-			// ref: http://mathworld.wolfram.com/Runge-KuttaMethod.html
 			// cp_side_slip = 1/m_relax_length_y*(Vsy-(abs(Vx)*tan(cp_long_slip)))
 			double k1 = h / m_relax_length_y*(m_states.vsy - m_states.abs_vx*std::tan(m_states.cp_side_slip));
 			double temp = std::max<>(-CH_C_PI_2 + .0001, std::min<>(CH_C_PI_2 - .0001, m_states.cp_side_slip+k1/2));
@@ -177,9 +175,8 @@ void ChFialaTire::Advance(double step) {
 			m_states.cp_side_slip = m_states.cp_side_slip + k2;
 #else
 			// Advance state for lateral direction
-			// integrate using trapezoidal rule intergration since this equation is linear
+			// integrate using trapezoidal rule integration since this equation is linear
 			//  after using a small angle approximation for tan(alpha)
-			// ref: https://en.wikipedia.org/wiki/Trapezoidal_rule_(differential_equations)
 			// cp_long_slip_dot = -1/m_relax_length_x*(Vsx+(abs(Vx)*cp_long_slip))
 			m_states.cp_side_slip =
 				((2 * m_relax_length_y - h * m_states.abs_vx) * m_states.cp_side_slip + 2 * h * m_states.vsy) /

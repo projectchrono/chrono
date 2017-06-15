@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -99,7 +99,7 @@ public:
     /// The soil mesh is defined by a trimesh.
     const std::shared_ptr<ChTriangleMeshShape> GetMesh() const;
 
-    /// Set the properties of the SCM soild model.
+    /// Set the properties of the SCM soil model.
     /// The meaning of these parameters is described in the paper:
     // "Parameter Identification of a Planetary Rover Wheel–Soil
     // Contact Model via a Bayesian Approach", A.Gallina, R. Krenn et al.
@@ -256,7 +256,7 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     }
     
 
-    // This is called after Initialize(), it precomputes aux.topology
+    // This is called after Initialize(), it pre-computes aux.topology
     // data structures for the mesh, aux. material data, etc.
     void SetupAuxData();
 

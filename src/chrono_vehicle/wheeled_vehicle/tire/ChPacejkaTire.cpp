@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -172,7 +172,7 @@ void ChPacejkaTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) 
     m_C_Fx = 161000;                             // calibrated, sigma_kappa = sigma_kappa_ref = 1.29
     m_C_Fy = 144000;                             // calibrated, sigma_alpha = sigma_alpha_ref = 0.725
 
-    // init all other variables
+    // Initialize all other variables
     m_Num_WriteOutData = 0;
     zero_slips();  // zeros slips, and some other vars
 }
@@ -233,7 +233,7 @@ TireForce ChPacejkaTire::GetTireForce_pureSlip(const bool local) const {
     return m_FM_global;
 }
 
-/// Return the reactions for the combined slip EQs, in local or global coords
+/// Return the reactions for the combined slip EQs, in local or global coordinates
 TireForce ChPacejkaTire::GetTireForce_combinedSlip(const bool local) const {
     if (local)
         return m_FM_combined;
@@ -305,7 +305,7 @@ void ChPacejkaTire::Advance(double step) {
 
     // Do nothing if the wheel does not contact the terrain.  In this case, all
     // reported tire forces will be zero. Still have to update slip quantities, since
-    // displacements won't go to zero imeediately
+    // displacements won't go to zero immediately
     /*
     if (!m_in_contact)
     {
@@ -323,7 +323,7 @@ void ChPacejkaTire::Advance(double step) {
         // a) step <= m_step_size, so integrate using input step
         // b) step > m_step_size, use m_step_size until step <= m_step_size
         double remaining_time = step;
-        // only count the time take to do actual calculations in Adanvce time
+        // only count the time take to do actual calculations in Advance time
         advance_time.start();
         // keep track of the ODE calculation time
         ChTimer<double> ODE_timer;
@@ -349,7 +349,7 @@ void ChPacejkaTire::Advance(double step) {
         // enough time has accumulated to do a macro step, OR, it's the first step
         if( m_time_since_last_step >= m_step_size || !m_initial_step)
         {
-          // only count the time take to do actual calculations in Adanvce time
+          // only count the time take to do actual calculations in Advance time
           advance_time.start();
           // keep track of the ODE calculation time
           ChTimer<double> ODE_timer;
@@ -578,7 +578,7 @@ double ChPacejkaTire::calc_Fz() {
 // -----------------------------------------------------------------------------
 // Calculate kinematic slip quantities from the current wheel state.
 // Note: when not in contact, all slips are assumed zero, but velocities still set
-// The wheel state strcture contains the following member variables:
+// The wheel state structure contains the following member variables:
 //   ChVector<>     pos;        global position
 //   ChQuaternion<> rot;        orientation with respect to global frame
 //   ChVector<>     lin_vel;    linear velocity, expressed in the global frame
@@ -1077,7 +1077,7 @@ double ChPacejkaTire::Fy_pureLat(double alpha, double gamma) {
                   (1.0 - m_params->lateral.pdy3 * pow(gamma, 2)) * m_params->scaling.lmuy;  // > 0
     double D_y = mu_y * m_Fz * m_zeta->z2;
 
-    // doesn't make sense to ever have K_y be negative (it can be interpreted as lateral stiffnesss)
+    // doesn't make sense to ever have K_y be negative (it can be interpreted as lateral stiffness)
     double K_y = m_params->lateral.pky1 * m_params->vertical.fnomin *
                  std::sin(2.0 * std::atan(m_Fz / (m_params->lateral.pky2 * m_params->vertical.fnomin))) *
                  (1.0 - m_params->lateral.pky3 * std::abs(gamma)) * m_zeta->z3 * m_params->scaling.lyka;
@@ -1085,7 +1085,7 @@ double ChPacejkaTire::Fy_pureLat(double alpha, double gamma) {
 
     // double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy + (K_yGamma_0 *
     // m_slip->gammaP - S_VyGamma) * m_zeta->z0 / (K_yAlpha + 0.1) + m_zeta->z4 - 1.0;
-    // Adasms S_Hy is a bit different
+    // Adams S_Hy is a bit different
     double S_Hy = (m_params->lateral.phy1 + m_params->lateral.phy2 * m_dF_z) * m_params->scaling.lhy +
                   (m_params->lateral.phy3 * gamma * m_zeta->z0) + m_zeta->z4 - 1;
 

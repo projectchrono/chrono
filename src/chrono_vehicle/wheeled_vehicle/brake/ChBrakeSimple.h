@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // Simple brake created with constant torque opposing wheel rotation.
-// It just uses a speed-dependant torque, so it fits in ODEs because it does not
+// It just uses a speed-dependent torque, so it fits in ODEs because it does not
 // use NSC set valued constraints (the drawback is that it cannot simulate
 // sticking brakes).
 //
@@ -35,7 +35,7 @@ namespace vehicle {
 
 /// Template for a simple brake subsystem.
 /// Simple brake created with constant torque opposing wheel rotation.
-/// It just uses a speed-dependant torque, so it fits in ODEs because it does not
+/// It just uses a speed-dependent torque, so it fits in ODEs because it does not
 /// use NSC set valued constraints (the drawback is that it cannot simulate
 /// sticking brakes).
 class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
@@ -47,10 +47,11 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     /// Initialize the brake by providing the wheel's revolute link.
     virtual void Initialize(std::shared_ptr<ChLinkLockRevolute> hub) override;
 
-    /// Update the brake subsystem: set the brake modulation, in 0..1 range,
+    /// Update the brake subsystem: set the brake modulation, in 0..1 range:
+    /// <pre>
     /// when = 0 it is completely free,
     /// when = 1 it should provide the max braking torque
-    /// This function can be called to modulate braking in realtime simulation loops.
+    /// </pre>
     virtual void Synchronize(double modulation) override;
 
     /// Get the current brake torque, as a result of simulation,

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -152,7 +152,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChBody> chassis,
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
     m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
 
-    // Rear diferential
+    // Rear differential
     double omega_rear_differentialbox = 0.5 * (omega_axle_RL + omega_axle_RR);
     m_rear_differentialbox->SetPos_dt(omega_rear_differentialbox);
 

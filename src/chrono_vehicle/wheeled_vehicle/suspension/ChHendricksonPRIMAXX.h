@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,7 +21,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -51,7 +51,7 @@ namespace vehicle {
 /// the vehicle.  When attached to a chassis, only an offset is provided.
 ///
 /// All point locations are assumed to be given for the left half of the
-/// supspension and will be mirrored (reflecting the y coordinates) to construct
+/// suspension and will be mirrored (reflecting the y coordinates) to construct
 /// the right side.
 class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
   public:
@@ -186,7 +186,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getLowerbeamMass() const = 0;
     /// Return the mass of the transverse beam body.
     virtual double getTransversebeamMass() const = 0;
-    /// Return the mass of the axlehousing body.
+    /// Return the mass of the axle housing body.
     virtual double getAxlehousingMass() const = 0;
 
     /// Return the moments of inertia of the spindle body.
@@ -199,7 +199,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual const ChVector<>& getLowerbeamInertia() const = 0;
     /// Return the moments of inertia of the transverse beam body.
     virtual const ChVector<>& getTransversebeamInertia() const = 0;
-    /// Return the moments of inertia of the axlehousing body.
+    /// Return the moments of inertia of the axle housing body.
     virtual const ChVector<>& getAxlehousingInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
@@ -214,7 +214,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     virtual double getLowerbeamRadius() const = 0;
     /// Return the radius of the transverse beam body (visualization only).
     virtual double getTransversebeamRadius() const = 0;
-    /// Return the radius of the axlehousing body (visualization only).
+    /// Return the radius of the axle housing body (visualization only).
     virtual double getAxlehousingRadius() const = 0;
 
     // Lower beam spring and damper
@@ -224,7 +224,7 @@ class CH_VEHICLE_API ChHendricksonPRIMAXX : public ChSuspension {
     /// Return the functor object for shock force.
     virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const = 0;
 
-    // Axlehousing spring and damper
+    // Axle housing spring and damper
 
     /// Return the free (rest) length of the spring element.
     virtual double getShockAHRestLength() const = 0;

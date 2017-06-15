@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -192,11 +192,11 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     // look for this data file
     void loadPacTireParamFile();
 
-    // once Pac tire input text file has been succesfully opened, read the input
+    // once Pac tire input text file has been successfully opened, read the input
     // data, and populate the data struct
     void readPacTireInput(std::ifstream& inFile);
 
-    // functions for reading each section in the paramter file
+    // functions for reading each section in the parameter file
     void readSection_UNITS(std::ifstream& inFile);
     void readSection_MODEL(std::ifstream& inFile);
     void readSection_DIMENSION(std::ifstream& inFile);
@@ -283,7 +283,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
                       double step_size);
 
     // calculate and set the transient slip values (kappaP, alphaP, gammaP) from
-    // u, v deflections. optionally turn on/off besselink low velocity damping
+    // u, v deflections. optionally turn on/off Besselink low velocity damping
     void slip_from_uv(bool use_besselink = true,
                       double bessel_Cx = 350.0,
                       double bessel_Cy = 200.0,
@@ -300,17 +300,17 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
 
     /// longitudinal force, alpha ~= 0
     /// assign to m_FM.force.x
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Fx_pureLong(double gamma, double kappa);
 
     /// lateral force,  kappa ~= 0
     /// assign to m_FM.force.y
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Fy_pureLat(double alpha, double gamma);
 
     /// aligning moment,  kappa ~= 0
     /// assign to m_FM.moment.z
-    /// assign m_pureLong, trionometric function calculated constants
+    /// assign m_pureLong, trigonometric function calculated constants
     double Mz_pureLat(double alpha, double gamma, double Fy_pureSlip);
 
     /// longitudinal force, combined slip (general case)
@@ -323,7 +323,7 @@ class CH_VEHICLE_API ChPacejkaTire : public ChTire {
     /// assign m_combinedLat
     double Fy_combined(double alpha, double gamma, double kappa, double Fy_pureSlip);
 
-    // calculate aligning torque, combined slip (gernal case)
+    // calculate aligning torque, combined slip (general case)
     /// assign m_FM_combined.moment.z
     /// assign m_combinedTorque
     double Mz_combined(double alpha_r,

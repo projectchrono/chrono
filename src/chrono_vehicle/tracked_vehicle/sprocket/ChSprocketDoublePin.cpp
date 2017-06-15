@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -128,7 +128,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
 
 // Add contacts between the sprocket and track shoes.
 void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
-    // Return now if collision disabled on sproket.
+    // Return now if collision disabled on sprocket.
     if (!m_sprocket->GetGearBody()->GetCollide())
         return;
 
@@ -153,7 +153,7 @@ void SprocketDoublePinContactCB::CheckConnectorSprocket(std::shared_ptr<ChBody> 
     ChVector<> loc = m_sprocket->GetGearBody()->TransformPointParentToLocal(connector->GetPos());
 
     // (2) Broadphase collision test: no contact if the connector's center is too far from the
-    // center of the gear (test perfomed in the sprocket's x-z plane).
+    // center of the gear (test performed in the sprocket's x-z plane).
     if (loc.x() * loc.x() + loc.z() * loc.z() > m_R_sum * m_R_sum)
         return;
 
@@ -242,7 +242,7 @@ void SprocketDoublePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> conn
 }
 
 // Working in the (x-z) plane, perform a 2D collision test between a circle of radius 'cr'
-// centerd at 'cc' (on the connector body) and an arc on the circle of radius 'ar' centered
+// centered at 'cc' (on the connector body) and an arc on the circle of radius 'ar' centered
 // at 'ac', with the arc endpoints 'p1' and 'p2' (on the gear body).
 void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connector,  // connector body
                                                 const ChVector<>& cc,               // circle center
@@ -262,7 +262,7 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
     if (dist2 <= Rdiff * Rdiff)
         return;
 
-    // If the contact point is outisde the arc (p1-p2), there is no contact.
+    // If the contact point is outside the arc (p1-p2), there is no contact.
     ChVector<> a = p1 - ac;
     ChVector<> b = p2 - ac;
     ChVector<> axb = Vcross(a, b);
@@ -291,7 +291,7 @@ void SprocketDoublePinContactCB::CheckCircleArc(std::shared_ptr<ChBody> connecto
 }
 
 // Working in the (x-z) plane, perform a 2D collision test between the circle of radius 'cr'
-// centerd at 'cc' (on the connector body) and the line segment with endpoints 'p1' and 'p2'
+// centered at 'cc' (on the connector body) and the line segment with endpoints 'p1' and 'p2'
 // (on the gear body).
 void SprocketDoublePinContactCB::CheckCircleSegment(std::shared_ptr<ChBody> connector,  // connector body
                                                     const ChVector<>& cc,               // circle center

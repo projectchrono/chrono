@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Turn on/off rendering of stats (HUD).
     void EnableStats(bool val) { m_renderStats = val; }
 
-    /// Set the height at whoich the horizontal grid is rendered.
+    /// Set the height at which the horizontal grid is rendered.
     void SetGridHeight(double height) { m_gridHeight = height; }
 
     /// Turn on/off Irrklang sound generation.

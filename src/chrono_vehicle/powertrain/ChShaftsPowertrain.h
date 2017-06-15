@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -69,9 +69,9 @@ class CH_VEHICLE_API ChShaftsPowertrain : public ChPowertrain {
     /// Return the current transmission gear.
     virtual int GetCurrentTransmissionGear() const override { return m_current_gear; }
 
-    /// Return the ouput torque from the powertrain.
+    /// Return the output torque from the powertrain.
     /// This is the torque that is passed to a vehicle system, thus providing the
-    /// interface between the powertrain and vehcicle cosimulation modules.
+    /// interface between the powertrain and vehicle co-simulation modules.
     /// Since a ShaftsPowertrain is directly connected to the vehicle's driveline,
     /// this function returns 0.
     virtual double GetOutputTorque() const override { return 0; }

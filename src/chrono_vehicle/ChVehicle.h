@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
-    /// Enable/disable collision for the chassis usbsystem. This function controls
+    /// Enable/disable collision for the chassis subsystem. This function controls
     /// contact of the chassis with all other collision shapes in the simulation.
     void SetChassisCollide(bool state);
 

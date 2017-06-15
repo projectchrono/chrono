@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -45,7 +45,7 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Defintion of a chassis for a track test rig
+// Definition of a chassis for a track test rig
 // -----------------------------------------------------------------------------
 class ChTrackTestRigChassis : public ChRigidChassis {
   public:
@@ -306,7 +306,7 @@ void ChTrackTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height * 12.0);
     post_body->AddAsset(piston);  // add asset to post body
 
-    // Post sleve (on chassis/ground body)
+    // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = width / 4.0;
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);

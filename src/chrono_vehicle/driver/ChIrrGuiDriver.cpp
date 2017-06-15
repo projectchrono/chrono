@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,7 +14,7 @@
 //
 // Irrlicht-based GUI driver for the a vehicle. This class implements the
 // functionality required by its base ChDriver class using keyboard or joystick
-// inputs. If a joystick is present it will use use that as an input; it will
+// inputs. If a joystick is present it will use that as an input; it will
 // otherwise default to a keyboard input.
 // As an Irrlicht event receiver, its OnEvent() callback is used to keep track
 // and update the current driver inputs. As such it does not need to override

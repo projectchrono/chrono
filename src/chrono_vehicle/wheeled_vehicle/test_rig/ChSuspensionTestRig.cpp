@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -544,7 +544,7 @@ void ChSuspensionTestRig::Synchronize(double time, double steering, double disp_
     m_suspension->Synchronize(LEFT, m_tire[LEFT]->GetTireForce());
     m_suspension->Synchronize(RIGHT, m_tire[RIGHT]->GetTireForce());
 
-    // Udpate the height of the underlying "terrain" object, using the current z positions
+    // Update the height of the underlying "terrain" object, using the current z positions
     // of the post bodies.
     m_terrain.m_height_L = m_post[LEFT]->GetPos().z() + m_post_height / 2;
     m_terrain.m_height_R = m_post[RIGHT]->GetPos().z() + m_post_height / 2;
@@ -603,7 +603,7 @@ void ChSuspensionTestRig::AddVisualize_post(VehicleSide side, const ChColor& col
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -m_post_height * 12.0);
     m_post[side]->AddAsset(piston);  // add asset to post body
 
-    // Post sleve (on chassis/ground body)
+    // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = m_post_radius / 4.0;
     cyl->GetCylinderGeometry().p1 = m_post[side]->GetPos() - ChVector<>(0, 0, 8 * m_post_height);

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -221,7 +221,7 @@ DeformableSoil::DeformableSoil(ChSystem* system) {
 // Initialize the terrain as a flat grid
 void DeformableSoil::Initialize(double height, double sizeX, double sizeY, int nX, int nY) {
     m_trimesh_shape->GetMesh().Clear();
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
@@ -276,7 +276,7 @@ void DeformableSoil::Initialize(double height, double sizeX, double sizeY, int n
         }
     }
 
-    // Needed! precomputes aux.topology 
+    // Needed! pre-computes aux.topology 
     // data structures for the mesh, aux. material data, etc.
     SetupAuxData();
 }
@@ -330,7 +330,7 @@ void DeformableSoil::Initialize(const std::string& heightmap_file,
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh_shape->GetMesh().getIndicesVertexes();
@@ -403,7 +403,7 @@ void DeformableSoil::Initialize(const std::string& heightmap_file,
         normals[in] /= (double)accumulators[in];
     }
 
-    // Needed! precomputes aux.topology 
+    // Needed! pre-computes auxiliary topology 
     // data structures for the mesh, aux. material data, etc.
     SetupAuxData();
 }
@@ -455,7 +455,7 @@ void DeformableSoil::SetupAuxData() {
 // Reset the list of forces, and fills it with forces from a soil contact model.
 void DeformableSoil::ComputeInternalForces() {
 
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh_shape->GetMesh().getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh_shape->GetMesh().getCoordsNormals();
     std::vector<ChVector<float> >& colors =  m_trimesh_shape->GetMesh().getCoordsColors();
@@ -568,7 +568,7 @@ void DeformableSoil::ComputeInternalForces() {
 
                 p_sinkage_elastic[i] = p_sinkage[i] - p_sinkage_plastic[i];
 
-                // add compressive speed-proportional damping (not clamped by pressure yeld)
+                // add compressive speed-proportional damping (not clamped by pressure yield)
                 //if (Vn < 0) {
                     p_sigma[i] += -Vn*this->damping_R;
                 //}
@@ -606,7 +606,7 @@ void DeformableSoil::ComputeInternalForces() {
 
             } // end positive contact force
 
-        } // end successfull hit test
+        } // end successful hit test
 
     } // end loop on vertexes
 
