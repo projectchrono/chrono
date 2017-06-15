@@ -29,13 +29,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-/**
-    @addtogroup vehicle_tracked
-    @{
-        @defgroup vehicle_tracked_driveline Driveline subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

@@ -31,13 +31,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_suspension Suspension subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

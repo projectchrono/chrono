@@ -30,13 +30,6 @@
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/powertrain/SimplePowertrain.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_utils Utility classes
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

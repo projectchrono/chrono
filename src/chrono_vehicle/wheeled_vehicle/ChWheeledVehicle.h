@@ -32,13 +32,6 @@
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_wheeled Wheeled vehicles
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

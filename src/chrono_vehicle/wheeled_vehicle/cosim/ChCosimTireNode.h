@@ -30,9 +30,6 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_cosim
-/// @{
-
 class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
   public:
     ChCosimTireNode(int rank, ChSystem* system, ChDeformableTire* tire, WheelID id);
@@ -49,8 +46,6 @@ class CH_VEHICLE_API ChCosimTireNode : public ChCosimNode {
 
     std::shared_ptr<fea::ChLoadContactSurfaceMesh> m_contact_load;
 };
-
-/// @} vehicle_wheeled_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

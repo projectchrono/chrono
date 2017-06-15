@@ -25,13 +25,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_powertrain Powertrain models
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

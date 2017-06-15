@@ -27,13 +27,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_steering Steering subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

@@ -26,13 +26,6 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/wheeled_vehicle/ChSuspension.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_driveline Driveline subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

@@ -32,9 +32,6 @@ namespace vehicle {
 
 class ChCosimManager;
 
-/// @addtogroup vehicle_wheeled_cosim
-/// @{
-
 class CH_VEHICLE_API ChCosimTerrainNode : public ChCosimNode {
   public:
     ChCosimTerrainNode(int rank, ChSystem* system, ChTerrain* terrain, int num_tires);
@@ -44,16 +41,14 @@ class CH_VEHICLE_API ChCosimTerrainNode : public ChCosimNode {
     void Advance(double step);
 
   private:
-    ChCosimManager* m_manager;                  ///< back-pointer to the cosimulation manager
-    ChTerrain* m_terrain;                       ///< underlying terrain object
-    int m_num_tires;                            ///< number of tires
-    std::vector<unsigned int> m_num_vertices;   ///< number of contact vertices received from each tire
-    std::vector<unsigned int> m_num_triangles;  ///< number of contact triangles received from each tire
+    ChCosimManager* m_manager;                  // back-pointer to the cosimulation manager
+    ChTerrain* m_terrain;                       // underlying terrain object
+    int m_num_tires;                            // number of tires
+    std::vector<unsigned int> m_num_vertices;   // number of contact vertices received from each tire
+    std::vector<unsigned int> m_num_triangles;  // number of contact triangles received from each tire
 
     friend class ChCosimManager;
 };
-
-/// @} vehicle_wheeled_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

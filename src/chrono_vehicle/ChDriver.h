@@ -27,13 +27,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_driver Driver models
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

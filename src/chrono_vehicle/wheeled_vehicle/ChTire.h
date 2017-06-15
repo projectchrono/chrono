@@ -30,13 +30,6 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_tire Tire subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

@@ -29,13 +29,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_utils Utility classes
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

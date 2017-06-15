@@ -37,13 +37,6 @@
 #include "chrono_vehicle/wheeled_vehicle/ChWheel.h"
 #include "chrono_vehicle/wheeled_vehicle/ChTire.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_test_rig Suspension test rig classes
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

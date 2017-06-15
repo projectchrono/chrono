@@ -26,13 +26,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_brake Brake subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

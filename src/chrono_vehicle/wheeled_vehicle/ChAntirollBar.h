@@ -28,13 +28,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_antirollbar Anti-roll bar subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

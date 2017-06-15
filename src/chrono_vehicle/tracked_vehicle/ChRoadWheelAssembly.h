@@ -33,13 +33,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/ChRoadWheel.h"
 
-/**
-    @addtogroup vehicle_tracked
-    @{
-        @defgroup vehicle_tracked_suspension Suspension subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 

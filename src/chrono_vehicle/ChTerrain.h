@@ -23,13 +23,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_terrain Terrain models
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
