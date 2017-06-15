@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -78,7 +78,7 @@ void Generic_SimpleMapPowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void Generic_SimpleMapPowertrain::Synchronize(double time, double throttle, double shaft_speed) {
-    // The motorspeed is the shaft speed multiplied by gear ratio inversed: (limited to 8000rpm)
+    // The motor speed is the shaft speed multiplied by gear ratio inversed: (limited to 8000rpm)
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
     m_motorSpeed = m_motorSpeed > (8000. * CH_C_PI / 30.) ? (8000. * CH_C_PI / 30.) : m_motorSpeed;
     m_motorSpeed = m_motorSpeed < 0.0 ? 0.0 : m_motorSpeed;

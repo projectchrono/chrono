@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -56,10 +56,10 @@ void M113a_SimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113a_SimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
-    // The motorspeed is the shaft speed multiplied by gear ratio inversed:
+    // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = std::abs(shaft_speed / m_current_gear_ratio);
 
-    // Assume the the motor is both torque and power limited.
+    // Assume the motor is both torque and power limited.
     // Max torque = 2x7021 ft-lbs (19038.4 Nm)
     // Max power = 200 hp
     // Crossing point = 7.8335 rad/s

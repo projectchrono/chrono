@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,7 +18,7 @@
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
 // by the base class ChRigidSuspension) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -33,6 +33,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Rigid pinned axle suspension for a generic vehicle (spindles attached to a rigid axle).
 class CH_MODELS_API Generic_RigidPinnedAxle : public ChRigidPinnedAxle {
   public:
     Generic_RigidPinnedAxle(const std::string& name) : ChRigidPinnedAxle(name) {}
@@ -72,6 +76,8 @@ class CH_MODELS_API Generic_RigidPinnedAxle : public ChRigidPinnedAxle {
 
     static const double m_axleInertia;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

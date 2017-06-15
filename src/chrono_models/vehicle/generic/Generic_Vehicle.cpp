@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -161,7 +161,7 @@ void Generic_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisF
     m_suspensions[0]->Initialize(m_chassis->GetBody(), ChVector<>(1.6914, 0, 0), m_steerings[0]->GetSteeringLink(), 0);
     m_suspensions[1]->Initialize(m_chassis->GetBody(), ChVector<>(-1.6865, 0, 0), m_chassis->GetBody(), -1);
 
-    // Initialize the antiroll bar subsystem.
+    // Initialize the anti-roll bar subsystem.
     ////if (m_antirollbars.size() == 1) {
     ////  m_antirollbars[0]->Initialize(m_chassis,
     ////                               ChVector<>(1.3, 0, 0.0),

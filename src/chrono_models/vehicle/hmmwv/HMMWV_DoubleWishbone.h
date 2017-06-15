@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,7 +19,7 @@
 // by the base class ChDoubleWishbone) and origins at the midpoint between the
 // lower control arms' connection points to the chassis.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -34,6 +34,11 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Full double wishbone front suspension for the HMMWV vehicle.
+/// The control arms are modeled using rigid bodies.
 class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
   public:
     HMMWV_DoubleWishboneFront(const std::string& name);
@@ -97,6 +102,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneFront : public ChDoubleWishbone {
 
 // -----------------------------------------------------------------------------
 
+/// Full double wishbone rear suspension for the HMMWV vehicle.
+/// The control arms are modeled using rigid bodies.
 class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
   public:
     HMMWV_DoubleWishboneRear(const std::string& name);
@@ -157,6 +164,8 @@ class CH_MODELS_API HMMWV_DoubleWishboneRear : public ChDoubleWishbone {
     static const double m_springCoefficient;
     static const double m_springRestLength;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

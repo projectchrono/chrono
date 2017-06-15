@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,9 +31,10 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-///
-///
-///
+/// @addtogroup vehicle_models_m113
+/// @{
+
+/// Idler and tensioner model for the M113 vehicle (base class).
 class CH_MODELS_API M113_Idler : public ChDoubleIdler {
   public:
     virtual ~M113_Idler() {}
@@ -98,6 +99,7 @@ class CH_MODELS_API M113_Idler : public ChDoubleIdler {
     static const double m_tensioner_f;
 };
 
+/// Idler and tensioner model for the M113 vehicle (left side).
 class CH_MODELS_API M113_IdlerLeft : public M113_Idler {
   public:
     M113_IdlerLeft() : M113_Idler("M113_IdlerLeft") {}
@@ -113,6 +115,7 @@ class CH_MODELS_API M113_IdlerLeft : public M113_Idler {
     static const std::string m_meshFile;
 };
 
+/// Idler and tensioner model for the M113 vehicle (right side).
 class CH_MODELS_API M113_IdlerRight : public M113_Idler {
   public:
     M113_IdlerRight() : M113_Idler("M113_IdlerRight") {}
@@ -127,6 +130,8 @@ class CH_MODELS_API M113_IdlerRight : public M113_Idler {
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

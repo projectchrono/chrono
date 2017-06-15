@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,6 +29,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Rigid tire model for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
   public:
     HMMWV_RigidTire(const std::string& name, bool use_mesh = false);
@@ -48,6 +52,8 @@ class CH_MODELS_API HMMWV_RigidTire : public ChRigidTire {
     static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

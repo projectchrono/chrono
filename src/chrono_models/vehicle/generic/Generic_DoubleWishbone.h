@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,7 +18,7 @@
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
 // by the base class ChDoubleWishbone) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -33,6 +33,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Double wishbone suspension model for a generic vehicle (can be used in front or rear).
 class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
   public:
     // Constructor takes as argument the name of the subsystem instance.
@@ -100,6 +104,7 @@ class CH_MODELS_API Generic_DoubleWishbone : public ChDoubleWishbone {
     static const double m_springRestLength;
 };
 
+/// Double wishbone suspension model for a generic vehicle (front).
 class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
   public:
     // Constructor takes as argument the name of the subsystem instance.
@@ -138,8 +143,8 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-      ChLinkSpringCB::ForceFunctor* m_springForceCB;
-      ChLinkSpringCB::ForceFunctor* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -166,6 +171,7 @@ class CH_MODELS_API Generic_DoubleWishboneFront : public ChDoubleWishbone {
     static const double m_springRestLength;
 };
 
+/// Double wishbone suspension model for a generic vehicle (rear).
 class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
   public:
     // Constructor takes as argument the name of the subsystem instance.
@@ -231,6 +237,8 @@ class CH_MODELS_API Generic_DoubleWishboneRear : public ChDoubleWishbone {
     static const double m_springCoefficient;
     static const double m_springRestLength;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,7 +19,7 @@
 // by the base class ChSolidAxle) and origin at the midpoint between the wheel
 // centers.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -34,6 +34,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Multi-link suspension for a generic vehicle.
 class CH_MODELS_API Generic_MultiLink : public ChMultiLink {
   public:
     Generic_MultiLink(const std::string& name);
@@ -96,6 +100,8 @@ class CH_MODELS_API Generic_MultiLink : public ChMultiLink {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

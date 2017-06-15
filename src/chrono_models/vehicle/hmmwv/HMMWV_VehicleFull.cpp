@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -203,8 +203,6 @@ void HMMWV_VehicleFull::LogHardpointLocations() {
 // Log the spring length, deformation, and force.
 // Log the shock length, velocity, and force.
 // Log constraint violations of suspension joints.
-//
-// Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleFull::DebugLog(int what) {
     GetLog().SetNumFormat("%10.2f");

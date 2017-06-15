@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Simple HMMWV driveline subsystem (purely kinematic).
 class CH_MODELS_API HMMWV_SimpleDriveline : public ChSimpleDriveline {
   public:
     HMMWV_SimpleDriveline(const std::string& name);
@@ -42,6 +46,8 @@ class CH_MODELS_API HMMWV_SimpleDriveline : public ChSimpleDriveline {
     static const double m_front_diff_bias;
     static const double m_rear_diff_bias;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle
