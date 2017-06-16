@@ -24,7 +24,7 @@ namespace chrono {
 class ChSystem;
 
 ///  Class for one-degree-of-freedom mechanical parts with associated
-///  inertia (mass, or J moment of intertial for rotating parts).
+///  inertia (mass, or J moment of inertial for rotating parts).
 ///  In most cases these represent shafts that can be used to build 1D models
 ///  of power trains. This is more efficient than simulating power trains
 ///  modeled with full 3D ChBody objects.
@@ -194,7 +194,7 @@ class ChApi ChShaft : public ChPhysicsItem {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Set the torque applied to the shaft
     void SetAppliedTorque(double mtorque) { torque = mtorque; }
@@ -263,6 +263,9 @@ class ChApi ChShaft : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChShaft,0)
+
 
 }  // end namespace chrono
 

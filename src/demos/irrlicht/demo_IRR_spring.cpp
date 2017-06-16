@@ -26,7 +26,7 @@
 
 #include "chrono/assets/ChPointPointDrawing.h"
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -45,12 +45,13 @@ double damping_coef = 1;
 // =============================================================================
 
 // Functor class implementing the force for a ChLinkSpringCB link.
-class MySpringForce : public ChSpringForceCallback {
-    virtual double operator()(double time,         // current time
-                              double rest_length,  // undeformed length
-                              double length,       // current length
-                              double vel)          // current velocity (positive when extending)
-    {
+class MySpringForce : public ChLinkSpringCB::ForceFunctor {
+    virtual double operator()(double time,          // current time
+                              double rest_length,   // undeformed length
+                              double length,        // current length
+                              double vel,           // current velocity (positive when extending)
+                              ChLinkSpringCB* link  // back-pointer to associated link
+                              ) override {
         double force = -spring_coef * (length - rest_length) - damping_coef * vel;
         return force;
     }
@@ -59,7 +60,7 @@ class MySpringForce : public ChSpringForceCallback {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Create the ground body with two visualization spheres
@@ -141,7 +142,7 @@ int main(int argc, char* argv[]) {
 
     auto spring_2 = std::make_shared<ChLinkSpringCB>();
     spring_2->Initialize(body_2, ground, true, ChVector<>(0, 0, 0), ChVector<>(1, 0, 0), false, rest_length);
-    spring_2->Set_SpringCallback(&force);
+    spring_2->RegisterForceFunctor(&force);
     system.AddLink(spring_2);
 
 	// Attach a visualization asset.
@@ -178,8 +179,8 @@ int main(int argc, char* argv[]) {
             GetLog() << system.GetChTime() << "  " << spring_1->Get_SpringLength() << "  "
                      << spring_1->Get_SpringVelocity() << "  " << spring_1->Get_SpringReact() << "\n";
 
-            GetLog() << "            " << spring_2->Get_SpringLength() << "  " << spring_2->Get_SpringVelocity() << "  "
-                     << spring_2->Get_SpringReact() << "\n\n";
+            GetLog() << "            " << spring_2->GetSpringLength() << "  " << spring_2->GetSpringVelocity() << "  "
+                     << spring_2->GetSpringReact() << "\n\n";
         }
 
         frame++;

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -39,22 +39,26 @@ static const double lbf2N = 4.44822162;
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 HMMWV_VehicleReduced::HMMWV_VehicleReduced(const bool fixed,
-                                           DrivelineType driveType,
-                                           ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : HMMWV_Vehicle(contactMethod, driveType) {
-    Create(fixed);
+                                           DrivelineType drive_type,
+                                           ChMaterialSurface::ContactMethod contact_method,
+                                           ChassisCollisionType chassis_collision_type)
+    : HMMWV_Vehicle("HMMWVreduced", contact_method, drive_type) {
+    Create(fixed, chassis_collision_type);
 }
 
-HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system, const bool fixed, DrivelineType driveType)
-    : HMMWV_Vehicle(system, driveType) {
-    Create(fixed);
+HMMWV_VehicleReduced::HMMWV_VehicleReduced(ChSystem* system,
+                                           const bool fixed,
+                                           DrivelineType drive_type,
+                                           ChassisCollisionType chassis_collision_type)
+    : HMMWV_Vehicle("HMMWVreduced", system, drive_type) {
+    Create(fixed, chassis_collision_type);
 }
 
-void HMMWV_VehicleReduced::Create(bool fixed) {
+void HMMWV_VehicleReduced::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
     // -------------------------------------------
     // Create the chassis subsystem
     // -------------------------------------------
-    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis");
+    m_chassis = std::make_shared<HMMWV_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // -------------------------------------------
     // Create the suspension subsystems
@@ -109,7 +113,8 @@ HMMWV_VehicleReduced::~HMMWV_VehicleReduced() {}
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChWheeledVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the steering subsystem (specify the steering subsystem's frame
     // relative to the chassis reference frame).
@@ -119,8 +124,8 @@ void HMMWV_VehicleReduced::Initialize(const ChCoordsys<>& chassisPos, double cha
     // Initialize the suspension subsystems (specify the suspension subsystems'
     // frames relative to the chassis reference frame).
     m_suspensions[0]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(66.59, 0, 1.039),
-                                 m_steerings[0]->GetSteeringLink(), m_omega[0], m_omega[1]);
-    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(),
+                                 m_steerings[0]->GetSteeringLink(), 0, m_omega[0], m_omega[1]);
+    m_suspensions[1]->Initialize(m_chassis->GetBody(), in2m * ChVector<>(-66.4, 0, 1.039), m_chassis->GetBody(), -1,
                                  m_omega[2], m_omega[3]);
 
     // Initialize wheels

@@ -90,7 +90,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFunction_Integrate>();
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
@@ -105,7 +105,7 @@ class ChApi ChFunction_Integrate : public ChFunction {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFunction_Integrate>();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
@@ -119,6 +119,8 @@ class ChApi ChFunction_Integrate : public ChFunction {
         ComputeIntegral();
     }
 };
+
+CH_CLASS_VERSION(ChFunction_Integrate,0)
 
 }  // end namespace chrono
 

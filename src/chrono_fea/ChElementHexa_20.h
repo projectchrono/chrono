@@ -43,7 +43,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     virtual int GetNdofs() override { return 20 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -167,7 +167,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override {
         mD.Reset(this->GetNdofs(), 1);
 
         for (int i = 0; i < GetNnodes(); i++)
@@ -180,131 +180,131 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, ChMatrixDynamic<>& J1, ChVector<> coord) {
         ChMatrixDynamic<> J2(20, 3);
 
-        J1.SetElement(0, 0, -(1 - coord.y) * (1 - coord.z) * (-1 - 2 * coord.x - coord.y - coord.z) / 8);
-        J1.SetElement(0, 1, +(1 - coord.y) * (1 - coord.z) * (-1 + 2 * coord.x - coord.y - coord.z) / 8);
-        J1.SetElement(0, 2, +(1 + coord.y) * (1 - coord.z) * (-1 + 2 * coord.x + coord.y - coord.z) / 8);
-        J1.SetElement(0, 3, -(1 + coord.y) * (1 - coord.z) * (-1 - 2 * coord.x + coord.y - coord.z) / 8);
-        J1.SetElement(0, 4, -(1 - coord.y) * (1 + coord.z) * (-1 - 2 * coord.x - coord.y + coord.z) / 8);
-        J1.SetElement(0, 5, +(1 - coord.y) * (1 + coord.z) * (-1 + 2 * coord.x - coord.y + coord.z) / 8);
-        J1.SetElement(0, 6, +(1 + coord.y) * (1 + coord.z) * (-1 + 2 * coord.x + coord.y + coord.z) / 8);
-        J1.SetElement(0, 7, -(1 + coord.y) * (1 + coord.z) * (-1 - 2 * coord.x + coord.y + coord.z) / 8);
-        J1.SetElement(0, 8, coord.x * (1 - coord.y) * (1 - coord.z) / (-2));
-        J1.SetElement(0, 9, +(1 - coord.y * coord.y) * (1 - coord.z) / 4);
-        J1.SetElement(0, 10, coord.x * (1 + coord.y) * (1 - coord.z) / (-2));
-        J1.SetElement(0, 11, -(1 - coord.y * coord.y) * (1 - coord.z) / 4);
-        J1.SetElement(0, 12, coord.x * (1 - coord.y) * (1 + coord.z) / (-2));
-        J1.SetElement(0, 13, +(1 - coord.y * coord.y) * (1 + coord.z) / 4);
-        J1.SetElement(0, 14, coord.x * (1 + coord.y) * (1 + coord.z) / (-2));
-        J1.SetElement(0, 15, -(1 - coord.y * coord.y) * (1 + coord.z) / 4);
-        J1.SetElement(0, 16, +(1 - coord.y) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(0, 17, +(1 + coord.y) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(0, 18, -(1 + coord.y) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(0, 19, -(1 - coord.y) * (1 - coord.z * coord.z) / 4);
+        J1.SetElement(0, 0, -(1 - coord.y()) * (1 - coord.z()) * (-1 - 2 * coord.x() - coord.y() - coord.z()) / 8);
+        J1.SetElement(0, 1, +(1 - coord.y()) * (1 - coord.z()) * (-1 + 2 * coord.x() - coord.y() - coord.z()) / 8);
+        J1.SetElement(0, 2, +(1 + coord.y()) * (1 - coord.z()) * (-1 + 2 * coord.x() + coord.y() - coord.z()) / 8);
+        J1.SetElement(0, 3, -(1 + coord.y()) * (1 - coord.z()) * (-1 - 2 * coord.x() + coord.y() - coord.z()) / 8);
+        J1.SetElement(0, 4, -(1 - coord.y()) * (1 + coord.z()) * (-1 - 2 * coord.x() - coord.y() + coord.z()) / 8);
+        J1.SetElement(0, 5, +(1 - coord.y()) * (1 + coord.z()) * (-1 + 2 * coord.x() - coord.y() + coord.z()) / 8);
+        J1.SetElement(0, 6, +(1 + coord.y()) * (1 + coord.z()) * (-1 + 2 * coord.x() + coord.y() + coord.z()) / 8);
+        J1.SetElement(0, 7, -(1 + coord.y()) * (1 + coord.z()) * (-1 - 2 * coord.x() + coord.y() + coord.z()) / 8);
+        J1.SetElement(0, 8, coord.x() * (1 - coord.y()) * (1 - coord.z()) / (-2));
+        J1.SetElement(0, 9, +(1 - coord.y() * coord.y()) * (1 - coord.z()) / 4);
+        J1.SetElement(0, 10, coord.x() * (1 + coord.y()) * (1 - coord.z()) / (-2));
+        J1.SetElement(0, 11, -(1 - coord.y() * coord.y()) * (1 - coord.z()) / 4);
+        J1.SetElement(0, 12, coord.x() * (1 - coord.y()) * (1 + coord.z()) / (-2));
+        J1.SetElement(0, 13, +(1 - coord.y() * coord.y()) * (1 + coord.z()) / 4);
+        J1.SetElement(0, 14, coord.x() * (1 + coord.y()) * (1 + coord.z()) / (-2));
+        J1.SetElement(0, 15, -(1 - coord.y() * coord.y()) * (1 + coord.z()) / 4);
+        J1.SetElement(0, 16, +(1 - coord.y()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(0, 17, +(1 + coord.y()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(0, 18, -(1 + coord.y()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(0, 19, -(1 - coord.y()) * (1 - coord.z() * coord.z()) / 4);
 
-        J1.SetElement(1, 0, -(1 - coord.x) * (1 - coord.z) * (-1 - coord.x - 2 * coord.y - coord.z) / 8);
-        J1.SetElement(1, 1, -(1 + coord.x) * (1 - coord.z) * (-1 + coord.x - 2 * coord.y - coord.z) / 8);
-        J1.SetElement(1, 2, +(1 + coord.x) * (1 - coord.z) * (-1 + coord.x + 2 * coord.y - coord.z) / 8);
-        J1.SetElement(1, 3, +(1 - coord.x) * (1 - coord.z) * (-1 - coord.x + 2 * coord.y - coord.z) / 8);
-        J1.SetElement(1, 4, -(1 - coord.x) * (1 + coord.z) * (-1 - coord.x - 2 * coord.y + coord.z) / 8);
-        J1.SetElement(1, 5, -(1 + coord.x) * (1 + coord.z) * (-1 + coord.x - 2 * coord.y + coord.z) / 8);
-        J1.SetElement(1, 6, +(1 + coord.x) * (1 + coord.z) * (-1 + coord.x + 2 * coord.y + coord.z) / 8);
-        J1.SetElement(1, 7, +(1 - coord.x) * (1 + coord.z) * (-1 - coord.x + 2 * coord.y + coord.z) / 8);
-        J1.SetElement(1, 8, -(1 - coord.x * coord.x) * (1 - coord.z) / 4);
-        J1.SetElement(1, 9, coord.y * (1 + coord.x) * (1 - coord.z) / (-2));
-        J1.SetElement(1, 10, +(1 - coord.x * coord.x) * (1 - coord.z) / 4);
-        J1.SetElement(1, 11, coord.y * (1 - coord.x) * (1 - coord.z) / (-2));
-        J1.SetElement(1, 12, -(1 - coord.x * coord.x) * (1 + coord.z) / 4);
-        J1.SetElement(1, 13, coord.y * (1 + coord.x) * (1 + coord.z) / (-2));
-        J1.SetElement(1, 14, +(1 - coord.x * coord.x) * (1 + coord.z) / 4);
-        J1.SetElement(1, 15, coord.y * (1 - coord.x) * (1 + coord.z) / (-2));
-        J1.SetElement(1, 16, -(1 + coord.x) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(1, 17, +(1 + coord.x) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(1, 18, +(1 - coord.x) * (1 - coord.z * coord.z) / 4);
-        J1.SetElement(1, 19, -(1 - coord.x) * (1 - coord.z * coord.z) / 4);
+        J1.SetElement(1, 0, -(1 - coord.x()) * (1 - coord.z()) * (-1 - coord.x() - 2 * coord.y() - coord.z()) / 8);
+        J1.SetElement(1, 1, -(1 + coord.x()) * (1 - coord.z()) * (-1 + coord.x() - 2 * coord.y() - coord.z()) / 8);
+        J1.SetElement(1, 2, +(1 + coord.x()) * (1 - coord.z()) * (-1 + coord.x() + 2 * coord.y() - coord.z()) / 8);
+        J1.SetElement(1, 3, +(1 - coord.x()) * (1 - coord.z()) * (-1 - coord.x() + 2 * coord.y() - coord.z()) / 8);
+        J1.SetElement(1, 4, -(1 - coord.x()) * (1 + coord.z()) * (-1 - coord.x() - 2 * coord.y() + coord.z()) / 8);
+        J1.SetElement(1, 5, -(1 + coord.x()) * (1 + coord.z()) * (-1 + coord.x() - 2 * coord.y() + coord.z()) / 8);
+        J1.SetElement(1, 6, +(1 + coord.x()) * (1 + coord.z()) * (-1 + coord.x() + 2 * coord.y() + coord.z()) / 8);
+        J1.SetElement(1, 7, +(1 - coord.x()) * (1 + coord.z()) * (-1 - coord.x() + 2 * coord.y() + coord.z()) / 8);
+        J1.SetElement(1, 8, -(1 - coord.x() * coord.x()) * (1 - coord.z()) / 4);
+        J1.SetElement(1, 9, coord.y() * (1 + coord.x()) * (1 - coord.z()) / (-2));
+        J1.SetElement(1, 10, +(1 - coord.x() * coord.x()) * (1 - coord.z()) / 4);
+        J1.SetElement(1, 11, coord.y() * (1 - coord.x()) * (1 - coord.z()) / (-2));
+        J1.SetElement(1, 12, -(1 - coord.x() * coord.x()) * (1 + coord.z()) / 4);
+        J1.SetElement(1, 13, coord.y() * (1 + coord.x()) * (1 + coord.z()) / (-2));
+        J1.SetElement(1, 14, +(1 - coord.x() * coord.x()) * (1 + coord.z()) / 4);
+        J1.SetElement(1, 15, coord.y() * (1 - coord.x()) * (1 + coord.z()) / (-2));
+        J1.SetElement(1, 16, -(1 + coord.x()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(1, 17, +(1 + coord.x()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(1, 18, +(1 - coord.x()) * (1 - coord.z() * coord.z()) / 4);
+        J1.SetElement(1, 19, -(1 - coord.x()) * (1 - coord.z() * coord.z()) / 4);
 
-        J1.SetElement(2, 0, -(1 - coord.x) * (1 - coord.y) * (-1 - coord.x - coord.y - 2 * coord.z) / 8);
-        J1.SetElement(2, 1, -(1 + coord.x) * (1 - coord.y) * (-1 + coord.x - coord.y - 2 * coord.z) / 8);
-        J1.SetElement(2, 2, -(1 + coord.x) * (1 + coord.y) * (-1 + coord.x + coord.y - 2 * coord.z) / 8);
-        J1.SetElement(2, 3, -(1 - coord.x) * (1 + coord.y) * (-1 - coord.x + coord.y - 2 * coord.z) / 8);
-        J1.SetElement(2, 4, +(1 - coord.x) * (1 - coord.y) * (-1 - coord.x - coord.y + 2 * coord.z) / 8);
-        J1.SetElement(2, 5, +(1 + coord.x) * (1 - coord.y) * (-1 + coord.x - coord.y + 2 * coord.z) / 8);
-        J1.SetElement(2, 6, +(1 + coord.x) * (1 + coord.y) * (-1 + coord.x + coord.y + 2 * coord.z) / 8);
-        J1.SetElement(2, 7, +(1 - coord.x) * (1 + coord.y) * (-1 - coord.x + coord.y + 2 * coord.z) / 8);
-        J1.SetElement(2, 8, -(1 - coord.x * coord.x) * (1 - coord.y) / 4);
-        J1.SetElement(2, 9, -(1 + coord.x) * (1 - coord.y * coord.y) / 4);
-        J1.SetElement(2, 10, -(1 - coord.x * coord.x) * (1 + coord.y) / 4);
-        J1.SetElement(2, 11, -(1 - coord.x) * (1 - coord.y * coord.y) / 4);
-        J1.SetElement(2, 12, +(1 - coord.x * coord.x) * (1 - coord.y) / 4);
-        J1.SetElement(2, 13, +(1 + coord.x) * (1 - coord.y * coord.y) / 4);
-        J1.SetElement(2, 14, +(1 - coord.x * coord.x) * (1 + coord.y) / 4);
-        J1.SetElement(2, 15, +(1 - coord.x) * (1 - coord.y * coord.y) / 4);
-        J1.SetElement(2, 16, coord.z * (1 + coord.x) * (1 - coord.y) / (-2));
-        J1.SetElement(2, 17, coord.z * (1 + coord.x) * (1 + coord.y) / (-2));
-        J1.SetElement(2, 18, coord.z * (1 - coord.x) * (1 + coord.y) / (-2));
-        J1.SetElement(2, 19, coord.z * (1 - coord.x) * (1 - coord.y) / (-2));
+        J1.SetElement(2, 0, -(1 - coord.x()) * (1 - coord.y()) * (-1 - coord.x() - coord.y() - 2 * coord.z()) / 8);
+        J1.SetElement(2, 1, -(1 + coord.x()) * (1 - coord.y()) * (-1 + coord.x() - coord.y() - 2 * coord.z()) / 8);
+        J1.SetElement(2, 2, -(1 + coord.x()) * (1 + coord.y()) * (-1 + coord.x() + coord.y() - 2 * coord.z()) / 8);
+        J1.SetElement(2, 3, -(1 - coord.x()) * (1 + coord.y()) * (-1 - coord.x() + coord.y() - 2 * coord.z()) / 8);
+        J1.SetElement(2, 4, +(1 - coord.x()) * (1 - coord.y()) * (-1 - coord.x() - coord.y() + 2 * coord.z()) / 8);
+        J1.SetElement(2, 5, +(1 + coord.x()) * (1 - coord.y()) * (-1 + coord.x() - coord.y() + 2 * coord.z()) / 8);
+        J1.SetElement(2, 6, +(1 + coord.x()) * (1 + coord.y()) * (-1 + coord.x() + coord.y() + 2 * coord.z()) / 8);
+        J1.SetElement(2, 7, +(1 - coord.x()) * (1 + coord.y()) * (-1 - coord.x() + coord.y() + 2 * coord.z()) / 8);
+        J1.SetElement(2, 8, -(1 - coord.x() * coord.x()) * (1 - coord.y()) / 4);
+        J1.SetElement(2, 9, -(1 + coord.x()) * (1 - coord.y() * coord.y()) / 4);
+        J1.SetElement(2, 10, -(1 - coord.x() * coord.x()) * (1 + coord.y()) / 4);
+        J1.SetElement(2, 11, -(1 - coord.x()) * (1 - coord.y() * coord.y()) / 4);
+        J1.SetElement(2, 12, +(1 - coord.x() * coord.x()) * (1 - coord.y()) / 4);
+        J1.SetElement(2, 13, +(1 + coord.x()) * (1 - coord.y() * coord.y()) / 4);
+        J1.SetElement(2, 14, +(1 - coord.x() * coord.x()) * (1 + coord.y()) / 4);
+        J1.SetElement(2, 15, +(1 - coord.x()) * (1 - coord.y() * coord.y()) / 4);
+        J1.SetElement(2, 16, coord.z() * (1 + coord.x()) * (1 - coord.y()) / (-2));
+        J1.SetElement(2, 17, coord.z() * (1 + coord.x()) * (1 + coord.y()) / (-2));
+        J1.SetElement(2, 18, coord.z() * (1 - coord.x()) * (1 + coord.y()) / (-2));
+        J1.SetElement(2, 19, coord.z() * (1 - coord.x()) * (1 - coord.y()) / (-2));
 
-        J2.SetElement(0, 0, nodes[0]->GetX0().x);
-        J2.SetElement(1, 0, nodes[1]->GetX0().x);
-        J2.SetElement(2, 0, nodes[2]->GetX0().x);
-        J2.SetElement(3, 0, nodes[3]->GetX0().x);
-        J2.SetElement(4, 0, nodes[4]->GetX0().x);
-        J2.SetElement(5, 0, nodes[5]->GetX0().x);
-        J2.SetElement(6, 0, nodes[6]->GetX0().x);
-        J2.SetElement(7, 0, nodes[7]->GetX0().x);
-        J2.SetElement(8, 0, nodes[8]->GetX0().x);
-        J2.SetElement(9, 0, nodes[9]->GetX0().x);
-        J2.SetElement(10, 0, nodes[10]->GetX0().x);
-        J2.SetElement(11, 0, nodes[11]->GetX0().x);
-        J2.SetElement(12, 0, nodes[12]->GetX0().x);
-        J2.SetElement(13, 0, nodes[13]->GetX0().x);
-        J2.SetElement(14, 0, nodes[14]->GetX0().x);
-        J2.SetElement(15, 0, nodes[15]->GetX0().x);
-        J2.SetElement(16, 0, nodes[16]->GetX0().x);
-        J2.SetElement(17, 0, nodes[17]->GetX0().x);
-        J2.SetElement(18, 0, nodes[18]->GetX0().x);
-        J2.SetElement(19, 0, nodes[19]->GetX0().x);
+        J2.SetElement(0, 0, nodes[0]->GetX0().x());
+        J2.SetElement(1, 0, nodes[1]->GetX0().x());
+        J2.SetElement(2, 0, nodes[2]->GetX0().x());
+        J2.SetElement(3, 0, nodes[3]->GetX0().x());
+        J2.SetElement(4, 0, nodes[4]->GetX0().x());
+        J2.SetElement(5, 0, nodes[5]->GetX0().x());
+        J2.SetElement(6, 0, nodes[6]->GetX0().x());
+        J2.SetElement(7, 0, nodes[7]->GetX0().x());
+        J2.SetElement(8, 0, nodes[8]->GetX0().x());
+        J2.SetElement(9, 0, nodes[9]->GetX0().x());
+        J2.SetElement(10, 0, nodes[10]->GetX0().x());
+        J2.SetElement(11, 0, nodes[11]->GetX0().x());
+        J2.SetElement(12, 0, nodes[12]->GetX0().x());
+        J2.SetElement(13, 0, nodes[13]->GetX0().x());
+        J2.SetElement(14, 0, nodes[14]->GetX0().x());
+        J2.SetElement(15, 0, nodes[15]->GetX0().x());
+        J2.SetElement(16, 0, nodes[16]->GetX0().x());
+        J2.SetElement(17, 0, nodes[17]->GetX0().x());
+        J2.SetElement(18, 0, nodes[18]->GetX0().x());
+        J2.SetElement(19, 0, nodes[19]->GetX0().x());
 
-        J2.SetElement(0, 1, nodes[0]->GetX0().y);
-        J2.SetElement(1, 1, nodes[1]->GetX0().y);
-        J2.SetElement(2, 1, nodes[2]->GetX0().y);
-        J2.SetElement(3, 1, nodes[3]->GetX0().y);
-        J2.SetElement(4, 1, nodes[4]->GetX0().y);
-        J2.SetElement(5, 1, nodes[5]->GetX0().y);
-        J2.SetElement(6, 1, nodes[6]->GetX0().y);
-        J2.SetElement(7, 1, nodes[7]->GetX0().y);
-        J2.SetElement(8, 1, nodes[8]->GetX0().y);
-        J2.SetElement(9, 1, nodes[9]->GetX0().y);
-        J2.SetElement(10, 1, nodes[10]->GetX0().y);
-        J2.SetElement(11, 1, nodes[11]->GetX0().y);
-        J2.SetElement(12, 1, nodes[12]->GetX0().y);
-        J2.SetElement(13, 1, nodes[13]->GetX0().y);
-        J2.SetElement(14, 1, nodes[14]->GetX0().y);
-        J2.SetElement(15, 1, nodes[15]->GetX0().y);
-        J2.SetElement(16, 1, nodes[16]->GetX0().y);
-        J2.SetElement(17, 1, nodes[17]->GetX0().y);
-        J2.SetElement(18, 1, nodes[18]->GetX0().y);
-        J2.SetElement(19, 1, nodes[19]->GetX0().y);
+        J2.SetElement(0, 1, nodes[0]->GetX0().y());
+        J2.SetElement(1, 1, nodes[1]->GetX0().y());
+        J2.SetElement(2, 1, nodes[2]->GetX0().y());
+        J2.SetElement(3, 1, nodes[3]->GetX0().y());
+        J2.SetElement(4, 1, nodes[4]->GetX0().y());
+        J2.SetElement(5, 1, nodes[5]->GetX0().y());
+        J2.SetElement(6, 1, nodes[6]->GetX0().y());
+        J2.SetElement(7, 1, nodes[7]->GetX0().y());
+        J2.SetElement(8, 1, nodes[8]->GetX0().y());
+        J2.SetElement(9, 1, nodes[9]->GetX0().y());
+        J2.SetElement(10, 1, nodes[10]->GetX0().y());
+        J2.SetElement(11, 1, nodes[11]->GetX0().y());
+        J2.SetElement(12, 1, nodes[12]->GetX0().y());
+        J2.SetElement(13, 1, nodes[13]->GetX0().y());
+        J2.SetElement(14, 1, nodes[14]->GetX0().y());
+        J2.SetElement(15, 1, nodes[15]->GetX0().y());
+        J2.SetElement(16, 1, nodes[16]->GetX0().y());
+        J2.SetElement(17, 1, nodes[17]->GetX0().y());
+        J2.SetElement(18, 1, nodes[18]->GetX0().y());
+        J2.SetElement(19, 1, nodes[19]->GetX0().y());
 
-        J2.SetElement(0, 2, nodes[0]->GetX0().z);
-        J2.SetElement(1, 2, nodes[1]->GetX0().z);
-        J2.SetElement(2, 2, nodes[2]->GetX0().z);
-        J2.SetElement(3, 2, nodes[3]->GetX0().z);
-        J2.SetElement(4, 2, nodes[4]->GetX0().z);
-        J2.SetElement(5, 2, nodes[5]->GetX0().z);
-        J2.SetElement(6, 2, nodes[6]->GetX0().z);
-        J2.SetElement(7, 2, nodes[7]->GetX0().z);
-        J2.SetElement(8, 2, nodes[8]->GetX0().z);
-        J2.SetElement(9, 2, nodes[9]->GetX0().z);
-        J2.SetElement(10, 2, nodes[10]->GetX0().z);
-        J2.SetElement(11, 2, nodes[11]->GetX0().z);
-        J2.SetElement(12, 2, nodes[12]->GetX0().z);
-        J2.SetElement(13, 2, nodes[13]->GetX0().z);
-        J2.SetElement(14, 2, nodes[14]->GetX0().z);
-        J2.SetElement(15, 2, nodes[15]->GetX0().z);
-        J2.SetElement(16, 2, nodes[16]->GetX0().z);
-        J2.SetElement(17, 2, nodes[17]->GetX0().z);
-        J2.SetElement(18, 2, nodes[18]->GetX0().z);
-        J2.SetElement(19, 2, nodes[19]->GetX0().z);
+        J2.SetElement(0, 2, nodes[0]->GetX0().z());
+        J2.SetElement(1, 2, nodes[1]->GetX0().z());
+        J2.SetElement(2, 2, nodes[2]->GetX0().z());
+        J2.SetElement(3, 2, nodes[3]->GetX0().z());
+        J2.SetElement(4, 2, nodes[4]->GetX0().z());
+        J2.SetElement(5, 2, nodes[5]->GetX0().z());
+        J2.SetElement(6, 2, nodes[6]->GetX0().z());
+        J2.SetElement(7, 2, nodes[7]->GetX0().z());
+        J2.SetElement(8, 2, nodes[8]->GetX0().z());
+        J2.SetElement(9, 2, nodes[9]->GetX0().z());
+        J2.SetElement(10, 2, nodes[10]->GetX0().z());
+        J2.SetElement(11, 2, nodes[11]->GetX0().z());
+        J2.SetElement(12, 2, nodes[12]->GetX0().z());
+        J2.SetElement(13, 2, nodes[13]->GetX0().z());
+        J2.SetElement(14, 2, nodes[14]->GetX0().z());
+        J2.SetElement(15, 2, nodes[15]->GetX0().z());
+        J2.SetElement(16, 2, nodes[16]->GetX0().z());
+        J2.SetElement(17, 2, nodes[17]->GetX0().z());
+        J2.SetElement(18, 2, nodes[18]->GetX0().z());
+        J2.SetElement(19, 2, nodes[19]->GetX0().z());
 
         Jacobian.MatrMultiply(J1, J2);
     }
@@ -516,8 +516,8 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     /// Computes the matrix of partial derivatives and puts data in "GaussPt"
     ///	Stores the determinant of the jacobian in "JacobianDet"
     virtual void ComputeMatrB(ChGaussPoint* GaussPt, double& JacobianDet) {
-        this->ComputeMatrB(*(GaussPt->MatrB), GaussPt->GetLocalCoordinates().x, GaussPt->GetLocalCoordinates().y,
-                           GaussPt->GetLocalCoordinates().z, JacobianDet);
+        this->ComputeMatrB(*(GaussPt->MatrB), GaussPt->GetLocalCoordinates().x(), GaussPt->GetLocalCoordinates().y(),
+                           GaussPt->GetLocalCoordinates().z(), JacobianDet);
     }
 
     /// Computes the global STIFFNESS MATRIX of the element:
@@ -663,7 +663,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }
 
     // compute large rotation of element for corotational approach
-    virtual void UpdateRotation() {
+    virtual void UpdateRotation() override {
         ChVector<> avgX1;
         avgX1 = this->nodes[0]->GetX0() + this->nodes[1]->GetX0() + this->nodes[2]->GetX0() + this->nodes[3]->GetX0();
         ChVector<> avgX2;
@@ -717,7 +717,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
         assert((H.GetRows() == GetNdofs()) && (H.GetColumns() == GetNdofs()));
 
         // warp the local stiffness matrix K in order to obtain global
@@ -749,7 +749,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
         assert((Fi.GetRows() == GetNdofs()) && (Fi.GetColumns() == 1));
 
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
@@ -802,13 +802,13 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 20 * 3; }
+    virtual int LoadableGet_ndof_x() override { return 20 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 20 * 3; }
+    virtual int LoadableGet_ndof_w() override { return 20 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
@@ -832,7 +832,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
@@ -855,20 +855,27 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
         mD.PasteVector(this->nodes[19]->GetPos_dt(), block_offset + 57, 0);
     }
 
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<20; ++i) {
+            nodes[i]->NodeIntStateIncrement(off_x + i*3  , x_new, x, off_v  + i*3  , Dv);
+        }
+    }
+
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() { return 3; }
+    virtual int Get_field_ncoords() override { return 3; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 20; }
+    virtual int GetSubBlocks() override { return 20; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };
@@ -885,7 +892,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
         ChMatrixNM<double, 1, 20> N;
         this->ShapeFunctions(N, U, V, W);  // note: U,V,W in -1..1 range
@@ -955,7 +962,7 @@ class ChApiFea ChElementHexa_20 : public ChElementHexahedron, public ChLoadableU
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return this->Material->Get_density(); }
+    virtual double GetDensity() override { return this->Material->Get_density(); }
 };
 
 /// @} fea_elements

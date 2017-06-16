@@ -75,7 +75,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Children classes might overload this.
     virtual double GetTorqueReactionOn2() const { return 0; }
 
-    /// Get the actual reative angle in terms of phase of shaft 1 respect to 2.
+    /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
     double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
     double GetRelativeRotation_dt() const { return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt()); }
@@ -88,7 +88,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChShaftsCouple>();
 
         // serialize parent class
         ChPhysicsItem::ArchiveOUT(marchive);
@@ -101,7 +101,7 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
         ChPhysicsItem::ArchiveIN(marchive);
@@ -111,6 +111,8 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
         // marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
     }
 };
+
+CH_CLASS_VERSION(ChShaftsCouple,0)
 
 }  // end namespace chrono
 

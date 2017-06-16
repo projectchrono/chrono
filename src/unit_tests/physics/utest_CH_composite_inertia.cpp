@@ -92,7 +92,7 @@ bool test_boxes() {
     double hz = 6;
     double rho = 100;
 
-    // Create composite of multipel boxes in all 3 directions
+    // Create composite of multiple boxes in all 3 directions
     int nx = 5;
     int ny = 3;
     int nz = 2;
@@ -108,11 +108,11 @@ bool test_boxes() {
     utils::CompositeInertia comp;
 
     for (int ix = 0; ix < nx; ix++) {
-        double cx = ix * 2 * (hx - hx1) / (nx - 1.0) + center.x - hx + hx1;
+        double cx = ix * 2 * (hx - hx1) / (nx - 1.0) + center.x() - hx + hx1;
         for (int iy = 0; iy < ny; iy++) {
-            double cy = iy * 2 * (hy - hy1) / (ny - 1.0) + center.y - hy + hy1;
+            double cy = iy * 2 * (hy - hy1) / (ny - 1.0) + center.y() - hy + hy1;
             for (int iz = 0; iz < nz; iz++) {
-                double cz = iz * 2 * (hz - hz1) / (nz - 1.0) + center.z - hz + hz1;
+                double cz = iz * 2 * (hz - hz1) / (nz - 1.0) + center.z() - hz + hz1;
                 comp.AddComponent(ChFrame<>(ChVector<>(cx, cy, cz), ChQuaternion<>(1, 0, 0, 0)), mass1, inertia1);
             }
         }

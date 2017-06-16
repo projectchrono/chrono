@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -34,7 +34,7 @@ class CH_MODELS_API M113a_ShaftsPowertrain : public ChShaftsPowertrain {
 
     ~M113a_ShaftsPowertrain() {}
 
-    virtual void SetGearRatios(std::vector<double>& gear_ratios);
+    virtual void SetGearRatios(std::vector<double>& gear_ratios) override;
 
     virtual double GetMotorBlockInertia() const override { return m_motorblock_inertia; }
     virtual double GetCrankshaftInertia() const override { return m_crankshaft_inertia; }

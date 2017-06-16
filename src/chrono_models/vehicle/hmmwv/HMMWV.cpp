@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -33,7 +33,8 @@ HMMWV::HMMWV()
       m_vehicle(NULL),
       m_powertrain(NULL),
       m_tires({{NULL, NULL, NULL, NULL}}),
-      m_contactMethod(ChMaterialSurfaceBase::DVI),
+      m_contactMethod(ChMaterialSurface::NSC),
+      m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
@@ -49,7 +50,8 @@ HMMWV::HMMWV(ChSystem* system)
       m_vehicle(NULL),
       m_powertrain(NULL),
       m_tires({{NULL, NULL, NULL, NULL}}),
-      m_contactMethod(ChMaterialSurfaceBase::DVI),
+      m_contactMethod(ChMaterialSurface::NSC),
+      m_chassisCollisionType(ChassisCollisionType::NONE),
       m_fixed(false),
       m_driveType(DrivelineType::AWD),
       m_powertrainType(PowertrainModelType::SHAFTS),
@@ -213,6 +215,8 @@ void HMMWV::Initialize() {
 #endif
             break;
         }
+        default:
+            break;
     }
 
     // Initialize the tires.

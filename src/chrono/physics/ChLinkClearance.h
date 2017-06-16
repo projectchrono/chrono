@@ -92,6 +92,9 @@ class ChApi ChLinkClearance : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkClearance,0)
+
+
 }  // end namespace chrono
 
 #endif

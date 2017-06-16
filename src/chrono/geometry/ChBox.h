@@ -98,36 +98,39 @@ class ChApi ChBox : public ChGeometry {
     ChVector<> GetPn(int ipoint) const;
 
     /// Get the volume (assuming no scaling in Rot matrix)
-    double GetVolume() const { return Size.x * Size.y * Size.z * 8.0; }
+    double GetVolume() const { return Size.x() * Size.y() * Size.z() * 8.0; }
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChBox>();
         // serialize parent class
         ChGeometry::ArchiveOUT(marchive);
         // serialize all member data:
         marchive << CHNVP(Pos);
         marchive << CHNVP(Rot);
         ChVector<> Lengths = GetLengths();
-        marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive << CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChBox>();
         // deserialize parent class
         ChGeometry::ArchiveIN(marchive);
         // stream in all member data:
         marchive >> CHNVP(Pos);
         marchive >> CHNVP(Rot);
         ChVector<> Lengths;
-        marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lenths, because less intuitive
+        marchive >> CHNVP(Lengths);  // avoid storing 'Size', i.e. half lengths, because less intuitive
         SetLengths(Lengths);
     }
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChBox,0)
+
 }  // end namespace chrono
 
 #endif

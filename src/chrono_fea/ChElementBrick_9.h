@@ -191,10 +191,13 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual int LoadableGet_ndof_w() override { return 8 * 3 + 9; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
 
     /// Get the pointers to the contained ChLcpVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -270,7 +273,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     virtual void Update() override;
 
     /// Fill the D vector (column matrix) with the current states of the element nodes.
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD);
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
     /// Initial element setup.
     virtual void SetupInitial(ChSystem* system) override;

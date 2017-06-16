@@ -17,6 +17,7 @@
 //
 // =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChParticlesClones.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChSphereShape.h"
@@ -38,7 +39,7 @@ using namespace postprocess;  // <- to keep things shorter
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     //
     // EXAMPLE 1:

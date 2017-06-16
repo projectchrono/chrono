@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,8 +18,8 @@
 
 #include <algorithm>
 
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemNSC.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_vehicle/ChVehicle.h"
 
@@ -27,11 +27,13 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Constructor for a ChVehicle using a default Chrono Chsystem.
+// Constructor for a ChVehicle using a default Chrono system.
 // Specify default step size and solver parameters.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ownsSystem(true), m_stepsize(1e-3) {
-    m_system = (contact_method == ChMaterialSurfaceBase::DVI) ? new ChSystem : new ChSystemDEM;
+ChVehicle::ChVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+    : m_name(name), m_ownsSystem(true), m_stepsize(1e-3) {
+    m_system = (contact_method == ChMaterialSurface::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
+                                                          : static_cast<ChSystem*>(new ChSystemSMC);
 
     m_system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -41,8 +43,10 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
     m_system->SetMaxPenetrationRecoverySpeed(4.0);
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
-            m_system->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+        case ChMaterialSurface::NSC:
+            m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+            break;
+        default:
             break;
     }
 }
@@ -50,8 +54,8 @@ ChVehicle::ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method) : m_ow
 // -----------------------------------------------------------------------------
 // Constructor for a ChVehicle using the specified Chrono ChSystem.
 // -----------------------------------------------------------------------------
-ChVehicle::ChVehicle(ChSystem* system) : m_system(system), m_ownsSystem(false), m_stepsize(1e-3) {
-}
+ChVehicle::ChVehicle(const std::string& name, ChSystem* system)
+    : m_name(name), m_system(system), m_ownsSystem(false), m_stepsize(1e-3) {}
 
 // -----------------------------------------------------------------------------
 // Destructor for ChVehicle
@@ -78,6 +82,12 @@ void ChVehicle::Advance(double step) {
 // -----------------------------------------------------------------------------
 void ChVehicle::SetChassisVisualizationType(VisualizationType vis) {
     m_chassis->SetVisualizationType(vis);
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+void ChVehicle::SetChassisCollide(bool state) {
+    m_chassis->SetCollide(state);
 }
 
 }  // end namespace vehicle

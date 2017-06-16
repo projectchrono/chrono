@@ -37,19 +37,19 @@ void ChCapsule::GetBoundingBox(double& xmin,
                                ChMatrix33<>* Rot) const {
     ChVector<> trsfCenter = Rot ? Rot->MatrT_x_Vect(center) : center;
 
-    xmin = trsfCenter.x - rad;
-    xmax = trsfCenter.x + rad;
-    ymin = trsfCenter.y - (rad + hlen);
-    ymax = trsfCenter.y + (rad + hlen);
-    zmin = trsfCenter.z - rad;
-    zmax = trsfCenter.z + rad;
+    xmin = trsfCenter.x() - rad;
+    xmax = trsfCenter.x() + rad;
+    ymin = trsfCenter.y() - (rad + hlen);
+    ymax = trsfCenter.y() + (rad + hlen);
+    zmin = trsfCenter.z() - rad;
+    zmax = trsfCenter.z() + rad;
 }
 
 void ChCapsule::CovarianceMatrix(ChMatrix33<>& C) const {
     C.Reset();
-    C(0, 0) = center.x * center.x;
-    C(1, 1) = center.y * center.y;
-    C(2, 2) = center.z * center.z;
+    C(0, 0) = center.x() * center.x();
+    C(1, 1) = center.y() * center.y();
+    C(2, 2) = center.z() * center.z();
 }
 
 }  // end namespace geometry

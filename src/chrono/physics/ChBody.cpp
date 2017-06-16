@@ -33,7 +33,7 @@ using namespace geometry;
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChBody)
 
-ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
+ChBody::ChBody(ChMaterialSurface::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -50,11 +50,11 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     collision_model = InstanceCollisionModel();
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
-            matsurface = std::make_shared<ChMaterialSurface>();
+        case ChMaterialSurface::NSC:
+            matsurface = std::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurfaceBase::DEM:
-            matsurface = std::make_shared<ChMaterialSurfaceDEM>();
+        case ChMaterialSurface::SMC:
+            matsurface = std::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -77,7 +77,7 @@ ChBody::ChBody(ChMaterialSurfaceBase::ContactMethod contact_method) {
     body_id = 0;
 }
 
-ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::ContactMethod contact_method) {
+ChBody::ChBody(std::shared_ptr<collision::ChCollisionModel> new_collision_model, ChMaterialSurface::ContactMethod contact_method) {
     marklist.clear();
     forcelist.clear();
 
@@ -95,11 +95,11 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::Con
     collision_model->SetContactable(this);
 
     switch (contact_method) {
-        case ChMaterialSurfaceBase::DVI:
-            matsurface = std::make_shared<ChMaterialSurface>();
+        case ChMaterialSurface::NSC:
+            matsurface = std::make_shared<ChMaterialSurfaceNSC>();
             break;
-        case ChMaterialSurfaceBase::DEM:
-            matsurface = std::make_shared<ChMaterialSurfaceDEM>();
+        case ChMaterialSurface::SMC:
+            matsurface = std::make_shared<ChMaterialSurfaceSMC>();
             break;
     }
 
@@ -122,7 +122,7 @@ ChBody::ChBody(ChCollisionModel* new_collision_model, ChMaterialSurfaceBase::Con
 }
 
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
-    bflag = other.bflag;
+    bflags = other.bflags;
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -158,13 +158,10 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
 ChBody::~ChBody() {
     RemoveAllForces();
     RemoveAllMarkers();
-
-    if (collision_model)
-        delete collision_model;
 }
 
-ChCollisionModel* ChBody::InstanceCollisionModel() {
-    ChCollisionModel* collision_model_t = (ChModelBullet*)new ChModelBullet();
+std::shared_ptr<collision::ChCollisionModel> ChBody::InstanceCollisionModel() {
+    auto collision_model_t = std::make_shared<ChModelBullet>();
     collision_model_t->SetContactable(this);
     return collision_model_t;
 }
@@ -255,10 +252,10 @@ void ChBody::IntLoadResidual_Mv(const unsigned int off,      // offset in R resi
     R.PasteSumVector(Iw, off + 3, 0);
 }
 
-void ChBody::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChBody::IntToDescriptor(const unsigned int off_v,
                              const ChStateDelta& v,
                              const ChVectorDynamic<>& R,
-                             const unsigned int off_L,  // offset in L, Qc
+                             const unsigned int off_L,
                              const ChVectorDynamic<>& L,
                              const ChVectorDynamic<>& Qc) {
     this->variables.Get_qb().PasteClippedMatrix(v, off_v, 0, 6, 1, 0, 0);  // for solver warm starting only
@@ -402,34 +399,34 @@ void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
 }
 
 void ChBody::SetInertiaXX(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 0, iner.x);
-    variables.GetBodyInertia().SetElement(1, 1, iner.y);
-    variables.GetBodyInertia().SetElement(2, 2, iner.z);
+    variables.GetBodyInertia().SetElement(0, 0, iner.x());
+    variables.GetBodyInertia().SetElement(1, 1, iner.y());
+    variables.GetBodyInertia().SetElement(2, 2, iner.z());
     variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 void ChBody::SetInertiaXY(const ChVector<>& iner) {
-    variables.GetBodyInertia().SetElement(0, 1, iner.x);
-    variables.GetBodyInertia().SetElement(0, 2, iner.y);
-    variables.GetBodyInertia().SetElement(1, 2, iner.z);
-    variables.GetBodyInertia().SetElement(1, 0, iner.x);
-    variables.GetBodyInertia().SetElement(2, 0, iner.y);
-    variables.GetBodyInertia().SetElement(2, 1, iner.z);
+    variables.GetBodyInertia().SetElement(0, 1, iner.x());
+    variables.GetBodyInertia().SetElement(0, 2, iner.y());
+    variables.GetBodyInertia().SetElement(1, 2, iner.z());
+    variables.GetBodyInertia().SetElement(1, 0, iner.x());
+    variables.GetBodyInertia().SetElement(2, 0, iner.y());
+    variables.GetBodyInertia().SetElement(2, 1, iner.z());
     variables.GetBodyInertia().FastInvert(variables.GetBodyInvInertia());
 }
 
 ChVector<> ChBody::GetInertiaXX() {
     ChVector<> iner;
-    iner.x = variables.GetBodyInertia().GetElement(0, 0);
-    iner.y = variables.GetBodyInertia().GetElement(1, 1);
-    iner.z = variables.GetBodyInertia().GetElement(2, 2);
+    iner.x() = variables.GetBodyInertia().GetElement(0, 0);
+    iner.y() = variables.GetBodyInertia().GetElement(1, 1);
+    iner.z() = variables.GetBodyInertia().GetElement(2, 2);
     return iner;
 }
 
 ChVector<> ChBody::GetInertiaXY() {
     ChVector<> iner;
-    iner.x = variables.GetBodyInertia().GetElement(0, 1);
-    iner.y = variables.GetBodyInertia().GetElement(0, 2);
-    iner.z = variables.GetBodyInertia().GetElement(1, 2);
+    iner.x() = variables.GetBodyInertia().GetElement(0, 1);
+    iner.y() = variables.GetBodyInertia().GetElement(0, 2);
+    iner.z() = variables.GetBodyInertia().GetElement(1, 2);
     return iner;
 }
 
@@ -505,7 +502,7 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    BFlagSet(BF_COULDSLEEP, false);
+    BFlagSet(BodyFlag::COULDSLEEP, false);
 
     if (this->GetUseSleeping()) {
         if (!this->IsActive())
@@ -515,7 +512,7 @@ bool ChBody::TrySleeping() {
         if ((this->coord_dt.pos.LengthInf() < this->sleep_minspeed) &&
             (2.0 * this->coord_dt.rot.LengthInf() < this->sleep_minwvel)) {
             if ((this->GetChTime() - this->sleep_starttime) > this->sleep_time) {
-                BFlagSet(BF_COULDSLEEP, true);  // mark as sleep candidate
+                BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
                 return true;                    // could go to sleep!
             }
         } else {
@@ -673,37 +670,145 @@ void ChBody::Update(double mytime, bool update_assets) {
     Update(update_assets);
 }
 
-void ChBody::SetBodyFixed(bool mev) {
-    variables.SetDisabled(mev);
-    if (mev == BFlagGet(BF_FIXED))
+
+// ---------------------------------------------------------------------------
+// Body flags management
+void ChBody::BFlagsSetAllOFF() {
+    bflags = 0;
+}
+void ChBody::BFlagsSetAllON() {
+    bflags = 0;
+    bflags = ~bflags;
+}
+void ChBody::BFlagSetON(BodyFlag mask) {
+    bflags |= mask;
+}
+void ChBody::BFlagSetOFF(BodyFlag mask) {
+    bflags &= ~mask;
+}
+bool ChBody::BFlagGet(BodyFlag mask) const {
+    return (bflags & mask) != 0;
+};
+void ChBody::BFlagSet(BodyFlag mask, bool state) {
+    if (state)
+        bflags |= mask;
+    else
+        bflags &= ~mask;
+}
+
+void ChBody::SetBodyFixed(bool state) {
+    variables.SetDisabled(state);
+    if (state == BFlagGet(BodyFlag::FIXED))
         return;
-    BFlagSet(BF_FIXED, mev);
+    BFlagSet(BodyFlag::FIXED, state);
     // RecomputeCollisionModel(); // because one may use different model types for static or dynamic coll.shapes
 }
 
-// collision stuff
-void ChBody::SetCollide(bool mcoll) {
-    if (mcoll == BFlagGet(BF_COLLIDE))
+bool ChBody::GetBodyFixed() const { return BFlagGet(BodyFlag::FIXED); }
+
+void ChBody::SetEvalContactCn(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_CN, state);
+}
+
+bool ChBody::GetEvalContactCn() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_CN);
+}
+
+void ChBody::SetEvalContactCt(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_CT, state);
+}
+
+bool ChBody::GetEvalContactCt() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_CT);
+}
+
+void ChBody::SetEvalContactKf(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_KF, state);
+}
+
+bool ChBody::GetEvalContactKf() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_KF);
+}
+
+void ChBody::SetEvalContactSf(bool state) {
+    BFlagSet(BodyFlag::EVAL_CONTACT_SF, state);
+}
+
+bool ChBody::GetEvalContactSf() const {
+    return BFlagGet(BodyFlag::EVAL_CONTACT_SF);
+}
+
+void ChBody::SetShowCollisionMesh(bool state) {
+    BFlagSet(BodyFlag::SHOW_COLLMESH, state);
+}
+
+bool ChBody::GetShowCollisionMesh() const {
+    return BFlagGet(BodyFlag::SHOW_COLLMESH);
+}
+
+void ChBody::SetLimitSpeed(bool state) {
+    BFlagSet(BodyFlag::LIMITSPEED, state);
+}
+
+bool ChBody::GetLimitSpeed() const {
+    return BFlagGet(BodyFlag::LIMITSPEED);
+}
+
+void ChBody::SetNoGyroTorque(bool state) {
+    BFlagSet(BodyFlag::NOGYROTORQUE, state);
+}
+
+bool ChBody::GetNoGyroTorque() const {
+    return BFlagGet(BodyFlag::NOGYROTORQUE);
+}
+
+void ChBody::SetUseSleeping(bool state) {
+    BFlagSet(BodyFlag::USESLEEPING, state);
+}
+
+bool ChBody::GetUseSleeping() const {
+    return BFlagGet(BodyFlag::USESLEEPING);
+}
+
+void ChBody::SetSleeping(bool state) {
+    BFlagSet(BodyFlag::SLEEPING, state);
+}
+
+bool ChBody::GetSleeping() const {
+    return BFlagGet(BodyFlag::SLEEPING);
+}
+
+bool ChBody::IsActive() {
+    return !BFlagGet(BodyFlag::SLEEPING) && !BFlagGet(BodyFlag::FIXED);
+}
+
+// ---------------------------------------------------------------------------
+// Collision-related functions
+
+void ChBody::SetCollide(bool state) {
+    if (state == BFlagGet(BodyFlag::COLLIDE))
         return;
 
-    if (mcoll) {
+    if (state) {
         SyncCollisionModels();
-        BFlagSetON(BF_COLLIDE);
+        BFlagSetON(BodyFlag::COLLIDE);
         if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+            GetSystem()->GetCollisionSystem()->Add(collision_model.get());
     } else {
-        BFlagSetOFF(BF_COLLIDE);
+        BFlagSetOFF(BodyFlag::COLLIDE);
         if (GetSystem())
-            GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+            GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
     }
 }
 
-void ChBody::ChangeCollisionModel(ChCollisionModel* new_collision_model) {
+bool ChBody::GetCollide() const {
+    return BFlagGet(BodyFlag::COLLIDE);
+}
+
+void ChBody::SetCollisionModel(std::shared_ptr<collision::ChCollisionModel> new_collision_model) {
     if (collision_model) {
         if (system)
-            system->GetCollisionSystem()->Remove(collision_model);
-
-        delete collision_model;
+            system->GetCollisionSystem()->Remove(collision_model.get());
     }
 
     collision_model = new_collision_model;
@@ -732,14 +837,16 @@ void ChBody::AddCollisionModelsToSystem() {
     assert(this->GetSystem());
     SyncCollisionModels();
     if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Add(this->GetCollisionModel());
+        this->GetSystem()->GetCollisionSystem()->Add(collision_model.get());
 }
 
 void ChBody::RemoveCollisionModelsFromSystem() {
     assert(this->GetSystem());
     if (this->GetCollide())
-        this->GetSystem()->GetCollisionSystem()->Remove(this->GetCollisionModel());
+        this->GetSystem()->GetCollisionSystem()->Remove(collision_model.get());
 }
+
+// ---------------------------------------------------------------------------
 
 void ChBody::GetTotalAABB(ChVector<>& bbmin, ChVector<>& bbmax) {
     if (this->GetCollisionModel())
@@ -818,11 +925,12 @@ ChVector<> ChBody::GetContactTorque() {
     return GetSystem()->GetContactContainer()->GetContactableTorque(this);
 }
 
-//////// FILE I/O
+// ---------------------------------------------------------------------------
+// FILE I/O
 
 void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChBody>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -831,19 +939,19 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
 
     // serialize all member data:
 
-    marchive << CHNVP(bflag);
+    marchive << CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
-    mflag = BFlagGet(BF_FIXED);
+    mflag = BFlagGet(BodyFlag::FIXED);
     marchive << CHNVP(mflag, "is_fixed");
-    mflag = BFlagGet(BF_COLLIDE);
+    mflag = BFlagGet(BodyFlag::COLLIDE);
     marchive << CHNVP(mflag, "collide");
-    mflag = BFlagGet(BF_LIMITSPEED);
+    mflag = BFlagGet(BodyFlag::LIMITSPEED);
     marchive << CHNVP(mflag, "limit_speed");
-    mflag = BFlagGet(BF_NOGYROTORQUE);
+    mflag = BFlagGet(BodyFlag::NOGYROTORQUE);
     marchive << CHNVP(mflag, "no_gyro_torque");
-    mflag = BFlagGet(BF_USESLEEPING);
+    mflag = BFlagGet(BodyFlag::USESLEEPING);
     marchive << CHNVP(mflag, "use_sleeping");
-    mflag = BFlagGet(BF_SLEEPING);
+    mflag = BFlagGet(BodyFlag::SLEEPING);
     marchive << CHNVP(mflag, "is_sleeping");
 
     // marchive << CHNVP(marklist);
@@ -888,7 +996,7 @@ void ChBody::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChBody>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);
@@ -897,20 +1005,20 @@ void ChBody::ArchiveIN(ChArchiveIn& marchive) {
 
     // stream in all member data:
 
-    marchive >> CHNVP(bflag);
+    marchive >> CHNVP(bflags);
     bool mflag;  // more readable flag output in case of ASCII in/out
     marchive >> CHNVP(mflag, "is_fixed");
-    BFlagSet(BF_FIXED, mflag);
+    BFlagSet(BodyFlag::FIXED, mflag);
     marchive >> CHNVP(mflag, "collide");
-    BFlagSet(BF_COLLIDE, mflag);
+    BFlagSet(BodyFlag::COLLIDE, mflag);
     marchive >> CHNVP(mflag, "limit_speed");
-    BFlagSet(BF_LIMITSPEED, mflag);
+    BFlagSet(BodyFlag::LIMITSPEED, mflag);
     marchive >> CHNVP(mflag, "no_gyro_torque");
-    BFlagSet(BF_NOGYROTORQUE, mflag);
+    BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
     marchive >> CHNVP(mflag, "use_sleeping");
-    BFlagSet(BF_USESLEEPING, mflag);
+    BFlagSet(BodyFlag::USESLEEPING, mflag);
     marchive >> CHNVP(mflag, "is_sleeping");
-    BFlagSet(BF_SLEEPING, mflag);
+    BFlagSet(BodyFlag::SLEEPING, mflag);
 
     // marchive >> CHNVP(marklist);
     // do rather a custom array load:
@@ -964,41 +1072,41 @@ void ChBody::StreamOUTstate(ChStreamOutBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream << this->coord.pos.x;
-    mstream << this->coord.pos.x;
-    mstream << this->coord.pos.x;
-    mstream << this->coord.rot.e0;
-    mstream << this->coord.rot.e1;
-    mstream << this->coord.rot.e2;
-    mstream << this->coord.rot.e3;
-    mstream << this->coord_dt.pos.x;
-    mstream << this->coord_dt.pos.x;
-    mstream << this->coord_dt.pos.x;
-    mstream << this->coord_dt.rot.e0;
-    mstream << this->coord_dt.rot.e1;
-    mstream << this->coord_dt.rot.e2;
-    mstream << this->coord_dt.rot.e3;
+    mstream << this->coord.pos.x();
+    mstream << this->coord.pos.y();
+    mstream << this->coord.pos.z();
+    mstream << this->coord.rot.e0();
+    mstream << this->coord.rot.e1();
+    mstream << this->coord.rot.e2();
+    mstream << this->coord.rot.e3();
+    mstream << this->coord_dt.pos.x();
+    mstream << this->coord_dt.pos.y();
+    mstream << this->coord_dt.pos.z();
+    mstream << this->coord_dt.rot.e0();
+    mstream << this->coord_dt.rot.e1();
+    mstream << this->coord_dt.rot.e2();
+    mstream << this->coord_dt.rot.e3();
 }
 
 void ChBody::StreamINstate(ChStreamInBinary& mstream) {
     // Do not serialize parent classes and do not
     // implement versioning, because this must be efficient
     // and will be used just for domain decomposition.
-    mstream >> this->coord.pos.x;
-    mstream >> this->coord.pos.x;
-    mstream >> this->coord.pos.x;
-    mstream >> this->coord.rot.e0;
-    mstream >> this->coord.rot.e1;
-    mstream >> this->coord.rot.e2;
-    mstream >> this->coord.rot.e3;
+    mstream >> this->coord.pos.x();
+    mstream >> this->coord.pos.y();
+    mstream >> this->coord.pos.z();
+    mstream >> this->coord.rot.e0();
+    mstream >> this->coord.rot.e1();
+    mstream >> this->coord.rot.e2();
+    mstream >> this->coord.rot.e3();
     this->SetCoord(coord);
-    mstream >> this->coord_dt.pos.x;
-    mstream >> this->coord_dt.pos.x;
-    mstream >> this->coord_dt.pos.x;
-    mstream >> this->coord_dt.rot.e0;
-    mstream >> this->coord_dt.rot.e1;
-    mstream >> this->coord_dt.rot.e2;
-    mstream >> this->coord_dt.rot.e3;
+    mstream >> this->coord_dt.pos.x();
+    mstream >> this->coord_dt.pos.y();
+    mstream >> this->coord_dt.pos.z();
+    mstream >> this->coord_dt.rot.e0();
+    mstream >> this->coord_dt.rot.e1();
+    mstream >> this->coord_dt.rot.e2();
+    mstream >> this->coord_dt.rot.e3();
     this->SetCoord_dt(coord_dt);
 
     this->Update();

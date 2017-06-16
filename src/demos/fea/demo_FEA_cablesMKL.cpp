@@ -1,33 +1,32 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Dario Mangoni, Radu Serban
+// =============================================================================
 //
-//   Demo code about
-//
-//     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+// FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
 //       uses the Chrono MKL module
+//
+// =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_mkl/ChSolverMKL.h"
 
 #include "FEAcables.h"
-/*
-using namespace chrono;
-using namespace fea;
-using namespace irr;
-*/
+
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -52,9 +51,9 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
-    // coordinates and vertex colours as in the FEM elements.
+    // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a coloured ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
     auto mvisualizebeamA = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
@@ -86,19 +85,17 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Change solver to MKL
-    auto mkl_solver_stab = new ChSolverMKL<>;
-    auto mkl_solver_speed = new ChSolverMKL<>;
-    my_system.ChangeSolverStab(mkl_solver_stab);
-    my_system.ChangeSolverSpeed(mkl_solver_speed);
-	mkl_solver_stab->SetSparsityPatternLock(false);
-	mkl_solver_speed->SetSparsityPatternLock(false);
+    auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    mkl_solver->SetSparsityPatternLock(false);
+    my_system.SetSolver(mkl_solver);
+
     // WARNING: due to known issues on MKL Pardiso, if CSR matrix is used, sparsity pattern lock should be put OFF
-    // Look at ChCSR3Matrix::SetElement comments to further details.
-    application.GetSystem()->Update();
+    // Look at ChCSMatrix::SetElement comments to further details.
+    my_system.Update();
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {

@@ -612,7 +612,7 @@ int ChLinkedListMatrix::Setup_LU() {
                 rowel = GetElarrayMel(k - 1);  // for speed optimization. They are in two rows.
 
                 // for (j=k; j < m_num_cols; j++)  where j = rowel->col
-                for (nullptr; rowel != nullptr; rowel = rowel->next) {
+                for (; rowel != nullptr; rowel = rowel->next) {
                     if (rowel->col >= k) {
                         mval = rowel->val;
                         subrowel = GetElement(i, rowel->col, &subval, subrowel);
@@ -653,7 +653,7 @@ void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
 
         ChMelement* rowel = GetElarrayMel(k);
 
-        for (nullptr; (rowel != nullptr && rowel->col < k); rowel = rowel->next) {
+        for (; (rowel != nullptr && rowel->col < k); rowel = rowel->next) {
             sum += rowel->val * (x.GetElement(rowel->col, 0));
         }
 
@@ -670,7 +670,7 @@ void ChLinkedListMatrix::Solve_LU(const ChMatrix<>& b, ChMatrix<>& x) {
 
         ChMelement* rowel = GetElarrayMel(k);
 
-        for (nullptr; rowel != nullptr; rowel = rowel->next) {
+        for (; rowel != nullptr; rowel = rowel->next) {
             if (rowel->col >= k + 1) {
                 sum += rowel->val * (x.GetElement(rowel->col, 0));
             }
@@ -768,7 +768,7 @@ int ChLinkedListMatrix::Setup_LDL() {
                 // advance top row element till it has (col >= k)
 
                 // for (j=i; j < m_num_cols; j++)     only upper right part
-                for (nullptr; rowel != nullptr; rowel = rowel->next) {
+                for (; rowel != nullptr; rowel = rowel->next) {
                     // only upper right part is filled!
                     if (rowel->col >= i) {
                         mval = rowel->val;
@@ -828,7 +828,7 @@ void ChLinkedListMatrix::Solve_LDL(const ChMatrix<>& b, ChMatrix<>& x) {
 
         ChMelement* rowel = GetElarrayMel(k);
 
-        for (nullptr; rowel != nullptr; rowel = rowel->next) {
+        for (; rowel != nullptr; rowel = rowel->next) {
             if (rowel->col >= k + 1) {
                 sum += rowel->val * x.GetElement(m_pindices[rowel->col], 0);
             }

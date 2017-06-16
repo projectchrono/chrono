@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
         GetLog() << " Example: create a simple power train with ChShaft objects: \n";
 
         // We will model a very basic powertrain with two shafts A and B,
-        // connected by a reducer [ t ] with transmision ratio 't'. Shafts are
+        // connected by a reducer [ t ] with transmission ratio 't'. Shafts are
         // free to rotate, shaft A has an applied torque Ta, so A and B will
         // constantly accelerate. Each shaft must have some inertia, it's like a
         // flywheel, marked as || in the following scheme:
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create a 1-degree-of-freedom '1D' mechanical object, that
         // is a ChShaft (an item that can oly rotate, with one inertia value
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 
         // Create another shaft. Note that we use shared pointers for ChShaft
         // objects, as we did for ChBody objects. Also, note that we must add them
-        // to the ChSystem.
+        // to the ChSystemNSC.
         auto my_shaftB = std::make_shared<ChShaft>();
         my_shaftB->SetInertia(100);
         my_shaftB->SetShaftFixed(false);
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create a ChShaft that starts with nonzero angular velocity
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
         // constraint.
         // The ChShaftsPlanetary makes a kinematic constraint between three
         // shafts: so one of them will be 'fixed' and will represent the truss
-        // of the reducer -in epicycloidaal reducer, this is the role of the
+        // of the reducer -in s reducer, this is the role of the
         // large gear with inner teeth- and the two remaining shafts are the
         // input and output shafts (in other cases, such as the differential
         // planetary gear of the cars, all three shafts are free).
@@ -202,7 +202,7 @@ int main(int argc, char* argv[]) {
         //                   C
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create shaft A, with applied torque
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -293,7 +293,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create 'A', a 1D shaft
         auto my_shaftA = std::make_shared<ChShaft>();
@@ -340,14 +340,14 @@ int main(int argc, char* argv[]) {
             GetLog() << "Time: " << chronoTime << "\n"
                      << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPos_dt()
                      << "  accel: " << my_shaftA->GetPos_dtdt() << "\n"
-                     << "  Body B angular speed on z: " << my_bodyB->GetWvel_loc().z
-                     << "  accel on z: " << my_bodyB->GetWacc_loc().z << "\n"
+                     << "  Body B angular speed on z: " << my_bodyB->GetWvel_loc().z()
+                     << "  accel on z: " << my_bodyB->GetWacc_loc().z() << "\n"
                      << "  AC spring, torque on A side: " << my_shaft_torsionAC->GetTorqueReactionOn1()
                      << "  torque on C side: " << my_shaft_torsionAC->GetTorqueReactionOn2() << "\n"
                      << "  shafts/body reaction,  on shaft A: " << my_shaftbody_connection->GetTorqueReactionOnShaft()
-                     << " ,   on body (x y z): " << my_shaftbody_connection->GetTorqueReactionOnBody().x << " "
-                     << my_shaftbody_connection->GetTorqueReactionOnBody().y << " "
-                     << my_shaftbody_connection->GetTorqueReactionOnBody().z << " "
+                     << " ,   on body (x y z): " << my_shaftbody_connection->GetTorqueReactionOnBody().x() << " "
+                     << my_shaftbody_connection->GetTorqueReactionOnBody().y() << " "
+                     << my_shaftbody_connection->GetTorqueReactionOnBody().z() << " "
                      << "\n";
         }
     }
@@ -376,7 +376,7 @@ int main(int argc, char* argv[]) {
         //
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create 'A', a 1D shaft
         auto my_shaftA = std::make_shared<ChShaft>();

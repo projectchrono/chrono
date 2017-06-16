@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHPARTICLEPROCESSEVENT_H
 #define CHPARTICLEPROCESSEVENT_H
@@ -40,7 +42,7 @@ class ChParticleProcessEvent {
     virtual void SetupPostProcess(ChSystem& msystem){};
 };
 
-/// Simpliest case: no event processing
+/// Simplest case: no event processing
 /// Just an example.
 class ChParticleProcessEventDoNothing : public ChParticleProcessEvent {
   public:
@@ -133,10 +135,10 @@ class ChParticleProcessEventMassDistribution : public ChParticleProcessEvent {
         assert(std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor));
 
         if (auto mrectangleprocessor = std::dynamic_pointer_cast<ChParticleEventFlowInRectangle>(mprocessor)) {
-            int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x);
+            int irow = (int)floor(mmass.GetRows() * mrectangleprocessor->last_intersectionUV.x());
             if (irow >= mmass.GetRows())
                 irow = mmass.GetRows() - 1;
-            int icol = (int)floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y);
+            int icol = (int)floor(mmass.GetColumns() * mrectangleprocessor->last_intersectionUV.y());
             if (icol >= mmass.GetColumns())
                 icol = mmass.GetColumns() - 1;
 

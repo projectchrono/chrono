@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono_python/ChPython.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyAuxRef.h"
 #include <iostream>
 #include <sstream>
@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     // TEST 6   -   load mechanical system, previously saved to disk from SolidWorks add-in
     //
 
-	GetLog() << "\n\n Chrono::PyEngine Test 6.";
-	ChSystem my_system;
+	GetLog() << "\n\n Chrono::PyEngine Test 6.\n";
+	ChSystemNSC my_system;
 
     try {
         // This is the instruction that loads the .py (as saved from SolidWorks) and
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
         if (!mbody) 
             throw ChException("Error. Could not find body from its name in SolidWorks exported file");
         else
-            GetLog() << "Found body  its name in SolidWorks exported file, pos.x=" << mbody->GetPos().x << "\n";
+            GetLog() << "Found body  its name in SolidWorks exported file, pos.x()=" << mbody->GetPos().x() << "\n";
 
 
     } catch (ChException myerror) {

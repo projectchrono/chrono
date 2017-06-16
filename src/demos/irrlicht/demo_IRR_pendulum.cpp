@@ -20,7 +20,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -43,7 +43,7 @@ using namespace irr::gui;
 // a rotating fan, to all objects in front of it (a simple
 // exaple just to demonstrate how to apply custom forces).
 
-void apply_fan_force(ChSystem* msystem,       // contains all bodies
+void apply_fan_force(ChSystemNSC* msystem,       // contains all bodies
                      ChCoordsys<>& fan_csys,  // pos and rotation of fan
                      double aradius,          // radius of fan
                      double aspeed,           // speed of fan
@@ -61,9 +61,9 @@ void apply_fan_force(ChSystem* msystem,       // contains all bodies
         // calculate the position of body COG in fan coordinates:
         ChVector<> mrelpos = fan_csys.TransformParentToLocal(abody->GetPos());
         ChVector<> mrelpos_ondisc = mrelpos;
-        mrelpos_ondisc.z = 0;
+        mrelpos_ondisc.z() = 0;
 
-        if (mrelpos.z > 0)  // if not behind fan..
+        if (mrelpos.z() > 0)  // if not behind fan..
             if (mrelpos_ondisc.Length() < aradius) {
                 // OK! we are inside wind stream cylinder..
                 // wind is directed as normal to the fan disc
@@ -82,7 +82,7 @@ void apply_fan_force(ChSystem* msystem,       // contains all bodies
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     application.SetTimestep(0.01);
     application.SetTryRealtime(true);
 
-    //application.GetSystem()->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN); // if you need a more precise CCP solver..
+    //application.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN); // if you need a more precise CCP solver..
 
 
     while (application.GetDevice()->run()) {

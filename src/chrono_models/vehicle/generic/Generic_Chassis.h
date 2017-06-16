@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,7 +19,7 @@
 #ifndef GENERIC_CHASSIS_H
 #define GENERIC_CHASSIS_H
 
-#include "chrono_vehicle/ChChassis.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
 
 #include "chrono_models/ChApiModels.h"
 
@@ -27,7 +27,11 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
-class CH_MODELS_API Generic_Chassis : public ChChassis {
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Chassis subsystem for a generic vehicle.
+class CH_MODELS_API Generic_Chassis : public ChRigidChassis {
   public:
     Generic_Chassis(const std::string& name);
     ~Generic_Chassis() {}
@@ -57,6 +61,8 @@ class CH_MODELS_API Generic_Chassis : public ChChassis {
     static const ChVector<> m_COM_loc;
     static const ChCoordsys<> m_driverCsys;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

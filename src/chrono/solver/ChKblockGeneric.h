@@ -23,14 +23,9 @@ namespace chrono {
 /// matrix, that is blocks that connect N 'variables'
 /// and build a matrix K in a sparse variational inequality VI(Z*x-d,K):
 ///
-///  | M+K -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-///  | Cq   -E | |l|  |-b|  |c|
+/// See ChSystemDescriptor for more information about the overall
+/// problem and data representation.
 ///
-/// Also Z symmetric by flipping sign of l_i: |M+K  Cq'|*| q|-| f|=|0|
-///                                           |Cq    E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0
-/// * case CCP: Y_i are friction cones
 /// Note that K blocks often have a physical interpretation as stiffness,
 /// but not always, for example they can represent hessians.
 /// Note that all blocks in K, all masses and constraint

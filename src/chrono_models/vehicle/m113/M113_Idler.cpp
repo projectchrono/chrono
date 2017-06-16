@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -53,11 +53,15 @@ const std::string M113_IdlerRight::m_meshFile = "M113/Idler_R.obj";
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class M113_TensionerForce : public ChSpringForceCallback {
+class M113_TensionerForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_TensionerForce(double k, double c, double f, double l0) : m_k(k), m_c(c), m_f(f), m_l0(l0) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) override {
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
         return m_f - m_k * (length - m_l0) - m_c * vel;
     }
 
@@ -120,7 +124,7 @@ const ChVector<> M113_Idler::GetLocation(PointId which) {
     }
 
     if (GetVehicleSide() == RIGHT)
-        point.y *= -1;
+        point.y() *= -1;
 
     return point;
 }

@@ -92,7 +92,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     virtual double Get_Ca_neg() const override;
     virtual double Get_Cv() const override;
 
-    virtual void Estimate_x_range(double& xmin, double& xmax) const {
+    virtual void Estimate_x_range(double& xmin, double& xmax) const override {
         xmin = 0.0;
         xmax = end;
     }
@@ -100,7 +100,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFunction_ConstAcc>();
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
@@ -113,7 +113,7 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFunction_ConstAcc>();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
@@ -123,6 +123,8 @@ class ChApi ChFunction_ConstAcc : public ChFunction {
         marchive >> CHNVP(av);
     }
 };
+
+CH_CLASS_VERSION(ChFunction_ConstAcc,0)
 
 }  // end namespace chrono
 

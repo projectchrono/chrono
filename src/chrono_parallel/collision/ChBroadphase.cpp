@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 
 #include <chrono_parallel/collision/ChCollision.h>
 #include "chrono_parallel/collision/ChBroadphaseUtils.h"
@@ -92,11 +93,21 @@ void ChCBroadphase::DetermineBoundingBox() {
         min_point = Min(min_point, data_manager->measures.collision.ff_min_bounding_point);
         max_point = Max(max_point, data_manager->measures.collision.ff_max_bounding_point);
     }
+
     if (data_manager->num_fea_tets != 0) {
         TetBoundingBox();
         min_point = Min(min_point, data_manager->measures.collision.tet_min_bounding_point);
         max_point = Max(max_point, data_manager->measures.collision.tet_max_bounding_point);
     }
+
+    // Inflate the overall bounding box by a small percentage.
+    // This takes care of corner cases where a degenerate object bounding box is on the
+    // boundary of the overall bounding box.
+    real fraction = 1e-3;
+    real3 size = max_point - min_point;
+    min_point = min_point - fraction * size;
+    max_point = max_point + fraction * size;
+
     data_manager->measures.collision.min_bounding_point = min_point;
     data_manager->measures.collision.max_bounding_point = max_point;
     data_manager->measures.collision.global_origin = min_point;
@@ -108,7 +119,9 @@ void ChCBroadphase::DetermineBoundingBox() {
 void ChCBroadphase::OffsetAABB() {
     custom_vector<real3>& aabb_min = data_manager->host_data.aabb_min;
     custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
+
     thrust::constant_iterator<real3> offset(data_manager->measures.collision.global_origin);
+
     thrust::transform(aabb_min.begin(), aabb_min.end(), offset, aabb_min.begin(), thrust::minus<real3>());
     thrust::transform(aabb_max.begin(), aabb_max.end(), offset, aabb_max.begin(), thrust::minus<real3>());
     // Offset tet aabb
@@ -166,6 +179,7 @@ void ChCBroadphase::OneLevelBroadphase() {
     const custom_vector<real3>& aabb_max = data_manager->host_data.aabb_max;
     const custom_vector<short2>& fam_data = data_manager->shape_data.fam_rigid;
     const custom_vector<char>& obj_active = data_manager->host_data.active_rigid;
+    const custom_vector<char>& obj_collide = data_manager->host_data.collide_rigid;
     const custom_vector<uint>& obj_data_id = data_manager->shape_data.id_rigid;
     custom_vector<long long>& contact_pairs = data_manager->host_data.contact_pairs;
 
@@ -189,6 +203,10 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
+        if (obj_data_id[i] == UINT_MAX) {
+            bin_intersections[i] = 0;
+            continue;
+        }
         f_Count_AABB_BIN_Intersection(i, inv_bin_size, aabb_min, aabb_max, bin_intersections);
     }
 
@@ -204,12 +222,14 @@ void ChCBroadphase::OneLevelBroadphase() {
 
 #pragma omp parallel for
     for (int i = 0; i < num_shapes; i++) {
+        if (obj_data_id[i] == UINT_MAX)
+            continue;
         f_Store_AABB_BIN_Intersection(i, bins_per_axis, inv_bin_size, aabb_min, aabb_max, bin_intersections, bin_number,
                                       bin_aabb_number);
     }
 
     Thrust_Sort_By_Key(bin_number, bin_aabb_number);
-    number_of_bins_active = Run_Length_Encode(bin_number, bin_number_out, bin_start_index);
+    number_of_bins_active = (int)(Run_Length_Encode(bin_number, bin_number_out, bin_start_index));
 
     if (number_of_bins_active <= 0) {
         number_of_contacts_possible = 0;
@@ -226,9 +246,9 @@ void ChCBroadphase::OneLevelBroadphase() {
     bin_num_contact[number_of_bins_active] = 0;
 
 #pragma omp parallel for
-    for (int i = 0; i < number_of_bins_active; i++) {
+    for (int i = 0; i < (signed)number_of_bins_active; i++) {
         f_Count_AABB_AABB_Intersection(i, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
-                                       bin_aabb_number, bin_start_index, fam_data, obj_active, obj_data_id,
+                                       bin_aabb_number, bin_start_index, fam_data, obj_active, obj_collide, obj_data_id,
                                        bin_num_contact);
     }
 
@@ -238,14 +258,15 @@ void ChCBroadphase::OneLevelBroadphase() {
     LOG(TRACE) << "Number of possible collisions: " << number_of_contacts_possible;
 
 #pragma omp parallel for
-    for (int index = 0; index < number_of_bins_active; index++) {
+    for (int index = 0; index < (signed)number_of_bins_active; index++) {
         f_Store_AABB_AABB_Intersection(index, inv_bin_size, bins_per_axis, aabb_min, aabb_max, bin_number_out,
                                        bin_aabb_number, bin_start_index, bin_num_contact, fam_data, obj_active,
-                                       obj_data_id, contact_pairs);
+                                       obj_collide, obj_data_id, contact_pairs);
     }
+
     contact_pairs.resize(number_of_contacts_possible);
     LOG(TRACE) << "Number of unique collisions: " << number_of_contacts_possible;
 }
-//======
-}
-}
+
+} // end namespace collision
+} // end namespace chrono

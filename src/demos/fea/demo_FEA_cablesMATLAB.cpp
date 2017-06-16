@@ -1,20 +1,23 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 //
-//   Demo code about
-//
-//     - FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
+// FEA for 3D beams of 'cable' type (ANCF gradient-deficient beams)
 //       Uses the Chrono MATLAB module
+//
+// =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 #include "chrono_matlab/ChSolverMatlab.h"
@@ -28,7 +31,7 @@ using namespace irr;
 
 int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -90,15 +93,13 @@ int main(int argc, char* argv[]) {
 
     // Change solver to Matlab external linear solver, for max precision in benchmarks
     ChMatlabEngine matlab_engine;
-    ChSolverMatlab* matlab_solver_stab = new ChSolverMatlab(matlab_engine);
-    ChSolverMatlab* matlab_solver_speed = new ChSolverMatlab(matlab_engine);
-    my_system.ChangeSolverStab(matlab_solver_stab);
-    my_system.ChangeSolverSpeed(matlab_solver_speed);
-    application.GetSystem()->Update();
+    auto matlab_solver = std::make_shared<ChSolverMatlab>(matlab_engine);
+    my_system.SetSolver(matlab_solver);
+    my_system.Update();
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    // my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    // my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {

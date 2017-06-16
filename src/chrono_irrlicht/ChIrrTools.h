@@ -33,14 +33,14 @@ namespace core {
 class ChApiIrr vector3dfCH : public vector3df {
   public:
     vector3dfCH(const chrono::ChVector<>& mch) {
-        X = ((f32)mch.x);
-        Y = ((f32)mch.y);
-        Z = ((f32)mch.z);
+        X = ((f32)mch.x());
+        Y = ((f32)mch.y());
+        Z = ((f32)mch.z());
     }
     vector3dfCH(chrono::ChVector<>* mch) {
-        X = ((f32)mch->x);
-        Y = ((f32)mch->y);
-        Z = ((f32)mch->z);
+        X = ((f32)mch->x());
+        Y = ((f32)mch->y());
+        Z = ((f32)mch->z());
     }
 };
 

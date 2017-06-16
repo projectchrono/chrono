@@ -41,13 +41,13 @@ bool ChOpenGLContacts::Initialize(ChOpenGLMaterial mat, ChOpenGLShader* shader) 
 }
 
 void ChOpenGLContacts::UpdateChrono(ChSystem* system) {
-    //  ChContactContainerDVI* container = (ChContactContainerDVI*)system->GetContactContainer();
-    //  std::list<ChContactContainerDVI::ChContact_6_6*> list = container-GetContactList();
+    //  ChContactContainerNSC* container = (ChContactContainerNSC*)system->GetContactContainer();
+    //  std::list<ChContactContainerNSC::ChContact_6_6*> list = container-GetContactList();
     //  int num_contacts = container->GetNcontacts();
     //  int counter = 0;
     //  contact_data.resize(num_contacts * 2);
     //
-    //  for (std::list<ChContactContainerDVI::ChContact_6_6*>::const_iterator iterator = list.begin(), end = list.end();
+    //  for (std::list<ChContactContainerNSC::ChContact_6_6*>::const_iterator iterator = list.begin(), end = list.end();
     //  iterator != end; ++iterator) {
     //    ChVector<> p1 = (*iterator)->GetContactP1();
     //    ChVector<> p2 = (*iterator)->GetContactP2();
@@ -73,7 +73,7 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
                         data_manager->num_rigid_tet_node_contacts + data_manager->num_rigid_fluid_contacts);
 
     //#pragma omp parallel for
-    for (int i = 0; i < data_manager->num_rigid_contacts; i++) {
+    for (int i = 0; i < (signed)data_manager->num_rigid_contacts; i++) {
         real3 cpta = data_manager->host_data.cpta_rigid_rigid[i];
         real3 cptb = data_manager->host_data.cptb_rigid_rigid[i];
 
@@ -102,7 +102,7 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
     offset += (data_manager->num_rigid_tet_contacts) * 2;
     index = 0;
-    for (int p = 0; p < data_manager->num_fea_nodes; p++) {
+    for (int p = 0; p < (signed)data_manager->num_fea_nodes; p++) {
         int start = data_manager->host_data.c_counts_rigid_tet_node[p];
         int end = data_manager->host_data.c_counts_rigid_tet_node[p + 1];
         for (int index = start; index < end; index++) {
@@ -118,7 +118,7 @@ void ChOpenGLContacts::UpdateChronoParallel(ChSystemParallel* system) {
 
     offset += (data_manager->num_rigid_tet_node_contacts);
     index = 0;
-    for (int p = 0; p < data_manager->num_fluid_bodies; p++) {
+    for (int p = 0; p < (signed)data_manager->num_fluid_bodies; p++) {
         int start = data_manager->host_data.c_counts_rigid_fluid[p];
         int end = data_manager->host_data.c_counts_rigid_fluid[p + 1];
         for (int index = start; index < end; index++) {

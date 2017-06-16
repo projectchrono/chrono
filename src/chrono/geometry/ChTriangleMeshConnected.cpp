@@ -147,7 +147,7 @@ class InPlaceParser {
 
     void ClearHardSeparator(char c) { mHard[c] = ST_DATA; }
 
-    void DefaultSymbols(void);  // set up default symbols for hard seperator and comment symbol of the '#' character.
+    void DefaultSymbols(void);  // set up default symbols for hard separator and comment symbol of the '#' character.
 
     bool EOS(char c) {
         if (mHard[c] == ST_EOS) {
@@ -163,7 +163,7 @@ class InPlaceParser {
     inline bool IsHard(char c);
     inline char* SkipSpaces(char* foo);
     inline bool IsWhiteSpace(char c);
-    inline bool IsNonSeparator(char c);  // non seperator,neither hard nor soft
+    inline bool IsNonSeparator(char c);  // non separator,neither hard nor soft
 
     bool mMyAlloc;  // whether or not *I* allocated the buffer and am responsible for deleting it.
     char* mData;    // ascii data to parse.
@@ -788,9 +788,9 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
 
     for (int i = 0; i < this->getNumTriangles(); i++) {
         // Get vertices of triangle i.
-        ChVector<double> v0 = this->m_vertices[m_face_v_indices[i].x];
-        ChVector<double> v1 = this->m_vertices[m_face_v_indices[i].y];
-        ChVector<double> v2 = this->m_vertices[m_face_v_indices[i].z];
+        ChVector<double> v0 = this->m_vertices[m_face_v_indices[i].x()];
+        ChVector<double> v1 = this->m_vertices[m_face_v_indices[i].y()];
+        ChVector<double> v2 = this->m_vertices[m_face_v_indices[i].z()];
 
         // Get cross product of edges and normal vector.
         ChVector<double> V1mV0 = v1 - v0;
@@ -800,49 +800,49 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
         // Compute integral terms.
         double tmp0, tmp1, tmp2;
         double f1x, f2x, f3x, g0x, g1x, g2x;
-        tmp0 = v0.x + v1.x;
-        f1x = tmp0 + v2.x;
-        tmp1 = v0.x * v0.x;
-        tmp2 = tmp1 + v1.x * tmp0;
-        f2x = tmp2 + v2.x * f1x;
-        f3x = v0.x * tmp1 + v1.x * tmp2 + v2.x * f2x;
-        g0x = f2x + v0.x * (f1x + v0.x);
-        g1x = f2x + v1.x * (f1x + v1.x);
-        g2x = f2x + v2.x * (f1x + v2.x);
+        tmp0 = v0.x() + v1.x();
+        f1x = tmp0 + v2.x();
+        tmp1 = v0.x() * v0.x();
+        tmp2 = tmp1 + v1.x() * tmp0;
+        f2x = tmp2 + v2.x() * f1x;
+        f3x = v0.x() * tmp1 + v1.x() * tmp2 + v2.x() * f2x;
+        g0x = f2x + v0.x() * (f1x + v0.x());
+        g1x = f2x + v1.x() * (f1x + v1.x());
+        g2x = f2x + v2.x() * (f1x + v2.x());
 
         double f1y, f2y, f3y, g0y, g1y, g2y;
-        tmp0 = v0.y + v1.y;
-        f1y = tmp0 + v2.y;
-        tmp1 = v0.y * v0.y;
-        tmp2 = tmp1 + v1.y * tmp0;
-        f2y = tmp2 + v2.y * f1y;
-        f3y = v0.y * tmp1 + v1.y * tmp2 + v2.y * f2y;
-        g0y = f2y + v0.y * (f1y + v0.y);
-        g1y = f2y + v1.y * (f1y + v1.y);
-        g2y = f2y + v2.y * (f1y + v2.y);
+        tmp0 = v0.y() + v1.y();
+        f1y = tmp0 + v2.y();
+        tmp1 = v0.y() * v0.y();
+        tmp2 = tmp1 + v1.y() * tmp0;
+        f2y = tmp2 + v2.y() * f1y;
+        f3y = v0.y() * tmp1 + v1.y() * tmp2 + v2.y() * f2y;
+        g0y = f2y + v0.y() * (f1y + v0.y());
+        g1y = f2y + v1.y() * (f1y + v1.y());
+        g2y = f2y + v2.y() * (f1y + v2.y());
 
         double f1z, f2z, f3z, g0z, g1z, g2z;
-        tmp0 = v0.z + v1.z;
-        f1z = tmp0 + v2.z;
-        tmp1 = v0.z * v0.z;
-        tmp2 = tmp1 + v1.z * tmp0;
-        f2z = tmp2 + v2.z * f1z;
-        f3z = v0.z * tmp1 + v1.z * tmp2 + v2.z * f2z;
-        g0z = f2z + v0.z * (f1z + v0.z);
-        g1z = f2z + v1.z * (f1z + v1.z);
-        g2z = f2z + v2.z * (f1z + v2.z);
+        tmp0 = v0.z() + v1.z();
+        f1z = tmp0 + v2.z();
+        tmp1 = v0.z() * v0.z();
+        tmp2 = tmp1 + v1.z() * tmp0;
+        f2z = tmp2 + v2.z() * f1z;
+        f3z = v0.z() * tmp1 + v1.z() * tmp2 + v2.z() * f2z;
+        g0z = f2z + v0.z() * (f1z + v0.z());
+        g1z = f2z + v1.z() * (f1z + v1.z());
+        g2z = f2z + v2.z() * (f1z + v2.z());
 
         // Update integrals.
-        integral[0] += N.x * f1x;
-        integral[1] += N.x * f2x;
-        integral[2] += N.y * f2y;
-        integral[3] += N.z * f2z;
-        integral[4] += N.x * f3x;
-        integral[5] += N.y * f3y;
-        integral[6] += N.z * f3z;
-        integral[7] += N.x * (v0.y * g0x + v1.y * g1x + v2.y * g2x);
-        integral[8] += N.y * (v0.z * g0y + v1.z * g1y + v2.z * g2y);
-        integral[9] += N.z * (v0.x * g0z + v1.x * g1z + v2.x * g2z);
+        integral[0] += N.x() * f1x;
+        integral[1] += N.x() * f2x;
+        integral[2] += N.y() * f2y;
+        integral[3] += N.z() * f2z;
+        integral[4] += N.x() * f3x;
+        integral[5] += N.y() * f3y;
+        integral[6] += N.z() * f3z;
+        integral[7] += N.x() * (v0.y() * g0x + v1.y() * g1x + v2.y() * g2x);
+        integral[8] += N.y() * (v0.z() * g0y + v1.z() * g1y + v2.z() * g2y);
+        integral[9] += N.z() * (v0.x() * g0z + v1.x() * g1z + v2.x() * g2z);
     }
 
     integral[0] *= oneDiv6;
@@ -875,15 +875,15 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
 
     // inertia relative to center of mass
     if (bodyCoords) {
-        inertia[0][0] -= mass * (center.y * center.y + center.z * center.z);
-        inertia[0][1] += mass * center.x * center.y;
-        inertia[0][2] += mass * center.z * center.x;
+        inertia[0][0] -= mass * (center.y() * center.y() + center.z() * center.z());
+        inertia[0][1] += mass * center.x() * center.y();
+        inertia[0][2] += mass * center.z() * center.x();
         inertia[1][0] = inertia[0][1];
-        inertia[1][1] -= mass * (center.z * center.z + center.x * center.x);
-        inertia[1][2] += mass * center.y * center.z;
+        inertia[1][1] -= mass * (center.z() * center.z() + center.x() * center.x());
+        inertia[1][2] += mass * center.y() * center.z();
         inertia[2][0] = inertia[0][2];
         inertia[2][1] = inertia[1][2];
-        inertia[2][2] -= mass * (center.x * center.x + center.y * center.y);
+        inertia[2][2] -= mass * (center.x() * center.x() + center.y() * center.y());
     }
 }
 
@@ -1047,9 +1047,9 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
 
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
         // edges = pairs of vertexes indexes
-        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
-        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
-        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
         if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
@@ -1062,7 +1062,7 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
         edge_map.insert({medgeC, it});
     }
 
-    // Create a map of neighbouring triangles, vector of:
+    // Create a map of neighboring triangles, vector of:
     // [Ti TieA TieB TieC]
     tri_map.resize(this->m_face_v_indices.size());
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
@@ -1071,9 +1071,9 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
         tri_map[it][2] = -1;  // default no neighbour
         tri_map[it][3] = -1;  // default no neighbour
         // edges = pairs of vertexes indexes
-        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
-        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
-        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
         if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
@@ -1118,9 +1118,9 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
 
     for (int it = 0; it < this->m_face_v_indices.size(); ++it) {
         // edges = pairs of vertexes indexes
-        std::pair<int, int> medgeA(this->m_face_v_indices[it].x, this->m_face_v_indices[it].y);
-        std::pair<int, int> medgeB(this->m_face_v_indices[it].y, this->m_face_v_indices[it].z);
-        std::pair<int, int> medgeC(this->m_face_v_indices[it].z, this->m_face_v_indices[it].x);
+        std::pair<int, int> medgeA(this->m_face_v_indices[it].x(), this->m_face_v_indices[it].y());
+        std::pair<int, int> medgeB(this->m_face_v_indices[it].y(), this->m_face_v_indices[it].z());
+        std::pair<int, int> medgeC(this->m_face_v_indices[it].z(), this->m_face_v_indices[it].x());
         // vertex indexes in edges: always in increasing order to avoid ambiguous duplicated edges
         if (medgeA.first > medgeA.second)
             medgeA = std::pair<int, int>(medgeA.second, medgeA.first);
@@ -1193,24 +1193,24 @@ int ChTriangleMeshConnected::RepairDuplicateVertexes(const double tolerance) {
 
     // update the merged vertexes also in face indexes to vertexes
     for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
-        m_face_v_indices[i].x = new_indexes[m_face_v_indices[i].x];
-        m_face_v_indices[i].y = new_indexes[m_face_v_indices[i].y];
-        m_face_v_indices[i].z = new_indexes[m_face_v_indices[i].z];
+        m_face_v_indices[i].x() = new_indexes[m_face_v_indices[i].x()];
+        m_face_v_indices[i].y() = new_indexes[m_face_v_indices[i].y()];
+        m_face_v_indices[i].z() = new_indexes[m_face_v_indices[i].z()];
     }
     for (int i = 0; i < this->m_face_n_indices.size(); ++i) {
-        m_face_n_indices[i].x = new_indexes[m_face_n_indices[i].x];
-        m_face_n_indices[i].y = new_indexes[m_face_n_indices[i].y];
-        m_face_n_indices[i].z = new_indexes[m_face_n_indices[i].z];
+        m_face_n_indices[i].x() = new_indexes[m_face_n_indices[i].x()];
+        m_face_n_indices[i].y() = new_indexes[m_face_n_indices[i].y()];
+        m_face_n_indices[i].z() = new_indexes[m_face_n_indices[i].z()];
     }
     for (int i = 0; i < this->m_face_uv_indices.size(); ++i) {
-        m_face_uv_indices[i].x = new_indexes[m_face_uv_indices[i].x];
-        m_face_uv_indices[i].y = new_indexes[m_face_uv_indices[i].y];
-        m_face_uv_indices[i].z = new_indexes[m_face_uv_indices[i].z];
+        m_face_uv_indices[i].x() = new_indexes[m_face_uv_indices[i].x()];
+        m_face_uv_indices[i].y() = new_indexes[m_face_uv_indices[i].y()];
+        m_face_uv_indices[i].z() = new_indexes[m_face_uv_indices[i].z()];
     }
     for (int i = 0; i < this->m_face_col_indices.size(); ++i) {
-        m_face_col_indices[i].x = new_indexes[m_face_col_indices[i].x];
-        m_face_col_indices[i].y = new_indexes[m_face_col_indices[i].y];
-        m_face_col_indices[i].z = new_indexes[m_face_col_indices[i].z];
+        m_face_col_indices[i].x() = new_indexes[m_face_col_indices[i].x()];
+        m_face_col_indices[i].y() = new_indexes[m_face_col_indices[i].y()];
+        m_face_col_indices[i].z() = new_indexes[m_face_col_indices[i].z()];
     }
 
     return nmerged;
@@ -1226,9 +1226,9 @@ bool ChTriangleMeshConnected::MakeOffset(const double moffset) {
 
     // build the topological info for triangles connected to vertex
     for (int i = 0; i < this->m_face_v_indices.size(); ++i) {
-        map_vertex_triangles[m_face_v_indices[i].x].push_back(i);
-        map_vertex_triangles[m_face_v_indices[i].y].push_back(i);
-        map_vertex_triangles[m_face_v_indices[i].z].push_back(i);
+        map_vertex_triangles[m_face_v_indices[i].x()].push_back(i);
+        map_vertex_triangles[m_face_v_indices[i].y()].push_back(i);
+        map_vertex_triangles[m_face_v_indices[i].z()].push_back(i);
     }
 
     // scan through vertexes and offset them
@@ -1275,11 +1275,11 @@ std::pair<int, int> ChTriangleMeshConnected::GetTriangleEdgeIndexes (
         ) {
         std::pair<int, int> medge;
         if (nedge ==0)
-            medge = {indexes[it].x,  indexes[it].y};
+            medge = {indexes[it].x(),  indexes[it].y()};
         if (nedge ==1)
-            medge = {indexes[it].y,  indexes[it].z};
+            medge = {indexes[it].y(),  indexes[it].z()};
         if (nedge ==2)
-            medge = {indexes[it].z,  indexes[it].x};
+            medge = {indexes[it].z(),  indexes[it].x()};
         if (unique) {
             // unique? sort always in increasing order to avoid ambiguous duplicated edges
             if (medge.first > medge.second)
@@ -1297,7 +1297,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<> Vnew = (mesh.m_vertices[i1] + mesh.m_vertices[i2]) * 0.5;
             mesh.m_vertices.push_back(Vnew);
-            created_index = mesh.m_vertices.size()-1;
+            created_index = (int)mesh.m_vertices.size()-1;
             return true;
         }
         case 1: {
@@ -1306,7 +1306,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
             ChVector<> Vnew = (mesh.m_normals[i1] + mesh.m_normals[i2]) * 0.5;
             Vnew.Normalize();
             mesh.m_normals.push_back(Vnew);
-            created_index = mesh.m_normals.size()-1;
+            created_index = (int)mesh.m_normals.size()-1;
             return true;
         }
         case 2: {
@@ -1314,7 +1314,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<> Vnew = (mesh.m_UV[i1] + mesh.m_UV[i2]) * 0.5;
             mesh.m_UV.push_back(Vnew);
-            created_index = mesh.m_UV.size()-1;
+            created_index = (int)mesh.m_UV.size()-1;
             return true;
         }
         case 3: {
@@ -1322,7 +1322,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
                 return false;
             ChVector<float> Vnew = (mesh.m_colors[i1] + mesh.m_colors[i2]) * 0.5;
             mesh.m_colors.push_back(Vnew);
-            created_index = mesh.m_colors.size()-1;
+            created_index = (int)mesh.m_colors.size()-1;
             return true;
         }
         default:
@@ -1332,7 +1332,7 @@ bool InterpolateAndInsert(ChTriangleMeshConnected& mesh, int ibuffer, int i1, in
 
 
 // Split an edge by inserting a point in the middle
-// It also updates uv buffer, normals buffer, etc. and recomputes neighbouring map.
+// It also updates uv buffer, normals buffer, etc. and recomputes neighboring map.
 bool ChTriangleMeshConnected::SplitEdge (
         int itA,      ///< triangle index,
         int itB,      ///< triangle index, -1 if not existing (means free edge on A)
@@ -1342,7 +1342,7 @@ bool ChTriangleMeshConnected::SplitEdge (
         int& itA_2,   ///< returns the index of split triangle A, part2
         int& itB_1,   ///< returns the index of split triangle B, part1
         int& itB_2,   ///< returns the index of split triangle B, part2
-        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighbouring map
+        std::vector<std::array<int, 4>>& tri_map, ///< triangle neighboring map
         std::vector<std::vector<double>*>& aux_data_double, ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<int>*>& aux_data_int,       ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
         std::vector<std::vector<bool>*>& aux_data_bool,      ///< auxiliary buffers to interpolate (assuming indexed as vertexes: each with same size as vertex buffer)
@@ -1393,38 +1393,38 @@ bool ChTriangleMeshConnected::SplitEdge (
 
             // Split triangle A in two (reuse existing, and allocate one new)
             ChVector<int> tA_1 = face_indexes[ibuffer]->at(itA);
-            if (tA_1.x == eAB.first) tA_1.x = iVnew;
-            if (tA_1.y == eAB.first) tA_1.y = iVnew;
-            if (tA_1.z == eAB.first) tA_1.z = iVnew;
+            if (tA_1.x() == eAB.first) tA_1.x() = iVnew;
+            if (tA_1.y() == eAB.first) tA_1.y() = iVnew;
+            if (tA_1.z() == eAB.first) tA_1.z() = iVnew;
             ChVector<int> tA_2 = face_indexes[ibuffer]->at(itA);
-            if (tA_2.x == eAB.second) tA_2.x = iVnew;
-            if (tA_2.y == eAB.second) tA_2.y = iVnew;
-            if (tA_2.z == eAB.second) tA_2.z = iVnew;
+            if (tA_2.x() == eAB.second) tA_2.x() = iVnew;
+            if (tA_2.y() == eAB.second) tA_2.y() = iVnew;
+            if (tA_2.z() == eAB.second) tA_2.z() = iVnew;
             face_indexes[ibuffer]->at(itA) = tA_1; // reuse face
             itA_1 = itA;
             face_indexes[ibuffer]->push_back(tA_2); // allocate new face
-            itA_2 = face_indexes[ibuffer]->size() -1;
+            itA_2 = (int)face_indexes[ibuffer]->size() -1;
 
             // Split triangle B in two (reuse existing, and allocate one new)
             if (itB != -1) {
                 ChVector<int> tB_1 = face_indexes[ibuffer]->at(itB);
-                if (tB_1.x == eAB.first) tB_1.x = iVnew;
-                if (tB_1.y == eAB.first) tB_1.y = iVnew;
-                if (tB_1.z == eAB.first) tB_1.z = iVnew;
+                if (tB_1.x() == eAB.first) tB_1.x() = iVnew;
+                if (tB_1.y() == eAB.first) tB_1.y() = iVnew;
+                if (tB_1.z() == eAB.first) tB_1.z() = iVnew;
                 ChVector<int> tB_2 = face_indexes[ibuffer]->at(itB);
-                if (tB_2.x == eAB.second) tB_2.x = iVnew;
-                if (tB_2.y == eAB.second) tB_2.y = iVnew;
-                if (tB_2.z == eAB.second) tB_2.z = iVnew;
+                if (tB_2.x() == eAB.second) tB_2.x() = iVnew;
+                if (tB_2.y() == eAB.second) tB_2.y() = iVnew;
+                if (tB_2.z() == eAB.second) tB_2.z() = iVnew;
                 face_indexes[ibuffer]->at(itB) = tB_1; // reuse face 
                 itB_1 = itB;
                 face_indexes[ibuffer]->push_back(tB_2); // allocate new face
-                itB_2 = face_indexes[ibuffer]->size() -1;
+                itB_2 = (int)face_indexes[ibuffer]->size() -1;
             }
 
             // for m_face_v_indices buffer (vertex indexes) only:
             if (ibuffer ==0)  {
                 
-                // Update triangle neighbouring map
+                // Update triangle neighboring map
 
                 std::array<int, 4> topo_A_1 = tri_map[itA];
                 std::array<int, 4> topo_A_2 = tri_map[itA];
@@ -1445,7 +1445,7 @@ bool ChTriangleMeshConnected::SplitEdge (
                         tri_map[itC][in] = itA_2;
                 tri_map[itA] = topo_A_1; // reuse  
                 tri_map.push_back(topo_A_2); // allocate
-                topo_A_2[0] = tri_map.size() -1;
+                topo_A_2[0] = (int)tri_map.size() -1;
 
                 if (itB != -1) {
                     std::array<int, 4> topo_B_1 = tri_map[itB];
@@ -1467,7 +1467,7 @@ bool ChTriangleMeshConnected::SplitEdge (
                             tri_map[itE][in] = itB_2;
                     tri_map[itB] = topo_B_1; // reuse  
                     tri_map.push_back(topo_B_2); // allocate
-                    topo_B_2[0] = tri_map.size() -1;
+                    topo_B_2[0] = (int)tri_map.size() -1;
                 }
             }
         } else {
@@ -1602,7 +1602,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                 mlist.pop_back();
 
             } else {
-                //  find longest-edge in neighbouring triangle
+                //  find longest-edge in neighboring triangle
                 double T1_L_max = 0;
                 int edge_N1 =0;
                 int t_shared = 0; 

@@ -11,10 +11,5 @@
     "Right Wheel Input File":  "hmmwv/wheel/HMMWV_Wheel_RearRight.json"
   },
 
-
-  "Visualization":
-  {
-    "Mesh Filename":  "hmmwv/hmmwv_chassis.obj",
-    "Mesh Name":      "hmmwv_chassis_POV_geom"
-  }
+  "Displacement Limit":     0.15
 }

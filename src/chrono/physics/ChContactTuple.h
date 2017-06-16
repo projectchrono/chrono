@@ -19,11 +19,10 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/collision/ChCCollisionInfo.h"
-#include "chrono/physics/ChMaterialCouple.h"
 
 namespace chrono {
 
-class ChContactContainerBase;
+class ChContactContainer;
 
 /// Base class for contact between two generic ChContactable objects.
 /// T1 and T2 are of ChContactable sub classes.
@@ -35,7 +34,7 @@ class ChContactTuple {
     typedef typename Tb::type_variable_tuple_carrier typecarr_b;
 
   protected:
-    ChContactContainerBase* container;  ///< associated contact container
+    ChContactContainer* container;  ///< associated contact container
 
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
@@ -55,7 +54,7 @@ class ChContactTuple {
 
     ChContactTuple() {}
 
-    ChContactTuple(ChContactContainerBase* mcontainer,      ///< contact container
+    ChContactTuple(ChContactContainer* mcontainer,      ///< contact container
                    Ta* mobjA,                               ///< ChContactable object A
                    Tb* mobjB,                               ///< ChContactable object B
                    const collision::ChCollisionInfo& cinfo  ///< data for the contact pair
@@ -110,7 +109,7 @@ class ChContactTuple {
     ChCoordsys<> GetContactCoords() const {
         ChCoordsys<> mcsys;
         ChQuaternion<> mrot = this->contact_plane.Get_A_quaternion();
-        mcsys.rot.Set(mrot.e0, mrot.e1, mrot.e2, mrot.e3);
+        mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
         mcsys.pos = this->p2;
         return mcsys;
     }
@@ -163,12 +162,12 @@ class ChContactTuple {
     virtual void ContKRMmatricesLoad(double Kfactor, double Rfactor) {}
 
     virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
-                                     const ChVectorDynamic<>& L,  ///<
-                                     const ChVectorDynamic<>& Qc  ///<
+                                     const ChVectorDynamic<>& L,  ///< the L vector
+                                     const ChVectorDynamic<>& Qc  ///< the Qc vector
                                      ) {}
 
     virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
-                                       ChVectorDynamic<>& L       ///<
+                                       ChVectorDynamic<>& L       ///< the L vector
                                        ) {}
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}

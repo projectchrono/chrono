@@ -141,7 +141,7 @@ void ChOpenGLHUD::GenerateHelp() {
     text.Render("2: Wireframe (slow)", LEFT, TOP - SPACING * 10, sx, sy);
     text.Render("3: Solid", LEFT, TOP - SPACING * 11, sx, sy);
 
-    text.Render("C: Show/Hide Contacts (DVI only)", LEFT, TOP - SPACING * 13, sx, sy);
+    text.Render("C: Show/Hide Contacts (NSC only)", LEFT, TOP - SPACING * 13, sx, sy);
 
     text.Render("Space: Pause Simulation (not rendering)", LEFT, TOP - SPACING * 15, sx, sy);
     text.Render("P: Pause Rendering (not simulating)", LEFT, TOP - SPACING * 16, sx, sy);
@@ -184,7 +184,7 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
         num_contacts = parallel_system->GetNcontacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
     } else {
-        ChCollisionSystemBullet* collision_system = (ChCollisionSystemBullet*)physics_system->GetCollisionSystem();
+        auto collision_system = std::static_pointer_cast<ChCollisionSystemBullet>(physics_system->GetCollisionSystem());
         num_shapes = collision_system->GetBulletCollisionWorld()->getNumCollisionObjects();
         num_rigid_bodies = physics_system->GetNbodiesTotal() + physics_system->GetNphysicsItems();
         num_contacts = physics_system->GetNcontacts();
@@ -276,10 +276,11 @@ void ChOpenGLHUD::GenerateSystem(ChSystem* physics_system) {
 }
 
 void ChOpenGLHUD::GenerateSolver(ChSystem* physics_system) {
-    double iters = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetTotalIterations();
-    const std::vector<double>& vhist = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
+    double iters = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetTotalIterations();
+    const std::vector<double>& vhist =
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetViolationHistory();
     const std::vector<double>& dhist =
-        ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
+        std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetDeltalambdaHistory();
     double residual = vhist.size() > 0 ? vhist.back() : 0.0;
     double dlambda = dhist.size() > 0 ? dhist.back() : 0.0;
 
@@ -350,7 +351,7 @@ void ChOpenGLHUD::GenerateStats(ChSystem* physics_system) {
     GenerateRenderer();
 }
 void ChOpenGLHUD::GenerateExtraStats(ChSystem* physics_system) {
-    // if (ChSystemParallelDVI* parallel_sys = dynamic_cast<ChSystemParallelDVI*>(physics_system)) {
+    // if (ChSystemParallelNSC* parallel_sys = dynamic_cast<ChSystemParallelNSC*>(physics_system)) {
     //  ChTimerParallel& system_timer = parallel_sys->data_manager->system_timer;
 
     //  sprintf(buffer, "Compute N:  %04f", system_timer.GetTime("ChIterativeSolverParallel_N"));

@@ -21,16 +21,17 @@
 
 #include <cstdlib>
 #include <cfloat>
-#include <memory.h>
+#include <memory>
 #include <algorithm>
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChGlobal.h"
 
 #include "chrono_parallel/collision/ChCollisionModelParallel.h"
+#include "chrono_parallel/physics/Ch3DOFContainer.h"
 #include "chrono_parallel/ChDataManager.h"
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/math/real3.h"
@@ -46,12 +47,16 @@ namespace chrono {
 class ChParallelDataManager;
 class settings_container;
 
+/// @addtogroup parallel_physics
+/// @{
+
+/// Base class for parallel systems.
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChSystemParallel)
 
   public:
-    ChSystemParallel(unsigned int max_objects);
+    ChSystemParallel();
     ChSystemParallel(const ChSystemParallel& other);
     ~ChSystemParallel();
 
@@ -60,38 +65,42 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
 
     void ClearForceVariables();
-    void Update();
-    void UpdateBilaterals();
-    void UpdateLinks();
-    void UpdateOtherPhysics();
-    void UpdateRigidBodies();
-    void UpdateShafts();
-    void Update3DOFBodies();
+    virtual void Update();
+    virtual void UpdateBilaterals();
+    virtual void UpdateLinks();
+    virtual void UpdateOtherPhysics();
+    virtual void UpdateRigidBodies();
+    virtual void UpdateShafts();
+    virtual void Update3DOFBodies();
     void RecomputeThreads();
 
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) = 0;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) = 0;
-    virtual void Setup();
-    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void Setup() override;
+    virtual void ChangeCollisionSystem(CollisionSystemType type);
+
+    /// Change the default composition laws for contact surface materials
+    /// (coefficient of friction, cohesion, compliance, etc.).
+    void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<real>>&& strategy);
 
     virtual void PrintStepStats();
-    int GetNumBodies();
-    int GetNumShafts();
-    int GetNumContacts();
-    int GetNumBilaterals();
+    unsigned int GetNumBodies();
+    unsigned int GetNumShafts();
+    unsigned int GetNumContacts();
+    unsigned int GetNumBilaterals();
 
-    /// Gets the time (in seconds) spent for computing the time step
-    virtual double GetTimerStep();
-    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step
-    virtual double GetTimerSolver();
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionBroad();
-    /// Gets the fraction of time (in seconds) for finding collisions, within the time step
-    virtual double GetTimerCollisionNarrow();
-    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step
-    virtual double GetTimerUpdate();
+    /// Gets the time (in seconds) spent for computing the time step.
+    virtual double GetTimerStep() override;
+    /// Gets the fraction of time (in seconds) for the solution of the solver, within the time step.
+    virtual double GetTimerSolver() override;
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
+    virtual double GetTimerCollisionBroad() override;
+    /// Gets the fraction of time (in seconds) for finding collisions, within the time step.
+    virtual double GetTimerCollisionNarrow() override;
+    /// Gets the fraction of time (in seconds) for updating auxiliary data, within the time step.
+    virtual double GetTimerUpdate() override;
 
-    /// Gets the total time for the collision detection step
+    /// Gets the total time for the collision detection step.
     double GetTimerCollision();
 
     /// Calculate cummulative contact forces for all bodies in the system.
@@ -108,9 +117,9 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     settings_container* GetSettings();
 
-    // based on the passed logging level and the state of that level, enable or
-    // disable logging level
-    void SetLoggingLevel(LOGGINGLEVEL level, bool state = true);
+    // Based on the specified logging level and the state of that level, enable or
+    // disable logging level.
+    void SetLoggingLevel(LoggingLevel level, bool state = true);
 
     /// Calculate the (linearized) bilateral constraint violations.
     /// Return the maximum constraint violation.
@@ -129,7 +138,7 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
     uint frame_threads, frame_bins, counter;
     std::vector<ChLink*>::iterator it;
 
-    COLLISIONSYSTEMTYPE collision_system_type;
+    CollisionSystemType collision_system_type;
 
   private:
     void AddShaft(std::shared_ptr<ChShaft> shaft);
@@ -139,70 +148,80 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
     std::vector<ChShaft*> shaftlist;
 };
+
 //====================================================================================================
-class CH_PARALLEL_API ChSystemParallelDVI : public ChSystemParallel {
+
+/// Parallel systems using non-smooth contact (complementarity-based) method.
+class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelDVI)
+    CH_FACTORY_TAG(ChSystemParallelNSC)
 
   public:
-    ChSystemParallelDVI(unsigned int max_objects = 1000);
-    ChSystemParallelDVI(const ChSystemParallelDVI& other);
+    ChSystemParallelNSC();
+    ChSystemParallelNSC(const ChSystemParallelNSC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelDVI* Clone() const override { return new ChSystemParallelDVI(*this); }
+    virtual ChSystemParallelNSC* Clone() const override { return new ChSystemParallelNSC(*this); }
 
-    void ChangeSolverType(SOLVERTYPE type);
+    void ChangeSolverType(SolverType type);
     void Initialize();
 
-    virtual ChMaterialSurfaceBase::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DVI; }
+    virtual ChMaterialSurface::ContactMethod GetContactMethod() const override { return ChMaterialSurface::NSC; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
-    void CalculateContactForces();
+    void Add3DOFContainer(std::shared_ptr<Ch3DOFContainer> container);
+
+    void CalculateContactForces() override;
     real CalculateKineticEnergy();
     real CalculateDualObjective();
 
-    virtual real3 GetBodyContactForce(uint body_id) const;
-    virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const override;
+    virtual real3 GetBodyContactTorque(uint body_id) const override;
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
 };
+
 //====================================================================================================
-class CH_PARALLEL_API ChSystemParallelDEM : public ChSystemParallel {
+
+/// Parallel systems using smooth contact (penalty-based) method.
+class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
     // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelDEM)
+    CH_FACTORY_TAG(ChSystemParallelSMC)
 
   public:
-    ChSystemParallelDEM(unsigned int max_objects = 1000);
-    ChSystemParallelDEM(const ChSystemParallelDEM& other);
+    ChSystemParallelSMC();
+    ChSystemParallelSMC(const ChSystemParallelSMC& other);
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChSystemParallelDEM* Clone() const override { return new ChSystemParallelDEM(*this); }
+    virtual ChSystemParallelSMC* Clone() const override { return new ChSystemParallelSMC(*this); }
 
-    virtual ChMaterialSurface::ContactMethod GetContactMethod() const { return ChMaterialSurfaceBase::DEM; }
+    virtual ChMaterialSurfaceNSC::ContactMethod GetContactMethod() const override { return ChMaterialSurface::SMC; }
     virtual ChBody* NewBody() override;
     virtual ChBodyAuxRef* NewBodyAuxRef() override;
     virtual void AddMaterialSurfaceData(std::shared_ptr<ChBody> newbody) override;
     virtual void UpdateMaterialSurfaceData(int index, ChBody* body) override;
 
-    virtual void Setup();
-    virtual void ChangeCollisionSystem(COLLISIONSYSTEMTYPE type);
+    virtual void Setup() override;
+    virtual void ChangeCollisionSystem(CollisionSystemType type) override;
 
-    virtual real3 GetBodyContactForce(uint body_id) const;
-    virtual real3 GetBodyContactTorque(uint body_id) const;
+    virtual real3 GetBodyContactForce(uint body_id) const override;
+    virtual real3 GetBodyContactTorque(uint body_id) const override;
     using ChSystemParallel::GetBodyContactForce;
     using ChSystemParallel::GetBodyContactTorque;
 
-    virtual void PrintStepStats();
+    virtual void PrintStepStats() override;
 
     double GetTimerProcessContact() const {
-        return data_manager->system_timer.GetTime("ChIterativeSolverParallelDEM_ProcessContact");
+        return data_manager->system_timer.GetTime("ChIterativeSolverParallelSMC_ProcessContact");
     }
 };
+
+/// @} parallel_physics
 
 }  // end namespace chrono

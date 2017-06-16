@@ -43,7 +43,8 @@ class ChApiIrr ChIrrParticlesSceneNode : public irr::scene::ISceneNode {
         irr::core::vector3df mmesh_scale,  ///< scale of the sample mesh
         ISceneNode* parent,                ///< the parent node in Irrlicht hierarchy
         irr::scene::ISceneManager* mgr,    ///< the Irrlicht scene manager
-        irr::s32 id);                      ///< the Irrlicht identifier
+        irr::s32 id                        ///< the Irrlicht identifier
+        );
 
     /// Destructor.
     /// Note: as this Irrlicht node is destructed, it also automatically removes

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,7 +18,7 @@
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
 // by the base class ChHendricksonPRIMAXX) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -33,6 +33,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Hendrickson PRIMAXX suspension for a generic vehicle.
 class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
   public:
     Generic_HendricksonPRIMAXX(const std::string& name);
@@ -66,17 +70,17 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getShockAHRestLength() const override { return m_shockAH_restLength; }
-    virtual ChSpringForceCallback* getShockAHForceCallback() const override { return m_shockAHForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockAHForceCallback() const override { return m_shockAHForceCB; }
 
     virtual double getShockLBRestLength() const override { return m_shockLB_restLength; }
-    virtual ChSpringForceCallback* getShockLBForceCallback() const override { return m_shockLBForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockLBForceCallback() const override { return m_shockLBForceCB; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
     virtual const ChVector<> getDirection(DirectionId which) override;
 
-    ChSpringForceCallback* m_shockAHForceCB;
-    ChSpringForceCallback* m_shockLBForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockAHForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockLBForceCB;
 
     static const double m_axlehousingMass;
     static const double m_knuckleMass;
@@ -113,6 +117,8 @@ class CH_MODELS_API Generic_HendricksonPRIMAXX : public ChHendricksonPRIMAXX {
     static const double m_shockLB_dampingCoefficient;
     static const double m_shockLB_restLength;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

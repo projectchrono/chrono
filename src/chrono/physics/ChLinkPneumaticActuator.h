@@ -99,6 +99,8 @@ class ChApi ChLinkPneumaticActuator : public ChLinkLock {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChLinkPneumaticActuator,0)
+
 }  // end namespace chrono
 
 #endif

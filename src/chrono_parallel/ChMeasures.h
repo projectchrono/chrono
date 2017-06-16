@@ -28,8 +28,12 @@
 #include "chrono_parallel/math/real4.h"        // for quaternion, real4
 
 namespace chrono {
-// collision_measures, like the name implies is the structure that contains all
-// measures associated with the collision detection step of chrono parallel
+
+/// @addtogroup parallel_module
+/// @{
+
+/// Collision_measures.
+/// This structure contains all measures associated with the collision detection step of chrono parallel.
 class collision_measures {
   public:
     collision_measures() {
@@ -56,14 +60,14 @@ class collision_measures {
         mpm_max_bounding_point = real3(0);
         mpm_bins_per_axis = vec3(0);
     }
-    real3 min_bounding_point;          // The minimal global bounding point
-    real3 max_bounding_point;          // The maximum global bounding point
-    real3 global_origin;               // The global zero point
-    real3 bin_size;                    // Vector holding bin sizes for each dimension
-    real3 inv_bin_size;                // Vector holding inverse bin sizes for each dimension
-    uint number_of_bins_active;        // Number of active bins (containing 1+ AABBs)
-    uint number_of_bin_intersections;  // Number of AABB bin intersections
-    uint number_of_contacts_possible;  // Number of contacts possible from broadphase
+    real3 min_bounding_point;          ///< The minimal global bounding point
+    real3 max_bounding_point;          ///< The maximum global bounding point
+    real3 global_origin;               ///< The global zero point
+    real3 bin_size;                    ///< Vector holding bin sizes for each dimension
+    real3 inv_bin_size;                ///< Vector holding inverse bin sizes for each dimension
+    uint number_of_bins_active;        ///< Number of active bins (containing 1+ AABBs)
+    uint number_of_bin_intersections;  ///< Number of AABB bin intersections
+    uint number_of_contacts_possible;  ///< Number of contacts possible from broadphase
 
     real3 rigid_min_bounding_point;
     real3 rigid_max_bounding_point;
@@ -83,8 +87,9 @@ class collision_measures {
     real3 mpm_max_bounding_point;
     vec3 mpm_bins_per_axis;
 };
-// solver_measures, like the name implies is the structure that contains all
-// measures associated with the parallel solver.
+
+/// Solver measures.
+/// This structure contains all measures associated with the parallel solver.
 class solver_measures {
   public:
     solver_measures() {
@@ -99,27 +104,33 @@ class solver_measures {
         old_objective_value = 0;
         lambda_max = 0;
     }
-    int total_iteration;       // The total number of iterations performed, this variable accumulates
-    real residual;             // Current residual for the solver
-    real objective_value;      // Current objective value for the solver
-    real old_objective_value;  // Objective value from the previous iter
+    int total_iteration;       ///< The total number of iterations performed, this variable accumulates
+    real residual;             ///< Current residual for the solver
+    real objective_value;      ///< Current objective value for the solver
+    real old_objective_value;  ///< Objective value from the previous iter
 
     real bilateral_apgd_step_length;
     real normal_apgd_step_length;
     real sliding_apgd_step_length;
     real spinning_apgd_step_length;
-    real lambda_max;  // largest eigenvalue
+    real lambda_max;  ///< Largest eigenvalue
+
     // These three variables are used to store the convergence history of the solver
     std::vector<real> maxd_hist, maxdeltalambda_hist, time;
+
     std::vector<real> apgd_beta;
     std::vector<real> apgd_step;
     std::vector<real> apgd_step_time;
     std::vector<real> violation;
 };
 
+/// Aggregate of collision and solver measures.
 class measures_container {
   public:
     collision_measures collision;
     solver_measures solver;
 };
-}
+
+/// @} parallel_module
+
+}  // end namespace chrono

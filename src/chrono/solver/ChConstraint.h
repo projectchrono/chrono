@@ -35,31 +35,25 @@ enum eChConstraintMode {
 /// Base class for representing constraints to be used
 /// with variational inequality solvers, used with Linear/CCP/LCP
 /// problems including inequalities, equalities, nonlinearities, etc.
-/// The matrices define the variational inequality VI(Z*x-d,K):
 ///
-///  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-///  | Cq -E | |l|  |-b|  |c|
+/// See ChSystemDescriptor for more information about the overall
+/// problem and data representation.
 ///
-/// Also Z symmetric by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-///                                           |Cq  E | |-l| |-b| |c|
-/// * case linear problem:  all Y_i = R, Ny=0, ex. all bilaterals)
-/// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0)
-/// * case CCP: Y_i are friction cones)
-///  The jacobian matrix [Cq] is built row by row by jacobians
-/// [Cq_i] of the constraints. [E] optionally includes 'cfm_i' terms
-/// on the diagonal.
-///  In general, typical bilateral constraints must be solved
-/// to have residual the residual c_i = 0 (unilaterals: c_i>0)
+/// The jacobian matrix [Cq] is built row by row by jacobians
+/// [Cq_i] of the constraints.\n
+/// [E] optionally includes 'cfm_i' terms on the diagonal.
+///
+/// In general, typical bilateral constraints must be solved
+/// to have residual c_i = 0 and unilaterals: c_i>0
 /// where the following linearization is introduced:
 ///      c_i= [Cq_i]*q + b_i
 ///
 /// The base class introduces just the minimum requirements
-/// for the solver, that is the basic methods which will be
+/// for the solver, that is the basic methods that will be
 /// called by the solver. It is up to the derived classes
 /// to implement these methods, and to add further features..
 
 class ChApi ChConstraint {
-
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChConstraint)
 
@@ -116,7 +110,7 @@ class ChApi ChConstraint {
     /// Assignment operator: copy from other object
     ChConstraint& operator=(const ChConstraint& other);
 
-    /// Comparison (compares anly flags, not the jacobians etc.)
+    /// Comparison (compares only flags, not the jacobians etc.)
     bool operator==(const ChConstraint& other) const;
 
     /// Tells if the constraint data is currently valid.
@@ -145,7 +139,7 @@ class ChApi ChConstraint {
         UpdateActiveFlag();
     }
 
-    /// Tells if the constraint is broken, for eccess of pulling/pushing.
+    /// Tells if the constraint is broken, for excess of pulling/pushing.
     virtual bool IsBroken() const { return broken; }
     /// 3rd party software can set the 'broken' status via this method
     /// (by default, constraints never break);

@@ -24,13 +24,13 @@ CH_FACTORY_REGISTER(ChShaftsTorque)
 ChShaftsTorque::ChShaftsTorque(const ChShaftsTorque& other) : ChShaftsTorqueBase(other) {}
 
 double ChShaftsTorque::ComputeTorque() {
-    // Simply return the user-sspecified torque
+    // Simply return the user-specified torque
     return torque;
 }
 
 void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsTorque>();
 
     // serialize parent class
     ChShaftsTorqueBase::ArchiveOUT(marchive);
@@ -41,7 +41,7 @@ void ChShaftsTorque::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorque::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsTorque>();
 
     // deserialize parent class:
     ChShaftsTorqueBase::ArchiveIN(marchive);

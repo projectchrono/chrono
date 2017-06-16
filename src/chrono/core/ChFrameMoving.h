@@ -484,7 +484,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// The transformation (also for speeds, accelerations) is
     /// inverted in place.
     /// That is if w=A*v, then A.Invert();v=A*w;
-    virtual void Invert() {
+    virtual void Invert() override {
         ChFrameMoving<Real> tmp;
         ChFrameMoving<Real> unit;
         tmp = *this;
@@ -503,7 +503,7 @@ class ChFrameMoving : public ChFrame<Real> {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFrameMoving>();
 
         // serialize parent class
         ChFrame<Real>::ArchiveOUT(marchive);
@@ -516,7 +516,7 @@ class ChFrameMoving : public ChFrame<Real> {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFrameMoving>();
 
         // deserialize parent class
         ChFrame<Real>::ArchiveIN(marchive);
@@ -526,6 +526,9 @@ class ChFrameMoving : public ChFrame<Real> {
         marchive >> CHNVP(coord_dtdt);
     }
 };
+
+CH_CLASS_VERSION(ChFrameMoving<double>,0)
+CH_CLASS_VERSION(ChFrameMoving<float>,0)
 
 //
 // MIXED ARGUMENT OPERATORS

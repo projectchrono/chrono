@@ -121,7 +121,7 @@ class ChApi ChLineCam : public ChLine {
     double Get_d() const { return d; }
     double Get_b0() const { return b0; }
 
-    /// Sets the data for the sliding follower (if eccentrical, with me eccentricity)
+    /// Sets the data for the sliding follower (if eccentric, with me eccentricity)
     void Set_sliding_eccentrical(double me) { e = me; };
     double Get_e() const { return e; }
     double Get_s() const { return sqrt(Rb * Rb - e * e); }
@@ -151,7 +151,7 @@ class ChApi ChLineCam : public ChLine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLineCam>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -175,7 +175,7 @@ class ChApi ChLineCam : public ChLine {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLineCam>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -197,6 +197,9 @@ class ChApi ChLineCam : public ChLine {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLineCam,0)
+
 }  // end namespace chrono
 
 #endif

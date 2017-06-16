@@ -25,7 +25,6 @@
 #include "chrono/physics/ChLinkGear.h"
 #include "chrono/physics/ChLinkLinActuator.h"
 #include "chrono/physics/ChLinkLock.h"
-#include "chrono/physics/ChLinkPneumaticActuator.h"
 #include "chrono/physics/ChLinkPointSpline.h"
 #include "chrono/physics/ChLinkPulley.h"
 #include "chrono/physics/ChLinkRevolute.h"

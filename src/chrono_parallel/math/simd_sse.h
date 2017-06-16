@@ -2,6 +2,7 @@
 #include "chrono_parallel/math/real.h"
 #include "chrono_parallel/math/real3.h"
 #include "chrono_parallel/math/real4.h"
+
 using namespace chrono;
 
 namespace simd {
@@ -193,4 +194,5 @@ inline __m128i Max(__m128i a, __m128i b) {
 inline __m128i Min(__m128i a, __m128i b) {
     return _mm_min_epi32(a, b);
 }
-}
+
+} // end namespace simd

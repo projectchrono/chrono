@@ -22,16 +22,12 @@
 #include <functional>
 
 #include "chrono/collision/ChCCollisionModel.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactContainerBase.h"
-#include "chrono/physics/ChContactContainerDEM.h"
-#include "chrono/physics/ChContactDEM.h"
+#include "chrono/physics/ChContactContainerSMC.h"
+#include "chrono/physics/ChContactSMC.h"
 #include "chrono/physics/ChContactTuple.h"
 #include "chrono/physics/ChContactable.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementShellANCF.h"
@@ -48,7 +44,7 @@ bool addGravity = false;
 double time_step = 0.001;
 // Forward declaration
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceDEM> mysurfmaterial,
+                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
@@ -66,7 +62,7 @@ int main(int argc, char* argv[]) {
     double nu = 0.3;    ///< Poisson ratio
     auto my_material = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
     // You can also change the contact surface propeties for further investigation.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);
     mysurfmaterial->SetGn(1e0);
@@ -169,7 +165,7 @@ int main(int argc, char* argv[]) {
 }
 
 // Custom contact container -- get access to the contact lists in the base class.
-class MyContactContainer : public ChContactContainerDEM {
+class MyContactContainer : public ChContactContainerSMC {
   public:
     MyContactContainer() {}
     // Traverse the list contactlist_6_6
@@ -184,8 +180,8 @@ class MyContactContainer : public ChContactContainerDEM {
             double CD = (*iter)->GetContactDistance();
 
             if (print) {
-                printf("P1=[%f %f %f]\n", p1.x, p1.y, p1.z);
-                printf("P2=[%f %f %f]\n", p2.x, p2.y, p2.z);
+                printf("P1=[%f %f %f]\n", p1.x(), p1.y(), p1.z());
+                printf("P2=[%f %f %f]\n", p2.x(), p2.y(), p2.z());
                 printf("Contact Distance=%f\n\n", CD);
             }
             num_contact++;
@@ -199,17 +195,17 @@ class MyContactContainer : public ChContactContainerDEM {
 ////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////
 bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
-                     std::shared_ptr<ChMaterialSurfaceDEM> mysurfmaterial,
+                     std::shared_ptr<ChMaterialSurfaceSMC> mysurfmaterial,
                      double sphere_swept_thickness,
                      double scaleFactor,
                      double elementThickness,
                      ChVector<> trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemDEM my_system(false, 16000, 500);
+    ChSystemSMC my_system(false, 16000, 500);
 
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.001);
-    my_system.SetContactForceModel(ChSystemDEM::Hooke);
+    my_system.SetContactForceModel(ChSystemSMC::Hooke);
 
     double L_x = 1.0;
     double L_y = elementThickness;
@@ -276,11 +272,11 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_meshes_1->AddContactSurface(mcontactsurf_1);
     my_meshes_2->AddContactSurface(mcontactsurf_2);
     mcontactsurf_1->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf_1->SetMaterialSurface(mysurfmaterial);            // use the DEM penalty contacts
+    mcontactsurf_1->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
     mcontactsurf_2->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
     mcontactsurf_2->SetMaterialSurface(mysurfmaterial);
 
-    // use the DEM penalty contacts
+    // use the SMC penalty contacts
     my_meshes_1->SetAutomaticGravity(addGravity);
     my_meshes_2->SetAutomaticGravity(addGravity);
 
@@ -295,15 +291,15 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_system.SetupInitial();
     // ---------------
 
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(100000);
     my_system.SetMaxItersSolverStab(100);
     my_system.SetTolForce(1e-6);
 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(40);
@@ -314,7 +310,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     auto container = std::make_shared<MyContactContainer>();
     //    auto contacts = std::make_shared<MyContacts>();
 
-    my_system.ChangeContactContainer(container);
+    my_system.SetContactContainer(container);
     bool thereIsContact;
     bool printContactPoints = true;
     auto myANCF = std::dynamic_pointer_cast<ChElementBase>(my_meshes_2->GetElement(0));

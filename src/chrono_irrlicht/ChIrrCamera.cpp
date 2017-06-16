@@ -130,6 +130,8 @@ bool RTSCamera::OnEvent(const SEvent& event) {
                 }
 
                 break;
+            default:
+                break;
         }
         return true;
     }

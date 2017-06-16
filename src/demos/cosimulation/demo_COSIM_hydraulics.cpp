@@ -21,7 +21,7 @@
 // =============================================================================
 
 #include "chrono/core/ChLog.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_cosimulation/ChCosimulation.h"
 #include "chrono_cosimulation/ChExceptionSocket.h"
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
         // 1) Create a very simple ChronoEngine system, without user interface
 
         // The physical system: it contains all physical objects.
-        ChSystem my_system;
+        ChSystemNSC my_system;
 
         // Create rigid bodies and add them to the system:
         auto my_body_A = std::make_shared<ChBody>();  // truss
@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
         my_system.Set_G_acc(ChVector<>(0, 0, 0));
         my_system.SetMaxItersSolverSpeed(20);
-        my_system.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+        my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
         // 2) Add a socket framework object
         ChSocketFramework socket_tools;

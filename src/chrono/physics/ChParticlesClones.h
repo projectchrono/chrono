@@ -20,7 +20,7 @@
 #include "chrono/collision/ChCCollisionModel.h"
 #include "chrono/physics/ChContactable.h"
 #include "chrono/physics/ChIndexedParticles.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
 #include "chrono/solver/ChVariablesBodySharedMass.h"
 
 namespace chrono {
@@ -74,7 +74,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Return the pointer to the contact surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// Express the local point in absolute frame, for the given state position.
     virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
@@ -87,7 +87,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    /// Easy in this case because there are no roations..
+    /// Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
@@ -102,7 +102,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -121,7 +121,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
                                                bool second) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item, for rolling about N,u,v
-    /// (used only for rolling friction DVI contacts)
+    /// (used only for rolling friction NSC contacts)
     virtual void ComputeJacobianForRollingContactPart(
         const ChVector<>& abs_point,
         ChMatrix33<>& contact_plane,
@@ -130,7 +130,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
         ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
         bool second) override;
 
-    /// used by some DEM code
+    /// used by some SMC code
     virtual double GetContactableMass() override { return variables.GetBodyMass(); }
 
     /// This is only for backward compatibility
@@ -162,11 +162,10 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// collision shape.
 /// If you have N different families of shapes in your
 /// granular simulations (ex. 50% of particles are large
-/// spheres, 25% are small spheres and 25% are polihedrons)
+/// spheres, 25% are small spheres and 25% are polyhedrons)
 /// you can simply add three ChParticlesClones objects to the
 /// ChSystem. This would be more efficient anyway than
 /// creating all shapes as ChBody.
-
 class ChApi ChParticlesClones : public ChIndexedParticles {
 
     // Tag needed for class factory in archive (de)serialization:
@@ -179,7 +178,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
 
     collision::ChCollisionModel* particle_collision_model;  ///< sample collision model
 
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
 
     bool do_collide;
     bool do_limit_speed;
@@ -206,7 +205,7 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() const { return do_collide; }
+    virtual bool GetCollide() const override { return do_collide; }
 
     /// Trick. Set the maximum linear speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
@@ -216,10 +215,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     bool GetLimitSpeed() const { return do_limit_speed; };
 
     /// Get the number of particles
-    size_t GetNparticles() const { return particles.size(); }
+    size_t GetNparticles() const override { return particles.size(); }
 
     /// Access the N-th particle
-    ChParticleBase& GetParticle(unsigned int n) {
+    ChParticleBase& GetParticle(unsigned int n) override {
         assert(n < particles.size());
         return *particles[n];
     }
@@ -228,19 +227,19 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     /// previously created particles, if any.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void ResizeNparticles(int newsize);
+    void ResizeNparticles(int newsize) override;
 
     /// Add a new particle to the particle cluster, passing a
     /// coordinate system as initial state.
     /// NOTE! Define the sample collision shape using GetCollisionModel()->...
     /// before adding particles!
-    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM);
+    void AddParticle(ChCoordsys<double> initial_state = CSYSNORM) override;
 
     /// Set the material surface for contacts
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for contacts
-    std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
@@ -298,17 +297,17 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
-    /// Acess the collision model for the collision engine: this is the 'sample'
+    /// Access the collision model for the collision engine: this is the 'sample'
     /// collision model that is used by all particles.
     /// To get a non-null pointer, remember to SetCollide(true), before.
     collision::ChCollisionModel* GetCollisionModel() { return particle_collision_model; }
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
-    virtual void SyncCollisionModels();
-    virtual void AddCollisionModelsToSystem();
-    virtual void RemoveCollisionModelsFromSystem();
+    virtual void SyncCollisionModels() override;
+    virtual void AddCollisionModelsToSystem() override;
+    virtual void RemoveCollisionModelsFromSystem() override;
 
     /// After you added collision shapes to the sample coll.model (the one
     /// that you access with GetCollisionModel() ) you need to call this
@@ -328,10 +327,10 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     void SetInertiaXX(const ChVector<>& iner);
     /// Get the diagonal part of the inertia tensor of each particle
     ChVector<> GetInertiaXX() const;
-    /// Set the extradiagonal part of the inertia tensor of each particle
+    /// Set the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     void SetInertiaXY(const ChVector<>& iner);
-    /// Get the extradiagonal part of the inertia tensor of each particle
+    /// Get the extra-diagonal part of the inertia tensor of each particle
     /// (xy, yz, zx values, the rest is symmetric)
     ChVector<> GetInertiaXY() const;
 
@@ -383,6 +382,8 @@ class ChApi ChParticlesClones : public ChIndexedParticles {
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChParticlesClones,0)
 
 }  // end namespace chrono
 

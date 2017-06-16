@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -50,7 +50,7 @@ IGUIStaticText* text_enginespeed = 0;
 
 class MyEventReceiver : public IEventReceiver {
   public:
-    MyEventReceiver(ChSystem* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
+    MyEventReceiver(ChSystemNSC* asystem, IrrlichtDevice* adevice, std::shared_ptr<ChLinkEngine> aengine) {
         // store pointer to physical system & other stuff so we can tweak them by user keyboard
         msystem = asystem;
         mdevice = adevice;
@@ -78,6 +78,8 @@ class MyEventReceiver : public IEventReceiver {
                         text_enginespeed->setText(core::stringw(message).c_str());
                     }
                     break;
+                default:
+                    break;
             }
         }
 
@@ -85,14 +87,14 @@ class MyEventReceiver : public IEventReceiver {
     }
 
   private:
-    ChSystem* msystem;
+    ChSystemNSC* msystem;
     IrrlichtDevice* mdevice;
     std::shared_ptr<ChLinkEngine> mengine;
 };
 
 int main(int argc, char* argv[]) {
     // 1- Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -177,16 +179,13 @@ int main(int argc, char* argv[]) {
     // Configure the solver with non-default settings
     //
 
-    // By default, the solver uses the INT_ANITESCU stepper, that is very
-    // fast, but may allow some geometric error in constraints (because it is
-    // based on constraint stabilization). Alternatively, the timestepper
-    // INT_EULER_IMPLICIT_LINEARIZED (formerly INT_TASORA)
-    // is less fast, but it is based on constraint projection, so
-    // gaps in constraints are less noticeable (hence avoids the 'spongy'
-    // behaviour of the default INT_ANITESCU solver, which operates only
-    // on speed-impulse level and keeps constraints'closed' by a continuous
-    // stabilization)
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+    // By default, the solver uses the EULER_IMPLICIT_LINEARIZED stepper, that is very fast,
+    // but may allow some geometric error in constraints (because it is based on constraint
+    // stabilization). Alternatively, the timestepper EULER_IMPLICIT_PROJECTED is slower,
+    // but it is based on constraint projection, so gaps in constraints are less noticeable
+    // (hence avoids the 'spongy' behaviour of the default stepper, which operates only
+    // on speed-impulse level and keeps constraints'closed' by a continuous stabilization).
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

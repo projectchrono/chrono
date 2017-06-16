@@ -151,7 +151,7 @@ void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
 
 void ChNodeFEAxyzP::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChNodeFEAxyzP>();
     // serialize parent class
     ChNodeFEAbase::ArchiveOUT(marchive);
     // serialize all member data:
@@ -162,7 +162,7 @@ void ChNodeFEAxyzP::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChNodeFEAxyzP::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChNodeFEAxyzP>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIN(marchive);
     // stream in all member data:

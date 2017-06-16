@@ -51,23 +51,23 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const { return (int)m_triangles.size(); }
+    virtual int getNumTriangles() const override { return (int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const { return m_triangles[index]; }
+    virtual ChTriangle getTriangle(int index) const override { return m_triangles[index]; }
 
     /// Clear all data
-    virtual void Clear() { this->m_triangles.clear(); }
+    virtual void Clear() override { this->m_triangles.clear(); }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed)
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale);
+    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
 
     virtual GeometryType GetClassType() const override { return TRIANGLEMESH_SOUP; }
 
     /// Method to allow de serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChTriangleMeshSoup>();
         // serialize parent class
         ChTriangleMesh::ArchiveOUT(marchive);
         // serialize all member data:
@@ -77,7 +77,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChTriangleMeshSoup>();
         // deserialize parent class
         ChTriangleMesh::ArchiveIN(marchive);
         // stream in all member data:
@@ -86,6 +86,9 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChTriangleMeshSoup,0)
+
 }  // end namespace chrono
 
 #endif

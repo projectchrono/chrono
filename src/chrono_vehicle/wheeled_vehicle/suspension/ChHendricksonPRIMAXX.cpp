@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -66,8 +66,12 @@ ChHendricksonPRIMAXX::ChHendricksonPRIMAXX(const std::string& name) : ChSuspensi
 void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                       const ChVector<>& location,
                                       std::shared_ptr<ChBody> tierod_body,
+                                      int steering_index,
                                       double left_ang_vel,
                                       double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -79,12 +83,12 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
     ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
-    ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
+    ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     m_outerL = suspension_to_abs.TransformPointLocalToParent(outer_local);
-    outer_local.y = -outer_local.y;
+    outer_local.y() = -outer_local.y();
     m_outerR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
-    // Create and initialize the axlehousing body.
+    // Create and initialize the axle housing body.
     m_axlehousing = std::shared_ptr<ChBody>(chassis->GetSystem()->NewBody());
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
@@ -103,14 +107,14 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
     for (int i = 0; i < NUM_DIRS; i++) {
         ChVector<> rel_dir = getDirection(static_cast<DirectionId>(i));
         m_dirsL[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
-        rel_dir.y = -rel_dir.y;
+        rel_dir.y() = -rel_dir.y();
         m_dirsR[i] = suspension_to_abs.TransformDirectionLocalToParent(rel_dir);
     }
 
@@ -227,7 +231,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_sphericalTorquerod[side]->Initialize(m_axlehousing, m_torquerod[side], ChCoordsys<>(points[TORQUEROD_AH], QUNIT));
     chassis->GetSystem()->AddLink(m_sphericalTorquerod[side]);
 
-    // Create and initialize the spherical joint between axlehousing and lower beam.
+    // Create and initialize the spherical joint between axle housing and lower beam.
     m_sphericalLowerbeam[side] = std::make_shared<ChLinkLockSpherical>();
     m_sphericalLowerbeam[side]->SetNameString(m_name + "_sphericalLowerbeam" + suffix);
     m_sphericalLowerbeam[side]->Initialize(m_axlehousing, m_lowerbeam[side], ChCoordsys<>(points[LOWERBEAM_AH], QUNIT));
@@ -259,14 +263,14 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_shockAH[side] = std::make_shared<ChLinkSpringCB>();
     m_shockAH[side]->SetNameString(m_name + "_shockAH" + suffix);
     m_shockAH[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKAH_C], points[SHOCKAH_AH]);
-    m_shockAH[side]->Set_SpringCallback(getShockAHForceCallback());
+    m_shockAH[side]->RegisterForceFunctor(getShockAHForceCallback());
     chassis->GetSystem()->AddLink(m_shockAH[side]);
 
     // Create and initialize the spring/damper between lower beam and chassis
     m_shockLB[side] = std::make_shared<ChLinkSpringCB>();
     m_shockLB[side]->SetNameString(m_name + "_shockLB" + suffix);
     m_shockLB[side]->Initialize(chassis, m_axlehousing, false, points[SHOCKLB_C], points[SHOCKLB_LB]);
-    m_shockLB[side]->Set_SpringCallback(getShockLBForceCallback());
+    m_shockLB[side]->RegisterForceFunctor(getShockLBForceCallback());
     chassis->GetSystem()->AddLink(m_shockLB[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
@@ -305,7 +309,7 @@ void ChHendricksonPRIMAXX::LogHardpointLocations(const ChVector<>& ref, bool inc
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -411,6 +415,12 @@ void ChHendricksonPRIMAXX::AddVisualizationAssets(VisualizationType vis) {
 
     m_shockAH[LEFT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
     m_shockAH[RIGHT]->AddAsset(std::make_shared<ChPointPointSpring>(0.06, 150, 15));
+
+    // Add visualization for the tie-rods
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
@@ -433,6 +443,9 @@ void ChHendricksonPRIMAXX::RemoveVisualizationAssets() {
 
     m_shockAH[LEFT]->GetAssets().clear();
     m_shockAH[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

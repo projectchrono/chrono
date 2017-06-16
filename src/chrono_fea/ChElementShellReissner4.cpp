@@ -16,6 +16,7 @@
 
 #include "chrono/core/ChException.h"
 #include "chrono/physics/ChSystem.h"
+#include "chrono/timestepper/ChState.h"
 #include "chrono_fea/ChElementShellReissner4.h"
 #include "chrono_fea/ChUtilsFEA.h"
 #include "chrono_fea/ChRotUtils.h"
@@ -819,8 +820,8 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         sh2(0, 3) = (1. + xi_i[i][0]) * 0.5;
         sh2(0, 1) = (1. - xi_i[i][0]) * 0.5;
 
-        eps_tilde_1_i[i].z = sh1(0, 0) * eps_tilde_1_A[0].z + sh1(0, 2) * eps_tilde_1_A[2].z;
-        eps_tilde_2_i[i].z = sh2(0, 1) * eps_tilde_2_A[1].z + sh2(0, 3) * eps_tilde_2_A[3].z;
+        eps_tilde_1_i[i].z() = sh1(0, 0) * eps_tilde_1_A[0].z() + sh1(0, 2) * eps_tilde_1_A[2].z();
+        eps_tilde_2_i[i].z() = sh2(0, 1) * eps_tilde_2_A[1].z() + sh2(0, 3) * eps_tilde_2_A[3].z();
 
         tmp_B_ANS.MatrMultiply(sh1, B_overline_3_ABCD);
 
@@ -938,7 +939,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
         // {dxdt_1, angular_vel_1,  dxdt_2, angular_vel_2, ...}
         // Note that angular velocities are in node local frame because in C::E angular
         // increments are assumed in local frame csys.
-        ChVectorDynamic<> velocities(24);
+        ChStateDelta velocities(24, nullptr);
         this->LoadableGetStateBlock_w(0, velocities);
 
         // compute Fi_damping = -Alpha*[Km]*v   without explicitly building [Km],
@@ -1144,7 +1145,7 @@ void ChElementShellReissner4::EvaluateSectionPoint(const double u,
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
     mD.PasteQuaternion(m_nodes[0]->GetRot(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos(), block_offset + 7, 0);
@@ -1156,7 +1157,7 @@ void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChVector
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
     mD.PasteVector(m_nodes[0]->GetWvel_loc(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[1]->GetPos_dt(), block_offset + 6, 0);
@@ -1165,6 +1166,12 @@ void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChVector
     mD.PasteVector(m_nodes[2]->GetWvel_loc(), block_offset + 15, 0);
     mD.PasteVector(m_nodes[3]->GetPos_dt(), block_offset + 18, 0);
     mD.PasteVector(m_nodes[3]->GetWvel_loc(), block_offset + 21, 0);
+}
+
+void ChElementShellReissner4::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    for (int i = 0; i < 4; i++) {
+        this->m_nodes[i]->NodeIntStateIncrement(off_x  + 7 * i  , x_new, x, off_v  + 6 * i  , Dv);
+    }
 }
 
 void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVector<>& Result) {

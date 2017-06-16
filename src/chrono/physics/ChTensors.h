@@ -133,7 +133,7 @@ class ChVoightTensor : public ChMatrixNM<Real, 6, 1> {
         this->ConvertToMatrix(T);
         temp.MatrMultiplyT(T, Rot);
         T.MatrMultiply(Rot, temp);
-        this->ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T simmetry
+        this->ConvertFromMatrix(T);  // to do, more efficient: unroll matrix multiplications and exploit T symmetry
     }
 
     /// Compute the eigenvalues (closed form method)

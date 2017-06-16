@@ -48,7 +48,7 @@ print ("Load a model exported by SolidWorks");
 #  Create the simulation system and add items
 #
 
-mysystem      = chrono.ChSystem()
+mysystem      = chrono.ChSystemNSC()
 
 parts = chrono.ImportSolidWorksSystem('./spider_robot');
 
@@ -337,7 +337,7 @@ myapplication.AddShadowAll();
 
 mysystem.SetMaxItersSolverSpeed(600);
 mysystem.SetSolverWarmStarting(True);
-mysystem.SetSolverType(chrono.ChSystem.SOLVER_BARZILAIBORWEIN);
+mysystem.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 myapplication.SetTimestep(0.002):
 
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -35,19 +35,21 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 // Constructors
 // -----------------------------------------------------------------------------
-M113a_Vehicle::M113a_Vehicle(bool fixed, ChMaterialSurfaceBase::ContactMethod contactMethod)
-    : ChTrackedVehicle("M113 Vehicle", contactMethod) {
-    Create(fixed);
+M113a_Vehicle::M113a_Vehicle(bool fixed,
+                             ChMaterialSurface::ContactMethod contact_method,
+                             ChassisCollisionType chassis_collision_type)
+    : ChTrackedVehicle("M113a", contact_method) {
+    Create(fixed, chassis_collision_type);
 }
 
-M113a_Vehicle::M113a_Vehicle(bool fixed, ChSystem* system)
-    : ChTrackedVehicle("M113 Vehicle", system) {
-    Create(fixed);
+M113a_Vehicle::M113a_Vehicle(bool fixed, ChSystem* system, ChassisCollisionType chassis_collision_type)
+    : ChTrackedVehicle("M113a", system) {
+    Create(fixed, chassis_collision_type);
 }
 
-void M113a_Vehicle::Create(bool fixed) {
+void M113a_Vehicle::Create(bool fixed, ChassisCollisionType chassis_collision_type) {
     // Create the chassis subsystem
-    m_chassis = std::make_shared<M113a_Chassis>("Chassis", fixed);
+    m_chassis = std::make_shared<M113a_Chassis>("Chassis", fixed, chassis_collision_type);
 
     // Create the track assembly subsystems
     m_tracks[0] = std::make_shared<M113a_TrackAssemblySinglePin>(LEFT);
@@ -63,7 +65,8 @@ void M113a_Vehicle::Create(bool fixed) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void M113a_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
-    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel);
+    // Invoke base class method to initialize the chassis.
+    ChTrackedVehicle::Initialize(chassisPos, chassisFwdVel);
 
     // Initialize the left and right track assemblies.
     double track_offset = 1.0795;

@@ -19,7 +19,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/motion_functions/ChFunction_Sine.h"
@@ -42,7 +42,7 @@ using namespace irr::gui;
 // For convex hulls, you just need to build a vector of points, it does not matter the order,
 // because they will be considered 'wrapped' in a convex hull anyway.
 
-void create_column(ChSystem& mphysicalSystem,
+void create_column(ChSystemNSC& mphysicalSystem,
                    ChCoordsys<> base_pos,
                    int col_nedges = 10,
                    double col_radius_hi = 0.45,
@@ -75,7 +75,7 @@ void create_column(ChSystem& mphysicalSystem,
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     auto linkEarthquake = std::make_shared<ChLinkLockLock>();
     linkEarthquake->Initialize(tableBody, floorBody, ChCoordsys<>(ChVector<>(0, 0, 0)));
 
-    ChFunction_Sine* mmotion_x = new ChFunction_Sine(0, 0.6, 0.2);  // phase freq ampl
+    auto mmotion_x = std::make_shared<ChFunction_Sine>(0, 0.6, 0.2);  // phase freq ampl
     linkEarthquake->SetMotion_X(mmotion_x);
 
     mphysicalSystem.Add(linkEarthquake);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     application.AddShadowAll();
 
     // Modify some setting of the physical system for the simulation, if you want
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
     mphysicalSystem.SetMaxItersSolverSpeed(50);
     mphysicalSystem.SetMaxItersSolverStab(5);
 

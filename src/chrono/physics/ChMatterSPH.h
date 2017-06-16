@@ -53,9 +53,9 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     void SetCollisionRadius(double mr);
 
     // Set the mass of the node
-    void SetMass(double mmass) { variables.SetNodeMass(mmass); }
+    void SetMass(double mmass) override { variables.SetNodeMass(mmass); }
     // Get the mass of the node
-    double GetMass() const { return variables.GetNodeMass(); }
+    double GetMass() const override { return variables.GetNodeMass(); }
 
     // Access the variables of the node
     virtual ChVariablesNode& Variables() override { return variables; }
@@ -108,7 +108,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    /// Easy in this case because there are no roations..
+    /// Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return pos_dt; }
 
     /// Return the coordinate system for the associated collision model.
@@ -123,7 +123,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -146,7 +146,7 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     virtual double GetContactableMass() override { return GetMass(); }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -175,17 +175,21 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
     double pressure;
 };
 
-/// Class for SPH fluid material, with basic property of uncompressible fluid.
+/// Class for SPH fluid material, with basic property of incompressible fluid.
 
 class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
+
+    // Tag needed for class factory in archive (de)serialization:
+    CH_FACTORY_TAG(ChContinuumSPH)
+
   private:
     double viscosity;
     double surface_tension;
     double pressure_stiffness;
 
   public:
-    /// Create a continuum isothropic elastoplastic material,
-    /// where you can define also plastic and elastic max. stress (yeld limits
+    /// Create a continuum isotropic elastoplastic material,
+    /// where you can define also plastic and elastic max. stress (yield limits
     /// for transition elastic->blastic and plastic->fracture).
     ChContinuumSPH(double m_refdensity = 1000, double mviscosity = 0.1, double mtension = 0)
         : viscosity(mviscosity),
@@ -230,7 +234,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
   private:
     std::vector<std::shared_ptr<ChNodeSPH> > nodes;     ///< the nodes (markers)
     ChContinuumSPH material;                            ///< continuum material properties
-    std::shared_ptr<ChMaterialSurfaceBase> matsurface;  ///< data for surface contact and impact
+    std::shared_ptr<ChMaterialSurface> matsurface;  ///< data for surface contact and impact
     bool do_collide;                                    ///< flag indicating whether or not nodes collide
 
   public:
@@ -248,7 +252,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     /// before anim starts (it is not automatically
     /// recomputed here because of performance issues.)
     void SetCollide(bool mcoll);
-    bool GetCollide() const { return do_collide; }
+    virtual bool GetCollide() const override { return do_collide; }
 
     /// Get the number of scalar coordinates (variables), if any, in this item
     virtual int GetDOF() override { return 3 * GetNnodes(); }
@@ -275,10 +279,10 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     void AddNode(ChVector<double> initial_state);
 
     /// Set the material surface for 'boundary contact'
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurfaceBase>& mnewsurf) { matsurface = mnewsurf; }
+    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mnewsurf) { matsurface = mnewsurf; }
 
     /// Set the material surface for 'boundary contact'
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() { return matsurface; }
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() { return matsurface; }
 
     //
     // STATE FUNCTIONS
@@ -361,7 +365,7 @@ class ChApi ChMatterSPH : public ChIndexedNodes {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration();
+    void SetNoSpeedNoAcceleration() override;
 
     /// Synchronize coll.models coordinates and bounding boxes to the positions of the particles.
     virtual void SyncCollisionModels() override;

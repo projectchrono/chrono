@@ -2,7 +2,7 @@
 
 #include <list>
 
-#include "chrono/physics/ChContactContainerBase.h"
+#include "chrono/physics/ChContactContainer.h"
 #include "chrono/physics/ChContactTuple.h"
 
 #include "chrono_parallel/ChApiParallel.h"
@@ -10,16 +10,16 @@
 
 namespace chrono {
 
-/// @addtogroup parallel_module
+/// @addtogroup parallel_collision
 /// @{
 
 /// Class representing a container of many contacts, implemented as a linked list of contact tuples.
 /// Notes:
 /// * This container is used only for reporting geometric information about the contact pairs
-///   and is therefore suitable for both DVI and DEM systems.
+///   and is therefore suitable for both NSC and SMC systems.
 /// * Currently, only contacts between rigid bodies are considered
 
-class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase {
+class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
 
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChContactContainerParallel)
@@ -36,10 +36,15 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
 
     virtual int GetNcontacts() const override { return data_manager->num_rigid_contacts; }
 
-    virtual void RemoveAllContacts();
-    virtual void BeginAddContact();
-    virtual void AddContact(const collision::ChCollisionInfo& mcontact);
-    virtual void EndAddContact();
+    virtual void RemoveAllContacts() override;
+    virtual void BeginAddContact() override;
+    virtual void AddContact(const collision::ChCollisionInfo& mcontact) override;
+    virtual void EndAddContact() override;
+
+    /// Scans all the contacts and for each contact executes the OnReportContact()
+    /// function of the provided callback object.
+    /// Note: currently, the contact reaction force and torque are not set (always zero).
+    virtual void ReportAllContacts(ReportContactCallback* callback) override;
 
     /// Return the list of contacts between rigid bodies
     const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }
@@ -52,5 +57,6 @@ class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainerBase
     std::list<ChContact_6_6*>::iterator lastcontact_6_6;
 };
 
-/// @} parallel_module
-}
+/// @} parallel_colision
+
+} // end namespace chrono

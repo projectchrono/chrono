@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -38,8 +38,7 @@ static ChVector<> loadVector(const Value& a) {
 }
 
 // -----------------------------------------------------------------------------
-// Construct a double wishbone suspension using data from the specified JSON
-// file.
+// Construct a trailing arm suspension using data from the specified JSON file.
 // -----------------------------------------------------------------------------
 SemiTrailingArm::SemiTrailingArm(const std::string& filename)
     : ChSemiTrailingArm(""), m_springForceCB(NULL), m_shockForceCB(NULL) {

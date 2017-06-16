@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -144,7 +144,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
         // are reduced to the wheel center). If the resulting force is negative, the
         // disc is moving away from the terrain so fast that no contact force is
         // generated.
-        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z;
+        double Fn_mag = GetNormalStiffness() * depth - GetNormalDamping() * m_data[id].vel.z();
 
         if (Fn_mag < 0)
             Fn_mag = 0;
@@ -158,7 +158,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
 
         // ODE coefficients for longitudinal direction: z' = a + b * z
         {
-            double v = abs(m_data[id].vel.x);
+            double v = std::abs(m_data[id].vel.x());
             double g = m_Fc[0] + (m_Fs[0] - m_Fc[0]) * exp(-sqrt(v / m_vs[0]));
             m_data[id].ode_coef_a[0] = v;
             m_data[id].ode_coef_b[0] = -m_sigma0[0] * v / g;
@@ -166,7 +166,7 @@ void ChLugreTire::Synchronize(double time, const WheelState& wheel_state, const 
 
         // ODE coefficients for lateral direction: z' = a + b * z
         {
-            double v = abs(m_data[id].vel.y);
+            double v = std::abs(m_data[id].vel.y());
             double g = m_Fc[1] + (m_Fs[1] - m_Fc[1]) * exp(-sqrt(v / m_vs[1]));
             m_data[id].ode_coef_a[1] = v;
             m_data[id].ode_coef_b[1] = -m_sigma0[1] * v / g;
@@ -227,8 +227,8 @@ void ChLugreTire::Advance(double step) {
             // Longitudinal direction
             double zd0 = m_data[id].ode_coef_a[0] + m_data[id].ode_coef_b[0] * z0;
 
-            double v = m_data[id].vel.x;
-            double Ft_mag = Fn_mag * (m_sigma0[0] * z0 + m_sigma1[0] * zd0 + m_sigma2[0] * abs(v));
+            double v = m_data[id].vel.x();
+            double Ft_mag = Fn_mag * (m_sigma0[0] * z0 + m_sigma1[0] * zd0 + m_sigma2[0] * std::abs(v));
             ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetXaxis() : -m_data[id].frame.rot.GetXaxis();
             ChVector<> Ft = -Ft_mag * dir;
 
@@ -240,8 +240,8 @@ void ChLugreTire::Advance(double step) {
             // Lateral direction
             double zd1 = m_data[id].ode_coef_a[1] + m_data[id].ode_coef_b[1] * z1;
 
-            double v = m_data[id].vel.y;
-            double Ft_mag = Fn_mag * (m_sigma0[1] * z1 + m_sigma1[1] * zd1 + m_sigma2[1] * abs(v));
+            double v = m_data[id].vel.y();
+            double Ft_mag = Fn_mag * (m_sigma0[1] * z1 + m_sigma1[1] * zd1 + m_sigma2[1] * std::abs(v));
             ChVector<> dir = (v > 0) ? m_data[id].frame.rot.GetYaxis() : -m_data[id].frame.rot.GetYaxis();
             ChVector<> Ft = -Ft_mag * dir;
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,9 +30,10 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-///
-///
-///
+/// @addtogroup vehicle_models_m113
+/// @{
+
+/// Double-pin track shoe subsystem for the M113 vehicle.
 class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
   public:
     M113_TrackShoeDoublePin();
@@ -47,16 +48,16 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     virtual double GetHeight() const override { return m_shoe_height; }
 
     /// Return the mass of the shoe body.
-    virtual double GetShoeMass() const { return m_shoe_mass; }
+    virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
     virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
     /// Return shoe length (distance between pins).
-    virtual double GetShoeLength() const { return m_shoe_length; }
+    virtual double GetShoeLength() const override { return m_shoe_length; }
     /// Return shoe width (separation between connectors).
-    virtual double GetShoeWidth() const { return m_shoe_width; }
+    virtual double GetShoeWidth() const override { return m_shoe_width; }
 
     /// Return the mass of a connector body.
-    virtual double GetConnectorMass() const { return m_connector_mass; }
+    virtual double GetConnectorMass() const override { return m_connector_mass; }
     /// Return the moments of inertia of a connector body.
     virtual const ChVector<>& GetConnectorInertia() const override { return m_connector_inertia; }
     /// Return the length of a connector body.
@@ -98,6 +99,8 @@ class CH_MODELS_API M113_TrackShoeDoublePin : public ChTrackShoeDoublePin {
     static const std::string m_meshName;
     static const std::string m_meshFile;
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

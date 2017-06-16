@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File author: A.Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHRANDOMSHAPECREATOR_H
 #define CHRANDOMSHAPECREATOR_H
@@ -30,15 +32,6 @@ namespace particlefactory {
 // Forward reference
 class ChRandomShapeCreator;
 
-/// Inherit from this class and pass an object to the PostCreation()
-/// functions of particle creator, to have the callback executed
-/// per each created particle. Ex. use this to add optional assets, custom
-/// materials or settings.
-class ChCallbackPostCreation {
-  public:
-    /// Implement this function if you want to provide the post creation callback.
-    virtual void PostCreation(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) = 0;
-};
 
 /// BASE class for generators of random ChBody shapes
 class ChRandomShapeCreator {
@@ -62,12 +55,25 @@ class ChRandomShapeCreator {
         std::shared_ptr<ChBody> mbody = this->RandomGenerate(mcoords);
 
         if (callback_post_creation)
-            callback_post_creation->PostCreation(mbody, mcoords, *this);
+            callback_post_creation->OnAddBody(mbody, mcoords, *this);
         return mbody;
     }
+
+    /// Class to be used as a callback interface for some user-defined action to be
+    /// taken each time a body is generated and added to the system.
+    class AddBodyCallback {
+      public:
+        virtual ~AddBodyCallback() {}
+
+        /// Callback used to process bodies as they are created and added to the system.
+        /// A derived class must implement this function. It can be used to modify the
+        /// specified body (e.g., add optional assets, adjust material properties, etc)
+        virtual void OnAddBody(std::shared_ptr<ChBody> mbody, ChCoordsys<> mcoords, ChRandomShapeCreator& mcreator) = 0;
+    };
+
     /// Set the callback function to execute at each
     /// each particle generation
-    void SetCallbackPostCreation(ChCallbackPostCreation* mc) { callback_post_creation = mc; }
+    void RegisterAddBodyCallback(AddBodyCallback* callback) { callback_post_creation = callback; }
 
     /// Set if the created particles must include the collision
     /// shape(s). Note that this is ON by default. Switching off will
@@ -80,7 +86,7 @@ class ChRandomShapeCreator {
     void SetAddVisualizationAsset(bool addvisual) { this->add_visualization_asset = addvisual; }
 
   protected:
-    ChCallbackPostCreation* callback_post_creation;
+      AddBodyCallback* callback_post_creation;
     bool add_collision_shape;
     bool add_visualization_asset;
 };
@@ -195,7 +201,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
 
 /// Class for generating convex hulls with variable chordal size
 /// and aspect ratios. By default uses constant distributions
-/// (all hulss are equally sized) but you can provide your distributions.
+/// (all hulls are equally sized) but you can provide your distributions.
 class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
   public:
     ChRandomShapeCreatorConvexHulls() {
@@ -220,20 +226,20 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         double hsizey = 0;
         double hsizez = 0;
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x = ChRandom();
-            points[ip].y = ChRandom();
-            points[ip].z = ChRandom();
-            if (fabs(points[ip].x) > hsizex)
-                hsizex = fabs(points[ip].x);
-            if (fabs(points[ip].y) > hsizey)
-                hsizey = fabs(points[ip].y);
-            if (fabs(points[ip].z) > hsizez)
-                hsizez = fabs(points[ip].z);
+            points[ip].x() = ChRandom();
+            points[ip].y() = ChRandom();
+            points[ip].z() = ChRandom();
+            if (fabs(points[ip].x()) > hsizex)
+                hsizex = fabs(points[ip].x());
+            if (fabs(points[ip].y()) > hsizey)
+                hsizey = fabs(points[ip].y());
+            if (fabs(points[ip].z()) > hsizez)
+                hsizez = fabs(points[ip].z());
         }
         for (int ip = 0; ip < npoints; ++ip) {
-            points[ip].x *= 0.5 * mchord / hsizex;
-            points[ip].y *= msizeratioYZ * (0.5 * mchord / hsizey);
-            points[ip].z *= msizeratioYZ * (0.5 * mchord / hsizez) * msizeratioZ;
+            points[ip].x() *= 0.5 * mchord / hsizex;
+            points[ip].y() *= msizeratioYZ * (0.5 * mchord / hsizey);
+            points[ip].z() *= msizeratioYZ * (0.5 * mchord / hsizez) * msizeratioZ;
         }
         auto mbody = std::make_shared<ChBodyEasyConvexHull>(points, density->GetRandom(), this->add_collision_shape, this->add_visualization_asset);
         mbody->SetCoord(mcoords);
@@ -392,7 +398,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
                 generated_probability[i] = generated_stats[i] / sum;
             }
         }
-        // Scan families, starting from randomied index, and see which is
+        // Scan families, starting from randomized index, and see which is
         // 'lagging behind'.
         unsigned int tested_family = (int)floor((double)(family_generators.size() - 1) * ChRandom());
         unsigned int ntests = 0;

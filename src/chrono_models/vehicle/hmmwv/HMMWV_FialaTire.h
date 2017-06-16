@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,6 +29,10 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Fiala tire model for the HMMWV vehicle.
 class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
   public:
     HMMWV_FialaTire(const std::string& name);
@@ -41,7 +45,7 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
 
     virtual double GetVisualizationWidth() const override { return 0.25; }
 
-    virtual void SetFialaParams();
+    virtual void SetFialaParams() override;
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
     virtual void RemoveVisualizationAssets() override final;
@@ -53,6 +57,8 @@ class CH_MODELS_API HMMWV_FialaTire : public ChFialaTire {
     static const std::string m_meshFile;
     std::shared_ptr<ChTriangleMeshShape> m_trimesh_shape;
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

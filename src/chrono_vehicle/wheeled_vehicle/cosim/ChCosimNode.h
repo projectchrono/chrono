@@ -27,9 +27,6 @@
 namespace chrono {
 namespace vehicle {
 
-/// @addtogroup vehicle_wheeled_cosim
-/// @{
-
 class CH_VEHICLE_API ChCosimNode {
   public:
     ChCosimNode(int rank, ChSystem* system) : m_rank(rank), m_system(system), m_verbose(false) {}
@@ -45,8 +42,6 @@ class CH_VEHICLE_API ChCosimNode {
     double m_stepsize;
     bool m_verbose;
 };
-
-/// @} vehicle_wheeled_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

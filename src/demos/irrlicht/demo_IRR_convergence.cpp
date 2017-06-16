@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/core/ChRealtimeStep.h"
@@ -44,7 +44,7 @@ std::vector<std::shared_ptr<ChBody> > mspheres;
 void create_items(ChIrrAppInterface& application) {
     // Create some spheres in a vertical stack
 
-    auto material = std::make_shared<ChMaterialSurface>();
+    auto material = std::make_shared<ChMaterialSurfaceNSC>();
     material->SetFriction(0.4f);
     material->SetCompliance(0.001f / 700);                // as 1/K, in m/N. es: 1mm/700N
     material->SetComplianceT(material->GetCompliance());  // use tangential compliance as normal compliance
@@ -107,7 +107,7 @@ void create_items(ChIrrAppInterface& application) {
             totmass += mrigidBody->GetMass();
         }
 
-        GetLog() << "Expected contact force at bottom F=" << (totmass * application.GetSystem()->Get_G_acc().y) << "\n";
+        GetLog() << "Expected contact force at bottom F=" << (totmass * application.GetSystem()->Get_G_acc().y()) << "\n";
     }
 
     if (do_wall)
@@ -146,7 +146,7 @@ void create_items(ChIrrAppInterface& application) {
         application.GetSystem()->Add(mrigidHeavy);
 
         GetLog() << "Expected contact deformation at side sphere="
-                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y) * material->GetCompliance() << "\n";
+                 << (mrigidHeavy->GetMass() * application.GetSystem()->Get_G_acc().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -157,7 +157,7 @@ void create_items(ChIrrAppInterface& application) {
                                                        true);      // visualization?
     mrigidFloor->SetPos(ChVector<>(0, -2, 0));
     mrigidFloor->SetBodyFixed(true);
-    mrigidFloor->GetMaterialSurface()->SetFriction(0.6f);
+    mrigidFloor->GetMaterialSurfaceNSC()->SetFriction(0.6f);
     mrigidFloor->AddAsset(std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg")));
 
     application.GetSystem()->Add(mrigidFloor);
@@ -171,8 +171,8 @@ void align_spheres(ChIrrAppInterface& application) {
     for (unsigned int i = 0; i < mspheres.size(); ++i) {
         std::shared_ptr<ChBody> body = mspheres[i];
         ChVector<> mpos = body->GetPos();
-        mpos.x = 0.5;
-        mpos.z = 0.7;
+        mpos.x() = 0.5;
+        mpos.z() = 0.7;
         body->SetPos(mpos);
         body->SetRot(QUNIT);
     }
@@ -180,7 +180,7 @@ void align_spheres(ChIrrAppInterface& application) {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -205,8 +205,8 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
 
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
-    // mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    // mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
     mphysicalSystem.SetMaxItersSolverSpeed(60);
     mphysicalSystem.SetMaxItersSolverStab(5);
     mphysicalSystem.SetParallelThreadNumber(1);

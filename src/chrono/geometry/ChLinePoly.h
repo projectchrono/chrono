@@ -44,7 +44,7 @@ class ChApi ChLinePoly : public ChLine {
     virtual GeometryType GetClassType() const override { return LINE_POLY; }
 
     virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc){};
+    virtual void Set_complexity(int mc) override {};
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,
@@ -74,7 +74,7 @@ class ChApi ChLinePoly : public ChLine {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLinePoly>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
@@ -85,7 +85,7 @@ class ChApi ChLinePoly : public ChLine {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLinePoly>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
@@ -95,6 +95,9 @@ class ChApi ChLinePoly : public ChLine {
 };
 
 }  // end namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLinePoly,0)
+
 }  // end namespace chrono
 
 #endif

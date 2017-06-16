@@ -36,7 +36,7 @@ void ChLinkRotSpringCB::UpdateForces(double time) {
     double angle = relAngle;
     double angle_dt = Vdot(relWvel, relAxis);
 
-    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt) : 0;
+    m_torque = m_torque_fun ? (*m_torque_fun)(time, relAngle, angle_dt, this) : 0;
 
     // Add to existing torque.
     C_torque += Vmul(relAxis, m_torque);
@@ -44,7 +44,7 @@ void ChLinkRotSpringCB::UpdateForces(double time) {
 
 void ChLinkRotSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkRotSpringCB>();
 
     // serialize parent class
     ChLinkMarkers::ArchiveOUT(marchive);
@@ -53,7 +53,7 @@ void ChLinkRotSpringCB::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRotSpringCB::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkRotSpringCB>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 2.8)
 #-----------------------------------------------------------------------------
 
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
-    message( FATAL_ERROR  "In-source build is not possible and not reccomended. Choose an empty directory for build output.")
+    message( FATAL_ERROR  "In-source build is not possible and not recommended. Choose an empty directory for build output.")
 endif(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
 
 enable_testing()
@@ -210,8 +210,7 @@ else()
     file(COPY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CMAKE_BINARY_DIR}/data/)
 endif()
 
-install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA}
-        PATTERN "testing" EXCLUDE)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/data/ DESTINATION ${CH_INSTALL_DATA})
 
 #------------------------------------------------------------
 # Defer configuration of all Chrono libraries and programs

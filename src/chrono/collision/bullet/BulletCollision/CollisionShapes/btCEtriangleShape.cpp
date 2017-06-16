@@ -16,7 +16,6 @@ subject to the following restrictions:
 
 //#define NOMINMAX
 #include <algorithm>
-
 #include "btCEtriangleShape.h"
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
@@ -63,19 +62,19 @@ btCEtriangleShape::btCEtriangleShape(ChVector<>* mp1,
     btVector3 supVec(btScalar(0.),btScalar(0.),btScalar(0.));
 	btScalar newDot,maxDot = btScalar(-BT_LARGE_FLOAT);
     btVector3 vtx;
-	vtx = btVector3(this->p1->x,this->p1->y,this->p1->z);
+	vtx = btVector3((btScalar)this->p1->x(),(btScalar)this->p1->y(),(btScalar)this->p1->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
 			supVec = vtx;
 	}
-    vtx = btVector3(this->p2->x,this->p2->y,this->p2->z);
+    vtx = btVector3((btScalar)this->p2->x(),(btScalar)this->p2->y(),(btScalar)this->p2->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
 			supVec = vtx;
 	}
-    vtx = btVector3(this->p3->x,this->p3->y,this->p3->z);
+    vtx = btVector3((btScalar)this->p3->x(),(btScalar)this->p3->y(),(btScalar)this->p3->z());
 	newDot = vec0.dot(vtx);
 	if (newDot > maxDot){
 			maxDot = newDot;
@@ -101,9 +100,9 @@ void	btCEtriangleShape::calculateLocalInertia(btScalar mass,btVector3& inertia) 
 
 	btVector3 halfExtents;
     double radius= ChMax((*p2-*p1).Length(), (*p3-*p1).Length());
-	halfExtents.setValue((radius), 
-						 (radius),
-						 (radius));
+	halfExtents.setValue((btScalar)(radius), 
+						 (btScalar)(radius),
+						 (btScalar)(radius));
 
 	btScalar margin = CONVEX_DISTANCE_MARGIN;
 
@@ -124,22 +123,22 @@ void	btCEtriangleShape::calculateLocalInertia(btScalar mass,btVector3& inertia) 
 void btCEtriangleShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
 	
-	btVector3 p1_w = t.getOrigin()+ t.getBasis()*btVector3(this->p1->x, this->p1->y, this->p1->z);
-    btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3(this->p2->x, this->p2->y, this->p2->z);
-    btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3(this->p3->x, this->p3->y, this->p3->z);
+	btVector3 p1_w = t.getOrigin()+ t.getBasis()*btVector3((btScalar)this->p1->x(), (btScalar)this->p1->y(), (btScalar)this->p1->z());
+    btVector3 p2_w = t.getOrigin()+ t.getBasis()*btVector3((btScalar)this->p2->x(), (btScalar)this->p2->y(), (btScalar)this->p2->z());
+    btVector3 p3_w = t.getOrigin()+ t.getBasis()*btVector3((btScalar)this->p3->x(), (btScalar)this->p3->y(), (btScalar)this->p3->z());
 
     collision::ChModelBullet* triModel = (collision::ChModelBullet*)this->getUserPointer();
 
 	btVector3 venvelope (triModel->GetEnvelope(), triModel->GetEnvelope(), triModel->GetEnvelope());
-    btVector3 vsphereswept (this->sphereswept_rad,this->sphereswept_rad,this->sphereswept_rad);
+    btVector3 vsphereswept ((btScalar)this->sphereswept_rad,(btScalar)this->sphereswept_rad,(btScalar)this->sphereswept_rad);
 
-	aabbMin = btVector3(ChMin(ChMin(p1_w.x(),p2_w.x()),p3_w.x()),
-                        ChMin(ChMin(p1_w.y(),p2_w.y()),p3_w.y()),
-                        ChMin(ChMin(p1_w.z(),p2_w.z()),p3_w.z())) - venvelope - vsphereswept;
+	aabbMin = btVector3((btScalar)ChMin(ChMin(p1_w.x(),p2_w.x()),p3_w.x()),
+                        (btScalar)ChMin(ChMin(p1_w.y(),p2_w.y()),p3_w.y()),
+                        (btScalar)ChMin(ChMin(p1_w.z(),p2_w.z()),p3_w.z())) - venvelope - vsphereswept;
 
-    aabbMax = btVector3(ChMax(ChMax(p1_w.x(),p2_w.x()),p3_w.x()),
-                        ChMax(ChMax(p1_w.y(),p2_w.y()),p3_w.y()),
-                        ChMax(ChMax(p1_w.z(),p2_w.z()),p3_w.z())) + venvelope + vsphereswept;
+    aabbMax = btVector3((btScalar)ChMax(ChMax(p1_w.x(),p2_w.x()),p3_w.x()),
+                        (btScalar)ChMax(ChMax(p1_w.y(),p2_w.y()),p3_w.y()),
+                        (btScalar)ChMax(ChMax(p1_w.z(),p2_w.z()),p3_w.z())) + venvelope + vsphereswept;
 }
 
 

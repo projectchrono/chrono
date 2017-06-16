@@ -39,11 +39,11 @@ int main(int argc, char* argv[]) {
     ChVector<> mvect2;  // resulting (transformed) vectors will go here
     ChVector<> mvect3;
 
-    // Define a  POINT  to be transformed, exèressed in
+    // Define a  POINT  to be transformed, expressed in
     // local frame coordinate.
     ChVector<> mvect1(2, 3, 4);
 
-    // Define a vector representin the TRASLATION of the frame
+    // Define a vector representing the TRASLATION of the frame
     // respect to absolute (world) coordinates.
     ChVector<> vtraslA(5, 6, 7);
 

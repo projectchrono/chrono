@@ -74,15 +74,15 @@ void ChLinkPointTriface::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkPointTriface::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = react.x;
-    L(off_L + 1) = react.y;
-    L(off_L + 2) = react.z;
+    L(off_L + 0) = react.x();
+    L(off_L + 1) = react.y();
+    L(off_L + 2) = react.z();
 }
 
 void ChLinkPointTriface::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    react.x = L(off_L + 0);
-    react.y = L(off_L + 1);
-    react.z = L(off_L + 2);
+    react.x() = L(off_L + 0);
+    react.y() = L(off_L + 1);
+    react.z() = L(off_L + 2);
 }
 
 void ChLinkPointTriface::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -124,13 +124,13 @@ void ChLinkPointTriface::IntLoadConstraint_C(const unsigned int off_L,  // offse
     ChVector<> cres = res * c;
 
     if (do_clamp) {
-        cres.x = ChMin(ChMax(cres.x, -recovery_clamp), recovery_clamp);
-        cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
-        cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
+        cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
+        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
     }
-    Qc(off_L + 0) += cres.x;
-    Qc(off_L + 1) += cres.y;
-    Qc(off_L + 2) += cres.z;
+    Qc(off_L + 0) += cres.x();
+    Qc(off_L + 1) += cres.y();
+    Qc(off_L + 2) += cres.z();
 }
 
 void ChLinkPointTriface::IntToDescriptor(const unsigned int off_v,
@@ -196,9 +196,9 @@ void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clam
     ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->pos - s2 * mtriangle.mnodeB2->pos -
                      s3 * mtriangle.mnodeB3->pos - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x);
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y);
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z);
+    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
+    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
+    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
 }
 
 //***OBSOLETE*** will be removed in favour of Int... functions
@@ -225,16 +225,16 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
     ChMatrix33<> Jxb3;
 
     if (d != 0) {
-        double t2 = mtriangle.mnodeB1->pos.x - mtriangle.mnodeB2->pos.x;
-        double t3 = mtriangle.mnodeB1->pos.y - mtriangle.mnodeB3->pos.y;
+        double t2 = mtriangle.mnodeB1->pos.x() - mtriangle.mnodeB2->pos.x();
+        double t3 = mtriangle.mnodeB1->pos.y() - mtriangle.mnodeB3->pos.y();
         double t4 = t2 * t3;
-        double t5 = mtriangle.mnodeB1->pos.y - mtriangle.mnodeB2->pos.y;
-        double t6 = mtriangle.mnodeB1->pos.x - mtriangle.mnodeB3->pos.x;
+        double t5 = mtriangle.mnodeB1->pos.y() - mtriangle.mnodeB2->pos.y();
+        double t6 = mtriangle.mnodeB1->pos.x() - mtriangle.mnodeB3->pos.x();
         double t12 = t5 * t6;
         double t7 = t4 - t12;
-        double t8 = mtriangle.mnodeB1->pos.z - mtriangle.mnodeB3->pos.z;
+        double t8 = mtriangle.mnodeB1->pos.z() - mtriangle.mnodeB3->pos.z();
         double t9 = t2 * t8;
-        double t10 = mtriangle.mnodeB1->pos.z - mtriangle.mnodeB2->pos.z;
+        double t10 = mtriangle.mnodeB1->pos.z() - mtriangle.mnodeB2->pos.z();
         double t14 = t6 * t10;
         double t11 = t9 - t14;
         double t13 = std::abs(t7);
@@ -243,17 +243,17 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
         double t22 = t3 * t10;
         double t17 = t16 - t22;
         double t18 = std::abs(t17);
-        double t19 = mtriangle.mnodeB2->pos.z - mtriangle.mnodeB3->pos.z;
+        double t19 = mtriangle.mnodeB2->pos.z() - mtriangle.mnodeB3->pos.z();
         double t20 = std::pow(t13, 2);
         double t21 = std::pow(t15, 2);
         double t23 = std::pow(t18, 2);
         double t24 = t20 + t21 + t23;
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
-        double t27 = mtriangle.mnodeB2->pos.y - mtriangle.mnodeB3->pos.y;
+        double t27 = mtriangle.mnodeB2->pos.y() - mtriangle.mnodeB3->pos.y();
         double t28 = 1.0 / sqrt(t24);
         double t29 = mysgn(t11);
-        double t30 = mtriangle.mnodeB2->pos.x - mtriangle.mnodeB3->pos.x;
+        double t30 = mtriangle.mnodeB2->pos.x() - mtriangle.mnodeB3->pos.x();
         double t31 = mysgn(t17);
         double t32 = d * t19 * t28;
         double t33 = t13 * t25 * t27 * 2.0;
@@ -343,9 +343,9 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
 //***OBSOLETE*** will be removed in favour of Int... functions
 void ChLinkPointTriface::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x = constraint1.Get_l_i() * factor;
-    react.y = constraint2.Get_l_i() * factor;
-    react.z = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.Get_l_i() * factor;
+    react.y() = constraint2.Get_l_i() * factor;
+    react.z() = constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O
@@ -417,15 +417,15 @@ void ChLinkPointTrifaceRot::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkPointTrifaceRot::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = react.x;
-    L(off_L + 1) = react.y;
-    L(off_L + 2) = react.z;
+    L(off_L + 0) = react.x();
+    L(off_L + 1) = react.y();
+    L(off_L + 2) = react.z();
 }
 
 void ChLinkPointTrifaceRot::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    react.x = L(off_L + 0);
-    react.y = L(off_L + 1);
-    react.z = L(off_L + 2);
+    react.x() = L(off_L + 0);
+    react.y() = L(off_L + 1);
+    react.z() = L(off_L + 2);
 }
 
 void ChLinkPointTrifaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -467,13 +467,13 @@ void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // of
     ChVector<> cres = res * c;
 
     if (do_clamp) {
-        cres.x = ChMin(ChMax(cres.x, -recovery_clamp), recovery_clamp);
-        cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
-        cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
+        cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
+        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
     }
-    Qc(off_L + 0) += cres.x;
-    Qc(off_L + 1) += cres.y;
-    Qc(off_L + 2) += cres.z;
+    Qc(off_L + 0) += cres.x();
+    Qc(off_L + 1) += cres.y();
+    Qc(off_L + 2) += cres.z();
 }
 
 void ChLinkPointTrifaceRot::IntToDescriptor(const unsigned int off_v,
@@ -539,9 +539,9 @@ void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_c
     ChVector<> res = mnodeA->GetPos() - s1 * mtriangle.mnodeB1->coord.pos - s2 * mtriangle.mnodeB2->coord.pos -
                      s3 * mtriangle.mnodeB3->coord.pos - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x);
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y);
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z);
+    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
+    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
+    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
 }
 
 //***OBSOLETE*** will be removed in favour of Int... functions
@@ -564,16 +564,16 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
     ChMatrix33<> Jxb3;
 
     if (d != 0) {
-        double t2 = mtriangle.mnodeB1->coord.pos.x - mtriangle.mnodeB2->coord.pos.x;
-        double t3 = mtriangle.mnodeB1->coord.pos.y - mtriangle.mnodeB3->coord.pos.y;
+        double t2 = mtriangle.mnodeB1->coord.pos.x() - mtriangle.mnodeB2->coord.pos.x();
+        double t3 = mtriangle.mnodeB1->coord.pos.y() - mtriangle.mnodeB3->coord.pos.y();
         double t4 = t2 * t3;
-        double t5 = mtriangle.mnodeB1->coord.pos.y - mtriangle.mnodeB2->coord.pos.y;
-        double t6 = mtriangle.mnodeB1->coord.pos.x - mtriangle.mnodeB3->coord.pos.x;
+        double t5 = mtriangle.mnodeB1->coord.pos.y() - mtriangle.mnodeB2->coord.pos.y();
+        double t6 = mtriangle.mnodeB1->coord.pos.x() - mtriangle.mnodeB3->coord.pos.x();
         double t12 = t5 * t6;
         double t7 = t4 - t12;
-        double t8 = mtriangle.mnodeB1->coord.pos.z - mtriangle.mnodeB3->coord.pos.z;
+        double t8 = mtriangle.mnodeB1->coord.pos.z() - mtriangle.mnodeB3->coord.pos.z();
         double t9 = t2 * t8;
-        double t10 = mtriangle.mnodeB1->coord.pos.z - mtriangle.mnodeB2->coord.pos.z;
+        double t10 = mtriangle.mnodeB1->coord.pos.z() - mtriangle.mnodeB2->coord.pos.z();
         double t14 = t6 * t10;
         double t11 = t9 - t14;
         double t13 = std::abs(t7);
@@ -582,17 +582,17 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
         double t22 = t3 * t10;
         double t17 = t16 - t22;
         double t18 = std::abs(t17);
-        double t19 = mtriangle.mnodeB2->coord.pos.z - mtriangle.mnodeB3->coord.pos.z;
+        double t19 = mtriangle.mnodeB2->coord.pos.z() - mtriangle.mnodeB3->coord.pos.z();
         double t20 = std::pow(t13, 2);
         double t21 = std::pow(t15, 2);
         double t23 = std::pow(t18, 2);
         double t24 = t20 + t21 + t23;
         double t25 = mysgn(t7);
         double t26 = 1.0 / std::pow(t24, (3.0 / 2.0));
-        double t27 = mtriangle.mnodeB2->coord.pos.y - mtriangle.mnodeB3->coord.pos.y;
+        double t27 = mtriangle.mnodeB2->coord.pos.y() - mtriangle.mnodeB3->coord.pos.y();
         double t28 = 1.0 / sqrt(t24);
         double t29 = mysgn(t11);
-        double t30 = mtriangle.mnodeB2->coord.pos.x - mtriangle.mnodeB3->coord.pos.x;
+        double t30 = mtriangle.mnodeB2->coord.pos.x() - mtriangle.mnodeB3->coord.pos.x();
         double t31 = mysgn(t17);
         double t32 = d * t19 * t28;
         double t33 = t13 * t25 * t27 * 2.0;
@@ -682,9 +682,9 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
 //***OBSOLETE*** will be removed in favour of Int... functions
 void ChLinkPointTrifaceRot::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x = constraint1.Get_l_i() * factor;
-    react.y = constraint2.Get_l_i() * factor;
-    react.z = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.Get_l_i() * factor;
+    react.y() = constraint2.Get_l_i() * factor;
+    react.z() = constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
+/// @addtogroup vehicle_models_m113
+/// @{
+
+/// Simple M113 brake subsystem (torque applied directly to the spindle joint).
 class CH_MODELS_API M113_BrakeSimple : public ChTrackBrakeSimple {
   public:
     M113_BrakeSimple() : ChTrackBrakeSimple("M113_Brake") {}
@@ -34,6 +38,8 @@ class CH_MODELS_API M113_BrakeSimple : public ChTrackBrakeSimple {
 
     virtual double GetMaxBrakingTorque() override { return 10000.0; }
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

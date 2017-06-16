@@ -29,10 +29,10 @@
 #include "chrono/core/ChVector.h"
 
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChCapsuleShape.h"
@@ -140,7 +140,7 @@ ChApi void AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
                                                    const std::string& name,
                                                    const ChVector<>& pos,
                                                    const ChQuaternion<>& rot,
-                                                   std::shared_ptr<ChMaterialSurface> material,
+                                                   std::shared_ptr<ChMaterialSurfaceNSC> material,
                                                    double total_mass);
 
 ChApi void AddTriangle(ChBody* body,
@@ -191,7 +191,7 @@ ChApi void AddTorusGeometry(ChBody* body,
 // walls (no top).
 ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
                                                  int id,
-                                                 std::shared_ptr<ChMaterialSurfaceBase> mat,
+                                                 std::shared_ptr<ChMaterialSurface> mat,
                                                  const ChVector<>& hdim,
                                                  double hthick,
                                                  const ChVector<>& pos = ChVector<>(0, 0, 0),
@@ -214,13 +214,13 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // -----------------------------------------------------------------------------
 
 // Create a cylindrical container body with contact and asset geometry representing a cylindrical container
-// represented by boxes.
+// modeled with boxes.
 // The container is aligned with the z direction. The position refers to the center of the bottom inner circle.
 // Only half of the cylinder is visualized.
 ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
     ChSystem* system,
     int id,
-    std::shared_ptr<ChMaterialSurfaceBase> mat,
+    std::shared_ptr<ChMaterialSurface> mat,
     const ChVector<>& hdim,
     double hthick,
     int numBoxes,
@@ -234,7 +234,7 @@ ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
 
 ChApi void InitializeObject(std::shared_ptr<ChBody> body,
                             double mass,
-                            std::shared_ptr<ChMaterialSurfaceBase> mat,
+                            std::shared_ptr<ChMaterialSurface> mat,
                             const ChVector<>& pos = ChVector<>(0, 0, 0),
                             const ChQuaternion<>& rot = ChQuaternion<>(1, 0, 0, 0),
                             bool collide = true,
@@ -259,7 +259,7 @@ ChApi void LoadConvexMesh(const std::string& file_name,
                           float hacd_fusetolerance = 1e-6f);
 
 // Given a path to an obj file, loads the obj assuming that the individual
-// objects in the obj are convex hulls, usefull when loading a precomputed
+// objects in the obj are convex hulls, useful when loading a precomputed
 // set of convex hulls.
 // The output of this function is used with AddConvexCollisionModel
 ChApi void LoadConvexHulls(const std::string& file_name,

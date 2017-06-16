@@ -14,6 +14,15 @@ The system is the cornerstone of a Chrono simulation.
 A Chrono simulation system is an object of class ChSystem. 
 See @ref chrono::ChSystem for API details.
 
+Note that ChSystem is an abstract class: you must instantiate one of its specializations. In detail you can use of these sublclasses:
+
+- A @ref chrono::ChSystemNSC , for **Non Smooth Contacts** (NSC); in case of contacts a complementarity solver will take care of them using non smooth dynamics; this is very efficient even with large time steps.
+
+- A @ref chrono::ChSystemSMC , for **SMooth Contacts** (SMC); with this system contacts are handled using penalty methods, i.e. contacts are deformable; 
+
+If there are no contacts or collisions in your system, it is indifferent to use ChSystemNSC or ChSystemSMC.
+
+
 Example:
 The following picture shows how mechanisms turn into a database of bodies 
 and links in a ChSystem:
@@ -26,7 +35,7 @@ and links in a ChSystem:
 
 Recommended way of dealing with system objects:
 
-- Create a @ref chrono::ChSystem
+- Create a @ref chrono::ChSystemNSC  or a @ref chrono::ChSystemSMC   
 - Add [body](@ref rigid_bodies) objects into it, see @ref chrono::ChBody
 - Add [link](@ref links) objects into it, see @ref chrono::ChLink
 - Adjust parameters for the time integration
@@ -36,8 +45,8 @@ Example: a slider-crank mechanism
 
 ~~~{.cpp}
 // 1- Create a Chrono physical system: all bodies and constraints
-//    will belong to and be handled by this ChSystem object.
-ChSystem my_system;
+//    will belong to and be handled by this ChSystemNSC object.
+ChSystemNSC my_system;
  
  
 // 2- Create the rigid bodies of the slider-crank 
@@ -129,27 +138,27 @@ available on the [white papers page](@ref whitepaper_root). For example
 implicit integrators are implemented in Chrono.
 
 Time steppers can be changed in two ways:
-- Using the ```my_system.SetIntegrationType(...)``` function, to choose a ready-to-use, pre-packaged time-stepper 
+- Using the ```my_system.SetTimestepperType(...)``` function, to choose a ready-to-use, pre-packaged time-stepper 
 - Using the ```my_system.SetTimestepper(...)``` function, to plug in a custom time-stepper, which is user-defined
 
 Example: changing the time stepper to an implicit numerical integrator
 
 
 ~~~{.cpp}
-my_system.SetIntegrationType(ChSystem::INT_IMPLICIT_EULER)
+my_system.SetTimestepperType(ChTimestepper::Type::IMPLICIT_EULER)
 ~~~
 
 Summary of time-steppers:
 
 
-- ```INT_EULER_IMPLICIT_LINEARIZED```
+- ```EULER_IMPLICIT_LINEARIZED```
 	- Default time stepper in Chrono
 	- Fast, no sub-iterations required
 	- First order accuracy
 	- Works for DVI contacts (hard contacts)
 	- Delivers first order accuracy for FEA
 	- Constraints kept closed using stabilization
-- ```INT_HHT```
+- ```HHT```
 	- Implicit integrator, based on the Hilber-Hughes-Taylor formula
 	- Typically slower than the INT_EULER_IMPLICIT_LINEARIZED choice
 	- Sub-iterations required
@@ -157,7 +166,7 @@ Summary of time-steppers:
 	- Currently can't be used for systems that handle contacts in a DVI approach; i.e., for hard contacts
 	- Delivers second order accuracy for FEA
 	- Constraints kept closed _exactly_ because of inner iterations.
-- ```INT_NEWMARK```
+- ```NEWMARK```
     - Popular in the FEA community, similar properties as INT_HHT
 	- With the exception of one particular choice of parameters (in which it becomes the trapezoidal integration rule) it delivers first order accuracy
 
@@ -184,31 +193,31 @@ the biggest computational bottleneck of the entire simulation.
 
 Solvers can be changed in two ways:
 - Using the ```my_system.SetSolverType(...)``` function, to choose a ready-to-use, pre-packaged option 
-- Using the ```my_system.ChangeSolverSpeed(...)``` function, to plug in a custom time-stepper, which is user-defined
+- Using the ```my_system.SetSolver(...)``` function, to plug in a custom time-stepper, which is user-defined
   
 Example: 
 
 ~~~{.cpp}
-my_system.SetSolverType(ChSystem::SOLVER_SOR);
+my_system.SetSolverType(ChSolver::Type::SOR);
 ~~~
 
 We recommend using one of the following iterative solvers:
 
-- ```SOLVER_SOR``` 	
+- ```SOR``` 	
 	- low precision: convergence might stall, especially with odd mass ratios
 	- supports DVI (hard contacts, with complementarity)
 	- used most often for small problems, solution accuracy is not particularly important
 	
-- ```SOLVER_APGD```	
+- ```APGD```	
 	- very good convergence, used most often for simulations in which high accuracy in results is desired
 	- supports DVI (hard contacts, with complementarity)
 	
-- ```SOLVER_BARZILAIBORWEIN``` 
+- ```BARZILAIBORWEIN``` 
     - good convergence
 	- supports DVI (hard contacts, with complementarity)   
     - similar to ```SOLVER_APGD```, might be more robust when using large mass ratios
 	
-- ```SOLVER_MINRES``` 
+- ```MINRES``` 
     - good convergence
     - supports FEA problems
     - does nor support DVI (hard contacts, with complementarity) for the moment.	
@@ -231,7 +240,7 @@ Advanced settings are not accessible directly from @ref chrono::ChSystem,
 for instance:
 
 ~~~{.cpp}
-if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolverSpeed())) {
+if (auto msolver = dynamic_cast<chrono::ChSolverMINRES*>(my_system.GetSolver())) {
 	msolver->SetDiagonalPreconditioning(true);
 }
 ~~~

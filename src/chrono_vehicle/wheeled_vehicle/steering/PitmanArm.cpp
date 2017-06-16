@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -65,16 +65,25 @@ void PitmanArm::Create(const rapidjson::Document& d) {
 
     SetName(d["Name"].GetString());
 
+    // Read flag indicating that inertia matrices are expressed in
+    // vehicle-aligned centroidal frame.
+    if (d.HasMember("Vehicle-Frame Inertia")) {
+        bool flag = d["Vehicle-Frame Inertia"].GetBool();
+        SetVehicleFrameInertiaFlag(flag);
+    }
+
     // Read steering link data
     m_steeringLinkMass = d["Steering Link"]["Mass"].GetDouble();
     m_points[STEERINGLINK] = loadVector(d["Steering Link"]["COM"]);
-    m_steeringLinkInertia = loadVector(d["Steering Link"]["Inertia"]);
+    m_steeringLinkInertiaMoments = loadVector(d["Steering Link"]["Moments of Inertia"]);
+    m_steeringLinkInertiaProducts = loadVector(d["Steering Link"]["Products of Inertia"]);
     m_steeringLinkRadius = d["Steering Link"]["Radius"].GetDouble();
 
     // Read Pitman arm data
     m_pitmanArmMass = d["Pitman Arm"]["Mass"].GetDouble();
     m_points[PITMANARM] = loadVector(d["Pitman Arm"]["COM"]);
-    m_pitmanArmInertia = loadVector(d["Pitman Arm"]["Inertia"]);
+    m_pitmanArmInertiaMoments = loadVector(d["Pitman Arm"]["Moments of Inertia"]);
+    m_pitmanArmInertiaProducts = loadVector(d["Pitman Arm"]["Products of Inertia"]);
     m_pitmanArmRadius = d["Pitman Arm"]["Radius"].GetDouble();
 
     // Read data for the revolute joint (Pitman arm - chassis)
@@ -92,7 +101,7 @@ void PitmanArm::Create(const rapidjson::Document& d) {
     m_points[REVSPH_S] = loadVector(d["Revolute-Spherical Joint"]["Location Link"]);
     m_dirs[REVSPH_AXIS] = loadVector(d["Revolute-Spherical Joint"]["Direction"]);
 
-    // Read data for tireod connection points
+    // Read data for tierod connection points
     m_points[TIEROD_PA] = loadVector(d["Tierod Locations"]["Pitman Side"]);
     m_points[TIEROD_IA] = loadVector(d["Tierod Locations"]["Idler Side"]);
 }

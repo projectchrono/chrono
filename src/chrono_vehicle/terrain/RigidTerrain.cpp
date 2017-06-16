@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,8 +19,8 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChMaterialSurface.h"
-#include "chrono/physics/ChMaterialSurfaceDEM.h"
+#include "chrono/physics/ChMaterialSurfaceNSC.h"
+#include "chrono/physics/ChMaterialSurfaceSMC.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChBoxShape.h"
 #include "chrono/assets/ChTriangleMeshShape.h"
@@ -199,19 +199,19 @@ void RigidTerrain::SetContactMaterialCoefficients(float kn, float gn, float kt, 
 // -----------------------------------------------------------------------------
 void RigidTerrain::ApplyContactMaterial() {
     switch (m_ground->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_ground->GetMaterialSurface()->SetFriction(m_friction);
-            m_ground->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_ground->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_ground->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_ground->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_ground->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_ground->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_ground->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_ground->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_ground->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_ground->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_ground->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_ground->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_ground->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_ground->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_ground->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_ground->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_ground->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_ground->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_ground->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }
@@ -340,7 +340,7 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
-    // Readibility aliases
+    // Readability aliases
     std::vector<ChVector<> >& vertices = m_trimesh.getCoordsVertices();
     std::vector<ChVector<> >& normals = m_trimesh.getCoordsNormals();
     std::vector<ChVector<int> >& idx_vertices = m_trimesh.getIndicesVertexes();
@@ -395,17 +395,17 @@ void RigidTerrain::Initialize(const std::string& heightmap_file,
     // Calculate normals and then average the normals from all adjacent faces.
     for (unsigned int it = 0; it < n_faces; ++it) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector<> nrm = Vcross(vertices[idx_vertices[it].y] - vertices[idx_vertices[it].x],
-                                vertices[idx_vertices[it].z] - vertices[idx_vertices[it].x]);
+        ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
+                                vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
-        normals[idx_normals[it].x] += nrm;
-        normals[idx_normals[it].y] += nrm;
-        normals[idx_normals[it].z] += nrm;
+        normals[idx_normals[it][0]] += nrm;
+        normals[idx_normals[it][1]] += nrm;
+        normals[idx_normals[it][2]] += nrm;
         // Increment the count of all incident vertices by 1
-        accumulators[idx_normals[it].x] += 1;
-        accumulators[idx_normals[it].y] += 1;
-        accumulators[idx_normals[it].z] += 1;
+        accumulators[idx_normals[it][0]] += 1;
+        accumulators[idx_normals[it][1]] += 1;
+        accumulators[idx_normals[it][2]] += 1;
     }
 
     // Set the normals to the average values.
@@ -444,6 +444,8 @@ void RigidTerrain::ExportMeshPovray(const std::string& out_dir) {
             utils::WriteMeshPovray(m_trimesh, m_mesh_name, out_dir, ChColor(1, 1, 1), ChVector<>(0, 0, 0),
                                    ChQuaternion<>(1, 0, 0, 0), true);
             break;
+        default:
+                break;
     }
 }
 

@@ -26,7 +26,7 @@
 namespace chrono {
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Class to render simple plots for the UI
@@ -43,7 +43,9 @@ class CH_OPENGL_API ChOpenGLGraphs {
     ChOpenGLWires plots;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

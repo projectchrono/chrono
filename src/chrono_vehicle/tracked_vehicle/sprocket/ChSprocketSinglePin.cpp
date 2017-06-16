@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -28,7 +28,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCallback {
+class SprocketSinglePinContactCB : public ChSystem::CustomCollisionCallback {
   public:
     SprocketSinglePinContactCB(ChTrackAssembly* track,  ///< containing track assembly
                                double envelope,         ///< collision detection envelope
@@ -60,7 +60,7 @@ class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCall
         m_Rhat_diff = m_gear_Rhat - m_shoe_Rhat;
     }
 
-    virtual void PerformCustomCollision(ChSystem* system) override;
+    virtual void OnCustomCollision(ChSystem* system) override;
 
   private:
     // Test collision of a shoe contact cylinder with the sprocket's gear profiles.
@@ -103,8 +103,8 @@ class SprocketSinglePinContactCB : public ChSystem::ChCustomComputeCollisionCall
     double m_Rhat_diff;  // test quantity for narrowphase check
 };
 
-void SprocketSinglePinContactCB::PerformCustomCollision(ChSystem* system) {
-    // Return now if collision disabled on sproket or track shoes.
+void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
+    // Return now if collision disabled on sprocket or track shoes.
     if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
         return;
 
@@ -147,12 +147,12 @@ void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> s
     ChVector<> dirC = m_sprocket->GetGearBody()->TransformDirectionParentToLocal(dirC_abs);
 
     // Sanity check: the cylinder must intersect the gear planes.
-    assert(dirC.y != 0);
+    assert(dirC.y() != 0);
 
     // Working in the sprocket frame, intersect the contact cylinder with the two
     // ("positive" and "negative") gear planes.
-    double alphaP = (0.5 * m_separation - locC.y) / dirC.y;
-    double alphaN = (-0.5 * m_separation - locC.y) / dirC.y;
+    double alphaP = (0.5 * m_separation - locC.y()) / dirC.y();
+    double alphaN = (-0.5 * m_separation - locC.y()) / dirC.y();
     ChVector<> locP = locC + alphaP * dirC;
     ChVector<> locN = locC + alphaN * dirC;
 
@@ -167,7 +167,7 @@ void SprocketSinglePinContactCB::CheckCylinderSprocket(std::shared_ptr<ChBody> s
 // gear profile and a circle centered at the specified location.
 void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe, const ChVector<>& loc) {
     // No contact if the circle center is too far from the gear center.
-    if (loc.x * loc.x + loc.z * loc.z > m_gear_RC * m_gear_RC)
+    if (loc.x() * loc.x() + loc.z() * loc.z() > m_gear_RC * m_gear_RC)
         return;
 
     // Find the candidate profile arc center.
@@ -196,14 +196,14 @@ void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChBody> shoe
     ChVector<> pt_shoe = loc - m_shoe_R * normal;
 
     // Ignore contact if the contact point on the gear is above the outer radius
-    if (pt_gear.x * pt_gear.x + pt_gear.z * pt_gear.z > m_gear_RO * m_gear_RO)
+    if (pt_gear.x() * pt_gear.x() + pt_gear.z() * pt_gear.z() > m_gear_RO * m_gear_RO)
         return;
 
     // Fill in contact information and add the contact to the system.
     // Express all vectors in the global frame
     collision::ChCollisionInfo contact;
-    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel();
-    contact.modelB = shoe->GetCollisionModel();
+    contact.modelA = m_sprocket->GetGearBody()->GetCollisionModel().get();
+    contact.modelB = shoe->GetCollisionModel().get();
     contact.vN = m_sprocket->GetGearBody()->TransformDirectionLocalToParent(normal);
     contact.vpA = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_gear);
     contact.vpB = m_sprocket->GetGearBody()->TransformPointLocalToParent(pt_shoe);
@@ -219,11 +219,11 @@ ChVector<> SprocketSinglePinContactCB::FindClosestArc(const ChVector<>& loc) {
     // Angle between two consecutive gear teeth
     double delta = CH_C_2PI / m_gear_nteeth;
     // Angle formed by 'loc' and the line z<0
-    double angle = std::atan2(loc.x, -loc.z);
+    double angle = std::atan2(loc.x(), -loc.z());
     // Find angle of closest profile arc
     double arc_angle = delta * std::round(angle / delta);
     // Return the arc center location
-    return ChVector<>(m_gear_RC * std::sin(arc_angle), loc.y, -m_gear_RC * std::cos(arc_angle));
+    return ChVector<>(m_gear_RC * std::sin(arc_angle), loc.y(), -m_gear_RC * std::cos(arc_angle));
 }
 
 // -----------------------------------------------------------------------------
@@ -233,7 +233,7 @@ ChSprocketSinglePin::ChSprocketSinglePin(const std::string& name) : ChSprocket(n
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSystem::ChCustomComputeCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
+ChSystem::CustomCollisionCallback* ChSprocketSinglePin::GetCollisionCallback(ChTrackAssembly* track) {
     // Check compatibility between this type of sprocket and the track shoes.
     // We expect track shoes of type ChSinglePinShoe.
     auto shoe = std::dynamic_pointer_cast<ChTrackShoeSinglePin>(track->GetTrackShoe(0));

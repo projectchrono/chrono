@@ -18,7 +18,7 @@
 // The vehicle model uses the utility class ChWheeledVehicleAssembly and is
 // based on JSON specification files from the Chrono data directory.
 //
-// Contact uses the DEM-P (penalty) formulation.
+// Contact uses the SMC (penalty) formulation.
 //
 // The global reference frame has Z up.
 // All units SI.
@@ -158,7 +158,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheelBody) {
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
 
-    ChCollisionModel* coll_model = wheelBody->GetCollisionModel();
+    auto coll_model = wheelBody->GetCollisionModel();
     coll_model->ClearModel();
 
     // Assemble the tire contact from 15 segments, properly offset.
@@ -196,7 +196,7 @@ int main(int argc, char* argv[]) {
     // Create HMMWV vehicle
     // --------------------
     HMMWV_Full my_hmmwv;
-    my_hmmwv.SetContactMethod(ChMaterialSurfaceBase::DEM);
+    my_hmmwv.SetContactMethod(ChMaterialSurface::SMC);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);
@@ -216,9 +216,9 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------------
     for (int i = 0; i < 4; i++) {
         auto wheelBody = my_hmmwv.GetVehicle().GetWheelBody(i);
-        wheelBody->GetMaterialSurfaceDEM()->SetFriction(mu_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetYoungModulus(Y_t);
-        wheelBody->GetMaterialSurfaceDEM()->SetRestitution(cr_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetFriction(mu_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetYoungModulus(Y_t);
+        wheelBody->GetMaterialSurfaceSMC()->SetRestitution(cr_t);
 
         CreateLuggedGeometry(wheelBody);
     }
@@ -318,7 +318,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Solver settings.
-    ////system->SetSolverType(ChSystem::SOLVER_MINRES);
+    ////system->SetSolverType(ChSolver::Type::MINRES);
     system->SetMaxItersSolverSpeed(50);
     system->SetMaxItersSolverStab(50);
     ////system->SetTol(0);

@@ -54,9 +54,6 @@ class ChApi ChLink : public ChLinkBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLink* Clone() const override { return new ChLink(*this); }
 
-    /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() const override { return LNK_BASE; }
-
     /// Get the number of free degrees of freedom left by this link, between two bodies.
     int GetLeftDOF() { return 6 - GetDOC(); }
 
@@ -124,6 +121,8 @@ class ChApi ChLink : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLink,0)
 
 }  // end namespace chrono
 

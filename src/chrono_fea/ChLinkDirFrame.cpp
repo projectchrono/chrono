@@ -79,8 +79,8 @@ ChMatrixNM<double, 2, 1> ChLinkDirFrame::GetC() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
     ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
     ChMatrixNM<double, 2, 1> C;
-    C(0, 0) = res.y;
-    C(1, 0) = res.z;
+    C(0, 0) = res.y();
+    C(1, 0) = res.z();
     return C;
 }
 
@@ -109,13 +109,13 @@ ChVector<> ChLinkDirFrame::GetReactionOnBody() const {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChLinkDirFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L + 0) = m_react.y;
-    L(off_L + 1) = m_react.z;
+    L(off_L + 0) = m_react.y();
+    L(off_L + 1) = m_react.z();
 }
 
 void ChLinkDirFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    m_react.y = L(off_L + 0);
-    m_react.z = L(off_L + 1);
+    m_react.y() = L(off_L + 0);
+    m_react.z() = L(off_L + 1);
 }
 
 void ChLinkDirFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
@@ -144,12 +144,12 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     ChVector<> cres = res * c;
 
     if (do_clamp) {
-        cres.y = ChMin(ChMax(cres.y, -recovery_clamp), recovery_clamp);
-        cres.z = ChMin(ChMax(cres.z, -recovery_clamp), recovery_clamp);
+        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
     }
 
-    Qc(off_L + 0) += cres.y;
-    Qc(off_L + 1) += cres.z;
+    Qc(off_L + 0) += cres.y();
+    Qc(off_L + 1) += cres.z();
 }
 
 void ChLinkDirFrame::IntToDescriptor(const unsigned int off_v,
@@ -201,8 +201,8 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     ChMatrix33<> Arw = m_csys.rot >> m_body->coord.rot;
     ChVector<> res = Arw.MatrT_x_Vect(m_node->GetD());
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y);
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z);
+    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
+    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
 }
 
 void ChLinkDirFrame::ConstraintsBiLoad_Ct(double factor) {
@@ -238,8 +238,8 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
 
 void ChLinkDirFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.y = constraint1.Get_l_i() * factor;
-    m_react.z = constraint2.Get_l_i() * factor;
+    m_react.y() = constraint1.Get_l_i() * factor;
+    m_react.z() = constraint2.Get_l_i() * factor;
 }
 
 // FILE I/O

@@ -17,6 +17,7 @@
 // 3) J2 plasticity, 4) Drucker-Prager plasticity
 // =============================================================================
 
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono_fea/ChElementBrick_9.h"
 #include "chrono_fea/ChMesh.h"
@@ -108,7 +109,7 @@ int main(int argc, char* argv[]) {
 // QuasiStatic
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
@@ -182,9 +183,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -237,14 +238,14 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
@@ -261,9 +262,9 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     if (genRefFile) {
         outputfile = fopen("UT_QuasiBendingBrick9.txt", "w");
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
     }
     unsigned int it = 0;
@@ -280,14 +281,14 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
 
         if (genRefFile) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -305,7 +306,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, 0));
 
     GetLog() << "--------------------------------------------------------------------\n";
@@ -381,9 +382,9 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -445,14 +446,14 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // ----------------------------------
 
     // Set up solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(500);
     my_system.SetTolForce(1e-08);
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(20);
@@ -467,9 +468,9 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     if (genRefFile) {
         outputfile = fopen("SwingingShellRef.txt", "w");
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
         fprintf(outputfile, "\n  ");
     }
     unsigned int it = 0;
@@ -481,14 +482,14 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 
         if (genRefFile) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x);
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y);
-            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z);
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().x());
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().y());
+            fprintf(outputfile, "%15.7e  ", nodetip->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip->pos.x - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip->pos.y - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip->pos.z - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
+            RelVal2 = std::abs(nodetip->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
+            RelVal3 = std::abs(nodetip->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal << "\n";
             if (RelVal > precision) {
@@ -503,7 +504,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 // J2 Flow Plasticity
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
@@ -580,9 +581,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
@@ -644,14 +645,14 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -665,9 +666,9 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     if (genRefFile) {
         outputfile = fopen("UT_J2PlasticBrick9Ref.txt", "w");
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
         fprintf(outputfile, "\n  ");
     }
     unsigned int it = 0;
@@ -685,14 +686,14 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 
         if (genRefFile) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
             RelVal = RelVal1 + RelVal2 + RelVal3;
             // GetLog() << RelVal1 << RelVal2 << RelVal3 << RelVal << "\n";
             if (RelVal > precision) {
@@ -708,7 +709,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 // Drucker-Prager Plasticity
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile;
-    ChSystem my_system;
+    ChSystemNSC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
@@ -785,9 +786,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     material->Set_RayleighDampingK(0.0);
     material->Set_RayleighDampingM(0.0);
     material->Set_density(rho);
-    material->Set_E(E.x);
-    material->Set_G(G.x);
-    material->Set_v(nu.x);
+    material->Set_E(E.x());
+    material->Set_G(G.x());
+    material->Set_v(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
         CCPInitial(0, k) = 1;
@@ -854,14 +855,14 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(900);
     my_system.SetTolForce(1e-13);
 
     // Set the time integrator parameters
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(0.0);
     mystepper->SetMaxiters(20);
@@ -875,9 +876,9 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     if (genRefFile) {
         outputfile = fopen("UT_DruckerPragerPlasticBrick9Ref.txt", "w");
         fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+        fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
         fprintf(outputfile, "\n  ");
     }
     unsigned int it = 0;
@@ -895,14 +896,14 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
 
         if (genRefFile) {
             fprintf(outputfile, "%15.7e  ", my_system.GetChTime());
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y);
-            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z);
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().x());
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().y());
+            fprintf(outputfile, "%15.7e  ", nodetip1->GetPos().z());
             fprintf(outputfile, "\n  ");
         } else {
-            RelVal1 = std::abs(nodetip1->pos.x - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
-            RelVal2 = std::abs(nodetip1->pos.y - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
-            RelVal3 = std::abs(nodetip1->pos.z - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
+            RelVal1 = std::abs(nodetip1->pos.x() - FileInputMat[it][1]) / std::abs(FileInputMat[it][1]);
+            RelVal2 = std::abs(nodetip1->pos.y() - FileInputMat[it][2]) / std::abs(FileInputMat[it][2]);
+            RelVal3 = std::abs(nodetip1->pos.z() - FileInputMat[it][3]) / std::abs(FileInputMat[it][3]);
 
             RelVal = RelVal1 + RelVal2 + RelVal3;
             if (RelVal > precision) {

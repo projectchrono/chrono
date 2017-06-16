@@ -75,7 +75,7 @@ void ChPhysicsItem::Update(double mytime, bool update_assets) {
 
 void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChPhysicsItem>();
 
     // serialize parent class
     ChObj::ArchiveOUT(marchive);
@@ -91,7 +91,7 @@ void ChPhysicsItem::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChPhysicsItem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChPhysicsItem>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

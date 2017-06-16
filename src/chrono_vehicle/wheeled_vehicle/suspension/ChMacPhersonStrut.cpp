@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -61,8 +61,12 @@ ChMacPhersonStrut::ChMacPhersonStrut(const std::string& name) : ChSuspension(nam
 void ChMacPhersonStrut::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                                    const ChVector<>& location,
                                    std::shared_ptr<ChBody> tierod_body,
+                                   int steering_index,
                                    double left_ang_vel,
                                    double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
     suspension_to_abs.ConcatenatePreTransformation(chassis->GetFrame_REF_to_abs());
@@ -73,7 +77,7 @@ void ChMacPhersonStrut::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
@@ -219,14 +223,14 @@ void ChMacPhersonStrut::InitializeSide(VehicleSide side,
     m_shock[side] = std::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_upright[side], false, points[SHOCK_C], points[SHOCK_U]);
-    m_shock[side]->Set_SpringCallback(getShockForceCallback());
+    m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = std::make_shared<ChLinkSpringCB>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_upright[side], false, points[SPRING_C], points[SPRING_U], false,
                                getSpringRestLength());
-    m_spring[side]->Set_SpringCallback(getSpringForceCallback());
+    m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
@@ -258,7 +262,7 @@ void ChMacPhersonStrut::LogHardpointLocations(const ChVector<>& ref, bool inches
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 
@@ -344,6 +348,12 @@ void ChMacPhersonStrut::AddVisualizationAssets(VisualizationType vis) {
 
     m_shock[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
     m_shock[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+
+    // Add visualization for the tie-rods
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChPointPointSegment>());
+    m_distTierod[LEFT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
+    m_distTierod[RIGHT]->AddAsset(std::make_shared<ChColorAsset>(0.8f, 0.3f, 0.3f));
 }
 
 void ChMacPhersonStrut::RemoveVisualizationAssets() {
@@ -363,6 +373,9 @@ void ChMacPhersonStrut::RemoveVisualizationAssets() {
 
     m_shock[LEFT]->GetAssets().clear();
     m_shock[RIGHT]->GetAssets().clear();
+
+    m_distTierod[LEFT]->GetAssets().clear();
+    m_distTierod[RIGHT]->GetAssets().clear();
 }
 
 // -----------------------------------------------------------------------------

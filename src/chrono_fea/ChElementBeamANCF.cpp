@@ -212,9 +212,9 @@ void MyGravityBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, 
     double detJ0 = m_element->Calc_detJ0(x, y, z);
 
     for (int i = 0; i < 9; i++) {
-        result(i * 3 + 0, 0) = N(0, i) * m_gacc.x;
-        result(i * 3 + 1, 0) = N(0, i) * m_gacc.y;
-        result(i * 3 + 2, 0) = N(0, i) * m_gacc.z;
+        result(i * 3 + 0, 0) = N(0, i) * m_gacc.x();
+        result(i * 3 + 1, 0) = N(0, i) * m_gacc.y();
+        result(i * 3 + 2, 0) = N(0, i) * m_gacc.z();
     }
 
     result *= detJ0 * m_element->m_GaussScaling;
@@ -278,18 +278,18 @@ void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, co
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
     G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
+    A1.x() = Nx_d0[0][0];
+    A1.y() = Nx_d0[0][1];
+    A1.z() = Nx_d0[0][2];
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -320,15 +320,15 @@ void MyForceBeam::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x, co
     j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
     j0.MatrDivScale(detJ0);
 
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
+    j01[0] = j0(0, 0);
+    j02[0] = j0(1, 0);
+    j03[0] = j0(2, 0);
+    j01[1] = j0(0, 1);
+    j02[1] = j0(1, 1);
+    j03[1] = j0(2, 1);
+    j01[2] = j0(0, 2);
+    j02[2] = j0(1, 2);
+    j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
     beta(0, 0) = Vdot(AA1, j01);
@@ -548,18 +548,18 @@ void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x)
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
     G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
+    A1.x() = Nx_d0[0][0];
+    A1.y() = Nx_d0[0][1];
+    A1.z() = Nx_d0[0][2];
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -590,15 +590,15 @@ void MyForceBeam_Nu::Evaluate(ChMatrixNM<double, 27, 1>& result, const double x)
     j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
     j0.MatrDivScale(detJ0);
 
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
+    j01[0] = j0(0, 0);
+    j02[0] = j0(1, 0);
+    j03[0] = j0(2, 0);
+    j01[1] = j0(0, 1);
+    j02[1] = j0(1, 1);
+    j03[1] = j0(2, 1);
+    j01[2] = j0(0, 2);
+    j02[2] = j0(1, 2);
+    j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
     beta(0, 0) = Vdot(AA1, j01);
@@ -865,18 +865,18 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
     G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
+    A1.x() = Nx_d0[0][0];
+    A1.y() = Nx_d0[0][1];
+    A1.z() = Nx_d0[0][2];
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -908,15 +908,15 @@ void MyJacobianBeam::Evaluate(ChMatrixNM<double, 729, 1>& result, const double x
     j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
     j0.MatrDivScale(detJ0);
 
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
+    j01[0] = j0(0, 0);
+    j02[0] = j0(1, 0);
+    j03[0] = j0(2, 0);
+    j01[1] = j0(0, 1);
+    j02[1] = j0(1, 1);
+    j03[1] = j0(2, 1);
+    j01[2] = j0(0, 2);
+    j02[2] = j0(1, 2);
+    j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
     beta(0, 0) = Vdot(AA1, j01);
@@ -1204,18 +1204,18 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
     G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
+    A1.x() = Nx_d0[0][0];
+    A1.y() = Nx_d0[0][1];
+    A1.z() = Nx_d0[0][2];
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -1247,15 +1247,15 @@ void MyJacobianBeam_Nu::Evaluate(ChMatrixNM<double, 729, 1>& result, const doubl
     j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
     j0.MatrDivScale(detJ0);
 
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
+    j01[0] = j0(0, 0);
+    j02[0] = j0(1, 0);
+    j03[0] = j0(2, 0);
+    j01[1] = j0(0, 1);
+    j02[1] = j0(1, 1);
+    j03[1] = j0(2, 1);
+    j01[2] = j0(0, 2);
+    j02[2] = j0(1, 2);
+    j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
     beta(0, 0) = Vdot(AA1, j01);
@@ -1655,35 +1655,35 @@ void ChElementBeamANCF::CalcCoordMatrix(ChMatrixNM<double, 9, 3>& d) {
     const ChVector<>& dC = m_nodes[2]->GetD();
     const ChVector<>& ddC = m_nodes[2]->GetDD();
 
-    d(0, 0) = pA.x;
-    d(0, 1) = pA.y;
-    d(0, 2) = pA.z;
-    d(1, 0) = dA.x;
-    d(1, 1) = dA.y;
-    d(1, 2) = dA.z;
-    d(2, 0) = ddA.x;
-    d(2, 1) = ddA.y;
-    d(2, 2) = ddA.z;
+    d(0, 0) = pA.x();
+    d(0, 1) = pA.y();
+    d(0, 2) = pA.z();
+    d(1, 0) = dA.x();
+    d(1, 1) = dA.y();
+    d(1, 2) = dA.z();
+    d(2, 0) = ddA.x();
+    d(2, 1) = ddA.y();
+    d(2, 2) = ddA.z();
 
-    d(3, 0) = pB.x;
-    d(3, 1) = pB.y;
-    d(3, 2) = pB.z;
-    d(4, 0) = dB.x;
-    d(4, 1) = dB.y;
-    d(4, 2) = dB.z;
-    d(5, 0) = ddB.x;
-    d(5, 1) = ddB.y;
-    d(5, 2) = ddB.z;
+    d(3, 0) = pB.x();
+    d(3, 1) = pB.y();
+    d(3, 2) = pB.z();
+    d(4, 0) = dB.x();
+    d(4, 1) = dB.y();
+    d(4, 2) = dB.z();
+    d(5, 0) = ddB.x();
+    d(5, 1) = ddB.y();
+    d(5, 2) = ddB.z();
 
-    d(6, 0) = pC.x;
-    d(6, 1) = pC.y;
-    d(6, 2) = pC.z;
-    d(7, 0) = dC.x;
-    d(7, 1) = dC.y;
-    d(7, 2) = dC.z;
-    d(8, 0) = ddC.x;
-    d(8, 1) = ddC.y;
-    d(8, 2) = ddC.z;
+    d(6, 0) = pC.x();
+    d(6, 1) = pC.y();
+    d(6, 2) = pC.z();
+    d(7, 0) = dC.x();
+    d(7, 1) = dC.y();
+    d(7, 2) = dC.z();
+    d(8, 0) = ddC.x();
+    d(8, 1) = ddC.y();
+    d(8, 2) = ddC.z();
 }
 
 void ChElementBeamANCF::CalcCoordDerivMatrix(ChMatrixNM<double, 27, 1>& dt) {
@@ -1699,35 +1699,35 @@ void ChElementBeamANCF::CalcCoordDerivMatrix(ChMatrixNM<double, 27, 1>& dt) {
     const ChVector<>& dC_dt = m_nodes[2]->GetD_dt();
     const ChVector<>& ddC_dt = m_nodes[2]->GetDD_dt();
 
-    dt(0, 0) = pA_dt.x;
-    dt(1, 0) = pA_dt.y;
-    dt(2, 0) = pA_dt.z;
-    dt(3, 0) = dA_dt.x;
-    dt(4, 0) = dA_dt.y;
-    dt(5, 0) = dA_dt.z;
-    dt(6, 0) = ddA_dt.x;
-    dt(7, 0) = ddA_dt.y;
-    dt(8, 0) = ddA_dt.z;
+    dt(0, 0) = pA_dt.x();
+    dt(1, 0) = pA_dt.y();
+    dt(2, 0) = pA_dt.z();
+    dt(3, 0) = dA_dt.x();
+    dt(4, 0) = dA_dt.y();
+    dt(5, 0) = dA_dt.z();
+    dt(6, 0) = ddA_dt.x();
+    dt(7, 0) = ddA_dt.y();
+    dt(8, 0) = ddA_dt.z();
 
-    dt(9, 0) = pB_dt.x;
-    dt(10, 0) = pB_dt.y;
-    dt(11, 0) = pB_dt.z;
-    dt(12, 0) = dB_dt.x;
-    dt(13, 0) = dB_dt.y;
-    dt(14, 0) = dB_dt.z;
-    dt(15, 0) = ddB_dt.x;
-    dt(16, 0) = ddB_dt.y;
-    dt(17, 0) = ddB_dt.z;
+    dt(9, 0) = pB_dt.x();
+    dt(10, 0) = pB_dt.y();
+    dt(11, 0) = pB_dt.z();
+    dt(12, 0) = dB_dt.x();
+    dt(13, 0) = dB_dt.y();
+    dt(14, 0) = dB_dt.z();
+    dt(15, 0) = ddB_dt.x();
+    dt(16, 0) = ddB_dt.y();
+    dt(17, 0) = ddB_dt.z();
 
-    dt(18, 0) = pC_dt.x;
-    dt(19, 0) = pC_dt.y;
-    dt(20, 0) = pC_dt.z;
-    dt(21, 0) = dC_dt.x;
-    dt(22, 0) = dC_dt.y;
-    dt(23, 0) = dC_dt.z;
-    dt(24, 0) = ddC_dt.x;
-    dt(25, 0) = ddC_dt.y;
-    dt(26, 0) = ddC_dt.z;
+    dt(18, 0) = pC_dt.x();
+    dt(19, 0) = pC_dt.y();
+    dt(20, 0) = pC_dt.z();
+    dt(21, 0) = dC_dt.x();
+    dt(22, 0) = dC_dt.y();
+    dt(23, 0) = dC_dt.z();
+    dt(24, 0) = ddC_dt.x();
+    dt(25, 0) = ddC_dt.y();
+    dt(26, 0) = ddC_dt.z();
 }
 
 // -----------------------------------------------------------------------------
@@ -1751,18 +1751,18 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     ChVector<double> G1xG2;  // Cross product of first and second column of
     double G1dotG1;          // Dot product of first column of position vector gradient
 
-    G1xG2.x = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
-    G1xG2.y = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
-    G1xG2.z = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
+    G1xG2.x() = Nx_d0[0][1] * Ny_d0[0][2] - Nx_d0[0][2] * Ny_d0[0][1];
+    G1xG2.y() = Nx_d0[0][2] * Ny_d0[0][0] - Nx_d0[0][0] * Ny_d0[0][2];
+    G1xG2.z() = Nx_d0[0][0] * Ny_d0[0][1] - Nx_d0[0][1] * Ny_d0[0][0];
     G1dotG1 = Nx_d0[0][0] * Nx_d0[0][0] + Nx_d0[0][1] * Nx_d0[0][1] + Nx_d0[0][2] * Nx_d0[0][2];
 
     // Tangent Frame
     ChVector<double> A1;
     ChVector<double> A2;
     ChVector<double> A3;
-    A1.x = Nx_d0[0][0];
-    A1.y = Nx_d0[0][1];
-    A1.z = Nx_d0[0][2];
+    A1.x() = Nx_d0[0][0];
+    A1.y() = Nx_d0[0][1];
+    A1.z() = Nx_d0[0][2];
     A1 = A1 / sqrt(G1dotG1);
     A3 = G1xG2.GetNormalized();
     A2.Cross(A3, A1);
@@ -1794,15 +1794,15 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
     j0(2, 2) = Nx_d0[0][0] * Ny_d0[0][1] - Ny_d0[0][0] * Nx_d0[0][1];
     j0.MatrDivScale(detJ0);
 
-    j01(0) = j0(0, 0);
-    j02(0) = j0(1, 0);
-    j03(0) = j0(2, 0);
-    j01(1) = j0(0, 1);
-    j02(1) = j0(1, 1);
-    j03(1) = j0(2, 1);
-    j01(2) = j0(0, 2);
-    j02(2) = j0(1, 2);
-    j03(2) = j0(2, 2);
+    j01[0] = j0(0, 0);
+    j02[0] = j0(1, 0);
+    j03[0] = j0(2, 0);
+    j01[1] = j0(0, 1);
+    j02[1] = j0(1, 1);
+    j03[1] = j0(2, 1);
+    j01[2] = j0(0, 2);
+    j02[2] = j0(1, 2);
+    j03[2] = j0(2, 2);
 
     // Coefficients of contravariant transformation
     beta(0, 0) = Vdot(AA1, j01);
@@ -1906,9 +1906,9 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
 //    const ChVector<>& pC = m_nodes[2]->GetPos();
 //    const ChVector<>& pD = m_nodes[3]->GetPos();
 //
-//    point.x = N(0) * pA.x + N(2) * pB.x + N(4) * pC.x + N(6) * pD.x;
-//    point.y = N(0) * pA.y + N(2) * pB.y + N(4) * pC.y + N(6) * pD.y;
-//    point.z = N(0) * pA.z + N(2) * pB.z + N(4) * pC.z + N(6) * pD.z;
+//    point.x() = N(0) * pA.x() + N(2) * pB.x() + N(4) * pC.x() + N(6) * pD.x();
+//    point.y() = N(0) * pA.y() + N(2) * pB.y() + N(4) * pC.y() + N(6) * pD.y();
+//    point.z() = N(0) * pA.z() + N(2) * pB.z() + N(4) * pC.z() + N(6) * pD.z();
 //}
 
 // -----------------------------------------------------------------------------
@@ -1916,7 +1916,7 @@ ChVector<> ChElementBeamANCF::EvaluateBeamSectionStrains() {
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementBeamANCF::LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementBeamANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
     mD.PasteVector(m_nodes[0]->GetPos(), block_offset, 0);
     mD.PasteVector(m_nodes[0]->GetD(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[0]->GetDD(), block_offset + 6, 0);
@@ -1931,7 +1931,7 @@ void ChElementBeamANCF::LoadableGetStateBlock_x(int block_offset, ChVectorDynami
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementBeamANCF::LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+void ChElementBeamANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
     mD.PasteVector(m_nodes[0]->GetPos_dt(), block_offset, 0);
     mD.PasteVector(m_nodes[0]->GetD_dt(), block_offset + 3, 0);
     mD.PasteVector(m_nodes[0]->GetDD_dt(), block_offset + 6, 0);
@@ -1943,6 +1943,13 @@ void ChElementBeamANCF::LoadableGetStateBlock_w(int block_offset, ChVectorDynami
     mD.PasteVector(m_nodes[2]->GetPos_dt(), block_offset + 18, 0);
     mD.PasteVector(m_nodes[2]->GetD_dt(), block_offset + 21, 0);
     mD.PasteVector(m_nodes[2]->GetDD_dt(), block_offset + 24, 0);
+}
+
+/// Increment all DOFs using a delta.
+void ChElementBeamANCF::LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv)  {
+    m_nodes[0]->NodeIntStateIncrement(off_x   , x_new, x, off_v   , Dv);
+    m_nodes[1]->NodeIntStateIncrement(off_x+9 , x_new, x, off_v+9 , Dv);
+    m_nodes[2]->NodeIntStateIncrement(off_x+18, x_new, x, off_v+18, Dv);
 }
 
 void ChElementBeamANCF::EvaluateSectionVelNorm(double U, ChVector<>& Result) {
@@ -2064,9 +2071,9 @@ ChVector<> ChElementBeamANCF::ComputeTangent(const double U) {
     ChMatrixNM<double, 1, 3> Nx_d = Nx * mD;
 
     ChVector<> rd;
-    rd(0) = Nx_d(0, 0);
-    rd(1) = Nx_d(0, 1);
-    rd(2) = Nx_d(0, 2);
+    rd[0] = Nx_d(0, 0);
+    rd[1] = Nx_d(0, 1);
+    rd[2] = Nx_d(0, 2);
 
     return rd.GetNormalized();
 }
@@ -2109,36 +2116,36 @@ void ChMaterialBeamANCF::Calc_E_eps(const ChVector<>& E,
                                     double k1,
                                     double k2) {
     m_E_eps.Reset();
-    m_E_eps(0, 0) = E.x;
-    m_E_eps(1, 1) = E.y;
-    m_E_eps(3, 3) = E.z;
+    m_E_eps(0, 0) = E.x();
+    m_E_eps(1, 1) = E.y();
+    m_E_eps(3, 3) = E.z();
     m_E_eps(0, 1) = 0.0;
     m_E_eps(0, 3) = 0.0;
     m_E_eps(1, 0) = 0.0;
     m_E_eps(1, 3) = 0.0;
     m_E_eps(3, 0) = 0.0;
     m_E_eps(3, 1) = 0.0;
-    m_E_eps(2, 2) = G.x * k1;
-    m_E_eps(4, 4) = G.y * k2;  // This works for Z axis loading
-    m_E_eps(5, 5) = G.z;
+    m_E_eps(2, 2) = G.x() * k1;
+    m_E_eps(4, 4) = G.y() * k2;  // This works for Z axis loading
+    m_E_eps(5, 5) = G.z();
 }
 void ChMaterialBeamANCF::Calc_E_eps_Nu(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
-    double delta = 1.0 - (nu.x * nu.x) * E.y / E.x - (nu.y * nu.y) * E.z / E.x - (nu.z * nu.z) * E.z / E.y -
-                   2.0 * nu.x * nu.y * nu.z * E.z / E.x;
-    double nu_yx = nu.x * E.y / E.x;
-    double nu_zx = nu.y * E.z / E.x;
-    double nu_zy = nu.z * E.z / E.y;
+    double delta = 1.0 - (nu.x() * nu.x()) * E.y() / E.x() - (nu.y() * nu.y()) * E.z() / E.x() - (nu.z() * nu.z()) * E.z() / E.y() -
+                   2.0 * nu.x() * nu.y() * nu.z() * E.z() / E.x();
+    double nu_yx = nu.x() * E.y() / E.x();
+    double nu_zx = nu.y() * E.z() / E.x();
+    double nu_zy = nu.z() * E.z() / E.y();
 
     m_E_eps_Nu.Reset();
-    m_E_eps_Nu(0, 0) = E.x * ((1.0 - (nu.z * nu.z) * E.z / E.y) / delta - 1.0);
-    m_E_eps_Nu(1, 1) = E.y * ((1.0 - (nu.y * nu.y) * E.z / E.x) / delta - 1.0);
-    m_E_eps_Nu(3, 3) = E.z * ((1.0 - (nu.x * nu.x) * E.y / E.x) / delta - 1.0);
-    m_E_eps_Nu(0, 1) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
-    m_E_eps_Nu(0, 3) = E.z * (nu.y + nu.z * nu.x) / delta;
-    m_E_eps_Nu(1, 0) = E.y * (nu.x + nu.y * nu.z * E.z / E.y) / delta;
-    m_E_eps_Nu(1, 3) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
-    m_E_eps_Nu(3, 0) = E.z * (nu.y + nu.z * nu.x) / delta;
-    m_E_eps_Nu(3, 1) = E.z * (nu.z + nu.y * nu.x * E.y / E.x) / delta;
+    m_E_eps_Nu(0, 0) = E.x() * ((1.0 - (nu.z() * nu.z()) * E.z() / E.y()) / delta - 1.0);
+    m_E_eps_Nu(1, 1) = E.y() * ((1.0 - (nu.y() * nu.y()) * E.z() / E.x()) / delta - 1.0);
+    m_E_eps_Nu(3, 3) = E.z() * ((1.0 - (nu.x() * nu.x()) * E.y() / E.x()) / delta - 1.0);
+    m_E_eps_Nu(0, 1) = E.y() * (nu.x() + nu.y() * nu.z() * E.z() / E.y()) / delta;
+    m_E_eps_Nu(0, 3) = E.z() * (nu.y() + nu.z() * nu.x()) / delta;
+    m_E_eps_Nu(1, 0) = E.y() * (nu.x() + nu.y() * nu.z() * E.z() / E.y()) / delta;
+    m_E_eps_Nu(1, 3) = E.z() * (nu.z() + nu.y() * nu.x() * E.y() / E.x()) / delta;
+    m_E_eps_Nu(3, 0) = E.z() * (nu.y() + nu.z() * nu.x()) / delta;
+    m_E_eps_Nu(3, 1) = E.z() * (nu.z() + nu.y() * nu.x() * E.y() / E.x()) / delta;
 
     m_E_eps_Nu(2, 2) = 0.0;
     m_E_eps_Nu(4, 4) = 0.0;

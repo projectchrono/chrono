@@ -17,8 +17,7 @@
 #include "chrono/collision/ChCCollisionSystemBullet.h"
 #include "chrono/collision/ChCModelBullet.h"
 #include "chrono/parallel/ChOpenMP.h"
-#include "chrono/physics/ChContactContainerDVI.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/solver/ChSolverAPGD.h"
 #include "chrono/solver/ChSolverBB.h"
@@ -185,10 +184,7 @@ class IteratorAllPhysics {
 // CLASS FOR PHYSICAL SYSTEM
 // -----------------------------------------------------------------------------
 
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChSystem)
-
-ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
+ChSystem::ChSystem()
     : ChAssembly(),
       end_time(1),
       step(0.04),
@@ -202,11 +198,6 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       ncontacts(0),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
-      collision_system(NULL),
-      collisionpoint_callback(NULL),
-      descriptor(NULL),
-      solver_speed(NULL),
-      solver_stab(NULL),
       use_sleeping(false),
       G_acc(ChVector<>(0, -9.8, 0)),
       stepcount(0),
@@ -214,46 +205,24 @@ ChSystem::ChSystem(unsigned int max_objects, double scene_size, bool init_sys)
       setupcount(0),
       dump_matrices(false),
       last_err(false),
-      scriptEngine(NULL),
-      scriptForStart(NULL),
-      scriptForUpdate(NULL),
-      scriptForStep(NULL),
-      scriptFor3DStep(NULL)
+      composition_strategy(new ChMaterialCompositionStrategy<float>) {
+    // Required by ChAssembly
+    system = this;
 
-{
-    system = this;  // as needed by ChAssembly
-
-    SetIntegrationType(INT_EULER_IMPLICIT_LINEARIZED);
-
-    parallel_thread_number = CHOMPfunctions::GetNumProcs();  // default n.threads as n.cores
-
-    // Set default contact container
-    if (init_sys) {
-        contact_container = std::make_shared<ChContactContainerDVI>();
-        contact_container->SetSystem(this);
-    }
-
-    // Set default collision engine
-    if (init_sys) {
-        collision_system = new ChCollisionSystemBullet(max_objects, scene_size);
-    }
+    // Set default number of threads to be equal to number of available cores
+    parallel_thread_number = CHOMPfunctions::GetNumProcs();
 
     // Set default collision envelope and margin.
     collision::ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
     collision::ChCollisionModel::SetDefaultSuggestedMargin(0.01);
 
+    // Set default timestepper.
     timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
-
-    // Set default solver
-    if (init_sys) {
-        SetSolverType(SOLVER_SYMMSOR);
-    }
-
-    events = new ChEvents(250);
 }
 
 ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
-    system = this;  // as needed by ChAssembly
+    // Required by ChAssembly
+    system = this;
 
     G_acc = other.G_acc;
     end_time = other.end_time;
@@ -264,7 +233,7 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     solvecount = other.solvecount;
     setupcount = other.setupcount;
     dump_matrices = other.dump_matrices;
-    SetIntegrationType(other.integration_type);
+    SetTimestepperType(other.GetTimestepperType());
     tol = other.tol;
     tol_force = other.tol_force;
     maxiter = other.maxiter;
@@ -280,19 +249,11 @@ ChSystem::ChSystem(const ChSystem& other) : ChAssembly(other) {
     ncontacts = other.ncontacts;
 
     collision_callbacks = other.collision_callbacks;
-    collisionpoint_callback = other.collisionpoint_callback;
 
     last_err = other.last_err;
 
     RemoveAllProbes();
     RemoveAllControls();
-
-    events->ResetAllEvents();  // don't copy events.
-
-    SetScriptForStartFile(other.scriptForStartFile);
-    SetScriptForUpdateFile(other.scriptForUpdateFile);
-    SetScriptForStepFile(other.scriptForStepFile);
-    SetScriptFor3DStepFile(other.scriptFor3DStepFile);
 }
 
 ChSystem::~ChSystem() {
@@ -304,33 +265,11 @@ ChSystem::~ChSystem() {
 
     RemoveAllProbes();
     RemoveAllControls();
-
-    delete solver_speed;
-    solver_speed = NULL;
-
-    delete solver_stab;
-    solver_stab = NULL;
-
-    delete descriptor;
-    descriptor = NULL;
-
-    delete collision_system;
-    collision_system = NULL;
-
-    delete events;
-    events = NULL;
-
-    delete scriptForStart;
-    delete scriptForUpdate;
-    delete scriptForStep;
-    delete scriptFor3DStep;
 }
 
 void ChSystem::Clear() {
     // first the parent class data...
     ChAssembly::Clear();
-
-    events->ResetAllEvents();
 
     // contact_container->RemoveAllContacts();
 
@@ -344,77 +283,63 @@ void ChSystem::Clear() {
 // Set/Get routines
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetSolverType(eCh_solverType mval) {
-    if (mval == SOLVER_CUSTOM)
+void ChSystem::SetSolverType(ChSolver::Type type) {
+    // Do nothing if changing to a CUSTOM solver.
+    if (type == ChSolver::Type::CUSTOM)
         return;
 
-    solver_type = mval;
-
-    if (solver_speed)
-        delete solver_speed;
-    solver_speed = 0;
-    if (solver_stab)
-        delete solver_stab;
-    solver_stab = 0;
-    if (descriptor)
-        delete descriptor;
-    descriptor = 0;
-
-    descriptor = new ChSystemDescriptor;
+    descriptor = std::make_shared<ChSystemDescriptor>();
     descriptor->SetNumThreads(parallel_thread_number);
 
-    contact_container = std::make_shared<ChContactContainerDVI>();
-    contact_container->SetSystem(this);
-
-    switch (mval) {
-        case SOLVER_SOR:
-            solver_speed = new ChSolverSOR();
-            solver_stab = new ChSolverSOR();
+    switch (type) {
+        case ChSolver::Type::SOR:
+            solver_speed = std::make_shared<ChSolverSOR>();
+            solver_stab = std::make_shared<ChSolverSOR>();
             break;
-        case SOLVER_SYMMSOR:
-            solver_speed = new ChSolverSymmSOR();
-            solver_stab = new ChSolverSymmSOR();
+        case ChSolver::Type::SYMMSOR:
+            solver_speed = std::make_shared<ChSolverSymmSOR>();
+            solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
-        case SOLVER_JACOBI:
-            solver_speed = new ChSolverJacobi();
-            solver_stab = new ChSolverJacobi();
+        case ChSolver::Type::JACOBI:
+            solver_speed = std::make_shared<ChSolverJacobi>();
+            solver_stab = std::make_shared<ChSolverJacobi>();
             break;
-        case SOLVER_SOR_MULTITHREAD:
-            solver_speed = new ChSolverSORmultithread((char*)"speedSolver", parallel_thread_number);
-            solver_stab = new ChSolverSORmultithread((char*)"posSolver", parallel_thread_number);
+        case ChSolver::Type::SOR_MULTITHREAD:
+            solver_speed = std::make_shared<ChSolverSORmultithread>("speedSolver", parallel_thread_number);
+            solver_stab = std::make_shared<ChSolverSORmultithread>("posSolver", parallel_thread_number);
             break;
-        case SOLVER_PMINRES:
-            solver_speed = new ChSolverPMINRES();
-            solver_stab = new ChSolverPMINRES();
+        case ChSolver::Type::PMINRES:
+            solver_speed = std::make_shared<ChSolverPMINRES>();
+            solver_stab = std::make_shared<ChSolverPMINRES>();
             break;
-        case SOLVER_BARZILAIBORWEIN:
-            solver_speed = new ChSolverBB();
-            solver_stab = new ChSolverBB();
+        case ChSolver::Type::BARZILAIBORWEIN:
+            solver_speed = std::make_shared<ChSolverBB>();
+            solver_stab = std::make_shared<ChSolverBB>();
             break;
-        case SOLVER_PCG:
-            solver_speed = new ChSolverPCG();
-            solver_stab = new ChSolverPCG();
+        case ChSolver::Type::PCG:
+            solver_speed = std::make_shared<ChSolverPCG>();
+            solver_stab = std::make_shared<ChSolverPCG>();
             break;
-        case SOLVER_APGD:
-            solver_speed = new ChSolverAPGD();
-            solver_stab = new ChSolverAPGD();
+        case ChSolver::Type::APGD:
+            solver_speed = std::make_shared<ChSolverAPGD>();
+            solver_stab = std::make_shared<ChSolverAPGD>();
             break;
-        case SOLVER_MINRES:
-            solver_speed = new ChSolverMINRES();
-            solver_stab = new ChSolverMINRES();
+        case ChSolver::Type::MINRES:
+            solver_speed = std::make_shared<ChSolverMINRES>();
+            solver_stab = std::make_shared<ChSolverMINRES>();
             break;
         default:
-            solver_speed = new ChSolverSymmSOR();
-            solver_stab = new ChSolverSymmSOR();
+            solver_speed = std::make_shared<ChSolverSymmSOR>();
+            solver_stab = std::make_shared<ChSolverSymmSOR>();
             break;
     }
 }
 
-ChSolver* ChSystem::GetSolverSpeed() {
+std::shared_ptr<ChSolver> ChSystem::GetSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -422,11 +347,11 @@ ChSolver* ChSystem::GetSolverSpeed() {
     return solver_speed;
 }
 
-ChSolver* ChSystem::GetSolverStab() {
+std::shared_ptr<ChSolver> ChSystem::GetStabSolver() {
     // In case the solver is iterative, pre-configure it with the max. number of
     // iterations and with the convergence tolerance (convert the user-specified
     // tolerance for forces into a tolerance for impulses).
-    if (ChIterativeSolver* iter_solver = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver->SetMaxIterations(GetMaxItersSolverSpeed());
         iter_solver->SetTolerance(tol_force * step);
     }
@@ -435,48 +360,48 @@ ChSolver* ChSystem::GetSolverStab() {
 }
 
 void ChSystem::SetSolverWarmStarting(bool usewarm) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetWarmStart(usewarm);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetWarmStart(usewarm);
     }
 }
 
 bool ChSystem::GetSolverWarmStarting() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetWarmStart();
     }
     return false;
 }
 
 void ChSystem::SetSolverOverrelaxationParam(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetOmega(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetOmega(momega);
     }
 }
 
 double ChSystem::GetSolverOverrelaxationParam() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetOmega();
     }
     return 1.0;
 }
 
 void ChSystem::SetSolverSharpnessParam(double momega) {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         iter_solver_speed->SetSharpnessLambda(momega);
     }
-    if (ChIterativeSolver* iter_solver_stab = dynamic_cast<ChIterativeSolver*>(solver_stab)) {
+    if (auto iter_solver_stab = std::dynamic_pointer_cast<ChIterativeSolver>(solver_stab)) {
         iter_solver_stab->SetSharpnessLambda(momega);
     }
 }
 
 double ChSystem::GetSolverSharpnessParam() const {
-    if (ChIterativeSolver* iter_solver_speed = dynamic_cast<ChIterativeSolver*>(solver_speed)) {
+    if (auto iter_solver_speed = std::dynamic_pointer_cast<ChIterativeSolver>(solver_speed)) {
         return iter_solver_speed->GetSharpnessLambda();
     }
     return 1.0;
@@ -490,49 +415,42 @@ void ChSystem::SetParallelThreadNumber(int mthreads) {
 
     descriptor->SetNumThreads(mthreads);
 
-    if (solver_type == SOLVER_SOR_MULTITHREAD) {
-        ((ChSolverSORmultithread*)solver_speed)->ChangeNumberOfThreads(mthreads);
-        ((ChSolverSORmultithread*)solver_stab)->ChangeNumberOfThreads(mthreads);
+    if (solver_speed->GetType() == ChSolver::Type::SOR_MULTITHREAD) {
+        std::static_pointer_cast<ChSolverSORmultithread>(solver_speed)->ChangeNumberOfThreads(mthreads);
+        std::static_pointer_cast<ChSolverSORmultithread>(solver_stab)->ChangeNumberOfThreads(mthreads);
     }
 }
 
 // Plug-in components configuration
 
-void ChSystem::ChangeSystemDescriptor(ChSystemDescriptor* newdescriptor) {
+void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescriptor) {
     assert(newdescriptor);
-    if (descriptor)
-        delete descriptor;
     descriptor = newdescriptor;
 }
-void ChSystem::ChangeSolverSpeed(ChSolver* newsolver) {
+void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
-    if (solver_speed)
-        delete solver_speed;
     solver_speed = newsolver;
-    solver_type = SOLVER_CUSTOM;
 }
 
-void ChSystem::ChangeSolverStab(ChSolver* newsolver) {
+void ChSystem::SetStabSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
-    if (solver_stab)
-        delete solver_stab;
     solver_stab = newsolver;
-    solver_type = SOLVER_CUSTOM;
 }
 
-void ChSystem::ChangeContactContainer(std::shared_ptr<ChContactContainerBase> newcontainer) {
-    assert(newcontainer);
-
-    contact_container = newcontainer;
+void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container) {
+    assert(container);
+    contact_container = container;
     contact_container->SetSystem(this);
 }
 
-void ChSystem::ChangeCollisionSystem(ChCollisionSystem* newcollsystem) {
+void ChSystem::SetCollisionSystem(std::shared_ptr<ChCollisionSystem> newcollsystem) {
     assert(GetNbodies() == 0);
     assert(newcollsystem);
-    if (collision_system)
-        delete collision_system;
     collision_system = newcollsystem;
+}
+
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy<float>>&& strategy) {
+    composition_strategy = std::move(strategy);
 }
 
 // Initial system setup before analysis.
@@ -547,58 +465,6 @@ void ChSystem::SetupInitial() {
     for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
         otherphysicslist[ip]->SetupInitial();
     }
-}
-
-// JS commands
-
-int ChSystem::SetScriptForStartFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForStartFile = mfile;
-    scriptForStart = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForStart, mfile.c_str());
-}
-int ChSystem::SetScriptForUpdateFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForUpdateFile = mfile;
-    scriptForUpdate = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForUpdate, mfile.c_str());
-}
-int ChSystem::SetScriptForStepFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptForStepFile = mfile;
-    scriptForStep = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptForStep, mfile.c_str());
-}
-int ChSystem::SetScriptFor3DStepFile(const std::string& mfile) {
-    if (!scriptEngine)
-        return 0;
-    scriptFor3DStepFile = mfile;
-    scriptFor3DStep = scriptEngine->CreateScript();
-    return scriptEngine->FileToScript(*scriptFor3DStep, mfile.c_str());
-}
-
-int ChSystem::ExecuteScriptForStart() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForStart);
-}
-int ChSystem::ExecuteScriptForUpdate() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForUpdate);
-}
-int ChSystem::ExecuteScriptForStep() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptForStep);
-}
-int ChSystem::ExecuteScriptFor3DStep() {
-    if (!scriptEngine)
-        return 0;
-    return scriptEngine->ExecuteScript(*scriptFor3DStep);
 }
 
 // PROBE STUFF
@@ -699,65 +565,57 @@ void ChSystem::Reference_LM_byID() {
 // PREFERENCES
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetIntegrationType(eCh_integrationType m_integration) {
-    if (m_integration == integration_type)
-        return;
-    if (m_integration == INT_CUSTOM__)
+void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
+    // Do nothing if changing to a CUSTOM timestepper.
+    if (type == ChTimestepper::Type::CUSTOM)
         return;
 
-    // set integration scheme:
-    integration_type = m_integration;
+    // Do nothing, if no change from current typestepper.
+    if (type == GetTimestepperType())
+        return;
 
-    // plug in the new required timestepper
+    // Plug in the new required timestepper
     // (the previous will be automatically deallocated thanks to shared pointers)
-    switch (integration_type) {
-        case INT_ANITESCU:
-            timestepper =
-                std::make_shared<ChTimestepperEulerImplicitLinearized>(this);  // alias of INT_EULER_IMPLICIT_LINEARIZED
-            break;
-        case INT_TASORA:
-            timestepper =
-                std::make_shared<ChTimestepperEulerImplicitProjected>(this);  // alias of INT_EULER_IMPLICIT_PROJECTED
-            break;
-        case INT_EULER_IMPLICIT:
+    switch (type) {
+        case ChTimestepper::Type::EULER_IMPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerImplicit>(this);
             std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
             break;
-        case INT_EULER_IMPLICIT_LINEARIZED:
+        case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitLinearized>(this);
             break;
-        case INT_EULER_IMPLICIT_PROJECTED:
+        case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
             timestepper = std::make_shared<ChTimestepperEulerImplicitProjected>(this);
             break;
-        case INT_TRAPEZOIDAL:
+        case ChTimestepper::Type::TRAPEZOIDAL:
             timestepper = std::make_shared<ChTimestepperTrapezoidal>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
             break;
-        case INT_TRAPEZOIDAL_LINEARIZED:
+        case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
             timestepper = std::make_shared<ChTimestepperTrapezoidalLinearized>(this);
             std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
             break;
-        case INT_HHT:
+        case ChTimestepper::Type::HHT:
             timestepper = std::make_shared<ChTimestepperHHT>(this);
             std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
             break;
-        case INT_HEUN:
+        case ChTimestepper::Type::HEUN:
             timestepper = std::make_shared<ChTimestepperHeun>(this);
             break;
-        case INT_RUNGEKUTTA45:
+        case ChTimestepper::Type::RUNGEKUTTA45:
             timestepper = std::make_shared<ChTimestepperRungeKuttaExpl>(this);
             break;
-        case INT_EULER_EXPLICIT:
+        case ChTimestepper::Type::EULER_EXPLICIT:
             timestepper = std::make_shared<ChTimestepperEulerExplIIorder>(this);
             break;
-        case INT_LEAPFROG:
+        case ChTimestepper::Type::LEAPFROG:
             timestepper = std::make_shared<ChTimestepperLeapfrog>(this);
             break;
-        case INT_NEWMARK:
+        case ChTimestepper::Type::NEWMARK:
             timestepper = std::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
-            throw ChException("SetIntegrationType: timestepper not supported");
+            throw ChException("SetTimestepperType: timestepper not supported");
     }
 }
 
@@ -779,12 +637,11 @@ bool ChSystem::ManageSleepingBodies() {
 
     // Make this class for iterating through contacts
 
-    class _wakeup_reporter_class : public ChReportContactCallback {
+    class _wakeup_reporter_class : public ChContactContainer::ReportContactCallback {
       public:
         // Callback, used to report contact points already added to the container.
-        // This must be implemented by a child class of ChReportContactCallback.
         // If returns false, the contact scanning will be stopped.
-        virtual bool ReportContactCallback(
+        virtual bool OnReportContact(
             const ChVector<>& pA,             ///< get contact pA
             const ChVector<>& pB,             ///< get contact pB
             const ChMatrix33<>& plane_coord,  ///< get contact plane coordsystem (A column 'X' is contact normal)
@@ -802,8 +659,8 @@ bool ChSystem::ManageSleepingBodies() {
                 return true;
             bool sleep1 = b1->GetSleeping();
             bool sleep2 = b2->GetSleeping();
-            bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
-            bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
+            bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+            bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
             bool ground1 = b1->GetBodyFixed();
             bool ground2 = b2->GetBodyFixed();
             if (sleep1 && !(sleep2 || could_sleep2) && !ground2) {
@@ -815,10 +672,10 @@ bool ChSystem::ManageSleepingBodies() {
                 need_Setup_A = true;
             }
             if (could_sleep1 && !(sleep2 || could_sleep2) && !ground2) {
-                b1->BFlagSet(BF_COULDSLEEP, false);
+                b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
-                b2->BFlagSet(BF_COULDSLEEP, false);
+                b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
             }
             someone_sleeps = sleep1 | sleep2 | someone_sleeps;
 
@@ -850,8 +707,8 @@ bool ChSystem::ManageSleepingBodies() {
                 if (b1 && b2) {
                     bool sleep1 = b1->GetSleeping();
                     bool sleep2 = b2->GetSleeping();
-                    bool could_sleep1 = b1->BFlagGet(BF_COULDSLEEP);
-                    bool could_sleep2 = b2->BFlagGet(BF_COULDSLEEP);
+                    bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                    bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
                     if (sleep1 && !(sleep2 || could_sleep2)) {
                         b1->SetSleeping(false);
                         need_Setup_L = true;
@@ -861,16 +718,16 @@ bool ChSystem::ManageSleepingBodies() {
                         need_Setup_L = true;
                     }
                     if (could_sleep1 && !(sleep2 || could_sleep2)) {
-                        b1->BFlagSet(BF_COULDSLEEP, false);
+                        b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
                     }
                     if (could_sleep2 && !(sleep1 || could_sleep1)) {
-                        b2->BFlagSet(BF_COULDSLEEP, false);
+                        b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
                     }
                 }
             }
         }
 
-        // scan all contacts and wake neighbouring bodies
+        // scan all contacts and wake neighboring bodies
         contact_container->ReportAllContacts(&my_waker);
 
         // bailout wakeup cycle prematurely, if all bodies are not sleeping
@@ -881,7 +738,7 @@ bool ChSystem::ManageSleepingBodies() {
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
     for (int ip = 0; ip < bodylist.size(); ++ip) {
-        if (bodylist[ip]->BFlagGet(BF_COULDSLEEP)) {
+        if (bodylist[ip]->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
             bodylist[ip]->SetSleeping(true);
             ++need_Setup_B;
         }
@@ -921,10 +778,7 @@ void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
 // allocates or reallocate bookkeeping data/vectors, if any,
 
 void ChSystem::Setup() {
-    events->Record(CHEVENT_SETUP);
-
-    // inherit the parent class
-    // (compute offsets of bodies, links, etc.)
+    // inherit the parent class (compute offsets of bodies, links, etc.)
     ChAssembly::Setup();
 
     // also compute offsets for contact container
@@ -992,16 +846,10 @@ void ChSystem::Setup() {
 void ChSystem::Update(bool update_assets) {
     timer_update.start();  // Timer for profiling
 
-    events->Record(CHEVENT_UPDATE);  // Record an update event
-
-    // Executes the "forUpdate" script, if any
-    ExecuteScriptForUpdate();
-    // Executes the "forUpdate" script
-    // in all controls of controlslist
+    // Executes the "forUpdate" in all controls of controlslist
     ExecuteControlsForUpdate();
 
-    // Inherit parent class
-    // (recursively update sub objects bodies, links, etc)
+    // Inherit parent class (recursively update sub objects bodies, links, etc)
     ChAssembly::Update(update_assets);
 
     // Update all contacts, if any
@@ -1389,7 +1237,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // If the solver's Setup() must be called or if the solver's Solve() requires it,
     // fill the sparse system structures with information in G and Cq.
-    if (force_setup || GetSolverSpeed()->SolveRequiresMatrix()) {
+    if (force_setup || GetSolver()->SolveRequiresMatrix()) {
         // Cq  matrix
         ConstraintsLoadJacobians();
 
@@ -1403,10 +1251,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (dump_matrices) {
-        // GetLog() << "StateSolveCorrection R=" << R << "\n\n";
-        // GetLog() << "StateSolveCorrection Qc="<< Qc << "\n\n";
-        // GetLog() << "StateSolveCorrection X=" << x << "\n\n";
-        // GetLog() << "StateSolveCorrection V=" << v << "\n\n";
 
         const char* numformat = "%.12g";
         std::string sprefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
@@ -1427,7 +1271,7 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // Return 'false' if the setup phase fails.
     if (force_setup) {
         timer_setup.start();
-        bool success = GetSolverSpeed()->Setup(*descriptor);
+        bool success = GetSolver()->Setup(*descriptor);
         timer_setup.stop();
         setupcount++;
         if (!success)
@@ -1437,9 +1281,9 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     // Solve the problem
     // The solution is scattered in the provided system descriptor
     timer_solver.start();
-    GetSolverSpeed()->Solve(*descriptor);
+    GetSolver()->Solve(*descriptor);
     timer_solver.stop();
-    solvecount++;
+    
 
     // Dv and L vectors  <-- sparse solver structures
     IntFromDescriptor(0, Dv, 0, L);
@@ -1457,9 +1301,16 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
         file_L.SetNumFormat(numformat);
         ((ChMatrix<>)L).StreamOUTdenseMatlabFormat(file_L);
 
-        // GetLog() << "StateSolveCorrection Dv=" << Dv << "\n\n";
-        // GetLog() << "StateSolveCorrection L="  << L << "\n\n";
+        // Just for diagnostic, dump also unscaled loads (forces,torques), 
+        // since the .._f.dat vector dumped in DumpLastMatrices() might contain scaled loads, and also +M*v
+        ChVectorDynamic<> tempF(this->GetNcoords_v());
+        this->IntLoadResidual_F(0, tempF, 1.0);
+        chrono::ChStreamOutAsciiFile file_F((sprefix + "F_pre.dat").c_str());
+        file_F.SetNumFormat(numformat);
+        tempF.StreamOUTdenseMatlabFormat(file_F);
     }
+    
+    solvecount++;
 
     return true;
 }
@@ -1522,18 +1373,6 @@ void ChSystem::SynchronizeLastCollPositions() {
     }
 }
 
-class SystemAddCollisionPointCallback : public ChAddContactCallback {
-  public:
-    ChSystem* client_system;
-    virtual void ContactCallback(
-        const collision::ChCollisionInfo& mcontactinfo,  ///< pass info about contact (cannot change it)
-        ChMaterialCouple& material                       ///< you can modify this!
-        ) {
-        if (client_system->collisionpoint_callback)
-            client_system->collisionpoint_callback->ContactCallback(mcontactinfo, material);
-    }
-};
-
 double ChSystem::ComputeCollisions() {
     double mretC = 0.0;
 
@@ -1542,19 +1381,7 @@ double ChSystem::ComputeCollisions() {
     // Update all positions of collision models: delegate this to the ChAssembly
     SyncCollisionModels();
 
-    // Prepare the callback
-
-    // In case there is some user callback for each added point..
-    SystemAddCollisionPointCallback mpointcallback;
-    if (collisionpoint_callback) {
-        mpointcallback.client_system = this;
-        contact_container->SetAddContactCallback(&mpointcallback);
-    } else {
-        contact_container->SetAddContactCallback(0);
-    }
-
-    // !!! Perform the collision detection ( broadphase and narrowphase ) !!!
-
+    // Perform the collision detection ( broadphase and narrowphase )
     collision_system->Run();
 
     // Report and store contacts and/or proximities, if there are some
@@ -1564,18 +1391,19 @@ double ChSystem::ComputeCollisions() {
     collision_system->ReportContacts(contact_container.get());
 
     for (unsigned int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainerBase>(otherphysicslist[ip])) {
+        if (auto mcontactcontainer = std::dynamic_pointer_cast<ChContactContainer>(otherphysicslist[ip])) {
             collision_system->ReportContacts(mcontactcontainer.get());
         }
 
-        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainerBase>(otherphysicslist[ip])) {
+        if (auto mproximitycontainer = std::dynamic_pointer_cast<ChProximityContainer>(otherphysicslist[ip])) {
             collision_system->ReportProximities(mproximitycontainer.get());
         }
     }
 
-    // If some other collision engine could add further ChLinkContact into the list..
+    // Invoke the custom collision callbacks (if any). These can potentially add
+    // additional contacts to the contact container.
     for (size_t ic = 0; ic < collision_callbacks.size(); ic++)
-        collision_callbacks[ic]->PerformCustomCollision(this);
+        collision_callbacks[ic]->OnCustomCollision(this);
 
     // Count the contacts of body-body type.
     ncontacts = contact_container->GetNcontacts();
@@ -1609,6 +1437,8 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     
         // Load all KRM matrices with the K part only
     this->KRMmatricesLoad(1.0, 0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level K matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
@@ -1620,6 +1450,8 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     
         // Load all KRM matrices with the R part only
     this->KRMmatricesLoad(0, 1.0, 0); 
+        // For ChVariable objects without a ChKblock, but still with a mass:
+    descriptor->SetMassFactor(0.0);
 
         // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
@@ -1699,11 +1531,7 @@ bool ChSystem::Integrate_Y() {
 
     timer_step.start();
 
-    events->Record(CHEVENT_TIMESTEP);
-
-    // Executes the "forStep" script, if any
-    ExecuteScriptForStep();
-    // Executes the "forStep" script in all controls of controlslist
+    // Executes "forStep" in all controls of controlslist
     ExecuteControlsForStep();
 
     stepcount++;
@@ -1742,7 +1570,7 @@ bool ChSystem::Integrate_Y() {
     CustomEndOfStep();
 
     // If there are some probe objects in the probe list,
-    // tell them to record their variables (ususally x-y couples)
+    // tell them to record their variables (usually x-y couples)
     RecordAllProbes();
 
     // Call method to gather contact forces/torques in rigid bodies
@@ -1755,7 +1583,7 @@ bool ChSystem::Integrate_Y() {
 }
 
 // -----------------------------------------------------------------------------
-// **** SATISFY ALL COSTRAINT EQUATIONS WITH NEWTON
+// **** SATISFY ALL CONSTRAINT EQUATIONS WITH NEWTON
 // **** ITERATION, UNTIL TOLERANCE SATISFIED, THEN UPDATE
 // **** THE "Y" STATE WITH SetY (WHICH AUTOMATICALLY UPDATES
 // **** ALSO AUXILIARY MATRICES).
@@ -1909,7 +1737,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if (err) {
         last_err = true;
-        GetLog() << "WARNING: some costraints may be redundant, but couldn't be eliminated \n";
+        GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
     }
     return last_err;
 }
@@ -1954,8 +1782,8 @@ bool ChSystem::DoEntireDynamics() {
     Setup();
 
     // the system may have wrong layout, or too large
-    // clearances in costraints, so it is better to
-    // check for costraint violation each time the integration starts
+    // clearances in constraints, so it is better to
+    // check for constraint violation each time the integration starts
     DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
 
     // Perform the integration steps until the end
@@ -2053,7 +1881,7 @@ bool ChSystem::DoEntireUniformDynamics(double frame_step) {
     return true;
 }
 
-// Like DoFrameDynamics, but performs kinematics instead of dinamics
+// Like DoFrameDynamics, but performs kinematics instead of dynamics
 
 bool ChSystem::DoFrameKinematics(double m_endtime) {
     double frame_step;
@@ -2124,7 +1952,7 @@ bool ChSystem::DoFullAssembly() {
 
 void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChSystem>();
 
     // serialize parent class
     ChAssembly::ArchiveOUT(marchive);
@@ -2146,8 +1974,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
     marchive << CHNVP(maxiter);
     marchive << CHNVP(use_sleeping);
 
-    eCh_solverType_mapper msolmapper;
-    marchive << CHNVP(msolmapper(solver_type), "solver_type");
     marchive << CHNVP(descriptor);
     marchive << CHNVP(solver_speed);
     marchive << CHNVP(solver_stab);
@@ -2161,14 +1987,6 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 
     marchive << CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
 
-    // marchive << CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive << CHNVP(scriptForStartFile);
-    marchive << CHNVP(scriptForUpdateFile);
-    marchive << CHNVP(scriptForStepFile);
-    marchive << CHNVP(scriptFor3DStepFile);
-
-    eCh_integrationType_mapper mintmapper;
-    marchive << CHNVP(mintmapper(integration_type), "integration_type");
     marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
     //***TODO*** complete...
@@ -2177,7 +1995,7 @@ void ChSystem::ArchiveOUT(ChArchiveOut& marchive) {
 // Method to allow de serialization of transient data from archives.
 void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChSystem>();
 
     // deserialize parent class
     ChAssembly::ArchiveIN(marchive);
@@ -2199,19 +2017,8 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(maxiter);
     marchive >> CHNVP(use_sleeping);
 
-    eCh_solverType_mapper msolmapper;
-    marchive >> CHNVP(msolmapper(solver_type), "solver_type");
-
-    if (descriptor)
-        delete descriptor;
     marchive >> CHNVP(descriptor);
-
-    if (solver_speed)
-        delete solver_speed;
     marchive >> CHNVP(solver_speed);
-
-    if (solver_stab)
-        delete solver_stab;
     marchive >> CHNVP(solver_stab);
 
     marchive >> CHNVP(max_iter_solver_speed);
@@ -2221,18 +2028,7 @@ void ChSystem::ArchiveIN(ChArchiveIn& marchive) {
     marchive >> CHNVP(max_penetration_recovery_speed);
     marchive >> CHNVP(parallel_thread_number);
 
-    if (collision_system)
-        delete collision_system;
     marchive >> CHNVP(collision_system);  // ChCollisionSystem should implement class factory for abstract create
-
-    // marchive >> CHNVP(scriptEngine); // ChScriptEngine should implement class factory for abstract create
-    marchive >> CHNVP(scriptForStartFile);
-    marchive >> CHNVP(scriptForUpdateFile);
-    marchive >> CHNVP(scriptForStepFile);
-    marchive >> CHNVP(scriptFor3DStepFile);
-
-    eCh_integrationType_mapper mintmapper;
-    marchive >> CHNVP(mintmapper(integration_type), "integration_type");
 
     marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     timestepper->SetIntegrable(this);

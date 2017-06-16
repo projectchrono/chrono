@@ -90,10 +90,10 @@ void ChShaftsBody::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in
     Qc(off_L) += cnstr_violation;
 }
 
-void ChShaftsBody::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChShaftsBody::IntToDescriptor(const unsigned int off_v,
                                    const ChStateDelta& v,
                                    const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,  ///< offset in L, Qc
+                                   const unsigned int off_L,
                                    const ChVectorDynamic<>& L,
                                    const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
@@ -101,9 +101,9 @@ void ChShaftsBody::IntToDescriptor(const unsigned int off_v,  ///< offset in v, 
     constraint.Set_b_i(Qc(off_L));
 }
 
-void ChShaftsBody::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChShaftsBody::IntFromDescriptor(const unsigned int off_v,
                                      ChStateDelta& v,
-                                     const unsigned int off_L,  ///< offset in L
+                                     const unsigned int off_L,
                                      ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
@@ -147,9 +147,9 @@ void ChShaftsBody::ConstraintsLoadJacobians() {
     constraint.Get_Cq_b()->ElementN(0) = 0;
     constraint.Get_Cq_b()->ElementN(1) = 0;
     constraint.Get_Cq_b()->ElementN(2) = 0;
-    constraint.Get_Cq_b()->ElementN(3) = jacw.x;
-    constraint.Get_Cq_b()->ElementN(4) = jacw.y;
-    constraint.Get_Cq_b()->ElementN(5) = jacw.z;
+    constraint.Get_Cq_b()->ElementN(3) = jacw.x();
+    constraint.Get_Cq_b()->ElementN(4) = jacw.y();
+    constraint.Get_Cq_b()->ElementN(5) = jacw.z();
 }
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {
@@ -161,7 +161,7 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -175,7 +175,7 @@ void ChShaftsBody::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsBody::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

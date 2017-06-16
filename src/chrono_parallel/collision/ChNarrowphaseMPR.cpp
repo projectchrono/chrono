@@ -534,7 +534,7 @@ int DiscoverPortal(const ConvexBase* shapeA, const ConvexBase* shapeB, const rea
         Swap(portal.s1, portal.s2);
         n = -n;
     }
-    int cont;
+    //int cont;
     // FindPortal code
     for (int wi = 0; wi < WHILE_LOOP_MAX; wi++) {
         // Obtain the support point in a direction perpendicular to the existing plane

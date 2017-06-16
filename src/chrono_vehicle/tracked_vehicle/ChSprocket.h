@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -45,13 +45,6 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChPart.h"
 
-/**
-    @addtogroup vehicle_tracked
-    @{
-        @defgroup vehicle_tracked_sprocket Sprocket subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -90,49 +83,6 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
 
     /// Get the angular speed of the axle.
     double GetAxleSpeed() const { return m_axle->GetPos_dt(); }
-
-    /// Set coefficient of friction.
-    /// The default value is 0.4
-    void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
-
-    /// Set coefficient of restiturion.
-    /// The default value is 0.1
-    void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
-
-    /// Set contact material properties.
-    /// These values are used to calculate contact material coefficients (if the containing
-    /// system is so configured and if the DEM-P contact method is being used).
-    /// The default values are: Y = 1e7 and nu = 0.3
-    void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
-                                      float poisson_ratio   ///< [in] Poisson ratio
-                                      );
-
-    /// Set contact material coefficients.
-    /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the DEM-P contact method is being used).
-    /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
-    void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
-                                        float gn,  ///< [in] normal contact damping
-                                        float kt,  ///< [in] tangential contact stiffness
-                                        float gt   ///< [in] tangential contact damping
-                                        );
-
-    /// Get coefficient of friction for contact material.
-    float GetCoefficientFriction() const { return m_friction; }
-    /// Get coefficient of restitution for contact material.
-    float GetCoefficientRestitution() const { return m_restitution; }
-    /// Get Young's modulus of elasticity for contact material.
-    float GetYoungModulus() const { return m_young_modulus; }
-    /// Get Poisson ratio for contact material.
-    float GetPoissonRatio() const { return m_poisson_ratio; }
-    /// Get normal stiffness coefficient for contact material.
-    float GetKn() const { return m_kn; }
-    /// Get tangential stiffness coefficient for contact material.
-    float GetKt() const { return m_kt; }
-    /// Get normal viscous damping coefficient for contact material.
-    float GetGn() const { return m_gn; }
-    /// Get tangential viscous damping coefficient for contact material.
-    float GetGt() const { return m_gt; }
 
     /// Turn on/off collision flag for the gear wheel.
     void SetCollide(bool val) { m_gear->SetCollide(val); }
@@ -187,7 +137,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     /// Return the custom collision callback object.
     /// Note that the derived need not delete this object (it is deleted in the
     /// destructor of this base class).
-    virtual ChSystem::ChCustomComputeCollisionCallback* GetCollisionCallback(
+    virtual ChSystem::CustomCollisionCallback* GetCollisionCallback(
         ChTrackAssembly* track  ///< [in] pointer to containing track assembly
         ) = 0;
 
@@ -196,16 +146,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< handle to gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< handle to sprocket revolute joint
 
-    ChSystem::ChCustomComputeCollisionCallback* m_callback;  ///< custom collision functor object
-
-    float m_friction;       ///< contact coefficient of friction
-    float m_restitution;    ///< contact coefficient of restitution
-    float m_young_modulus;  ///< contact material Young modulus
-    float m_poisson_ratio;  ///< contact material Poisson ratio
-    float m_kn;             ///< normal contact stiffness
-    float m_gn;             ///< normal contact damping
-    float m_kt;             ///< tangential contact stiffness
-    float m_gt;             ///< tangential contact damping
+    ChSystem::CustomCollisionCallback* m_callback;  ///< custom collision functor object
 };
 
 /// Vector of handles to sprocket subsystems.

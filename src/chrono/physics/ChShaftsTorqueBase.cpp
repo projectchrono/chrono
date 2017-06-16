@@ -59,7 +59,7 @@ void ChShaftsTorqueBase::VariablesFbLoadForces(double factor) {
 
 void ChShaftsTorqueBase::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsTorqueBase>();
 
     // serialize parent class
     ChShaftsCouple::ArchiveOUT(marchive);
@@ -71,7 +71,7 @@ void ChShaftsTorqueBase::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorqueBase::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsTorqueBase>();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIN(marchive);

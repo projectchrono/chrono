@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -80,7 +80,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y)
+        if (v1.y() > m_tvehicle->GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
@@ -91,7 +91,7 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
         ChVector<> v1 = it->m_point;
         ChVector<> v2 = v1 + it->m_csys.Get_A_Xaxis();
 
-        if (v1.y < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y)
+        if (v1.y() < m_tvehicle->GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos().y())
             irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), v1, v2, video::SColor(255, 180, 0, 0), false);
     }
 
@@ -102,6 +102,9 @@ void ChTrackedVehicleIrrApp::renderOtherGraphics() {
     // Contact normals on idler wheels.
     renderContactNormals(m_tvehicle->m_contacts->m_idler_L_contacts, video::SColor(255, 0, 0, 180));
     renderContactNormals(m_tvehicle->m_contacts->m_idler_R_contacts, video::SColor(255, 0, 0, 180));
+
+    // Contact normals on chassis.
+    renderContactNormals(m_tvehicle->m_contacts->m_chassis_contacts, video::SColor(255, 0, 180, 0));
 }
 
 // Render normal for all contacts in the specified list, using the given color.

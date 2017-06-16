@@ -36,6 +36,7 @@ CODE MODIFIED FROM:
 #include <ctime>
 #include <ratio>
 #include <chrono>
+#include <cstdio>
 
 namespace chrono {
 namespace utils {
@@ -307,7 +308,6 @@ float ChProfileManager::Get_Time_Since_Reset( void )
 	return (float)time / Profile_Get_Tick_Rate();
 }
 
-#include <cstdio>
 
 void	ChProfileManager::dumpRecursive(ChProfileIterator* profileIterator, int spacing)
 {

@@ -22,7 +22,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -58,6 +57,9 @@ VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
 VisualizationType wheel_vis_type = VisualizationType::NONE;
 
+// Collision type for chassis (PRIMITIVES, MESH, or NONE)
+ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE;
+
 // Type of powertrain model (SHAFTS, SIMPLE)
 PowertrainModelType powertrain_model = PowertrainModelType::SHAFTS;
 
@@ -78,7 +80,7 @@ double terrainWidth = 100.0;   // size in Y direction
 ChVector<> trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
+ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 bool contact_vis = false;
 
 // Simulation step sizes
@@ -112,6 +114,7 @@ int main(int argc, char* argv[]) {
     // Create the HMMWV vehicle, set parameters, and initialize
     HMMWV_Full my_hmmwv;
     my_hmmwv.SetContactMethod(contact_method);
+    my_hmmwv.SetChassisCollisionType(chassis_collision_type);
     my_hmmwv.SetChassisFixed(false);
     my_hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
     my_hmmwv.SetPowertrainType(powertrain_model);

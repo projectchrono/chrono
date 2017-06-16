@@ -38,19 +38,19 @@ void ChSphere::GetBoundingBox(double& xmin,
     if (Rot) {
         trsfCenter = Rot->MatrT_x_Vect(center);
     }
-    xmin = trsfCenter.x - rad;
-    xmax = trsfCenter.x + rad;
-    ymin = trsfCenter.y - rad;
-    ymax = trsfCenter.y + rad;
-    zmin = trsfCenter.z - rad;
-    zmax = trsfCenter.z + rad;
+    xmin = trsfCenter.x() - rad;
+    xmax = trsfCenter.x() + rad;
+    ymin = trsfCenter.y() - rad;
+    ymax = trsfCenter.y() + rad;
+    zmin = trsfCenter.z() - rad;
+    zmax = trsfCenter.z() + rad;
 }
 
 void ChSphere::CovarianceMatrix(ChMatrix33<>& C) const {
     C.Reset();
-    C(0, 0) = center.x * center.x;
-    C(1, 1) = center.y * center.y;
-    C(2, 2) = center.z * center.z;
+    C(0, 0) = center.x() * center.x();
+    C(1, 1) = center.y() * center.y();
+    C(2, 2) = center.z() * center.z();
 }
 
 }  // end namespace geometry

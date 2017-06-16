@@ -20,59 +20,6 @@
 
 namespace chrono {
 
-// Unique link type identifiers (for detecting type faster than with RTTI)
-// The corresponding identifier can be obtained with GetLinkType().
-// Also, the ChLinkLock family of constraints supports ChangeLinkType().
-//  TODO: remove these defines, maybe obsoleted, use RTTI instead when needed; 
-//  maybe keep only for ChangeLinkType()
-
-#define LNK_LOCK 0
-#define LNK_SPHERICAL 1
-#define LNK_POINTPLANE 2
-#define LNK_POINTLINE 3
-#define LNK_CYLINDRICAL 4
-#define LNK_PRISMATIC 5
-#define LNK_PLANEPLANE 6
-#define LNK_OLDHAM 7
-#define LNK_REVOLUTE 8
-#define LNK_RACKPIN 9
-#define LNK_FREE 10
-#define LNK_SCREW 12
-#define LNK_ALIGN 13
-#define LNK_PARALLEL 14
-#define LNK_PERPEND 15
-#define LNK_UNIVERSAL 16
-#define LNK_GEAR 17
-#define LNK_COUPLER 18
-#define LNK_DISTANCE 19
-#define LNK_POINTSPLINE 20
-#define LNK_TRAJECTORY 22
-#define LNK_REVOLUTESPHERICAL 23
-#define LNK_REVOLUTETRANSLATIONAL 24
-#define LNK_SPRING 25
-#define LNK_LINACTUATOR 27
-#define LNK_ROT_SPRING_CALLBACK 28
-#define LNK_BASE 29
-#define LNK_SPRING_CALLBACK 30
-#define LNK_ENGINE 31
-#define LNK_BRAKE 32
-#define LNK_PNEUMATIC 33
-#define LNK_CLEARANCE 34
-#define LNK_FASTCONTACT 35
-#define LNK_GEOMETRICDISTANCE 37
-#define LNK_PULLEY 38
-#define LNK_CONTACT 40
-#define LNK_MATE 41
-#define LNK_MATEGENERIC 42
-#define LNK_MATEPLANE 43
-#define LNK_MATECOAXIAL 44
-#define LNK_MATESPHERICAL 45
-#define LNK_MATEXDISTANCE 48
-#define LNK_MATEPARALLEL 46
-#define LNK_MATEORTHOGONAL 47
-#define LNK_REVOLUTEPRISMATIC 48
-#define LNK_MATEFIX 49
-
 /// Base class for all types of constraints that act like
 /// mechanical joints ('links') in 3D space.
 ///
@@ -120,9 +67,6 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// be not active either because disabled, or broken, or not valid)
     bool IsActive() { return (valid && !disabled && !broken); }
 
-    /// Get the type identifier of this link. Use if you don't want to use RTTI for performance.
-    virtual int GetType() const { return LNK_BASE; }
-
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() = 0;
 
@@ -134,7 +78,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
 
     /// Get the master coordinate system for the assets, in absolute reference.
     /// (should be implemented by children classes)
-    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) { return ChFrame<>(GetLinkAbsoluteCoords()); }
+    virtual ChFrame<> GetAssetsFrame(unsigned int nclone = 0) override { return ChFrame<>(GetLinkAbsoluteCoords()); }
 
     /// To get reaction force, expressed in link coordinate system:
     virtual ChVector<> Get_react_force() { return VNULL; }
@@ -157,6 +101,8 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkBase,0)
 
 }  // end namespace
 

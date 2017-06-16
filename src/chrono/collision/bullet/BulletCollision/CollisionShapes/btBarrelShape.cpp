@@ -38,11 +38,11 @@ btBarrelShape::btBarrelShape(btScalar sY_low, btScalar sY_high, btScalar sR_vert
 
 	// suppport point on the lathed ellipse?
 	btScalar pY = vec0.y();
-	btScalar pR = sqrt (vec0.z()*vec0.z() + vec0.x()*vec0.x() );
+	btScalar pR = std::sqrt (vec0.z()*vec0.z() + vec0.x()*vec0.x() );
 	btScalar pH = pR;
 	btScalar dX = vec0.x()/pR;
 	btScalar dZ = vec0.z()/pR;
-	btScalar tpar = atan((pY*R_vert)/(pH*R_hor));
+	btScalar tpar = std::atan((pY*R_vert)/(pH*R_hor));
 	btScalar sY = R_vert * sin(tpar);
 	btScalar sH = R_hor  * cos(tpar);
 	btScalar sR = sH + R_offset;

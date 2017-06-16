@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -52,11 +52,11 @@ class CH_MODELS_API M113a_SprocketSinglePin : public ChSprocketSinglePin {
     virtual double GetSeparation() const override { return m_separation; }
 
     /// Return the radius of the addendum circle.
-    virtual double GetOuterRadius() const { return m_gear_RT; }
+    virtual double GetOuterRadius() const override { return m_gear_RT; }
     /// Return the radius of the (concave) tooth circular arc.
-    virtual double GetArcRadius() const { return m_gear_R; }
+    virtual double GetArcRadius() const override { return m_gear_R; }
     /// Return the radius of the tooth arc centers.
-    virtual double GetArcCentersRadius() const { return m_gear_RC; }
+    virtual double GetArcCentersRadius() const override { return m_gear_RC; }
 
     /// Add visualization of the sprocket.
     virtual void AddVisualizationAssets(VisualizationType vis) override;

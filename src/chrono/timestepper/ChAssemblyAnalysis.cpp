@@ -82,7 +82,7 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         Vold = V;
 
-        // Perform a linearized semi-implcit Euler integration step
+        // Perform a linearized semi-implicit Euler integration step
         //
         // [ M - dt*dF/dv - dt^2*dF/dx    Cq' ] [ v_new  ] = [ M*(v_old) + dt*f]
         // [ Cq                           0   ] [ -dt*l  ] = [ C/dt + Ct ]

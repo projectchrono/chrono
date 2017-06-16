@@ -48,7 +48,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     virtual int GetNdofs() override { return 10 * 3; }
     virtual int GetNodeNdofs(int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -114,7 +114,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD) {
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override {
         mD.Reset(this->GetNdofs(), 1);
 
         for (int i = 0; i < GetNnodes(); i++)
@@ -143,30 +143,30 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     virtual void ComputeJacobian(ChMatrixDynamic<>& Jacobian, double zeta1, double zeta2, double zeta3, double zeta4) {
         Jacobian.FillElem(1);
 
-        Jacobian.SetElement(1, 0, 4 * (nodes[0]->pos.x * (zeta1 - 1 / 4) + nodes[4]->pos.x * zeta2 +
-                                       nodes[6]->pos.x * zeta3 + nodes[7]->pos.x * zeta4));
-        Jacobian.SetElement(2, 0, 4 * (nodes[0]->pos.y * (zeta1 - 1 / 4) + nodes[4]->pos.y * zeta2 +
-                                       nodes[6]->pos.y * zeta3 + nodes[7]->pos.y * zeta4));
-        Jacobian.SetElement(3, 0, 4 * (nodes[0]->pos.z * (zeta1 - 1 / 4) + nodes[4]->pos.z * zeta2 +
-                                       nodes[6]->pos.z * zeta3 + nodes[7]->pos.z * zeta4));
-        Jacobian.SetElement(1, 1, 4 * (nodes[4]->pos.x * zeta1 + nodes[1]->pos.x * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.x * zeta3 + nodes[8]->pos.x * zeta4));
-        Jacobian.SetElement(2, 1, 4 * (nodes[4]->pos.y * zeta1 + nodes[1]->pos.y * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.y * zeta3 + nodes[8]->pos.y * zeta4));
-        Jacobian.SetElement(3, 1, 4 * (nodes[4]->pos.z * zeta1 + nodes[1]->pos.z * (zeta2 - 1 / 4) +
-                                       nodes[5]->pos.z * zeta3 + nodes[8]->pos.z * zeta4));
-        Jacobian.SetElement(1, 2, 4 * (nodes[6]->pos.x * zeta1 + nodes[5]->pos.x * zeta2 +
-                                       nodes[2]->pos.x * (zeta3 - 1 / 4) + nodes[9]->pos.x * zeta4));
-        Jacobian.SetElement(2, 2, 4 * (nodes[6]->pos.y * zeta1 + nodes[5]->pos.y * zeta2 +
-                                       nodes[2]->pos.y * (zeta3 - 1 / 4) + nodes[9]->pos.y * zeta4));
-        Jacobian.SetElement(3, 2, 4 * (nodes[6]->pos.z * zeta1 + nodes[5]->pos.z * zeta2 +
-                                       nodes[2]->pos.z * (zeta3 - 1 / 4) + nodes[9]->pos.z * zeta4));
-        Jacobian.SetElement(1, 3, 4 * (nodes[7]->pos.x * zeta1 + nodes[8]->pos.x * zeta2 + nodes[9]->pos.x * zeta3 +
-                                       nodes[3]->pos.x * (zeta4 - 1 / 4)));
-        Jacobian.SetElement(2, 3, 4 * (nodes[7]->pos.y * zeta1 + nodes[8]->pos.y * zeta2 + nodes[9]->pos.y * zeta3 +
-                                       nodes[3]->pos.y * (zeta4 - 1 / 4)));
-        Jacobian.SetElement(3, 3, 4 * (nodes[7]->pos.z * zeta1 + nodes[8]->pos.z * zeta2 + nodes[9]->pos.z * zeta3 +
-                                       nodes[3]->pos.z * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(1, 0, 4 * (nodes[0]->pos.x() * (zeta1 - 1 / 4) + nodes[4]->pos.x() * zeta2 +
+                                       nodes[6]->pos.x() * zeta3 + nodes[7]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 0, 4 * (nodes[0]->pos.y() * (zeta1 - 1 / 4) + nodes[4]->pos.y() * zeta2 +
+                                       nodes[6]->pos.y() * zeta3 + nodes[7]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 0, 4 * (nodes[0]->pos.z() * (zeta1 - 1 / 4) + nodes[4]->pos.z() * zeta2 +
+                                       nodes[6]->pos.z() * zeta3 + nodes[7]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 1, 4 * (nodes[4]->pos.x() * zeta1 + nodes[1]->pos.x() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.x() * zeta3 + nodes[8]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 1, 4 * (nodes[4]->pos.y() * zeta1 + nodes[1]->pos.y() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.y() * zeta3 + nodes[8]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 1, 4 * (nodes[4]->pos.z() * zeta1 + nodes[1]->pos.z() * (zeta2 - 1 / 4) +
+                                       nodes[5]->pos.z() * zeta3 + nodes[8]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 2, 4 * (nodes[6]->pos.x() * zeta1 + nodes[5]->pos.x() * zeta2 +
+                                       nodes[2]->pos.x() * (zeta3 - 1 / 4) + nodes[9]->pos.x() * zeta4));
+        Jacobian.SetElement(2, 2, 4 * (nodes[6]->pos.y() * zeta1 + nodes[5]->pos.y() * zeta2 +
+                                       nodes[2]->pos.y() * (zeta3 - 1 / 4) + nodes[9]->pos.y() * zeta4));
+        Jacobian.SetElement(3, 2, 4 * (nodes[6]->pos.z() * zeta1 + nodes[5]->pos.z() * zeta2 +
+                                       nodes[2]->pos.z() * (zeta3 - 1 / 4) + nodes[9]->pos.z() * zeta4));
+        Jacobian.SetElement(1, 3, 4 * (nodes[7]->pos.x() * zeta1 + nodes[8]->pos.x() * zeta2 + nodes[9]->pos.x() * zeta3 +
+                                       nodes[3]->pos.x() * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(2, 3, 4 * (nodes[7]->pos.y() * zeta1 + nodes[8]->pos.y() * zeta2 + nodes[9]->pos.y() * zeta3 +
+                                       nodes[3]->pos.y() * (zeta4 - 1 / 4)));
+        Jacobian.SetElement(3, 3, 4 * (nodes[7]->pos.z() * zeta1 + nodes[8]->pos.z() * zeta2 + nodes[9]->pos.z() * zeta3 +
+                                       nodes[3]->pos.z() * (zeta4 - 1 / 4)));
     }
 
     /// Computes the matrix of partial derivatives and puts data in "mmatrB"
@@ -573,7 +573,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     }
 
     // compute large rotation of element for corotational approach
-    virtual void UpdateRotation() {
+    virtual void UpdateRotation() override {
         // P = [ p_0  p_1  p_2  p_3 ]
         //     [ 1    1    1    1   ]
         ChMatrixNM<double, 4, 4> P;
@@ -606,7 +606,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also
     /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
-    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) {
+    virtual void ComputeKRMmatricesGlobal(ChMatrix<>& H, double Kfactor, double Rfactor = 0, double Mfactor = 0) override {
         assert((H.GetRows() == GetNdofs()) && (H.GetColumns() == GetNdofs()));
 
         // warp the local stiffness matrix K in order to obtain global
@@ -638,7 +638,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
     /// in the Fi vector.
-    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) {
+    virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) override {
         assert((Fi.GetRows() == GetNdofs()) && (Fi.GetColumns() == 1));
 
         // set up vector of nodal displacements (in local element system) u_l = R*p - p0
@@ -697,13 +697,13 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 10 * 3; }
+    virtual int LoadableGet_ndof_x() override { return 10 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 10 * 3; }
+    virtual int LoadableGet_ndof_w() override { return 10 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos(), block_offset + 6, 0);
@@ -717,7 +717,7 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->nodes[1]->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->nodes[2]->GetPos_dt(), block_offset + 6, 0);
@@ -730,20 +730,27 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
         mD.PasteVector(this->nodes[9]->GetPos_dt(), block_offset + 27, 0);
     }
 
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i=0; i<10; ++i) {
+            nodes[i]->NodeIntStateIncrement(off_x + i*3  , x_new, x, off_v  + i*3  , Dv);
+        }
+    }
+
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() { return 3; }
+    virtual int Get_field_ncoords() override { return 3; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 10; }
+    virtual int GetSubBlocks() override { return 10; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < nodes.size(); ++i)
             mvars.push_back(&this->nodes[i]->Variables());
     };
@@ -760,9 +767,9 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         // evaluate shape functions (in compressed vector), btw. not dependant on state
-        ChMatrixNM<double, 1, 4> N;
+        ChMatrixNM<double, 1, 10> N;
         this->ShapeFunctions(
             N, U, V, W);  // note: U,V,W in 0..1 range, thanks to IsTetrahedronIntegrationNeeded() {return true;}
 
@@ -801,11 +808,11 @@ class ChApiFea ChElementTetra_10 : public ChElementTetrahedron, public ChLoadabl
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return this->Material->Get_density(); }
+    virtual double GetDensity() override { return this->Material->Get_density(); }
 
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.
-    virtual bool IsTetrahedronIntegrationNeeded() { return true; }
+    virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
 };
 
 /// @} fea_elements

@@ -39,8 +39,8 @@ void ChOpenGLGraphs::Update(ChSystem* physics_system, const ivec2& window_size) 
     //  plot_data.push_back(glm::vec3(window_size.y * .1, window_size.y - window_size.y * .4, 0));
     //  plot_data.push_back(glm::vec3(window_size.y * .6, window_size.y - window_size.y * .4, 0));
     //
-    //  std::vector<double> history = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetViolationHistory();
-    //  std::vector<double> dlambda = ((ChIterativeSolver*)(physics_system->GetSolverSpeed()))->GetDeltalambdaHistory();
+    //  std::vector<double> history = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetViolationHistory();
+    //  std::vector<double> dlambda = std::static_pointer_cast<ChIterativeSolver>(physics_system->GetSolver())->GetDeltalambdaHistory();
     //
     //  real plot_h = (window_size.y * .4 - window_size.y * .1);
     //  if (history.size() > 1) {

@@ -144,13 +144,13 @@ class MyDriverInputs : public ChDriverInputsCallback {
 class MyCylindricalTire : public ChTireContactCallback {
   public:
     virtual void onCallback(std::shared_ptr<ChBody> wheelBody) override {
-        wheelBody->ChangeCollisionModel(new collision::ChCollisionModelParallel);
+        wheelBody->SetCollisionModel(std::make_shared<collision::ChCollisionModelParallel>());
 
         wheelBody->GetCollisionModel()->ClearModel();
         wheelBody->GetCollisionModel()->AddCylinder(0.46, 0.46, 0.127);
         wheelBody->GetCollisionModel()->BuildModel();
 
-        wheelBody->GetMaterialSurface()->SetFriction(mu_t);
+        wheelBody->GetMaterialSurfaceNSC()->SetFriction(mu_t);
 
         auto cyl = std::make_shared<ChCylinderShape>();
         cyl->GetCylinderGeometry().p1 = ChVector<>(0, 0.127, 0);
@@ -164,7 +164,7 @@ class MyCylindricalTire : public ChTireContactCallback {
 
 double CreateParticles(ChSystem* system) {
     // Create a material
-    auto mat_g = std::make_shared<ChMaterialSurface>();
+    auto mat_g = std::make_shared<ChMaterialSurfaceNSC>();
     mat_g->SetFriction(mu_g);
 
     // Create a particle generator and a mixture entirely made out of spheres
@@ -184,12 +184,12 @@ double CreateParticles(ChSystem* system) {
 
     while (gen.getTotalNumBodies() < num_particles) {
         gen.createObjectsBox(utils::POISSON_DISK, 2 * r, center, hdims);
-        center.z += 2 * r;
+        center.z() += 2 * r;
     }
 
     cout << "Created " << gen.getTotalNumBodies() << " particles." << endl;
 
-    return center.z;
+    return center.z();
 }
 
 // =============================================================================
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     // Create system.
     // --------------
 
-    ChSystemParallelDVI* system = new ChSystemParallelDVI();
+    ChSystemParallelNSC* system = new ChSystemParallelNSC();
 
     system->Set_G_acc(ChVector<>(0, 0, -9.81));
 
@@ -224,16 +224,16 @@ int main(int argc, char* argv[]) {
 
     system->GetSettings()->solver.tolerance = tolerance;
 
-    system->GetSettings()->solver.solver_mode = SLIDING;
+    system->GetSettings()->solver.solver_mode = SolverMode::SLIDING;
     system->GetSettings()->solver.max_iteration_bilateral = max_iteration_bilateral;
     system->GetSettings()->solver.max_iteration_normal = max_iteration_normal;
     system->GetSettings()->solver.max_iteration_sliding = max_iteration_sliding;
     system->GetSettings()->solver.max_iteration_spinning = max_iteration_spinning;
     system->GetSettings()->solver.alpha = 0;
     system->GetSettings()->solver.contact_recovery_speed = contact_recovery_speed;
-    system->ChangeSolverType(APGD);
+    system->ChangeSolverType(SolverType::APGD);
 
-    system->GetSettings()->collision.narrowphase_algorithm = NARROWPHASE_HYBRID_MPR;
+    system->GetSettings()->collision.narrowphase_algorithm = NarrowPhaseType::NARROWPHASE_HYBRID_MPR;
     system->GetSettings()->collision.collision_envelope = 0.1 * r_g;
     system->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
@@ -247,7 +247,7 @@ int main(int argc, char* argv[]) {
     ground->SetBodyFixed(true);
     ground->SetCollide(true);
 
-    ground->GetMaterialSurface()->SetFriction(mu_g);
+    ground->GetMaterialSurfaceNSC()->SetFriction(mu_g);
 
     ground->GetCollisionModel()->ClearModel();
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -39,6 +39,12 @@ class CH_VEHICLE_API ChVehicle {
   public:
     /// Destructor.
     virtual ~ChVehicle();
+
+    /// Get the name identifier for this vehicle.
+    const std::string& GetName() const { return m_name; }
+
+    /// Set the name identifier for this vehicle.
+    void SetName(const std::string& name) { m_name = name; }
 
     /// Get a pointer to the Chrono ChSystem.
     ChSystem* GetSystem() { return m_system; }
@@ -97,6 +103,15 @@ class CH_VEHICLE_API ChVehicle {
     /// Set visualization mode for the chassis subsystem.
     void SetChassisVisualizationType(VisualizationType vis);
 
+    /// Enable/disable collision for the chassis subsystem. This function controls
+    /// contact of the chassis with all other collision shapes in the simulation.
+    void SetChassisCollide(bool state);
+
+    /// Enable/disable collision between the chassis and all other vehicle
+    /// subsystems. Note that some of these collisions may be always disabled,
+    /// as set by the particular derived vehicle class.
+    virtual void SetChassisVehicleCollide(bool state) {}
+
     /// Advance the state of this vehicle by the specified time step.
     virtual void Advance(double step);
 
@@ -110,12 +125,18 @@ class CH_VEHICLE_API ChVehicle {
     virtual void LogConstraintViolations() = 0;
 
   protected:
-    /// Construct a vehicle system with a default ChSystem.
-    ChVehicle(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI);
+    /// Construct a vehicle system with an underlying ChSystem.
+    ChVehicle(const std::string& name,                                                  ///< [in] vehicle name
+              ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC  ///< [in] contact method
+              );
 
     /// Construct a vehicle system using the specified ChSystem.
-    ChVehicle(ChSystem* system);
+    /// All physical components of the vehicle will be added to that system.
+    ChVehicle(const std::string& name,  ///< [in] vehicle name
+              ChSystem* system          ///< [in] containing mechanical system
+              );
 
+    std::string m_name;  ///< vehicle name
     ChSystem* m_system;  ///< pointer to the Chrono system
     bool m_ownsSystem;   ///< true if system created at construction
 

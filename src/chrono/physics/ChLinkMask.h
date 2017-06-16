@@ -78,7 +78,7 @@ class ChApi ChLinkMask {
     /// Tells if i-th equation is a unilateral constraint
     bool IsUnilateral(int i);
 
-    // Get the number of removed degrees of freedom (n.of costraints)
+    // Get the number of removed degrees of freedom (n.of constraints)
 
     /// Count both bilaterals and unilaterals
     int GetMaskDoc();
@@ -87,13 +87,13 @@ class ChApi ChLinkMask {
     /// Count only unilaterals
     int GetMaskDoc_d();
 
-    /// Get the i-th active scalar costraint (not active constr. won't be considered)
+    /// Get the i-th active scalar constraint (not active constr. won't be considered)
     ChConstraintTwoBodies* GetActiveConstrByNum(int mnum);
 
     /// Sets some active constraints as redundant.
     int SetActiveRedundantByArray(int* mvector, int mcount);
 
-    /// Set lock =ON for costraints which were disabled because redundant
+    /// Set lock =ON for constraints which were disabled because redundant
     int RestoreRedundant();
 
     /// If SetAllDisabled(true), all the constraints are temporarily turned
@@ -114,6 +114,9 @@ class ChApi ChLinkMask {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
+
+CH_CLASS_VERSION(ChLinkMask,0)
+
 
 // -----------------------------------------------------------------------------
 
@@ -154,6 +157,9 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkMaskLF,0)
+
 
 }  // end namespace chrono
 

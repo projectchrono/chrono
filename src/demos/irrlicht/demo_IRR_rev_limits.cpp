@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cmath>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -35,7 +35,7 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
 
     // Create the ground body
     // ----------------------
@@ -110,9 +110,7 @@ int main(int argc, char* argv[]) {
 
     application.SetTimestep(0.001);
 
-    //// TODO: Fix bug in ChTimestepper related to joint limits!
-    ////       Currently, this only works with the old INT_ANITESCU
-    system.SetIntegrationType(ChSystem::INT_ANITESCU);
+    system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

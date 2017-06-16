@@ -47,8 +47,6 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkSpring* Clone() const override { return new ChLinkSpring(*this); }
 
-    virtual int GetType() const override { return LNK_SPRING; }
-
     // data fetch/store
     double Get_SpringRestLength() const { return spr_restlength; }
     double Get_SpringDeform() const { return (dist - spr_restlength); }
@@ -118,6 +116,8 @@ class ChApi ChLinkSpring : public ChLinkMarkers {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkSpring,0)
 
 }  // end namespace chrono
 

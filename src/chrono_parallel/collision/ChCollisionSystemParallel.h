@@ -18,7 +18,7 @@
 
 #pragma once
 
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono/collision/ChCCollisionSystem.h"
@@ -34,18 +34,18 @@ class ChSystemParallel;  // forward declaration
 
 namespace collision {
 
-///
+/// @addtogroup parallel_collision
+/// @{
+
 /// Class for collision engine based on the spatial subdivision method.
 /// Contains both the broadphase and the narrow phase methods.
-///
-
 class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
   public:
     ChCollisionSystemParallel(ChParallelDataManager* dc);
     virtual ~ChCollisionSystemParallel();
 
     /// Clears all data instanced by this algorithm
-    /// if any (like persistent contact manifolds)
+    /// if any (like persistent contact manifolds).
     virtual void Clear(void) {}
 
     /// Adds a collision model to the collision
@@ -66,23 +66,23 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'contact container', that is an object inherited from class
-    /// ChContactContainerBase. For instance ChSystem, after each Run()
+    /// ChContactContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all contact containers in the system,
     /// The basic behavior of the implementation is the following: collision system
     /// will call in sequence the functions BeginAddContact(), AddContact() (x n times),
     /// EndAddContact() of the contact container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed)
-    virtual void ReportContacts(ChContactContainerBase* mcontactcontainer) {}
+    /// is passed, a more rapid buffer copy might be performed).
+    virtual void ReportContacts(ChContactContainer* mcontactcontainer) {}
 
     /// After the Run() has completed, you can call this function to
     /// fill a 'proximity container' (container of narrow phase pairs), that is
-    /// an object inherited from class ChProximityContainerBase. For instance ChSystem, after each Run()
+    /// an object inherited from class ChProximityContainer. For instance ChSystem, after each Run()
     /// collision detection, calls this method multiple times for all proximity containers in the system,
     /// The basic behavior of the implementation is  the following: collision system
     /// will call in sequence the functions BeginAddProximities(), AddProximity() (x n times),
     /// EndAddProximities() of the proximity container. But if a special container (say, GPU enabled)
-    /// is passed, a more rapid buffer copy might be performed)
-    virtual void ReportProximities(ChProximityContainerBase* mproximitycontainer) {}
+    /// is passed, a more rapid buffer copy might be performed).
+    virtual void ReportProximities(ChProximityContainer* mproximitycontainer) {}
 
     /// Perform a raycast (ray-hit test with the collision models).
     virtual bool RayHit(const ChVector<>& from, const ChVector<>& to, ChRayhitResult& mresult) { return false; }
@@ -108,6 +108,8 @@ class CH_PARALLEL_API ChCollisionSystemParallel : public ChCollisionSystem {
     custom_vector<char> body_active;
     friend class chrono::ChSystemParallel;
 };
+
+/// @} parallel_colision
 
 }  // end namespace collision
 }  // end namespace chrono

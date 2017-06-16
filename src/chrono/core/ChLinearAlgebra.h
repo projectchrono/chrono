@@ -21,12 +21,6 @@
 #define MIN_PIVOT 0.00000001
 #define INFINITE_PIVOT 1.e+34
 
-#define EIG_ROTATE(a, i, j, k, l)                 \
-    g = a->Get33Element(i, j);                    \
-    h = a->Get33Element(k, l);                    \
-    a->Set33Element(i, j, g - s * (h + g * tau)); \
-    a->Set33Element(k, l, h + s * (g - h * tau));
-
 namespace chrono {
 
 // template <class Real = double>
@@ -535,7 +529,7 @@ class ChLinearAlgebra {
     /// Performs SVD decomposition. Matrices U,W,V are automatically resized
     /// if passed with wrong size.
     /// [A] is 'this' matrix. so that [A]=[U][W][V]'
-    /// Also computes condition number (near 1= well cond, if ->infinite, A tend to simgularity)
+    /// Also computes condition number (near 1= well cond, if ->infinite, A tend to singularity)
     static int SVD(ChMatrix<>& mA, ChMatrix<>& U, ChMatrix<>& W, ChMatrix<>& V, double& cond_num) {
         const double MACHEP = 1.4e-17;  // measure of machine precision for SVD
         const double MAXCN = 1.0e+12;
@@ -563,7 +557,7 @@ class ChLinearAlgebra {
         //	U=CopyFromMatrixT(A); ???
         U.CopyFromMatrix(*A);
 
-        // Begin housholder reduction
+        // Begin householder reduction
 
         g = x = scale = 0.0;
 

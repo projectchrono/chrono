@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,7 +20,7 @@
 // the vehicle.  When attached to a chassis, only an offset is provided.
 //
 // All point locations are assumed to be given for the left half of the
-// supspension and will be mirrored (reflecting the y coordinates) to construct
+// suspension and will be mirrored (reflecting the y coordinates) to construct
 // the right side.
 //
 // =============================================================================
@@ -64,8 +64,12 @@ ChSolidAxle::ChSolidAxle(const std::string& name) : ChSuspension(name) {
 void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                              const ChVector<>& location,
                              std::shared_ptr<ChBody> tierod_body,
+                             int steering_index,
                              double left_ang_vel,
                              double right_ang_vel) {
+    m_location = location;
+    m_steering_index = steering_index;
+
     // Unit vectors for orientation matrices.
     ChVector<> u;
     ChVector<> v;
@@ -83,9 +87,9 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Calculate end points on the axle body, expressed in the absolute frame
     // (for visualization)
     ChVector<> midpoint_local = 0.5 * (getLocation(KNUCKLE_U) + getLocation(KNUCKLE_L));
-    ChVector<> outer_local(axleCOM_local.x, midpoint_local.y, axleCOM_local.z);
+    ChVector<> outer_local(axleCOM_local.x(), midpoint_local.y(), axleCOM_local.z());
     m_axleOuterL = suspension_to_abs.TransformPointLocalToParent(outer_local);
-    outer_local.y = -outer_local.y;
+    outer_local.y() = -outer_local.y();
     m_axleOuterR = suspension_to_abs.TransformPointLocalToParent(outer_local);
 
     // Create and initialize the axle body.
@@ -101,7 +105,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // (for visualization)
     ChVector<> tierodOuter_local(getLocation(TIEROD_K));
     m_tierodOuterL = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
-    tierodOuter_local.y = -tierodOuter_local.y;
+    tierodOuter_local.y() = -tierodOuter_local.y();
     m_tierodOuterR = suspension_to_abs.TransformPointLocalToParent(tierodOuter_local);
 
     // Create and initialize the tierod body.
@@ -119,7 +123,7 @@ void ChSolidAxle::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> rel_pos = getLocation(static_cast<PointId>(i));
         m_pointsL[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
-        rel_pos.y = -rel_pos.y;
+        rel_pos.y() = -rel_pos.y();
         m_pointsR[i] = suspension_to_abs.TransformLocalToParent(rel_pos);
     }
 
@@ -265,14 +269,14 @@ void ChSolidAxle::InitializeSide(VehicleSide side,
     m_shock[side] = std::make_shared<ChLinkSpringCB>();
     m_shock[side]->SetNameString(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis, m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
-    m_shock[side]->Set_SpringCallback(getShockForceCallback());
+    m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = std::make_shared<ChLinkSpringCB>();
     m_spring[side]->SetNameString(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis, m_axleTube, false, points[SPRING_C], points[SPRING_A], false,
                                getSpringRestLength());
-    m_spring[side]->Set_SpringCallback(getSpringForceCallback());
+    m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
     chassis->GetSystem()->AddLink(m_spring[side]);
 
     // Create and initialize the tierod distance constraint between chassis and upright.
@@ -368,7 +372,7 @@ void ChSolidAxle::LogHardpointLocations(const ChVector<>& ref, bool inches) {
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector<> pos = ref + unit * getLocation(static_cast<PointId>(i));
 
-        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x << "  " << pos.y << "  " << pos.z << "\n";
+        GetLog() << "   " << m_pointNames[i].c_str() << "  " << pos.x() << "  " << pos.y() << "  " << pos.z() << "\n";
     }
 }
 

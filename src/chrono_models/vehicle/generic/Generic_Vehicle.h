@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -23,7 +23,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurfaceBase.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 
@@ -33,11 +33,17 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Definition of a Generic wheeled vehicle.
+/// This 2-axle vehicle is used as a sandbox for testing the various templates for wheeled vehicle
+/// subsystems (suspensions, steering, tires, etc.)
 class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   public:
     Generic_Vehicle(const bool fixed,
                     SuspensionType suspType,
-                    ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                    ChMaterialSurface::ContactMethod contactMethod = ChMaterialSurface::NSC);
 
     ~Generic_Vehicle() {}
 
@@ -60,6 +66,8 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
   private:
     SuspensionType m_suspType;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

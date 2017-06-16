@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,9 +30,10 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-///
-///
-///
+/// @addtogroup vehicle_models_m113
+/// @{
+
+/// Linear-damper M113 suspension (road-wheel assembly).
 class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
   public:
     M113_Suspension(VehicleSide side, bool has_shock);
@@ -49,17 +50,17 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
-    /// Return the funtion for torsion force
-    virtual ChLinkForce* GetTorsionForceFunction() const override { return m_torsion_force; }
+    /// Return the functor object for the torsional spring torque.
+    virtual ChLinkRotSpringCB::TorqueFunctor* GetSpringTorqueFunctor() const override { return m_spring_torqueCB; }
 
-    /// Return the callback function for shock force.
-    virtual ChSpringForceCallback* GetShockForceCallback() const override { return m_shock_forceCB; }
+    /// Return the functor object for the translational shock force.
+    virtual ChLinkSpringCB::ForceFunctor* GetShockForceFunctor() const override { return m_shock_forceCB; }
 
   private:
     VehicleSide m_side;
 
-    ChLinkForce* m_torsion_force;
-    ChSpringForceCallback* m_shock_forceCB;
+    ChLinkRotSpringCB::TorqueFunctor* m_spring_torqueCB;
+    ChLinkSpringCB::ForceFunctor* m_shock_forceCB;
 
     static const double m_arm_mass;
     static const ChVector<> m_arm_inertia;
@@ -72,6 +73,8 @@ class CH_MODELS_API M113_Suspension : public ChLinearDamperRWAssembly {
 
     static const double m_shock_c;
 };
+
+/// @} vehicle_models_m113
 
 }  // end namespace m113
 }  // end namespace vehicle

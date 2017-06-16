@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,7 +19,7 @@
 // by the base class ChSolidAxle) and origin at the midpoint between the wheel
 // centers.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -34,6 +34,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Solid-axle suspension subsystem for the generic vehicle.
 class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
   public:
     Generic_SolidAxle(const std::string& name);
@@ -70,16 +74,16 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
     virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
 
   private:
     virtual const ChVector<> getLocation(PointId which) override;
 
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_axleTubeMass;
     static const double m_spindleMass;
@@ -117,6 +121,8 @@ class CH_MODELS_API Generic_SolidAxle : public ChSolidAxle {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

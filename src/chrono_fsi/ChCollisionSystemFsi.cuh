@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Base class for processing proximity in fsi system.//
+// Base class for processing proximity in an FSI system.
 // =============================================================================
 
 #ifndef CH_COLLISIONSYSTEM_FSI_H_
@@ -25,62 +25,47 @@
 namespace chrono {
 namespace fsi {
 
+/// @addtogroup fsi_collision
+/// @{
+
+/// Base class for processing proximity computation in an FSI system.
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
-public:
-  // ChCollisionSystemFsi();
-  ChCollisionSystemFsi(SphMarkerDataD *otherSortedSphMarkersD,
-                       ProximityDataD *otherMarkersProximityD,
-                       SimParams *otherParamsH,
-                       NumberOfObjects *otherNumObjects);
-  ~ChCollisionSystemFsi();
-  /**
-                  * @brief Encapsulate calcHash and
-   * reaorderDataAndFindCellStart;
-                  * @details
-  */
-  void ArrangeData(SphMarkerDataD *otherSphMarkersD);
+  public:
+    /// Constructor of the ChCollisionSystemFsi
+    ChCollisionSystemFsi(SphMarkerDataD* otherSortedSphMarkersD,  ///< Information of the markers in the sorted array
+                         ProximityDataD* otherMarkersProximityD,  ///< Proximity information of the system
+                         SimParams* otherParamsH,                 ///< Parameters of the simulation
+                         NumberOfObjects* otherNumObjects         ///< Size of different objects in the system
+                         );
 
-  virtual void Finalize();
+    /// Destructor of the ChCollisionSystemFsi
+    ~ChCollisionSystemFsi();
 
-private:
-  SphMarkerDataD *sphMarkersD;
-  SphMarkerDataD *sortedSphMarkersD;
-  ProximityDataD *markersProximityD;
+    /// Encapsulate calcHash and reaorderDataAndFindCellStart
+    void ArrangeData(SphMarkerDataD* otherSphMarkersD);
 
-  SimParams *paramsH;
-  NumberOfObjects *numObjectsH;
+    virtual void Finalize();
 
-  void ResetCellSize(int s);
-  /**
-* @brief calcHash - calcHashD
-*
-* @details calcHash is the wrapper function for calcHashD. calcHashD is a kernel
-* function, which
-* means that all the code in it is executed in parallel on the GPU.
-* 			calcHashD:
-* 		 				1. Get particle index. Determine by the
-* block and thread we are in.
-* 		     			2. From x,y,z position determine which bin
-* it is in.
-* 		        		3. Calculate hash from bin index.
-* 		          		4. Store hash and particle index associated
-* with it.
-*
-* @param gridMarkerHash Store marker hash here
-* @param gridMarkerIndex Store marker index here
-* @param posRad Vector containing the positions of all particles, including
-* boundary particles
-* @param numAllMarkers Total number of markers (fluid + boundary)
-*/
-  void calcHash();
-  /**
-* @brief Wrapper function for reorderDataAndFindCellStartD
-* @details
-* 		See SDKCollisionSystem.cuh for brief.
-*/
-  void reorderDataAndFindCellStart();
+  private:
+    SphMarkerDataD* sphMarkersD;        ///< Information of the markers in the original array
+    SphMarkerDataD* sortedSphMarkersD;  ///< Information of the markers in the sorted array
+    ProximityDataD* markersProximityD;  ///< Proximity information of the system
+    SimParams* paramsH;                 ///< Parameters of the simulation
+    NumberOfObjects* numObjectsH;       ///< Size of different objects in the system
+
+    void ResetCellSize(int s);
+
+    /// calcHash is the wrapper function for calcHashD. calcHashD is a kernel
+    /// function, which means that all the code in it is executed in parallel on the GPU.
+    void calcHash();
+
+    /// Wrapper function for reorderDataAndFindCellStartD
+    void reorderDataAndFindCellStart();
 };
-} // end namespace fsi
-} // end namespace chrono
 
-#endif /* CH_COLLISIONSYSTEM_FSI_H_ */
+/// @} fsi_collision
+
+}  // end namespace fsi
+}  // end namespace chrono
+
+#endif

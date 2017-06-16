@@ -93,7 +93,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     // The speed ratio must always be in the [0...1] range,
     // anyway let's correct singular cases:
 
-    // - it should be inusual that speed ratio >1, say if the impeller
+    // - it should be unusual that speed ratio >1, say if the impeller
     //   outruns turbine (if there's a clutch lock-in, this should happen).
     //   If so, assume a reflection of T curve and a polar reflection of K curve, after 1.
     if (mR > 1) {
@@ -159,7 +159,7 @@ void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
 
 void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChShaftsTorqueConverter>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -175,7 +175,7 @@ void ChShaftsTorqueConverter::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorqueConverter::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChShaftsTorqueConverter>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIN(marchive);

@@ -17,8 +17,7 @@
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -38,7 +37,7 @@ int main(int argc, char* argv[]) {
     double tire_w0 = tire_vel_z0/tire_rad;
 
     // Create a Chrono::Engine physical system
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -158,7 +157,7 @@ int main(int argc, char* argv[]) {
     //
 /*
         // Change the timestepper to HHT: 
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     integrator->SetAlpha(-0.2);
     integrator->SetMaxiters(8);
@@ -169,7 +168,7 @@ int main(int argc, char* argv[]) {
     integrator->SetVerbose(true);
 */
 /*
-    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 */
     application.SetTimestep(0.002);
 

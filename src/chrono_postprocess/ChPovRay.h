@@ -119,7 +119,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// Set the background color - will write this in the output .pov file.
     virtual void SetBackground(ChColor color) { background = color; }
 
-    /// Set the ambiant light - will write this in the output .pov file.
+    /// Set the ambient light - will write this in the output .pov file.
     virtual void SetAmbientLight(ChColor color) { ambient_light = color; }
 
     /// Turn on/off the display of the COG (center of mass) of rigid bodies.
@@ -135,7 +135,7 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     virtual void SetShowLinks(bool show, double msize = 0.04);
 
     /// Turn on/off the display of contacts, using spheres or arrows (see eChContactSymbol modes).
-    /// The size of the arrow or of the sphere dependson force strength multiplied by 'scale'.
+    /// The size of the arrow or of the sphere depends on force strength multiplied by 'scale'.
     /// Use 'max_size' to limit size of arrows if too long, or spheres if too large (they will be signaled by white
     /// color)
     /// Use 'width' for the radius of the arrow. If in 'SYMBOL_VECTOR_SCALERADIUS' mode, the length of the vector is
@@ -195,9 +195,17 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     /// As ExportScript(), but overrides the automatically computed filename.
     virtual void ExportData(const std::string& filename);
 
+    /// Set if the assets for the entre scenes at all timesteps must be appended into one
+    /// single large file "rendering_frames.pov.assets". If not, assets will be written inside 
+    /// each state0001.dat, state0002.dat, etc files; this would waste more disk space but would be
+    /// a bit faster in POV parsing and would allow assets whose settings change during time (ex time-changing colors)
+    void SetUseSingleAssetFile(bool muse) {
+        this->single_asset_file = muse;
+    }
+
   protected:
     virtual void SetupLists();
-    virtual void ExportAssets();
+    virtual void ExportAssets(ChStreamOutAsciiFile& assets_file);
     void _recurseExportAssets(std::vector<std::shared_ptr<ChAsset> >& assetlist, ChStreamOutAsciiFile& assets_file);
 
     void _recurseExportObjData(std::vector<std::shared_ptr<ChAsset> >& assetlist,
@@ -252,6 +260,8 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
 
     std::string custom_script;
     std::string custom_data;
+
+    bool single_asset_file;
 };
 
 }  // end namespace postprocess

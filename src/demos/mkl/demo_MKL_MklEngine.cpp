@@ -1,7 +1,21 @@
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Dario Mangoni
+// =============================================================================
+
 #include "chrono/core/ChMatrixDynamic.h"
 
 #include "chrono_mkl/ChSolverMKL.h"
-#include "chrono/core/ChCSR3Matrix.h"
+#include "chrono/core/ChCSMatrix.h"
 
 using namespace chrono;
 
@@ -26,7 +40,7 @@ void test_CSR3()
 	std::cout << "//////////// CSR3 Matrix: basic functions testing //////////////" << std::endl;
 	int m = 3;
 	int n = 5;
-	ChCSR3Matrix matCSR3_1(m, n);
+	ChCSMatrix matCSR3_1(m, n, true);
 	int prova = 0;
 	MKL_INT64 mem = mkl_mem_stat(&prova);
 
@@ -107,7 +121,7 @@ void test_MklEngine()
 
 
 	int n = 5;
-	ChCSR3Matrix matCSR3(n, n);
+	ChCSMatrix matCSR3(n, n);
 	ChMatrixDynamic<double> rhs(n, 1);
 	ChMatrixDynamic<double> sol(n, 1);
 

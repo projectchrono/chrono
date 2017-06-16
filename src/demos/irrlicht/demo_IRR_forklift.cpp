@@ -19,7 +19,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkLinActuator.h"
 #include "chrono/assets/ChTexture.h"
@@ -405,6 +405,8 @@ class MyEventReceiver : public IEventReceiver {
                     if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(forklift->link_engineArm->Get_rot_funct()))
                         mfun->Set_yconst(-0.005 + mfun->Get_yconst());
                     return true;
+                default:
+                    break;
             }
         }
 
@@ -422,7 +424,7 @@ class MyEventReceiver : public IEventReceiver {
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -443,8 +445,8 @@ int main(int argc, char* argv[]) {
     my_system.Add(my_ground);
     my_ground->SetBodyFixed(true);
     my_ground->SetPos(ChVector<>(0, -1, 0));
-    my_ground->GetMaterialSurface()->SetSfriction(1.0);
-    my_ground->GetMaterialSurface()->SetKfriction(1.0);
+    my_ground->GetMaterialSurfaceNSC()->SetSfriction(1.0);
+    my_ground->GetMaterialSurfaceNSC()->SetKfriction(1.0);
     auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("concrete.jpg"));
     my_ground->AddAsset(mtexture);
 
@@ -454,7 +456,7 @@ int main(int argc, char* argv[]) {
         auto my_obstacle = std::make_shared<ChBodyEasyBox>(1, 0.5, 1, 200, true, true);
         my_system.Add(my_obstacle);
         my_obstacle->SetPos(ChVector<>(20 * ChRandom(), 2, 20 * ChRandom()));
-        my_obstacle->GetMaterialSurface()->SetFriction(1.0);
+        my_obstacle->GetMaterialSurfaceNSC()->SetFriction(1.0);
         auto mtexture = std::make_shared<ChTexture>(GetChronoDataFile("cubetexture_wood.png"));
         my_obstacle->AddAsset(mtexture);
     }
@@ -488,7 +490,7 @@ int main(int argc, char* argv[]) {
 
     my_system.SetMaxItersSolverSpeed(20);  // the higher, the easier to keep the constraints 'mounted'.
 
-    my_system.SetSolverType(ChSystem::SOLVER_SOR);
+    my_system.SetSolverType(ChSolver::Type::SOR);
 
     //
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION

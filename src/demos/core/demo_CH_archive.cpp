@@ -67,19 +67,13 @@ CH_ENUM_MAPPER_END(myEnum);
 //
 // The statements marked with //***** are needed only if you want to
 // take advantage of Chrono advanced serialization mechanism, that is the
-// abstract class creation (class factory) which can load an
+// polymorphic creation (class factory) which can load an
 // object from stream even if the object class is not known in advance.
 // This more advanced feature requires a 'class factory' registration
-// of your object type by means of the CH_FACTORY_REGISTER macro (in
-// its turn, it requires that your class has also enabled the Chrono 
-// compiler-independent type name, that is the CH_FACTORY_TAG macro.
+// of your object type by means of the CH_FACTORY_REGISTER macro
 //
 
 class myEmployee {
-    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
-    // if you want to deserialize objects whose exact class is not known in advance:
-
-    CH_FACTORY_TAG(myEmployee)  //*****  needed for advanced serialization 
 
   public:
     int age;
@@ -103,7 +97,7 @@ class myEmployee {
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<myEmployee>();
         // stream out all member data
         marchive << CHNVP(age);
         marchive << CHNVP(wages);
@@ -113,7 +107,7 @@ class myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployee>();
         // stream in all member data
         marchive >> CHNVP(age);
         marchive >> CHNVP(wages);
@@ -124,9 +118,8 @@ class myEmployee {
 };
 
 
-// Somewhere in your .cpp code (not in .h headers!) you should put the
-// 'class factory' registration of your class, assuming you marked a class 
-// with the CH_FACTORY_TAG macro, if you want to deserialize
+// Somewhere in your .cpp code (not in .h headers) you should put the
+// 'class factory' registration of your class if you want to deserialize
 // objects whose exact class is not known in advance:
 
 CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
@@ -136,10 +129,6 @@ CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
 // Note the CH_FACTORY_TAG macro. 
 
 class myEmployeeBoss : public myEmployee {
-    // Remember to use CH_FACTORY_TAG here, and CH_FACTORY_REGISTER in .cpp,
-    // if you want to deserialize objects whose exact class is not known in advance:
-
-    CH_FACTORY_TAG(myEmployeeBoss) //*****  needed for advanced serialization
 
   public:
     bool is_dumb;
@@ -159,7 +148,7 @@ class myEmployeeBoss : public myEmployee {
     virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        marchive.VersionWrite(2);
+        marchive.VersionWrite<myEmployeeBoss>();
         // remember to serialize the parent class data too!!!
         myEmployee::ArchiveOUT(marchive);
 
@@ -170,7 +159,7 @@ class myEmployeeBoss : public myEmployee {
     virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<myEmployeeBoss>();
         // remember to deserialize the parent class data too!!!
         myEmployee::ArchiveIN(marchive);
 
@@ -180,11 +169,96 @@ class myEmployeeBoss : public myEmployee {
             marchive >> CHNVP(slave);  // this added only from version >1
         }
     }
+};
+
+CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+
+// Use the following to mark a class version:
+namespace chrono {
+CH_CLASS_VERSION(myEmployeeBoss, 2)
+}
+
+
+// Finally, let's serialize a class that has no default constructor.
+// The archive system canno
+// How to manage the (de)serialization of the initialization parameters?
+// The trick is adding two optional 
+
+class myEmployeeCustomConstructor : public myEmployee {
+
+  public:
+    double latitude;
+    int kids;
+    int legs;
+
+    myEmployeeCustomConstructor(int m_kids, double m_latitude)
+        : myEmployee(80, 4000), 
+        latitude(m_latitude),
+        kids(m_kids),
+        legs (2) {};
+
+    // MEMBER FUNCTIONS FOR BINARY I/O
+
+    virtual void ArchiveOUT(ChArchiveOut& marchive)  //##### for Chrono serialization
+    {
+        // suggested: use versioning
+        marchive.VersionWrite<myEmployeeCustomConstructor>();
+        // remember to serialize the parent class data too!!!
+        myEmployee::ArchiveOUT(marchive);
+        // stream out member data (except data used in constructor, already saved in ArchiveOUTconstructor)
+        marchive << CHNVP(legs);
+    }
+    virtual void ArchiveIN(ChArchiveIn& marchive)  //##### for Chrono serialization
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
+        // remember to deserialize the parent class data too!!!
+        myEmployee::ArchiveIN(marchive);
+        // stream in member data (except data used in constructor, already saved in ArchiveOUTconstructor)
+        marchive >> CHNVP(legs);
+    }
+    
+    // Add a  ArchiveOUTconstructor  function to deserialize the parameters 
+    // of the non-default constructor!!!
+    virtual void ArchiveOUTconstructor(ChArchiveOut& marchive)
+    {
+        // suggested: use versioning
+        marchive.VersionWrite<myEmployeeCustomConstructor>();
+
+        // serialize the parameters of the constructor:
+        marchive << CHNVP(latitude);
+        marchive << CHNVP(kids);
+    }
+
+    // Add a  ArchiveINconstructor  static function to deserialize the parameters 
+    // of the non-default constructor!!!
+    static void* ArchiveINconstructor(ChArchiveIn& marchive)
+    {
+        // suggested: use versioning
+        int version = marchive.VersionRead<myEmployeeCustomConstructor>();
+
+        // 1) Deserialize the parameters of the constructor:
+        // you need some auxiliary variables because this method is static 
+        // (the object will be created right after the >> parsing)
+        // Note, be sure that the names of those auxiliary vars are the same of member 
+        // variables of your class, or use  CHNVP(..., "myname") tags.
+        double latitude;   
+        int    kids;
+        marchive >> CHNVP(latitude);
+        marchive >> CHNVP(kids);
+
+        // 2) Important!!! Finally you MUST return an object of this class, 
+        // constructed with the parameters that you just deserialized:
+        return new myEmployeeCustomConstructor(kids, latitude);
+    }
 
 };
 
+CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  needed for advanced serialization
 
-CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+
+                              
+
 
 
 //
@@ -209,10 +283,15 @@ void my_serialization_example(ChArchiveOut& marchive)
         std::list< ChVector<> > m_stllist; 
         m_stllist.push_back ( ChVector<>(1,2,3) ); 
         m_stllist.push_back ( ChVector<>(3,4,5) );
+        std::pair<int, double> m_stlpair(120, 0.99);
+        std::unordered_map<int, double> m_stlunorderedmap;
+        m_stlunorderedmap[12]=11.2;
+        m_stlunorderedmap[41]=44.8;
+        m_stlunorderedmap[34]=33.6;
         ChMatrixDynamic<double> m_matr(3, 5);
         m_matr.FillRandom(10, 0);
         ChVector<> m_vect(0.5, 0.6, 0.7);
-        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);  
+        ChQuaternion<> m_quat(0.1, 0.2, 0.3, 0.4);
    
         marchive << CHNVP(m_double,"custom double");  // store data n.1      
         marchive << CHNVP(m_int);     // store data n.2 
@@ -221,6 +300,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         marchive << CHNVP(m_string);  
         marchive << CHNVP(m_stlvector);
         marchive << CHNVP(m_stllist);
+        marchive << CHNVP(m_stlpair);
+        marchive << CHNVP(m_stlunorderedmap);
         marchive << CHNVP(m_matr);    
         marchive << CHNVP(m_vect);
         marchive << CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);  
@@ -268,9 +349,28 @@ void my_serialization_example(ChArchiveOut& marchive)
         auto s_boss = std::make_shared<myEmployeeBoss>();
         marchive << CHNVP(s_boss);  //  object was referenced by shared pointer.
 
+        // Serialize a shared pointer pointing to the same shared resource of s_boss. 
+        // Note, base class works fine too, as polymorphic object.
+        std::shared_ptr<myEmployee> s_boss_b(s_boss);
+        marchive << CHNVP(s_boss_b);
+
         // Serialize null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss;
         marchive << CHNVP(null_boss); 
+
+        // Serialize an object with non-default constructor:
+        myEmployeeCustomConstructor* mcustomconstr = new myEmployeeCustomConstructor(3,40);
+        marchive << CHNVP(mcustomconstr); 
+
+        // Serialize an object where some pointers are un-linked as external, marking them with unique IDs
+        std::vector<ChVector<>*> vect_of_pointers;
+        ChVector<>* mvp1 = new ChVector<>(1,2,3);
+        ChVector<>* mvp2 = new ChVector<>(7,8,7);
+        vect_of_pointers.push_back(mvp1);
+        vect_of_pointers.push_back(mvp2);
+        // define that some object should not be serialized, but rather marked with ID for later rebinding
+        marchive.UnbindExternalPointer(mvp1, 1001); // use unique identifier > 0
+        marchive << CHNVP(vect_of_pointers);
 
         delete a_boss;
 }
@@ -290,6 +390,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         std::string m_string;
         std::vector< double > m_stlvector;
         std::list< ChVector<> > m_stllist;
+        std::pair<int, double> m_stlpair;
+        std::unordered_map<int, double> m_stlunorderedmap;
         ChMatrixDynamic<> m_matr;
         ChVector<> m_vect;
         ChQuaternion<> m_quat;
@@ -304,6 +406,8 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(m_string);  
         marchive >> CHNVP(m_stlvector);
         marchive >> CHNVP(m_stllist);
+        marchive >> CHNVP(m_stlpair);
+        marchive >> CHNVP(m_stlunorderedmap);
         marchive >> CHNVP(m_matr);
         marchive >> CHNVP(m_vect);  
         marchive >> CHNVP(m_quat, "m_quaternion", NVP_TRACK_OBJECT);        
@@ -331,32 +435,53 @@ void my_deserialization_example(ChArchiveIn& marchive)
         marchive >> CHNVP(a_boss2); 
 
 
-        // Also store c++ objects referenced by shared pointers.
+        // Deserialize c++ objects referenced by shared pointers.
         // If classes of pointed objects used CH_FACTORY_REGISTER, class abstraction
         // will be automatically used.
         std::shared_ptr<myEmployeeBoss> s_boss(0);
         marchive >> CHNVP(s_boss);
 
+        // Deserialize a shared pointer pointing to the same resource of s_boss.
+        // Since the two pointers s_boss and s_boss_b were serialized when pointing to 
+        // the same object instance, do not create new, but just point to the same of s_boss. 
+        // Also, the shared pointer reference count is increased automatically.
+        std::shared_ptr<myEmployeeBoss> s_boss_b(0);
+        marchive >> CHNVP(s_boss_b);
+
         // Deserialize a null shared pointer
         std::shared_ptr<myEmployeeBoss> null_boss(0);
         marchive >> CHNVP(null_boss);
 
+        // Deserialize an object with non-default constructor:
+        myEmployeeCustomConstructor* mcustomconstr = 0;
+        marchive >> CHNVP(mcustomconstr); 
+
+        // Deserialize an object where some pointers are re-linked from external pre-existing objects,
+        // marking them with unique IDs. Assume a ChVector is already here. 
+        std::vector<ChVector<>*> vect_of_pointers;
+        ChVector<>* mvp1 = new ChVector<>(5,6,7);
+        marchive.RebindExternalPointer(mvp1, 1001); // use unique identifier > 0
+        marchive >> CHNVP(vect_of_pointers);
+
+
 
         // Just for safety, log some of the restored data:
 
-        GetLog() << "\n\nSome results of deserialization I/O: \n\n " << m_text << " \n " << m_int << " \n " << m_double << "\n";
+        GetLog() << "\n\nSome results of deserialization I/O: \n\n" << m_text << " \n" << m_int << " \n" << m_double << "\n";
         GetLog() << m_matr;
         GetLog() << m_vect;
         GetLog() << m_quat;
         GetLog() << m_string.c_str() << "\n";
         GetLog() << m_stlvector;
+        GetLog() << m_stlpair;
+        GetLog() << m_stlunorderedmap;
         GetLog() << m_boss;
         GetLog() << a_vect;
 
         if (a_boss) {
             GetLog() << "\n\n We loaded an obj inherited from myEmployee class:\n";
             GetLog() << a_boss;
-
+        }
         if (a_boss2) {
             GetLog() << "\n\n We loaded a 2nd obj inherited from myEmployee class (referencing the 1st):\n";
             GetLog() << a_boss2;
@@ -364,24 +489,25 @@ void my_deserialization_example(ChArchiveIn& marchive)
         if (s_boss) {
             GetLog() << "\n\n We loaded a 3nd obj inherited from myEmployee class:\n";
             GetLog() << s_boss;
+            GetLog() << "(This object is handled by shared pointers, with ref.count=" << (int)s_boss.use_count() << ")\n";
         }
         if (!null_boss) {
             GetLog() << "\n\n We tried to load a 4th obj with shared pointer, but was null.\n";
         }
-
-            // By the way, now show how the CH_FACTORY_TAG macro has added
-            // a static function  FactoryClassNameTag() and a virtual function
-            // FactoryNameTag() that can be used to retrieve the class name 
-            // of an object in run time, as a string. Differently from the default
-            // C++ approach of typeid(myobject).name(), this is not depending on the
-            // compiler/platform.
-
-            GetLog() << "\n";
-            GetLog() << "loaded object is a myEmployee?     :" << (myEmployee::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
-            GetLog() << "loaded object is a myEmployeeBoss? :" << (myEmployeeBoss::FactoryClassNameTag() == a_boss->FactoryNameTag()) << "\n";
-            GetLog() << "Ok! we loaded an object with compiler-independent class name: " << a_boss->FactoryNameTag() << "\n";
-            delete a_boss;
+        if (mcustomconstr) {
+            GetLog() << "\n\n We loaded a 5th object with non-default constructor with 2 parameters.\n";
+            GetLog() << mcustomconstr;
         }
+        GetLog() << "\n\n We loaded a 6th object where sub-objects were unbind/rebind using IDs:\n";
+        GetLog() << vect_of_pointers;
+        GetLog() << *vect_of_pointers[0];
+        GetLog() << *vect_of_pointers[1];
+
+
+        GetLog() << "\n";
+        GetLog() << "loaded object is a myEmployee?     :" << (dynamic_cast<myEmployee*>(a_boss) !=nullptr) << "\n";
+        GetLog() << "loaded object is a myEmployeeBoss? :" << (dynamic_cast<myEmployeeBoss*>(a_boss) !=nullptr) << "\n";
+        delete a_boss;
 }
 
 
@@ -391,7 +517,7 @@ int main(int argc, char* argv[]) {
     GetLog() << "\n"
              << "CHRONO foundation classes demo: archives (serialization)\n\n";
 
-    
+
     //  Archives inherited from the base class ChArchiveOut can be
     // used to serialize objects, and streams inherited from ChArchiveIn
     // can be used to get them back. For example, file streams like
@@ -405,7 +531,6 @@ int main(int argc, char* argv[]) {
             // Example: SERIALIZE TO ASCII DUMP (useful for debugging etc.):
             //
 
-        
             ChStreamOutAsciiFile mfileo("foo_archive.txt");
 
             // Create a binary archive, that uses the binary file as storage.
@@ -422,20 +547,20 @@ int main(int argc, char* argv[]) {
 
             {
                 ChStreamOutBinaryFile mfileo("foo_archive.dat");
-
+                
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveOutBinary marchiveout(mfileo);
-        
+
                 my_serialization_example(marchiveout);
             }
 
             {
                 ChStreamInBinaryFile mfilei("foo_archive.dat");
-
+                
                 // Create a binary archive, that uses the binary file as storage.
                 ChArchiveInBinary marchivein(mfilei);
 
-                 my_deserialization_example(marchivein);
+                my_deserialization_example(marchivein);
             }
         }
 
@@ -465,7 +590,7 @@ int main(int argc, char* argv[]) {
             }
             
         }
- 
+
 
         GetLog() << "Serialization test ended with success.\n";
 

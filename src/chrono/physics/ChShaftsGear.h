@@ -23,7 +23,7 @@ namespace chrono {
 /// Class for defining a 'transmission ratio' (a 1D gear) between two one-degree-of-freedom
 /// parts; i.e., shafts that can be used to build 1D models of powertrains. This is more
 /// efficient than simulating power trains modeled with full 3D ChBody objects.
-/// Note that this really simple constraint does not provide a way to trasmit a reaction
+/// Note that this really simple constraint does not provide a way to transmit a reaction
 /// force to the truss, if this is needed, just use the ChShaftsPlanetary with a fixed
 /// carrier shaft, or the ChShaftGearbox.
 
@@ -46,7 +46,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() { return 1; }
+    virtual int GetDOC_c() override { return 1; }
 
     //
     // STATE FUNCTIONS
@@ -81,7 +81,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
@@ -91,23 +91,23 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Each shaft must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join
                     std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join
-                    );
+                    ) override;
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
-    /// a couple of spur gears with teeths z1=20 & z2=40; t=0.1 for
-    /// a gear with inner teeths (or epicycloidal reducer), etc.
+    /// a couple of spur gears with teeth z1=20 & z2=40; t=0.1 for
+    /// a gear with inner teeth (or epicycloidal reducer), etc.
     void SetTransmissionRatio(double mt) { ratio = mt; }
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1
     double GetTransmissionRatio() const { return ratio; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return ratio * torque_react; }
+    double GetTorqueReactionOn1() const override { return ratio * torque_react; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return -torque_react; }
+    double GetTorqueReactionOn2() const override { return -torque_react; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
@@ -122,6 +122,9 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChShaftsGear,0)
+
 
 }  // end namespace chrono
 

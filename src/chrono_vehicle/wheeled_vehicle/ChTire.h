@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,13 +30,6 @@
 #include "chrono_vehicle/ChPart.h"
 #include "chrono_vehicle/ChTerrain.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_tire Tire subsystem
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
@@ -51,6 +44,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
   public:
     ChTire(const std::string& name  ///< [in] name of this tire system
            );
+
     virtual ~ChTire() {}
 
     /// Initialize this tire subsystem.
@@ -108,7 +102,7 @@ class CH_VEHICLE_API ChTire : public ChPart {
     /// radius with given position and orientation (specified as the location of
     /// its center and a unit vector normal to the disc plane) and the terrain
     /// system associated with this tire. It returns true if the disc contacts the
-    /// terrain and false otherwise.  If contact occurrs, it returns a coordinate
+    /// terrain and false otherwise.  If contact occurs, it returns a coordinate
     /// system with the Z axis along the contact normal and the X axis along the
     /// "rolling" direction, as well as a positive penetration depth (i.e. the
     /// height below the terrain of the lowest point on the disc).

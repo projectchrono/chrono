@@ -26,6 +26,10 @@
 
 namespace chrono {
 
+/// @addtogroup parallel_math
+/// @{
+
+/// Chrono::Parallel qudruple (4-dimensional array).
 class CH_PARALLEL_API real4 {
   public:
     CUDA_HOST_DEVICE inline real4() {}
@@ -124,8 +128,8 @@ CUDA_HOST_DEVICE CH_PARALLEL_API OPERATOR_EQUALS_PROTO(-, real4, real4);
 CUDA_HOST_DEVICE CH_PARALLEL_API real4 operator-(const real4& a);
 CUDA_HOST_DEVICE CH_PARALLEL_API real4
 Dot4(const real3& v, const real3& v1, const real3& v2, const real3& v3, const real3& v4);
-// Quaternion Class
-// ========================================================================================
+
+/// Chrono::parallel quaternion class.
 class CH_PARALLEL_API quaternion {
   public:
     CUDA_HOST_DEVICE quaternion() {}
@@ -208,4 +212,7 @@ CUDA_HOST_DEVICE CH_PARALLEL_API real3 AbsRotate(const quaternion& q, const real
 CUDA_HOST_DEVICE CH_PARALLEL_API quaternion Q_from_AngAxis(const real& angle, const real3& axis);
 CUDA_HOST_DEVICE CH_PARALLEL_API real3 AMatV(const quaternion& q);
 CUDA_HOST_DEVICE CH_PARALLEL_API void Print(quaternion v, const char* name);
-}
+
+/// @} parallel_math
+
+} // end namespace chrono

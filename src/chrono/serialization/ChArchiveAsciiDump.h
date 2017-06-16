@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHARCHIVEASCIIDUMP_H
 #define CHARCHIVEASCIIDUMP_H
@@ -35,7 +36,7 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual ~ChArchiveAsciiDump() {};
 
-      /// If true, the variables namesare not printed. 
+      /// If true, the variables names are not printed. 
       /// Useful when used for GetLog() << ...  (for more compact formatting).
       void SetSuppressNames(bool msu) {suppress_names = msu;}
 
@@ -123,8 +124,9 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
 
       virtual void out_array_pre (const char* name, size_t msize, const char* classname) {
             indent();
-            if (!suppress_names) 
-                (*ostream) << name << "\t"; 
+            if (!suppress_names) {
+                (*ostream) << name << "  ";
+            }
             (*ostream) << "array of "<< msize << " [" << classname << "]\n";
             ++tablevel;
             indent();
@@ -141,44 +143,39 @@ class  ChArchiveAsciiDump : public ChArchiveOut {
       }
 
         // for custom c++ objects:
-      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t position) {
+      virtual void out     (ChNameValue<ChFunctorArchiveOut> bVal, const char* classname, bool tracked, size_t obj_ID) {
             indent();
             if (!suppress_names) 
                 (*ostream) << bVal.name() << "  "; 
             (*ostream) << "[" << classname << "]";
             if (tracked)
-                (*ostream) << " (tracked)   ID= " << position; 
+                (*ostream) << " (tracked)   ID= " << obj_ID; 
+            if (this->use_versions)
+                (*ostream) << " version=" << bVal.value().GetClassVersion();
             (*ostream) << " \n";
             ++tablevel;
             bVal.value().CallArchiveOut(*this);
             --tablevel;
       }
 
-         // for pointed objects (if pointer hasn't been already serialized, otherwise save ID)
-      virtual void out_ref_polimorphic (ChNameValue<ChFunctorArchiveOut> bVal, bool already_inserted, size_t position, const char* classname) 
+      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t obj_ID, size_t ext_ID, const char* classname) 
       {
           indent();
           if (!suppress_names) 
                 (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]  (class factory support)   ID=" << position <<"\n";
-          ++tablevel;
-          if (!already_inserted) {
-              if (!bVal.value().IsNull()) {
-                    // New Object, we have to full serialize it
-                    bVal.value().CallArchiveOut(*this);
-              } else {
-                  (*ostream) << "NULL\n";
-              }
+          (*ostream) << "->";
+          if(strlen(classname)>0) {
+                (*ostream) << " [" << classname << "] (registered type)";
+          } else {
+                (*ostream) << " [" << bVal.value().GetTypeidName() << "]";
           }
-          --tablevel;
-      }
-
-      virtual void out_ref          (ChNameValue<ChFunctorArchiveOut> bVal,  bool already_inserted, size_t position, const char* classname) 
-      {
-          indent();
-          if (!suppress_names) 
-                (*ostream) << bVal.name(); 
-          (*ostream) << "->   [" << classname << "]   ID=" << position <<"\n";
+          if (obj_ID)
+            (*ostream) << "  ID=" << obj_ID;
+          if (ext_ID)
+            (*ostream) << "  external_ID=" << ext_ID;
+          if (this->use_versions)
+            (*ostream) << " version=" << bVal.value().GetClassVersion();
+          (*ostream) << "\n";
           ++tablevel;
           if (!already_inserted) {
              if (!bVal.value().IsNull()) {
@@ -213,6 +210,8 @@ ChStreamOutAscii & operator<<(ChStreamOutAscii &mstream, const T& obj) {
     ChArchiveAsciiDump marchive(mtempstream);
     // this avoids printing too much except the object:
     marchive.SetCutAllPointers(true);
+    marchive.SetSuppressNames(true);
+    marchive.SetUseVersions(false);
     marchive << CHNVP(obj,"");
     std::string mystring(mtempstream.GetVector()->begin(),mtempstream.GetVector()->end());
     return mstream << mystring;

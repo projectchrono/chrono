@@ -49,8 +49,6 @@ class ChApi ChLinkDistance : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkDistance* Clone() const override { return new ChLinkDistance(*this); }
 
-    virtual int GetType() const override { return LNK_GEOMETRICDISTANCE; }
-
     /// Initialize this constraint, given the two bodies to be connected, the
     /// positions of the two anchor endpoints of the distance (each expressed
     /// in body or abs. coordinates) and the imposed distance.
@@ -152,6 +150,9 @@ class ChApi ChLinkDistance : public ChLink {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkDistance,0)
+
 
 }  // end namespace chrono
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,6 +20,23 @@
 
 namespace chrono {
 namespace vehicle {
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle(name, contact_method) {}
+
+ChWheeledVehicle::ChWheeledVehicle(const std::string& name, ChSystem* system) : ChVehicle(name, system) {}
+
+// -----------------------------------------------------------------------------
+// Initialize this vehicle at the specified global location and orientation.
+// This base class implementation only initializes the chassis subsystem.
+// Derived classes must extend this function to initialize all other wheeled
+// vehicle subsystems (steering, suspensions, wheels, brakes, and driveline).
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel) {
+    m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
+}
 
 // -----------------------------------------------------------------------------
 // Update the state of this vehicle at the current time.
@@ -71,6 +88,20 @@ void ChWheeledVehicle::SetSteeringVisualizationType(VisualizationType vis) {
 void ChWheeledVehicle::SetWheelVisualizationType(VisualizationType vis) {
     for (size_t i = 0; i < m_wheels.size(); ++i) {
         m_wheels[i]->SetVisualizationType(vis);
+    }
+}
+
+// -----------------------------------------------------------------------------
+// Enable/disable collision between the chassis and all other vehicle subsystems
+// This only controls collisions between the chassis and the tire systems.
+// -----------------------------------------------------------------------------
+void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
+    if (state) {
+        // Chassis collides with tires
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRES);
+    } else {
+        // Chassis does not collide with tires
+        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRES);
     }
 }
 
@@ -130,7 +161,7 @@ WheelState ChWheeledVehicle::GetWheelState(const WheelID& wheel_id) const {
     state.ang_vel = GetWheelAngVel(wheel_id);
 
     ChVector<> ang_vel_loc = state.rot.RotateBack(state.ang_vel);
-    state.omega = ang_vel_loc.y;
+    state.omega = ang_vel_loc.y();
 
     return state;
 }

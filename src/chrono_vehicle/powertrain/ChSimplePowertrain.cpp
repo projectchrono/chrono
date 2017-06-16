@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -55,7 +55,7 @@ void ChSimplePowertrain::SetDriveMode(ChPowertrain::DriveMode mode) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChSimplePowertrain::Synchronize(double time, double throttle, double shaft_speed) {
-    // The motorspeed is the shaft speed multiplied by gear ratio inversed:
+    // The motor speed is the shaft speed multiplied by gear ratio inversed:
     m_motorSpeed = shaft_speed / m_current_gear_ratio;
 
     // The torque depends on speed-torque curve of the motor; here we assume a

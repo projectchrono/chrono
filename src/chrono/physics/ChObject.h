@@ -96,6 +96,9 @@ class ChApi ChObj {
     virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
+CH_CLASS_VERSION(ChObj,0)
+
+
 // Functions to manipulate STL containers of ChObj objects
 
 template <class T, class Iterator>

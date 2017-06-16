@@ -21,7 +21,7 @@
 
 #include <cstdio>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -32,7 +32,7 @@ using namespace chrono::irrlicht;
 using namespace irr;
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
     system.Set_G_acc(ChVector<>(0.01, -1, 1));
 
     double L = 0.5; // distance for the revolute-translational joint
@@ -109,8 +109,6 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     application.SetTimestep(0.001);
-
-    ////system.SetIntegrationType(ChSystem::INT_ANITESCU);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();

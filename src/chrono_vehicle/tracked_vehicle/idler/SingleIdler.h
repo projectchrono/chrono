@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -45,12 +45,12 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
 
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
     virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
-    virtual double GetCarrierVisRadius() const { return m_carrier_vis_radius; }
+    virtual double GetCarrierVisRadius() const override { return m_carrier_vis_radius; }
 
     virtual double GetPrismaticPitchAngle() const override { return m_pitch_angle; }
 
-    virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
-    virtual double GetTensionerFreeLength() const { return m_tensioner_l0; }
+    virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
@@ -74,7 +74,7 @@ class CH_VEHICLE_API SingleIdler : public ChSingleIdler {
 
     double m_pitch_angle;
 
-    ChSpringForceCallback* m_tensionerForceCB;
+    ChLinkSpringCB::ForceFunctor* m_tensionerForceCB;
     double m_tensioner_l0;
 
     bool m_has_mesh;

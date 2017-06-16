@@ -70,7 +70,7 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChAparticle::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChAparticle::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -194,7 +194,7 @@ ChPhysicsItem* ChAparticle::GetPhysicsItem() {
 
 void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChAparticle>();
 
     // serialize parent class
     ChParticleBase::ArchiveOUT(marchive);
@@ -209,7 +209,7 @@ void ChAparticle::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChAparticle::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChAparticle>();
 
     // deserialize parent class:
     ChParticleBase::ArchiveIN(marchive);
@@ -247,8 +247,8 @@ ChParticlesClones::ChParticlesClones()
     particles.clear();
     // ResizeNparticles(num_particles); // caused memory corruption.. why?
 
-    // default DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    // default non-smooth contact material
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexedParticles(other) {
@@ -262,7 +262,7 @@ ChParticlesClones::ChParticlesClones(const ChParticlesClones& other) : ChIndexed
 
     particle_collision_model->ClearModel();
 
-    matsurface = std::shared_ptr<ChMaterialSurfaceBase>(other.matsurface->Clone());  // deep copy
+    matsurface = std::shared_ptr<ChMaterialSurface>(other.matsurface->Clone());  // deep copy
 
     ResizeNparticles((int)other.GetNparticles());
 
@@ -570,34 +570,34 @@ void ChParticlesClones::SetInertia(const ChMatrix33<>& newXInertia) {
 }
 
 void ChParticlesClones::SetInertiaXX(const ChVector<>& iner) {
-    particle_mass.GetBodyInertia().SetElement(0, 0, iner.x);
-    particle_mass.GetBodyInertia().SetElement(1, 1, iner.y);
-    particle_mass.GetBodyInertia().SetElement(2, 2, iner.z);
+    particle_mass.GetBodyInertia().SetElement(0, 0, iner.x());
+    particle_mass.GetBodyInertia().SetElement(1, 1, iner.y());
+    particle_mass.GetBodyInertia().SetElement(2, 2, iner.z());
     particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 void ChParticlesClones::SetInertiaXY(const ChVector<>& iner) {
-    particle_mass.GetBodyInertia().SetElement(0, 1, iner.x);
-    particle_mass.GetBodyInertia().SetElement(0, 2, iner.y);
-    particle_mass.GetBodyInertia().SetElement(1, 2, iner.z);
-    particle_mass.GetBodyInertia().SetElement(1, 0, iner.x);
-    particle_mass.GetBodyInertia().SetElement(2, 0, iner.y);
-    particle_mass.GetBodyInertia().SetElement(2, 1, iner.z);
+    particle_mass.GetBodyInertia().SetElement(0, 1, iner.x());
+    particle_mass.GetBodyInertia().SetElement(0, 2, iner.y());
+    particle_mass.GetBodyInertia().SetElement(1, 2, iner.z());
+    particle_mass.GetBodyInertia().SetElement(1, 0, iner.x());
+    particle_mass.GetBodyInertia().SetElement(2, 0, iner.y());
+    particle_mass.GetBodyInertia().SetElement(2, 1, iner.z());
     particle_mass.GetBodyInertia().FastInvert(particle_mass.GetBodyInvInertia());
 }
 
 ChVector<> ChParticlesClones::GetInertiaXX() const {
     ChVector<> iner;
-    iner.x = particle_mass.GetBodyInertia().GetElement(0, 0);
-    iner.y = particle_mass.GetBodyInertia().GetElement(1, 1);
-    iner.z = particle_mass.GetBodyInertia().GetElement(2, 2);
+    iner.x() = particle_mass.GetBodyInertia().GetElement(0, 0);
+    iner.y() = particle_mass.GetBodyInertia().GetElement(1, 1);
+    iner.z() = particle_mass.GetBodyInertia().GetElement(2, 2);
     return iner;
 }
 
 ChVector<> ChParticlesClones::GetInertiaXY() const {
     ChVector<> iner;
-    iner.x = particle_mass.GetBodyInertia().GetElement(0, 1);
-    iner.y = particle_mass.GetBodyInertia().GetElement(0, 2);
-    iner.z = particle_mass.GetBodyInertia().GetElement(1, 2);
+    iner.x() = particle_mass.GetBodyInertia().GetElement(0, 1);
+    iner.y() = particle_mass.GetBodyInertia().GetElement(0, 2);
+    iner.z() = particle_mass.GetBodyInertia().GetElement(1, 2);
     return iner;
 }
 
@@ -669,7 +669,7 @@ void ChParticlesClones::UpdateParticleCollisionModels() {
 
 void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChParticlesClones>();
 
     // serialize parent class
     ChIndexedParticles::ArchiveOUT(marchive);
@@ -692,7 +692,7 @@ void ChParticlesClones::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChParticlesClones::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChParticlesClones>();
 
     // deserialize parent class:
     ChIndexedParticles::ArchiveIN(marchive);

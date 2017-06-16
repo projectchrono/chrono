@@ -132,8 +132,7 @@ class ChApi ChBezierCurve {
     /// coordinates of the "outgoing" control point (i.e. 9 values per line). The
     /// returned curve is a general Bezier curve using the specified knots and
     /// control polygons.
-    static ChBezierCurve* read(const std::string& filename);
-
+    static std::shared_ptr<ChBezierCurve> read(const std::string& filename);
 
     //
     // SERIALIZATION
@@ -142,7 +141,7 @@ class ChApi ChBezierCurve {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChBezierCurve>();
 
         // serialize all member data:
         marchive << CHNVP(m_points);
@@ -158,7 +157,7 @@ class ChApi ChBezierCurve {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChBezierCurve>();
 
         // stream in all member data:
         marchive >> CHNVP(m_points);
@@ -199,7 +198,7 @@ class ChApi ChBezierCurve {
 class ChApi ChBezierCurveTracker {
   public:
     /// Create a tracker associated with the specified Bezier curve.
-      ChBezierCurveTracker(ChBezierCurve* path, bool isClosedPath = false) 
+      ChBezierCurveTracker(std::shared_ptr<ChBezierCurve> path, bool isClosedPath = false)
           : m_path(path), m_curInterval(0), m_curParam(0), m_isClosedPath(isClosedPath) {}
 
     /// Destructor for ChBezierCurveTracker.
@@ -225,11 +224,13 @@ class ChApi ChBezierCurveTracker {
     void setIsClosedPath(bool isClosedPath);
 
   private:
-    ChBezierCurve* m_path;  ///< associated Bezier curve
-    size_t m_curInterval;   ///< current search interval
-    double m_curParam;      ///< parameter for current closest point
-    bool m_isClosedPath;    ///< treat the path as a closed loop curve
+    std::shared_ptr<ChBezierCurve> m_path;  ///< associated Bezier curve
+    size_t m_curInterval;                   ///< current search interval
+    double m_curParam;                      ///< parameter for current closest point
+    bool m_isClosedPath;                    ///< treat the path as a closed loop curve
 };
+
+CH_CLASS_VERSION(ChBezierCurve,0)
 
 }  // end of namespace chrono
 

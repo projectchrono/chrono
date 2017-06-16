@@ -49,13 +49,13 @@ uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
 
     alpha = 0.0001;
     if (data_manager->settings.solver.cache_step_length == true) {
-        if (data_manager->settings.solver.solver_mode == NORMAL) {
+        if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
             alpha = data_manager->measures.solver.normal_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+        } else if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING) {
             alpha = data_manager->measures.solver.sliding_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+        } else if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
             alpha = data_manager->measures.solver.spinning_apgd_step_length;
-        } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
+        } else if (data_manager->settings.solver.solver_mode == SolverMode::BILATERAL) {
             alpha = data_manager->measures.solver.bilateral_apgd_step_length;
         } else {
             alpha = 0.0001;
@@ -72,7 +72,7 @@ uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
 
     f_hist[0] = (0.5 * (g - r, x));
 
-    for (current_iteration = 0; current_iteration < max_iter; current_iteration++) {
+    for (current_iteration = 0; current_iteration < (signed)max_iter; current_iteration++) {
         temp = x - alpha * g;
         Project(temp.data());
         // g_alpha = 1.0 / alpha * (x - temp);
@@ -122,13 +122,13 @@ uint ChSolverParallelSPGQP::Solve(ChShurProduct& ShurProduct,
     }
 
     // printf("TIME: [%f %f %f %f]\n", t1(), t2(), t3(), t4());
-    if (data_manager->settings.solver.solver_mode == NORMAL) {
+    if (data_manager->settings.solver.solver_mode == SolverMode::NORMAL) {
         data_manager->measures.solver.normal_apgd_step_length = alpha;
-    } else if (data_manager->settings.solver.solver_mode == SLIDING) {
+    } else if (data_manager->settings.solver.solver_mode == SolverMode::SLIDING) {
         data_manager->measures.solver.sliding_apgd_step_length = alpha;
-    } else if (data_manager->settings.solver.solver_mode == SPINNING) {
+    } else if (data_manager->settings.solver.solver_mode == SolverMode::SPINNING) {
         data_manager->measures.solver.spinning_apgd_step_length = alpha;
-    } else if (data_manager->settings.solver.solver_mode == BILATERAL) {
+    } else if (data_manager->settings.solver.solver_mode == SolverMode::BILATERAL) {
         data_manager->measures.solver.bilateral_apgd_step_length = alpha;
     }
     gamma = x_candidate;

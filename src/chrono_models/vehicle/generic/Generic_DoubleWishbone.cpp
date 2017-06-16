@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -18,11 +18,12 @@
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
 // by the base class ChDoubleWishbone) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
 #include <vector>
+#include <algorithm>
 
 #include "chrono_models/vehicle/generic/Generic_DoubleWishbone.h"
 #include "chrono/core/ChCubicSpline.h"
@@ -47,9 +48,12 @@ const double Generic_DoubleWishbone::m_UCARadius = 0.02;
 const double Generic_DoubleWishbone::m_LCARadius = 0.03;
 
 const ChVector<> Generic_DoubleWishbone::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishbone::m_uprightInertia(0.0138, 0.0146, 0.00283);
-const ChVector<> Generic_DoubleWishbone::m_UCAInertia(0.00591, 0.00190, 0.00769);
-const ChVector<> Generic_DoubleWishbone::m_LCAInertia(0.0151, 0.0207, 0.0355);
+const ChVector<> Generic_DoubleWishbone::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector<> Generic_DoubleWishbone::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishbone::m_UCAInertiaMoments(0.00591, 0.00190, 0.00769);
+const ChVector<> Generic_DoubleWishbone::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishbone::m_LCAInertiaMoments(0.0151, 0.0207, 0.0355);
+const ChVector<> Generic_DoubleWishbone::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishbone::m_axleInertia = 0.4;
 
@@ -71,9 +75,12 @@ const double Generic_DoubleWishboneFront::m_UCARadius = 0.015;
 const double Generic_DoubleWishboneFront::m_LCARadius = 0.015;
 
 const ChVector<> Generic_DoubleWishboneFront::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishboneFront::m_uprightInertia(0.0138, 0.0146, 0.00283);
-const ChVector<> Generic_DoubleWishboneFront::m_UCAInertia(0.00470, 0.00311, 0.00769);
-const ChVector<> Generic_DoubleWishboneFront::m_LCAInertia(0.0151, 0.0211, 0.0351);
+const ChVector<> Generic_DoubleWishboneFront::m_uprightInertiaMoments(0.0138, 0.0146, 0.00283);
+const ChVector<> Generic_DoubleWishboneFront::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneFront::m_UCAInertiaMoments(0.00470, 0.00311, 0.00769);
+const ChVector<> Generic_DoubleWishboneFront::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneFront::m_LCAInertiaMoments(0.0151, 0.0211, 0.0351);
+const ChVector<> Generic_DoubleWishboneFront::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishboneFront::m_axleInertia = 0.0007;
 
@@ -94,9 +101,12 @@ const double Generic_DoubleWishboneRear::m_UCARadius = 0.015;
 const double Generic_DoubleWishboneRear::m_LCARadius = 0.015;
 
 const ChVector<> Generic_DoubleWishboneRear::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_DoubleWishboneRear::m_uprightInertia(0.0115, 0.0118, 0.00327);
-const ChVector<> Generic_DoubleWishboneRear::m_UCAInertia(0.00470, 0.00311, 0.00769);
-const ChVector<> Generic_DoubleWishboneRear::m_LCAInertia(0.0151, 0.0210, 0.0351);
+const ChVector<> Generic_DoubleWishboneRear::m_uprightInertiaMoments(0.0115, 0.0118, 0.00327);
+const ChVector<> Generic_DoubleWishboneRear::m_uprightInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneRear::m_UCAInertiaMoments(0.00470, 0.00311, 0.00769);
+const ChVector<> Generic_DoubleWishboneRear::m_UCAInertiaProducts(0.0, 0.0, 0.0);
+const ChVector<> Generic_DoubleWishboneRear::m_LCAInertiaMoments(0.0151, 0.0210, 0.0351);
+const ChVector<> Generic_DoubleWishboneRear::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Generic_DoubleWishboneRear::m_axleInertia = 0.0007;
 
@@ -106,24 +116,48 @@ const double Generic_DoubleWishboneRear::m_springRestLength = (511.4685 + (300 -
 // -----------------------------------------------------------------------------
 // Generic shock functor class - implements a nonlinear damper
 // -----------------------------------------------------------------------------
-class Genaric_ShockForce : public ChSpringForceCallback {
+class Generic_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
-    Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc);
+    Generic_ShockForce(std::vector<double> vel, std::vector<double> frc);
 
-    virtual double operator()(double time, double rest_length, double length, double vel);
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override;
 
   private:
     ChCubicSpline m_ShockTable;
+    double m_MaxVel;
+    double m_MinVel;
 };
 
-Genaric_ShockForce::Genaric_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {}
+Generic_ShockForce::Generic_ShockForce(std::vector<double> vel, std::vector<double> frc) : m_ShockTable(vel, frc) {
+    m_MaxVel = *std::max_element(std::begin(vel), std::end(vel));
+    m_MinVel = *std::min_element(std::begin(vel), std::end(vel));
+}
 
-double Genaric_ShockForce::operator()(double time, double rest_length, double length, double vel) {
+double Generic_ShockForce::operator()(double time,
+                                      double rest_length,
+                                      double length,
+                                      double vel,
+                                      ChLinkSpringCB* link) {
     double force = 0;
     double dcurve = 0;
     double ddcurve = 0;
+    double org_vel = vel;
 
-    m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
+    if ((vel >= m_MinVel) && (vel <= m_MaxVel)) {
+        m_ShockTable.Evaluate(vel, force, dcurve, ddcurve);
+    } else if ((vel <= m_MinVel)) {
+        m_ShockTable.Evaluate(m_MinVel, force, dcurve, ddcurve);
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", minVel: " << m_MinVel << ", frc " << force << ", modfrc " << force - dcurve*(m_MinVel - vel) << std::endl;
+        force -= dcurve * (m_MinVel - vel);
+    } else {
+        m_ShockTable.Evaluate(m_MaxVel, force, dcurve, ddcurve);
+        ////std::cout << "Time: " << time << ", vel: " << vel << ", maxVel: " << m_MaxVel << ", frc " << force << ", modfrc " << force + dcurve*(m_MaxVel - vel) << std::endl;
+        force += dcurve * (m_MaxVel - vel);
+    }
 
     return force;
 }
@@ -144,7 +178,7 @@ Generic_DoubleWishboneFront::Generic_DoubleWishboneFront(const std::string& name
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Genaric_ShockForce(vel, frc);
+    m_shockForceCB = new Generic_ShockForce(vel, frc);
 }
 
 Generic_DoubleWishboneRear::Generic_DoubleWishboneRear(const std::string& name) : ChDoubleWishbone(name) {
@@ -155,7 +189,7 @@ Generic_DoubleWishboneRear::Generic_DoubleWishboneRear(const std::string& name) 
     std::vector<double> frc({1495.5, 809.5, 654.8, 587.1, 533.8, 455.5, 370.1, 206.4, 0.0, -462.6, -695.4, -854.0,
                              -966.4, -1085.1, -1171.4, -1423.4, -3218.1});
 
-    m_shockForceCB = new Genaric_ShockForce(vel, frc);
+    m_shockForceCB = new Generic_ShockForce(vel, frc);
 }
 
 // -----------------------------------------------------------------------------

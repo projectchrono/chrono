@@ -25,7 +25,7 @@ using namespace geometry;
 CH_FACTORY_REGISTER(ChLinkMasked)
 
 ChLinkMasked::ChLinkMasked() {
-    force_D = new ChLinkForce;  // defeault no forces in link dof
+    force_D = new ChLinkForce;  // default no forces in link dof
     force_R = new ChLinkForce;
     force_X = new ChLinkForce;
     force_Y = new ChLinkForce;
@@ -293,10 +293,10 @@ void ChLinkMasked::IntLoadConstraint_Ct(const unsigned int off_L,  ///< offset i
     }
 }
 
-void ChLinkMasked::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChLinkMasked::IntToDescriptor(const unsigned int off_v,
                                    const ChStateDelta& v,
                                    const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,  ///< offset in L, Qc
+                                   const unsigned int off_L,
                                    const ChVectorDynamic<>& L,
                                    const ChVectorDynamic<>& Qc) {
     int cnt = 0;
@@ -309,9 +309,9 @@ void ChLinkMasked::IntToDescriptor(const unsigned int off_v,  ///< offset in v, 
     }
 }
 
-void ChLinkMasked::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChLinkMasked::IntFromDescriptor(const unsigned int off_v,
                                      ChStateDelta& v,
-                                     const unsigned int off_L,  ///< offset in L
+                                     const unsigned int off_L,
                                      ChVectorDynamic<>& L) {
     int cnt = 0;
     for (int i = 0; i < mask->nconstr; i++) {
@@ -420,7 +420,7 @@ void ChLinkMasked::Transform_Cq_to_Cqw(ChMatrix<>* mCq, ChMatrix<>* mCqw, ChBody
     if (!mCq)
         return;
 
-    // traslational part - not changed
+    // translational part - not changed
     mCqw->PasteClippedMatrix(*mCq, 0, 0, mCq->GetRows(), 3, 0, 0);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
@@ -497,15 +497,15 @@ void ChLinkMasked::UpdateForces(double mytime) {
     m_force = VNULL;
 
     if (force_X && force_X->Get_active()) {
-        m_force.x = force_X->Get_Force(relM.pos.x, relM_dt.pos.x, ChTime);
+        m_force.x() = force_X->Get_Force(relM.pos.x(), relM_dt.pos.x(), ChTime);
     }
 
     if (force_Y && force_Y->Get_active()) {
-        m_force.y = force_Y->Get_Force(relM.pos.y, relM_dt.pos.y, ChTime);
+        m_force.y() = force_Y->Get_Force(relM.pos.y(), relM_dt.pos.y(), ChTime);
     }
 
     if (force_Z && force_Z->Get_active()) {
-        m_force.z = force_Z->Get_Force(relM.pos.z, relM_dt.pos.z, ChTime);
+        m_force.z() = force_Z->Get_Force(relM.pos.z(), relM_dt.pos.z(), ChTime);
     }
 
     C_force = Vadd(C_force, m_force);
@@ -515,15 +515,15 @@ void ChLinkMasked::UpdateForces(double mytime) {
     m_torque = VNULL;
 
     if (force_Rx && force_Rx->Get_active()) {
-        m_torque.x = force_Rx->Get_Force(relRotaxis.x, relWvel.x, ChTime);
+        m_torque.x() = force_Rx->Get_Force(relRotaxis.x(), relWvel.x(), ChTime);
     }
 
     if (force_Ry && force_Ry->Get_active()) {
-        m_torque.y = force_Ry->Get_Force(relRotaxis.y, relWvel.y, ChTime);
+        m_torque.y() = force_Ry->Get_Force(relRotaxis.y(), relWvel.y(), ChTime);
     }
 
     if (force_Rz && force_Rz->Get_active()) {
-        m_torque.z = force_Rz->Get_Force(relRotaxis.z, relWvel.z, ChTime);
+        m_torque.z() = force_Rz->Get_Force(relRotaxis.z(), relWvel.z(), ChTime);
     }
 
     C_torque = Vadd(C_torque, m_torque);
@@ -562,7 +562,7 @@ void ChLinkMasked::Update(double time, bool update_assets) {
 
 void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMasked>();
 
     // serialize parent class
     ChLinkMarkers::ArchiveOUT(marchive);
@@ -583,7 +583,7 @@ void ChLinkMasked::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMasked::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMasked>();
 
     // deserialize parent class
     ChLinkMarkers::ArchiveIN(marchive);

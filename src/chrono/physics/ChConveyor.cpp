@@ -32,7 +32,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_truss = new ChBody;
     conveyor_plate = new ChBody;
 
-    // conveyor_plate->SetMaterialSurface(GetMaterialSurface());
+    // conveyor_plate->SetMaterialSurface(GetMaterialSurfaceNSC());
 
     conveyor_plate->GetCollisionModel()->ClearModel();
     conveyor_plate->GetCollisionModel()->AddBox(xlength * 0.5, ythick * 0.5, zwidth * 0.5);
@@ -40,7 +40,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_plate->SetCollide(true);
 
     internal_link = new ChLinkLockLock;
-    internal_link->SetMotion_X(new ChFunction_Ramp);
+    internal_link->SetMotion_X(std::make_shared<ChFunction_Ramp>());
 
     std::shared_ptr<ChMarker> mmark1(new ChMarker);
     std::shared_ptr<ChMarker> mmark2(new ChMarker);
@@ -136,10 +136,10 @@ void ChConveyor::IntLoadResidual_Mv(const unsigned int off,      // offset in R 
     conveyor_plate->IntLoadResidual_Mv(off + 6, R, w, c);
 }
 
-void ChConveyor::IntToDescriptor(const unsigned int off_v,  // offset in v, R
+void ChConveyor::IntToDescriptor(const unsigned int off_v,
                                  const ChStateDelta& v,
                                  const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,  // offset in L, Qc
+                                 const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
     conveyor_truss->IntToDescriptor(off_v, v, R, off_L, L, Qc);
@@ -272,9 +272,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_plate->Update(mytime, update_assets);
 
-    ((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
+    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_ang(-conveyor_speed);
     // always zero pos. offset (trick):
-    ((ChFunction_Ramp*)internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
+    std::static_pointer_cast<ChFunction_Ramp>(internal_link->GetMotion_X())->Set_y0(+conveyor_speed * GetChTime());
 
     internal_link->Update(mytime, update_assets);
 }
@@ -305,7 +305,7 @@ void ChConveyor::RemoveCollisionModelsFromSystem() {
 
 void ChConveyor::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChConveyor>();
 
     // serialize parent class
     ChPhysicsItem::ArchiveOUT(marchive);
@@ -320,7 +320,7 @@ void ChConveyor::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChConveyor::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChConveyor>();
 
     // deserialize parent class
     ChPhysicsItem::ArchiveIN(marchive);

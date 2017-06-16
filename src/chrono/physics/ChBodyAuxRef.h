@@ -22,10 +22,10 @@ namespace chrono {
 /// Class for rigid bodies with an auxiliary reference frame.
 /// Unlike ChBody, where the COG frame is used as the reference frame, the
 /// auxiliary reference frame of a ChBodyAuxRef can be different from its
-/// COG frame.  This spcialization is provided for situations where it is more
+/// COG frame.  This specialization is provided for situations where it is more
 /// convenient to specify collision shapes, visualization assets, and marker
 /// positions with respect to a reference frame other than the COG frame.
-/// Note that, because of the auxilary reference, this type of rigid bodies
+/// Note that, because of the auxiliary reference, this type of rigid bodies
 /// can be slightly less efficient than the base ChBody object.
 ///
 /// Additional information can be found in the @ref rigid_bodies manual page.
@@ -39,10 +39,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     ChFrameMoving<> auxref_to_abs;  ///< auxiliary REF location, relative to abs coords (needs Update() )
 
   public:
-    ChBodyAuxRef(ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+    ChBodyAuxRef(ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChBody(contact_method) {}
-    ChBodyAuxRef(collision::ChCollisionModel* new_coll_model,
-                 ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DVI)
+    ChBodyAuxRef(std::shared_ptr<collision::ChCollisionModel> new_coll_model,
+                 ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC)
         : ChBody(new_coll_model, contact_method) {}
     ChBodyAuxRef(const ChBodyAuxRef& other);
     ~ChBodyAuxRef() {}
@@ -88,6 +88,10 @@ class ChApi ChBodyAuxRef : public ChBody {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+
+CH_CLASS_VERSION(ChBodyAuxRef,0)
+
 
 }  // end namespace chrono
 

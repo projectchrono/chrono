@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChProbe)
 
 void ChProbe::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChProbe>();
 
     // serialize parent class
     ChObj::ArchiveOUT(marchive);
@@ -31,7 +31,7 @@ void ChProbe::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChProbe::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChProbe>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

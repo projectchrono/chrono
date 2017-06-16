@@ -4,16 +4,23 @@ Tutorials {#tutorial_root}
 
 -   @subpage tutorial_table_of_content_install 
 
-    How to set up Chrono and build Chrono projects on your machine. **Suggested reading**
+    How to set up Chrono and build Chrono projects on your machine.
 
 -   @subpage tutorial_table_of_content_chrono
 
-    Examples about the core functionalities of the Chrono library. **Suggested reading**
+    Examples about the core functionalities of the Chrono library.
 	
 -   @subpage tutorial_table_of_content_chrono_irrlicht
 
-    Examples with 3D interactive view, using Irrlicht. **Suggested reading**
+    Examples with 3D interactive view, using Irrlicht.
+
 	
+## Chrono training materials
+
+- Chrono four-day tutorial, Univeristy of Wisconsin-Madison, January 9-13, 2017 [link](http://outreach.sbel.wisc.edu/ChronoTutorials/2017/UW-january/)
+
+- Chrono five-day tutorial, US Army TARDEC, November 14-18, 2016 [link](http://outreach.sbel.wisc.edu/ChronoTutorials/2016/TARDEC/)
+
 	
 ## Optional modules
 

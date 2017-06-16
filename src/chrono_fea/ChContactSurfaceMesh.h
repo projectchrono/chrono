@@ -206,10 +206,45 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        
+        // compute the triangular area-parameters s1 s2 s3:
+        double s2, s3;
+        double dist;
+        int is_into;
+        ChVector<> p_projected;
+        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
+                                    this->GetNode1()->pos, 
+                                    this->GetNode2()->pos, 
+                                    this->GetNode3()->pos, 
+                                    s2, s3, is_into, p_projected);
+        double s1 = 1 - s2 - s3;
+
+        ChMatrix33<> Jx1;
+
+        Jx1.CopyFromMatrixT(contact_plane);
+        if (!second)
+            Jx1.MatrNeg();
+        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
@@ -218,7 +253,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -234,10 +269,13 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     virtual int LoadableGet_ndof_w() override { return 3 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -258,7 +296,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -497,10 +535,44 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
                                                type_constraint_tuple& jacobian_tuple_U,
                                                type_constraint_tuple& jacobian_tuple_V,
                                                bool second) override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        // compute the triangular area-parameters s1 s2 s3:
+        double s2, s3;
+        double dist;
+        int is_into;
+        ChVector<> p_projected;
+        dist = collision::ChCollisionUtils::PointTriangleDistance(abs_point, 
+                                    this->GetNode1()->coord.pos, 
+                                    this->GetNode2()->coord.pos, 
+                                    this->GetNode3()->coord.pos, 
+                                    s2, s3, is_into, p_projected);
+        double s1 = 1 - s2 - s3;
+
+        ChMatrix33<> Jx1;
+
+        Jx1.CopyFromMatrixT(contact_plane);
+        if (!second)
+            Jx1.MatrNeg();
+        jacobian_tuple_N.Get_Cq_1()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_1()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_1()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_U.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_V.Get_Cq_1()->MatrScale(s1);
+        jacobian_tuple_N.Get_Cq_2()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_2()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_2()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_U.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_V.Get_Cq_2()->MatrScale(s2);
+        jacobian_tuple_N.Get_Cq_3()->PasteClippedMatrix(Jx1, 0, 0, 1, 3, 0, 0);
+        jacobian_tuple_U.Get_Cq_3()->PasteClippedMatrix(Jx1, 1, 0, 1, 3, 0, 0);
+        jacobian_tuple_V.Get_Cq_3()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
+        jacobian_tuple_N.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_U.Get_Cq_3()->MatrScale(s3);
+        jacobian_tuple_V.Get_Cq_3()->MatrScale(s3);
     }
 
-    /// Might be needed by some DEM models
+    /// Might be needed by some SMC models
     virtual double GetContactableMass() override {
         //***TODO***!!!!!!!!!!!!!!!!!!!!
         return 1;
@@ -509,7 +581,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Return the pointer to the surface material.
-    virtual std::shared_ptr<ChMaterialSurfaceBase>& GetMaterialSurfaceBase() override;
+    virtual std::shared_ptr<ChMaterialSurface>& GetMaterialSurfaceBase() override;
 
     /// This is only for backward compatibility
     virtual ChPhysicsItem* GetPhysicsItem() override;
@@ -525,10 +597,13 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     virtual int LoadableGet_ndof_w() override { return 3 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) override;
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -549,7 +624,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) { return 6; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

@@ -19,6 +19,7 @@ subject to the following restrictions:
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 
 //this define will force traversal of structures, to check backward (and forward) compatibility
 //#define TEST_BACKWARD_FORWARD_COMPATIBILITY
@@ -176,7 +177,7 @@ void bDNA::initCmpFlags(bDNA *memDNA)
 	// this ptr should be the file data
 
 
-	assert(!m_Names.size() == 0 && "SDNA empty!");
+	assert(!(m_Names.size() == 0) && "SDNA empty!");
 	mCMPFlags.resize(mStructs.size(), FDF_NONE);
 
 
@@ -275,7 +276,7 @@ void bDNA::initCmpFlags(bDNA *memDNA)
 
 
 static int name_is_array(char* name, int* dim1, int* dim2) {
-	int len = strlen(name);
+	size_t len = strlen(name);
 	/*fprintf(stderr,"[%s]",name);*/
 	/*if (len >= 1) {
 	if (name[len-1] != ']')
@@ -349,7 +350,7 @@ void bDNA::init(char *data, int len, bool swap)
 {
 	//printf("swap = %d\n",swap); ***ALEX***
 	int *intPtr=0;short *shtPtr=0;
-	char *cp = 0;int dataLen =0;long nr=0;
+	char *cp = 0;int dataLen =0;uint64_t nr=0;
 	intPtr = (int*)data;
 
 	/*
@@ -388,7 +389,7 @@ void bDNA::init(char *data, int len, bool swap)
 
 	
 	{
-		nr= (long)cp;
+		nr= (uint64_t)cp;
 	//long mask=3;
 		nr= ((nr+3)&~3)-nr;
 		while (nr--)
@@ -421,7 +422,7 @@ void bDNA::init(char *data, int len, bool swap)
 	}
 
 {
-		nr= (long)cp;
+		nr= (uint64_t)cp;
 	//	long mask=3;
 		nr= ((nr+3)&~3)-nr;
 		while (nr--)
@@ -515,7 +516,7 @@ void bDNA::init(char *data, int len, bool swap)
 int bDNA::getArraySize(char* string)
 {
 	int ret = 1;
-	int len = strlen(string);
+	size_t len = strlen(string);
 
 	
 	char* next = 0;

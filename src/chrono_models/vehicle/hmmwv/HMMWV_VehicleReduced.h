@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -20,6 +20,8 @@
 #define HMMWV_VEHICLE_REDUCED_H
 
 #include "chrono_models/ChApiModels.h"
+#include "chrono_models/vehicle/ChVehicleModelDefs.h"
+
 #include "chrono_models/vehicle/hmmwv/HMMWV_Vehicle.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_Chassis.h"
 #include "chrono_models/vehicle/hmmwv/HMMWV_BrakeSimple.h"
@@ -34,21 +36,31 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// HMMWV vehicle system using reduced double wishbone suspension (control arms modeled using distance constraints)
 class CH_MODELS_API HMMWV_VehicleReduced : public HMMWV_Vehicle {
   public:
     HMMWV_VehicleReduced(const bool fixed = false,
-                         DrivelineType driveType = DrivelineType::AWD,
-                         ChMaterialSurfaceBase::ContactMethod contactMethod = ChMaterialSurfaceBase::DVI);
+                         DrivelineType drive_type = DrivelineType::AWD,
+                         ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::NSC,
+                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
-    HMMWV_VehicleReduced(ChSystem* system, const bool fixed = false, DrivelineType driveType = DrivelineType::AWD);
+    HMMWV_VehicleReduced(ChSystem* system,
+                         const bool fixed = false,
+                         DrivelineType drive_type = DrivelineType::AWD,
+                         ChassisCollisionType chassis_collision_type = ChassisCollisionType::NONE);
 
     ~HMMWV_VehicleReduced();
 
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;
 
   private:
-    void Create(bool fixed);
+    void Create(bool fixed, ChassisCollisionType chassis_collision_type);
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

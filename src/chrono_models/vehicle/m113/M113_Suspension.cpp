@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -38,13 +38,36 @@ const double M113_Suspension::m_torsion_t = -1e4;
 const double M113_Suspension::m_shock_c = 1e2;
 
 // -----------------------------------------------------------------------------
-// M113 shock functor class - implements a (non)linear damper
+// M113 spring functor class - implements a (non)linear rotational spring
 // -----------------------------------------------------------------------------
-class M113_ShockForce : public ChSpringForceCallback {
+class M113_SpringTorque : public ChLinkRotSpringCB::TorqueFunctor {
+  public:
+    M113_SpringTorque(double k, double c, double t) : m_k(k), m_c(c), m_t(t) {}
+
+    virtual double operator()(double time, double angle, double vel, ChLinkRotSpringCB* link) override {
+        return m_t - m_k * angle - m_c * vel;
+    }
+
+  private:
+    double m_k;
+    double m_c;
+    double m_t;
+};
+
+// -----------------------------------------------------------------------------
+// M113 shock functor class - implements a (non)linear translational damper
+// -----------------------------------------------------------------------------
+class M113_ShockForce : public ChLinkSpringCB::ForceFunctor {
   public:
     M113_ShockForce(double c) : m_c(c) {}
 
-    virtual double operator()(double time, double rest_length, double length, double vel) { return -m_c * vel; }
+    virtual double operator()(double time,
+                              double rest_length,
+                              double length,
+                              double vel,
+                              ChLinkSpringCB* link) override {
+        return -m_c * vel;
+    }
 
   private:
     double m_c;
@@ -60,12 +83,8 @@ M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock)
     // Instantiate the force callback for the shock (damper).
     m_shock_forceCB = new M113_ShockForce(m_shock_c);
 
-    // Create the torsional force component.
-    m_torsion_force = new ChLinkForce;
-    m_torsion_force->Set_active(1);
-    m_torsion_force->Set_K(m_torsion_k);
-    m_torsion_force->Set_R(m_torsion_c);
-    m_torsion_force->Set_iforce(m_torsion_t);
+    // Instantiate the torque callback for the spring.
+    m_spring_torqueCB = new M113_SpringTorque(m_torsion_k, m_torsion_c, m_torsion_t);
 
     // Create the associated road wheel.
     if (side == LEFT)
@@ -76,8 +95,7 @@ M113_Suspension::M113_Suspension(VehicleSide side, bool has_shock)
 
 M113_Suspension::~M113_Suspension() {
     delete m_shock_forceCB;
-    //// NOTE: Do not delete m_torsion_force here (it is deleted in the destructor for the revolute joint)
-    ////delete m_torsion_force;
+    delete m_spring_torqueCB;
 }
 
 // -----------------------------------------------------------------------------
@@ -107,7 +125,7 @@ const ChVector<> M113_Suspension::GetLocation(PointId which) {
     }
 
     if (m_side == RIGHT)
-        point.y *= -1;
+        point.y() *= -1;
 
     return point;
 }

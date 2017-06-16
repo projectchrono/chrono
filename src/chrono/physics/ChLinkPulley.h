@@ -57,8 +57,6 @@ class ChApi ChLinkPulley : public ChLinkLock {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkPulley* Clone() const override { return new ChLinkPulley(*this); }
 
-    virtual int GetType() const override { return LNK_PULLEY; }
-
     /// Updates motion laws, marker positions, etc.
     virtual void UpdateTime(double mytime) override;
 
@@ -149,6 +147,8 @@ class ChApi ChLinkPulley : public ChLinkLock {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkPulley,0)
 
 }  // end namespace chrono
 

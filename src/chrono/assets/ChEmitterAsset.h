@@ -1,14 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2012 Alessandro Tasora
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHEMITTERASSET_H
 #define CHEMITTERASSET_H
@@ -20,7 +20,7 @@
 
 namespace chrono {
 
-/// Class that attachs a ChParticleEmitter to a physics item (most
+/// Class that attaches a ChParticleEmitter to a physics item (most
 /// often that item is a ChBody).
 /// The emitter can move together with the body, then.
 
@@ -66,7 +66,7 @@ class ChApi ChEmitterAsset : public ChAsset {
     virtual void ArchiveOUT(ChArchiveOut& marchive)
     {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChEmitterAsset>();
         // serialize parent class
         ChAsset::ArchiveOUT(marchive);
         // serialize all member data:
@@ -77,13 +77,15 @@ class ChApi ChEmitterAsset : public ChAsset {
     virtual void ArchiveIN(ChArchiveIn& marchive) 
     {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChEmitterAsset>();
         // deserialize parent class
         ChAsset::ArchiveIN(marchive);
         // stream in all member data:
        // marchive >> CHNVP(memitter); //***TODO***
     }
 };
+
+CH_CLASS_VERSION(ChEmitterAsset,0)
 
 }  // end namespace chrono
 

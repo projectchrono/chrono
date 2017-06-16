@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -16,9 +16,9 @@
 //
 // This concrete suspension subsystem is defined with respect to a right-handed
 // frame with X pointing towards the front, Y to the left, and Z up (as imposed
-// by the base class ChDoubleWishbone) and origin in the chassis midplane.
+// by the base class ChMacPhersonStrut) and origin in the chassis midplane.
 //
-// All point locations are provided for the left half of the supspension.
+// All point locations are provided for the left half of the suspension.
 //
 // =============================================================================
 
@@ -33,6 +33,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// MacPherson strut suspension for a generic vehicle.
 class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
   public:
     // Constructor takes as argument the name of the subsystem instance.
@@ -64,12 +68,12 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
     virtual double getSpringRestLength() const override { return m_springRestLength; }
-    virtual ChSpringForceCallback* getSpringForceCallback() const override { return m_springForceCB; }
-    virtual ChSpringForceCallback* getShockForceCallback() const override { return m_shockForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getSpringForceFunctor() const override { return m_springForceCB; }
+    virtual ChLinkSpringCB::ForceFunctor* getShockForceFunctor() const override { return m_shockForceCB; }
 
   private:
-    ChSpringForceCallback* m_springForceCB;
-    ChSpringForceCallback* m_shockForceCB;
+    ChLinkSpringCB::ForceFunctor* m_springForceCB;
+    ChLinkSpringCB::ForceFunctor* m_shockForceCB;
 
     static const double m_spindleMass;
     static const double m_uprightMass;
@@ -93,6 +97,8 @@ class CH_MODELS_API Generic_MacPhersonStrut : public ChMacPhersonStrut {
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

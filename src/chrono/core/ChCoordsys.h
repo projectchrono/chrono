@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHCOORDSYS_H
 #define CHCOORDSYS_H
@@ -20,7 +21,7 @@ namespace chrono {
 ///
 /// COORDSYS:
 ///
-///  This class contains both traslational variable
+///  This class contains both translational variable
 /// (the origin of the axis) and the rotational variable
 /// (that is the unitary quaternion which represent the
 /// special-orthogonal transformation matrix).
@@ -28,7 +29,7 @@ namespace chrono {
 /// are provided. However, for more advanced features, the
 /// heavier classes ChFrame() or ChFrameMoving() may suit better.
 ///  The coordsys object comes either with the template "ChCoordsys<type>" mode,
-/// either in the 'shortcut' flavour, that is "Coordsys", which assumes
+/// either in the 'shortcut' flavor, that is "Coordsys", which assumes
 /// the type of the four scalars is double precision, so it is faster to type.
 ///
 /// Further info at the @ref coordinate_transformations manual page.
@@ -174,9 +175,9 @@ class ChCoordsys {
 
     /// Force to z=0, and z rotation only. No normalization to quaternion, however.
     void Force2D() {
-        pos.z = 0;
-        rot.e1 = 0;
-        rot.e2 = 0;
+        pos.z() = 0;
+        rot.e1() = 0;
+        rot.e2() = 0;
     }
 
     /// Returns true if coordsys is identical to other coordsys
@@ -261,7 +262,7 @@ class ChCoordsys {
     void ArchiveOUT(ChArchiveOut& marchive)
     {
         // suggested: use versioning
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChCoordsys<double>>();
         // stream out all member data
         marchive << CHNVP(pos);
         marchive << CHNVP(rot);
@@ -271,13 +272,16 @@ class ChCoordsys {
     void ArchiveIN(ChArchiveIn& marchive) 
     {
         // suggested: use versioning
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChCoordsys<double>>();
         // stream in all member data
         marchive >> CHNVP(pos);
         marchive >> CHNVP(rot);
     }
 
 };
+
+CH_CLASS_VERSION(ChCoordsys<double>,0)
+
 
 //
 // MIXED ARGUMENT OPERATORS
@@ -398,12 +402,10 @@ typedef ChCoordsys<float> CoordsysF;
 /// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
 ChApi Coordsys Force2Dcsys(const Coordsys& cs);
 
-//
 // CONSTANTS
-//
 
-#define CSYSNULL ChCoordsys<double>(VNULL,QNULL)
-#define CSYSNORM ChCoordsys<double>(VNULL,QUNIT)
+ChApi extern const ChCoordsys<double> CSYSNULL;
+ChApi extern const ChCoordsys<double> CSYSNORM;
 
 }  // end namespace chrono
 

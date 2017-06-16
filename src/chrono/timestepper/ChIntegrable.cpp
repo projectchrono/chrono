@@ -132,7 +132,7 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
 
     if (y.GetRows() == this->GetNcoords_y()) {
         // Incrementing y in y={x, dx/dt}.
-        // PERFORMANCE WARNING! temporary vecotrs allocated on heap. This is only to support
+        // PERFORMANCE WARNING! temporary vectors allocated on heap. This is only to support
         // compatibility with 1st order integrators.
         ChState mx(this->GetNcoords_x(), y.GetIntegrable());
         ChStateDelta mv(this->GetNcoords_v(), y.GetIntegrable());
@@ -159,7 +159,7 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,       // result: comput
                                      ChVectorDynamic<>& L,     // result: computed lagrangian multipliers, if any
                                      const ChState& y,         // current state y
                                      const double T,           // current time T
-                                     const double dt,          // timestep (if needed, ex. in DVI)
+                                     const double dt,          // timestep (if needed, ex. in NSC)
                                      bool force_state_scatter  // if false, y and T are not scattered to the system
                                      ) {
     ChState mx(GetNcoords_x(), y.GetIntegrable());

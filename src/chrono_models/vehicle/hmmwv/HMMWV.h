@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -43,13 +43,24 @@ namespace chrono {
 namespace vehicle {
 namespace hmmwv {
 
+/// @addtogroup vehicle_models_hmmwv
+/// @{
+
+/// Definition of the HMMWV assembly.
+/// This class encapsulates a concrete wheeled vehicle model with parameters corresponding to
+/// a HMMWV, the powertrain model, and the 4 tires. It provides wrappers to access the different
+/// systems and subsystems, functions for specifying the driveline, powertrain, and tire types,
+/// as well as functions for controlling the visualization mode of each component.
+/// Note that this is an abstract class which cannot be instantiated.  Instead, use one of the
+/// concrete classes HMMWV_Full or HMMWV_Reduced.
 class CH_MODELS_API HMMWV {
   public:
     virtual ~HMMWV();
 
-    void SetContactMethod(ChMaterialSurfaceBase::ContactMethod val) { m_contactMethod = val; }
+    void SetContactMethod(ChMaterialSurface::ContactMethod val) { m_contactMethod = val; }
 
     void SetChassisFixed(bool val) { m_fixed = val; }
+    void SetChassisCollisionType(ChassisCollisionType val) { m_chassisCollisionType = val; }
 
     void SetDriveType(DrivelineType val) { m_driveType = val; }
     void SetPowertrainType(PowertrainModelType val) { m_powertrainType = val; }
@@ -92,7 +103,8 @@ class CH_MODELS_API HMMWV {
 
     virtual HMMWV_Vehicle* CreateVehicle() = 0;
 
-    ChMaterialSurfaceBase::ContactMethod m_contactMethod;
+    ChMaterialSurface::ContactMethod m_contactMethod;
+    ChassisCollisionType m_chassisCollisionType;
     bool m_fixed;
 
     DrivelineType m_driveType;
@@ -112,6 +124,9 @@ class CH_MODELS_API HMMWV {
     std::array<ChTire*, 4> m_tires;
 };
 
+/// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using full
+/// double wishbone suspensions (i.e., suspensions that include rigid bodies for the upper
+/// and lower control arms).
 class CH_MODELS_API HMMWV_Full : public HMMWV {
   public:
     HMMWV_Full() {}
@@ -122,11 +137,14 @@ class CH_MODELS_API HMMWV_Full : public HMMWV {
 
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType)
-                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod);
+        return m_system ? new HMMWV_VehicleFull(m_system, m_fixed, m_driveType, m_chassisCollisionType)
+                        : new HMMWV_VehicleFull(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
     }
 };
 
+/// Definition of a HMMWV vehicle assembly (vehicle, powertrain, and tires), using reduced
+/// double wishbone suspensions (i.e., suspensions that replace the upper and lower control
+/// arms with distance constraints).
 class CH_MODELS_API HMMWV_Reduced : public HMMWV {
   public:
     HMMWV_Reduced() {}
@@ -134,10 +152,12 @@ class CH_MODELS_API HMMWV_Reduced : public HMMWV {
 
   private:
     virtual HMMWV_Vehicle* CreateVehicle() override {
-        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType)
-                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod);
+        return m_system ? new HMMWV_VehicleReduced(m_system, m_fixed, m_driveType, m_chassisCollisionType)
+                        : new HMMWV_VehicleReduced(m_fixed, m_driveType, m_contactMethod, m_chassisCollisionType);
     }
 };
+
+/// @} vehicle_models_hmmwv
 
 }  // end namespace hmmwv
 }  // end namespace vehicle

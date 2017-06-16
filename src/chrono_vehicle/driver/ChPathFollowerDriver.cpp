@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -29,7 +29,7 @@ namespace chrono {
 namespace vehicle {
 
 ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
-                                           ChBezierCurve* path,
+                                           std::shared_ptr<ChBezierCurve> path,
                                            const std::string& path_name,
                                            double target_speed,
                                            bool isClosedPath)
@@ -44,7 +44,7 @@ ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
 ChPathFollowerDriver::ChPathFollowerDriver(ChVehicle& vehicle,
                                            const std::string& steering_filename,
                                            const std::string& speed_filename,
-                                           ChBezierCurve* path,
+                                           std::shared_ptr<ChBezierCurve> path,
                                            const std::string& path_name,
                                            double target_speed,
                                            bool isClosedPath)

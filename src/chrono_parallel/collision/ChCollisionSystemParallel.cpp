@@ -15,7 +15,7 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
         short2 fam = S2(pmodel->GetFamilyGroup(), pmodel->GetFamilyMask());
         // The offset for this shape will the current total number of points in
         // the convex data list
-        int convex_data_offset = data_manager->shape_data.convex_rigid.size();
+        int convex_data_offset = (int)data_manager->shape_data.convex_rigid.size();
         // Insert the points into the global convex list
         data_manager->shape_data.convex_rigid.insert(data_manager->shape_data.convex_rigid.end(),
                                                      pmodel->local_convex_data.begin(),
@@ -32,47 +32,47 @@ void ChCollisionSystemParallel::Add(ChCollisionModel* model) {
 
             switch (pmodel->mData[j].type) {
                 case chrono::collision::SPHERE:
-                    start = data_manager->shape_data.sphere_rigid.size();
+                    start = (int)data_manager->shape_data.sphere_rigid.size();
                     data_manager->shape_data.sphere_rigid.push_back(obB.x);
                     break;
                 case chrono::collision::ELLIPSOID:
-                    start = data_manager->shape_data.box_like_rigid.size();
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
                 case chrono::collision::BOX:
-                    start = data_manager->shape_data.box_like_rigid.size();
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
                 case chrono::collision::CYLINDER:
-                    start = data_manager->shape_data.box_like_rigid.size();
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
                 case chrono::collision::CONE:
-                    start = data_manager->shape_data.box_like_rigid.size();
+                    start = (int)data_manager->shape_data.box_like_rigid.size();
                     data_manager->shape_data.box_like_rigid.push_back(obB);
                     break;
                 case chrono::collision::CAPSULE:
-                    start = data_manager->shape_data.capsule_rigid.size();
+                    start = (int)data_manager->shape_data.capsule_rigid.size();
                     data_manager->shape_data.capsule_rigid.push_back(real2(obB.x, obB.y));
                     break;
                 case chrono::collision::ROUNDEDBOX:
-                    start = data_manager->shape_data.rbox_like_rigid.size();
+                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case chrono::collision::ROUNDEDCYL:
-                    start = data_manager->shape_data.rbox_like_rigid.size();
+                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case chrono::collision::ROUNDEDCONE:
-                    start = data_manager->shape_data.rbox_like_rigid.size();
+                    start = (int)data_manager->shape_data.rbox_like_rigid.size();
                     data_manager->shape_data.rbox_like_rigid.push_back(real4(obB, obC.x));
                     break;
                 case chrono::collision::CONVEX:
-                    start = obB.y + convex_data_offset;
-                    length = obB.x;
+                    start = (int)(obB.y + convex_data_offset);
+                    length = (int)obB.x;
                     break;
                 case chrono::collision::TRIANGLEMESH:
-                    start = data_manager->shape_data.triangle_rigid.size();
+                    start = (int)data_manager->shape_data.triangle_rigid.size();
                     data_manager->shape_data.triangle_rigid.push_back(obA);
                     data_manager->shape_data.triangle_rigid.push_back(obB);
                     data_manager->shape_data.triangle_rigid.push_back(obC);

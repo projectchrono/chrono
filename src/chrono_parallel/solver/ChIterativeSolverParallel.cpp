@@ -50,7 +50,7 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
     // Shafts have one DOF
     M_inv.resize(num_dof, num_dof);
 
-    for (int i = 0; i < num_bodies; i++) {
+    for (int i = 0; i < (signed)num_bodies; i++) {
         if (data_manager->host_data.active_rigid[i]) {
             real inv_mass = 1.0 / body_list->at(i)->GetMass();
             ChMatrix33<>& body_inv_inr = body_list->at(i)->VariablesBody().GetBodyInvInertia();
@@ -92,7 +92,7 @@ void ChIterativeSolverParallel::ComputeInvMassMatrix() {
         }
     }
 
-    for (int i = 0; i < num_shafts; i++) {
+    for (int i = 0; i < (signed)num_shafts; i++) {
         M_inv.append(num_bodies * 6 + i, num_bodies * 6 + i, shaft_inr[i]);
         M_inv.finalize(num_bodies * 6 + i);
     }
@@ -131,7 +131,7 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
     // Shafts have one DOF
     M.resize(num_dof, num_dof);
 
-    for (int i = 0; i < num_bodies; i++) {
+    for (int i = 0; i < (signed)num_bodies; i++) {
         if (data_manager->host_data.active_rigid[i]) {
             real mass = body_list->at(i)->GetMass();
             ChMatrix33<>& body_inr = body_list->at(i)->VariablesBody().GetBodyInertia();
@@ -173,7 +173,7 @@ void ChIterativeSolverParallel::ComputeMassMatrix() {
         }
     }
 
-    for (int i = 0; i < num_shafts; i++) {
+    for (int i = 0; i < (signed)num_shafts; i++) {
         M.append(num_bodies * 6 + i, num_bodies * 6 + i, 1.0 / shaft_inr[i]);
         M.finalize(num_bodies * 6 + i);
     }

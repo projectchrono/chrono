@@ -26,7 +26,6 @@
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
 #include "chrono/physics/ChLinkDistance.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -57,10 +56,10 @@ using namespace chrono::vehicle;
 // =============================================================================
 
 // JSON file for vehicle model
-// std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
+std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_simple_lugged.json");
 // std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle_4WD.json");
-std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones_ARB.json");
 // std::string vehicle_file("MAN_5t/vehicle/MAN_5t_Vehicle_4WD.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MultiLinks.json");
@@ -70,6 +69,7 @@ std::string vehicle_file("generic/vehicle/Vehicle_DoubleWishbones.json");
 // std::string vehicle_file("generic/vehicle_multisteer/Vehicle_DualFront_Shared.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_MacPhersonStruts.json");
 // std::string vehicle_file("generic/vehicle/Vehicle_SemiTrailingArm.json");
+// std::string vehicle_file("generic/vehicle/Vehicle_ThreeLinkIRS.json");
 
 // JSON files for terrain (rigid plane), and powertrain (simple)
 std::string rigidterrain_file("terrain/RigidPlane.json");
@@ -125,10 +125,10 @@ int main(int argc, char* argv[]) {
     // --------------------------
 
     // Create the vehicle system
-    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurfaceBase::DEM);
+    WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChMaterialSurface::SMC);
     vehicle.Initialize(ChCoordsys<>(initLoc, initRot));
+    ////vehicle.GetChassis()->SetFixed(true);
     vehicle.SetChassisVisualizationType(VisualizationType::PRIMITIVES);
-    ////vehicle.GetChassisBody()->SetBodyFixed(true);
     vehicle.SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
     vehicle.SetWheelVisualizationType(VisualizationType::NONE);

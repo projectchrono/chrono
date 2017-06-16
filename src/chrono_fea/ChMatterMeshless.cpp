@@ -134,7 +134,7 @@ void ChNodeMeshless::ComputeJacobianForContactPart(const ChVector<>& abs_point,
     jacobian_tuple_V.Get_Cq()->PasteClippedMatrix(Jx1, 2, 0, 1, 3, 0, 0);
 }
 
-std::shared_ptr<ChMaterialSurfaceBase>& ChNodeMeshless::GetMaterialSurfaceBase() {
+std::shared_ptr<ChMaterialSurface>& ChNodeMeshless::GetMaterialSurfaceBase() {
     return container->GetMaterialSurfaceBase();
 }
 
@@ -150,8 +150,8 @@ ChMatterMeshless::ChMatterMeshless() : do_collide(false), viscosity(0) {
     // Default: VonMises material
     material = std::make_shared<ChContinuumPlasticVonMises>();
 
-    // Default: DVI material
-    matsurface = std::make_shared<ChMaterialSurface>();
+    // Default: NSC material
+    matsurface = std::make_shared<ChMaterialSurfaceNSC>();
 }
 
 ChMatterMeshless::ChMatterMeshless(const ChMatterMeshless& other) : ChIndexedNodes(other) {
@@ -220,9 +220,9 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
                                const bool do_centeredcube,
                                const double kernel_sfactor,
                                const double randomness) {
-    int samples_x = (int)(size.x / spacing);
-    int samples_y = (int)(size.y / spacing);
-    int samples_z = (int)(size.z / spacing);
+    int samples_x = (int)(size.x() / spacing);
+    int samples_y = (int)(size.y() / spacing);
+    int samples_z = (int)(size.z() / spacing);
     int totsamples = 0;
 
     double mrandomness = randomness;
@@ -232,7 +232,7 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
     for (int ix = 0; ix < samples_x; ix++)
         for (int iy = 0; iy < samples_y; iy++)
             for (int iz = 0; iz < samples_z; iz++) {
-                ChVector<> pos(ix * spacing - 0.5 * size.x, iy * spacing - 0.5 * size.y, iz * spacing - 0.5 * size.z);
+                ChVector<> pos(ix * spacing - 0.5 * size.x(), iy * spacing - 0.5 * size.y(), iz * spacing - 0.5 * size.z());
                 pos += ChVector<>(mrandomness * ChRandom() * spacing, mrandomness * ChRandom() * spacing,
                                   mrandomness * ChRandom() * spacing);
                 AddNode(boxcoords.TransformLocalToParent(pos));
@@ -247,7 +247,7 @@ void ChMatterMeshless::FillBox(const ChVector<> size,
                 }
             }
 
-    double mtotvol = size.x * size.y * size.z;
+    double mtotvol = size.x() * size.y() * size.z();
     double mtotmass = mtotvol * initial_density;
     double nodemass = mtotmass / (double)totsamples;
     double kernelrad = kernel_sfactor * spacing;
@@ -320,7 +320,7 @@ void ChMatterMeshless::IntLoadResidual_F(
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
         GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }
@@ -481,7 +481,7 @@ void ChMatterMeshless::VariablesFbLoadForces(double factor) {
     std::vector<std::shared_ptr<ChPhysicsItem> >::iterator iterotherphysics =
         GetSystem()->Get_otherphysicslist()->begin();
     while (iterotherphysics != GetSystem()->Get_otherphysicslist()->end()) {
-        if (edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics))
+        if ((edges = std::dynamic_pointer_cast<ChProximityContainerMeshless>(*iterotherphysics)))
             break;
         iterotherphysics++;
     }

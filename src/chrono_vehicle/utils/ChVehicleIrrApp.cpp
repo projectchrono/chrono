@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -67,6 +67,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_RIGHT:
                 m_app->m_camera.Turn(-1);
                 return true;
+            default:
+                break;
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -85,6 +87,8 @@ bool ChCameraEventReceiver::OnEvent(const SEvent& event) {
             case KEY_KEY_V:
                 m_app->m_vehicle->LogConstraintViolations();
                 return true;
+            default:
+                break;
         }
     }
 
@@ -106,7 +110,6 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
       m_HUD_x(700),
       m_HUD_y(20),
       m_renderGrid(false),
-      m_renderLinks(true),
       m_renderStats(true),
       m_gridHeight(0.02),
       m_steering(0),
@@ -126,8 +129,8 @@ ChVehicleIrrApp::ChVehicleIrrApp(ChVehicle* vehicle,
         GetSceneManager()->getRootSceneNode(), core::vector3df(0, 0, 0), core::vector3df(0, 0, 0));
 
     camera->setUpVector(core::vector3df(0, 0, 1));
-    camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
-    camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
+    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
+    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
 
 #ifdef CHRONO_IRRKLANG
     m_sound_engine = 0;
@@ -219,8 +222,8 @@ void ChVehicleIrrApp::Advance(double step) {
 
     scene::ICameraSceneNode* camera = GetSceneManager()->getActiveCamera();
 
-    camera->setPosition(core::vector3df((f32)cam_pos.x, (f32)cam_pos.y, (f32)cam_pos.z));
-    camera->setTarget(core::vector3df((f32)cam_target.x, (f32)cam_target.y, (f32)cam_target.z));
+    camera->setPosition(core::vector3df((f32)cam_pos.x(), (f32)cam_pos.y(), (f32)cam_pos.z()));
+    camera->setTarget(core::vector3df((f32)cam_target.x(), (f32)cam_target.y(), (f32)cam_target.z()));
 
 #ifdef CHRONO_IRRKLANG
     static int stepsbetweensound = 0;
@@ -251,27 +254,11 @@ void ChVehicleIrrApp::DrawAll() {
 
     ChIrrAppInterface::DrawAll();
 
-    if (m_renderLinks)
-        renderLinks();
     if (m_renderStats)
         renderStats();
 
     // Allow derived classes to render additional graphical elements
     renderOtherGraphics();
-}
-
-// Render specialized joints in the vehicle model.
-void ChVehicleIrrApp::renderLinks() {
-    auto ilink = GetSystem()->Get_linklist()->begin();
-    for (; ilink != GetSystem()->Get_linklist()->end(); ++ilink) {
-        if (ChLinkDistance* link = dynamic_cast<ChLinkDistance*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetEndPoint1Abs(), link->GetEndPoint2Abs(),
-                                              video::SColor(255, 0, 20, 0), true);
-        } else if (ChLinkRevoluteSpherical* link = dynamic_cast<ChLinkRevoluteSpherical*>((*ilink).get())) {
-            irrlicht::ChIrrTools::drawSegment(GetVideoDriver(), link->GetPoint1Abs(), link->GetPoint2Abs(),
-                                              video::SColor(255, 180, 0, 0), true);
-        }
-    }
 }
 
 // Render a horizontal grid.

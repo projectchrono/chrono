@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -30,12 +30,11 @@
 #include "chrono/assets/ChColorAsset.h"
 
 #include "chrono_vehicle/ChSubsysDefs.h"
-#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
-#include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
-
-#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
+#include "chrono_vehicle/chassis/ChRigidChassis.h"
+
+#include "chrono_vehicle/tracked_vehicle/utils/ChTrackTestRig.h"
+#include "chrono_vehicle/tracked_vehicle/track_assembly/TrackAssemblySinglePin.h"
 
 #include "chrono_thirdparty/rapidjson/document.h"
 #include "chrono_thirdparty/rapidjson/filereadstream.h"
@@ -46,9 +45,9 @@ namespace chrono {
 namespace vehicle {
 
 // -----------------------------------------------------------------------------
-// Defintion of a chassis for a track test rig
+// Definition of a chassis for a track test rig
 // -----------------------------------------------------------------------------
-class ChTrackTestRigChassis : public ChChassis {
+class ChTrackTestRigChassis : public ChRigidChassis {
   public:
     ChTrackTestRigChassis();
     virtual double GetMass() const override { return m_mass; }
@@ -71,7 +70,7 @@ const ChVector<> ChTrackTestRigChassis::m_inertiaXX(1, 1, 1);
 const ChVector<> ChTrackTestRigChassis::m_COM_loc(0, 0, 0);
 const ChCoordsys<> ChTrackTestRigChassis::m_driverCsys(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
 
-ChTrackTestRigChassis::ChTrackTestRigChassis() : ChChassis("Ground") {
+ChTrackTestRigChassis::ChTrackTestRigChassis() : ChRigidChassis("Ground") {
     m_inertia = ChMatrix33<>(m_inertiaXX);
 }
 
@@ -103,8 +102,8 @@ static ChQuaternion<> loadQuaternion(const Value& a) {
 
 ChTrackTestRig::ChTrackTestRig(const std::string& filename,
                                const ChVector<>& location,
-                               ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method), m_location(location), m_max_torque(0) {
+                               ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle("TrackTestRig", contact_method), m_location(location), m_max_torque(0) {
     // Open and parse the input file (track assembly JSON specification file)
     FILE* fp = fopen(filename.c_str(), "r");
 
@@ -133,8 +132,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
 
 ChTrackTestRig::ChTrackTestRig(std::shared_ptr<ChTrackAssembly> assembly,
                                const ChVector<>& location,
-                               ChMaterialSurfaceBase::ContactMethod contact_method)
-    : ChVehicle(contact_method),
+                               ChMaterialSurface::ContactMethod contact_method)
+    : ChVehicle("TrackTestRig", contact_method),
       m_track(assembly),
       m_location(location),
       m_max_torque(0) {
@@ -146,7 +145,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // ----------------------------
     m_chassis = std::make_shared<ChTrackTestRigChassis>();
     m_chassis->Initialize(m_system, chassisPos, 0);
-    m_chassis->GetBody()->SetBodyFixed(true);
+    m_chassis->SetFixed(true);
 
     // ---------------------------------
     // Initialize the vehicle subsystems
@@ -161,8 +160,8 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // Find the lowest road-wheel.
     double zmin = 100;
     for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i) {
-        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z < zmin)
-            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z;
+        if (m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z() < zmin)
+            zmin = m_track->GetRoadWheel(i)->GetWheelBody()->GetPos().z();
     }
 
     double idler_radius = m_track->GetIdler()->GetWheelRadius();
@@ -175,10 +174,10 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     double post_height = 0.1;
     double post_width = 0.4;
-    double post_length = std::abs(sprocket_pos.x - idler_pos.x) + 3 * idler_radius;
+    double post_length = std::abs(sprocket_pos.x() - idler_pos.x()) + 3 * idler_radius;
 
     m_post_pos = 0.5 * (sprocket_pos + idler_pos);
-    m_post_pos.z = zmin - (rw_radius + shoe_height + post_height / 2.0);
+    m_post_pos.z() = zmin - (rw_radius + shoe_height + post_height / 2.0);
 
     m_post = std::shared_ptr<ChBody>(m_system->NewBody());
     m_post->SetPos(m_post_pos);
@@ -197,7 +196,7 @@ void ChTrackTestRig::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Post actuator
     ChVector<> m1 = m_post_pos;
-    m1.z -= 1.0;  // offset marker 1 location 1 meter below marker 2
+    m1.z() -= 1.0;  // offset marker 1 location 1 meter below marker 2
     m_post_linact = std::make_shared<ChLinkLinActuator>();
     m_post_linact->SetNameString("Post_linActuator");
     m_post_linact->Initialize(m_chassis->GetBody(), m_post, false, ChCoordsys<>(m1, QUNIT), ChCoordsys<>(m_post_pos, QUNIT));
@@ -223,7 +222,7 @@ double ChTrackTestRig::GetActuatorDisp() {
 }
 
 double ChTrackTestRig::GetActuatorForce() {
-    return m_post_linact->Get_react_force().x;
+    return m_post_linact->Get_react_force().x();
 }
 
 double ChTrackTestRig::GetActuatorMarkerDist() {
@@ -253,15 +252,15 @@ void ChTrackTestRig::Synchronize(double time, double disp, double throttle, cons
 // Override collision flags for various subsystems
 // -----------------------------------------------------------------------------
 void ChTrackTestRig::SetCollide(int flags) {
-    m_track->GetIdler()->SetCollide((flags & static_cast<int>(TrackCollide::IDLER_LEFT)) != 0);
+    m_track->GetIdler()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
-    m_track->GetSprocket()->SetCollide((flags & static_cast<int>(TrackCollide::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->SetCollide((flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
-    bool collide_wheels = (flags & static_cast<int>(TrackCollide::WHEELS_LEFT)) != 0;
+    bool collide_wheels = (flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumRoadWheelAssemblies(); ++i)
         m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
 
-    bool collide_shoes = (flags & static_cast<int>(TrackCollide::SHOES_LEFT)) != 0;
+    bool collide_shoes = (flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
         m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
 }
@@ -307,7 +306,7 @@ void ChTrackTestRig::AddVisualize_post(std::shared_ptr<ChBody> post_body,
     piston->GetCylinderGeometry().p2 = ChVector<>(0, 0, -height * 12.0);
     post_body->AddAsset(piston);  // add asset to post body
 
-    // Post sleve (on chassis/ground body)
+    // Post sleeve (on chassis/ground body)
     auto cyl = std::make_shared<ChCylinderShape>();
     cyl->GetCylinderGeometry().rad = width / 4.0;
     cyl->GetCylinderGeometry().p1 = post_body->GetPos() - ChVector<>(0, 0, 8 * height);

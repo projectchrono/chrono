@@ -32,31 +32,35 @@ ChMarker::ChMarker()
       last_rel_coord(CSYSNORM),
       last_rel_coord_dt(CSYSNULL),
       last_time(0) {
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0); 
+    motion_Z = std::make_shared<ChFunction_Const>(0); 
+    motion_ang = std::make_shared<ChFunction_Const>(0); 
 
     UpdateState();
 }
 
-ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys myrel_pos_dt, Coordsys myrel_pos_dtdt) {
-    SetName(myname);
-    Body = myBody;
+ChMarker::ChMarker(const std::string& name,
+                   ChBody* body,
+                   const ChCoordsys<>& rel_pos,
+                   const ChCoordsys<>& rel_pos_dt,
+                   const ChCoordsys<>& rel_pos_dtdt) {
+    SetNameString(name);
+    Body = body;
 
-    motion_X = new ChFunction_Const(0);  // default: no motion
-    motion_Y = new ChFunction_Const(0);
-    motion_Z = new ChFunction_Const(0);
-    motion_ang = new ChFunction_Const(0);
+    motion_X = std::make_shared<ChFunction_Const>(0);  // default: no motion
+    motion_Y = std::make_shared<ChFunction_Const>(0); 
+    motion_Z = std::make_shared<ChFunction_Const>(0); 
+    motion_ang = std::make_shared<ChFunction_Const>(0); 
     motion_axis = VECT_Z;
 
     rest_coord = CSYSNORM;
 
     motion_type = M_MOTION_FUNCTIONS;
 
-    SetCoord(myrel_pos);
-    SetCoord_dt(myrel_pos_dt);
-    SetCoord_dtdt(myrel_pos_dtdt);
+    SetCoord(rel_pos);
+    SetCoord_dt(rel_pos_dt);
+    SetCoord_dtdt(rel_pos_dtdt);
 
     last_rel_coord = CSYSNORM;
     last_rel_coord_dt = CSYSNULL;
@@ -68,20 +72,10 @@ ChMarker::ChMarker(char myname[], ChBody* myBody, Coordsys myrel_pos, Coordsys m
 ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(other) {
     Body = NULL;
 
-    // Replace the default functions.
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
-
-    motion_X = other.motion_X->Clone();
-    motion_Y = other.motion_Y->Clone();
-    motion_Z = other.motion_Z->Clone();
-    motion_ang = other.motion_ang->Clone();
+    motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
+    motion_Y = std::shared_ptr<ChFunction>(other.motion_Y->Clone());
+    motion_Z = std::shared_ptr<ChFunction>(other.motion_Z->Clone());
+    motion_ang = std::shared_ptr<ChFunction>(other.motion_ang->Clone());
 
     motion_axis = other.motion_axis;
 
@@ -97,39 +91,24 @@ ChMarker::ChMarker(const ChMarker& other) : ChObj(other), ChFrameMoving<double>(
 }
 
 ChMarker::~ChMarker() {
-    if (motion_X)
-        delete motion_X;
-    if (motion_Y)
-        delete motion_Y;
-    if (motion_Z)
-        delete motion_Z;
-    if (motion_ang)
-        delete motion_ang;
+
 }
 
 // Setup the functions when user changes them.
 
-void ChMarker::SetMotion_X(ChFunction* m_funct) {
-    if (motion_X)
-        delete motion_X;
+void ChMarker::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
     motion_X = m_funct;
 }
 
-void ChMarker::SetMotion_Y(ChFunction* m_funct) {
-    if (motion_Y)
-        delete motion_Y;
+void ChMarker::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
     motion_Y = m_funct;
 }
 
-void ChMarker::SetMotion_Z(ChFunction* m_funct) {
-    if (motion_Z)
-        delete motion_Z;
+void ChMarker::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
     motion_Z = m_funct;
 }
 
-void ChMarker::SetMotion_ang(ChFunction* m_funct) {
-    if (motion_ang)
-        delete motion_ang;
+void ChMarker::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
     motion_ang = m_funct;
 }
 
@@ -144,9 +123,9 @@ void ChMarker::Impose_Rel_Coord(const Coordsys& m_coord) {
     // set the actual coordinates
     SetCoord(m_coord);
     // set the resting position coordinates
-    rest_coord.pos.x = m_coord.pos.x - motion_X->Get_y(ChTime);
-    rest_coord.pos.y = m_coord.pos.y - motion_Y->Get_y(ChTime);
-    rest_coord.pos.z = m_coord.pos.z - motion_Z->Get_y(ChTime);
+    rest_coord.pos.x() = m_coord.pos.x() - motion_X->Get_y(ChTime);
+    rest_coord.pos.y() = m_coord.pos.y() - motion_Y->Get_y(ChTime);
+    rest_coord.pos.z() = m_coord.pos.z() - motion_Z->Get_y(ChTime);
     qtemp = Q_from_AngAxis(-(motion_ang->Get_y(ChTime)), motion_axis);
     rest_coord.rot = Qcross(m_coord.rot, qtemp);  // ***%%% check
                                                   // set also the absolute positions, and other.
@@ -194,34 +173,34 @@ void ChMarker::UpdateTime(double mytime) {
 
     ChTime = mytime;
 
-    // if a imposed motion (keyframed movement) affects the marker postion (example,from R3D animation system),
+    // if a imposed motion (keyframed movement) affects the marker position (example,from R3D animation system),
     // compute the speed and acceleration values by BDF (example,see the UpdatedExternalTime() function, later)
     // so the updating via motion laws can be skipped!
     if (motion_type == M_MOTION_KEYFRAMED)
         return;
 
-    // skip realtive-position-functions evaluation also if
+    // skip relative-position-functions evaluation also if
     // someone is already handling this from outside..
     if (motion_type == M_MOTION_EXTERNAL)
         return;
 
     // positions:
     // update positions:    rel_pos
-    csys.pos.x = motion_X->Get_y(mytime);
-    csys.pos.y = motion_Y->Get_y(mytime);
-    csys.pos.z = motion_Z->Get_y(mytime);
+    csys.pos.x() = motion_X->Get_y(mytime);
+    csys.pos.y() = motion_Y->Get_y(mytime);
+    csys.pos.z() = motion_Z->Get_y(mytime);
     if (motion_X->Get_Type() != ChFunction::FUNCT_MOCAP)
         csys.pos += rest_coord.pos;
 
     // update speeds:		rel_pos_dt
-    csys_dt.pos.x = motion_X->Get_y_dx(mytime);
-    csys_dt.pos.y = motion_Y->Get_y_dx(mytime);
-    csys_dt.pos.z = motion_Z->Get_y_dx(mytime);
+    csys_dt.pos.x() = motion_X->Get_y_dx(mytime);
+    csys_dt.pos.y() = motion_Y->Get_y_dx(mytime);
+    csys_dt.pos.z() = motion_Z->Get_y_dx(mytime);
 
     // update accelerations
-    csys_dtdt.pos.x = motion_X->Get_y_dxdx(mytime);
-    csys_dtdt.pos.y = motion_Y->Get_y_dxdx(mytime);
-    csys_dtdt.pos.z = motion_Z->Get_y_dxdx(mytime);
+    csys_dtdt.pos.x() = motion_X->Get_y_dxdx(mytime);
+    csys_dtdt.pos.y() = motion_Y->Get_y_dxdx(mytime);
+    csys_dtdt.pos.z() = motion_Z->Get_y_dxdx(mytime);
 
     // rotations:
 
@@ -324,7 +303,7 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
 
 void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChMarker>();
 
     // serialize parent class
     ChObj::ArchiveOUT(marchive);
@@ -344,7 +323,7 @@ void ChMarker::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChMarker::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChMarker>();
 
     // deserialize parent class
     ChObj::ArchiveIN(marchive);

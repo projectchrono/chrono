@@ -123,6 +123,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_ESCAPE:
                 app->GetDevice()->closeDevice();
                 return true;
+            default:
+                break;
         }
     }
 
@@ -183,6 +185,8 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     (*(app->selectedspring))->Set_SpringR(3 * (*(app->selectedmover))->GetMass());
                 }
                 break;
+            default:
+                break;
         }
     }
 
@@ -225,31 +229,31 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::SOR);
                             break;
                         case 1:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SYMMSOR);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::SYMMSOR);
                             break;
                         case 2:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_JACOBI);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::JACOBI);
                             break;
                         case 3:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR_MULTITHREAD);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::SOR_MULTITHREAD);
                             break;
                         case 4:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_BARZILAIBORWEIN);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
                             break;
                         case 5:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PCG);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::PCG);
                             break;
                         case 6:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_PMINRES);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::PMINRES);
                             break;
                         case 7:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_APGD);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::APGD);
                             break;
                         case 8:
-                            app->GetSystem()->SetSolverType(ChSystem::SOLVER_MINRES);
+                            app->GetSystem()->SetSolverType(ChSolver::Type::MINRES);
                             break;
                         case 9:
                             GetLog()
@@ -263,45 +267,39 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     int sel = ((irr::gui::IGUIComboBox*)event.GUIEvent.Caller)->getSelected();
                     switch (sel) {
                         case 0:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_ANITESCU);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
                             break;
                         case 1:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TASORA);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
                             break;
                         case 2:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
                             break;
                         case 3:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::TRAPEZOIDAL);
                             break;
                         case 4:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED);
                             break;
                         case 5:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
                             break;
                         case 6:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_TRAPEZOIDAL_LINEARIZED);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::HEUN);
                             break;
                         case 7:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HHT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::RUNGEKUTTA45);
                             break;
                         case 8:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_HEUN);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::EULER_EXPLICIT);
                             break;
                         case 9:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_RUNGEKUTTA45);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::LEAPFROG);
                             break;
                         case 10:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_EULER_EXPLICIT);
+                            app->GetSystem()->SetTimestepperType(ChTimestepper::Type::NEWMARK);
                             break;
                         case 11:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_LEAPFROG);
-                            break;
-                        case 12:
-                            app->GetSystem()->SetIntegrationType(ChSystem::INT_NEWMARK);
-                            break;
-                        case 13:
                             GetLog() << "WARNING.\nYou cannot change to a custom timestepper using the GUI. Use C++ "
                                         "instead.\n";
                             break;
@@ -342,6 +340,9 @@ bool ChIrrAppEventReceiver::OnEvent(const irr::SEvent& event) {
                     app->SetSymbolscale(scale);
                     break;
                 }
+
+            default:
+                break;
         }
     }
 
@@ -520,8 +521,6 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     gad_ccpsolver->setSelected(5);
 
     gad_stepper = GetIGUIEnvironment()->addComboBox(irr::core::rect<irr::s32>(10, 160, 200, 160 + 20), gad_tab2, 9908);
-    gad_stepper->addItem(L"Anitescu stepper");
-    gad_stepper->addItem(L"Tasora stepper");
     gad_stepper->addItem(L"Euler implicit");
     gad_stepper->addItem(L"Euler semimplicit (linearized)");
     gad_stepper->addItem(L"Euler semimplicit projected");
@@ -787,31 +786,31 @@ void ChIrrAppInterface::DrawAll() {
         gad_minbounce_info->setText(irr::core::stringw(message).c_str());
 
         switch (GetSystem()->GetSolverType()) {
-            case ChSystem::SOLVER_SOR:
+            case ChSolver::Type::SOR:
                 gad_ccpsolver->setSelected(0);
                 break;
-            case ChSystem::SOLVER_SYMMSOR:
+            case ChSolver::Type::SYMMSOR:
                 gad_ccpsolver->setSelected(1);
                 break;
-            case ChSystem::SOLVER_JACOBI:
+            case ChSolver::Type::JACOBI:
                 gad_ccpsolver->setSelected(2);
                 break;
-            case ChSystem::SOLVER_SOR_MULTITHREAD:
+            case ChSolver::Type::SOR_MULTITHREAD:
                 gad_ccpsolver->setSelected(3);
                 break;
-            case ChSystem::SOLVER_BARZILAIBORWEIN:
+            case ChSolver::Type::BARZILAIBORWEIN:
                 gad_ccpsolver->setSelected(4);
                 break;
-            case ChSystem::SOLVER_PCG:
+            case ChSolver::Type::PCG:
                 gad_ccpsolver->setSelected(5);
                 break;
-            case ChSystem::SOLVER_PMINRES:
+            case ChSolver::Type::PMINRES:
                 gad_ccpsolver->setSelected(6);
                 break;
-            case ChSystem::SOLVER_APGD:
+            case ChSolver::Type::APGD:
                 gad_ccpsolver->setSelected(7);
                 break;
-            case ChSystem::SOLVER_MINRES:
+            case ChSolver::Type::MINRES:
                 gad_ccpsolver->setSelected(8);
                 break;
             default:
@@ -819,48 +818,42 @@ void ChIrrAppInterface::DrawAll() {
                 break;
         }
 
-        switch (GetSystem()->GetIntegrationType()) {
-            case ChSystem::INT_ANITESCU:
+        switch (GetSystem()->GetTimestepperType()) {
+            case ChTimestepper::Type::EULER_IMPLICIT:
                 gad_stepper->setSelected(0);
                 break;
-            case ChSystem::INT_TASORA:
+            case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
                 gad_stepper->setSelected(1);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT:
+            case ChTimestepper::Type::EULER_IMPLICIT_PROJECTED:
                 gad_stepper->setSelected(2);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT_LINEARIZED:
+            case ChTimestepper::Type::TRAPEZOIDAL:
                 gad_stepper->setSelected(3);
                 break;
-            case ChSystem::INT_EULER_IMPLICIT_PROJECTED:
+            case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
                 gad_stepper->setSelected(4);
                 break;
-            case ChSystem::INT_TRAPEZOIDAL:
+            case ChTimestepper::Type::HHT:
                 gad_stepper->setSelected(5);
                 break;
-            case ChSystem::INT_TRAPEZOIDAL_LINEARIZED:
+            case ChTimestepper::Type::HEUN:
                 gad_stepper->setSelected(6);
                 break;
-            case ChSystem::INT_HHT:
+            case ChTimestepper::Type::RUNGEKUTTA45:
                 gad_stepper->setSelected(7);
                 break;
-            case ChSystem::INT_HEUN:
+            case ChTimestepper::Type::EULER_EXPLICIT:
                 gad_stepper->setSelected(8);
                 break;
-            case ChSystem::INT_RUNGEKUTTA45:
+            case ChTimestepper::Type::LEAPFROG:
                 gad_stepper->setSelected(9);
                 break;
-            case ChSystem::INT_EULER_EXPLICIT:
+            case ChTimestepper::Type::NEWMARK:
                 gad_stepper->setSelected(10);
                 break;
-            case ChSystem::INT_LEAPFROG:
-                gad_stepper->setSelected(11);
-                break;
-            case ChSystem::INT_NEWMARK:
-                gad_stepper->setSelected(12);
-                break;
             default:
-                gad_stepper->setSelected(13);
+                gad_stepper->setSelected(11);
                 break;
         }
 

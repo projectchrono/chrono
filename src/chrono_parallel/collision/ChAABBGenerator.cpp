@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <climits>
 
 #include "chrono_parallel/collision/ChCollision.h"
 #include "chrono_parallel/collision/ChDataStructures.h"
@@ -112,7 +113,7 @@ void ChCAABBGenerator::GenerateAABB() {
         aabb_max.resize(num_rigid_shapes);
 
 #pragma omp parallel for
-        for (int index = 0; index < num_rigid_shapes; index++) {
+        for (int index = 0; index < (signed)num_rigid_shapes; index++) {
             // Shape data
             shape_type type = typ_rigid[index];
             real3 local_pos = obj_data_A[index];
@@ -121,6 +122,8 @@ void ChCAABBGenerator::GenerateAABB() {
             int start = start_rigid[index];
 
             // Body data
+            if (id == UINT_MAX)
+                continue;
 
             real3 position = pos_rigid[id];
             quaternion rotation = Mult(body_rot[id], local_rot);
@@ -174,7 +177,7 @@ void ChCAABBGenerator::GenerateAABB() {
         }
     }
     // Deal with tetrahedral elements
-    const uint num_tets = data_manager->host_data.boundary_element_fea.size();
+    const uint num_tets = (uint)data_manager->host_data.boundary_element_fea.size();
     if (num_tets > 0) {
         custom_vector<real3>& aabb_min_tet = data_manager->host_data.aabb_min_tet;
         custom_vector<real3>& aabb_max_tet = data_manager->host_data.aabb_max_tet;
@@ -187,7 +190,7 @@ void ChCAABBGenerator::GenerateAABB() {
         aabb_min_tet.resize(num_tets);
         aabb_max_tet.resize(num_tets);
 #pragma omp parallel for
-        for (int index = 0; index < num_tets; index++) {
+        for (int index = 0; index < (signed)num_tets; index++) {
             uvec4 tet_ind = tet_indices[boundary_element_fea[index]];
 
             real3 x0 = pos_node[tet_ind.x];

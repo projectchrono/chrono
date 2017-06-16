@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// Used by ChVariablesBodySharedMass objects to reference a single mass propery.
+/// Used by ChVariablesBodySharedMass objects to reference a single mass property.
 
 class ChApi ChSharedMassBody {
   public:
@@ -59,7 +59,7 @@ class ChApi ChSharedMassBody {
 
     void ArchiveOUT(ChArchiveOut& marchive) {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChSharedMassBody>();
 
         // serialize all member data:
         marchive << CHNVP(mass);
@@ -68,7 +68,7 @@ class ChApi ChSharedMassBody {
 
     void ArchiveIN(ChArchiveIn& marchive) {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChSharedMassBody>();
 
         // stream in all member data:
         marchive >> CHNVP(mass);
@@ -152,12 +152,12 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// Build the mass matrix (for these variables) scaled by c_a, storing
     /// it in 'storage' sparse matrix, at given column/row offset.
     /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    /// Optimised: doesn't fill unneeded elements except mass and 3x3 inertia.
+    /// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
     virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChVariablesBodySharedMass>();
         // serialize parent class
         ChVariablesBody::ArchiveOUT(marchive);
         // serialize all member data:
@@ -167,7 +167,7 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChVariablesBodySharedMass>();
         // deserialize parent class
         ChVariablesBody::ArchiveIN(marchive);
         // stream in all member data:

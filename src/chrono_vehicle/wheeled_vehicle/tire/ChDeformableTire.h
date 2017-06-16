@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChBody.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChLinkMate.h"
 
 #include "chrono_fea/ChContactSurfaceMesh.h"
@@ -50,6 +50,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     ChDeformableTire(const std::string& name  ///< [in] name of this tire system
                      );
 
+    virtual ~ChDeformableTire() {}
+
     /// Set the type of contact surface.
     void SetContactSurfaceType(ContactSurfaceType type) { m_contact_type = type; }
     ContactSurfaceType GetContactSurfaceType() const { return m_contact_type; }
@@ -68,13 +70,13 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// The default value is 0.6
     void SetContactFrictionCoefficient(float friction_coefficient) { m_friction = friction_coefficient; }
 
-    /// Set coefficient of restiturion.
+    /// Set coefficient of restitution.
     /// The default value is 0.1
     void SetContactRestitutionCoefficient(float restitution_coefficient) { m_restitution = restitution_coefficient; }
 
     /// Set contact material properties.
     /// These values are used to calculate contact material coefficients (if the containing 
-    /// system is so configured and if the DEM-P contact method is being used).
+    /// system is so configured and if the SMC contact method is being used).
     /// The default values are: Y = 2e5 and nu = 0.3
     void SetContactMaterialProperties(float young_modulus,  ///< [in] Young's modulus of elasticity
                                       float poisson_ratio   ///< [in] Poisson ratio
@@ -82,7 +84,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Set contact material coefficients.
     /// These values are used directly to compute contact forces (if the containing system
-    /// is so configured and if the DEM-P contact method is being used).
+    /// is so configured and if the SMC contact method is being used).
     /// The default values are: kn=2e5, gn=40, kt=2e5, gt=20
     void SetContactMaterialCoefficients(float kn,  ///< [in] normal contact stiffness
                                         float gn,  ///< [in] normal contact damping
@@ -109,7 +111,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     /// Get the tire contact material.
     /// Note that this is not set until after tire initialization.
-    std::shared_ptr<ChMaterialSurfaceDEM> GetContactMaterial() const { return m_contact_mat; }
+    std::shared_ptr<ChMaterialSurfaceSMC> GetContactMaterial() const { return m_contact_mat; }
 
     /// Enable/disable tire pressure (default: true).
     void EnablePressure(bool val) { m_pressure_enabled = val; }
@@ -225,7 +227,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     float m_kt;             ///< tangential contact stiffness
     float m_gt;             ///< tangential contact damping
 
-    std::shared_ptr<ChMaterialSurfaceDEM> m_contact_mat;           ///< tire contact material
+    std::shared_ptr<ChMaterialSurfaceSMC> m_contact_mat;           ///< tire contact material
     std::shared_ptr<fea::ChVisualizationFEAmesh> m_visualization;  ///< tire mesh visualization
 };
 

@@ -20,7 +20,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 
 #include "chrono_irrlicht/ChBodySceneNode.h"
 #include "chrono_irrlicht/ChBodySceneNodeTools.h"
@@ -90,6 +90,8 @@ class MyEventReceiver : public IEventReceiver {
                     if (STATIC_rot_speed < -MAX_ROT_SPEED)
                         STATIC_rot_speed = -MAX_ROT_SPEED;
                     return true;
+                default:
+                    break;
             }
         }
 
@@ -103,7 +105,7 @@ class MyEventReceiver : public IEventReceiver {
 // This small function creates a Mecanum wheel, made with many ChBodySceneNode rigid bodies (a central
 // wheel and the many radial rollers, already lined to the wheel with revolute joints.)
 // The function returns the pointer to the central wheel.
-ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
+ChBodySceneNode* create_mecanum_wheel(ChSystemNSC& mphysicalSystem,
                                       ISceneManager* msceneManager,
                                       IVideoDriver* driver,
                                       ChVector<> shaft_position,
@@ -143,7 +145,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
         mRoller->addShadowVolumeSceneNode();
         mRoller->GetBody()->SetInertiaXX(ChVector<>(0.05, 0.005, 0.05));  //***TO DO *** proper inertia
         mRoller->GetBody()->SetCollide(true);
-        mRoller->GetBody()->GetMaterialSurface()->SetFriction(STATIC_wheelfriction);
+        mRoller->GetBody()->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
         ChFrameMoving<> f1(ChVector<>(0, 0, -(wheel_radius - roller_midradius)),
                            Q_from_AngAxis(roller_angle, ChVector<>(0, 0, 1)));
         ChFrameMoving<> f2(ChVector<>(0, 0, 0), Q_from_AngAxis(pitch, ChVector<>(0, 1, 0)));
@@ -164,7 +166,7 @@ ChBodySceneNode* create_mecanum_wheel(ChSystem& mphysicalSystem,
 
 int main(int argc, char* argv[]) {
     // Create a ChronoENGINE physical system
-    ChSystem mphysicalSystem;
+    ChSystemNSC mphysicalSystem;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -272,16 +274,16 @@ int main(int argc, char* argv[]) {
         &mphysicalSystem, application.GetSceneManager(), 100.0, ChVector<>(0, -5, 0), ChQuaternion<>(1, 0, 0, 0),
         ChVector<>(200, 1, 200));
     ground->GetBody()->SetBodyFixed(true);
-    ground->GetBody()->GetMaterialSurface()->SetFriction(STATIC_wheelfriction);
+    ground->GetBody()->GetMaterialSurfaceNSC()->SetFriction(STATIC_wheelfriction);
 
     video::ITexture* cubeMap = application.GetVideoDriver()->getTexture(GetChronoDataFile("cubetexture.png").c_str());
     ground->setMaterialTexture(0, cubeMap);
 
     // Prepare the physical system for the simulation
 
-    mphysicalSystem.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_PROJECTED);
+    mphysicalSystem.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
-    mphysicalSystem.SetSolverType(ChSystem::SOLVER_SOR);
+    mphysicalSystem.SetSolverType(ChSolver::Type::SOR);
 
     mphysicalSystem.SetMaxItersSolverSpeed(30);
     mphysicalSystem.SetMaxItersSolverStab(30);
@@ -309,15 +311,15 @@ int main(int argc, char* argv[]) {
         ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
         double wheel_A_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wA.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wA.GetA().MatrT_x_Vect(imposed_speed)).x() / sin(roller_angle)) / wheel_radius;
         ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
         double wheel_B_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wB.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wB.GetA().MatrT_x_Vect(imposed_speed)).x() / sin(roller_angle)) / wheel_radius;
         ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(mTrussPlatform->GetBody()->GetCoord());
         double wheel_C_rotspeed =
             (STATIC_rot_speed * platform_radius) +
-            ((abs_roll_wC.GetA().MatrT_x_Vect(imposed_speed)).x / sin(roller_angle)) / wheel_radius;
+            ((abs_roll_wC.GetA().MatrT_x_Vect(imposed_speed)).x() / sin(roller_angle)) / wheel_radius;
 
         if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>(my_link_shaftA->Get_spe_funct()))
             mfun->Set_yconst(wheel_A_rotspeed);

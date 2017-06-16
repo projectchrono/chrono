@@ -1,21 +1,27 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Antonio Recuero, Radu Serban
+// =============================================================================
+//
+// FEA contact of ANCF
+//
+// =============================================================================
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLoadBodyMesh.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoaderUV.h"
-#include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChSystemDEM.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
@@ -65,7 +71,7 @@ int scaleFactor = 35;
 double dz = 0.01;
 
 int main(int argc, char* argv[]) {
-    ChSystemDEM my_system;
+    ChSystemSMC my_system;
 
     // Create the Irrlicht visualization (open the Irrlicht device,
     // bind a simple user interface, etc. etc.)
@@ -88,9 +94,9 @@ int main(int argc, char* argv[]) {
 
     // Create the surface material, containing information
     // about friction etc.
-    // It is a DEM-p (penalty) material that we will assign to
+    // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
-    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceDEM>();
+    auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetYoungModulus(6e4f);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.5f);
@@ -138,7 +144,7 @@ int main(int argc, char* argv[]) {
     auto mcontactsurf = std::make_shared<ChContactSurfaceMesh>();
     my_mesh->AddContactSurface(mcontactsurf);
     mcontactsurf->AddFacesFromBoundary(sphere_swept_thickness);  // do this after my_mesh->AddContactSurface
-    mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the DEM penalty contacts
+    mcontactsurf->SetMaterialSurface(mysurfmaterial);            // use the SMC penalty contacts
 
     TotalNumNodes = my_mesh->GetNnodes();
     TotalNumElements = my_mesh->GetNelements();
@@ -198,25 +204,22 @@ int main(int argc, char* argv[]) {
     // Simulation loop
     // ---------------
 
-    //    ChSolverMKL<>* mkl_solver_stab = new ChSolverMKL<>;
-    //    ChSolverMKL<>* mkl_solver_speed = new ChSolverMKL<>;
-    //    my_system.ChangeSolverStab(mkl_solver_stab);
-    //    my_system.ChangeSolverSpeed(mkl_solver_speed);
-    //    mkl_solver_stab->SetSparsityPatternLock(true);
-    //    mkl_solver_speed->SetSparsityPatternLock(true);
-    //    application.GetSystem()->Update();
+    ////auto mkl_solver = std::make_shared<ChSolverMKL<>>();
+    ////my_system.SetSolver(mkl_solver);
+    ////mkl_solver->SetSparsityPatternLock(true);
+    ////my_system.Update();
 
     // Setup solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of
     my_system.SetMaxItersSolverSpeed(4000000);
     my_system.SetTolForce(1e-6);
     msolver->SetVerbose(false);
-    //
-    // INT_HHT or INT_EULER_IMPLICIT
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+
+    // HHT or EULER_IMPLICIT
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(200);
@@ -224,18 +227,16 @@ int main(int argc, char* argv[]) {
     mystepper->SetMode(ChTimestepperHHT::POSITION);
     mystepper->SetScaling(true);
     mystepper->SetVerbose(false);
-    //    my_system.SetIntegrationType(ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    ////my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 
     application.SetTimestep(time_step);
 
     while (application.GetDevice()->run()) {
         application.BeginScene();
         application.DrawAll();
-        //        std::cout << "Time t = " << my_system.GetChTime() << "s \t";
-        //        std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 *
-        //        pow(my_system.GetChTime(),
-        //        2)
-        //                  << "\n";
+        ////std::cout << "Time t = " << my_system.GetChTime() << "s \t";
+        ////std::cout << "pos.y = " << sampleNode->pos.y - y0 << "vs. " << -0.5 * 9.8 * pow(my_system.GetChTime(), 2)
+        ////          << "\n";
         double t_s = my_system.GetChTime();
 
         application.DoStep();

@@ -40,14 +40,11 @@ class ChApi ChLinkUniversal : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
-    /// Get the type of this joint.
-    virtual int GetType() const override { return LNK_UNIVERSAL; }
-
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual int GetDOC_c() override { return 4; }
 
     /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() { return m_frame2.GetCoord(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoord(); }
 
     /// Get the joint frame on Body1, expressed in Body1 coordinate system.
     const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
@@ -91,7 +88,7 @@ class ChApi ChLinkUniversal : public ChLink {
 
     /// Perform the update of this joint at the specified time: compute jacobians
     /// and constraint violations, cache in internal structures
-    virtual void Update(double time, bool update_assets = true);
+    virtual void Update(double time, bool update_assets = true) override;
 
     //
     // STATE FUNCTIONS
@@ -159,6 +156,9 @@ class ChApi ChLinkUniversal : public ChLink {
 
     double m_multipliers[4];  ///< Lagrange multipliers
 };
+
+CH_CLASS_VERSION(ChLinkUniversal,0)
+
 
 }  // end namespace chrono
 

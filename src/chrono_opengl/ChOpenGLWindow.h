@@ -25,7 +25,7 @@ namespace chrono {
 /// Namespace with classes for the Chrono::OpenGL module.
 namespace opengl {
 
-/// @addtogroup opengl
+/// @addtogroup opengl_module
 /// @{
 
 /// Manager for the OpenGL context and window.
@@ -73,9 +73,9 @@ class CH_OPENGL_API ChOpenGLWindow {
                    float scale = 0.5f,
                    float near_clip_dist = 0.1f,
                    float far_clip_dist = 1000.0f) {
-        viewer->render_camera.camera_position = glm::vec3(pos.x, pos.y, pos.z);
-        viewer->render_camera.camera_look_at = glm::vec3(look.x, look.y, look.z);
-        viewer->render_camera.camera_up = glm::vec3(up.x, up.y, up.z);
+        viewer->render_camera.camera_position = glm::vec3(pos.x(), pos.y(), pos.z());
+        viewer->render_camera.camera_look_at = glm::vec3(look.x(), look.y(), look.z());
+        viewer->render_camera.camera_up = glm::vec3(up.x(), up.y(), up.z());
         viewer->render_camera.camera_scale = scale;
         viewer->render_camera.SetClipping(near_clip_dist, far_clip_dist);
     }
@@ -123,7 +123,9 @@ class CH_OPENGL_API ChOpenGLWindow {
     int poll_frame;
 };
 
-/// @} opengl
+/// @} opengl_module
+
 }
 }
+
 #endif

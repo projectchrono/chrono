@@ -597,10 +597,10 @@ int main(int argc, char* argv[]) {
                 ChMatrixDynamic<> A(3, 3);
                 A(0, 0) = c_a * this->M + c_v * (-this->R) + c_x * (-this->K);
                 A(1, 1) = c_a * this->M;
-                A(0, 2) = dirpend.x;
-                A(1, 2) = dirpend.y;
-                A(2, 0) = dirpend.x;
-                A(2, 1) = dirpend.y;
+                A(0, 2) = dirpend.x();
+                A(1, 2) = dirpend.y();
+                A(2, 0) = dirpend.x();
+                A(2, 1) = dirpend.y();
                 ChVectorDynamic<> w(3);
                 ChLinearAlgebra::Solve_LinSys(A, &b, &w);
                 Dv(0) = w(0);
@@ -634,8 +634,8 @@ int main(int argc, char* argv[]) {
                                           ) override {
                 ChVector<> dirpend(-mpx, -mpy, 0);
                 dirpend.Normalize();
-                R(0) += c * dirpend.x * L(0);
-                R(1) += c * dirpend.y * L(0);
+                R(0) += c * dirpend.x() * L(0);
+                R(1) += c * dirpend.y() * L(0);
             };
 
             ///  Qc += c * C

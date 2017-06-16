@@ -310,7 +310,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // relAngle and relAxis
     Q_to_AngAxis(relM.rot, relAngle, relAxis);
     // flip rel rotation axis if jerky sign
-    if (relAxis.z < 0) {
+    if (relAxis.z() < 0) {
         relAxis = Vmul(relAxis, -1);
         relAngle = -relAngle;
     }
@@ -430,7 +430,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
 
 void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
     // version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChLinkMarkers>();
 
     // serialize parent class
     ChLink::ArchiveOUT(marchive);
@@ -443,7 +443,7 @@ void ChLinkMarkers::ArchiveOUT(ChArchiveOut& marchive) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMarkers::ArchiveIN(ChArchiveIn& marchive) {
     // version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChLinkMarkers>();
 
     // deserialize parent class
     ChLink::ArchiveIN(marchive);

@@ -28,7 +28,7 @@ namespace chrono {
 /// are created in assemblies of 3D CAD tools (parallel
 /// axis, or face-to-face, etc.).
 /// Note that most of the ChLinkMate constraints can be
-/// done also with the contraints inherited from ChLinkLock...
+/// done also with the constraints inherited from ChLinkLock...
 /// but in case of links of the ChLinkLock class they
 /// reference two ChMarker objects, tht can also move, but
 /// this is could be an unnecessary complication in most cases.
@@ -46,14 +46,14 @@ class ChApi ChLinkMate : public ChLink {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMate* Clone() const override { return new ChLinkMate(*this); }
 
-    virtual int GetType() const override { return LNK_MATE; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkMate,0)
 
 // -----------------------------------------------------------------------------
 
@@ -76,9 +76,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool c_ry;
     bool c_rz;
 
-    int ndoc;    ///< number of DOC, degrees of costraint
-    int ndoc_c;  ///< number of DOC, degrees of costraint (only bilaterals)
-    int ndoc_d;  ///< number of DOC, degrees of costraint (only unilaterals)
+    int ndoc;    ///< number of DOC, degrees of constraint
+    int ndoc_c;  ///< number of DOC, degrees of constraint (only bilaterals)
+    int ndoc_d;  ///< number of DOC, degrees of constraint (only unilaterals)
 
     ChLinkMask* mask;
 
@@ -96,8 +96,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateGeneric* Clone() const override { return new ChLinkMateGeneric(*this); }
-
-    virtual int GetType() const override { return LNK_MATEGENERIC; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master'
     /// body). This represents the 'main' reference of the link: reaction forces
@@ -139,7 +137,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialization based on passing two vectors (point + dir) on the
     /// two bodies, they will represent the X axes of the two frames (Y and Z will
-    /// be built from the X vector via Gramm Schmidt orthonomralization).
+    /// be built from the X vector via Gram Schmidt orthonormalization).
     /// Use the other ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
@@ -207,7 +205,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     //
@@ -224,6 +222,9 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     void SetupLinkMask();
     void ChangedLinkMask();
 };
+
+CH_CLASS_VERSION(ChLinkMateGeneric,0)
+
 
 // -----------------------------------------------------------------------------
 
@@ -247,8 +248,6 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMatePlane* Clone() const override { return new ChLinkMatePlane(*this); }
-
-    virtual int GetType() const override { return LNK_MATEPLANE; }
 
     /// Tell if the two normals must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
@@ -282,6 +281,9 @@ class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkMatePlane,0)
+
+
 // -----------------------------------------------------------------------------
 
 /// Mate constraint of coaxial type. This correspond to the
@@ -303,8 +305,6 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateCoaxial* Clone() const override { return new ChLinkMateCoaxial(*this); }
-
-    virtual int GetType() const override { return LNK_MATECOAXIAL; }
 
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
@@ -329,6 +329,9 @@ class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkMateCoaxial,0)
+
+
 // -----------------------------------------------------------------------------
 
 /// Mate constraint of spherical type. This correspond to the
@@ -347,8 +350,6 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateSpherical* Clone() const override { return new ChLinkMateSpherical(*this); }
 
-    virtual int GetType() const override { return LNK_MATESPHERICAL; }
-
     /// Specialized initialization for coincident mate, given the two bodies to be connected,
     /// and two points (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -359,6 +360,9 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
                     ChVector<> mpt2   ///< point, master, for 2nd body (rel. or abs., see flag above)
                     );
 };
+
+CH_CLASS_VERSION(ChLinkMateSpherical,0)
+
 
 // -----------------------------------------------------------------------------
 
@@ -379,8 +383,6 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateXdistance* Clone() const override { return new ChLinkMateXdistance(*this); }
-
-    virtual int GetType() const override { return LNK_MATEXDISTANCE; }
 
     /// Set the distance on X of frame 2
     void SetDistance(double msep) { distance = msep; }
@@ -408,6 +410,9 @@ class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkMateXdistance,0)
+
+
 // -----------------------------------------------------------------------------
 
 /// Mate constraint of parallel type. This correspond to the
@@ -431,8 +436,6 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateParallel* Clone() const override { return new ChLinkMateParallel(*this); }
 
-    virtual int GetType() const override { return LNK_MATEPARALLEL; }
-
     /// Tell if the two axes must be opposed (flipped=false) or must have the same verse (flipped=true)
     void SetFlipped(bool doflip);
     bool IsFlipped() { return flipped; }
@@ -455,6 +458,9 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChLinkMateParallel,0)
+
 
 // -----------------------------------------------------------------------------
 
@@ -481,8 +487,6 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateOrthogonal* Clone() const override { return new ChLinkMateOrthogonal(*this); }
 
-    virtual int GetType() const override { return LNK_MATEORTHOGONAL; }
-
     /// Specialized initialization for orthogonal mate, given the two bodies to be connected,
     /// two points and two directions (each expressed in body or abs. coordinates).
     /// Use ChLinkMateGeneric::Initialize() if you want to set the two frames directly.
@@ -505,10 +509,12 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
 
+CH_CLASS_VERSION(ChLinkMateOrthogonal,0)
+
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint that completly fix one frame's rotation and translation
+/// Mate constraint that completely fix one frame's rotation and translation
 /// respect to the other frame.
 
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {
@@ -524,8 +530,6 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateFix* Clone() const override { return new ChLinkMateFix(*this); }
 
-    virtual int GetType() const override { return LNK_MATEFIX; }
-
     /// Specialized initialization for "fix" mate, given the two bodies to be connected;
     /// the positions of the two auxiliary frames where the two bodies are connected are
     /// both automatically initialized as the current absolute position of mbody1.
@@ -535,6 +539,7 @@ class ChApi ChLinkMateFix : public ChLinkMateGeneric {
                     );
 };
 
+CH_CLASS_VERSION(ChLinkMateFix,0)
 
 }  // end namespace chrono
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -46,11 +46,13 @@ void ChSingleRoadWheel::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     m_wheel->SetCollide(true);
 
-    m_wheel->GetCollisionModel()->SetFamily(TrackCollisionFamily::WHEELS);
-    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackCollisionFamily::IDLERS);
-
     m_wheel->GetCollisionModel()->ClearModel();
+
+    m_wheel->GetCollisionModel()->SetFamily(TrackedCollisionFamily::WHEELS);
+    m_wheel->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::IDLERS);
+
     m_wheel->GetCollisionModel()->AddCylinder(radius, radius, width / 2);
+
     m_wheel->GetCollisionModel()->BuildModel();
 }
 

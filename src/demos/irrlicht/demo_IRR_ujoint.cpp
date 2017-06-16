@@ -21,7 +21,7 @@
 
 #include <cmath>
 
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
 
 #include "chrono_irrlicht/ChIrrApp.h"
@@ -34,7 +34,7 @@ using namespace irr;
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    ChSystem system;
+    ChSystemNSC system;
 
     // Disable gravity
     system.Set_G_acc(ChVector<>(0, 0, 0));
@@ -199,8 +199,8 @@ int main(int argc, char* argv[]) {
 
         if (frame % 20 == 0) {
             // Output the shaft angular velocities at the current time
-            double omega_1 = shaft_1->GetWvel_loc().z;
-            double omega_2 = shaft_2->GetWvel_loc().z;
+            double omega_1 = shaft_1->GetWvel_loc().z();
+            double omega_2 = shaft_2->GetWvel_loc().z();
             GetLog() << system.GetChTime() << "   " << omega_1 << "   " << omega_2 << "\n";
         }
     }

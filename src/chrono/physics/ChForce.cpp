@@ -90,11 +90,11 @@ void ChForce::SetVpoint(ChVector<> mypoint) {
     // computes initial rest position.
     ChVector<> displace = VNULL;
     if (move_x)
-        displace.x = move_x->Get_y(ChTime);
+        displace.x() = move_x->Get_y(ChTime);
     if (move_y)
-        displace.y = move_y->Get_y(ChTime);
+        displace.y() = move_y->Get_y(ChTime);
     if (move_z)
-        displace.z = move_z->Get_y(ChTime);
+        displace.z() = move_z->Get_y(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -115,11 +115,11 @@ void ChForce::SetVrelpoint(ChVector<> myrelpoint) {
     // computes initial rest position.
     ChVector<> displace = VNULL;
     if (move_x)
-        displace.x = move_x->Get_y(ChTime);
+        displace.x() = move_x->Get_y(ChTime);
     if (move_y)
-        displace.y = move_y->Get_y(ChTime);
+        displace.y() = move_y->Get_y(ChTime);
     if (move_z)
-        displace.z = move_z->Get_y(ChTime);
+        displace.z() = move_z->Get_y(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -198,11 +198,11 @@ void ChForce::UpdateState() {
 
     vmotion = VNULL;
     if (move_x)
-        vmotion.x = move_x->Get_y(ChTime);
+        vmotion.x() = move_x->Get_y(ChTime);
     if (move_y)
-        vmotion.y = move_y->Get_y(ChTime);
+        vmotion.y() = move_y->Get_y(ChTime);
     if (move_z)
-        vmotion.z = move_z->Get_y(ChTime);
+        vmotion.z() = move_z->Get_y(ChTime);
 
     switch (frame) {
         case WORLD:
@@ -222,11 +222,11 @@ void ChForce::UpdateState() {
     vectforce = VNULL;
     xyzforce = VNULL;
     if (f_x)
-        xyzforce.x = f_x->Get_y(ChTime);
+        xyzforce.x() = f_x->Get_y(ChTime);
     if (f_y)
-        xyzforce.y = f_y->Get_y(ChTime);
+        xyzforce.y() = f_y->Get_y(ChTime);
     if (f_z)
-        xyzforce.z = f_z->Get_y(ChTime);
+        xyzforce.z() = f_z->Get_y(ChTime);
 
     switch (align) {
         case WORLD_DIR:
@@ -249,9 +249,9 @@ void ChForce::UpdateState() {
 
     switch (mode) {
         case FORCE: {
-            Qf->SetElement(0, 0, force.x);  // pos.lagrangian Qfx
-            Qf->SetElement(1, 0, force.y);
-            Qf->SetElement(2, 0, force.z);
+            Qf->SetElement(0, 0, force.x());  // pos.lagrangian Qfx
+            Qf->SetElement(1, 0, force.y());
+            Qf->SetElement(2, 0, force.z());
             //   Qfrot= (-[A][u][G])'f
             ChVector<> VQtemp;
 
@@ -297,7 +297,7 @@ void ChForce::Update(double mytime) {
 
 void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
     // class version number
-    marchive.VersionWrite(1);
+    marchive.VersionWrite<ChForce>();
 
     // serialize parent class too
     ChObj::ArchiveOUT(marchive);
@@ -328,7 +328,7 @@ void ChForce::ArchiveOUT(ChArchiveOut& marchive) {
 
 void ChForce::ArchiveIN(ChArchiveIn& marchive) {
     // class version number
-    int version = marchive.VersionRead();
+    int version = marchive.VersionRead<ChForce>();
 
     // deserialize parent class too
     ChObj::ArchiveIN(marchive);

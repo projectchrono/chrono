@@ -23,7 +23,7 @@ ChRefFunctionSegment::ChRefFunctionSegment(ChFunction* mrootf, char* myIDs) {
 }
 
 bool ChRefFunctionSegment::RestoreReference(ChFunction* mrootf) {
-    // inherit parent behavoiur
+    // inherit parent behaviour
     ChRefFunction::RestoreReference(mrootf);
 
     // default segment is root function, also for ID=""
@@ -78,7 +78,7 @@ ChRefFunctionHandle::ChRefFunctionHandle(ChFunction* mrootf, int m_hid) {
 }
 
 bool ChRefFunctionHandle::RestoreReference(ChFunction* mrootf) {
-    // inherit parent behavoiur
+    // inherit parent behaviour
     ChRefFunction::RestoreReference(mrootf);
 
     // implement

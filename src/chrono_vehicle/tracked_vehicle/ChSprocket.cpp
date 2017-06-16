@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -31,34 +31,10 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChSprocket::ChSprocket(const std::string& name)
-    : ChPart(name),
-      m_callback(NULL),
-      m_friction(0.4f),
-      m_restitution(0.1f),
-      m_young_modulus(1e7f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5),
-      m_kt(2e5),
-      m_gn(40),
-      m_gt(20) {}
+ChSprocket::ChSprocket(const std::string& name) : ChPart(name), m_callback(NULL) {}
 
 ChSprocket::~ChSprocket() {
     delete m_callback;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
-void ChSprocket::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChSprocket::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
 }
 
 // -----------------------------------------------------------------------------
@@ -105,24 +81,24 @@ void ChSprocket::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_gear->SetCollide(true);
 
     switch (m_gear->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            m_gear->GetMaterialSurface()->SetFriction(m_friction);
-            m_gear->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            m_gear->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            m_gear->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            m_gear->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            m_gear->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            m_gear->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            m_gear->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            m_gear->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            m_gear->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            m_gear->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            m_gear->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            m_gear->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            m_gear->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            m_gear->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            m_gear->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            m_gear->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            m_gear->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            m_gear->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            m_gear->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
-    chassis->GetSystem()->SetCustomComputeCollisionCallback(GetCollisionCallback(track));
+    chassis->GetSystem()->RegisterCustomCollisionCallback(GetCollisionCallback(track));
 }
 
 // -----------------------------------------------------------------------------

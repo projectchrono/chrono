@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -60,11 +60,11 @@ class CH_MODELS_API M113a_Idler : public ChDoubleIdler {
     /// Return the pitch angle of the prismatic joint.
     virtual double GetPrismaticPitchAngle() const override { return 0; }
 
-    /// Return the callback function for spring force.
-    virtual ChSpringForceCallback* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
+    /// Return the functor object for spring force.
+    virtual ChLinkSpringCB::ForceFunctor* GetTensionerForceCallback() const override { return m_tensionerForceCB; }
 
     /// Return the free length for the tensioner spring.
-    virtual double GetTensionerFreeLength() const { return m_tensioner_l0; }
+    virtual double GetTensionerFreeLength() const override { return m_tensioner_l0; }
 
     /// Add visualization of the idler.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -77,7 +77,7 @@ class CH_MODELS_API M113a_Idler : public ChDoubleIdler {
     virtual std::string GetMeshName() const = 0;
     virtual std::string GetMeshFile() const = 0;
 
-    ChSpringForceCallback* m_tensionerForceCB;
+    ChLinkSpringCB::ForceFunctor* m_tensionerForceCB;
 
     static const double m_wheel_mass;
     static const ChVector<> m_wheel_inertia;

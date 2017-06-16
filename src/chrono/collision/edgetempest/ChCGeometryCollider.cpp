@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #include <cstdio>
 #include <cmath>
@@ -285,33 +286,33 @@ class BoxBoxCollisionTest2 {
         unsigned int cnt = 0;
 
         //--- Sign lookup table, could be precomputed!!!
-        Vector sign[8];
+        ChVector<> sign[8];
         for (unsigned int mask = 0; mask < 8; ++mask) {
-            sign[mask](0) = (mask & 0x0001) ? 1 : -1;
-            sign[mask](1) = ((mask >> 1) & 0x0001) ? 1 : -1;
-            sign[mask](2) = ((mask >> 2) & 0x0001) ? 1 : -1;
+            sign[mask][0] = (mask & 0x0001) ? 1 : -1;
+            sign[mask][1] = ((mask >> 1) & 0x0001) ? 1 : -1;
+            sign[mask][2] = ((mask >> 2) & 0x0001) ? 1 : -1;
         }
         //--- extract axis of boxes in WCS
-        Vector A[3];
-        A[0].x = R_a(0, 0);
-        A[0].y = R_a(1, 0);
-        A[0].z = R_a(2, 0);
-        A[1].x = R_a(0, 1);
-        A[1].y = R_a(1, 1);
-        A[1].z = R_a(2, 1);
-        A[2].x = R_a(0, 2);
-        A[2].y = R_a(1, 2);
-        A[2].z = R_a(2, 2);
-        Vector B[3];
-        B[0].x = R_b(0, 0);
-        B[0].y = R_b(1, 0);
-        B[0].z = R_b(2, 0);
-        B[1].x = R_b(0, 1);
-        B[1].y = R_b(1, 1);
-        B[1].z = R_b(2, 1);
-        B[2].x = R_b(0, 2);
-        B[2].y = R_b(1, 2);
-        B[2].z = R_b(2, 2);
+        ChVector<> A[3];
+        A[0].x() = R_a(0, 0);
+        A[0].y() = R_a(1, 0);
+        A[0].z() = R_a(2, 0);
+        A[1].x() = R_a(0, 1);
+        A[1].y() = R_a(1, 1);
+        A[1].z() = R_a(2, 1);
+        A[2].x() = R_a(0, 2);
+        A[2].y() = R_a(1, 2);
+        A[2].z() = R_a(2, 2);
+        ChVector<> B[3];
+        B[0].x() = R_b(0, 0);
+        B[0].y() = R_b(1, 0);
+        B[0].z() = R_b(2, 0);
+        B[1].x() = R_b(0, 1);
+        B[1].y() = R_b(1, 1);
+        B[1].z() = R_b(2, 1);
+        B[2].x() = R_b(0, 2);
+        B[2].y() = R_b(1, 2);
+        B[2].z() = R_b(2, 2);
 
         //--- To compat numerical round-offs, these tend to favor edge-edge
         //--- cases, when one really rather wants a face-case. Truncating
@@ -321,23 +322,23 @@ class BoxBoxCollisionTest2 {
 
         for (i = 0; i < 3; ++i)
             for (unsigned int j = 0; j < 3; ++j) {
-                if (fabs(A[i](j)) < 10e-7)
-                    A[i](j) = 0.;
-                if (fabs(B[i](j)) < 10e-7)
-                    B[i](j) = 0.;
+                if (fabs(A[i][j]) < 10e-7)
+                    A[i][j] = 0.;
+                if (fabs(B[i][j]) < 10e-7)
+                    B[i][j] = 0.;
             }
 
-        Vector a[8];
-        Vector b[8];
+        ChVector<> a[8];
+        ChVector<> b[8];
         //--- corner points of boxes in WCS
         for (i = 0; i < 8; ++i) {
             a[i] =
-                A[2] * (sign[i](2) * ext_a(2)) + A[1] * (sign[i](1) * ext_a(1)) + A[0] * (sign[i](0) * ext_a(0)) + p_a;
+                A[2] * (sign[i][2] * ext_a[2]) + A[1] * (sign[i][1] * ext_a[1]) + A[0] * (sign[i][0] * ext_a[0]) + p_a;
             b[i] =
-                B[2] * (sign[i](2) * ext_b(2)) + B[1] * (sign[i](1) * ext_b(1)) + B[0] * (sign[i](0) * ext_b(0)) + p_b;
+                B[2] * (sign[i][2] * ext_b[2]) + B[1] * (sign[i][1] * ext_b[1]) + B[0] * (sign[i][0] * ext_b[0]) + p_b;
         }
         //--- Potential separating axes in WCS
-        Vector axis[15];
+        ChVector<> axis[15];
         axis[0] = A[0];
         axis[1] = A[1];
         axis[2] = A[2];
@@ -345,47 +346,47 @@ class BoxBoxCollisionTest2 {
         axis[4] = B[1];
         axis[5] = B[2];
         axis[6].Cross(A[0], B[0]);
-        if (axis[6](0) == 0 && axis[6](1) == 0 && axis[6](2) == 0)
+        if (axis[6][0] == 0 && axis[6][1] == 0 && axis[6][2] == 0)
             axis[6] = A[0];
         else
             axis[6] /= sqrt(axis[6].Dot(axis[6]));
         axis[7].Cross(A[0], B[1]);
-        if (axis[7](0) == 0 && axis[7](1) == 0 && axis[7](2) == 0)
+        if (axis[7][0] == 0 && axis[7][1] == 0 && axis[7][2] == 0)
             axis[7] = A[0];
         else
             axis[7] /= sqrt(axis[7].Dot(axis[7]));
         axis[8].Cross(A[0], B[2]);
-        if (axis[8](0) == 0 && axis[8](1) == 0 && axis[8](2) == 0)
+        if (axis[8][0] == 0 && axis[8][1] == 0 && axis[8][2] == 0)
             axis[8] = A[0];
         else
             axis[8] /= sqrt(axis[8].Dot(axis[8]));
         axis[9].Cross(A[1], B[0]);
-        if (axis[9](0) == 0 && axis[9](1) == 0 && axis[9](2) == 0)
+        if (axis[9][0] == 0 && axis[9][1] == 0 && axis[9][2] == 0)
             axis[9] = A[1];
         else
             axis[9] /= sqrt(axis[9].Dot(axis[9]));
         axis[10].Cross(A[1], B[1]);
-        if (axis[10](0) == 0 && axis[10](1) == 0 && axis[10](2) == 0)
+        if (axis[10][0] == 0 && axis[10][1] == 0 && axis[10][2] == 0)
             axis[10] = A[1];
         else
             axis[10] /= sqrt(axis[10].Dot(axis[10]));
         axis[11].Cross(A[1], B[2]);
-        if (axis[11](0) == 0 && axis[11](1) == 0 && axis[11](2) == 0)
+        if (axis[11][0] == 0 && axis[11][1] == 0 && axis[11][2] == 0)
             axis[11] = A[1];
         else
             axis[11] /= sqrt(axis[11].Dot(axis[11]));
         axis[12].Cross(A[2], B[0]);
-        if (axis[12](0) == 0 && axis[12](1) == 0 && axis[12](2) == 0)
+        if (axis[12][0] == 0 && axis[12][1] == 0 && axis[12][2] == 0)
             axis[12] = A[2];
         else
             axis[12] /= sqrt(axis[12].Dot(axis[12]));
         axis[13].Cross(A[2], B[1]);
-        if (axis[13](0) == 0 && axis[13](1) == 0 && axis[13](2) == 0)
+        if (axis[13][0] == 0 && axis[13][1] == 0 && axis[13][2] == 0)
             axis[13] = A[2];
         else
             axis[13] /= sqrt(axis[13].Dot(axis[13]));
         axis[14].Cross(A[2], B[2]);
-        if (axis[14](0) == 0 && axis[14](1) == 0 && axis[14](2) == 0)
+        if (axis[14][0] == 0 && axis[14][1] == 0 && axis[14][2] == 0)
             axis[14] = A[2];
         else
             axis[14] /= sqrt(axis[14].Dot(axis[14]));
@@ -478,7 +479,7 @@ class BoxBoxCollisionTest2 {
             Vector a_in_B =
                 WCStoB.TransformParentToLocal(a[i]);  // ChTransform<>::TransformParentToLocal(a[i], p_a, R_a);
             // = WCStoB.TransformParentToLocal(a[i]);
-            Vector abs_a(fabs(a_in_B.x), fabs(a_in_B.y), fabs(a_in_B.z));
+            Vector abs_a(fabs(a_in_B.x()), fabs(a_in_B.y()), fabs(a_in_B.z()));
             if (abs_a <= eps_b) {
                 ++corners_inside;
                 ++corners_A_in_B;
@@ -488,7 +489,7 @@ class BoxBoxCollisionTest2 {
             Vector b_in_A =
                 WCStoA.TransformParentToLocal(b[i]);  //= ChTransform<>::TransformParentToLocal(b[i], p_b, R_b);
                                                       // = WCStoA.TransformParentToLocal(b[i]);
-            Vector abs_b(fabs(b_in_A.x), fabs(b_in_A.y), fabs(b_in_A.z));
+            Vector abs_b(fabs(b_in_A.x()), fabs(b_in_A.y()), fabs(b_in_A.z()));
             if (abs_b <= eps_a) {
                 ++corners_inside;
                 ++corners_B_in_A;
@@ -517,7 +518,7 @@ class BoxBoxCollisionTest2 {
         }
 
         //--- now we can safely pick the contact normal, since we
-        //--- know wheter we have a face-case or edge-edge case.
+        //--- know whether we have a face-case or edge-edge case.
         n = axis[minimum_axis];
 
         //--- This is definitely an edge-edge case
@@ -525,22 +526,22 @@ class BoxBoxCollisionTest2 {
             //--- Find a point p_a on the edge from box A.
             for (unsigned int i = 0; i < 3; ++i)
                 if (n.Dot(A[i]) > 0.)
-                    p_a += ext_a(i) * A[i];
+                    p_a += ext_a[i] * A[i];
                 else
-                    p_a -= ext_a(i) * A[i];
+                    p_a -= ext_a[i] * A[i];
             //--- Find a point p_b on the edge from box B.
             for (int ci = 0; ci < 3; ++ci)
                 if (n.Dot(B[ci]) < 0.)
-                    p_b += ext_b(ci) * B[ci];
+                    p_b += ext_b[ci] * B[ci];
                 else
-                    p_b -= ext_b(ci) * B[ci];
+                    p_b -= ext_b[ci] * B[ci];
 
             //--- Determine the indices of two unit edge direction vectors (columns
             //--- of rotation matrices in WCS).
             int columnA = ((minimum_axis)-6) / 3;
             int columnB = ((minimum_axis)-6) % 3;
             double s, t;
-            //--- Compute the edge-paramter values s and t corresponding to the closest
+            //--- Compute the edge-parameter values s and t corresponding to the closest
             //--- points between the two infinite lines parallel to the two edges.
             ClosestPointsBetweenLines()(p_a, A[columnA], p_b, B[columnB], s, t);
             //--- Use the edge parameter values to compute the closest
@@ -560,7 +561,7 @@ class BoxBoxCollisionTest2 {
         //--- normal. This coordinate frame is nice, because the contact-face is a axis
         //--- aligned rectangle. We will refer to this frame as the reference frame, and
         //--- use the letter 'r' or 'R' for it. The other box is named the incident box,
-        //--- its closest face towards the reference face is called the incidient face, and
+        //--- its closest face towards the reference face is called the incident face, and
         //--- is denoted by the letter 'i' or 'I'.
         Vector *R_r, *R_i;      //--- Box direction vectors in WCS
         Vector ext_r, ext_i;    //--- Box extents
@@ -586,7 +587,7 @@ class BoxBoxCollisionTest2 {
             incident_inside = AinB;
         }
         //--- Following vectors are used for computing the corner points of the incident
-        //--- face. At first they are used to determine the axis of the incidient box
+        //--- face. At first they are used to determine the axis of the incident box
         //--- pointing towards the reference box.
         //---
         //--- n_r_wcs = normal pointing away from reference frame in WCS coordinates.
@@ -604,18 +605,18 @@ class BoxBoxCollisionTest2 {
         //--- us the axis along which we will find the closest face towards the reference
         //--- box. The sign will tell us if we should take the positive or negative
         //--- face to get the closest incident face.
-        n_r(0) = R_i[0].Dot(n_r_wcs);
-        n_r(1) = R_i[1].Dot(n_r_wcs);
-        n_r(2) = R_i[2].Dot(n_r_wcs);
-        abs_n_r(0) = fabs(n_r(0));
-        abs_n_r(1) = fabs(n_r(1));
-        abs_n_r(2) = fabs(n_r(2));
-        //--- Find the largest compontent of abs_n_r: This corresponds to the normal
-        //--- for the indident face. The axis number is stored in a3. the other
-        //--- axis numbers of the indicent face are stored in a1,a2.
+        n_r[0] = R_i[0].Dot(n_r_wcs);
+        n_r[1] = R_i[1].Dot(n_r_wcs);
+        n_r[2] = R_i[2].Dot(n_r_wcs);
+        abs_n_r[0] = fabs(n_r[0]);
+        abs_n_r[1] = fabs(n_r[1]);
+        abs_n_r[2] = fabs(n_r[2]);
+        //--- Find the largest component of abs_n_r: This corresponds to the normal
+        //--- for the incident face. The axis number is stored in a3. the other
+        //--- axis numbers of the incident face are stored in a1,a2.
         int a1, a2, a3;
-        if (abs_n_r(1) > abs_n_r(0)) {
-            if (abs_n_r(1) > abs_n_r(2)) {
+        if (abs_n_r[1] > abs_n_r[0]) {
+            if (abs_n_r[1] > abs_n_r[2]) {
                 a1 = 2;
                 a2 = 0;
                 a3 = 1;
@@ -625,7 +626,7 @@ class BoxBoxCollisionTest2 {
                 a3 = 2;
             }
         } else {
-            if (abs_n_r(0) > abs_n_r(2)) {
+            if (abs_n_r[0] > abs_n_r[2]) {
                 a1 = 1;
                 a2 = 2;
                 a3 = 0;
@@ -635,16 +636,16 @@ class BoxBoxCollisionTest2 {
                 a3 = 2;
             }
         }
-        //--- Now we have information enough to determine the incidient face, that means we can
+        //--- Now we have information enough to determine the incident face, that means we can
         //--- compute the center point of incident face in WCS coordinates.
 
         int plus_sign[3];
         Vector center_i_wcs;
-        if (n_r(a3) < 0) {
-            center_i_wcs = p_i + ext_i(a3) * R_i[a3];
+        if (n_r[a3] < 0) {
+            center_i_wcs = p_i + ext_i[a3] * R_i[a3];
             plus_sign[a3] = 1;
         } else {
-            center_i_wcs = p_i - ext_i(a3) * R_i[a3];
+            center_i_wcs = p_i - ext_i[a3] * R_i[a3];
             plus_sign[a3] = 0;
         }
         //--- Compute difference of center point of incident face with center of reference coordinates.
@@ -667,13 +668,13 @@ class BoxBoxCollisionTest2 {
         }
         //--- Find the four corners of the incident face, in reference-face coordinates
         double quad[8];  //--- 2D coordinate of incident face (stored as x,y pairs).
-        bool inside[4];  //--- inside state of the four coners of the quad
-        //--- Project center_ri onto reference-face coordinate system (has origo
+        bool inside[4];  //--- inside state of the four corners of the quad
+        //--- Project center_ri onto reference-face coordinate system (has origin
         //--- at the center of the reference face, and the two orthogonal unit vectors
-        //--- denoted by R_r[code1] and R_r[code2] spaning the face-plane).
+        //--- denoted by R_r[code1] and R_r[code2] spanning the face-plane).
         double c1 = R_r[code1].Dot(center_ir);
         double c2 = R_r[code2].Dot(center_ir);
-        //--- Compute the projections of the axis spanning the incidient
+        //--- Compute the projections of the axis spanning the incident
         //--- face, onto the axis spanning the reference face.
         //---
         //--- This will allow us to determine the coordinates in the reference-face
@@ -684,10 +685,10 @@ class BoxBoxCollisionTest2 {
         double m21 = R_r[code2].Dot(R_i[a1]);
         double m22 = R_r[code2].Dot(R_i[a2]);
         {
-            double k1 = m11 * ext_i(a1);
-            double k2 = m21 * ext_i(a1);
-            double k3 = m12 * ext_i(a2);
-            double k4 = m22 * ext_i(a2);
+            double k1 = m11 * ext_i[a1];
+            double k2 = m21 * ext_i[a1];
+            double k3 = m12 * ext_i[a2];
+            double k4 = m22 * ext_i[a2];
 
             plus_sign[a1] = 0;
             plus_sign[a2] = 0;
@@ -723,8 +724,8 @@ class BoxBoxCollisionTest2 {
         }
         //--- find the size of the reference face
         double rect[2];
-        rect[0] = ext_r(code1);
-        rect[1] = ext_r(code2);
+        rect[0] = ext_r[code1];
+        rect[1] = ext_r[code2];
 
         //--- Intersect the edges of the incident and the reference face
         double crossings[16];
@@ -752,7 +753,7 @@ class BoxBoxCollisionTest2 {
             double k2 = -m21 * p0 + m11 * p1;
             Vector point = center_ir + k1 * R_i[a1] + k2 * R_i[a2];
             //--- Depth of intersection point
-            double depth = n_r_wcs.Dot(point) - ext_r(code3);
+            double depth = n_r_wcs.Dot(point) - ext_r[code3];
             if (depth < envelope) {
                 p[cnt] = point + p_r;  //--- Move origin from center of reference frame box to WCS
                 distances[cnt] = depth;
@@ -770,7 +771,7 @@ class BoxBoxCollisionTest2 {
 
             //--- Compute Displacement of contact plane from origin of WCS, the
             //--- contact plane is equal to the face plane of the reference box
-            double w = ext_r(code3) + n_r_wcs.Dot(p_r);
+            double w = ext_r[code3] + n_r_wcs.Dot(p_r);
 
             if (corners_A_in_B) {
                 for (unsigned int i = 0; i < 8; ++i) {
@@ -978,20 +979,20 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
     Vector relC = ChTransform<>::TransformParentToLocal(*c1, aBoxPos, aBoxRot);
 
     if (just_intersection) {
-        if (((fabs(relC.x) <= mgeo2.Size.x + mgeo1.rad) && (fabs(relC.y) <= mgeo2.Size.y) &&
-             (fabs(relC.z) <= mgeo2.Size.z)) ||
-            ((fabs(relC.y) <= mgeo2.Size.y + mgeo1.rad) && (fabs(relC.x) <= mgeo2.Size.x) &&
-             (fabs(relC.z) <= mgeo2.Size.z)) ||
-            ((fabs(relC.z) <= mgeo2.Size.z + mgeo1.rad) && (fabs(relC.x) <= mgeo2.Size.x) &&
-             (fabs(relC.y) <= mgeo2.Size.y)) ||
-            ((sqrt(pow(fabs(relC.x) - mgeo2.Size.x, 2) + pow(fabs(relC.y) - mgeo2.Size.y, 2)) <= mgeo1.rad) &&
-             (fabs(relC.z) <= mgeo2.Size.z)) ||
-            ((sqrt(pow(fabs(relC.y) - mgeo2.Size.y, 2) + pow(fabs(relC.z) - mgeo2.Size.z, 2)) <= mgeo1.rad) &&
-             (fabs(relC.x) <= mgeo2.Size.x)) ||
-            ((sqrt(pow(fabs(relC.z) - mgeo2.Size.z, 2) + pow(fabs(relC.x) - mgeo2.Size.x, 2)) <= mgeo1.rad) &&
-             (fabs(relC.y) <= mgeo2.Size.y)) ||
-            ((sqrt(pow(fabs(relC.x) - mgeo2.Size.x, 2) + pow(fabs(relC.y) - mgeo2.Size.y, 2) +
-                   pow(fabs(relC.z) - mgeo2.Size.z, 2)) <= mgeo1.rad))) {
+        if (((fabs(relC.x()) <= mgeo2.Size.x() + mgeo1.rad) && (fabs(relC.y()) <= mgeo2.Size.y()) &&
+             (fabs(relC.z()) <= mgeo2.Size.z())) ||
+            ((fabs(relC.y()) <= mgeo2.Size.y() + mgeo1.rad) && (fabs(relC.x()) <= mgeo2.Size.x()) &&
+             (fabs(relC.z()) <= mgeo2.Size.z())) ||
+            ((fabs(relC.z()) <= mgeo2.Size.z() + mgeo1.rad) && (fabs(relC.x()) <= mgeo2.Size.x()) &&
+             (fabs(relC.y()) <= mgeo2.Size.y())) ||
+            ((sqrt(pow(fabs(relC.x()) - mgeo2.Size.x(), 2) + pow(fabs(relC.y()) - mgeo2.Size.y(), 2)) <= mgeo1.rad) &&
+             (fabs(relC.z()) <= mgeo2.Size.z())) ||
+            ((sqrt(pow(fabs(relC.y()) - mgeo2.Size.y(), 2) + pow(fabs(relC.z()) - mgeo2.Size.z(), 2)) <= mgeo1.rad) &&
+             (fabs(relC.x()) <= mgeo2.Size.x())) ||
+            ((sqrt(pow(fabs(relC.z()) - mgeo2.Size.z(), 2) + pow(fabs(relC.x()) - mgeo2.Size.x(), 2)) <= mgeo1.rad) &&
+             (fabs(relC.y()) <= mgeo2.Size.y())) ||
+            ((sqrt(pow(fabs(relC.x()) - mgeo2.Size.x(), 2) + pow(fabs(relC.y()) - mgeo2.Size.y(), 2) +
+                   pow(fabs(relC.z()) - mgeo2.Size.z(), 2)) <= mgeo1.rad))) {
             ChCollisionPair temp = ChCollisionPair(&mgeo1, &mgeo2);
 
             mcollider.AddCollisionPair(&temp);
@@ -1002,126 +1003,126 @@ int ChGeometryCollider::ComputeSphereBoxCollisions(
         bool done = false;
         double dist = 0;
 
-        if ((fabs(relC.x) <= mgeo2.Size.x + mgeo1.rad) && (fabs(relC.y) <= mgeo2.Size.y) &&
-            (fabs(relC.z) <= mgeo2.Size.z)) {
-            if (relC.x >= 0) {
+        if ((fabs(relC.x()) <= mgeo2.Size.x() + mgeo1.rad) && (fabs(relC.y()) <= mgeo2.Size.y()) &&
+            (fabs(relC.z()) <= mgeo2.Size.z())) {
+            if (relC.x() >= 0) {
                 pt_loc = relC;
-                pt_loc.x = mgeo2.Size.x;
+                pt_loc.x() = mgeo2.Size.x();
                 done = true;
             } else {
                 pt_loc = relC;
-                pt_loc.x = -mgeo2.Size.x;
+                pt_loc.x() = -mgeo2.Size.x();
                 done = true;
             }
         }
         if (!done) {
-            if ((fabs(relC.y) <= mgeo2.Size.y + mgeo1.rad) && (fabs(relC.z) <= mgeo2.Size.z) &&
-                (fabs(relC.x) <= mgeo2.Size.x)) {
-                if (relC.y >= 0) {
+            if ((fabs(relC.y()) <= mgeo2.Size.y() + mgeo1.rad) && (fabs(relC.z()) <= mgeo2.Size.z()) &&
+                (fabs(relC.x()) <= mgeo2.Size.x())) {
+                if (relC.y() >= 0) {
                     pt_loc = relC;
-                    pt_loc.y = mgeo2.Size.y;
+                    pt_loc.y() = mgeo2.Size.y();
                     done = true;
                 } else {
                     pt_loc = relC;
-                    pt_loc.y = -mgeo2.Size.y;
+                    pt_loc.y() = -mgeo2.Size.y();
                     done = true;
                 }
             }
         }
         if (!done) {
-            if ((fabs(relC.z) <= mgeo2.Size.z + mgeo1.rad) && (fabs(relC.x) <= mgeo2.Size.x) &&
-                (fabs(relC.y) <= mgeo2.Size.y)) {
-                if (relC.z >= 0) {
+            if ((fabs(relC.z()) <= mgeo2.Size.z() + mgeo1.rad) && (fabs(relC.x()) <= mgeo2.Size.x()) &&
+                (fabs(relC.y()) <= mgeo2.Size.y())) {
+                if (relC.z() >= 0) {
                     pt_loc = relC;
-                    pt_loc.z = mgeo2.Size.z;
+                    pt_loc.z() = mgeo2.Size.z();
                     done = true;
                 } else {
                     pt_loc = relC;
-                    pt_loc.z = -mgeo2.Size.z;
+                    pt_loc.z() = -mgeo2.Size.z();
                     done = true;
                 }
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.x) - mgeo2.Size.x, 2) + pow(fabs(relC.y) - mgeo2.Size.y, 2)) <= mgeo1.rad) &&
-                (fabs(relC.z) <= mgeo2.Size.z)) {
-                if (relC.x > 0) {
-                    if (relC.y > 0) {
+            if ((sqrt(pow(fabs(relC.x()) - mgeo2.Size.x(), 2) + pow(fabs(relC.y()) - mgeo2.Size.y(), 2)) <= mgeo1.rad) &&
+                (fabs(relC.z()) <= mgeo2.Size.z())) {
+                if (relC.x() > 0) {
+                    if (relC.y() > 0) {
                         pt_loc = relC;
-                        pt_loc.x = mgeo2.Size.x;
-                        pt_loc.y = mgeo2.Size.y;
+                        pt_loc.x() = mgeo2.Size.x();
+                        pt_loc.y() = mgeo2.Size.y();
                         done = true;
                     } else {
                         pt_loc = relC;
-                        pt_loc.x = mgeo2.Size.x;
-                        pt_loc.y = -mgeo2.Size.y;
+                        pt_loc.x() = mgeo2.Size.x();
+                        pt_loc.y() = -mgeo2.Size.y();
                         done = true;
                     }
-                } else if (relC.y > 0) {
+                } else if (relC.y() > 0) {
                     pt_loc = relC;
-                    pt_loc.x = -mgeo2.Size.x;
-                    pt_loc.y = mgeo2.Size.y;
+                    pt_loc.x() = -mgeo2.Size.x();
+                    pt_loc.y() = mgeo2.Size.y();
                     done = true;
                 } else {
                     pt_loc = relC;
-                    pt_loc.x = -mgeo2.Size.x;
-                    pt_loc.y = -mgeo2.Size.y;
+                    pt_loc.x() = -mgeo2.Size.x();
+                    pt_loc.y() = -mgeo2.Size.y();
                     done = true;
                 }
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.y) - mgeo2.Size.y, 2) + pow(fabs(relC.z) - mgeo2.Size.z, 2)) <= mgeo1.rad) &&
-                (fabs(relC.x) <= mgeo2.Size.x)) {
-                if (relC.y > 0) {
-                    if (relC.z > 0) {
+            if ((sqrt(pow(fabs(relC.y()) - mgeo2.Size.y(), 2) + pow(fabs(relC.z()) - mgeo2.Size.z(), 2)) <= mgeo1.rad) &&
+                (fabs(relC.x()) <= mgeo2.Size.x())) {
+                if (relC.y() > 0) {
+                    if (relC.z() > 0) {
                         pt_loc = relC;
-                        pt_loc.y = mgeo2.Size.y;
-                        pt_loc.z = mgeo2.Size.z;
+                        pt_loc.y() = mgeo2.Size.y();
+                        pt_loc.z() = mgeo2.Size.z();
                         done = true;
                     } else {
                         pt_loc = relC;
-                        pt_loc.y = mgeo2.Size.y;
-                        pt_loc.z = -mgeo2.Size.z;
+                        pt_loc.y() = mgeo2.Size.y();
+                        pt_loc.z() = -mgeo2.Size.z();
                         done = true;
                     }
-                } else if (relC.z > 0) {
+                } else if (relC.z() > 0) {
                     pt_loc = relC;
-                    pt_loc.y = -mgeo2.Size.y;
-                    pt_loc.z = mgeo2.Size.z;
+                    pt_loc.y() = -mgeo2.Size.y();
+                    pt_loc.z() = mgeo2.Size.z();
                     done = true;
                 } else {
                     pt_loc = relC;
-                    pt_loc.y = -mgeo2.Size.y;
-                    pt_loc.z = -mgeo2.Size.z;
+                    pt_loc.y() = -mgeo2.Size.y();
+                    pt_loc.z() = -mgeo2.Size.z();
                     done = true;
                 }
             }
         }
         if (!done) {
-            if ((sqrt(pow(fabs(relC.z) - mgeo2.Size.z, 2) + pow(fabs(relC.x) - mgeo2.Size.x, 2)) <= mgeo1.rad) &&
-                (fabs(relC.y) <= mgeo2.Size.y)) {
-                if (relC.z > 0) {
-                    if (relC.x > 0) {
+            if ((sqrt(pow(fabs(relC.z()) - mgeo2.Size.z(), 2) + pow(fabs(relC.x()) - mgeo2.Size.x(), 2)) <= mgeo1.rad) &&
+                (fabs(relC.y()) <= mgeo2.Size.y())) {
+                if (relC.z() > 0) {
+                    if (relC.x() > 0) {
                         pt_loc = relC;
-                        pt_loc.z = mgeo2.Size.z;
-                        pt_loc.x = mgeo2.Size.x;
+                        pt_loc.z() = mgeo2.Size.z();
+                        pt_loc.x() = mgeo2.Size.x();
                         done = true;
                     } else {
                         pt_loc = relC;
-                        pt_loc.z = mgeo2.Size.z;
-                        pt_loc.x = -mgeo2.Size.x;
+                        pt_loc.z() = mgeo2.Size.z();
+                        pt_loc.x() = -mgeo2.Size.x();
                         done = true;
                     }
-                } else if (relC.x > 0) {
+                } else if (relC.x() > 0) {
                     pt_loc = relC;
-                    pt_loc.z = -mgeo2.Size.z;
-                    pt_loc.x = mgeo2.Size.x;
+                    pt_loc.z() = -mgeo2.Size.z();
+                    pt_loc.x() = mgeo2.Size.x();
                     done = true;
                 } else {
                     pt_loc = relC;
-                    pt_loc.z = -mgeo2.Size.z;
-                    pt_loc.x = -mgeo2.Size.x;
+                    pt_loc.z() = -mgeo2.Size.z();
+                    pt_loc.x() = -mgeo2.Size.x();
                     done = true;
                 }
             }
@@ -1177,7 +1178,7 @@ static double ChPointTriangleDistance(Vector& B,
 
     double dylen = Vlength(Dy);
 
-    if (fabs(dylen) < 0.000001)  // degenere triangle
+    if (fabs(dylen) < 0.000001)  // degenerated triangle
         return mdistance;
 
     Dy = Vmul(Dy, 1.0 / dylen);
@@ -1192,12 +1193,12 @@ static double ChPointTriangleDistance(Vector& B,
 
     T1 = mAi.Matr_x_Vect(Vsub(B, A1));
     T1p = T1;
-    T1p.y = 0;
-    mu = T1.x;
-    mv = T1.z;
+    T1p.y() = 0;
+    mu = T1.x();
+    mv = T1.z();
     if (mu >= 0 && mv >= 0 && mv <= 1.0 - mu) {
         is_into = 1;
-        mdistance = fabs(T1.y);
+        mdistance = fabs(T1.y());
         Bprojected = Vadd(A1, mA.Matr_x_Vect(T1p));
     }
 
@@ -1243,37 +1244,37 @@ int ChGeometryCollider::ComputeBoxTriangleCollisions(
         distc = -10e24;
         P1_b = v_b[nv];
         P2_b = v_b[nv];
-        if ((fabs(v_b[nv].x) <= mbox.Size.x) && (fabs(v_b[nv].y) <= mbox.Size.y) && (fabs(v_b[nv].z) <= mbox.Size.z)) {
+        if ((fabs(v_b[nv].x()) <= mbox.Size.x()) && (fabs(v_b[nv].y()) <= mbox.Size.y()) && (fabs(v_b[nv].z()) <= mbox.Size.z())) {
             hit = true;
-            if (v_b[nv].x - mbox.Size.x > distc) {
-                distc = v_b[nv].x - mbox.Size.x;
+            if (v_b[nv].x() - mbox.Size.x() > distc) {
+                distc = v_b[nv].x() - mbox.Size.x();
                 P1_b = v_b[nv];
-                P1_b.x = mbox.Size.x;
+                P1_b.x() = mbox.Size.x();
             }
-            if (-v_b[nv].x - mbox.Size.x > distc) {
-                distc = -v_b[nv].x - mbox.Size.x;
+            if (-v_b[nv].x() - mbox.Size.x() > distc) {
+                distc = -v_b[nv].x() - mbox.Size.x();
                 P1_b = v_b[nv];
-                P1_b.x = -mbox.Size.x;
+                P1_b.x() = -mbox.Size.x();
             }
-            if (v_b[nv].y - mbox.Size.y > distc) {
-                distc = v_b[nv].y - mbox.Size.y;
+            if (v_b[nv].y() - mbox.Size.y() > distc) {
+                distc = v_b[nv].y() - mbox.Size.y();
                 P1_b = v_b[nv];
-                P1_b.y = mbox.Size.y;
+                P1_b.y() = mbox.Size.y();
             }
-            if (-v_b[nv].y - mbox.Size.y > distc) {
-                distc = -v_b[nv].y - mbox.Size.y;
+            if (-v_b[nv].y() - mbox.Size.y() > distc) {
+                distc = -v_b[nv].y() - mbox.Size.y();
                 P1_b = v_b[nv];
-                P1_b.y = -mbox.Size.y;
+                P1_b.y() = -mbox.Size.y();
             }
-            if (v_b[nv].z - mbox.Size.z > distc) {
-                distc = v_b[nv].z - mbox.Size.z;
+            if (v_b[nv].z() - mbox.Size.z() > distc) {
+                distc = v_b[nv].z() - mbox.Size.z();
                 P1_b = v_b[nv];
-                P1_b.z = mbox.Size.z;
+                P1_b.z() = mbox.Size.z();
             }
-            if (-v_b[nv].z - mbox.Size.z > distc) {
-                distc = -v_b[nv].z - mbox.Size.z;
+            if (-v_b[nv].z() - mbox.Size.z() > distc) {
+                distc = -v_b[nv].z() - mbox.Size.z();
                 P1_b = v_b[nv];
-                P1_b.z = -mbox.Size.z;
+                P1_b.z() = -mbox.Size.z();
             }
 
             Vector P1_w = ChTransform<>::TransformLocalToParent(P1_b, aBoxPos, aBoxRot);

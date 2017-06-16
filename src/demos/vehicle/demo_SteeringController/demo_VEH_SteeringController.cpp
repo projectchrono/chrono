@@ -40,7 +40,7 @@ using namespace chrono::vehicle::hmmwv;
 // Problem parameters
 
 // Contact method type
-ChMaterialSurfaceBase::ContactMethod contact_method = ChMaterialSurfaceBase::DEM;
+ChMaterialSurface::ContactMethod contact_method = ChMaterialSurface::SMC;
 
 // Type of tire model (RIGID, LUGRE, FIALA, or PACEJKA)
 TireModelType tire_model = TireModelType::RIGID;
@@ -169,6 +169,8 @@ class ChDriverSelector : public irr::IEventReceiver {
                     m_driver_follower->GetSteeringController().WriteOutputFile(std::string(filename));
                 }
                 return true;
+            default:
+                break;
         }
 
         return false;
@@ -220,7 +222,7 @@ int main(int argc, char* argv[]) {
     // Create the Bezier path
     // ----------------------
 
-    ChBezierCurve* path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
+    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
     ////path->write("my_path.txt");
 
     // ---------------------------------------
@@ -329,10 +331,10 @@ int main(int argc, char* argv[]) {
         double time = my_hmmwv.GetSystem()->GetChTime();
         ChVector<> acc_CG = my_hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
         ChVector<> acc_driver = my_hmmwv.GetVehicle().GetVehicleAcceleration(driver_pos);
-        double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x);
-        double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y);
-        double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x);
-        double lat_acc_driver = lat_acc_driver_filter.Add(acc_driver.y);
+        double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
+        double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
+        double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());
+        double lat_acc_driver = lat_acc_driver_filter.Add(acc_driver.y());
 
         // End simulation
         if (time >= t_end)
@@ -361,8 +363,8 @@ int main(int argc, char* argv[]) {
         // Note that we do this whether or not we are currently using the path-follower driver.
         const ChVector<>& pS = driver_follower.GetSteeringController().GetSentinelLocation();
         const ChVector<>& pT = driver_follower.GetSteeringController().GetTargetLocation();
-        ballS->setPosition(irr::core::vector3df((irr::f32)pS.x, (irr::f32)pS.y, (irr::f32)pS.z));
-        ballT->setPosition(irr::core::vector3df((irr::f32)pT.x, (irr::f32)pT.y, (irr::f32)pT.z));
+        ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
+        ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 
         // Render scene and output POV-Ray data
         if (sim_frame % render_steps == 0) {
@@ -379,8 +381,8 @@ int main(int argc, char* argv[]) {
             if (state_output) {
                 csv << time << steering_input << throttle_input << braking_input;
                 csv << my_hmmwv.GetVehicle().GetVehicleSpeed();
-                csv << acc_CG.x << fwd_acc_CG << acc_CG.y << lat_acc_CG;
-                csv << acc_driver.x << fwd_acc_driver << acc_driver.y << lat_acc_driver;
+                csv << acc_CG.x() << fwd_acc_CG << acc_CG.y() << lat_acc_CG;
+                csv << acc_driver.x() << fwd_acc_driver << acc_driver.y() << lat_acc_driver;
                 csv << std::endl;
             }
 
@@ -389,9 +391,9 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
-            GetLog() << "driver acceleration:  " << acc_driver.x << "  " << acc_driver.y << "  " << acc_driver.z
+            GetLog() << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
                      << "\n";
-            GetLog() << "CG acceleration:      " << acc_CG.x << "  " << acc_CG.y << "  " << acc_CG.z << "\n";
+            GetLog() << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
             GetLog() << "\n";
         }
 

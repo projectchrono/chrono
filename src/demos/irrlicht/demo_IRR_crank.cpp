@@ -25,7 +25,7 @@
 // =============================================================================
 
 #include "chrono/core/ChRealtimeStep.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 
 // Use the namespaces of Chrono
@@ -46,9 +46,9 @@ int main(int argc, char* argv[]) {
     //
 
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
-    //    will be handled by this ChSystem object.
+    //    will be handled by this ChSystemNSC object.
 
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // 2- Create the rigid bodies of the slider-crank mechanical system
     //   (a crank, a rod, a truss), maybe setting position/mass/inertias of

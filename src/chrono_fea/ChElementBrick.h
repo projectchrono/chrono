@@ -334,13 +334,13 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     void ShapeFunctionsDerivativeZ(ChMatrix<>& Nz, double x, double y, double z);
     // Functions for ChLoadable interface
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() { return 8 * 3; }
+    virtual int LoadableGet_ndof_x() override { return 8 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() { return 8 * 3; }
+    virtual int LoadableGet_ndof_w() override { return 8 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
         mD.PasteVector(this->m_nodes[0]->GetPos(), block_offset, 0);
         mD.PasteVector(this->m_nodes[1]->GetPos(), block_offset + 3, 0);
         mD.PasteVector(this->m_nodes[2]->GetPos(), block_offset + 6, 0);
@@ -352,7 +352,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     }
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChVectorDynamic<>& mD) {
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
         mD.PasteVector(this->m_nodes[0]->GetPos_dt(), block_offset, 0);
         mD.PasteVector(this->m_nodes[1]->GetPos_dt(), block_offset + 3, 0);
         mD.PasteVector(this->m_nodes[2]->GetPos_dt(), block_offset + 6, 0);
@@ -363,20 +363,28 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
         mD.PasteVector(this->m_nodes[7]->GetPos_dt(), block_offset + 21, 0);
     }
 
+    /// Increment all DOFs using a delta.
+    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override {
+        for (int i= 0; i<8; ++i) {
+            this->m_nodes[i]->NodeIntStateIncrement(off_x+3*1 , x_new, x, off_v+3*i , Dv);
+        }
+    }
+
+
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() { return 3; }
+    virtual int Get_field_ncoords() override { return 3; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
-    virtual int GetSubBlocks() { return 8; }
+    virtual int GetSubBlocks() override { return 8; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockOffset(int nblock) { return m_nodes[nblock]->NodeGetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffset_w(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector
-    virtual unsigned int GetSubBlockSize(int nblock) { return 3; }
+    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) {
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < m_nodes.size(); ++i)
             mvars.push_back(&this->m_nodes[i]->Variables());
     };
@@ -393,7 +401,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) {
+                           ) override {
         // this->ComputeNF(U, V, Qi, detJ, F, state_x, state_w);
         ChMatrixNM<double, 1, 8> N;
         ChMatrixNM<double, 1, 8> Nx;
@@ -445,7 +453,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     }
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() { return this->m_Material->Get_density(); }
+    virtual double GetDensity() override { return this->m_Material->Get_density(); }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };
@@ -478,7 +486,7 @@ class ChApiFea ChElementBrick : public ChElementGeneric, public ChLoadableUVW {
     /// field values at the nodes of the element, with proper ordering.
     /// If the D vector has not the size of this->GetNdofs(), it will be resized.
     ///  {x_a y_a z_a Dx_a Dx_a Dx_a x_b y_b z_b Dx_b Dy_b Dz_b}
-    virtual void GetStateBlock(ChMatrixDynamic<>& mD);
+    virtual void GetStateBlock(ChMatrixDynamic<>& mD) override;
 
     /// Computes the STIFFNESS MATRIX of the element:
     /// K = integral( .... ),

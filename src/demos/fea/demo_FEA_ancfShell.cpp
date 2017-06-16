@@ -18,7 +18,7 @@
 
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemSMC.h"
 #include "chrono_fea/ChElementShellANCF.h"
 #include "chrono_fea/ChLinkDirFrame.h"
 #include "chrono_fea/ChLinkPointFrame.h"
@@ -35,7 +35,7 @@ using namespace irr;
 int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
-    ChSystem my_system;
+    ChSystemSMC my_system;
     my_system.Set_G_acc(ChVector<>(0, 0, -9.8));
 
     // Create the Irrlicht visualization (open the Irrlicht device, bind a simple user interface, etc.)
@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
         // Adjacent nodes
         int node0 = (i / (numDiv_x)) * (N_x) + i % numDiv_x;
         int node1 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1;
-        int node2 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + 1 + N_x;        
-        int node3 = (i / (numDiv_x)) * (N_x)+i % numDiv_x + N_x;
+        int node2 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + 1 + N_x;
+        int node3 = (i / (numDiv_x)) * (N_x) + i % numDiv_x + N_x;
 
         // Create the element and set its nodes.
         auto element = std::make_shared<ChElementShellANCF>();
@@ -186,15 +186,14 @@ int main(int argc, char* argv[]) {
     my_system.SetupInitial();
 
     // Set up solver
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't
-                                                              // handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     my_system.SetMaxItersSolverSpeed(100);
     my_system.SetTolForce(1e-10);
 
     // Set up integrator
-    my_system.SetIntegrationType(ChSystem::INT_HHT);
+    my_system.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper());
     mystepper->SetAlpha(-0.2);
     mystepper->SetMaxiters(100);

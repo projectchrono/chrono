@@ -1,23 +1,22 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
+//
+// FEA (basic introduction)
+//
+// =============================================================================
 
-//
-//   Demos code about
-//
-//     - FEA (basic introduction)
-//
-
-// Include some headers used by this tutorial...
-
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 
 #include "chrono_fea/ChElementSpring.h"
@@ -28,23 +27,19 @@
 #include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChLinkPointFrame.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
-
 using namespace chrono;
 using namespace fea;
 
-//////////////////////////////////////////
-// ====================================	//
-// Test 1								//
-// First example: SPRING ELEMENT		//
-// ==================================== //
+// ====================================
+// Test 1
+// First example: SPRING ELEMENT
+// ====================================
 void test_1() {
     GetLog() << "\n-------------------------------------------------\n";
     GetLog() << "TEST: spring element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -58,8 +53,8 @@ void test_1() {
     auto mnodeB = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
 
     // For example, you can attach local 'point masses' (FE node masses are zero by default)
-    mnodeA->SetMass(0.01); 
-    mnodeB->SetMass(0.01);  
+    mnodeA->SetMass(0.01);
+    mnodeB->SetMass(0.01);
 
     // For example, set an applied force to a node:
     mnodeB->SetForce(ChVector<>(0, 5, 0));
@@ -88,8 +83,8 @@ void test_1() {
     // Create a constraint between a node and the truss
     auto constraintA = std::make_shared<ChLinkPointFrame>();
 
-    constraintA->Initialize(mnodeA,   // node to connect
-                            truss);   // body to be connected to
+    constraintA->Initialize(mnodeA,  // node to connect
+                            truss);  // body to be connected to
 
     my_system.Add(constraintA);
 
@@ -100,9 +95,8 @@ void test_1() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(40);
@@ -128,7 +122,7 @@ void test_2() {
     GetLog() << "TEST: LINEAR tetrahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -203,9 +197,8 @@ void test_2() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -236,7 +229,7 @@ void test_3() {
     GetLog() << "TEST: QUADRATIC tetrahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -323,9 +316,8 @@ void test_3() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    chrono::ChSolverMINRES* msolver = (chrono::ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -353,7 +345,7 @@ void test_4() {
     GetLog() << "TEST: LINEAR hexahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -448,9 +440,8 @@ void test_4() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);
@@ -481,7 +472,7 @@ void test_5() {
     GetLog() << "TEST: QUADRATIC hexahedral element FEM  \n\n";
 
     // The physical system: it contains all physical objects.
-    ChSystem my_system;
+    ChSystemNSC my_system;
 
     // Create a mesh, that is a container for groups
     // of elements and their referenced nodes.
@@ -609,9 +600,8 @@ void test_5() {
     my_system.SetupInitial();
 
     // Perform a linear static analysis
-    my_system.SetSolverType(
-        ChSystem::SOLVER_MINRES);  // <- NEEDED because other solvers can't handle stiffness matrices
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    my_system.SetSolverType(ChSolver::Type::MINRES);
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetDiagonalPreconditioning(true);
     msolver->SetVerbose(true);
     my_system.SetMaxItersSolverSpeed(100);

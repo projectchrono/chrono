@@ -34,17 +34,16 @@ class ChApi ChLineBezier : public ChLine {
     CH_FACTORY_TAG(ChLineBezier)
 
   public:
-    ChLineBezier() : m_own_data(false), m_path(NULL) {}
-    ChLineBezier(ChBezierCurve* path);
+    ChLineBezier() {}
+    ChLineBezier(std::shared_ptr<ChBezierCurve> path);
     ChLineBezier(const std::string& filename);
     ChLineBezier(const ChLineBezier& source);
-    ChLineBezier(const ChLineBezier* source);
-    ~ChLineBezier();
+    ~ChLineBezier() {}
 
     virtual GeometryType GetClassType() const override { return LINE_BEZIER; }
 
-    virtual void Set_closed(bool mc) {}
-    virtual void Set_complexity(int mc) {}
+    virtual void Set_closed(bool mc) override {}
+    virtual void Set_complexity(int mc) override {}
 
     /// Curve evaluation (only parU is used, in 0..1 range)
     virtual void Evaluate(ChVector<>& pos,
@@ -54,31 +53,31 @@ class ChApi ChLineBezier : public ChLine {
 
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChLineBezier>();
         // serialize parent class
         ChLine::ArchiveOUT(marchive);
         // serialize all member data:
-        marchive << CHNVP(m_own_data);
         marchive << CHNVP(m_path);
     }
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChLineBezier>();
         // deserialize parent class
         ChLine::ArchiveIN(marchive);
         // stream in all member data:
-        marchive >> CHNVP(m_own_data);
         marchive >> CHNVP(m_path);
     }
 
   private:
-    bool m_own_data;        ///< flag indicating if this object owns the data
-    ChBezierCurve* m_path;  ///< pointer to a Bezier curve
+    std::shared_ptr<ChBezierCurve> m_path;  ///< handle to a Bezier curve
 };
 
 }  // end of namespace geometry
+
+CH_CLASS_VERSION(geometry::ChLineBezier,0)
+
 }  // end of namespace chrono
 
 #endif

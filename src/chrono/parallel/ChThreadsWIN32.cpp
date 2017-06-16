@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #if defined _WIN32
 
@@ -65,7 +66,7 @@ DWORD WINAPI Thread_no_1(LPVOID lpParam) {
 void ChThreadsWIN32::sendRequest(uint32_t uiCommand, void* uiUserPtr, uint32_t threadId) {
     ChThreadStateWIN32& spuStatus = m_activeSpuStatus[threadId];
     btAssert(threadId >= 0);
-    btAssert(threadId < m_activeSpuStatus.size());
+    btAssert(threadId < (unsigned)m_activeSpuStatus.size());
 
     spuStatus.m_commandId = uiCommand;
     spuStatus.m_status = 1;

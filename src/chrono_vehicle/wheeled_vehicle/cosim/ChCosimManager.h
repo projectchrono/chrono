@@ -28,22 +28,12 @@
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimTireNode.h"
 #include "chrono_vehicle/wheeled_vehicle/cosim/ChCosimTerrainNode.h"
 
-/**
-    @addtogroup vehicle_wheeled
-    @{
-        @defgroup vehicle_wheeled_cosim Cosimulation infrastructure
-    @}
-*/
-
 namespace chrono {
 namespace vehicle {
 
 #define VEHICLE_NODE_RANK 0
 #define TERRAIN_NODE_RANK 1
 #define TIRE_NODE_RANK(i) (i+2)
-
-/// @addtogroup vehicle_wheeled_cosim
-/// @{
 
 class CH_VEHICLE_API ChCosimManager {
   public:
@@ -99,8 +89,6 @@ class CH_VEHICLE_API ChCosimManager {
     ChCosimTerrainNode* m_terrain_node;
     ChCosimTireNode* m_tire_node;
 };
-
-/// @} vehicle_wheeled_cosim
 
 }  // end namespace vehicle
 }  // end namespace chrono

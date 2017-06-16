@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,6 +27,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Fiala tire model for a generic vehicle.
 class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
   public:
     Generic_FialaTire(const std::string& name);
@@ -37,12 +41,14 @@ class CH_MODELS_API Generic_FialaTire : public ChFialaTire {
         return m_normalDamping * velocity;
     }
 
-    virtual void SetFialaParams();
+    virtual void SetFialaParams() override;
 
   private:
     static const double m_normalStiffness;
     static const double m_normalDamping;
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

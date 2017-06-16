@@ -1,28 +1,20 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-
-//////////////////////////////////////////////////
-//
-//   ChCCollisionSystemSpheres.cpp
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
+// =============================================================================
 
 #include "collision/ChCCollisionSystemSpheres.h"
 #include "collision/ChCModelSphereSet.h"
 #include "physics/ChBody.h"
-#include "physics/ChContactContainerBase.h"
-#include "physics/ChProximityContainerBase.h"
+#include "physics/ChContactContainer.h"
+#include "physics/ChProximityContainer.h"
 
 namespace chrono {
 namespace collision {
@@ -475,7 +467,7 @@ void ChCollisionSystemSpheres::updateDataStructures() {
     }
 }
 
-void ChCollisionSystemSpheres::ReportContacts(ChContactContainerBase* mcontactcontainer) {
+void ChCollisionSystemSpheres::ReportContacts(ChContactContainer* mcontactcontainer) {
     // This should remove all old contacts (or at least rewind the index)
     mcontactcontainer->BeginAddContact();
 
@@ -526,7 +518,7 @@ void ChCollisionSystemSpheres::ReportContacts(ChContactContainerBase* mcontactco
     mcontactcontainer->EndAddContact();
 }
 
-void ChCollisionSystemSpheres::ReportProximities(ChProximityContainerBase* mproximitycontainer) {
+void ChCollisionSystemSpheres::ReportProximities(ChProximityContainer* mproximitycontainer) {
     mproximitycontainer->BeginAddProximities();
 
     // TOBY ????

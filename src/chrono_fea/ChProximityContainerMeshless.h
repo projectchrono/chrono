@@ -18,7 +18,7 @@
 #include <list>
 
 #include "chrono/collision/ChCModelBullet.h"
-#include "chrono/physics/ChProximityContainerBase.h"
+#include "chrono/physics/ChProximityContainer.h"
 
 namespace chrono {
 
@@ -63,7 +63,7 @@ class ChApiFea ChProximityMeshless {
 /// Such an item must be addd to the physical system if you added
 /// an object of class ChMatterMeshless.
 
-class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
+class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
     // Tag needed for class factory in archive (de)serialization:
     CH_FACTORY_TAG(ChProximityContainerMeshless)
 
@@ -103,9 +103,9 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainerBase {
     /// purges the end of the list of contacts that were not reused (if any).
     virtual void EndAddProximities() override;
 
-    /// Scans all the proximity pairs of SPH type and for each pair executes the ReportProximityCallback()
-    /// function of the user object inherited from ChReportProximityCallback.
-    virtual void ReportAllProximities(ChReportProximityCallback* mcallback) override;
+    /// Scans all the proximity pairs and, for each pair, executes the OnReportProximity()
+    /// function of the provided callback object.
+    virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
     // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )

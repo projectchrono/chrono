@@ -1,13 +1,14 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All rights reserved.
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
 
 #ifndef CHTHREADSFUNCT_H
 #define CHTHREADSFUNCT_H
@@ -19,7 +20,7 @@ typedef void (*ChThreadFunc)(void* userPtr, void* lsMemory);
 typedef void* (*ChMemorySetupFunc)();
 
 struct ChThreadConstructionInfo {
-    ChThreadConstructionInfo(char* uniqueName,
+    ChThreadConstructionInfo(const char* uniqueName,
                              ChThreadFunc userThreadFunc,
                              ChMemorySetupFunc lsMemoryFunc,
                              int numThreads = 1,
@@ -30,7 +31,7 @@ struct ChThreadConstructionInfo {
           m_numThreads(numThreads),
           m_threadStackSize(threadStackSize) {}
 
-    char* m_uniqueName;
+    const char* m_uniqueName;
     ChThreadFunc m_userThreadFunc;
     ChMemorySetupFunc m_lsMemoryFunc;
     int m_numThreads;

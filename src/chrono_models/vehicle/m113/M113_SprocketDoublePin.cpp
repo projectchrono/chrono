@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -66,7 +66,7 @@ void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         //// TODO
         //// Set up mesh for sprocket gear
-        //// For now, efault to rendering the profile.
+        //// For now, default to rendering the profile.
         ChSprocket::AddVisualizationAssets(vis);
         ////geometry::ChTriangleMeshConnected trimesh;
         ////trimesh.LoadWavefrontMesh(GetMeshFile(), false, false);

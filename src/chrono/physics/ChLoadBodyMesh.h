@@ -1,14 +1,16 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2013 Project Chrono
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
-// File authors: Alessandro Tasora
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHLOADBODYMESH_H
 #define CHLOADBODYMESH_H
@@ -19,14 +21,14 @@
 namespace chrono {
 
 
-/// Class for applyings loads to a triangle mesh belonging to a ChBody, as a cluster of forces
+/// Class for applying loads to a triangle mesh belonging to a ChBody, as a cluster of forces
 /// operating on the underlying rigid body.
 /// It is useful for doing cosimulation: one can pass this object's vertex & faces
 /// to an external software (ex. CFD) that in turn will perform collision detection 
 /// with its entities, compute forces, send forces back to Chrono via this object.
 /// Note, this is based on a cluster of  std::vector< std::shared_ptr<ChLoadBodyForce> >, but
 /// the class itself could bypass all methods of ChLoadBodyForce and directly implement
-/// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
+/// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactic reasons.
 
 class  ChLoadBodyMesh : public ChLoadBase {
 
@@ -62,7 +64,7 @@ class  ChLoadBodyMesh : public ChLoadBase {
         vert_pos.resize (contactmesh.m_vertices.size());
         vert_vel.resize (contactmesh.m_vertices.size());
         triangles = contactmesh.m_face_v_indices;
-        // Transform the body-relative collsion mesh into the output vectors with positions and speeds in absolute coords
+        // Transform the body-relative collision mesh into the output vectors with positions and speeds in absolute coords
         for(size_t i=0; i< contactmesh.m_vertices.size(); ++i) {
             vert_pos[i] = contactbody->TransformPointLocalToParent( contactmesh.m_vertices[i] );
             vert_vel[i] = contactbody->PointSpeedLocalToParent( contactmesh.m_vertices[i] );
@@ -123,24 +125,40 @@ class  ChLoadBodyMesh : public ChLoadBase {
             ndoftot += forces[i]->LoadGet_ndof_w();
         return ndoftot;
     }
-    virtual void LoadGetStateBlock_x(ChVectorDynamic<>& mD) { 
+    virtual void LoadGetStateBlock_x(ChState& mD) { 
         int ndoftot = 0;
         for (int i= 0; i<forces.size(); ++i) {
-            ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_x());
+            ChState mDi(forces[i]->LoadGet_ndof_x(), nullptr);
             forces[i]->LoadGetStateBlock_x(mDi);
             mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_x();
         }
     }
-    virtual void LoadGetStateBlock_w(ChVectorDynamic<>& mD) { 
+    virtual void LoadGetStateBlock_w(ChStateDelta& mD) { 
         int ndoftot = 0;
         for (int i= 0; i<forces.size(); ++i) {
-            ChVectorDynamic<> mDi(forces[i]->LoadGet_ndof_w());
+            ChStateDelta mDi(forces[i]->LoadGet_ndof_w(), nullptr);
             forces[i]->LoadGetStateBlock_w(mDi);
             mD.PasteMatrix(mDi,ndoftot,0);
             ndoftot += forces[i]->LoadGet_ndof_w();
         }
     }
+    virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override {
+        int ndoftotx = 0;
+        int ndoftotw = 0;
+        for (int i = 0; i < forces.size(); ++i) {
+            ChState      mx_inc (forces[i]->LoadGet_ndof_x(), nullptr);
+            ChState      mx     (forces[i]->LoadGet_ndof_x(), nullptr);
+            ChStateDelta mDi    (forces[i]->LoadGet_ndof_w(), nullptr);
+            mx.PasteClippedMatrix (x,  ndoftotx,0, forces[i]->LoadGet_ndof_x(),1,  0,0);
+            mDi.PasteClippedMatrix(dw, ndoftotw,0, forces[i]->LoadGet_ndof_w(),1,  0,0);
+            forces[i]->LoadStateIncrement(mx, mDi, mx_inc);
+            x_new.PasteMatrix(mx_inc,ndoftotx,0);
+            ndoftotx += forces[i]->LoadGet_ndof_x();
+            ndoftotw += forces[i]->LoadGet_ndof_w();
+        }
+    }
+
          // simple.. field is x y z, hardcoded return val:
     virtual int LoadGet_field_ncoords() { return 3;}
 

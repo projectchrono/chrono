@@ -258,24 +258,24 @@ double ChLine::Length(int sampling) const {
 // Draw into the current graph viewport of a ChFile_ps file
 
 bool ChLine::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
-    ChPageVect mp1;
+    ChVector2<> mp1;
     ChVector<> mv1;
 
     mfle->GrSave();
-    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), PS_SPACE_PAGE);
+    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
     // start a line, move cursor to beginning
     mfle->StartLine();
     this->Evaluate(mv1, 0.0);
-    mp1.x = mv1.x;
-    mp1.y = mv1.y;
+    mp1.x() = mv1.x();
+    mp1.y() = mv1.y();
     mp1 = mfle->To_page_from_graph(mp1);
     mfle->MoveTo(mp1);
     double maxpoints = this->Get_complexity() * 10;
     // add points into line
     for (int i = 1; i <= maxpoints; i++) {
         this->Evaluate(mv1, ((double)i) / ((double)maxpoints));
-        mp1.x = mv1.x;
-        mp1.y = mv1.y;
+        mp1.x() = mv1.x();
+        mp1.y() = mv1.y();
         mp1 = mfle->To_page_from_graph(mp1);
         mfle->AddLinePoint(mp1);
     }

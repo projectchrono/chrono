@@ -54,8 +54,8 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     virtual double Get_y(double x) const override;
 
     /// Add a point at the head (right side of point array).
-    /// Note that it is user's responsability to add points
-    /// which are spaced uniformily (by dx) on the X axis!
+    /// Note that it is user's responsibility to add points
+    /// which are spaced uniformly (by dx) on the X axis!
     /// No checks are done on the correctness of the dx spacing,
     /// except that if you enter a point whose mx is less than the
     /// mx of the one you previously entered, the array is cleared.
@@ -94,7 +94,7 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOUT(ChArchiveOut& marchive) override {
         // version number
-        marchive.VersionWrite(1);
+        marchive.VersionWrite<ChFunction_Oscilloscope>();
         // serialize parent class
         ChFunction::ArchiveOUT(marchive);
         // serialize all member data:
@@ -108,7 +108,7 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override {
         // version number
-        int version = marchive.VersionRead();
+        int version = marchive.VersionRead<ChFunction_Oscilloscope>();
         // deserialize parent class
         ChFunction::ArchiveIN(marchive);
         // stream in all member data:
@@ -119,6 +119,8 @@ class ChApi ChFunction_Oscilloscope : public ChFunction {
         marchive >> CHNVP(amount);
     }
 };
+
+CH_CLASS_VERSION(ChFunction_Oscilloscope,0)
 
 }  // end namespace chrono
 

@@ -4,6 +4,7 @@
 
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChStream.h"
+#include "chrono/physics/ChMaterialSurface.h"
 
 using namespace chrono;
 using namespace chrono::collision;
@@ -25,9 +26,12 @@ ChParallelDataManager::ChParallelDataManager()
       num_rigid_tet_contacts(0),
       num_rigid_tet_node_contacts(0),
       num_marker_tet_contacts(0),
-      nnz_bilaterals(0) {
-    node_container = new Ch3DOFContainer();
-    fea_container = new Ch3DOFContainer();
+      nnz_bilaterals(0),
+      composition_strategy(new ChMaterialCompositionStrategy<real>) {
+    node_container = std::make_shared<Ch3DOFContainer>();
+    fea_container = std::make_shared<Ch3DOFContainer>();
+    node_container->data_manager = this;
+    fea_container->data_manager = this;
 
     broadphase = new ChCBroadphase;
     narrowphase = new ChCNarrowphaseDispatch;
@@ -41,8 +45,6 @@ ChParallelDataManager::~ChParallelDataManager() {
     delete narrowphase;
     delete broadphase;
     delete aabb_generator;
-    delete node_container;
-    delete fea_container;
 }
 
 int ChParallelDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
@@ -73,24 +75,24 @@ int ChParallelDataManager::OutputBlazeMatrix(CompressedMatrix<real> src, std::st
 
 int ChParallelDataManager::ExportCurrentSystem(std::string output_dir) {
     int offset = 0;
-    if (settings.solver.solver_mode == NORMAL) {
+    if (settings.solver.solver_mode == SolverMode::NORMAL) {
         offset = num_rigid_contacts;
-    } else if (settings.solver.solver_mode == SLIDING) {
+    } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
         offset = 3 * num_rigid_contacts;
-    } else if (settings.solver.solver_mode == SPINNING) {
+    } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
         offset = 6 * num_rigid_contacts;
     }
 
     // fill in the information for constraints and friction
     DynamicVector<real> fric(num_constraints, -2.0);
-    for (int i = 0; i < num_rigid_contacts; i++) {
-        if (settings.solver.solver_mode == NORMAL) {
+    for (unsigned int i = 0; i < num_rigid_contacts; i++) {
+        if (settings.solver.solver_mode == SolverMode::NORMAL) {
             fric[i] = host_data.fric_rigid_rigid[i].x;
-        } else if (settings.solver.solver_mode == SLIDING) {
+        } else if (settings.solver.solver_mode == SolverMode::SLIDING) {
             fric[3 * i] = host_data.fric_rigid_rigid[i].x;
             fric[3 * i + 1] = -1;
             fric[3 * i + 2] = -1;
-        } else if (settings.solver.solver_mode == SPINNING) {
+        } else if (settings.solver.solver_mode == SolverMode::SPINNING) {
             fric[6 * i] = host_data.fric_rigid_rigid[i].x;
             fric[6 * i + 1] = -1;
             fric[6 * i + 2] = -1;
@@ -135,13 +137,4 @@ void ChParallelDataManager::PrintMatrix(CompressedMatrix<real> src) {
         }
         std::cout << "\n";
     }
-}
-
-void ChParallelDataManager::Add3DOFContainer(Ch3DOFContainer* container) {
-    delete node_container;
-    node_container = container;
-}
-void ChParallelDataManager::AddFEAContainer(ChFEAContainer* container) {
-    delete fea_container;
-    fea_container = container;
 }

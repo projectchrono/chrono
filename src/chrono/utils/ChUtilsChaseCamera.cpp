@@ -122,7 +122,7 @@ void ChChaseCamera::SetCameraPos(const ChVector<>& pos) {
 // -----------------------------------------------------------------------------
 // Return the camera location and the camera target (look at) location,
 // respectively.
-// Note that in Inside mode, in order to accomodate a narrow field of view, we
+// Note that in Inside mode, in order to accommodate a narrow field of view, we
 // set the target location to be at the current driver location and move back
 // the camera position.
 // -----------------------------------------------------------------------------
@@ -183,18 +183,18 @@ ChVector<> ChChaseCamera::calcDeriv(const ChVector<>& loc) {
         uC2T = rot.Rotate(m_chassis->GetA().Get_A_Xaxis());
     }
 
-    uC2T.z = 0;
+    uC2T.z() = 0;
     uC2T.Normalize();
 
     desCamLoc = targetLoc - m_mult * m_dist * uC2T;
-    desCamLoc.z = targetLoc.z + m_mult * m_height;
+    desCamLoc.z() = targetLoc.z() + m_mult * m_height;
 
     // Calculate the derivative vector (RHS of filter ODEs).
     ChVector<> deriv;
 
-    deriv.x = m_horizGain * (desCamLoc.x - m_loc.x);
-    deriv.y = m_horizGain * (desCamLoc.y - m_loc.y);
-    deriv.z = m_vertGain * (desCamLoc.z - m_loc.z);
+    deriv.x() = m_horizGain * (desCamLoc.x() - m_loc.x());
+    deriv.y() = m_horizGain * (desCamLoc.y() - m_loc.y());
+    deriv.z() = m_vertGain * (desCamLoc.z() - m_loc.z());
 
     return deriv;
 }

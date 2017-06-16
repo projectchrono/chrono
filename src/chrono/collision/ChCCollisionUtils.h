@@ -57,7 +57,7 @@ class ChApi ChCollisionUtils {
                                         Vector& Bprojected);
 };
 
-/// Wrapper for using andexporting the Bullet implementation of the convex hull library.
+/// Wrapper for using and exporting the Bullet implementation of the convex hull library.
 class ChApi ChConvexHullLibraryWrapper {
   public:
     ChConvexHullLibraryWrapper();

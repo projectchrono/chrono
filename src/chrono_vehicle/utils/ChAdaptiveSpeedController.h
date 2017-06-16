@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -12,7 +12,7 @@
 // Authors: Mike Taylor, Radu Serban
 // =============================================================================
 //
-// Utility classe implementing and Adaptive Cruise Control PID speed controller.
+// Utility class implementing and Adaptive Cruise Control PID speed controller.
 //
 // An object of this type can be used within a Chrono::Vehicle driver model to
 // provide the throttle/braking outputs.
@@ -28,13 +28,6 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChVehicle.h"
-
-/**
-    @addtogroup vehicle
-    @{
-        @defgroup vehicle_utils Utility classes
-    @}
-*/
 
 namespace chrono {
 namespace vehicle {

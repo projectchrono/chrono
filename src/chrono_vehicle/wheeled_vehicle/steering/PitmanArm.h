@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -43,8 +43,10 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
     virtual double getSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getSteeringLinkInertia() const override { return m_steeringLinkInertia; }
-    virtual const ChVector<>& getPitmanArmInertia() const override { return m_pitmanArmInertia; }
+    virtual const ChVector<>& getSteeringLinkInertiaMoments() const override { return m_steeringLinkInertiaMoments; }
+    virtual const ChVector<>& getSteeringLinkInertiaProducts() const override { return m_steeringLinkInertiaProducts; }
+    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
@@ -65,8 +67,10 @@ class CH_VEHICLE_API PitmanArm : public ChPitmanArm {
 
     double m_maxAngle;
 
-    ChVector<> m_steeringLinkInertia;
-    ChVector<> m_pitmanArmInertia;
+    ChVector<> m_steeringLinkInertiaMoments;
+    ChVector<> m_steeringLinkInertiaProducts;
+    ChVector<> m_pitmanArmInertiaMoments;
+    ChVector<> m_pitmanArmInertiaProducts;
 };
 
 /// @} vehicle_wheeled_steering

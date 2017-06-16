@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -19,6 +19,8 @@
 #include <algorithm>
 
 #include "chrono/physics/ChGlobal.h"
+#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChContactContainer.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChRigidTire.h"
 
@@ -27,18 +29,7 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-ChRigidTire::ChRigidTire(const std::string& name)
-    : ChTire(name),
-      m_use_contact_mesh(false),
-      m_trimesh(nullptr),
-      m_friction(0.7f),
-      m_restitution(0.1f),
-      m_young_modulus(2e5f),
-      m_poisson_ratio(0.3f),
-      m_kn(2e5f),
-      m_gn(40),
-      m_kt(2e5f),
-      m_gt(20) {}
+ChRigidTire::ChRigidTire(const std::string& name) : ChTire(name), m_use_contact_mesh(false), m_trimesh(nullptr) {}
 
 ChRigidTire::~ChRigidTire() {
     delete m_trimesh;
@@ -54,55 +45,43 @@ void ChRigidTire::SetMeshFilename(const std::string& mesh_file, double sweep_sph
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-void ChRigidTire::SetContactMaterialProperties(float young_modulus, float poisson_ratio) {
-    m_young_modulus = young_modulus;
-    m_poisson_ratio = poisson_ratio;
-}
-
-void ChRigidTire::SetContactMaterialCoefficients(float kn, float gn, float kt, float gt) {
-    m_kn = kn;
-    m_gn = gn;
-    m_kt = kt;
-    m_gt = gt;
-}
-
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChRigidTire::Initialize(std::shared_ptr<ChBody> wheel, VehicleSide side) {
     ChTire::Initialize(wheel, side);
 
     wheel->SetCollide(true);
+
+    wheel->GetCollisionModel()->ClearModel();
+
+    wheel->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRES);
 
     if (m_use_contact_mesh) {
         // Mesh contact
         m_trimesh = new geometry::ChTriangleMeshConnected;
         m_trimesh->LoadWavefrontMesh(m_contact_meshFile, true, false);
 
-        wheel->GetCollisionModel()->ClearModel();
         wheel->GetCollisionModel()->AddTriangleMesh(*m_trimesh, false, false, ChVector<>(0), ChMatrix33<>(1),
                                                     m_sweep_sphere_radius);
-        wheel->GetCollisionModel()->BuildModel();
     } else {
         // Cylinder contact
-        wheel->GetCollisionModel()->ClearModel();
         wheel->GetCollisionModel()->AddCylinder(GetRadius(), GetRadius(), GetWidth() / 2);
-        wheel->GetCollisionModel()->BuildModel();
     }
 
+    wheel->GetCollisionModel()->BuildModel();
+
     switch (wheel->GetContactMethod()) {
-        case ChMaterialSurfaceBase::DVI:
-            wheel->GetMaterialSurface()->SetFriction(m_friction);
-            wheel->GetMaterialSurface()->SetRestitution(m_restitution);
+        case ChMaterialSurface::NSC:
+            wheel->GetMaterialSurfaceNSC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceNSC()->SetRestitution(m_restitution);
             break;
-        case ChMaterialSurfaceBase::DEM:
-            wheel->GetMaterialSurfaceDEM()->SetFriction(m_friction);
-            wheel->GetMaterialSurfaceDEM()->SetRestitution(m_restitution);
-            wheel->GetMaterialSurfaceDEM()->SetYoungModulus(m_young_modulus);
-            wheel->GetMaterialSurfaceDEM()->SetPoissonRatio(m_poisson_ratio);
-            wheel->GetMaterialSurfaceDEM()->SetKn(m_kn);
-            wheel->GetMaterialSurfaceDEM()->SetGn(m_gn);
-            wheel->GetMaterialSurfaceDEM()->SetKt(m_kt);
-            wheel->GetMaterialSurfaceDEM()->SetGt(m_gt);
+        case ChMaterialSurface::SMC:
+            wheel->GetMaterialSurfaceSMC()->SetFriction(m_friction);
+            wheel->GetMaterialSurfaceSMC()->SetRestitution(m_restitution);
+            wheel->GetMaterialSurfaceSMC()->SetYoungModulus(m_young_modulus);
+            wheel->GetMaterialSurfaceSMC()->SetPoissonRatio(m_poisson_ratio);
+            wheel->GetMaterialSurfaceSMC()->SetKn(m_kn);
+            wheel->GetMaterialSurfaceSMC()->SetGn(m_gn);
+            wheel->GetMaterialSurfaceSMC()->SetKt(m_kt);
+            wheel->GetMaterialSurfaceSMC()->SetGt(m_gt);
             break;
     }
 }
@@ -142,6 +121,49 @@ void ChRigidTire::RemoveVisualizationAssets() {
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
+
+// Callback class to process contacts on a rigid tire.
+// Accumulate contact forces and torques on the associated wheel body.
+// Express them in the global frame, as applied to the wheel center.
+class RigidTireContactReporter : public ChContactContainer::ReportContactCallback {
+  public:
+    RigidTireContactReporter(std::shared_ptr<ChBody> body) : m_body(body) {}
+
+    // Accumulated force, expressed in global frame, applied to wheel center.
+    const ChVector<>& GetAccumulatedForce() const { return m_force; }
+
+    // Accumulated torque, expressed in global frame.
+    const ChVector<>& GetAccumulatedTorque() const { return m_torque; }
+
+  private:
+    virtual bool OnReportContact(const ChVector<>& pA,
+                                 const ChVector<>& pB,
+                                 const ChMatrix33<>& plane_coord,
+                                 const double& distance,
+                                 const ChVector<>& rforce,
+                                 const ChVector<>& rtorque,
+                                 ChContactable* modA,
+                                 ChContactable* modB) override {
+        // Filter contacts that involve the tire body.
+        if (modA == m_body.get() || modB == m_body.get()) {
+            // Express current contact force and torque in global frame
+            ChVector<> force = plane_coord * rforce;
+            ChVector<> torque = plane_coord * rtorque;
+            // Wheel center in global frame
+            const ChVector<>& center = m_body->GetPos();
+            // Accumulate
+            m_force += force;
+            m_torque += torque + Vcross(Vsub(pA, center), force);
+        }
+
+        return true;
+    }
+
+    std::shared_ptr<ChBody> m_body;
+    ChVector<> m_force;
+    ChVector<> m_torque;
+};
+
 TireForce ChRigidTire::GetTireForce(bool cosim) const {
     TireForce tire_force;
 
@@ -149,20 +171,24 @@ TireForce ChRigidTire::GetTireForce(bool cosim) const {
     // force and moment. In this case, the tire forces are automatically applied
     // to the associated wheel through Chrono's frictional contact system.
     if (!cosim) {
-      tire_force.force = ChVector<>(0, 0, 0);
-      tire_force.point = ChVector<>(0, 0, 0);
-      tire_force.moment = ChVector<>(0, 0, 0);
+        tire_force.point = ChVector<>(0, 0, 0);
+        tire_force.force = ChVector<>(0, 0, 0);
+        tire_force.moment = ChVector<>(0, 0, 0);
 
-      return tire_force;
+        return tire_force;
     }
 
     // If the tire is co-simulated, calculate and return the resultant of the
-    // contact forces acting on the tire.
+    // contact forces acting on the tire.  The resulting tire force and moment
+    // are expressed in global frame, as applied at the center of the associated
+    // wheel body.
+    RigidTireContactReporter reporter(m_wheel);
+    
+    m_wheel->GetSystem()->GetContactContainer()->ReportAllContacts(&reporter);
 
-    //// TODO
-    tire_force.force = ChVector<>(0, 0, 0);
-    tire_force.point = ChVector<>(0, 0, 0);
-    tire_force.moment = ChVector<>(0, 0, 0);
+    tire_force.point = m_wheel->GetPos();
+    tire_force.force = reporter.GetAccumulatedForce();
+    tire_force.moment = reporter.GetAccumulatedTorque();
 
     return tire_force;
 }

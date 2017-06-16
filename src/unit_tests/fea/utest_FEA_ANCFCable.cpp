@@ -30,7 +30,7 @@
 #include "chrono/core/ChMathematics.h"
 #include "chrono/core/ChVector.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/physics/ChSystem.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverMINRES.h"
 #include "chrono/solver/ChSolverPMINRES.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     fileMid.close();
 
     // Create a Chrono::Engine physical system
-    ChSystem my_system;
+    ChSystemNSC my_system;
     unsigned int num_steps = 200;
     utils::Data m_data;  // Matrices to store datac
 
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     hnodeancf5->SetPos_dt(ChVector<>(0, 0, -Ang_VelY * beam_length / NElem * 4.0));
 
     // First: loads must be added to "load containers",
-    // and load containers must be added to your ChSystem
+    // and load containers must be added to your system
     auto mloadcontainer = std::make_shared<ChLoadContainer>();
     my_system.Add(mloadcontainer);
 
@@ -176,20 +176,20 @@ int main(int argc, char* argv[]) {
     mloadcontainer->Add(mgravity4);
 
     // Change solver settings
-    my_system.SetSolverType(ChSystem::SOLVER_MINRES);
+    my_system.SetSolverType(ChSolver::Type::MINRES);
     my_system.SetSolverWarmStarting(true);  // this helps a lot to speedup convergence in this class of problems
     my_system.SetMaxItersSolverSpeed(200);
     my_system.SetMaxItersSolverStab(200);
     my_system.SetTolForce(1e-14);
-    ChSolverMINRES* msolver = (ChSolverMINRES*)my_system.GetSolverSpeed();
+    auto msolver = std::static_pointer_cast<ChSolverMINRES>(my_system.GetSolver());
     msolver->SetVerbose(false);
     msolver->SetDiagonalPreconditioning(true);
 
     my_system.SetEndTime(12.5);
 
     // Change type of integrator:
-    my_system.SetIntegrationType(chrono::ChSystem::INT_EULER_IMPLICIT_LINEARIZED);  // fast, less precise
-    //  my_system.SetIntegrationType(chrono::ChSystem::INT_HHT);  // precise,slower, might iterate each step
+    my_system.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
+    //  my_system.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step
 
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(my_system.GetTimestepper())) {
@@ -212,14 +212,14 @@ int main(int argc, char* argv[]) {
         my_system.DoStepDynamics(0.0001);
         std::cout << "Time t = " << my_system.GetChTime() << "s \n";
         // Checking midpoint and tip Y displacement
-        double AbsVal = std::abs(hnodeancf3->GetPos().y - FileInputMat[it][4]);
-        double AbsVal2 = std::abs(hnodeancf5->GetPos().z - FileInputMat[it][6]);
+        double AbsVal = std::abs(hnodeancf3->GetPos().y() - FileInputMat[it][4]);
+        double AbsVal2 = std::abs(hnodeancf5->GetPos().z() - FileInputMat[it][6]);
 
         if (ChMax(AbsVal, AbsVal2) > precision) {
             std::cout << "Unit test check failed \n";
-            std::cout << "  y position: " << hnodeancf3->GetPos().y << "  (reference: " << FileInputMat[it][4]
+            std::cout << "  y position: " << hnodeancf3->GetPos().y() << "  (reference: " << FileInputMat[it][4]
                       << "  diff: " << AbsVal << ")\n";
-            std::cout << "  z position: " << hnodeancf5->GetPos().z << "  (reference: " << FileInputMat[it][6]
+            std::cout << "  z position: " << hnodeancf5->GetPos().z() << "  (reference: " << FileInputMat[it][6]
                       << "  diff: " << AbsVal2 << ")\n";
             return 1;
         }
@@ -228,12 +228,12 @@ int main(int argc, char* argv[]) {
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = my_system.GetChTime();
-    m_data[1][it] = hnodeancf1->GetD().x,
-    m_data[2][it] = hnodeancf1->GetD().y;
-    m_data[3][it] = hnodeancf1->GetD().z;
-    m_data[4][it] = hnodeancf3->GetPos().y;
-    m_data[5][it] = hnodeancf5->GetPos().x;
-    m_data[6][it] = hnodeancf5->GetPos().z;
+    m_data[1][it] = hnodeancf1->GetD().x(),
+    m_data[2][it] = hnodeancf1->GetD().y();
+    m_data[3][it] = hnodeancf1->GetD().z();
+    m_data[4][it] = hnodeancf3->GetPos().y();
+    m_data[5][it] = hnodeancf5->GetPos().x();
+    m_data[6][it] = hnodeancf5->GetPos().z();
     csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << m_data[4][it] << m_data[5][it] <<
     m_data[6][it] << std::endl;
     // Advance system state

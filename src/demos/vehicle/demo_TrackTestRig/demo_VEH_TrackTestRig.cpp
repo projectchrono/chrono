@@ -81,11 +81,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurfaceBase::DVI);
+        rig = new ChTrackTestRig(track_assembly, attach_loc, ChMaterialSurface::NSC);
     }
 
     //rig->GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
-    rig->GetSystem()->SetSolverType(ChSystem::SOLVER_SOR);
+    rig->GetSystem()->SetSolverType(ChSolver::Type::SOR);
     rig->GetSystem()->SetMaxItersSolverSpeed(50);
     rig->GetSystem()->SetMaxItersSolverStab(50);
     rig->GetSystem()->SetTol(0);
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     rig->GetTrackAssembly()->SetRoadWheelVisualizationType(VisualizationType::PRIMITIVES);
     rig->GetTrackAssembly()->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
-    ////rig->SetCollide(TrackCollide::NONE);
-    ////rig->SetCollide(TrackCollide::SPROCKET_LEFT | TrackCollide::SHOES_LEFT);
+    ////rig->SetCollide(TrackedCollisionFlag::NONE);
+    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
 
     // Create the vehicle Irrlicht application.

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -91,13 +91,10 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     /// Turn on/off rendering of the grid.
     void EnableGrid(bool val) { m_renderGrid = val; }
 
-    /// Turn on/off rendering of specialized joints in the vehicle model.
-    void EnableLinks(bool val) { m_renderLinks = val; }
-
     /// Turn on/off rendering of stats (HUD).
     void EnableStats(bool val) { m_renderStats = val; }
 
-    /// Set the height at whoich the horizontal grid is rendered.
+    /// Set the height at which the horizontal grid is rendered.
     void SetGridHeight(double height) { m_gridHeight = height; }
 
     /// Turn on/off Irrklang sound generation.
@@ -145,7 +142,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     ChPowertrain* m_powertrain;  ///< pointer to the associated powertrain system
 
   private:
-    void renderLinks();
     void renderGrid();
     void renderStats();
 
@@ -155,7 +151,6 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
     double m_stepsize;  ///< integration step size for chase-cam dynamics
 
     bool m_renderGrid;     ///< turn on/off rendering of grid
-    bool m_renderLinks;    ///< turn on/off rendering of joints
     bool m_renderStats;    ///< turn on/off rendering of stats
 
     double m_gridHeight;  ///< height of grid
@@ -175,6 +170,7 @@ class CH_VEHICLE_API ChVehicleIrrApp : public irrlicht::ChIrrApp {
 
     friend class ChCameraEventReceiver;
     friend class ChIrrGuiDriver;
+    friend class ChIrrGuiDriverSTR;
 };
 
 // @} vehicle_utils

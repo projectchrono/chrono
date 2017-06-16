@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -26,6 +26,10 @@ namespace chrono {
 namespace vehicle {
 namespace generic {
 
+/// @addtogroup vehicle_models_generic
+/// @{
+
+/// Open-loop driver model for use with a generic vehicle.
 class CH_MODELS_API Generic_FuncDriver : public ChDriver {
   public:
     Generic_FuncDriver(ChVehicle& vehicle) : ChDriver(vehicle) {}
@@ -49,6 +53,8 @@ class CH_MODELS_API Generic_FuncDriver : public ChDriver {
             m_steering = -0.5;
     }
 };
+
+/// @} vehicle_models_generic
 
 }  // end namespace generic
 }  // end namespace vehicle

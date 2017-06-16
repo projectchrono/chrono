@@ -95,7 +95,7 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians();
+    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
@@ -108,7 +108,7 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     /// Each shaft must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (motor output shaft)
                     std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join (motor truss)
-                    );
+                    ) override;
 
     enum eCh_shaftsmotor_mode { MOT_MODE_ROTATION = 0, MOT_MODE_SPEED, MOT_MODE_TORQUE } motor_mode;
 
@@ -132,11 +132,11 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (GetMotorTorque()); }
+    double GetTorqueReactionOn1() const override { return (GetMotorTorque()); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return -(GetMotorTorque()); }
+    double GetTorqueReactionOn2() const override { return -(GetMotorTorque()); }
 
     /// Set the motor rotation phase between shaft2 and shaft1.
     /// If the rotation is not constant, you also must use SetMotorRot_dt()
@@ -173,6 +173,8 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChShaftsMotor,0)
 
 }  // end namespace chrono
 

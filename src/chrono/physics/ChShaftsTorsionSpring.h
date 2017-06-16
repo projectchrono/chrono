@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// Class for defining a torsional spring-damper between between two 1D parts;
+/// Class for defining a torsional spring-damper between two 1D parts;
 /// i.e., shafts that can be used to build 1D models of powertrains. This is
 /// more efficient than simulating power trains modeled with full 3D ChBody
 /// objects.
@@ -61,6 +61,8 @@ class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIN(ChArchiveIn& marchive) override;
 };
+
+CH_CLASS_VERSION(ChShaftsTorsionSpring,0)
 
 }  // end namespace chrono
 
