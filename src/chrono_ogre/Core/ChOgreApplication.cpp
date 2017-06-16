@@ -321,6 +321,10 @@ namespace ChOgre {
 		m_currentTime += StepSize;
 	}
 
+	void ChOgreApplication::doStep() {
+		m_pChSystem->DoStepDynamics(timestep);
+	}
+
 	void ChOgreApplication::drawFrame() {
 		m_pScene->update();
 

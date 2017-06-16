@@ -151,73 +151,120 @@ void ChOgreBody::refresh() {
             double _r = std::static_pointer_cast<chrono::ChSphereShape>(temp_asset)->GetSphereGeometry().rad;
             l_Model.getSceneNode()->setScale((Ogre::Real)_r, (Ogre::Real)_r, (Ogre::Real)_r);
         } else if (RTTI_Name == std::string(TriangleMeshRTTI)) {
+
+			chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
+
             std::string filepath = std::static_pointer_cast<chrono::ChTriangleMeshShape>(temp_asset)->GetName();
 
-            std::string _base;
-            std::string _ext;
-            std::string _path;
+			if (filepath.empty() == false) {
 
-            Ogre::StringUtil::splitFullFilename(filepath, _base, _ext, _path);
+				std::string _base;
+				std::string _ext;
+				std::string _path;
 
-            if (_ext == "mesh") {
-                l_Model.loadMesh(filepath);
-            } else if (_ext == "obj") {
-                std::vector<tinyobj::shape_t> _shapes;
-                std::string error = tinyobj::LoadObj(_shapes, filepath.c_str());
-                if (!error.empty()) {
-                    Ogre::LogManager::getSingleton().logMessage(Ogre::LML_CRITICAL,
-                                                                "! Could not load OBJ file: " + filepath + " !");
-                    return;
-                }
+				Ogre::StringUtil::splitFullFilename(filepath, _base, _ext, _path);
 
-                for (unsigned int i = 0; i < _shapes.size(); i++) {
-                    Ogre::ManualObject* _manual_object =
-                        m_pSceneManager->createManualObject("Terrain Mesh " + std::to_string(m_MeshCount));
+				if (_ext == "mesh") {
+					l_Model.loadMesh(filepath);
+				}
+				else if (_ext == "obj") {
+					std::vector<tinyobj::shape_t> _shapes;
+					std::string error = tinyobj::LoadObj(_shapes, filepath.c_str());
+					if (!error.empty()) {
+						Ogre::LogManager::getSingleton().logMessage(Ogre::LML_CRITICAL,
+							"! Could not load OBJ file: " + filepath + " !");
+						return;
+					}
 
-                    _manual_object->begin("lambert1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+					for (unsigned int i = 0; i < _shapes.size(); i++) {
+						Ogre::ManualObject* _manual_object =
+							m_pSceneManager->createManualObject("Terrain Mesh " + std::to_string(m_MeshCount));
 
-                    for (unsigned int j = 0; j < _shapes[i].mesh.positions.size(); j += 3) {
-                        _manual_object->position(Ogre::Vector3(_shapes[i].mesh.positions[j + 0],
-                                                               _shapes[i].mesh.positions[j + 1],
-                                                               _shapes[i].mesh.positions[j + 2]));
-                        _manual_object->normal(Ogre::Vector3(_shapes[i].mesh.normals[j + 0],
-                                                             _shapes[i].mesh.normals[j + 1],
-                                                             _shapes[i].mesh.normals[j + 2]));
-                        _manual_object->colour(Ogre::ColourValue(0.5, 0.5, 0.5));
+						_manual_object->begin("lambert1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
 
-                        _manual_object->textureCoord(Ogre::Vector2(_shapes[i].mesh.texcoords[((j / 3) * 2) + 0],
-                                                                   _shapes[i].mesh.texcoords[((j / 3) * 2) + 1]));
-                    }
+						for (unsigned int j = 0; j < _shapes[i].mesh.positions.size(); j += 3) {
+							_manual_object->position(Ogre::Vector3(_shapes[i].mesh.positions[j + 0],
+								_shapes[i].mesh.positions[j + 1],
+								_shapes[i].mesh.positions[j + 2]));
+							_manual_object->normal(Ogre::Vector3(_shapes[i].mesh.normals[j + 0],
+								_shapes[i].mesh.normals[j + 1],
+								_shapes[i].mesh.normals[j + 2]));
+							_manual_object->colour(Ogre::ColourValue(0.5, 0.5, 0.5));
 
-                    for (unsigned j = 0; j < _shapes[i].mesh.texcoords.size(); j += 2) {
-                    }
+							_manual_object->textureCoord(Ogre::Vector2(_shapes[i].mesh.texcoords[((j / 3) * 2) + 0],
+								_shapes[i].mesh.texcoords[((j / 3) * 2) + 1]));
+						}
 
-                    for (unsigned j = 0; j < _shapes[i].mesh.indices.size(); j++) {
-                        _manual_object->index(_shapes[i].mesh.indices[j]);
-                    }
+						for (unsigned j = 0; j < _shapes[i].mesh.texcoords.size(); j += 2) {
+						}
 
-                    _manual_object->end();
+						for (unsigned j = 0; j < _shapes[i].mesh.indices.size(); j++) {
+							_manual_object->index(_shapes[i].mesh.indices[j]);
+						}
 
-                    l_Model.getSceneNode()->attachObject(_manual_object);
-                }
+						_manual_object->end();
 
-                // m_SceneNodes.push_back(l_pNode);
-                m_Models.push_back(std::move(l_Model));
+						l_Model.getSceneNode()->attachObject(_manual_object);
+					}
 
-                chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
+					// m_SceneNodes.push_back(l_pNode);
+					m_Models.push_back(std::move(l_Model));
 
-                double _sx = shape->GetScale().x;
-                double _sy = shape->GetScale().y;
-                double _sz = shape->GetScale().z;
-                l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
+					chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
 
-                m_MeshCount++;
-                return;
-            } else {
-                return;
-            }
+					double _sx = shape->GetScale().x;
+					double _sy = shape->GetScale().y;
+					double _sz = shape->GetScale().z;
+					l_Model.getSceneNode()->setScale((Ogre::Real)_sx, (Ogre::Real)_sy, (Ogre::Real)_sz);
 
-            chrono::ChTriangleMeshShape* shape = (chrono::ChTriangleMeshShape*)temp_asset.get();
+					m_MeshCount++;
+					return;
+				}
+				else {
+					return;
+				}
+			}
+			else {
+				auto mesh = shape->GetMesh();
+
+				Ogre::ManualObject* _manual_object =
+					m_pSceneManager->createManualObject("Terrain Mesh " + std::to_string((uint64_t)&mesh) + " " + std::to_string(m_MeshCount));
+
+				auto vertices = mesh.getCoordsVertices();
+				auto normals = mesh.getCoordsNormals();
+				auto colors = mesh.getCoordsColors();
+				auto indices = mesh.getIndicesVertexes();
+
+				_manual_object->begin("lambert1", Ogre::RenderOperation::OT_TRIANGLE_LIST);
+
+				if (normals.size() == vertices.size() && colors.size() == vertices.size()) {
+					for (int i = 0; i < vertices.size(); i++) {
+						_manual_object->position(vertices[i].x, vertices[i].y, vertices[i].z);
+						_manual_object->normal(normals[i].x, normals[i].y, normals[i].z);
+						_manual_object->colour(colors[i].x, colors[i].y, colors[i].z);
+					}
+				}
+				else {
+					for (auto& v : vertices) {
+						_manual_object->position(v.x, v.y, v.z);
+						_manual_object->colour(0.7f, 0.7f, 0.7f);
+					}
+				}
+
+				for (auto& Triangle : indices) {
+					_manual_object->triangle(Triangle.x, Triangle.y, Triangle.z);
+				}
+
+				_manual_object->end();
+
+				if (vertices.size() > 65535) {
+					_manual_object->setCastShadows(false);
+				}
+
+				l_Model.getSceneNode()->attachObject(_manual_object);
+
+			}
+
 
             double _sx = shape->GetScale().x;
             double _sy = shape->GetScale().y;

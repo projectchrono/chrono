@@ -39,6 +39,7 @@ SET(DEMOS
   demo_IRR_collision_trimesh
   demo_IRR_plane_plane
   demo_IRR_link_bushing
+  demo_IRR_triangle_mesh_ogre_comparison
 )
 
 #--------------------------------------------------------------

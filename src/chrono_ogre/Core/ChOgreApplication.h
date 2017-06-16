@@ -55,6 +55,7 @@ class CHOGRE_DLL_TAG ChOgreApplication {
     void setVSync(bool VSync);
 
 	void doStep(double StepSize);
+	void doStep();
 	void drawFrame();
 	void pollInput();
 
