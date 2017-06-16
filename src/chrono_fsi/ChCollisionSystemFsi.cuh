@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for processing proximity in an FSI system.
@@ -28,66 +28,44 @@ namespace fsi {
 /// @addtogroup fsi_collision
 /// @{
 
-/// Base class for processing proximity in an FSI system.
+/// Base class for processing proximity computation in an FSI system.
 class CH_FSI_API ChCollisionSystemFsi : public ChFsiGeneral {
   public:
-    // ChCollisionSystemFsi();
-    ChCollisionSystemFsi(SphMarkerDataD* otherSortedSphMarkersD,
-                         ProximityDataD* otherMarkersProximityD,
-                         SimParams* otherParamsH,
-                         NumberOfObjects* otherNumObjects);
+    /// Constructor of the ChCollisionSystemFsi
+    ChCollisionSystemFsi(SphMarkerDataD* otherSortedSphMarkersD,  ///< Information of the markers in the sorted array
+                         ProximityDataD* otherMarkersProximityD,  ///< Proximity information of the system
+                         SimParams* otherParamsH,                 ///< Parameters of the simulation
+                         NumberOfObjects* otherNumObjects         ///< Size of different objects in the system
+                         );
+
+    /// Destructor of the ChCollisionSystemFsi
     ~ChCollisionSystemFsi();
-    /**
-                    * @brief Encapsulate calcHash and
-     * reaorderDataAndFindCellStart;
-                    * @details
-    */
+
+    /// Encapsulate calcHash and reaorderDataAndFindCellStart
     void ArrangeData(SphMarkerDataD* otherSphMarkersD);
 
     virtual void Finalize();
 
   private:
-    SphMarkerDataD* sphMarkersD;
-    SphMarkerDataD* sortedSphMarkersD;
-    ProximityDataD* markersProximityD;
-
-    SimParams* paramsH;
-    NumberOfObjects* numObjectsH;
+    SphMarkerDataD* sphMarkersD;        ///< Information of the markers in the original array
+    SphMarkerDataD* sortedSphMarkersD;  ///< Information of the markers in the sorted array
+    ProximityDataD* markersProximityD;  ///< Proximity information of the system
+    SimParams* paramsH;                 ///< Parameters of the simulation
+    NumberOfObjects* numObjectsH;       ///< Size of different objects in the system
 
     void ResetCellSize(int s);
-    /**
-  * @brief calcHash - calcHashD
-  *
-  * @details calcHash is the wrapper function for calcHashD. calcHashD is a kernel
-  * function, which
-  * means that all the code in it is executed in parallel on the GPU.
-  * 			calcHashD:
-  * 		 				1. Get particle index. Determine by the
-  * block and thread we are in.
-  * 		     			2. From x,y,z position determine which bin
-  * it is in.
-  * 		        		3. Calculate hash from bin index.
-  * 		          		4. Store hash and particle index associated
-  * with it.
-  *
-  * @param gridMarkerHash Store marker hash here
-  * @param gridMarkerIndex Store marker index here
-  * @param posRad Vector containing the positions of all particles, including
-  * boundary particles
-  * @param numAllMarkers Total number of markers (fluid + boundary)
-  */
+
+    /// calcHash is the wrapper function for calcHashD. calcHashD is a kernel
+    /// function, which means that all the code in it is executed in parallel on the GPU.
     void calcHash();
-    /**
-  * @brief Wrapper function for reorderDataAndFindCellStartD
-  * @details
-  * 		See SDKCollisionSystem.cuh for brief.
-  */
+
+    /// Wrapper function for reorderDataAndFindCellStartD
     void reorderDataAndFindCellStart();
 };
 
 /// @} fsi_collision
 
-} // end namespace fsi
-} // end namespace chrono
+}  // end namespace fsi
+}  // end namespace chrono
 
 #endif
