@@ -31,7 +31,8 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
                  const thrust::device_vector<Real3> &velMasD,
                  const thrust::device_vector<Real4> &rhoPresMuD,
                  const thrust::host_vector<int4> &referenceArray,
-                 const std::string &out_dir) {
+                 const std::string &out_dir,
+		 bool printToParaview) {
 
   thrust::host_vector<Real3> posRadH = posRadD;
   thrust::host_vector<Real3> velMasH = velMasD;
@@ -49,6 +50,9 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
   std::ofstream fileNameFluidParticles;
   fileNameFluidParticles.open(nameFluid);
   std::stringstream ssFluidParticles;
+  if(printToParaview)
+     ssFluidParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
+
   for (int i = referenceArray[0].x; i < referenceArray[0].y; i++) {
     Real3 pos = posRadH[i];
     Real3 vel = velMasH[i];
@@ -69,6 +73,9 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
   std::ofstream fileNameFluidBoundaries;
   fileNameFluidBoundaries.open(nameFluidBoundaries);
   std::stringstream ssFluidBoundaryParticles;
+    if(printToParaview)
+     ssFluidParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
+
   //		ssFluidBoundaryParticles.precision(20);
   for (int i = referenceArray[0].x; i < referenceArray[1].y; i++) {
     Real3 pos = posRadH[i];
@@ -90,6 +97,8 @@ void PrintToFile(const thrust::device_vector<Real3> &posRadD,
   fileNameBCE.open(nameBCE);
   std::stringstream ssBCE;
   //		ssFluidBoundaryParticles.precision(20);
+  if(printToParaview)
+     ssFluidParticles << "x,y,z,vx,vy,vz,U,rpx,rpy,rpz,rpw\n";
 
   int refSize = referenceArray.size();
   if (refSize > 2) {

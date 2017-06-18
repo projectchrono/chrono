@@ -211,10 +211,11 @@ void AddBoxBce(ChFsiDataManager* fsiData,
                std::shared_ptr<ChBody> body,
                ChVector<> relPos,
                ChQuaternion<> relRot,
-               const ChVector<>& size) {
+               const ChVector<>& size,
+	       int plane) {
     thrust::host_vector<Real3> posRadBCE;
 
-    CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), 12, paramsH);
+    CreateBCE_On_Box(posRadBCE, ChFsiTypeConvert::ChVectorToReal3(size), plane, paramsH);
     //	if (fsiData->sphMarkersH.posRadH.size() !=
     // fsiData->numObjects.numAllMarkers) {
     //		printf("Error! numMarkers, %d, does not match posRadH.size(),
