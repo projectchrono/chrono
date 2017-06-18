@@ -34,7 +34,7 @@ class CH_FSI_API ChFsiGeneral {
 
     /// @brief Compute number of blocks and threads for calculation on GPU
     /// This function calculates the number of blocks and threads for a given number of elements based on the blockSize
-    void computeGridSize(uint n            ///< Total num elements
+    void computeGridSize(uint n,            ///< Total num elements
                          uint blockSize,   ///< BlockSize Number of threads per block
                          uint& numBlocks,  ///< numBlocks (output)
                          uint& numThreads  ///< numThreads (output)

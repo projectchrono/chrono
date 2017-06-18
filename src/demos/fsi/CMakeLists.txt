@@ -11,6 +11,7 @@ SET(FSI_DEMOS
 SET(FSI_PARALLEL_DEMOS
 # add fluid demos here
 demo_FSI_cylinderDrop
+demo_FSI_DamBreak
 )
 
 # List all FSI demos use vehicle
