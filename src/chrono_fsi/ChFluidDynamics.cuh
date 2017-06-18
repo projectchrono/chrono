@@ -28,7 +28,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// Fluid dynamics system.
+/// @brief Class to represent the fluid dynamics system.
 ///
 /// This class is used to represent a fluid system and take
 /// care of the time integration of the fluid dynamics. This is
@@ -40,7 +40,8 @@ namespace fsi {
 /// by the class.
 class CH_FSI_API ChFluidDynamics : public ChFsiGeneral {
   public:
-    /// Fluid dynamics class constructor
+    /// Fluid dynamics class constructor.
+    ///
     /// The class constructor performs the following operations:
     /// Instantiate ChFsiForceParallel, i.e. force system;
     /// Copy the pointer to fluid data, parameters, and number of objects

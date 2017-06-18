@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Base class for changing device arrays in non-cuda files
@@ -134,8 +134,7 @@ class GpuTimer {
 // --------------------------------------------------------------------
 // ChDeviceUtils
 //
-// This utility class encapsulates a operators on device vectors which
-// might be needed in host files
+/// This utility class encapsulates a operators on device vectors which might be needed in host files
 // --------------------------------------------------------------------
 class CH_FSI_API ChDeviceUtils {
   public:

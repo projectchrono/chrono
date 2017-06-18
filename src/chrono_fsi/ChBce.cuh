@@ -60,7 +60,6 @@ class CH_FSI_API ChBce : public ChFsiGeneral {
     /// Calculates the forces from the fluid dynamics system to the fsi system on rigid bodies
     virtual void Rigid_Forces_Torques(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD);
 
-    ///
     void ModifyBceVelocity(SphMarkerDataD* sphMarkersD, FsiBodiesDataD* fsiBodiesD);
 
     /// Populates the BCE markers on the rigid bodies at the initial configuration of the system. The local coordinates

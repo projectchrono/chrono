@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
-// Base class for processing SPH force in an FSI system.
+// Base class for processing SPH force in a FSI system.
 //
 // =============================================================================
 
@@ -31,7 +31,7 @@ namespace fsi {
 /// @addtogroup fsi_physics
 /// @{
 
-/// Class to calculate force between SPH markers in Weakly Compressible SPH.
+/// @brief Class to calculate force between SPH markers in Weakly Compressible SPH.
 ///
 /// This class implements the necessary functions for a WCSPH force calculation
 /// method. The class owns a collision system fsi which takes care of GPU based
@@ -42,12 +42,15 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral {
     /// Base constructor for FSI force class.
     /// The constructor instantiates the collision system (ChCollisionSystemFsi)
     /// and initializes the pointer to external data.
-    ChFsiForceParallel(ChBce* otherBceWorker,
-                       SphMarkerDataD* otherSortedSphMarkersD,
-                       ProximityDataD* otherMarkersProximityD,
-                       FsiGeneralData* otherFsiGeneralData,
-                       SimParams* otherParamsH,
-                       NumberOfObjects* otherNumObjects);
+    ChFsiForceParallel(
+        ChBce* otherBceWorker,                   ///< Pointer to the ChBce object that handles BCE markers
+        SphMarkerDataD* otherSortedSphMarkersD,  ///< Information of markers in the sorted array on device
+        ProximityDataD*
+            otherMarkersProximityD,  ///< Pointer to the object that holds the proximity of the markers on device
+        FsiGeneralData* otherFsiGeneralData,  ///< Pointer to the sph general data
+        SimParams* otherParamsH,              ///< Pointer to the simulation parameters on host
+        NumberOfObjects* otherNumObjects      ///< Pointer to number of objects, fluid and boundary markers, etc.
+        );
 
     /// Destructor. Deletes the collision system.
     ~ChFsiForceParallel();
@@ -69,8 +72,6 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral {
     static void CopySortedToOriginal_Invasive_R3(thrust::device_vector<Real3>& original,
                                                  thrust::device_vector<Real3>& sorted,
                                                  const thrust::device_vector<uint>& gridMarkerIndex);
-
-    /// Arman, templatize this
 
     /// Copy sorted data into original data.
     /// This function copies the data that are sorted in the collision system,  into the
@@ -125,17 +126,18 @@ class CH_FSI_API ChFsiForceParallel : public ChFsiGeneral {
 
     /// Function to calculate the force terms for SPH markers.
     /// This function calculates the derivatives of the density and velocity in a WCSPH fashion.
-    void collide(thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,
-                 thrust::device_vector<Real3>& sortedPosRad,
-                 thrust::device_vector<Real3>& sortedVelMas,
-                 thrust::device_vector<Real3>& vel_XSPH_Sorted_D,
-                 thrust::device_vector<Real4>& sortedRhoPreMu,
-                 thrust::device_vector<Real3>& velMas_ModifiedBCE,
-                 thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
+    void collide(
+        thrust::device_vector<Real4>& sortedDerivVelRho_fsi_D,  ///< dv/dt, and d(rho)/dt in the sorted array
+        thrust::device_vector<Real3>& sortedPosRad,             ///< position of markers in the sorted array
+        thrust::device_vector<Real3>& sortedVelMas,             ///< velocity of markers in the sorted array
+        thrust::device_vector<Real3>& vel_XSPH_Sorted_D,        ///< XSPH velocity of markers in the sorted array
+        thrust::device_vector<Real4>& sortedRhoPreMu,  ///< (rho,pressure,mu,type) of markers in the sorted array
+        thrust::device_vector<Real3>& velMas_ModifiedBCE,
+        thrust::device_vector<Real4>& rhoPreMu_ModifiedBCE,
 
-                 thrust::device_vector<uint>& gridMarkerIndex,
-                 thrust::device_vector<uint>& cellStart,
-                 thrust::device_vector<uint>& cellEnd);
+        thrust::device_vector<uint>& gridMarkerIndex,  ///< To get the original index based on the sorted index
+        thrust::device_vector<uint>& cellStart,        ///< Index of the first marker in a cell
+        thrust::device_vector<uint>& cellEnd);         ///< Index of the last marker in a cell
 
     /// Function to add gravity force (acceleration) to other forces on SPH  markers.
     void AddGravityToFluid();
