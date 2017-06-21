@@ -83,6 +83,7 @@ void ChMesh::SetNoSpeedNoAcceleration() {
 }
 
 void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
+    m_node->SetIndex(vnodes.size() + 1);
     vnodes.push_back(m_node);
 }
 
