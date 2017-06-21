@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Milad Rakhsha
 // =============================================================================
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
@@ -172,7 +172,13 @@ bool ChOpenGLViewer::Update(double time_step) {
         return false;
     }
     simulation_h = time_step;
+
+#ifdef CHRONO_FSI
+    fsi_system->DoStepDynamics_FSI();
+#else
     physics_system->DoStepDynamics(time_step);
+#endif
+
     single_step = false;
     return true;
 }
@@ -284,9 +290,9 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
     if (abody->GetAssets().size() == 0) {
         return;
     }
-	//position of the body
+    // position of the body
     const Vector pos = abody->GetFrame_REF_to_abs().GetPos();
-	//rotation of the body
+    // rotation of the body
     Quaternion rot = abody->GetFrame_REF_to_abs().GetRot();
     double angle;
     Vector axis;
@@ -300,13 +306,13 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
         }
 
         ChVisualization* visual_asset = ((ChVisualization*)(asset.get()));
-		//position of the asset
+        // position of the asset
         Vector center = visual_asset->Pos;
-		//rotate asset pos into global frame
+        // rotate asset pos into global frame
         center = rot.Rotate(center);
-		//Get the local rotation of the asset
+        // Get the local rotation of the asset
         Quaternion lrot = visual_asset->Rot.Get_A_quaternion();
-		//add the local rotation to the rotation of the body
+        // add the local rotation to the rotation of the body
         lrot = rot % lrot;
         lrot.Normalize();
         lrot.Q_to_AngAxis(angle, axis);
@@ -339,19 +345,20 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
 
         } else if (ChCylinderShape* cylinder_shape = dynamic_cast<ChCylinderShape*>(asset.get())) {
             double rad = cylinder_shape->GetCylinderGeometry().rad;
-			ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
-			double height = dir.Length();
-			dir.Normalize();
-			ChVector<> mx, my, mz;
-			dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
-			ChMatrix33<> mrot;
-			mrot.Set_A_axis(mx, my, mz);
-            lrot =rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
-			//position of cylinder based on two points
-			ChVector<> mpos = 0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
+            ChVector<> dir = cylinder_shape->GetCylinderGeometry().p2 - cylinder_shape->GetCylinderGeometry().p1;
+            double height = dir.Length();
+            dir.Normalize();
+            ChVector<> mx, my, mz;
+            dir.DirToDxDyDz(my, mz, mx);  // y is axis, in cylinder.obj frame
+            ChMatrix33<> mrot;
+            mrot.Set_A_axis(mx, my, mz);
+            lrot = rot % (visual_asset->Rot.Get_A_quaternion() % mrot.Get_A_quaternion());
+            // position of cylinder based on two points
+            ChVector<> mpos =
+                0.5 * (cylinder_shape->GetCylinderGeometry().p2 + cylinder_shape->GetCylinderGeometry().p1);
 
             lrot.Q_to_AngAxis(angle, axis);
-			ChVector<> pos_final = pos  + rot.Rotate(mpos);
+            ChVector<> pos_final = pos + rot.Rotate(mpos);
 
             model = glm::translate(glm::mat4(1), glm::vec3(pos_final.x(), pos_final.y(), pos_final.z()));
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
@@ -375,52 +382,59 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::scale(model, glm::vec3(rad.x(), rad.y(), rad.z()));
             model_box.push_back(model);
 
-            glm::vec3 local =
-                glm::rotate(glm::vec3(rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            glm::vec3 local = glm::rotate(glm::vec3(rad.x(), rad.y(), rad.z()), float(angle),
+                                          glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(rad.x(), rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(-rad.x(), rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(rad.x(), -rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
 
-            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), -rad.z()), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            local = glm::rotate(glm::vec3(-rad.x(), -rad.y(), -rad.z()), float(angle),
+                                glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)radsphere));
             model_sphere.push_back(model);
         } else if (ChCapsuleShape* capsule_shape = dynamic_cast<ChCapsuleShape*>(asset.get())) {
@@ -437,16 +451,17 @@ void ChOpenGLViewer::DrawObject(std::shared_ptr<ChBody> abody) {
             model = glm::rotate(model, float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
             model = glm::scale(model, glm::vec3(rad, height, rad));
             model_cylinder.push_back(model);
-            glm::vec3 local = glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            glm::vec3 local =
+                glm::rotate(glm::vec3(0, height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
             local = glm::rotate(glm::vec3(0, -height, 0), float(angle), glm::vec3(axis.x(), axis.y(), axis.z()));
 
-            model = glm::translate(glm::mat4(1),
-                                   glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
+            model = glm::translate(
+                glm::mat4(1), glm::vec3(pos_final.x() + local.x, pos_final.y() + local.y, pos_final.z() + local.z));
             model = glm::scale(model, glm::vec3((float)rad));
             model_sphere.push_back(model);
 
@@ -555,9 +570,8 @@ void ChOpenGLViewer::RenderAABB() {
 void ChOpenGLViewer::RenderFluid() {
 #ifdef CHRONO_PARALLEL
     ChSystemParallel* parallel_system = dynamic_cast<ChSystemParallel*>(physics_system);
+
     if (!parallel_system || parallel_system->data_manager->num_fluid_bodies <= 0) {
-        return;
-    }
 
     if (render_mode != POINTS) {
         fluid.AttachShader(&sphere_shader);
@@ -583,6 +597,35 @@ void ChOpenGLViewer::RenderFluid() {
     fluid.Update(fluid_data);
     glm::mat4 model(1);
     fluid.Draw(projection, view * model);
+    }
+#endif
+
+#ifdef CHRONO_FSI
+    if (!fsi_system || fsi_system->GetDataManager()->sphMarkersH.posRadH.size() <= 0) {
+        printf("fsi_system is null, returning");
+        return;
+    }
+    if (render_mode != POINTS) {
+        fluid.AttachShader(&sphere_shader);
+    } else {
+        fluid.AttachShader(&dot_shader);
+    }
+
+    int curr_size = fluid_data.size();
+    fluid_data.resize(fsi_system->GetDataManager()->sphMarkersH.posRadH.size() + curr_size);
+    int fsi_size = fsi_system->GetDataManager()->sphMarkersH.posRadH.size();
+
+    #pragma omp parallel for
+    for (int i = 0; i < fsi_size; i++) {
+        chrono::fsi::Real3 pos = fsi_system->GetDataManager()->sphMarkersD2.posRadD[i];
+        fluid_data[curr_size + i] = glm::vec3(pos.x, pos.y, pos.z);
+        fluid.SetPointSize(float(fsi_system->GetSimParams()->HSML)*0.5);
+    }
+
+    fluid.Update(fluid_data);
+    glm::mat4 model_fsi(1);
+    fluid.Draw(projection, view * model_fsi);
+
 #endif
 }
 

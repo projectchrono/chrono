@@ -78,7 +78,9 @@ INCLUDE_DIRECTORIES(${CH_OPENGL_INCLUDES})
 IF(ENABLE_MODULE_PARALLEL)
     INCLUDE_DIRECTORIES(${CH_PARALLEL_INCLUDES})
 ENDIF()
-
+IF(ENABLE_MODULE_FSI)
+    INCLUDE_DIRECTORIES(${CH_FSI_INCLUDES})
+ENDIF()
 # ------------------------------------------------------------------------------
 # Make some variables visible from parent directory
 # ------------------------------------------------------------------------------
@@ -281,6 +283,10 @@ if(ENABLE_MODULE_PARALLEL)
 	SET(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_PARALLEL_CXX_FLAGS}")
 endif()
 
+if(ENABLE_MODULE_FSI)
+        SET(CE_OpenGL_LIBRARIES ${CE_OpenGL_LIBRARIES} ChronoEngine_fsi)
+	SET(CE_OpenGL_FLAGS "${CE_OpenGL_FLAGS} ${CH_FSI_CXX_FLAGS}")
+endif()
 
 SET_TARGET_PROPERTIES(ChronoEngine_opengl PROPERTIES 
   COMPILE_FLAGS "${CE_OpenGL_FLAGS}"

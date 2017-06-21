@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Author: Arman Pazouki
+// Author: Arman Pazouki, Milad Rakhsha
 // =============================================================================
 //
 // Implementation of fsi system that includes all subclasses for proximity and
@@ -68,18 +68,6 @@ void ChSystemFsi::CopyDeviceDataToHalfStep() {
                  fsiData->sphMarkersD2.rhoPresMuD.begin());
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-int ChSystemFsi::DoStepChronoSystem(Real dT, double mTime) {
-#ifdef CHRONO_OPENGL
-    if (gl_window->Active()) {
-        gl_window->DoStepDynamics(dT);
-        gl_window->Render();
-    }
-#else
-    mphysicalSystem->DoStepDynamics(dT);
-#endif
-    return 1;
-}
-//--------------------------------------------------------------------------------------------------------------------------------
 
 void ChSystemFsi::DoStepDynamics_FSI() {
     fsiInterface->Copy_ChSystem_to_External();
@@ -92,9 +80,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     fsiInterface->Add_Rigid_ForceTorques_To_ChSystem();
     mTime += 0.5 * paramsH->dT;
 
-    // TODO
-    DoStepChronoSystem(0.5 * paramsH->dT, mTime);  // Keep only this if you are just interested in the rigid sys
-    //
+    mphysicalSystem->DoStepDynamics(0.5 * paramsH->dT);
 
     fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD2));
     bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD2), &(fsiData->fsiBodiesD2));
@@ -110,8 +96,7 @@ void ChSystemFsi::DoStepDynamics_FSI() {
     fsiInterface->Copy_External_To_ChSystem();
     mTime += paramsH->dT;
 
-    // TODO
-    DoStepChronoSystem(1.0 * paramsH->dT, mTime);
+    mphysicalSystem->DoStepDynamics(1.0 * paramsH->dT);
     //
     fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));
     bceWorker->UpdateRigidMarkersPositionVelocity(&(fsiData->sphMarkersD1), &(fsiData->fsiBodiesD1));
@@ -128,32 +113,23 @@ void ChSystemFsi::DoStepDynamics_ChronoRK2() {
     fsiInterface->Copy_ChSystem_to_External();
     mTime += 0.5 * paramsH->dT;
 
-    DoStepChronoSystem(0.5 * paramsH->dT, mTime);  // Keep only this if you are just interested in the rigid sys
+    mphysicalSystem->DoStepDynamics(0.5 * paramsH->dT);
     mTime -= 0.5 * paramsH->dT;
     fsiInterface->Copy_External_To_ChSystem();
     mTime += paramsH->dT;
-
-    DoStepChronoSystem(1.0 * paramsH->dT, mTime);
+    mphysicalSystem->DoStepDynamics(1.0 * paramsH->dT);
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 void ChSystemFsi::FinalizeData() {
     fsiData->ResizeDataManager();
-    // Arman: very important: you cannot change the order of (1-3). Fix the issue
-    // later
+    // Important note: the order of (1-3) cannot be change. Needs to be fixed
     fsiInterface->ResizeChronoBodiesData();
     fsiInterface->Copy_fsiBodies_ChSystem_to_FluidSystem(&(fsiData->fsiBodiesD1));  //(1)
     fsiData->fsiBodiesD2 = fsiData->fsiBodiesD1;                                    //(2) construct midpoint rigid data
 }
 //--------------------------------------------------------------------------------------------------------------------------------
-void ChSystemFsi::InitializeChronoGraphics(chrono::ChVector<> CameraLocation, chrono::ChVector<> CameraLookAt) {
-#ifdef CHRONO_OPENGL
-    gl_window = &(chrono::opengl::ChOpenGLWindow::getInstance());
-    gl_window->Initialize(1280, 720, "FSI_Problem", mphysicalSystem);
-    gl_window->SetCamera(CameraLocation, CameraLookAt, chrono::ChVector<>(0, 0, 1));
-    gl_window->SetRenderMode(chrono::opengl::WIREFRAME);
-#endif
-}
+
 
 }  // end namespace fsi
 }  // end namespace chrono

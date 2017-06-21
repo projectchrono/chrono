@@ -37,6 +37,10 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
+#ifdef CHRONO_OPENGL
+#include "chrono_opengl/ChOpenGLWindow.h"
+#endif
+
 // Chrono general utils
 #include "chrono/core/ChFileutils.h"
 #include "chrono/core/ChTransform.h"  //transform acc from GF to LF for post process
@@ -516,8 +520,6 @@ int main(int argc, char* argv[]) {
     // ********************************************
     ChSystemParallelNSC mphysicalSystem;
     fsi::ChSystemFsi myFsiSystem(&mphysicalSystem, mHaveFluid);
-    ChVector<> CameraLocation = ChVector<>(0, -10, 0);
-    ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
 
     fsi::SimParams* paramsH = myFsiSystem.GetSimParams();
 
@@ -585,26 +587,42 @@ int main(int argc, char* argv[]) {
 
     // ***************************** System Initialize
     // ********************************************
-    myFsiSystem.InitializeChronoGraphics(CameraLocation, CameraLookAt);
-
-    double mTime = 0;
+#ifdef CHRONO_OPENGL
+    opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
+    ChVector<> CameraLocation = ChVector<>(0, -10, 5);
+    ChVector<> CameraLookAt = ChVector<>(0, 0, 0);
+    ChVector<> UpVector = ChVector<>(0, 0, 1);
+    gl_window.Initialize(1200, 700, " Chrono::FSI Dam break simulation", &mphysicalSystem, &myFsiSystem);
+    gl_window.SetCamera(CameraLocation, CameraLookAt, UpVector, 1.f);
+    gl_window.SetRenderMode(opengl::SOLID);
+#endif
 
 #ifdef CHRONO_FSI_USE_DOUBLE
     printf("Double Precision\n");
 #else
     printf("Single Precision\n");
 #endif
+
+    double mTime = 0;
+
     int stepEnd = int(paramsH->tFinal / paramsH->dT);
     for (int tStep = 0; tStep < stepEnd + 1; tStep++) {
-        printf("step : %d \n", tStep);
-
-#if haveFluid
-        myFsiSystem.DoStepDynamics_FSI();
+        double frame_time = 1.0 / out_fps;
+#ifdef CHRONO_OPENGL
+          if (gl_window.Active()) {
+              gl_window.DoStepDynamics(paramsH->dT);
+              // Note that the rendering the SPH simulation on the fly in chrono::FSI requires GPU memory access which is expensive
+              // To speed up the process you may choose to render less frequently, considering the explicit nature of the solver and the very small time step
+              // You may decrease this anumber t the cost of slower simulation
+              if(tStep%20==0)
+              gl_window.Render();
+          }
 #else
-        myFsiSystem.DoStepDynamics_ChronoRK2();
+          myFsiSystem.DoStepDynamics_FSI();
 #endif
+          mTime += paramsH->dT;
 
-        SavePovFilesMBD(myFsiSystem, mphysicalSystem, paramsH, tStep, mTime);
+        //SavePovFilesMBD(myFsiSystem, mphysicalSystem, paramsH, tStep, mTime);
     }
     //	ClearArraysH(posRadH, velMasH, rhoPresMuH, bodyIndex, referenceArray);
 

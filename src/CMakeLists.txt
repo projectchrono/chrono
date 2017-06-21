@@ -351,6 +351,12 @@ else()
   set(CHRONO_PARALLEL "#undef CHRONO_PARALLEL")
 endif()
 
+if(ENABLE_MODULE_FSI)
+  set(CHRONO_FSI "#define CHRONO_FSI")
+else()
+  set(CHRONO_FSI "#undef CHRONO_FSI")
+endif()
+
 # Note: OPENGL must be configured *after* PARALLEL
 if(ENABLE_MODULE_OPENGL)
   set(CHRONO_OPENGL "#define CHRONO_OPENGL")
@@ -382,11 +388,6 @@ else()
   set(CHRONO_VEHICLE "#undef CHRONO_VEHICLE")
 endif()
 
-if(ENABLE_MODULE_FSI)
-  set(CHRONO_FSI "#define CHRONO_FSI")
-else()
-  set(CHRONO_FSI "#undef CHRONO_FSI")
-endif()
 
 if(ENABLE_OPENMP)
   set(CHRONO_OPENMP_ENABLED "#define CHRONO_OPENMP_ENABLED")

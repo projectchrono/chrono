@@ -50,7 +50,7 @@ void SetupParamsH(SimParams *paramsH, Real hdimX, Real hdimY, Real hthick,
   paramsH->epsMinMarkersDis = .001;
   paramsH->NUM_BOUNDARY_LAYERS = 3;
   paramsH->toleranceZone =
-      paramsH->NUM_BOUNDARY_LAYERS * (paramsH->HSML * paramsH->MULT_INITSPACE);
+  paramsH->NUM_BOUNDARY_LAYERS * (paramsH->HSML * paramsH->MULT_INITSPACE);
   paramsH->BASEPRES = 0;
   paramsH->LARGE_PRES = 0;
   paramsH->deltaPress;
