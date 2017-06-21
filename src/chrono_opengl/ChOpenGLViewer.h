@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Milad Rakhsha
 // =============================================================================
 // OpenGL viewer, this class draws the system to the screen and handles input
 // =============================================================================
@@ -31,6 +31,10 @@
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 
+#ifdef CHRONO_FSI
+#include "chrono_fsi/ChSystemFsi.h"
+#endif
+
 //#include "chrono_parallel/physics/ChSystemParallel.h"
 #include <glfw3.h>
 
@@ -46,6 +50,13 @@ enum RenderMode { POINTS, WIREFRAME, SOLID };
 class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
   public:
     ChOpenGLViewer(ChSystem* system);
+
+#ifdef CHRONO_FSI
+    ChOpenGLViewer(ChSystem* system, chrono::fsi::ChSystemFsi* m_fsisystem) : ChOpenGLViewer(system) {
+        fsi_system = m_fsisystem;
+    }
+#endif
+
     ~ChOpenGLViewer();
     void TakeDown();
     bool Initialize();
@@ -69,7 +80,11 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
     int interval;
 
     ChOpenGLCamera render_camera, ortho_camera;
-    ChSystem* physics_system;
+    ChSystem* physics_system;///<Pointer to the chrono system that is rendered.
+
+#ifdef CHRONO_FSI
+    chrono::fsi::ChSystemFsi* fsi_system; ///<Pointer to the (possible) FSI system that is rendered.
+#endif
 
     ChOpenGLShader main_shader;
     ChOpenGLShader cloud_shader;
@@ -134,6 +149,5 @@ class CH_OPENGL_API ChOpenGLViewer : public ChOpenGLBase {
 };
 
 /// @} opengl_module
-
 }
 }

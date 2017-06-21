@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Milad Rakhsha
 // =============================================================================
 // OpenGL window singleton, this class manages the opengl context and window
 // =============================================================================
@@ -85,6 +85,16 @@ void ChOpenGLWindow::Initialize(int size_x, int size_y, const char* title, ChSys
     GLReturnedError("Initialize Viewer ");
     poll_frame = 0;
 }
+#ifdef CHRONO_FSI
+void ChOpenGLWindow::Initialize(int size_x,
+                                int size_y,
+                                const char* title,
+                                ChSystem* msystem,
+                                chrono::fsi::ChSystemFsi* fsi_sys) {
+    ChOpenGLWindow::Initialize(size_x, size_y, title, msystem);
+    viewer->fsi_system=fsi_sys;
+}
+#endif
 
 void ChOpenGLWindow::StartDrawLoop(double time_step) {
     GLReturnedError("Start Draw Loop");

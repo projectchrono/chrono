@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Hammad Mazhar
+// Authors: Hammad Mazhar, Milad Rakhsha
 // =============================================================================
 // OpenGL window singleton, this class manages the opengl context and window
 // =============================================================================
@@ -31,39 +31,50 @@ namespace opengl {
 /// Manager for the OpenGL context and window.
 class CH_OPENGL_API ChOpenGLWindow {
   public:
-    // Get the unique instance for the OpenGL window
-    // Call this function to get a pointer to the window
+    /// @brief Get the unique instance for the OpenGL window
+    /// Call this function to get a pointer to the window
     static ChOpenGLWindow& getInstance() {
         static ChOpenGLWindow instance;
         return instance;
     }
 
-    // Initialize the window and set up the opengl viewer class
-    void Initialize(int size_x,         // Width of window in pixels
-                    int size_y,         // Height of window in pixels
-                    const char* title,  // Window title string
-                    ChSystem* msystem   // The ChSystem that is attached to this window
+    /// Initialize the window and set up the opengl viewer class
+    void Initialize(int size_x,         ///< Width of window in pixels
+                    int size_y,         ///< Height of window in pixels
+                    const char* title,  ///< Window title string
+                    ChSystem* msystem   ///< The ChSystem that is attached to this window
                     );
-    // This starts the drawing loop and takes control away from the main program
-    // This function is the easiest way to start rendering
+
+#ifdef CHRONO_FSI
+    /// Initialize the window and set up the opengl viewer class if the FSI module is available
+    void Initialize(int size_x,         ///< Width of window in pixels
+                    int size_y,         ///< Height of window in pixels
+                    const char* title,  ///< Window title string
+                    ChSystem* msystem,  ///< The ChSystem that is attached to this window
+                    chrono::fsi::ChSystemFsi* fsi_sys ///< The ChSystemFsi that is attached to this window
+                    );
+#endif
+
+    /// This starts the drawing loop and takes control away from the main program
+    /// This function is the easiest way to start rendering
     void StartDrawLoop(double time_step  // integration step size
                        );
 
-    // Perform a dynamics step, the user needs to use this so that pausing the
-    // simulation works correctly
+    /// Perform a dynamics step, the user needs to use this so that pausing the
+    /// simulation works correctly
     bool DoStepDynamics(double time_step  // integration step size
                         );
 
-    // Render the ChSystem and the HUD
+    /// Render the ChSystem and the HUD
     void Render();
 
-    // Check if the glfw context is still valid and the window has not been closed
+    /// Check if the glfw context is still valid and the window has not been closed
     bool Active();
 
-    // Check if the simulation is running or paused
+    /// Check if the simulation is running or paused
     bool Running();
 
-    // Pause simulation
+    /// Pause simulation
     void Pause();
 
     // Set the camera position, look at and up vectors
@@ -82,12 +93,11 @@ class CH_OPENGL_API ChOpenGLWindow {
 
     void SetRenderMode(RenderMode mode) { viewer->render_mode = mode; }
 
-    // Provides the version of the opengl context along with driver information
-    static void GLFWGetVersion(GLFWwindow* main_window  // A pointer to the window/context
+    /// Provides the version of the opengl context along with driver information
+    static void GLFWGetVersion(GLFWwindow* main_window  ///< A pointer to the window/context
                                );
 
-    // Pointer to the opengl viewer that handles rendering, text and user
-    // interaction
+    /// Pointer to the opengl viewer that handles rendering, text and user interaction
     ChOpenGLViewer* viewer;
 
   private:
@@ -124,7 +134,6 @@ class CH_OPENGL_API ChOpenGLWindow {
 };
 
 /// @} opengl_module
-
 }
 }
 
