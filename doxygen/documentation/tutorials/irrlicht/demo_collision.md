@@ -1,7 +1,7 @@
-Collision example (demo_IRR_collision.cpp)  {#tutorial_demo_collision}
+Collision example (demo_IRR_collisionNSC.cpp)  {#tutorial_demo_collision}
 ==========================
 
-An introductory tutorial about collisions.
+An introductory tutorial about collisions using Non-Smooth Contacts (NSC).
 
 A bunch of random shapes will fall into a box, 
 stacking in random order, while a mixer blade rotates.
@@ -16,5 +16,5 @@ Learn about:
 - create a motor between two parts.
 
 
-\include demo_IRR_collision.cpp
+\include demo_IRR_collisionNSC.cpp
 

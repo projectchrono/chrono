@@ -6,7 +6,7 @@ Install the CASCADE module {#module_cascade_installation}
 This is an optional module that adds 3D CAD file support (STEP format) for Chrono::Engine
 using the [OpenCASCADE](http://www.opencascade.org) library. 
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 
@@ -35,9 +35,9 @@ Here are the main features:
 1. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see 
    the CMake window, you must add the following steps:
   
-2. Set the ENABLE_MODULE_CASCADE as 'on', then press 'Configure' (to refresh the variable list) 
+2. Set the `ENABLE_MODULE_CASCADE` as 'on', then press 'Configure' (to refresh the variable list) 
 
-3. Set the CH_CASCADEDIR to the path where you have your OpenCASCADE SDK (the one that has inc/, src/, etc. subdirectories),
+3. Set the `CH_CASCADEDIR` to the path where you have your OpenCASCADE SDK (the one that has inc/, src/, etc. subdirectories),
    for example it could be `D:/OpenCASCADE6.9.0/opencascade-6.9.0` 
  
 4. Press 'Configure' again, then 'Generate', and proceed as usual in the installation instructions.

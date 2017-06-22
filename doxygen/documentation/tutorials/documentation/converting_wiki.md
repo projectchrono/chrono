@@ -52,7 +52,8 @@ In the header you can reference it with the ```@ref``` command
 ~~~
 
 ###Headings 
-In mediawiki ```===``` specified headings, in markdown ```###``` specifies a heading, the more pound symbols there are the lower the heading level. Example: ```===Create a column===``` becomes ```###Create a column```
+In mediawiki ```===``` specified headings, in markdown ```###``` specifies a heading, the more pound symbols there are the lower the heading level. <br>
+Example: ```=== Create a column ===``` becomes ```### Create a column```
 
 
 ### Images
@@ -177,7 +178,7 @@ brick_material.SetComplianceT(0.000000001)
 
 Becomes
 
-```
+~~~~
 
 ~~~{.py}
 brick_material = chrono.ChMaterialSurfaceShared()
@@ -187,7 +188,7 @@ brick_material.SetCompliance (0.000000003)
 brick_material.SetComplianceT(0.000000001)
 ~~~
 
-```
+~~~~
 
 ### Emphasis
 

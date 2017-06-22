@@ -24,7 +24,7 @@ Tutorials {#tutorial_root}
 	
 ## Optional modules
 
--   @subpage tutorial_table_of_content_chrono_postprocessing
+-   @subpage tutorial_table_of_content_chrono_postprocess
 
     Examples about postprocessing (ex. POVray or GNUplot output).
 

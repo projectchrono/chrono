@@ -2,7 +2,7 @@
 Finite Elements      {#manual_fea}
 ===============
 
-This part of Chrono requires that the optional [FEA module](@ref FEA_module) is correctly installed and built. 
+This part of Chrono requires that the optional [FEA module](group__fea__module.html) is correctly installed and built. 
 Go to the [installation guide](@ref module_fea_installation).
 
 Finite elements can be used in Chrono to model flexible parts. 
@@ -41,9 +41,9 @@ One can see that the main ingredients are
 
 - a @ref chrono::fea::ChMesh object that contains elements and nodes
 
-- some nodes, from the @ref chrono::fea::ChNodeFEA classes. 
+- some nodes, from the classes *derived* from @ref chrono::fea::ChNodeFEAbase. 
 
-- the elements, from the @ref chrono::fea::ChElement classes. 
+- the elements, from the classes *derived* from @ref chrono::fea::ChElementBase. 
 
 
 Note, however, that one can also use some of the @ref chrono::ChLink objects to constraint nodes to other nodes or to chrono::ChBody objects.

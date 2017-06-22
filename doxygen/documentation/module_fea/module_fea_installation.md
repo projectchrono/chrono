@@ -11,13 +11,13 @@ not completely tested and some functions are incomplete.
 
 This is an optional unit that introduce Finite Element Analysis (FEA) in Chrono::Engine.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 
 ## Features
 
-The '''FEM unit''' is used to simulate flexible parts in Chrono::Engine.
+The ```FEM unit``` is used to simulate flexible parts in Chrono::Engine.
 
 Here are the main features:
 

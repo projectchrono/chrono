@@ -6,7 +6,7 @@ Install the VEHICLE module   {#module_vehicle_installation}
 This is an optional module that enables template-based ground vehicle 
 modeling and simulation within Chrono::Engine.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 

@@ -26,7 +26,7 @@ Reference Manual {#manual_root}
 * @subpage rigid_bodies
 	* [ChBody](@ref manual_ChBody)
 	* [ChBodyAuxRef](@ref manual_ChBodyAuxRef)
-	* [Other_bodies](@ref manual_otherbodies)
+	* [Other bodies](@ref manual_otherbodies)
 	
 * @subpage markers
 	

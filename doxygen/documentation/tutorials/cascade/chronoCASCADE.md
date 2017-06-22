@@ -1,7 +1,8 @@
 Chrono CASCADE module tutorials {#tutorial_table_of_content_chrono_cascade}
 ===============================
 
-Tutorials for users that installed the [CASCADE module](@ref module_cascade_installation).
+Tutorials that teach how to use the 
+[CASCADE module](group__cascade__module.html).
 
 - @subpage  tutorial_demo_stepfile
 

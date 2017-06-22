@@ -5,7 +5,7 @@ Install the COSIMULATION module   {#module_cosimulation_installation}
 
 This is an optional module that enables co-simulation capabilities in Chrono::Engine.
 
-Read [the introduction to modules](@ref modules) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 
@@ -57,7 +57,7 @@ Here are the main features:
 <div class="ce-info">
  Although this module is meant to interface with Simulink, 
  the Simulink and Matlab APIs are not needed during the compilation, 
- and also the [Matlab unit](@ref module_matlab_installation) is not needed. 
+ and also the [Matlab unit](group__matlab__module.html) is not needed. 
  In fact the interface to Simulink is based on **TCP/IP sockets** only; actually such interface could be 
  used to do cosimulation with other software that supports TCP socked communication, 
  such as <br>

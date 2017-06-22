@@ -1,10 +1,10 @@
-Chrono POSTPROCESSING module tutorials   {#tutorial_table_of_content_chrono_postprocessing}
+Chrono POSTPROCESS module tutorials   {#tutorial_table_of_content_chrono_postprocess}
 ======================================
 
 Tutorials for users that installed the 
-[POSTPROCESSING module](@ref module_postprocessing_installation).
+[POSTPROCESS module](group__postprocess__module.html).
 
-- @subpage  tutorial_demo_postprocess
+- @subpage  tutorial_demo_povray
 
   Teaches how to use this module to create animations with [POVray](http://www.povray.org)
   

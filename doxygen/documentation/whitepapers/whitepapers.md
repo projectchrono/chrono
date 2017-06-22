@@ -16,7 +16,7 @@ White Papers {#whitepaper_root}
   [PDF](http://www.projectchrono.org/assets/white_papers/FEA/WP_ANCF.pdf)
   
 - **Corotational Euler-Bernoulli beams** 
-  [PDF1](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)   [download PDF2](http://www.projectchrono.org/assets/white_papers/FEA/WhitePaper_Co-rotational.pdf)
+  [PDF1](http://www.projectchrono.org/assets/white_papers/FEA/euler_beams.pdf)   [PDF2](http://www.projectchrono.org/assets/white_papers/FEA/WhitePaper_Co-rotational.pdf)
 
 
 ## Journal papers

@@ -5,7 +5,7 @@ Install the MKL module {#module_mkl_installation}
 
 This is an optional module that enables Chrono::Engine to use the Intel MKL Pardiso solver.
 
-Read [the introduction to modules](modules.html) for a technical 
+Read [the introduction to modules](modularity.html) for a technical 
 background on the modularity of the Chrono::Engine project.
 
 Chrono::Engine usually relies on its [built-in solvers](@ref solvers), whose good perfomance are guaranteed by leveraging the internal data structure. 
@@ -62,21 +62,20 @@ The Intel MKL Library is now [distributed for **free**](https://software.intel.c
 
 1. Install the Intel MKL Library following the [Developer Guide](https://software.intel.com/en-us/mkl-windows-developer-guide). No particular skills are needed.
     + if you are *not* installing to the default directory, then you have to set the environmental variable `MKLROOT` in order to point to<br>
-	<install_folder>/IntelSWTools/compilers_and_libraries/windows/mkl (Windows + MKL>=2016)<br>
-	<install_folder>/intel/compilers_and_libraries/linux/mkl (Linux + MKL>=2016)
+	`<install_folder>/IntelSWTools/compilers_and_libraries/windows/mkl` (Windows + MKL>=2016)<br>
+	`<install_folder>/intel/compilers_and_libraries/linux/mkl` (Linux + MKL>=2016)
 	
 2. Repeat the instructions for the [full installation](@ref tutorial_install_chrono), but when you see the CMake window,<br>
     you must set `ENABLE_MODULE_MKL` as 'on'.<br>
-    The CMake output window, on Windows OS, should return the following:
-```
+    The CMake output window, on Windows OS, should return the following: (Please mind that the MATH library is not required.)
+~~~~~
 Find MKL libraries
 MKL include dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/include
 MKL libraries:     C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_rt.lib
 IOMP5 library:     C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libiomp5md.lib
 MATH library:      C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libmmd.lib
 MKL library dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64;C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64
-```
-    Please mind that the MATH library is not required.
+~~~~~
 
 3. Press 'Generate'.
 
@@ -97,8 +96,10 @@ MKL library dirs:  C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/w
 This unit corresponds to an additional shared library, called **ChronoEngine_mkl**, that can be linked to your application if you want to use it.<br>
 The file extension will be .dll for Win and .so on Linux.
 
-When you will rebuild the project, you could find some demo_MKL_xxxx examples in the 
-binary directory, among other default demos. 
+When you will rebuild the project, you could find some demo_MKL_xxx examples in the 
+binary directory, among other default demos.<br>
+Please mind that are demo_MKL_MklEngine provides an example for those who wants to use the MKL interface without running any simulation.
+So it is not inteded for the average user.
 
 
 ## How to use it
@@ -110,7 +111,7 @@ auto mkl_solver = std::make_shared<ChSolverMKL<>>();
 application.GetSystem()->SetSolver(mkl_solver); // or my_system->SetSolver(mkl_solver);
 ~~~
 
-- (Optional) Turn on the sparsity pattern lock and sparsity pattern learner (see ChSolverMKL for further references)
+- (Optional) Turn on the sparsity pattern lock and sparsity pattern learner (see @ref chrono::ChSolverMKL<> for further references)
 ~~~{.cpp}
 auto mkl_solver = std::make_shared<ChSolverMKL<>>();
 mkl_solver->SetSparsityPatternLock(true);

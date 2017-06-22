@@ -72,7 +72,7 @@ if (auto mfun = std::dynamic_pointer_cast<ChFunction_Const>())
 
 See also:
 
-- demo_fourbar.cpp
-- demo_suspension.cpp
+- [demo_fourbar](@ref tutorial_demo_fourbar)
+- [demo_suspension](@ref tutorial_demo_suspension)
 
 

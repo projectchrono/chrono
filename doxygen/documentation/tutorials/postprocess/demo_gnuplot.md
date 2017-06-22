@@ -2,10 +2,10 @@ GNUplot example (demo_POST_gnuplot.cpp)  {#tutorial_demo_gnuplot}
 ==========================
 
 Tutorial that teaches how to use the 
-[POSTPROCESSING module](@ref module_postprocessing_installation)
+[POSTPROCESS module](group__postprocess__module.html)
 to create graphs with [GNUPLOT](http://www.gnuplot.info). 
 
-There is a @ref ChGnuPlot class that helps you to create .gpl 
+There is a @ref chrono::postprocess::ChGnuPlot class that helps you to create .gpl 
 gnuplot scripts directly from your cpp program.
 
 Of course you could create the gpl script by yourself, save a .dat file 
@@ -174,11 +174,11 @@ To make things even simpler, the Plot() shortcut function can be used directly
 on embedded data, without needing to save a .dat file. 
 
 One can use, for instance:
-- a pair of x,y vectors (use @ref ChVectorDynamic column matrices),
-- @ref ChFunction y(x) objects,
-- @ref ChFunction_Recorder and @ref ChFunction_Oscilloscope objects, that 
+- a pair of x,y vectors (use @ref chrono::ChVectorDynamic column matrices),
+- @ref chrono::ChFunction y(x) objects,
+- @ref chrono::ChFunction_Recorder and @ref chrono::ChFunction_Oscilloscope objects, that 
   are optimized for recording xy pairs,
-- columns from a @ref ChMatrix, etc.
+- columns from a @ref chrono::ChMatrix, etc.
 
 The data values will be saved _embedded_ in the .gpl file.
 

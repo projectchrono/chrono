@@ -10,7 +10,7 @@ you need to:
 
 as shown below: <br>
 
-![](http://www.projectchrono.org/assets/manual/Pic_build.png)
+<img src="http://www.projectchrono.org/assets/manual/Pic_build.png" class="img-responsive">
 
 <br>
 This process can be made almost automatic if you use CMake for building your program, see below.
@@ -50,7 +50,7 @@ This will be the directory where you put your source code.
   **Optionally** you might edit it, see below.
 
 <div class="ce-info">
-For example, suppose you want to use also the [postprocessing module](@ref module_postprocess_install).
+For example, suppose you want to use also the [POSTPROCESS module](group__postprocess__module.html).
 You can edit CMakeLists.txt where it reads:
 ~~~{.c}
 find_package(Chrono
@@ -68,10 +68,10 @@ The same is done for other modules: `FEA`, `Matlab`, `Vehicle`, `Cosimulation`, 
 
 <div class="ce-info">
 If you prefer to change the name of the default my_example.cpp to 
-something more meaningful, say my_simulator.cpp, just rename that file and then change the line
- `add_executable(myexe my_example.cpp)` 
- into 
- `add_executable(myexe my_simulator.cpp)`
+something more meaningful, say my_simulator.cpp, just rename that file and then change the line<br>
+ `add_executable(myexe my_example.cpp)` <br>
+ into <br>
+ `add_executable(myexe my_simulator.cpp)`<br>
 </div>
 
 <div class="ce-info">
@@ -88,7 +88,7 @@ If your program is split in multiple .cpp sources, simply list them in this line
 -   Use **Browse source...** by setting the source directory that you
     created, ex: `C:\my_project_source`
 	
--   Use **Browse build...** by setting a new empty directory for the
+-   Use **Browse build...** by setting a new *empty* directory for the
     output project, ex: `C:\my_project_build`
 
 	
@@ -105,7 +105,7 @@ If your program is split in multiple .cpp sources, simply list them in this line
 
 - Press the **Configure** button again
 
-![](http://www.projectchrono.org/assets/manual/Install_my_project_1.gif)
+<img src="http://www.projectchrono.org/assets/manual/Install_my_project_1.gif" class="img-responsive">
 
 
 6) Generate the project
@@ -123,7 +123,7 @@ If you used a VisualStudio generator in CMake,
 -   **Open the solution** in VisualStudio editor (in our example double
     click on `C:\my_project_build\my_project.sln`)
 
--   Change from Debug to **Release** mode, using the dropbox in the 
+-   Change from Debug to **Release** mode, using the drop-down list in the 
     toolbar of VisualStudio
 	
 -   Use the menu **BUILD / Build solution...** to compile and link.
@@ -145,7 +145,7 @@ your build directory, in our example `C:\my_project_build\Release\my_project.sln
 
 - double click on the .exe file and you should see the demo running in an interactive 3D view
 
-![](http://projectchrono.org/assets/manual/Install_my_project_2.jpg)
+<img src="http://projectchrono.org/assets/manual/Install_my_project_2.jpg" class="img-responsive">
 
 Additional information
 ----------------------
@@ -157,17 +157,14 @@ otherwise it will crash as soon as you try to run it.
 
 - To make things simple, at the end of the default CMakeFile.txt used in this example 
 there is this instruction: `add_DLL_copy_command macro`. This takes care of **automatically copying** all the needed dlls right after each build. 
-It also copies the Irrlicht.dll into your executable directory, if unit_IRRLICHT is used. 
-  
+It also copies the Irrlicht.dll into your executable directory, if the Irrlicht module is used. 
+
 <div class="ce-danger">
-Currently, the `add_DLL_copy_command macro` feature **is not working properly when in Debug mode**. 
-In fact it always copies the Release ddls of Chrono even in the Debug/ build directory of your project, 
-and this will **cause the program to crash**. 
-<br><br>
-As a temporary workaround, if you want to compile your program in Debug/, please copy all the .dll files of
-the Chrono build directory (ex. from  `C:\chrono_build\bin\Debug` to `C:\my_project_build\Debug`
-<br><br>
-This is not necessary for builds in Release mode.
+If you followed the [Chrono install tutorial](@ref tutorial_install_chrono) for Visual Studio you will eventually end up with two folders inside `C:/chrono_build/bin/`, namely `/Release` and `/Debug`.<br>
+Currently, the `add_DLL_copy_command` macro will pick the dlls **only** from the `/Release` subdirectory.<br> 
+This is perfectly fine if *your project* is built in `Release` too, but it will **crash** if built in `Debug`!<br>
+In fact you should never mix libraries and executables built with different build configurations.<br>
+In order to run your applications in `Debug` mode you have to **manually copy** any dll inside `C:/chrono_build/bin/Debug` into your `C:/my_project_build/bin/Debug` folder (Irrlicht.dll included).
 </div>
 
 

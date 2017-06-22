@@ -1,9 +1,9 @@
-Load a STEP file and simulate a robot (demo_robot.cpp)  {#tutorial_demo_robot}
+Load a STEP file and simulate a robot (demo_CAS_robot.cpp)  {#tutorial_demo_robot}
 ==========================
 
 
 Tutorial that teaches how to use the 
-[CASCADE module](@ref module_cascade_installation)
+[CASCADE module](group__cascade__module.html)
 to load a 6-DOF robot saved in a STEP file as an assembly, exported from a CAD model.
 
  
