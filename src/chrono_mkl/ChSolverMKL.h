@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,14 +15,14 @@
 #ifndef CHSOLVERMKL_H
 #define CHSOLVERMKL_H
 
+#include "chrono/core/ChMatrixDynamic.h"
+#include "chrono/core/ChSparseMatrix.h"
+#include "chrono/core/ChTimer.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChSystemDescriptor.h"
-#include "chrono/core/ChSparseMatrix.h"
-#include "chrono/core/ChMatrixDynamic.h"
-#include "chrono/core/ChTimer.h"
 
-#include "chrono_mkl/ChMklEngine.h"
 #include "chrono/core/ChCSMatrix.h"
+#include "chrono_mkl/ChMklEngine.h"
 
 namespace chrono {
 
@@ -51,7 +51,8 @@ A further option allows the user to manually set the number of non-zeros of the 
 This option will \e overrides the sparsity pattern lock.
 
 <div class="ce-warning">
-If the sparsity pattern \e learning is enabled, then is \e highly recommended to enable also the sparsity pattern \e lock.
+If the sparsity pattern \e learning is enabled, then is \e highly recommended to enable also the sparsity pattern \e
+lock.
 </div>
 
 Minimal usage example, to be put anywhere in the code, before starting the main simulation loop:
@@ -63,7 +64,7 @@ application.GetSystem()->SetSolver(mkl_solver);
 See ChSystemDescriptor for more information about the problem formulation and the data structures
 passed to the solver.
 
-\tparam Matrix  matrix type used by the solver;
+\tparam Matrix type of the matrix used by the solver;
 */
 template <typename Matrix = ChCSMatrix>
 class ChSolverMKL : public ChSolver {
@@ -89,7 +90,8 @@ class ChSolverMKL : public ChSolver {
     /// Call an update of the sparsity pattern on the underlying matrix.\n
     /// It is used to inform the solver (and the underlying matrices) that the sparsity pattern is changed.\n
     /// It is suggested to call this function just after the construction of the solver.
-    /// \remark Turn on the sparsity pattern lock feature #SetSparsityPatternLock(); otherwise performance can be compromised. 
+    /// \remark Turn on the sparsity pattern lock feature #SetSparsityPatternLock(); otherwise performance can be
+    /// compromised.
     void ForceSparsityPatternUpdate(bool val = true) { m_force_sparsity_pattern_update = val; }
 
     /// Enable/disable use of permutation vector (default: false).
@@ -148,15 +150,13 @@ class ChSolverMKL : public ChSolver {
             // a call to ChSystemDescriptor::ConvertToMatrixForm(), to allow for possible size optimizations.
             // Otherwise, do this only at the first call, using the default sparsity fill-in.
 
-			if (m_nnz == 0 && !m_lock || m_setup_call == 0)
-				m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
-			else if ( m_nnz>0 )
-				m_mat.Reset(m_dim, m_dim, m_nnz);
-
+            if (m_nnz == 0 && !m_lock || m_setup_call == 0)
+                m_mat.Reset(m_dim, m_dim, static_cast<int>(m_dim * (m_dim * SPM_DEF_FULLNESS)));
+            else if (m_nnz > 0)
+                m_mat.Reset(m_dim, m_dim, m_nnz);
         }
 
-
-		// Please mind that Reset will be called again on m_mat, inside ConvertToMatrixForm
+        // Please mind that Reset will be called again on m_mat, inside ConvertToMatrixForm
         sysd.ConvertToMatrixForm(&m_mat, nullptr);
 
         // Allow the matrix to be compressed.
