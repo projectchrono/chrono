@@ -1,31 +1,19 @@
-//
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
-// Copyright (c) 2011 Alessandro Tasora
-// All rights reserved.
+// Copyright (c) 2014 projectchrono.org
+// All right reserved.
 //
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file at the top level of the distribution
-// and at http://projectchrono.org/license-chrono.txt.
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
 //
+// =============================================================================
+// Authors: Alessandro Tasora
+// =============================================================================
 
 #ifndef CHCASCADEDOC_H
 #define CHCASCADEDOC_H
-
-//////////////////////////////////////////////////
-//
-//   ChCascadeDoc.h
-//
-//   Wraps the OCAF document (the hierarchy of
-//   shapes in the OpenCascade framework)
-//
-//   HEADER file for CHRONO,
-//	 Multibody dynamics engine
-//
-// ------------------------------------------------
-//             http://www.projectchrono.org
-// ------------------------------------------------
-///////////////////////////////////////////////////
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
@@ -71,7 +59,7 @@ class ChApiCASCADE ChCascadeDoc {
     /// It is possible to use # and ? wildcards as in Unix.
     /// If there are multiple parts (or assemblies) with the same name, only the first
     /// instance is returned in 'mshape'; otherwise, one can use the # wildcard
-    /// to get the #n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
+    /// to get the n-th object, for example "MyAssembly/bolt#3", "Car/Wheel#2/hub", etc.
     /// If the 'set_location_to_root' parameter is true (default), the location of the
     /// shape is changed so that it represents its position respect to the root, that is
     /// the shape .Location() function will give the absolute position, otherwise if false
