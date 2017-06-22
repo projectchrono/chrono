@@ -94,7 +94,7 @@ public:
 			/// You can pass a path too, ex "mydir/myotherdir/mysystem", but do NOT add .py
 			/// at the end!
 			/// That .py file, created when pressing the add-in button in SolidWorks CAD,
-			/// contains a python program that creates an equivalent mechanism in Chrono::Engine:
+			/// contains a python program that creates an equivalent mechanism in Chrono:
 			/// so it contains a sequce of creations of ChPhysicsItem objects (bodies, links, etc.).
 			/// If you want to add these python C::E objects to your ChSystem that you created 
 			/// in a C++ program, call this function: it will parse the .py textblock and add the created

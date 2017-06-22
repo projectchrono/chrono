@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     // Now, suppose one is interested in showing an animation of
     // the simulated system. There are different options, for instance
-    // one could use the unit_POSTPROCESSING approach for rendering in
+    // one could use the unit_POSTPROCESS approach for rendering in
     // POVray, or you can open an Irrlicht 3D realtime view and show
     // it, as in the following example code:
 
