@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -429,7 +429,7 @@ void ChIrrNodeProxyToAsset::Update() {
             maxU = mline_path->GetPathDuration();
 
         for (unsigned int ig = 0; ig < ntriangles; ++ig) {
-            double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscyssa
+            double mU = maxU * ((double)ig / (double)(ntriangles - 1));  // abscissa
 
             ChVector<> t2;
             mline->Evaluate(t2, mU, 0, 0);

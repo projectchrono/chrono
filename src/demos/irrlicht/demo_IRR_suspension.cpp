@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,7 +15,7 @@
 // Demo code about
 // - modeling a complex mechanism (a quarter car model)
 // - using the ChLinkSpring to make spring-damper system
-// - using the ChLinkDistance class to reperesent long and thin massless rods,
+// - using the ChLinkDistance class to represent long and thin massless rods,
 //   whose mass is negligible for dynamical analysis (as often happens in
 //   mechanisms) so they can be modeled as 'distance' constraints instead of
 //   making a thin body with small mass and two spherical joints at the end
@@ -106,7 +106,7 @@ class MySimpleCar {
     // Build and initialize the car, creating all bodies corresponding to
     // the various parts and adding them to the physical system - also creating
     // and adding constraints to the system.
-    MySimpleCar(ChSystemNSC& my_system,           ///< the chrono::engine physical system
+    MySimpleCar(ChSystemNSC& my_system,           ///< the Chrono physical system
                 ISceneManager* msceneManager,  ///< the Irrlicht scene manager for 3d shapes
                 IVideoDriver* mdriver          ///< the Irrlicht video driver
                 ) {

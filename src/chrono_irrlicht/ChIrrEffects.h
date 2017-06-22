@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -347,7 +347,7 @@ inline irr::core::stringc CShaderPreprocessor::ppShader(irr::core::stringc shade
         if (DefIter->getValue().size() == 0)
             continue;
 
-        // Replace all occurances.
+        // Replace all occurrences.
         while ((DefFinder = shaderProgram.find(DefIter->getKey().c_str())) > -1) {
             // Clear the define from the code.
             for (irr::u32 z = DefFinder; z < DefFinder + DefIter->getKey().size(); ++z)
@@ -1157,7 +1157,7 @@ class EffectHandler {
     /// for use
     /// with post processing effects that require screen depth info. If you want the functionality of the old method (A
     /// node that
-    /// only casts but does not recieve shadows, use addShadowToNode with the ESM_CAST shadow mode.
+    /// only casts but does not receive shadows, use addShadowToNode with the ESM_CAST shadow mode.
     void addNodeToDepthPass(irr::scene::ISceneNode* node);
 
     /// This function is now unrelated to shadow mapping. It simply removes a node to the screen space depth map render,
@@ -1190,8 +1190,8 @@ class EffectHandler {
 
     /// Updates the effects handler. This must be done between IVideoDriver::beginScene and IVideoDriver::endScene.
     /// This function now replaces smgr->drawAll(). So place it where smgr->drawAll() would normally go. Please note
-    /// that the clear colour from IVideoDriver::beginScene is not preserved, so you must instead specify the clear
-    /// colour using EffectHandler::setClearColour(Colour).
+    /// that the clear color from IVideoDriver::beginScene is not preserved, so you must instead specify the clear
+    /// color using EffectHandler::setClearColour(Color).
     /// A render target may be passed as the output target, else rendering will commence on the backbuffer.
     void update(irr::video::ITexture* outputTarget = 0);
 
@@ -1207,26 +1207,26 @@ class EffectHandler {
     /// Returns the device time divided by 100, for use with the shader callbacks.
     irr::f32 getTime() { return device->getTimer()->getTime() / 100.0f; }
 
-    /// Sets the scene clear colour, for when the scene is cleared before smgr->drawAll().
+    /// Sets the scene clear color, for when the scene is cleared before smgr->drawAll().
     void setClearColour(irr::video::SColor ClearCol) { ClearColour = ClearCol; }
 
     /**
     A very easy to use post processing function. Simply add a material type to apply to the screen as a post processing
     effect and it will be applied. You can add as many material types as you desire, and they will be double buffered
     and
-    executed in sequance.
+    executed in sequence.
 
-    For the material types, I recommend using "ScreenQuadCB" as the callback and refering to the texture names that are
+    For the material types, I recommend using "ScreenQuadCB" as the callback and referring to the texture names that are
     passed
     (When using OpenGL, in DirectX uniforms are not required to bind textures).
     Please note that this will only work in OpenGL on vanilla Irrlicht, DX requires the large RTT patch to be able to
     create
-    sufficiently sized rendertargets for post processing. (Or you can just remove the engine check for Pow2).
+    sufficiently sized render targets for post processing. (Or you can just remove the engine check for Pow2).
 
     The structure of the textures is as follows:
 
     Texture1 - "ColorMapSampler"
-    This is passed on from the previous post processing effect as they are executed in sequance. For example, if you do
+    This is passed on from the previous post processing effect as they are executed in sequence. For example, if you do
     a
     horizontal blur on the first post processing material, then a vertical blur in the second material, you will use
     this

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,7 +27,7 @@
 namespace irr {
 namespace core {
 
-/// Utility class to easily convert a Chrono::Engine vector into an Irrlicht
+/// Utility class to easily convert a Chrono vector into an Irrlicht
 /// vector3df. Simply create an Irrlicht compatible vector as:
 ///          myvector=vector3dfCH(mychronovector);
 class ChApiIrr vector3dfCH : public vector3df {
@@ -55,7 +55,7 @@ namespace irrlicht {
 
 // -----------------------------------------------------------------------------
 /// Class with static functions which help with the integration of
-/// Chrono::Engine and Irrlicht 3D rendering library.
+/// Chrono and Irrlicht 3D rendering library.
 class ChApiIrr ChIrrTools {
   public:
     enum eCh_ContactsDrawMode {
@@ -95,7 +95,7 @@ class ChApiIrr ChIrrTools {
         LINK_NONE_VAL              // draw nothing
     };
 
-    /// Function to align an Irrlicht object to a Chrono::Engine coordsys.
+    /// Function to align an Irrlicht object to a Chrono coordsys.
     static void alignIrrlichtNodeToChronoCsys(irr::scene::ISceneNode* mnode, const ChCoordsys<>& mcoords);
 
     /// Easy-to-use function which draws contact points used by a ChSystem in the

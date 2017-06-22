@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     // Our ChParticleEmitter object, among the main settings, it requires
     // that you give him four 'randomizer' objects: one is in charge of
     // generating random shapes, one is in charge of generating
-    // random positions, one for random alignements, and one for random velocities.
+    // random positions, one for random alignments, and one for random velocities.
     // In the following we need to instance such objects. (There are many ready-to-use
     // randomizer objects already available in chrono, but note that you could also
     // inherit your own class from these randomizers if the choice is not enough).

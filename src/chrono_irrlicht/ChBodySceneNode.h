@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -35,28 +35,28 @@ namespace irrlicht {
 class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
   public:
     /// Build a scene node for the Irrlicht Engine. This scene node is also a
-    /// rigid body for the Chrono::Engine multibody simulation.
+    /// rigid body for the Chrono multibody simulation.
     /// As soon as created, the wrapped ChBody is also added to Chrono system.
     /// To delete a ChBodyScene node from an Irrlicht scene, use the remove()
     /// function only! (it will also be removed from the Chrono system)
-    ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono::Engine physical simulation system
+    ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono physical simulation system
                     irr::scene::IAnimatedMesh* mesh,  ///< a 3D mesh for representing the shape of the body
                     irr::scene::ISceneNode* parent,   ///< the parent node in Irrlicht hierarchy
                     irr::scene::ISceneManager* mgr,   ///< the Irrlicht scene manager
                     irr::s32 id                       ///< the Irrlicht identifier
                     );
 
-    ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono::Engine physical simulation system
+    ChBodySceneNode(ChSystem* msystem,                ///< pointer to the Chrono physical simulation system
                     irr::scene::IAnimatedMesh* mesh,  ///< a 3D mesh for representing the shape of the body
                     irr::scene::ISceneNode* parent,   ///< the parent node in Irrlicht hierarchy
-                    irr::scene::ISceneManager* mgr,   ///< the Irrlicht scene manager
+                    irr::scene::ISceneManager* mgr,   ///< the Irrlicht 	 manager
                     irr::s32 id,                      ///< the Irrlicht identifier
                     const ChVector<>& offset          ///< offset between mesh and body COG
                     );
 
     /// Destructor.
     /// Note: as this Irrlicht node is destructed, it also automatically removes
-    /// the wrapped ChBody from the ChronoEngine.
+    /// the wrapped ChBody from the Chrono.
     ~ChBodySceneNode();
 
     //
@@ -90,10 +90,10 @@ class ChApiIrr ChBodySceneNode : public irr::scene::ISceneNode {
     /// rigid body wrapped by this scene node.
     std::shared_ptr<ChBody>& GetBody() { return *bodyp; }
 
-    /// Returns true if the node is moved by Chrono::Engine simulation system.
+    /// Returns true if the node is moved by Chrono simulation system.
     virtual bool IsChronoControlled() const { return ChronoControlled; }
 
-    /// Set true if you want Chrono::Engine to include this body in simulation.
+    /// Set true if you want Chrono to include this body in simulation.
     virtual void SetChronoControlled(const bool& controlled) { ChronoControlled = controlled; }
 
     irr::scene::IAnimatedMeshSceneNode* GetChildMesh() { return child_mesh; }

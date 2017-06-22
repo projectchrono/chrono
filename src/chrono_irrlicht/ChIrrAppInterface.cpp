@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -402,7 +402,7 @@ ChIrrAppInterface::ChIrrAppInterface(ChSystem* psystem,
     // note: Irrlicht antialiasing does not work with Xeffects, but we could fake AA in Xeffects
     // by doubling the size of its buffer:  EffectHandler(device, device->getVideoDriver()->getScreenSize()*2
     effect->setAmbientColor(irr::video::SColor(255, 122, 122, 122));
-    use_effects = false;  // will be true as sson as a lightwith shadow is added.
+    use_effects = false;  // will be true as sson as a light with shadow is added.
 
     if (title)
         device->setWindowCaption(title);
