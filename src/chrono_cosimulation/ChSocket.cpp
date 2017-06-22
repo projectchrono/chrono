@@ -1069,7 +1069,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
 {
     int numBytes = 0;                 // The number of bytes received
     int currentSize = MSG_HEADER_LEN; // The number of bytes wanted to receive
-    int offsetSize = 0;               // The number of bytes currently recieved
+    int offsetSize = 0;               // The number of bytes currently received
 
     // retrieve the length of the message received
 
@@ -1149,7 +1149,7 @@ int ChSocketTCP::XPrecieveMessage(string& message)
 int ChSocketTCP::XPrecieveMessage(string& message) {
     int received = 0;            // The number of bytes received
     int msgSize = MAX_RECV_LEN;  // The number of bytes wanted to receive
-    int numBytes = 0;            // The number of bytes currently recieved
+    int numBytes = 0;            // The number of bytes currently received
     int totalRecvNum = 0;
     bool headerFinished = false;
 
@@ -1200,7 +1200,7 @@ int ChSocketTCP::XPrecieveMessage(string& message) {
 #endif
 
 int ChSocketTCP::receiveMessage(string& message) {
-    int numBytes;  // The number of bytes recieved
+    int numBytes;  // The number of bytes received
 
 #ifdef WINDOWS_XP
     return XPrecieveMessage(message);

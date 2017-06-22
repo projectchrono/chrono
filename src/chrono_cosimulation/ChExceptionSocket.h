@@ -28,7 +28,7 @@ namespace chrono {
 namespace cosimul {
 
 /// Class for exceptions that are thrown by TCP socket connections,
-/// used for example when connecting with other sw for co-simulation.
+/// used for example when connecting with other sw for cosimulation.
 
 class ChExceptionSocket : public ChException {
   public:

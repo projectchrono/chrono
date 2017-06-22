@@ -15,8 +15,8 @@
 #ifndef CHCOSIMULATION_H
 #define CHCOSIMULATION_H
 
-#include "chrono_cosimulation/ChSocketFramework.h"
 #include "chrono_cosimulation/ChSocket.h"
+#include "chrono_cosimulation/ChSocketFramework.h"
 
 #include "chrono/core/ChMatrix.h"
 
@@ -26,10 +26,10 @@ namespace cosimul {
 /// @addtogroup cosimulation_module
 /// @{
 
-/// Class for co-simulation interface.
+/// Class for cosimulation interface.
 /// Typically, a C::E program can instance an object
 /// from this class and use it to communicate with a 3rd party
-/// simulation tool at each time step. The communicaiton is based
+/// simulation tool at each time step. The communication is based
 /// on TCP sockets, where vectors of scalar values are exchanged
 /// back and forth.
 /// In this case, C::E will work as a server, waiting for
@@ -38,16 +38,16 @@ namespace cosimul {
 class ChApiCosimulation ChCosimulation {
   public:
     /// Create a co-simulation interface.
-    ChCosimulation(ChSocketFramework& mframework,
-                   int n_in_values,  /// number of scalar variables to receive each timestep
-                   int n_out_values  /// number of scalar variables to send each timestep
-                   );
+    ChCosimulation(ChSocketFramework& mframework,  ///< socket framework
+                   int n_in_values,                ///< number of scalar variables to receive each timestep
+                   int n_out_values                ///< number of scalar variables to send each timestep
+    );
 
     ~ChCosimulation();
 
     /// Wait for a client to connect to the interface,
     /// on a given port, and wait until not connected.
-    /// aport is a free port number, for example 50009.
+    /// \a aport is a free port number, for example 50009.
     bool WaitConnection(int aport);
 
     /// Exchange data with the client, by sending a
