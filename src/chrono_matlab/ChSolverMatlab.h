@@ -45,7 +45,7 @@ class ChApiMatlab ChSolverMatlab : public ChSolver {
     /// As typical of direct solvers, the Pardiso solver only requires the matrix for its Setup() phase.
     virtual bool SolveRequiresMatrix() const override { return false; }
 
-    /// Solve using the Matlab default direct solver (as in x=A\b)
+    /// Solve using the Matlab default direct solver (as in x=A\\b)
     virtual double Solve(ChSystemDescriptor& sysd) override;
 
     /// Method to allow serialization of transient data to archives.
