@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -41,9 +41,8 @@ int main(int argc, char* argv[]) {
     // Create a Chrono::Engine physical system
     ChSystemNSC mphysicalSystem;
 
-    //
-    // EXAMPLE 1:
-    //
+    /* Start example */
+    /// [Example 1]
 
     // Create a ChBody, and attach some 'assets'
     // that define 3D shapes. These shapes can be shown
@@ -77,9 +76,13 @@ int main(int argc, char* argv[]) {
     mfloorcolor->SetColor(ChColor(0.3f, 0.3f, 0.6f));
     mfloor->AddAsset(mfloorcolor);
 
-    //
-    // EXAMPLE 2:
-    //
+    
+    /// [Example 1]
+    /* End example */
+
+    /* Start example */
+    /// [Example 2]
+    
 
     // Textures, colors, asset levels with transformations.
     // This section shows how to add more advanced types of assets
@@ -170,9 +173,11 @@ int main(int argc, char* argv[]) {
     mcamera->SetAimPoint(ChVector<>(0, 1, 0));
     mbody->AddAsset(mcamera);
 
-    //
-    // EXAMPLE 3:
-    //
+    /// [Example 2]
+    /* End example */
+
+    /* Start example */
+    /// [Example 3]
 
     // Create a ChParticleClones cluster, and attach 'assets'
     // that define a single "sample" 3D shape. This will be shown
@@ -200,6 +205,12 @@ int main(int argc, char* argv[]) {
     auto mspherepart = std::make_shared<ChSphereShape>();
     mspherepart->GetSphereGeometry().rad = 0.05;
     mparticles->AddAsset(mspherepart);
+
+    /// [Example 3]
+    /* End example */
+
+    /* Start example */
+    /// [POV exporter]
 
     //
     // SETUP THE POSTPROCESSING
@@ -264,6 +275,12 @@ int main(int argc, char* argv[]) {
     //	pov_exporter.Add(mbody);
     //	pov_exporter.Add(mparticles);
 
+    /// [POV exporter]
+    /* End example */
+
+    /* Start example */
+    /// [POV simulation]
+
     //
     // RUN THE SIMULATION AND SAVE THE POVray FILES AT EACH FRAME
     //
@@ -288,6 +305,9 @@ int main(int argc, char* argv[]) {
     // load in POV-Ray, then when you press 'RUN' you will see that
     // POV-Ray will start rendering a short animation, saving the frames
     // in the directory 'anim'.
+
+    /// [POV simulation]
+    /* End example */
 
     return 0;
 }

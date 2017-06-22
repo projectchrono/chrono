@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -27,9 +27,9 @@
 
 #include "chrono_irrlicht/ChIrrApp.h"
 
-#define USE_POSTPROCESSING_MODULE
+#define USE_POSTPROCESS_MODULE
 
-#if defined USE_POSTPROCESSING_MODULE
+#if defined USE_POSTPROCESS_MODULE
 #include "chrono_postprocess/ChPovRay.h"
 #include "chrono_postprocess/ChPovRayAsset.h"
 #include "chrono_postprocess/ChPovRayAssetCustom.h"
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
     mvisual->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom()));
     floorBody->AddAsset(mvisual);
 
-    #if defined USE_POSTPROCESSING_MODULE
+    #if defined USE_POSTPROCESS_MODULE
     // Custom rendering in POVray:
     auto mPOVcustom = std::make_shared<ChPovRayAssetCustom>();
     mPOVcustom->SetCommands("texture{ pigment{ color rgb<1,1,1>}} \n\
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
                 airrlicht_application->AssetBind(mbody);
                 airrlicht_application->AssetUpdate(mbody);
 
-                #if defined USE_POSTPROCESSING_MODULE
+                #if defined USE_POSTPROCESS_MODULE
                     // Enable PovRay rendering
                     auto mpov_asset = std::make_shared<ChPovRayAsset>();
                     mbody->AddAsset(mpov_asset);
@@ -325,7 +325,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
             airrlicht_application->AssetUpdate(mbody);
 
             // Enable PovRay rendering
-            #if defined USE_POSTPROCESSING_MODULE
+            #if defined USE_POSTPROCESS_MODULE
             auto mpov_asset = std::make_shared<ChPovRayAsset>();
             mbody->AddAsset(mpov_asset);
             #endif
@@ -351,7 +351,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
     application.AssetUpdateAll();
 
 
-    #if defined USE_POSTPROCESSING_MODULE
+    #if defined USE_POSTPROCESS_MODULE
 
     // Create an exporter to POVray !!
     ChPovRay pov_exporter = ChPovRay(&mphysicalSystem);
@@ -412,7 +412,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
 
     //
     // THE SOFT-REAL-TIME CYCLE
-    //
+    //	
 
     while (application.GetDevice()->run()) {
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
@@ -435,7 +435,7 @@ for (unsigned int ie = 0; ie < emitters.size(); ie++)
 
         // Create the incremental nnnn.dat and nnnn.pov files that will be load
         // by the pov .ini script in POV-Ray (do this at each simulation timestep)
-        #if defined USE_POSTPROCESSING_MODULE
+        #if defined USE_POSTPROCESS_MODULE
           pov_exporter.ExportData();
         #endif
     }
