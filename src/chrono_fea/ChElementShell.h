@@ -24,7 +24,7 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Base class for most structral elements of 'shell' type.
+/// Base class for most structural elements of 'shell' type.
 class ChApiFea ChElementShell : public ChElementGeneric {
   protected:
     double mass;

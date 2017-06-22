@@ -86,7 +86,7 @@ class ChGaussPoint {
 
 /// @} fea_math
 
-}  //  end mamespace fea
+}  //  end namespace fea
 }  //  end namespace chrono
 
 #endif

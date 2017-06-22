@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -289,7 +289,7 @@ void test_2b() {
 
 void test_3() {
     GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: tetahedron FEM dynamics, implicit integration \n\n";
+    GetLog() << "TEST: tetrahedron FEM dynamics, implicit integration \n\n";
 
     // The physical system: it contains all physical objects.
     ChSystemNSC my_system;

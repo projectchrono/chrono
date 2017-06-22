@@ -301,7 +301,7 @@ class ChApiFea ChElementBrick_9 : public ChElementGeneric, public ChLoadableUVW 
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
     ///     J = Kfactor * K + Rfactor * R
-    /// for given coeficients Kfactor and Rfactor.
+    /// for given coefficients Kfactor and Rfactor.
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);

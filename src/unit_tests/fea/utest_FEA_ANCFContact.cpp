@@ -12,7 +12,7 @@
 // Authors: Milad Rakhsha
 // =============================================================================
 //
-// This unit test creats 2 ANCF shell elements and place them in different positions
+// This unit test creates 2 ANCF shell elements and place them in different positions
 // in order to validate the collision detection in Chrono.
 // =============================================================================
 
@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     double E = 5e8;     ///< Young's modulus
     double nu = 0.3;    ///< Poisson ratio
     auto my_material = std::make_shared<ChMaterialShellANCF>(rho, E, nu);
-    // You can also change the contact surface propeties for further investigation.
+    // You can also change the contact surface properties for further investigation.
     auto mysurfmaterial = std::make_shared<ChMaterialSurfaceSMC>();
     mysurfmaterial->SetKn(1e0);
     mysurfmaterial->SetKt(0);

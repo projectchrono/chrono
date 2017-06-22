@@ -915,7 +915,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                         if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt - MeanEffP)) {
                             YieldFlag = 1;
                             PlasticCount = 1;
-                            if (YieldFunc > 0.0) {  // DP smmothed surface return mapping
+                            if (YieldFunc > 0.0) {  // DP smoothed surface return mapping
                                 // Initialize for Newton-Raphson
                                 double DGamma = 0.0;
                                 double Yfunc1 = YieldFunc;  // Initially recalculated
@@ -978,7 +978,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                         LogStrain(2, 0) = devStressUp.z() / (2.0 * G) + hydroPUp / (3.0 * K);
                                     }
                                 }  // end of // Cone return mapping
-                            }      // end of // DP smmothed surface return mapping
+                            }      // end of // DP smoothed surface return mapping
 
                             if (YieldFunc_Cap > 0.0 && FlagYieldType == 0) {  // Cap return mapping
                                 // Initialize of Newton raphson for Cap surface
@@ -1100,7 +1100,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                     for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                         // TransNewtonDifference
 
-                                        //** pertervation for DGAMA_B1
+                                        //** perturbation for DGAMA_B1
                                         DGamma_B1 = DGamma_B + 1e-10;
                                         AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1);
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
@@ -1130,7 +1130,7 @@ void MyForceBrick9::Evaluate(ChMatrixNM<double, 33, 1>& result, const double x, 
                                         AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
-                                        // Upadate yield stress and the Hi(slop) at plastic strain from table
+                                        // Update yield stress and the Hi(slop) at plastic strain from table
                                         m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
                                                                       m_element->m_DPVector2,
                                                                       m_element->m_DPVector_size);
@@ -2006,7 +2006,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                         if (YieldFunc > 0.0 || (YieldFunc_Cap > 0.0 && hydroP < hydroPt - MeanEffP)) {
                             YieldFlag = 1;
                             PlasticCount = 1;
-                            if (YieldFunc > 0.0) {  // DP smmothed surface return mapping
+                            if (YieldFunc > 0.0) {  // DP smoothed surface return mapping
                                 // Initialize for Newton-Raphson
                                 double DGamma = 0.0;
                                 double Yfunc1 = YieldFunc;  // Initially recalculated
@@ -2106,7 +2106,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                         }
                                     }
                                 }
-                            }  // end of // DP smmothed surface return mapping
+                            }  // end of // DP smoothed surface return mapping
 
                             if (YieldFunc_Cap > 0.0 && FlagYieldType == 0) {  // Cap return mapping
                                 // Initialize of Newton raphson for Cap surface
@@ -2226,7 +2226,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                     for (int ii = 0; ii < m_element->GetDPIterationNo(); ii++) {
                                         // TransNewtonDifference
 
-                                        //** pertervation for DGAMA_B1
+                                        //** perturbation for DGAMA_B1
                                         DGamma_B1 = DGamma_B + 1e-10;
                                         AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B1);
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
@@ -2256,7 +2256,7 @@ void MyJacobianBrick9::Evaluate(ChMatrixNM<double, 33, 33>& result, const double
                                         AA = CapM * CapM / (CapM * CapM + 6.0 * G * DGamma_B);
                                         DGamma_A = (AA * SQRJ2T + eta * PT - eta * hydroPt) / (AA * G + K * eta * etab);
                                         EPBAR = EPBARN - etab * DGamma_A;  // plastic strain
-                                        // Upadate yield stress and the Hi(slop) at plastic strain from table
+                                        // Update yield stress and the Hi(slop) at plastic strain from table
                                         m_element->ComputeHardening_a(MeanEffP, Hi, EPBAR, m_element->m_DPVector1,
                                                                       m_element->m_DPVector2,
                                                                       m_element->m_DPVector_size);

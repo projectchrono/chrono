@@ -1,9 +1,8 @@
-//
 // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -130,7 +129,7 @@ void test_1() {
     // There are some stubs in the ChLoaderU.h ChLoaderUV.h ChLoaderUVW.h  headers,
     // from which you can inherit. Here we inherit from
     // For example, let's make a distributed triangular load. A load on the beam is a
-    // wrench, i.e. force+load per unit lenght aplied at a certain abscyssa U, that is a six-dimensional load.
+    // wrench, i.e. force+load per unit lenght applied at a certain abscissa U, that is a six-dimensional load.
     // By the way, a triangular load will work as a constant one because a single Euler beam
     // cannot feel more than this.
 

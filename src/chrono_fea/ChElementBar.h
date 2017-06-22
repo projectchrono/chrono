@@ -154,7 +154,7 @@ class ChApiFea ChElementBar : public ChElementGeneric {
     void SetBarYoungModulus(double mE) { this->E = mE; }
     double GetBarYoungModulus() { return this->E; }
 
-    /// Set the Raleygh damping ratio r (as in: R = r * K )
+    /// Set the Rayleigh damping ratio r (as in: R = r * K )
     void SetBarRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBarRaleyghDamping() { return this->rdamping; }
 

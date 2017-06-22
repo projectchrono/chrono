@@ -108,7 +108,7 @@ class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
     virtual void ReportAllProximities(ReportProximityCallback* mcallback) override;
 
     // Perform some SPH per-edge initializations and accumulations of values
-    // into the connected pairs of particles (summation into partcle's  J, Amoment, m_v, UserForce -viscous only- )
+    // into the connected pairs of particles (summation into particle's  J, Amoment, m_v, UserForce -viscous only- )
     // Will be called by the ChMatterMeshless item.
     void AccumulateStep1();
 

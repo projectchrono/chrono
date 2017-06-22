@@ -14,11 +14,11 @@
 //
 // Unit test for EAS Brick Element
 //
-// This unit test checks the dynamics of a beam made up of 10 brick elemnts.
+// This unit test checks the dynamics of a beam made up of 10 brick elements.
 // It serves to validate the elastic, isotropic, large deformation internal forces,
 // the element inertia, and this element'sgravity forces.
 //
-// This element is a regular 8-noded trilinear brick element with enhanced assumed
+// This element is a regular 8-nodes trilinear brick element with enhanced assumed
 // strain that alleviates locking. More information on the validation of this element
 // may be found in Chrono's documentation. This simulation excites the beam by applying
 // the sudden action of a gravity field.

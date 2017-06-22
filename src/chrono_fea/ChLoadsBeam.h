@@ -31,8 +31,8 @@ namespace fea {
 
 /// Atomic wrench.
 /// Loader for a wrench (force+torque) at a specific position of a beam.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at
-/// a certain abscyssa U, that is a six-dimensional load.
+/// An atomic load on the beam is a wrench, i.e. force+load applied at
+/// a certain abscissa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic.
 class ChLoaderBeamWrench : public ChLoaderUatomic {
   private:
@@ -71,8 +71,8 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
 /// Atomic wrench (ready to use load)
 /// Load for a wrench (force+torque) at a specific position of a beam.
 /// The ChLoaderBeamWrench is a 'container' for ChLoadBeamWrench.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at
-/// a certain abscyssa U, that is a six-dimensional load.
+/// An atomic load on the beam is a wrench, i.e. force+load applied at
+/// a certain abscissa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
 class ChLoadBeamWrench : public ChLoad<ChLoaderBeamWrench> {
   public:
@@ -112,11 +112,11 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
 
     virtual int GetIntegrationPointsU() { return 1; }
 
-    /// Set force per unit legth (ex. [N/m] )
+    /// Set force per unit length (ex. [N/m] )
     void SetForcePerUnit(const ChVector<>& mf) { this->forceperunit = mf; }
     ChVector<> GetForcePerUnit() const { return this->forceperunit; }
 
-    /// Set torque per unit legth (ex. [Nm/m] )
+    /// Set torque per unit length (ex. [Nm/m] )
     void SetTorquePerUnit(const ChVector<>& mt) { this->torqueperunit = mt; }
     ChVector<> GetTorquePerUnit() const { return this->torqueperunit; }
 };
@@ -124,8 +124,8 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
 /// Distributed constant wrench (ready to use load)
 /// Load for a wrench (force+torque) at a specific position of a beam.
 /// The ChLoaderBeamWrench is a 'container' for ChLoadBeamWrench.
-/// An atomic load on the beam is a wrench, i.e. force+load aplied at
-/// a certain abscyssa U, that is a six-dimensional load.
+/// An atomic load on the beam is a wrench, i.e. force+load applied at
+/// a certain abscissa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
 class ChLoadBeamWrenchDistributed : public ChLoad<ChLoaderBeamWrenchDistributed> {
   public:

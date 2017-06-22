@@ -11,7 +11,7 @@
 // =============================================================================
 // Authors: Alessandro Tasora
 // =============================================================================
-// Geometrically exact kinematics of shell, with fromulation from Masarati et.al.
+// Geometrically exact kinematics of shell, with formulation from Masarati et.al.
 // =============================================================================
 
 #ifndef CHELEMENTSHELLEANS4_H
@@ -431,7 +431,7 @@ class ChApiFea ChElementShellReissner4 : public ChElementShell, public ChLoadabl
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
     ///     J = Kfactor * K + Rfactor * R
-    /// for given coeficients Kfactor and Rfactor.
+    /// for given coefficients Kfactor and Rfactor.
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);

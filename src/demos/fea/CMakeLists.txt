@@ -95,7 +95,7 @@ ENDFOREACH()
 
 #--------------------------------------------------------------
 # For demo executables that use Irrlicht
-# (and posibly Matlab and/or MKL)
+# (and possibly Matlab and/or MKL)
 
 IF(ENABLE_MODULE_IRRLICHT)
 

@@ -17,8 +17,8 @@
 #ifndef CHMATERIALSHELLREISSNER_H
 #define CHMATERIALSHELLREISSNER_H
 
-#include <vector>
 #include <array>
+#include <vector>
 
 #include "chrono_fea/ChApiFEA.h"
 #include "chrono_fea/ChElementShell.h"
@@ -31,7 +31,7 @@ namespace fea {
 
 // ----------------------------------------------------------------------------
 
-/// Base class for all meterials to be used for
+/// Base class for all materials to be used for
 /// 6-field Reissner-Mindlin shells (kinematically-exact shell theory)
 /// as in Witkowski et al.
 /// Inherited materials do not define any thickness, which should be
@@ -46,34 +46,34 @@ class ChApiFea ChMaterialShellReissner {
 
     /// The FE code will evaluate this function to compute
     /// u,v stresses/torques given the u,v strains/curvatures.
-    /// Inherited classes MUST implemenmt this.
-    virtual void ComputeStress(ChVector<>& n_u,
-                               ChVector<>& n_v,
-                               ChVector<>& m_u,
-                               ChVector<>& m_v,
-                               const ChVector<>& eps_u,
-                               const ChVector<>& eps_v,
-                               const ChVector<>& kur_u,
-                               const ChVector<>& kur_v,
-                               const double z_inf,  ///< layer lower z value (along thickness coord)
-                               const double z_sup,  ///< layer upper z value (along thickness coord)
-                               const double angle   ///< layer angle respect to x (if needed)
-                               ) = 0;
+    /// Inherited classes MUST implement this.
+    virtual void ComputeStress(ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+                               ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+                               ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+                               ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+                               const ChVector<>& eps_u,  ///< strains along \e u direction
+                               const ChVector<>& eps_v,  ///< strains along \e v direction
+                               const ChVector<>& kur_u,  ///< curvature along \e u direction
+                               const ChVector<>& kur_v,  ///< curvature along \e v direction
+                               const double z_inf,       ///< layer lower z value (along thickness coord)
+                               const double z_sup,       ///< layer upper z value (along thickness coord)
+                               const double angle        ///< layer angle respect to x (if needed)
+    ) = 0;
 
     /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
     /// stresses/strains. In many cases this is a constant matrix, but it could
     /// change for instance in case of hardening or softening materials, etc.
     /// By default, it is computed by backward differentiation from the ComputeStress() function,
     /// but inherited classes should better provide an analytical form, if possible.
-    virtual void ComputeTangentC(ChMatrix<>& mC,
-                                 const ChVector<>& eps_u,
-                                 const ChVector<>& eps_v,
-                                 const ChVector<>& kur_u,
-                                 const ChVector<>& kur_v,
-                                 const double z_inf,  ///< layer lower z value (along thickness coord)
-                                 const double z_sup,  ///< layer upper z value (along thickness coord)
-                                 const double angle   ///< layer angle respect to x (if needed)
-                                 );
+    virtual void ComputeTangentC(ChMatrix<>& mC,           ///< tangent matrix
+                                 const ChVector<>& eps_u,  ///< strains along \e u direction
+                                 const ChVector<>& eps_v,  ///< strains along \e v direction
+                                 const ChVector<>& kur_u,  ///< curvature along \e u direction
+                                 const ChVector<>& kur_v,  ///< curvature along \e v direction
+                                 const double z_inf,       ///< layer lower z value (along thickness coord)
+                                 const double z_sup,       ///< layer upper z value (along thickness coord)
+                                 const double angle        ///< layer angle respect to x (if needed)
+    );
 
   protected:
     double m_rho;  ///< density
@@ -91,7 +91,7 @@ class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissne
                                       double nu,           ///< Poisson ratio
                                       double alpha = 1.0,  ///< shear factor
                                       double beta = 0.1    ///< torque factor
-                                      );
+    );
 
     /// Return the elasticity moduli
     double Get_E() const { return m_E; }
@@ -103,33 +103,33 @@ class ChApiFea ChMaterialShellReissnerIsothropic : public ChMaterialShellReissne
     double Get_beta() const { return m_beta; }
 
     /// The FE code will evaluate this function to compute
-    /// per-unit-length forces/torques  given the u,v strains/curvatures.
+    /// per-unit-length forces/torques given the u,v strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n_u,
-        ChVector<>& n_v,
-        ChVector<>& m_u,
-        ChVector<>& m_v,
-        const ChVector<>& eps_u,
-        const ChVector<>& eps_v,
-        const ChVector<>& kur_u,
-        const ChVector<>& kur_v,
-        const double z_inf,  ///< layer lower z value (along thickness coord)
-        const double z_sup,  ///< layer upper z value (along thickness coord)
-        const double angle   ///< layer angle respect to x (if needed) -not used in this, isothropic
-        );
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
 
     /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
-    /// per-unit-length forces/torques  vs strains.
+    /// per-unit-length forces/torques vs strains.
     virtual void ComputeTangentC(
-        ChMatrix<>& mC,
-        const ChVector<>& eps_u,
-        const ChVector<>& eps_v,
-        const ChVector<>& kur_u,
-        const ChVector<>& kur_v,
-        const double z_inf,  ///< layer lower z value (along thickness coord)
-        const double z_sup,  ///< layer upper z value (along thickness coord)
-        const double angle   ///< layer angle respect to x (if needed) -not used in this, isothropic
-        );
+        ChMatrix<>& mC,           ///< tangent matrix
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
 
   private:
     double m_E;      ///< elasticity moduli
@@ -156,14 +156,14 @@ class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissn
                                        double m_G_yz,   ///< Shear modulus, transverse
                                        double m_alpha = 1.0,  ///< shear factor
                                        double m_beta = 0.1    ///< torque factor
-                                       );
+    );
     /// Construct an orthotropic material as sub case isotropic
     ChMaterialShellReissnerOrthotropic(double m_rho,          ///< material density
                                        double m_E,            ///< Young's modulus on x
                                        double m_nu,           ///< Poisson ratio
                                        double m_alpha = 1.0,  ///< shear factor
                                        double m_beta = 0.1    ///< torque factor
-                                       );
+    );
 
     /// Return the elasticity moduli, on x
     double Get_E_x() const { return E_x; }
@@ -187,35 +187,35 @@ class ChApiFea ChMaterialShellReissnerOrthotropic : public ChMaterialShellReissn
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques  given the u,v strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n_u,
-        ChVector<>& n_v,
-        ChVector<>& m_u,
-        ChVector<>& m_v,
-        const ChVector<>& eps_u,
-        const ChVector<>& eps_v,
-        const ChVector<>& kur_u,
-        const ChVector<>& kur_v,
-        const double z_inf,  ///< layer lower z value (along thickness coord)
-        const double z_sup,  ///< layer upper z value (along thickness coord)
-        const double angle   ///< layer angle respect to x (if needed) -not used in this, isothropic
-        );
+        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
 
     /// Compute [C] , that is [ds/de], the tangent of the constitutive relation
     /// per-unit-length forces/torques  vs strains.
     virtual void ComputeTangentC(
-        ChMatrix<>& mC,
-        const ChVector<>& eps_u,
-        const ChVector<>& eps_v,
-        const ChVector<>& kur_u,
-        const ChVector<>& kur_v,
-        const double z_inf,  ///< layer lower z value (along thickness coord)
-        const double z_sup,  ///< layer upper z value (along thickness coord)
-        const double angle   ///< layer angle respect to x (if needed) -not used in this, isothropic
-        );
+        ChMatrix<>& mC,           ///< tangent matrix
+        const ChVector<>& eps_u,  ///< strains along \e u direction
+        const ChVector<>& eps_v,  ///< strains along \e v direction
+        const ChVector<>& kur_u,  ///< curvature along \e u direction
+        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const double z_inf,       ///< layer lower z value (along thickness coord)
+        const double z_sup,       ///< layer upper z value (along thickness coord)
+        const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
+    );
 
   private:
-    double E_x;  ///< elasticity moduli
-    double E_y;
+    double E_x;    ///< elasticity moduli
+    double E_y;    ///< elasticity moduli
     double nu_xy;  ///< Poisson ratio
     double G_xy;   ///< Shear factor, in plane
     double G_xz;   ///< Shear factor, out of plane

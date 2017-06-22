@@ -104,7 +104,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     std::shared_ptr<ChNodeFEAxyzD> GetNodeB() { return nodes[1]; }
 
     /// Fills the N shape function matrix with the
-    /// values of shape functions at abscyssa 'xi'.
+    /// values of shape functions at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
     /// NOTE! actually N should be a 3row, 12 column sparse matrix,
     /// as  N = [s1*eye(3) s2*eye(3) s3*eye(3) s4*eye(3)]; ,
@@ -120,7 +120,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     };
 
     /// Fills the N shape function derivative matrix with the
-    /// values of shape function derivatives at abscyssa 'xi'.
+    /// values of shape function derivatives at abscissa 'xi'.
     /// Note, xi=0 at node1, xi=+1 at node2.
     /// NOTE! to avoid wasting zero and repeated elements, here
     /// it stores only the four values in a 1 row, 4 columns matrix!
@@ -816,7 +816,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     //
 
     /// Gets the xyz displacement of a point on the beam line,
-    /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
+    /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
@@ -835,7 +835,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     }
 
     /// Gets the absolute xyz position of a point on the beam line,
-    /// and the absolute rotation of section plane, at abscyssa 'eta'.
+    /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
@@ -882,7 +882,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
-    /// the beam line, at abscyssa 'eta'.
+    /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.
@@ -904,7 +904,7 @@ class ChElementCableANCF : public ChElementBeam, public ChLoadableU, public ChLo
     }
     /// Gets the axial and bending strain of the ANCF element
     /// torque (torsion on x, bending on y, on bending on z) at a section along
-    /// the beam line, at abscyssa 'eta'.
+    /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.

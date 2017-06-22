@@ -28,7 +28,7 @@ namespace chrono {
 namespace fea {
 
 /// Class for a FEA mesh visualization.
-/// It converts tetahedrons, etc. into a coloured triangle mesh asset
+/// It converts tetrahedrons, etc. into a colored triangle mesh asset
 /// of class ChTriangleMeshShape that is contained in its sublevel,
 /// so that it can be rendered or postprocessed.
 

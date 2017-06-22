@@ -180,7 +180,7 @@ void ChLinkPointTriface::ConstraintsBiReset() {
     constraint3.Set_b_i(0.);
 }
 
-//***OBSOLETE*** will be removed in favour of IntLoadConstraint_C
+//***OBSOLETE*** will be removed in favor of IntLoadConstraint_C
 void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // Compute residual of constraint as distance of two points: one is A,
     // other is on triangle at the s2,s3 area coordinates:
@@ -201,7 +201,7 @@ void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clam
     constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
 }
 
-//***OBSOLETE*** will be removed in favour of Int... functions
+//***OBSOLETE*** will be removed in favor of Int... functions
 void ChLinkPointTriface::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
@@ -340,7 +340,7 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
     constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 2, 0, 1, 3, 0, 0);
 }
 
-//***OBSOLETE*** will be removed in favour of Int... functions
+//***OBSOLETE*** will be removed in favor of Int... functions
 void ChLinkPointTriface::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     react.x() = constraint1.Get_l_i() * factor;
@@ -523,7 +523,7 @@ void ChLinkPointTrifaceRot::ConstraintsBiReset() {
     constraint3.Set_b_i(0.);
 }
 
-//***OBSOLETE*** will be removed in favour of IntLoadConstraint_C
+//***OBSOLETE*** will be removed in favor of IntLoadConstraint_C
 void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // Compute residual of constraint as distance of two points: one is A,
     // other is on triangle at the s2,s3 area coordinates:
@@ -544,7 +544,7 @@ void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_c
     constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
 }
 
-//***OBSOLETE*** will be removed in favour of Int... functions
+//***OBSOLETE*** will be removed in favor of Int... functions
 void ChLinkPointTrifaceRot::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
@@ -679,7 +679,7 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
     constraint3.Get_tuple_b().Get_Cq_3()->PasteClippedMatrix(Jxb3, 2, 0, 1, 3, 0, 0);
 }
 
-//***OBSOLETE*** will be removed in favour of Int... functions
+//***OBSOLETE*** will be removed in favor of Int... functions
 void ChLinkPointTrifaceRot::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     react.x() = constraint1.Get_l_i() * factor;

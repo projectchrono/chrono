@@ -43,18 +43,18 @@ class ChApiFea ChMaterialBeamANCF {
     ChMaterialBeamANCF(double rho,        ///< material density
                        double E,          ///< Young's modulus
                        double nu,         ///< Poisson ratio
-                       const double& k1,  // Shear correction factor along beam local y axis
-                       const double& k2   // Shear correction factor along beam local z axis
-                       );
+                       const double& k1,  ///< Shear correction factor along beam local y axis
+                       const double& k2   ///< Shear correction factor along beam local z axis
+    );
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialBeamANCF(double rho,            ///< material density
                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
                        const ChVector<>& G,   ///< shear moduli (G_xy, G_xz, G_yz)
-                       const double& k1,      // Shear correction factor along beam local y axis
-                       const double& k2       // Shear correction factor along beam local z axis
-                       );
+                       const double& k1,      ///< Shear correction factor along beam local y axis
+                       const double& k2       ///< Shear correction factor along beam local z axis
+    );
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
@@ -254,7 +254,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
                                             chrono::ChVector<double>&) override {}
 
     /// Gets the xyz displacement of a point on the beam line,
-    /// and the rotation RxRyRz of section plane, at abscyssa 'eta'.
+    /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are not corotated.
@@ -264,7 +264,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
                                              ChVector<>& u_rotaz) override {}
 
     /// Gets the absolute xyz position of a point on the beam line,
-    /// and the absolute rotation of section plane, at abscyssa 'eta'.
+    /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
@@ -278,7 +278,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
     ///     J = Kfactor * K + Rfactor * R
-    /// for given coeficients Kfactor and Rfactor.
+    /// for given coefficients Kfactor and Rfactor.
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);
@@ -334,7 +334,11 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -364,7 +368,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is =n. field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate
-                           ) override;
+    ) override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V,W coordinates of the volume, each ranging in -1..+1
@@ -378,7 +382,7 @@ class ChApiFea ChElementBeamANCF : public ChElementBeam, public ChLoadableU, pub
                            const ChVectorDynamic<>& F,  ///< Input F vector, size is = n.field coords.
                            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
-                           ) override;
+    ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
     /// Density is mass per unit surface.

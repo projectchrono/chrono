@@ -2050,7 +2050,7 @@ void ChElementBeamANCF::ComputeNF(
 //
 // -----------------------------------------------------------------------------
 
-// Calculate avergae element density (needed for ChLoaderVolumeGravity).
+// Calculate average element density (needed for ChLoaderVolumeGravity).
 double ChElementBeamANCF::GetDensity() {
     return GetMaterial()->Get_rho();
 }

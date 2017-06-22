@@ -171,7 +171,7 @@ void ChElementBrick::ComputeInternalForces(ChMatrixDynamic<>& Fi) {
     /// will also be calculated.
     bool use_numerical_differentiation = false;
 
-    /// Internal force and EAS parameters are caulculated for numerical differentiation.
+    /// Internal force and EAS parameters are calculated for numerical differentiation.
     if (use_numerical_differentiation) {
         //////////////////////////////////////////////////////////////////////////////////////////////////////////
         ChMatrixNM<double, 330, 1> TempIntegratedResult;

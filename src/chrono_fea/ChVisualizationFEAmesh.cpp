@@ -491,7 +491,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 trianglemesh.getCoordsVertices()[i_verts] = p3;
                 ++i_verts;
 
-                // colour
+                // color
                 trianglemesh.getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node0, 0, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
@@ -560,7 +560,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                 trianglemesh.getCoordsVertices()[i_verts] = p3;
                 ++i_verts;
 
-                // colour
+                // color
                 trianglemesh.getCoordsColors()[i_vcols] =
                     ComputeFalseColor(ComputeScalarOutput(node0, 0, this->FEMmesh->GetElement(iel)));
                 ++i_vcols;
@@ -912,7 +912,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     trianglemesh.getCoordsVertices()[i_verts] = p2;
                     ++i_verts;
 
-                    // colour
+                    // color
                     trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
                     trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
@@ -965,7 +965,7 @@ void ChVisualizationFEAmesh::Update(ChPhysicsItem* updater, const ChCoordsys<>& 
                     trianglemesh.getCoordsVertices()[i_verts] = p2;
                     ++i_verts;
 
-                    // colour
+                    // color
                     trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);
                     ++i_vcols;
                     trianglemesh.getCoordsColors()[i_vcols] = ChVector<float>(meshcolor.R, meshcolor.G, meshcolor.B);

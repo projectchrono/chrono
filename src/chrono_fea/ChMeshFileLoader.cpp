@@ -157,7 +157,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
             if (parse_tet) {
                 stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
                 if (idtet <= 0 || idtet > ntets)
-                    throw ChException("ERROR in TetGen .node file. Tetahedron ID not in range: \n" + line + "\n");
+                    throw ChException("ERROR in TetGen .node file. Tetrahedron ID not in range: \n" + line + "\n");
                 if (n1 > totnodes)
                     throw ChException("ERROR in TetGen .node file, ID of 1st node is out of range: \n" + line + "\n");
                 if (n2 > totnodes)
@@ -251,7 +251,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                     string s_ele_type = line.substr(nty + 5, ncom - (nty + 5));
                     if (s_ele_type != "C3D10" && s_ele_type != "DC3D10") {
                         throw ChException("ERROR in .inp file, TYPE=" + s_ele_type +
-                                          " (only C3D10 or DC3D10 tetahedrons supported) see: \n" + line + "\n");
+                                          " (only C3D10 or DC3D10 tetrahedrons supported) see: \n" + line + "\n");
                         e_parse_section = E_PARSE_TETS_10;
                     } else if (s_ele_type == "C3D10") {
                         e_parse_section = E_PARSE_TETS_10;
@@ -343,7 +343,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
             ++added_elements;
             if (e_parse_section == E_PARSE_TETS_10) {
                 if (ntoken != 11)
-                    throw ChException("ERROR in .inp file, tetahedrons require ID and 10 node IDs, see line:\n" + line +
+                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" + line +
                                       "\n");
                 idelem = (int)tokenvals[0];
                 if (idelem != added_elements)
@@ -351,10 +351,10 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       "\n");
                 for (int in = 0; in < 10; ++in)
                     if (tokenvals[in + 1] == -10e30)
-                        throw ChException("ERROR in in .inp file, in parsing IDs of tetahedron: \n" + line + "\n");
+                        throw ChException("ERROR in in .inp file, in parsing IDs of tetrahedron: \n" + line + "\n");
             } else if (e_parse_section == E_PARSE_TETS_4) {
                 if (ntoken != 5)
-                    throw ChException("ERROR in .inp file, tetahedrons require ID and 10 node IDs, see line:\n" + line +
+                    throw ChException("ERROR in .inp file, tetrahedrons require ID and 10 node IDs, see line:\n" + line +
                                       "\n");
                 idelem = (int)tokenvals[0];
                 if (idelem != added_elements)
@@ -362,7 +362,7 @@ void ChMeshFileLoader::FromAbaqusFile(std::shared_ptr<ChMesh> mesh,
                                       "\n");
                 for (int in = 0; in < 4; ++in)
                     if (tokenvals[in + 1] == -10e30)
-                        throw ChException("ERROR in in .inp file, in parsing IDs of tetahedron: \n" + line + "\n");
+                        throw ChException("ERROR in in .inp file, in parsing IDs of tetrahedron: \n" + line + "\n");
             }
             if (std::dynamic_pointer_cast<ChContinuumElastic>(my_material)) {
                 auto mel = std::make_shared<ChElementTetra_4>();

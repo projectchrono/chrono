@@ -77,7 +77,7 @@ class ChApiFea ChElementBase {
 
     /// Computes the internal forces (ex. the actual position of
     /// nodes is not in relaxed reference position) and set values
-    /// in the Fi vector, whith n.rows = n.of dof of element.
+    /// in the Fi vector, with n.rows = n.of dof of element.
     /// CHLDREN CLASSES MUST IMPLEMENT THIS!!!
     virtual void ComputeInternalForces(ChMatrixDynamic<>& Fi) = 0;
 

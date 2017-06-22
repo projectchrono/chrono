@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -139,11 +139,11 @@ int main(int argc, char* argv[]) {
     // Example 1: tetrahedrons, with collisions
     //
 
-    // Create a mesh. We will use it for tetahedrons.
+    // Create a mesh. We will use it for tetrahedrons.
 
     auto my_mesh = std::make_shared<ChMesh>();
 
-    // 1) a FEA tetahedron(s):
+    // 1) a FEA tetrahedron(s):
 
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
         for (int k = 0; k < 3; ++k)
             for (int j = 0; j < 3; ++j)
                 for (int i = 0; i < 3; ++i) {
-                    // Creates the nodes for the tetahedron
+                    // Creates the nodes for the tetrahedron
                     ChVector<> offset(j * 0.21, i * 0.21, k * 0.21);
                     auto mnode1 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0) + offset);
                     auto mnode2 = std::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0.2) + offset);
@@ -252,9 +252,9 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
-    // coordinates and vertex colours as in the FEM elements.
+    // coordinates and vertex colors as in the FEM elements.
     // Such triangle mesh can be rendered by Irrlicht or POVray or whatever
-    // postprocessor that can handle a coloured ChTriangleMeshShape).
+    // postprocessor that can handle a colored ChTriangleMeshShape).
     // Do not forget AddAsset() at the end!
 
     auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));

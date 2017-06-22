@@ -18,7 +18,7 @@
 // It serves to validate the Mooney-Rivlin internal forces, and this element's
 // inertia, and gravity force implementation.
 //
-// This element is a classical 8-noded trilinear brick element with enhanced assumed
+// This element is a classical 8-nodes trilinear brick element with enhanced assumed
 // strain that alleviates locking. More information on the validation of this element
 // may be found in Chrono's documentation. This simulation excites the beam by applying
 // the sudden action of a gravity field.

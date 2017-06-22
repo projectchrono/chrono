@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -13,7 +13,7 @@
 // =============================================================================
 //
 // FEA advanced demo:
-//     - loading an Abaqus tetahedrom mesh
+//     - loading an Abaqus tetrahedron mesh
 //     - apply a load to the mesh using an external tool,
 //       say CFD or SPH (here simulated as a function in this .cpp file)
 //       that is perform a cosimulation.
@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
     mmaterial->Set_RayleighDampingK(0.004);
     mmaterial->Set_density(1000);
 
-    // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
-    // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
+    // Load an ABAQUS .INP tetrahedron mesh file from disk, defining a tetrahedron mesh.
+    // Note that not all features of INP files are supported. Also, quadratic tetrahedrons are promoted to linear.
     // This is much easier than creating all nodes and elements via C++ programming.
     // Ex. you can generate these .INP files using Abaqus or exporting from the SolidWorks simulation tool.
 
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     // ==Asset== attach a visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChTriangleMeshShape
     // asset that is internally managed) by setting  proper
-    // coordinates and vertex colours as in the FEM elements.
+    // coordinates and vertex colors as in the FEM elements.
 
     auto mvisualizemesh = std::make_shared<ChVisualizationFEAmesh>(*(my_mesh.get()));
     mvisualizemesh->SetFEMdataType(ChVisualizationFEAmesh::E_PLOT_NODE_SPEED_NORM);

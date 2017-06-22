@@ -289,7 +289,7 @@ void ChElementShellANCF::ComputeGravityForce(const ChVector<>& g_acc) {
 // The next 5 entries represent the residual of the EAS nonlinear system.
 // The last 25 entries represent the 5x5 Jacobian of the EAS nonlinear system.
 // Capabilities of this class include: application of enhanced assumed strain (EAS) and
-// assumed natural strain (ANS) formulations to avoid thickness and (tranvese and in-plane)
+// assumed natural strain (ANS) formulations to avoid thickness and (transverse and in-plane)
 // shear locking. This implementation also features a composite material implementation
 // that allows for selecting a number of layers over the element thickness; each of which
 // has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
@@ -1681,7 +1681,7 @@ void ChElementShellANCF::ComputeNF(
 //
 // -----------------------------------------------------------------------------
 
-// Calculate avergae element density (needed for ChLoaderVolumeGravity).
+// Calculate average element density (needed for ChLoaderVolumeGravity).
 double ChElementShellANCF::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {

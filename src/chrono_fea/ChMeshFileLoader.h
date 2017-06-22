@@ -17,8 +17,8 @@
 #ifndef CHMESH_FILE_LOADER_H
 #define CHMESH_FILE_LOADER_H
 
-#include "chrono_fea/ChMesh.h"
 #include "chrono_fea/ChElementShellANCF.h"
+#include "chrono_fea/ChMesh.h"
 
 namespace chrono {
 namespace fea {
@@ -29,13 +29,13 @@ namespace fea {
 /// Collection of mesh file loader utilities.
 class ChApiFea ChMeshFileLoader {
   public:
-    /// Load tetahedrons from .node and .ele files as saved by TetGen.
+    /// Load tetrahedrons from .node and .ele files as saved by TetGen.
     /// The file format for .node (with point# starting from 1) is:
     ///   [# of points] [dimension (only 3)] [# of attributes (only 0)] [markers (only 0)]
     ///   [node #] [x] [y] [z]
     ///   [node #] [x] [y] [z]   etc.
     /// The file format for .ele (with tet# starting from 1) is:
-    ///   [# of tetahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
+    ///   [# of tetrahedrons] [dimension (only 4 supported)] [# of attributes (only 0)]
     ///   [tet #] [node #] [node #] [node #] [node #]
     ///   [tet #] [node #] [node #] [node #] [node #]   etc.
     /// If you pass a material inherited by ChContinuumElastic, nodes with 3D motion are used, and corotational
@@ -49,9 +49,9 @@ class ChApiFea ChMeshFileLoader {
         std::shared_ptr<ChContinuumMaterial> my_material,  ///< material for the created tetahedrons
         ChVector<> pos_transform = VNULL,                  ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1)       ///< optional rotation/scaling of imported mesh
-        );
+    );
 
-    /// Load tetahedrons, if any, saved in a .inp file for Abaqus.
+    /// Load tetrahedrons, if any, saved in a .inp file for Abaqus.
     static void FromAbaqusFile(
         std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
         const char* filename,                              ///< input file name
@@ -61,19 +61,20 @@ class ChApiFea ChMeshFileLoader {
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
         bool discard_unused_nodes =
             true  ///< if true, Abaqus nodes that are not used in elements or sets are not imported in C::E
-        );
+    );
 
     static void ANCFShellFromGMFFile(
-        std::shared_ptr<ChMesh> mesh,  ///< destination mesh
-        const char* filename,
-        std::shared_ptr<ChMaterialShellANCF> my_material,
-        std::vector<double>& node_ave_area,
-        std::vector<int>& BC_nodes,
+        std::shared_ptr<ChMesh> mesh,                      ///< destination mesh
+        const char* filename,                              ///< complete filename
+        std::shared_ptr<ChMaterialShellANCF> my_material,  ///< material to be given to the shell
+        std::vector<double>& node_ave_area,             ///< output the average area of the nodes
+        std::vector<int>& BC_nodes,                    ///< material to be given to the shell
         ChVector<> pos_transform = VNULL,              ///< optional displacement of imported mesh
         ChMatrix33<> rot_transform = ChMatrix33<>(1),  ///< optional rotation/scaling of imported mesh
-        double scaleFactor = 1,
-        bool printNodes = false,
-        bool printElements = false);
+        double scaleFactor = 1,                       ///< import scale factor
+        bool printNodes = false,           ///< display the imported nodes
+        bool printElements = false         ///< display the imported elements
+    );
 };
 
 /// @} fea_module

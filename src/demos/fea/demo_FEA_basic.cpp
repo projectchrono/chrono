@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2014 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -621,7 +621,7 @@ void test_5() {
 // Results will be simply text-formatted outputs in the console..
 
 int main(int argc, char* argv[]) {
-    GetLog() << " Example: the FEM techology for finite elements \n\n\n";
+    GetLog() << " Example: the FEM technology for finite elements \n\n\n";
 
     // Test: an introductory problem:
     test_4();

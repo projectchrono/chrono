@@ -71,12 +71,11 @@ void ChMaterialShellReissner::ComputeTangentC(ChMatrix<>& mC,
 
 //--------------------------------------------------------------
 
-ChMaterialShellReissnerIsothropic::ChMaterialShellReissnerIsothropic(double rho,    ///< material density
-                                                                     double E,      ///< Young's modulus
-                                                                     double nu,     ///< Poisson ratio
-                                                                     double alpha,  ///< shear factor
-                                                                     double beta    ///< torque factor
-                                                                     ) {
+ChMaterialShellReissnerIsothropic::ChMaterialShellReissnerIsothropic(double rho,
+                                                                     double E,
+                                                                     double nu,
+                                                                     double alpha,
+                                                                     double beta) {
     m_rho = rho;
     m_E = E;
     m_nu = nu;
@@ -84,19 +83,17 @@ ChMaterialShellReissnerIsothropic::ChMaterialShellReissnerIsothropic(double rho,
     m_beta = beta;
 }
 
-void ChMaterialShellReissnerIsothropic::ComputeStress(
-    ChVector<>& n_u,
-    ChVector<>& n_v,
-    ChVector<>& m_u,
-    ChVector<>& m_v,
-    const ChVector<>& eps_u,
-    const ChVector<>& eps_v,
-    const ChVector<>& kur_u,
-    const ChVector<>& kur_v,
-    const double z_inf,  ///< layer lower z value (along thickness coord)
-    const double z_sup,  ///< layer upper z value (along thickness coord)
-    const double angle   ///< layer angle respect to x (if needed)
-    ) {
+void ChMaterialShellReissnerIsothropic::ComputeStress(ChVector<>& n_u,
+                                                      ChVector<>& n_v,
+                                                      ChVector<>& m_u,
+                                                      ChVector<>& m_v,
+                                                      const ChVector<>& eps_u,
+                                                      const ChVector<>& eps_v,
+                                                      const ChVector<>& kur_u,
+                                                      const ChVector<>& kur_v,
+                                                      const double z_inf,
+                                                      const double z_sup,
+                                                      const double angle) {
     if (z_inf == -z_sup) {
         // simplified computation for centered layer
         double h = z_sup - z_inf;
@@ -148,16 +145,14 @@ void ChMaterialShellReissnerIsothropic::ComputeStress(
     }
 }
 
-void ChMaterialShellReissnerIsothropic::ComputeTangentC(
-    ChMatrix<>& mC,
-    const ChVector<>& eps_u,
-    const ChVector<>& eps_v,
-    const ChVector<>& kur_u,
-    const ChVector<>& kur_v,
-    const double z_inf,  ///< layer lower z value (along thickness coord)
-    const double z_sup,  ///< layer upper z value (along thickness coord)
-    const double angle   ///< layer angle respect to x (if needed)
-    ) {
+void ChMaterialShellReissnerIsothropic::ComputeTangentC(ChMatrix<>& mC,
+                                                        const ChVector<>& eps_u,
+                                                        const ChVector<>& eps_v,
+                                                        const ChVector<>& kur_u,
+                                                        const ChVector<>& kur_v,
+                                                        const double z_inf,
+                                                        const double z_sup,
+                                                        const double angle) {
     assert(mC.GetRows() == 12);
     assert(mC.GetColumns() == 12);
 
@@ -234,17 +229,15 @@ void ChMaterialShellReissnerIsothropic::ComputeTangentC(
 //--------------------------------------------------------------
 
 /// Construct an orthotropic material
-ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(
-    double a_rho,    ///< material density
-    double m_E_x,    ///< Young's modulus on x
-    double m_E_y,    ///< Young's modulus on y
-    double m_nu_xy,  ///< Poisson ratio (for yx it holds: nu_yx*E_x = nu_xy*E_y)
-    double m_G_xy,   ///< Shear modulus, in plane
-    double m_G_xz,   ///< Shear modulus, transverse
-    double m_G_yz,   ///< Shear modulus, transverse
-    double m_alpha,  ///< shear factor
-    double m_beta    ///< torque factor
-    ) {
+ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(double a_rho,
+                                                                       double m_E_x,
+                                                                       double m_E_y,
+                                                                       double m_nu_xy,
+                                                                       double m_G_xy,
+                                                                       double m_G_xz,
+                                                                       double m_G_yz,
+                                                                       double m_alpha,
+                                                                       double m_beta) {
     m_rho = a_rho;
     E_x = m_E_x;
     E_y = m_E_y;
@@ -256,14 +249,13 @@ ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(
     beta = m_beta;
 }
 
-ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(double a_rho,    ///< material density
-                                                                       double m_E,      ///< Young's modulus
-                                                                       double m_nu,     ///< Poisson ratio
-                                                                       double m_alpha,  ///< shear factor
-                                                                       double m_beta    ///< torque factor
-                                                                       ) {
+ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(double a_rho,
+                                                                       double m_E,
+                                                                       double m_nu,
+                                                                       double m_alpha,
+                                                                       double m_beta) {
     this->m_rho = a_rho;
-    double m_G = m_E / (2. * (1. + m_nu));  // defult value of G for special subcase of isotropic constructor
+    double m_G = m_E / (2. * (1. + m_nu));  // default value of G for special subcase of isotropic constructor
     this->E_x = m_E;
     this->E_y = m_E;
     this->nu_xy = m_nu;
@@ -274,19 +266,17 @@ ChMaterialShellReissnerOrthotropic::ChMaterialShellReissnerOrthotropic(double a_
     this->beta = m_beta;
 }
 
-void ChMaterialShellReissnerOrthotropic::ComputeStress(
-    ChVector<>& n_u,
-    ChVector<>& n_v,
-    ChVector<>& m_u,
-    ChVector<>& m_v,
-    const ChVector<>& eps_u,
-    const ChVector<>& eps_v,
-    const ChVector<>& kur_u,
-    const ChVector<>& kur_v,
-    const double z_inf,  ///< layer lower z value (along thickness coord)
-    const double z_sup,  ///< layer upper z value (along thickness coord)
-    const double angle   ///< layer angle respect to x (if needed)
-    ) {
+void ChMaterialShellReissnerOrthotropic::ComputeStress(ChVector<>& n_u,
+                                                       ChVector<>& n_v,
+                                                       ChVector<>& m_u,
+                                                       ChVector<>& m_v,
+                                                       const ChVector<>& eps_u,
+                                                       const ChVector<>& eps_v,
+                                                       const ChVector<>& kur_u,
+                                                       const ChVector<>& kur_v,
+                                                       const double z_inf,
+                                                       const double z_sup,
+                                                       const double angle) {
     // Since it is a linear material, just compute S by using the
     // constitutive matrix, as S = C*eps, where S={n_u, n_v, m_u, m_v}
     ChMatrixNM<double, 12, 12> mC;
@@ -304,16 +294,14 @@ void ChMaterialShellReissnerOrthotropic::ComputeStress(
     m_v = Sigma.ClipVector(9, 0);
 }
 
-void ChMaterialShellReissnerOrthotropic::ComputeTangentC(
-    ChMatrix<>& mC,
-    const ChVector<>& eps_u,
-    const ChVector<>& eps_v,
-    const ChVector<>& kur_u,
-    const ChVector<>& kur_v,
-    const double z_inf,  ///< layer lower z value (along thickness coord)
-    const double z_sup,  ///< layer upper z value (along thickness coord)
-    const double angle   ///< layer angle respect to x (if needed)
-    ) {
+void ChMaterialShellReissnerOrthotropic::ComputeTangentC(ChMatrix<>& mC,
+                                                         const ChVector<>& eps_u,
+                                                         const ChVector<>& eps_v,
+                                                         const ChVector<>& kur_u,
+                                                         const ChVector<>& kur_v,
+                                                         const double z_inf,
+                                                         const double z_sup,
+                                                         const double angle) {
     assert(mC.GetRows() == 12);
     assert(mC.GetColumns() == 12);
 

@@ -29,7 +29,7 @@ namespace fea {
 /// @addtogroup fea_elements
 /// @{
 
-/// Tetahedron FEA element with 4 nodes.
+/// Tetrahedron FEA element with 4 nodes.
 /// This is a classical element with linear displacement, hence with constant stress
 /// and constant strain. It can be easily used for 3D FEA problems.
 class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadableUVW {
@@ -382,7 +382,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
     ChMatrix<>& GetMatrB() { return MatrB; }
     ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
 
-    /// Returns the strain tensor (note that the tetahedron 4 nodes is a linear
+    /// Returns the strain tensor (note that the tetrahedron 4 nodes is a linear
     /// element, thus the strain is constant in the entire volume).
     /// The tensor is in the original undeformed unrotated reference.
     ChStrainTensor<> GetStrain() {
@@ -394,7 +394,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
         mstrain.MatrMultiply(MatrB, displ);
         return mstrain;
     }
-    /// Returns the stress tensor (note that the tetahedron 4 nodes is a linear
+    /// Returns the stress tensor (note that the tetrahedron 4 nodes is a linear
     /// element, thus the stress is constant in the entire volume).
     /// The tensor is in the original undeformed unrotated reference.
     ChStressTensor<> GetStress() {
@@ -506,7 +506,7 @@ class ChApiFea ChElementTetra_4 : public ChElementTetrahedron, public ChLoadable
     virtual bool IsTetrahedronIntegrationNeeded() override { return true; }
 };
 
-/// Tetahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
+/// Tetrahedron FEM element with 4 nodes for scalar fields (for Poisson-like problems).
 /// This is a classical element with linear displacement.
 /// ***EXPERIMENTAL***
 class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadableUVW {
@@ -728,7 +728,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
     ChMatrix<>& GetMatrB() { return MatrB; }
     ChMatrix<>& GetStiffnessMatrix() { return StiffnessMatrix; }
 
-    /// Returns the gradient of P (note that the tetahedron 4 nodes is a linear
+    /// Returns the gradient of P (note that the tetrahedron 4 nodes is a linear
     /// element, thus the gradient is constant in the entire volume).
     /// It is in the original undeformed unrotated reference.
     ChMatrixNM<double, 3, 1> GetPgradient() {
@@ -822,7 +822,7 @@ class ChApiFea ChElementTetra_4_P : public ChElementTetrahedron, public ChLoadab
         Qi(3) = N(3) * F(0);
     }
 
-    /// Return 0 if not supprotable by ChLoaderVolumeGravity
+    /// Return 0 if not supportable by ChLoaderVolumeGravity
     virtual double GetDensity() override { return 0; }
 
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w

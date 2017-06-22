@@ -37,7 +37,7 @@ class ChApiFea ChBeamSection {
     virtual ~ChBeamSection() {}
 
     /// Sets the rectangular thickness of the beam on y and z directions,
-    /// only for drawing/rendering purposes (these thickenss values do NOT
+    /// only for drawing/rendering purposes (these thickness values do NOT
     /// have any meaning at a physical level, use ChBeamSectionBasic::SetAsRectangularSection()
     ////instead if you want to affect also the inertias of the beam section).
     void SetDrawThickness(double thickness_y, double thickness_z) {
@@ -85,7 +85,7 @@ class ChApiFea ChBeamSectionBasic : public ChBeamSection {
         SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
 
         density = 1000;   // default density: water
-        rdamping = 0.01;  // default raleygh damping.
+        rdamping = 0.01;  // default Rayleigh damping.
     }
 
     virtual ~ChBeamSectionBasic() {}
@@ -177,7 +177,7 @@ class ChApiFea ChBeamSectionBasic : public ChBeamSection {
     /// Set G, the shear modulus, given current E and the specified Poisson ratio
     void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
-    /// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
+    /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
     void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 };
@@ -249,7 +249,7 @@ class ChApiFea ChBeamSectionCable : public ChBeamSection {
         SetDiameter(0.01);  // defaults Area, I
 
         density = 1000;   // default density: water
-        rdamping = 0.01;  // default raleygh damping.
+        rdamping = 0.01;  // default Rayleigh damping.
     }
 
     virtual ~ChBeamSectionCable() {}
@@ -282,7 +282,7 @@ class ChApiFea ChBeamSectionCable : public ChBeamSection {
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() const { return this->E; }
 
-    /// Set the Raleygh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
+    /// Set the Rayleigh damping ratio r (as in: R = r * K ), to do: also mass-proportional term
     void SetBeamRaleyghDamping(double mr) { this->rdamping = mr; }
     double GetBeamRaleyghDamping() { return this->rdamping; }
 };

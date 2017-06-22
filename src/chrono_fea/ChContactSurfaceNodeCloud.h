@@ -93,7 +93,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->mnode->pos_dt; }
 
     /// Return the coordinate system for the associated collision model.
@@ -108,7 +108,7 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -235,7 +235,7 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return this->mnode->GetPos_dt(); }
 
     /// Return the coordinate system for the associated collision model.
@@ -250,7 +250,7 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
                                             ChVectorDynamic<>& R) override;
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -307,7 +307,7 @@ class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 
 /// Class which defines a contact surface for FEA elements, where only xyz nodes
 /// in the FEA model are used as contact items for the collision detection.
-/// Might be an efficient option in case of dense tesselations (but misses the FEAnodes-vs-FEAfaces
+/// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
 class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
     // Tag needed for class factory in archive (de)serialization:

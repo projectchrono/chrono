@@ -26,7 +26,7 @@ namespace chrono {
 namespace fea {
 
 /// Contact element of triangular type.
-/// This can be used to 'tesselate' a generic surface like the
+/// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
 class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public ChLoadableUV {
     // Tag needed for class factory in archive (de)serialization:
@@ -147,7 +147,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override {
         double s2, s3;
         this->ComputeUVfromP(abs_point, s2, s3);
@@ -174,7 +174,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
     }
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -349,7 +349,7 @@ class ChApiFea ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, publi
 /// nodes are of ChNodeFEAxyzrot type.
 /// NOTE! if in future we could have ChNodeFEAxyzrot inherited from ChNodeFEAxyz,
 /// probably this class would be unnecessary! (Now, it is a bit redundant with ChContactTriangleXYZ)
-/// This can be used to 'tesselate' a generic surface like the
+/// This can be used to 'tessellate' a generic surface like the
 /// outer of tetrahedral meshes
 class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
     // Tag needed for class factory in archive (de)serialization:
@@ -476,7 +476,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Get the absolute speed of point abs_point if attached to the
-    /// surface. Easy in this case because there are no roations..
+    /// surface. Easy in this case because there are no rotations..
     virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override {
         double s2, s3;
         this->ComputeUVfromP(abs_point, s2, s3);
@@ -503,7 +503,7 @@ class ChApiFea ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, pu
     }
 
     /// Apply the given force at the given point and load the generalized force array.
-    /// The force and its application point are specified in the gloabl frame.
+    /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactForceLoadQ(const ChVector<>& F,
@@ -689,7 +689,7 @@ class ChApiFea ChContactSurfaceMesh : public ChContactSurface {
     // FUNCTIONS
     //
 
-    /// Given a FEA mesh (ex a mesh of tetrahetrons) it finds the faces on the outer boundary.
+    /// Given a FEA mesh (ex a mesh of tetrahedrons) it finds the faces on the outer boundary.
     /// That is, it scans all the finite elements already added in the parent ChMesh and adds the faces
     /// that are not shared (ie. the faces on the boundary 'skin').
     /// For shells, the argument 'ccw' indicates whether the face vertices are provided in a counter-clockwise (default)

@@ -142,7 +142,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     void SetForceSymmetricStiffness(bool md) { force_symmetric_stiffness = md; }
 
     /// Fills the N matrix (compressed! single row, 12 columns) with the
-    /// values of shape functions at abscyssa 'eta'.
+    /// values of shape functions at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Given  u = 12-d state block {u1,r1,u2,r2}' , d = 6-d field {u,r},
     /// one has   f(eta) = [S(eta)]*u   where one fills the sparse [S] matrix
@@ -885,7 +885,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
     }
 
     /// Gets the absolute xyz position of a point on the beam line,
-    /// and the absolute rotation of section plane, at abscyssa 'eta'.
+    /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock()
     /// Results are corotated (expressed in world reference)
@@ -915,7 +915,7 @@ class ChApiFea ChElementBeamEuler : public ChElementBeam,
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
-    /// the beam line, at abscyssa 'eta'.
+    /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Note, 'displ' is the displ.state of 2 nodes, ex. get it as GetStateBlock().
     /// Results are not corotated, and are expressed in the reference system of beam.

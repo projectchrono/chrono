@@ -24,8 +24,8 @@
 #ifndef CHPOLARDECOMPOSITION_H
 #define CHPOLARDECOMPOSITION_H
 
-#include "chrono_fea/ChApiFEA.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono_fea/ChApiFEA.h"
 
 namespace chrono {
 namespace fea {
@@ -48,9 +48,9 @@ credit is not required, though is a nice gesture. The code comes as-is, and if t
 Gems code, nobody involved with Gems - authors, editors, publishers, or webmasters - are to be held responsible.
 Basically, don't be a jerk, and remember that anything free comes with no guarantee."
 
-Jernej Barbic made some adaptions to the polar decomposition code (wrap into a C++ class, some change in input/output
+Jernej Barbic made some adaptations to the polar decomposition code (wrap into a C++ class, some change in input/output
 format, etc.).
-He releases his adaptions of the polar decomposition code into the public domain, free of charge. The above EULA still
+He releases his adaptations of the polar decomposition code into the public domain, free of charge. The above EULA still
 applies, of course.
 */
 // This class is wrapped by ChPolarDecomposition (see below)
@@ -100,10 +100,11 @@ class ChApiFea ChPolarDecomposition {
     //   S is a 3x3 symmetric output matrix
     //   return value: det(Q) that can be -1 or +1.
 
-    static double Compute(const ChMatrix33<Real>& M,  /// a 3x3 input matrix to decompose
-                          ChMatrix33<Real>& Q,        /// resulting 3x3 orthogonal output matrix
-                          ChMatrix33<Real>& S,        /// resulting 3x3 symmetric output matrix
-                          double tolerance = 1E-6) {
+    static double Compute(const ChMatrix33<Real>& M,  ///< a 3x3 input matrix to decompose
+                          ChMatrix33<Real>& Q,        ///< resulting 3x3 orthogonal output matrix
+                          ChMatrix33<Real>& S,        ///< resulting 3x3 symmetric output matrix
+                          double tolerance = 1e-6     ///< tolerance of the computation
+    ) {
         return PolarDecomposition::Compute(M.GetAddress(), Q.GetAddress(), S.GetAddress());
     }
 };

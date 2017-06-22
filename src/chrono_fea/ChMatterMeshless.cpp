@@ -437,10 +437,10 @@ void ChMatterMeshless::IntLoadResidual_Mv(const unsigned int off,      ///< offs
     }
 }
 
-void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in v, R
+void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,
                                        const ChStateDelta& v,
                                        const ChVectorDynamic<>& R,
-                                       const unsigned int off_L,  ///< offset in L, Qc
+                                       const unsigned int off_L,
                                        const ChVectorDynamic<>& L,
                                        const ChVectorDynamic<>& Qc) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
@@ -449,9 +449,9 @@ void ChMatterMeshless::IntToDescriptor(const unsigned int off_v,  ///< offset in
     }
 }
 
-void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,  ///< offset in v
+void ChMatterMeshless::IntFromDescriptor(const unsigned int off_v,
                                          ChStateDelta& v,
-                                         const unsigned int off_L,  ///< offset in L
+                                         const unsigned int off_L,
                                          ChVectorDynamic<>& L) {
     for (unsigned int j = 0; j < nodes.size(); j++) {
         v.PasteMatrix(nodes[j]->variables.Get_qb(), off_v + 3 * j, 0);

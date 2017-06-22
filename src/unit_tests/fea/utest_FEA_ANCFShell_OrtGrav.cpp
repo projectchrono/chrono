@@ -17,7 +17,7 @@
 // by gravity forces.
 // The shell in this unit test is a balanced laminate (see Jones, R. "Mechanics of
 // Composite Materials") which has a pair of laminae at an angle plus/minus theta.
-// The user may also consult the following paper fror a precise description of
+// The user may also consult the following paper for a precise description of
 // the formulation: Yamashita, H., Jayakumar, J., and
 // Sugiyama, H., "Development of shear deformable laminated shell element and its
 // application to ANCF tire model", DETC2015-46173, IDETC/CIE 2015, August 2-5,

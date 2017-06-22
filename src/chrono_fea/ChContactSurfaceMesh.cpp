@@ -476,16 +476,16 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         edge_map.insert({medgeC, it});
     }
 
-    // Create a map of neighbouring triangles, vector of:
+    // Create a map of neighboring triangles, vector of:
     // [Ti TieA TieB TieC]
     std::vector<std::array<int, 4>> tri_map;
     tri_map.resize(triangles.size());
 
     for (int it = 0; it < triangles.size(); ++it) {
         tri_map[it][0] = it;
-        tri_map[it][1] = -1;  // default no neighbour
-        tri_map[it][2] = -1;  // default no neighbour
-        tri_map[it][3] = -1;  // default no neighbour
+        tri_map[it][1] = -1;  // default no neighbor
+        tri_map[it][2] = -1;  // default no neighbor
+        tri_map[it][3] = -1;  // default no neighbor
         // edges = pairs of vertexes indexes
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeA(triangles[it][0], triangles[it][1]);
         std::pair<ChNodeFEAxyz*, ChNodeFEAxyz*> medgeB(triangles[it][1], triangles[it][2]);
@@ -571,16 +571,16 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         edge_map_rot.insert({medgeC, it});
     }
 
-    // Create a map of neighbouring triangles, vector of:
+    // Create a map of neighboring triangles, vector of:
     // [Ti TieA TieB TieC]
     std::vector<std::array<int, 4>> tri_map_rot;
     tri_map_rot.resize(triangles_rot.size());
 
     for (int it = 0; it < triangles_rot.size(); ++it) {
         tri_map_rot[it][0] = it;
-        tri_map_rot[it][1] = -1;  // default no neighbour
-        tri_map_rot[it][2] = -1;  // default no neighbour
-        tri_map_rot[it][3] = -1;  // default no neighbour
+        tri_map_rot[it][1] = -1;  // default no neighbor
+        tri_map_rot[it][2] = -1;  // default no neighbor
+        tri_map_rot[it][3] = -1;  // default no neighbor
         // edges = pairs of vertexes indexes
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeA(triangles_rot[it][0], triangles_rot[it][1]);
         std::pair<ChNodeFEAxyzrot*, ChNodeFEAxyzrot*> medgeB(triangles_rot[it][1], triangles_rot[it][2]);
@@ -720,7 +720,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                                (added_vertexes.find(triangles[it][0]) == added_vertexes.end()),
                                (added_vertexes.find(triangles[it][1]) == added_vertexes.end()),
                                (added_vertexes.find(triangles[it][2]) == added_vertexes.end()),
-                               // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
+                               // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
                                wingedgeA->second.first != -1, wingedgeB->second.first != -1,
                                wingedgeC->second.first != -1, sphere_swept);
         contact_triangle->GetCollisionModel()->BuildModel();
@@ -809,7 +809,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
                 (added_vertexes_rot.find(triangles_rot[it][0]) == added_vertexes_rot.end()),
                 (added_vertexes_rot.find(triangles_rot[it][1]) == added_vertexes_rot.end()),
                 (added_vertexes_rot.find(triangles_rot[it][2]) == added_vertexes_rot.end()),
-                // are edges owned by this triangle? (if not, they belong to a neighbouring triangle)
+                // are edges owned by this triangle? (if not, they belong to a neighboring triangle)
                 wingedgeA->second.first != -1, wingedgeB->second.first != -1, wingedgeC->second.first != -1,
                 sphere_swept);
         contact_triangle_rot->GetCollisionModel()->BuildModel();

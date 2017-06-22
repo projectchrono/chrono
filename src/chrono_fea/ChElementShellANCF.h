@@ -298,7 +298,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     /// Compute Jacobians of the internal forces.
     /// This function calculates a linear combination of the stiffness (K) and damping (R) matrices,
     ///     J = Kfactor * K + Rfactor * R
-    /// for given coeficients Kfactor and Rfactor.
+    /// for given coefficients Kfactor and Rfactor.
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);
@@ -344,7 +344,7 @@ class ChApiFea ChElementShellANCF : public ChElementShell, public ChLoadableUV, 
     // Helper functions
     // ----------------
 
-    /// Numerial inverse for a 5x5 matrix.
+    /// Numerical inverse for a 5x5 matrix.
     static void Inverse55_Numerical(ChMatrixNM<double, 5, 5>& a, int n);
 
     /// Analytical inverse for a 5x5 matrix.
