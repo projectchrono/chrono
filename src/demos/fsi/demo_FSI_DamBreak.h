@@ -17,10 +17,9 @@ namespace fsi {
 // -----------------------------------------------------------------------------
 // Simulation parameters Fluid
 // -----------------------------------------------------------------------------
-//	when adding functionality using "useWallBce" and "haveFluid" macros, pay
+// When adding functionality using "useWallBce" and "haveFluid" macros, pay
 // attention to  "initializeFluidFromFile"
-// options.
-//	for a double security, do your best to set "haveFluid" and "useWallBce"
+// options. For a double security, do your best to set "haveFluid" and "useWallBce"
 // based on the data you have from
 // checkpoint files
 // very important, since this option will overwrite the BCE pressure and
@@ -35,7 +34,7 @@ namespace fsi {
  * @param paramsH: struct defined in MyStructs.cuh
  */
 void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real fxDim, Real fyDim, Real fzDim) {
-    paramsH->sizeScale = 1;  // don't change it.
+    paramsH->sizeScale = 1; 
     paramsH->HSML = 0.1;
     paramsH->MULT_INITSPACE = 1.0;
     paramsH->epsMinMarkersDis = .001;
@@ -52,7 +51,6 @@ void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real f
     paramsH->mu0 = .0001;
     paramsH->v_Max = 2;  
     paramsH->EPS_XSPH = .5f;
-
 
     paramsH->dT = 2e-4;
     paramsH->tFinal = 2;
@@ -92,8 +90,7 @@ void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real f
                                    // boundary shape should play a roll
 
     // modify bin size stuff
-    //****************************** bin size adjustement and contact detection
-    // stuff *****************************
+    //****************************** bin size adjustement and contact detection *****************************
     int3 SIDE = mI3(int((paramsH->cMax.x - paramsH->cMin.x) / paramsH->binSize0 + .1),
                     int((paramsH->cMax.y - paramsH->cMin.y) / paramsH->binSize0 + .1),
                     int((paramsH->cMax.z - paramsH->cMin.z) / paramsH->binSize0 + .1));
@@ -149,4 +146,4 @@ void SetupParamsH(SimParams* paramsH, Real bxDim, Real byDim, Real bzDim, Real f
 
 }  // end namespace fsi
 }  // end namespace chrono
-#endif  // end of FSI_HMMWV_PARAMS_H_
+#endif  // end of FSI_HMMWV_PARAMS_H_`
