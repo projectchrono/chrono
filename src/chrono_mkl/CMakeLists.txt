@@ -29,11 +29,11 @@ message(STATUS "Find MKL libraries")
 #set(MKL_FIND_DEBUG ON)
 find_package(MKL)
 
-message(STATUS "   MKL include dirs:  ${MKL_INCLUDE_DIRS}")
-message(STATUS "   MKL libraries:     ${MKL_LIBRARIES}")
-message(STATUS "   IOMP5 library:     ${IOMP5_LIBRARY}")
-message(STATUS "   MATH library:      ${MATH_LIBRARY}")
-message(STATUS "   MKL library dirs:  ${MKL_LIBRARY_DIRS}")
+message(STATUS "   MKL include dirs:   ${MKL_INCLUDE_DIRS}")
+message(STATUS "   MKL libraries:      ${MKL_LIBRARIES}")
+message(STATUS "   IOMP5 library:      ${IOMP5_LIBRARY}")
+message(STATUS "   MATH library:       ${MATH_LIBRARY}")
+message(STATUS "   MKL library dirs:   ${MKL_LIBRARY_DIRS}")
 
 if(NOT MKL_LIBRARIES)
   set(MKL_ROOT "" CACHE PATH "Location of MKL installation")
@@ -43,14 +43,11 @@ endif()
 # Set up linking line for Intel OpenMP library
 # ------------------------------------------------------------------------------
 
-SET(CH_IOPENMPLIB					"${IOMP5_LIBRARY}")
-
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	SET(CH_IOPENMP_LINKERFLAG	"-Wl,--as-needed")
+	SET(CH_MKL_LINK_FLAGS	"-Wl,--as-needed")
 endif ()
 
-SET(CH_IOPENMPLIB				"${CH_IOPENMPLIB}"     			PARENT_SCOPE)
-SET(CH_IOPENMP_LINKERFLAG		"${CH_IOPENMP_LINKERFLAG}" 		PARENT_SCOPE)
+SET(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
 	
 # ------------------------------------------------------------------------------
 # Collect all additional include directories necessary for the MKL module
@@ -60,9 +57,6 @@ SET(CH_MKL_INCLUDES ${MKL_INCLUDE_DIRS})
 
 INCLUDE_DIRECTORIES(${CH_MKL_INCLUDES})
 SET(CH_MKL_INCLUDES "${CH_MKL_INCLUDES}" PARENT_SCOPE)
-
-SET(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS} ${CH_IOPENMP_LINKERFLAG}")
-SET(CH_MKL_LINK_FLAGS "${CH_MKL_LINK_FLAGS}" PARENT_SCOPE)
 
 # ------------------------------------------------------------------------------
 # List all files in the Chrono mkl module
@@ -83,22 +77,20 @@ SOURCE_GROUP("" FILES ${ChronoEngine_MKL_HEADERS} ${ChronoEngine_MKL_SOURCES})
 # ------------------------------------------------------------------------------
 # Add the ChronoEngine_mkl library
 # ------------------------------------------------------------------------------
-set(COMPILER_FLAGS "${CH_CXX_FLAGS}")
-set(LINKER_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_IOPENMP_LINKERFLAG}")
 
 ADD_LIBRARY(ChronoEngine_mkl SHARED
             ${ChronoEngine_MKL_SOURCES}
             ${ChronoEngine_MKL_HEADERS})
 
 SET_TARGET_PROPERTIES(ChronoEngine_mkl PROPERTIES
-                      COMPILE_FLAGS "${COMPILER_FLAGS}"
-                      LINK_FLAGS "${LINKER_FLAGS}"
+                      COMPILE_FLAGS "${CH_CXX_FLAGS}"
+                      LINK_FLAGS "${CH_LINKERFLAG_SHARED} ${CH_MKL_LINK_FLAGS}"
                       COMPILE_DEFINITIONS "CH_API_COMPILE_MKL")
 
 TARGET_LINK_LIBRARIES(ChronoEngine_mkl
                       ChronoEngine
                       ${MKL_LIBRARIES}
-					  ${CH_IOPENMPLIB}
+					  ${IOMP5_LIBRARY}
 					  )
 
 INSTALL(TARGETS ChronoEngine_mkl

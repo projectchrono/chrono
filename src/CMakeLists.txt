@@ -320,6 +320,7 @@ include_directories(${CH_INCLUDES})
 # Add directories to build various optional modules.  Each module is supposed
 # to provide an option for enabling that particular module.
 add_subdirectory(chrono_mkl)
+add_subdirectory(chrono_mumps)
 add_subdirectory(chrono_matlab)
 add_subdirectory(chrono_cascade)
 add_subdirectory(chrono_irrlicht)
@@ -395,6 +396,12 @@ if(ENABLE_MODULE_MKL)
   set(CHRONO_MKL "#define CHRONO_MKL")
 else()
   set(CHRONO_MKL "#undef CHRONO_MKL")
+endif()
+
+if(ENABLE_MODULE_MUMPS)
+  set(CHRONO_MUMPS "#define CHRONO_MUMPS")
+else()
+  set(CHRONO_MUMPS "#undef CHRONO_MUMPS")
 endif()
 
 if(ENABLE_MODULE_PARALLEL)
