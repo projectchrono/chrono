@@ -134,11 +134,6 @@ source_group(utils FILES
 set(CXX_FLAGS ${CH_CXX_FLAGS})
 set(LIBRARIES "ChronoEngine")
 
-if(ENABLE_MODULE_OPENGL)
-    include_directories(${CH_OPENGL_INCLUDES})
-    list(APPEND LIBRARIES ChronoEngine_opengl)
-ENDIF()
-
 if(ENABLE_MODULE_PARALLEL)
   set(CXX_FLAGS ${CH_PARALLEL_CXX_FLAGS})
   include_directories(${CH_PARALLEL_INCLUDES})
