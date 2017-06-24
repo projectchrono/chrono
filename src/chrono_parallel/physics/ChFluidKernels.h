@@ -1,37 +1,56 @@
-#ifndef CHCONSTRAINT_FLUIDFLUIDUTILS_H
-#define CHCONSTRAINT_FLUIDFLUIDUTILS_H
+// =============================================================================
+// PROJECT CHRONO - http://projectchrono.org
+//
+// Copyright (c) 2016 projectchrono.org
+// All rights reserved.
+//
+// Use of this source code is governed by a BSD-style license that can be found
+// in the LICENSE file at the top level of the distribution and at
+// http://projectchrono.org/license-chrono.txt.
+//
+// =============================================================================
+// Authors: Hammad Mazhar, Radu Serban
+// =============================================================================
+//
+// Utilities for fluid SPH kernels
+//
+// =============================================================================
 
-#include "chrono_parallel/ChDataManager.h"
+#ifndef CH_FLUID_KERNELS_H
+#define CH_FLUID_KERNELS_H
+
 #include "chrono_parallel/math/ChParallelMath.h"
-#include "chrono_parallel/math/matrix.h"  // for quaternion, real4
+
+namespace chrono {
+
 #define F_PI 3.141592653589793238462643383279
-#define INVPI 1 / F_PI
+#define INVPI (1 / F_PI)
 
 #define KERNEL poly6
 #define GRAD_KERNEL unormalized_grad_spiky
 #define GRAD2_KERNEL grad2_viscosity
 
-namespace chrono {
 #define H2 h* h
 #define H3 h* h* h
 #define H6 H3* H3
 #define H9 H3* H3* H3
+
 ///
 #define CPOLY6 315.0 / (64.0 * F_PI * H9)
-#define KPOLY6 CPOLY6* Pow((H2 - dist * dist), 3)
+#define KPOLY6 CPOLY6 * Pow((H2 - dist * dist), 3)
 
 #define CGPOLY6 -945.0 / (32.0 * F_PI * H9)
-#define KGPOLY6 CGPOLY6* Pow((H2 - dist * dist), 2)
+#define KGPOLY6 CGPOLY6 * Pow((H2 - dist * dist), 2)
 
 #define CLPOLY6 945.0 / (32.0 * F_PI * H9)
-#define KLPOLY6 CLPOLY6*(H2 - dist * dist) * (7 * dist * dist - 3 * H2)
+#define KLPOLY6 CLPOLY6 * (H2 - dist * dist) * (7 * dist * dist - 3 * H2)
 
 ///
 #define CGSPIKY -45.0 / (F_PI * H6)
-#define KGSPIKY CGSPIKY* Pow(h - dist, 2)
+#define KGSPIKY CGSPIKY * Pow(h - dist, 2)
 
 #define CLVISC 45.0 / (F_PI * H6)
-#define KLVISC CLVISC*(h - dist)
+#define KLVISC CLVISC * (h - dist)
 
 inline real N(const real& dist, const real& h) {
     real x = Abs(dist) / h;
@@ -60,10 +79,10 @@ inline real3 grad_cubic_spline(const real3& dist, const real d, const real& h) {
     real q = d / h;
 
     if (q < 1) {
-        return (3 * q - 4) * .75 * (INVPI)*Pow(h, -5) * dist;
+        return (3 * q - 4) * .75 * INVPI * Pow(h, -5) * dist;
     }
     if (q < 2) {
-        return (-q + 4.0 - 4.0 / q) * .75 * (INVPI)*Pow(h, -5) * dist;
+        return (-q + 4.0 - 4.0 / q) * .75 * INVPI * Pow(h, -5) * dist;
     }
     return real3(0);
 }
@@ -100,7 +119,6 @@ inline real3 grad2_viscosity(const real3& xij, const real d, const real& h) {
     return real3((d <= h) * 45.0 / (F_PI * Pow(h, 6)) * (h - d));
 }
 
-////-----------------------------------------------------------------------------------------------------
 // kernel from constraint fluid approximation paper/code
 inline real kernel(const real& dist, const real& h) {
     if (dist > h) {
@@ -118,30 +136,6 @@ inline real grad2_poly6(const real& dist, const real& h) {
     return 945.0 / (32.0 * F_PI * Pow(h, 9)) * (h * h - dist * dist) * (7 * dist * dist - 3 * h * h);
 }
 
-#define SS(alpha) mrho* vij.alpha
-#define TT(beta) grad.beta
-
-inline Mat33 ComputeShearTensor(const real& mrho, const real3& grad, const real3& vij) {
-    return Mat33(-.5 * 2 * SS(x) * TT(x), -.5 * (SS(y) * TT(x) + SS(x) * TT(y)), -.5 * (SS(z) * TT(x) + SS(x) * TT(z)),
-                 -.5 * (SS(x) * TT(y) + SS(y) * TT(x)), -.5 * 2 * SS(y) * TT(y), -.5 * (SS(z) * TT(y) + SS(y) * TT(z)),
-                 -.5 * (SS(x) * TT(z) + SS(z) * TT(x)), -.5 * (SS(y) * TT(z) + SS(z) * TT(y)), -.5 * 2 * SS(z) * TT(z));
-
-    //  return (VectorxVector(mrho * vij, grad) + VectorxVector(grad, mrho * vij)) * -.5;
-}
-
-//// Compute ||T||  = sqrt((1/2*Trace((shear*Transpose(shear)))))
-// real ComputeShearTensorNorm(const real& mrho, const real3& grad, const real3& vij) {
-//  real t1 = SS(x) * SS(x);
-//  real t2 = TT(x) * TT(x);
-//  real t5 = TT(y) * TT(y);
-//  real t11 = SS(y) * SS(y);
-//  real t13 = TT(z) * TT(z);
-//  real t19 = SS(z) * SS(z);
-//  real t31 = 2 * t2 * t1 + t5 * t1 + 2 * SS(x) * TT(y) * SS(y) * TT(x) + t2 * t11 + t13 * t1 +
-//             2 * SS(x) * TT(z) * SS(z) * TT(x) + t2 * t19 + 2 * t5 * t11 + t13 * t11 +
-//             2 * SS(y) * TT(z) * SS(z) * TT(y) + t5 * t19 + 2 * t13 * t19;
-//  return sqrt(t31) * 0.5;
-//}
-}
+}  // end namespace chrono
 
 #endif

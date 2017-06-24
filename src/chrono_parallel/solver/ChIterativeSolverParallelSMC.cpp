@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -11,6 +11,7 @@
 // =============================================================================
 // Authors: Radu Serban, Arman Pazouki
 // =============================================================================
+//
 // Implementation of methods specific to the parallel smooth-contact solver.
 //
 // These functions implement the basic time update for a multibody system using
@@ -18,6 +19,7 @@
 // geometric contact information has been already computed and is available.
 // The current algorithm is based on a semi-implicit Euler scheme and projection
 // on the velocity manifold of the bilateral constraints.
+//
 // =============================================================================
 
 #include "chrono/physics/ChSystemSMC.h"

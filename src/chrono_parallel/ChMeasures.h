@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,6 +15,7 @@
 // Description: This file contains everything that is at some point measured in
 // Chrono parallel, things like the broadphase bounding box or the number of
 // solver iterations will be stored here.
+//
 // =============================================================================
 
 #pragma once

@@ -11,8 +11,10 @@
 // =============================================================================
 // Authors: Alessandro Tasora, Hammad Mazhar
 // =============================================================================
+//
 // Based on the regular bullet collision system, some modifications made to
 // store contacts in the parallel data structures
+//
 // =============================================================================
 
 #pragma once

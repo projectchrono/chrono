@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -14,6 +14,7 @@
 //
 // Description: This class calls the parallel solver, used as an intermediate
 // between chrono's solver interface and the parallel solver interface.
+//
 // =============================================================================
 
 #pragma once
@@ -22,7 +23,6 @@
 
 #include "chrono_parallel/ChParallelDefines.h"
 #include "chrono_parallel/ChDataManager.h"
-#include "chrono_parallel/physics/ChIntegratorParallel.h"
 
 #include "chrono_parallel/physics/Ch3DOFContainer.h"
 

@@ -2,7 +2,7 @@
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2016 projectchrono.org
-// All right reserved.
+// All rights reserved.
 //
 // Use of this source code is governed by a BSD-style license that can be found
 // in the LICENSE file at the top level of the distribution and at
@@ -15,6 +15,7 @@
 // Description: The definition of a parallel ChSystem, pretty much everything is
 // done manually instead of using the functions used in ChSystem. This is to
 // handle the different data structures present in the parallel implementation
+//
 // =============================================================================
 
 #pragma once
