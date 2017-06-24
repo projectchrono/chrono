@@ -3,7 +3,7 @@
   "Type":                       "Steering",
   "Template":                   "PitmanArm",
 
-  "Vehicle-Frame Inertia":      "false",
+  "Vehicle-Frame Inertia":      false,
 
   "Steering Link":
   {
