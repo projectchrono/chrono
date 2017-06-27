@@ -17,9 +17,9 @@ Tutorials {#tutorial_root}
 	
 ## Chrono training materials
 
-- Chrono four-day tutorial, Univeristy of Wisconsin-Madison, January 9-13, 2017 [link](http://outreach.sbel.wisc.edu/ChronoTutorials/2017/UW-january/)
+-   @subpage tutorial_slides_300
 
-- Chrono five-day tutorial, US Army TARDEC, November 14-18, 2016 [link](http://outreach.sbel.wisc.edu/ChronoTutorials/2016/TARDEC/)
+    Set of tutorial slides for Chrono release 3.0.0
 
 	
 ## Optional modules
