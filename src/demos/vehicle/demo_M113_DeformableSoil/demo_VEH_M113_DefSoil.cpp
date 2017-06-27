@@ -21,7 +21,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/driver/ChIrrGuiDriver.h"
-#include "chrono_vehicle/terrain/DeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/tracked_vehicle/utils/ChTrackedVehicleIrrApp.h"
 
 #include "chrono_models/vehicle/m113/M113_SimplePowertrain.h"
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     ////vehicle.SetContactCollection(true);
 
     // Create the terrain
-    DeformableTerrain terrain(vehicle.GetSystem());
+    SCMDeformableTerrain terrain(vehicle.GetSystem());
     terrain.SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
     terrain.SetSoilParametersSCM(2e7,   // Bekker Kphi
                                  0,     // Bekker Kc
@@ -160,8 +160,8 @@ int main(int argc, char* argv[]) {
     terrain.SetAutomaticRefinement(true);
     terrain.SetAutomaticRefinementResolution(0.04);
 
-    terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-    ////terrain.SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.15);
+    terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+    ////terrain.SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.15);
 
     terrain.Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 

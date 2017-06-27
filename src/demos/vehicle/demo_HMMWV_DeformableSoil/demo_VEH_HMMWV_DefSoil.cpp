@@ -33,7 +33,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/ChDriver.h"
-#include "chrono_vehicle/terrain/DeformableTerrain.h"
+#include "chrono_vehicle/terrain/SCMDeformableTerrain.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleAssembly.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
 
     switch (terrain_type) {
         case DEFORMABLE_SOIL: {
-            DeformableTerrain* terrainD = new DeformableTerrain(system);
+            SCMDeformableTerrain* terrainD = new SCMDeformableTerrain(system);
             terrainD->SetPlane(ChCoordsys<>(VNULL, Q_from_AngX(CH_C_PI_2)));
             terrainD->SetSoilParametersSCM(2e6,   // Bekker Kphi
                                            0,     // Bekker Kc
@@ -260,8 +260,8 @@ int main(int argc, char* argv[]) {
             terrainD->SetAutomaticRefinementResolution(0.04);
 
             ////terrainD->SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
-            ////terrainD->SetPlotType(vehicle::DeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
-            terrainD->SetPlotType(vehicle::DeformableTerrain::PLOT_SINKAGE, 0, 0.1);
+            ////terrainD->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_PRESSURE_YELD, 0, 30000.2);
+            terrainD->SetPlotType(vehicle::SCMDeformableTerrain::PLOT_SINKAGE, 0, 0.1);
 
             terrainD->Initialize(terrainHeight, terrainLength, terrainWidth, divLength, divWidth);
 

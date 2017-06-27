@@ -12,12 +12,13 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 //
-// Deformable terrain
+// Deformable terrain based on SCM (Soil Contact Model) from DLR
+// (Krenn & Hirzinger)
 //
 // =============================================================================
 
-#ifndef DEFORMABLE_TERRAIN_H
-#define DEFORMABLE_TERRAIN_H
+#ifndef SCM_DEFORMABLE_TERRAIN_H
+#define SCM_DEFORMABLE_TERRAIN_H
 
 #include <set>
 #include <string>
@@ -35,16 +36,17 @@
 namespace chrono {
 namespace vehicle {
 
-class DeformableSoil;
+class SCMDeformableSoil;
 
 /// @addtogroup vehicle_terrain
 /// @{
 
 /// Deformable terrain model.
-/// This class implements a terrain with variable heightmap. Unlike RigidTerrain, the vertical
-/// coordinates of this terrain mesh can be deformed because of interaction with ground vehicles.
-class CH_VEHICLE_API DeformableTerrain : public ChTerrain {
-public:
+/// This class implements a deformable terrain based on the Soil Contact Model.
+/// Unlike RigidTerrain, the vertical coordinates of this terrain mesh can be deformed
+/// because of interaction with ground vehicles.
+class CH_VEHICLE_API SCMDeformableTerrain : public ChTerrain {
+  public:
     enum DataPlotType {
         PLOT_NONE,
         PLOT_LEVEL,
@@ -62,12 +64,12 @@ public:
         PLOT_MASSREMAINDER
     };
 
-    /// Construct a default DeformableSoil.
+    /// Construct a default SCMDeformableSoil.
     /// The user is responsible for calling various Set methods before Initialize.
-    DeformableTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
-                      );
+    SCMDeformableTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
+                         );
 
-    ~DeformableTerrain() {}
+    ~SCMDeformableTerrain() {}
 
     /// Get the terrain height at the specified (x,y) location.
     virtual double GetHeight(double x, double y) const override;
@@ -77,13 +79,13 @@ public:
 
     /// Set visualization color.
     void SetColor(ChColor color  ///< [in] color of the visualization material
-        );
+                  );
 
     /// Set texture properties.
     void SetTexture(const std::string tex_file,  ///< [in] texture filename
-        float tex_scale_x = 1,       ///< [in] texture scale in X
-        float tex_scale_y = 1        ///< [in] texture scale in Y
-        );
+                    float tex_scale_x = 1,       ///< [in] texture scale in X
+                    float tex_scale_y = 1        ///< [in] texture scale in Y
+                    );
 
     /// Set the plane reference.
     /// The soil height is on the Y axis of this plane, and X-Z axes of the coordsys are the
@@ -110,23 +112,25 @@ public:
         double mMohr_cohesion,  ///< Cohesion in, Pa, for shear failure
         double mMohr_friction,  ///< Friction angle (in degrees!), for shear failure
         double mJanosi_shear,   ///< J , shear parameter, in meters, in Janosi-Hanamoto formula (usually few mm or cm)
-        double melastic_K,      ///< elastic stiffness K, per unit area, [Pa/m] (must be > Kphi; very high values gives the original SCM model)
-        double mdamping_R       ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical negative speed, it is zero in original SCM model)
+        double melastic_K,  ///< elastic stiffness K, per unit area, [Pa/m] (must be > Kphi; very high values gives the
+                            ///original SCM model)
+        double mdamping_R   ///< vertical damping R, per unit area [Pa s/m] (proportional to vertical negative speed, it
+                            ///is zero in original SCM model)
         );
 
-    /// If true, enable the creation of soil inflation at the side of the ruts, 
+    /// If true, enable the creation of soil inflation at the side of the ruts,
     /// like bulldozing the material apart.
     void SetBulldozingFlow(bool mb);
     bool GetBulldozingFlow() const;
 
-    /// If true, enable the creation of soil inflation at the side of the ruts, 
+    /// If true, enable the creation of soil inflation at the side of the ruts,
     /// like bulldozing the material apart. Remember to enable SetBulldozingFlow(true).
-    void SetBulldozingParameters(double mbulldozing_erosion_angle,     ///< angle of erosion of the displaced material (in degrees!)
-                                 double mbulldozing_flow_factor = 1.0,  ///< growth of lateral volume respect to pressed volume
-                                 int mbulldozing_erosion_n_iterations = 3, ///< number of erosion refinements per timestep 
-                                 int mbulldozing_erosion_n_propagations = 10 ///< number of concentric vertex selections subject to erosion 
-                                 );
-
+    void SetBulldozingParameters(
+        double mbulldozing_erosion_angle,            ///< angle of erosion of the displaced material (in degrees!)
+        double mbulldozing_flow_factor = 1.0,        ///< growth of lateral volume respect to pressed volume
+        int mbulldozing_erosion_n_iterations = 3,    ///< number of erosion refinements per timestep
+        int mbulldozing_erosion_n_propagations = 10  ///< number of concentric vertex selections subject to erosion
+        );
 
     /// If true, enable the dynamic refinement of mesh LOD, so that additional
     /// points are added under the contact patch, up to reach the desired resolution.
@@ -134,21 +138,22 @@ public:
     bool GetAutomaticRefinement() const;
 
     /// Additional points are added under the contact patch, up to reach the desired resolution.
-    /// Using smaller resolution value (in meters) means that triangles in the mesh are subdivided up to 
+    /// Using smaller resolution value (in meters) means that triangles in the mesh are subdivided up to
     /// when the largest side is equal or less than the resolution. Triangles out of the contact patch are not refined.
     /// Note, you must turn on automatic refinement via SetAutomaticRefinement(true)!
     void SetAutomaticRefinementResolution(double mr);
     double GetAutomaticRefinementResolution() const;
 
-    /// This value says up to which vertical level the collision is tested - respect to current ground level 
+    /// This value says up to which vertical level the collision is tested - respect to current ground level
     /// at the sample point.
-    /// Since the contact is unilateral, this could be zero. However when computing bulldozing 
-    /// flow, if enabled, one might also need to know if in the surrounding there is some potential future contact: so it
-    /// might be better to use a positive value (but not higher than the max. expected height of the bulldozed rubble, to 
+    /// Since the contact is unilateral, this could be zero. However when computing bulldozing
+    /// flow, if enabled, one might also need to know if in the surrounding there is some potential future contact: so
+    /// it
+    /// might be better to use a positive value (but not higher than the max. expected height of the bulldozed rubble,
+    /// to
     /// avoid slowdown of collision tests).
     void SetTestHighOffset(double moff);
     double GetTestHighOffset() const;
-
 
     /// Set the color plot type for the soil mesh.
     /// Also, when a scalar plot is used, also define which is the max-min range in the falsecolor colormap.
@@ -179,17 +184,15 @@ public:
                     );
 
   private:
-    std::shared_ptr<DeformableSoil> m_ground;
-
+    std::shared_ptr<SCMDeformableSoil> m_ground;
 };
 
-/// This class implements a terrain with variable heightmap, but differently from
-/// RigidTerrain, the vertical coordinates of this terrain mesh can be deformed
-/// because of vertical interaction with wheeled vehicles
-class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
+/// This class provides the underlying implementation of the Soil Contact Model.
+/// Used in SCMDeformableTerrain.
+class CH_VEHICLE_API SCMDeformableSoil : public ChLoadContainer {
   public:
-    DeformableSoil(ChSystem* system);
-    ~DeformableSoil() {}
+    SCMDeformableSoil(ChSystem* system);
+    ~SCMDeformableSoil() {}
 
     /// Initialize the terrain system (flat).
     /// This version creates a flat array of points.
@@ -216,20 +219,16 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
                     );
 
   private:
-
     // Updates the forces and the geometry, at the beginning of each timestep
     virtual void Setup() override {
-        
-        //GetLog() << " Setup update soil t= "<< this->ChTime << "\n";
+        // GetLog() << " Setup update soil t= "<< this->ChTime << "\n";
         this->ComputeInternalForces();
 
         ChLoadContainer::Update(ChTime, true);
-       
     }
 
     // Updates the forces and the geometry
     virtual void Update(double mytime, bool update_assets = true) override {
-        
         // Note!!! we cannot call ComputeInternalForces here, because Update() could
         // be called multiple times per timestep (ex. see HHT or RungKutta) and not
         // necessarily in time-increasing order; this is a problem because in this
@@ -244,17 +243,14 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     // each IntLoadResidual_F() for performance reason, not at each Update() that might be overkill).
     void ComputeInternalForces();
 
-    
     // Override the ChLoadContainer method for computing the generalized force F term:
     virtual void IntLoadResidual_F(const unsigned int off,  ///< offset in R residual
                                    ChVectorDynamic<>& R,    ///< result: the R residual, R += c*F
                                    const double c           ///< a scaling factor
                                    ) override {
-
         // Overloading base class, that takes all F vectors from the list of forces and put all them in R
         ChLoadContainer::IntLoadResidual_F(off, R, c);
     }
-    
 
     // This is called after Initialize(), it pre-computes aux.topology
     // data structures for the mesh, aux. material data, etc.
@@ -273,14 +269,14 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     std::vector<double> p_sinkage_plastic;
     std::vector<double> p_sinkage_elastic;
     std::vector<double> p_step_plastic_flow;
-    std::vector<double> p_kshear; // Janosi-Hanamoto shear accumulator
+    std::vector<double> p_kshear;  // Janosi-Hanamoto shear accumulator
     std::vector<double> p_area;
     std::vector<double> p_sigma;
     std::vector<double> p_sigma_yeld;
     std::vector<double> p_tau;
     std::vector<double> p_massremainder;
-    std::vector<int>    p_id_island;
-    std::vector<bool>   p_erosion;
+    std::vector<int> p_id_island;
+    std::vector<bool> p_erosion;
 
     double Bekker_Kphi;
     double Bekker_Kc;
@@ -304,8 +300,8 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     bool do_bulldozing;
     double bulldozing_flow_factor;
     double bulldozing_erosion_angle;
-    int    bulldozing_erosion_n_iterations;
-    int    bulldozing_erosion_n_propagations;
+    int bulldozing_erosion_n_iterations;
+    int bulldozing_erosion_n_propagations;
 
     bool do_refinement;
     double refinement_resolution;
@@ -313,9 +309,9 @@ class CH_VEHICLE_API DeformableSoil : public ChLoadContainer {
     double test_high_offset;
     double test_low_offset;
 
-    friend class DeformableTerrain;
-    
-    double last_t; // for optimization
+    friend class SCMDeformableTerrain;
+
+    double last_t;  // for optimization
 };
 
 /// @} vehicle_terrain

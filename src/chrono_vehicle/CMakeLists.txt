@@ -146,8 +146,8 @@ set(CV_TERRAIN_FILES
     terrain/FlatTerrain.cpp
     terrain/RigidTerrain.h
     terrain/RigidTerrain.cpp
-    terrain/DeformableTerrain.h
-    terrain/DeformableTerrain.cpp
+    terrain/SCMDeformableTerrain.h
+    terrain/SCMDeformableTerrain.cpp
 )
 
 if(ENABLE_MODULE_FEA)
