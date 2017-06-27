@@ -34,9 +34,6 @@ namespace chrono {
 
 class ChApi ChKblockGeneric : public ChKblock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChKblockGeneric)
-
   private:
     ChMatrixDynamic<double>* K;
     std::vector<ChVariables*> variables;

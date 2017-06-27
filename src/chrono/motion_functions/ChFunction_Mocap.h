@@ -24,8 +24,6 @@ namespace chrono {
 
 class ChApi ChFunction_Mocap : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Mocap)
-
   private:
     ChMatrix<>* array_y;
     ChMatrix<>* array_y_dt;

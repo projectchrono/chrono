@@ -26,9 +26,6 @@ namespace geometry {
 
 class ChApi ChTriangleMesh : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTriangleMesh)
-
   public:
     ChTriangleMesh() {}
     virtual ~ChTriangleMesh() {}

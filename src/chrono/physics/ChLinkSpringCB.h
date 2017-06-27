@@ -21,8 +21,6 @@ namespace chrono {
 
 /// Class for spring-damper systems with the force specified through a functor object.
 class ChApi ChLinkSpringCB : public ChLinkMarkers {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkSpringCB)
 
   public:
     ChLinkSpringCB();

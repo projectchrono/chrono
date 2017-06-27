@@ -24,8 +24,6 @@ namespace chrono {
 /// with basic settings
 
 class ChApi ChCamera : public ChAsset {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCamera)
 
   private:
     //

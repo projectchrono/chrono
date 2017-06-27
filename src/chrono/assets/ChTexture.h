@@ -29,9 +29,6 @@ namespace chrono {
 
 class ChApi ChTexture : public ChAsset {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTexture)
-
   protected:
     //
     // DATA

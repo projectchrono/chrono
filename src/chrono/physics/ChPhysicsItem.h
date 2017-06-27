@@ -31,8 +31,6 @@ class ChSystem;
 /// such as rigid bodies, mechanical joints, etc.
 
 class ChApi ChPhysicsItem : public ChObj {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChPhysicsItem)
 
     friend class ChSystem;
 

@@ -47,9 +47,6 @@ class ChApi ChParticleBase : public ChFrameMoving<double> {
 
 class ChApi ChIndexedParticles : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChIndexedParticles)
-
   public:
     ChIndexedParticles() {}
     ChIndexedParticles(const ChIndexedParticles& other) : ChPhysicsItem(other) {}

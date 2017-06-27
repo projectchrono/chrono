@@ -35,9 +35,6 @@ namespace chrono {
 
 class CH_PARALLEL_API ChContactContainerParallel : public ChContactContainer {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactContainerParallel)
-
   public:
     typedef ChContactTuple<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContact_6_6;
 

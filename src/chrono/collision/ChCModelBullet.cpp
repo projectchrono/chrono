@@ -887,75 +887,7 @@ void ChModelBullet::ArchiveIN(ChArchiveIn& marchive)
     }
 }
 
-//***OBSOLETE***
-/*
-void ChModelBullet::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
 
-    // parent class deserialize
-    //ChCollisionModel::StreamIN(mstream);
-
-    // deserialize custom data:
-
-    this->ClearModel();  // remove shape
-
-    int buffer_len = 0;
-
-    mstream >> buffer_len;
-
-    char* mbuffer = new char[buffer_len];
-
-    for (int mpt = 0; mpt < buffer_len; mpt++)
-        mstream >> mbuffer[mpt];
-
-    btBulletWorldImporter import(0);  // don't store info into the world
-    import.setVerboseMode(false);
-
-    if (import.loadFileFromMemory(mbuffer, buffer_len)) {
-        int numShape = import.getNumCollisionShapes();
-        if (numShape) {
-            btCollisionShape* mshape = import.getCollisionShapeByIndex(0);
-            if (mshape)
-                bt_collision_object->setCollisionShape(mshape);
-
-            // Update the list of sharedpointers to newly created shapes, so that
-            // the deletion will be automatic
-            __recurse_add_newcollshapes(mshape, this->shapes);
-        }
-    }
-
-    delete[] mbuffer;
-}
-*/
-//***OBSOLETE***
-/*
-void ChModelBullet::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
-
-    // parent class serialize
-    //ChCollisionModel::StreamOUT(mstream);
-
-    // serialize custom data:
-
-    int maxSerializeBufferSize = 1024 * 1024 * 5;  // ***TO DO*** make this more efficient
-    btDefaultSerializer* serializer = new btDefaultSerializer(maxSerializeBufferSize);
-
-    serializer->startSerialization();
-
-    this->bt_collision_object->getCollisionShape()->serializeSingleShape(serializer);
-
-    serializer->finishSerialization();
-
-    mstream << serializer->getCurrentBufferSize();
-
-    for (int mpt = 0; mpt < serializer->getCurrentBufferSize(); mpt++)
-        mstream << (char)(*(serializer->getBufferPointer() + mpt));
-
-    delete serializer;
-}
-*/
 
 }  // end namespace collision
 }  // end namespace chrono

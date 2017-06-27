@@ -23,8 +23,6 @@ namespace chrono {
 
 class ChApi ChFunction_Matlab : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Matlab)
-
   private:
     static const int CHF_MATLAB_STRING_LEN = 200;
     char mat_command[CHF_MATLAB_STRING_LEN];  ///< matlab command

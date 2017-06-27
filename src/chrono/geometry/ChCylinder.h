@@ -24,9 +24,6 @@ namespace geometry {
 
 class ChApi ChCylinder : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCylinder)
-
   public:
     ChVector<> p1;  ///< center of first base
     ChVector<> p2;  ///< center of second base

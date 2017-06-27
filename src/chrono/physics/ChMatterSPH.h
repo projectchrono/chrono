@@ -179,9 +179,6 @@ class ChApi ChNodeSPH : public ChNodeXYZ, public ChContactable_1vars<3> {
 
 class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumSPH)
-
   private:
     double viscosity;
     double surface_tension;
@@ -227,9 +224,6 @@ class ChApi ChContinuumSPH : public fea::ChContinuumMaterial {
 /// 'meshless' FEA approach.
 
 class ChApi ChMatterSPH : public ChIndexedNodes {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMatterSPH)
 
   private:
     std::vector<std::shared_ptr<ChNodeSPH> > nodes;     ///< the nodes (markers)

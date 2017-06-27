@@ -27,8 +27,6 @@ namespace chrono {
 
 class ChApi ChFunction_Derive : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Derive);
-
   private:
     std::shared_ptr<ChFunction> fa;
     int order;  ///< 1= derive one time, 2= two times, etc.

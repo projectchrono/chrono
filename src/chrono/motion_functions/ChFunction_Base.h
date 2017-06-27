@@ -45,8 +45,6 @@ namespace chrono {
 
 class ChApi ChFunction {
 
-    CH_FACTORY_TAG(ChFunction)
-
   public:
     /// Enumeration of function types.
     enum FunctionType {

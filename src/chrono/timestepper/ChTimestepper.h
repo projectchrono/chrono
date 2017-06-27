@@ -32,9 +32,6 @@ namespace chrono {
 /// It operates on systems inherited from ChIntegrable.
 class ChApi ChTimestepper {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepper)
-
   public:
       /// Available methods for time integration (time steppers).
       enum class Type {
@@ -118,9 +115,6 @@ class ChApi ChTimestepper {
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.
 class ChApi ChTimestepperIorder : public ChTimestepper {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperIorder)
-
   protected:
     ChState Y;
     ChStateDelta dYdt;
@@ -152,9 +146,6 @@ class ChApi ChTimestepperIorder : public ChTimestepper {
 /// A ChIntegrableIIorder is a special subclass of integrable objects that have a state comprised
 /// of position and velocity y={x,v}, and state derivative dy/dt={v,a}, where a=acceleration.
 class ChApi ChTimestepperIIorder : public ChTimestepper {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperIIorder)
 
   protected:
     ChState X;
@@ -190,8 +181,7 @@ class ChApi ChTimestepperIIorder : public ChTimestepper {
 
 /// Base class for implicit solvers (double inheritance)
 class ChApi ChImplicitTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChImplicitTimestepper)
+
 };
 
 /// Base properties for implicit solvers.
@@ -199,8 +189,6 @@ class ChApi ChImplicitTimestepper {
 /// using an iterative process, up to a desired tolerance. At each iteration,
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChImplicitIterativeTimestepper)
 
   protected:
     int maxiters;    ///< maximum number of iterations
@@ -280,8 +268,6 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
 /// Euler explicit timestepper.
 /// This performs the typical  y_new = y+ dy/dt * dt integration with Euler formula.
 class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerExpl)
 
   public:
     /// Constructors (default empty)
@@ -299,8 +285,6 @@ class ChApi ChTimestepperEulerExpl : public ChTimestepperIorder {
 ///    x_new = x + v * dt
 ///    v_new = v + a * dt
 class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerExplIIorder)
 
   protected:
     ChStateDelta Dv;
@@ -322,8 +306,6 @@ class ChApi ChTimestepperEulerExplIIorder : public ChTimestepperIIorder {
 ///    x_new = x + v_new * dt
 /// integration with Euler semi-implicit formula.
 class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerSemiImplicit)
 
   public:
     /// Constructors (default empty)
@@ -336,8 +318,6 @@ class ChApi ChTimestepperEulerSemiImplicit : public ChTimestepperIIorder {
 
 /// Performs a step of a 4th order explicit Runge-Kutta integration scheme.
 class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperRungeKuttaExpl)
 
   protected:
     ChState y_new;
@@ -359,8 +339,6 @@ class ChApi ChTimestepperRungeKuttaExpl : public ChTimestepperIorder {
 
 /// Performs a step of a Heun explicit integrator. It is like a 2nd Runge Kutta.
 class ChApi ChTimestepperHeun : public ChTimestepperIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperHeun)
 
   protected:
     ChState y_new;
@@ -383,8 +361,6 @@ class ChApi ChTimestepperHeun : public ChTimestepperIorder {
 /// Note: uses last step acceleration: changing or resorting  the numbering of DOFs will invalidate it.
 /// Suggestion: use the ChTimestepperEulerSemiImplicit, it gives the same accuracy with better performance.
 class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperLeapfrog)
 
   protected:
     ChStateDelta Aold;
@@ -402,8 +378,6 @@ class ChApi ChTimestepperLeapfrog : public ChTimestepperIIorder {
 
 /// Performs a step of Euler implicit for II order systems.
 class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerImplicit)
 
   protected:
     ChStateDelta Dv;
@@ -431,8 +405,6 @@ class ChApi ChTimestepperEulerImplicit : public ChTimestepperIIorder, public ChI
 /// If using an underlying CCP complementarity solver, this is the typical Anitescu stabilized
 /// timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, public ChImplicitTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerImplicitLinearized)
 
   protected:
     ChStateDelta Vold;
@@ -458,8 +430,6 @@ class ChApi ChTimestepperEulerImplicitLinearized : public ChTimestepperIIorder, 
 /// If using an underlying CCP complementarity solver, this is the typical Tasora stabilized
 /// timestepper for DVIs.
 class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, public ChImplicitTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperEulerImplicitProjected)
 
   protected:
     ChStateDelta Vold;
@@ -484,8 +454,6 @@ class ChApi ChTimestepperEulerImplicitProjected : public ChTimestepperIIorder, p
 /// to a scheme that produces oscillatory reactions in constraints, so this is a modified version
 /// that is first order in constraint reactions. Use damped HHT or damped Newmark for more advanced options.
 class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperTrapezoidal)
 
   protected:
     ChStateDelta Dv;
@@ -510,8 +478,6 @@ class ChApi ChTimestepperTrapezoidal : public ChTimestepperIIorder, public ChImp
 
 /// Performs a step of trapezoidal implicit linearized for II order systems.
 class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperTrapezoidalLinearized)
 
   protected:
     ChStateDelta Dv;
@@ -537,8 +503,6 @@ class ChApi ChTimestepperTrapezoidalLinearized : public ChTimestepperIIorder, pu
 /// Performs a step of trapezoidal implicit linearized for II order systems.
 ///*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperTrapezoidalLinearized2)
 
   protected:
     ChStateDelta Dv;
@@ -560,8 +524,6 @@ class ChApi ChTimestepperTrapezoidalLinearized2 : public ChTimestepperIIorder, p
 /// Performs a step of Newmark constrained implicit for II order DAE systems.
 /// See Negrut et al. 2007.
 class ChApi ChTimestepperNewmark : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperNewmark)
 
   private:
     double gamma;

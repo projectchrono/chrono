@@ -168,9 +168,6 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
 /// creating all shapes as ChBody.
 class ChApi ChParticlesClones : public ChIndexedParticles {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChParticlesClones)
-
   private:
     std::vector<ChAparticle*> particles;  ///< the parricles
 

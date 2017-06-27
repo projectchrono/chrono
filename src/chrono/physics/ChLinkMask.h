@@ -27,9 +27,6 @@ namespace chrono {
 
 class ChApi ChLinkMask {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMask)
-
   protected:
     std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraint states
 
@@ -124,9 +121,6 @@ CH_CLASS_VERSION(ChLinkMask,0)
 /// the ChLinkLock link.
 
 class ChApi ChLinkMaskLF : public ChLinkMask {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMaskLF)
 
   public:
     /// Create a ChLinkMaskLF which has 7 scalar constraints of

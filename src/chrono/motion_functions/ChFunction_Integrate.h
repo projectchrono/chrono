@@ -25,8 +25,6 @@ namespace chrono {
 
 class ChApi ChFunction_Integrate : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Integrate)
-
   private:
     std::shared_ptr<ChFunction> fa;
     int order;  // 1= Integrate one time, 2= two times, etc.

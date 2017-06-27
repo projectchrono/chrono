@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChSolverPMINRES : public ChIterativeSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverPMINRES)
-
   protected:
     double grad_diffstep;
     double rel_tolerance;

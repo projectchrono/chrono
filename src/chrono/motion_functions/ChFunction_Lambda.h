@@ -48,9 +48,6 @@ template<typename LAMBDA>
 class ChFunction_Lambda : public ChFunction
 {
 
-    CH_FACTORY_TAG(ChFunction_Lambda)
-
-
 private:
     LAMBDA function;
 

@@ -24,8 +24,6 @@ namespace chrono {
 /// in some way.
 
 class ChApi ChBoxShape : public ChVisualization {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChBoxShape)
 
   protected:
     //

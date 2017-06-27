@@ -196,8 +196,6 @@ class ChApiFea ChNodeMeshless : public ChNodeXYZ, public ChContactable_1vars<3> 
 /// solid using the approach in Mueller ("Point based.." 2004 paper), that is with
 /// a 'meshless' FEA approach.
 class ChApiFea ChMatterMeshless : public ChIndexedNodes {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMatterMeshless)
 
   private:
     std::vector<std::shared_ptr<ChNodeMeshless> > nodes;  ///< nodes
@@ -349,13 +347,11 @@ class ChApiFea ChMatterMeshless : public ChIndexedNodes {
     // STREAMING
     //
 
-    /// Method to allow deserializing a persistent binary archive (ex: a file)
-    /// into transient data.
-    void StreamIN(ChStreamInBinary& mstream);
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOUT(ChArchiveOut& marchive);
 
-    /// Method to allow serializing transient data into a persistent
-    /// binary archive (ex: a file).
-    void StreamOUT(ChStreamOutBinary& mstream);
+    /// Method to allow de serialization of transient data from archives.
+    virtual void ArchiveIN(ChArchiveIn& marchive);
 };
 
 }  // end namespace fea

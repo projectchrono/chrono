@@ -32,8 +32,6 @@ namespace chrono {
 
 class ChApi ChFunction_Oscilloscope : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Oscilloscope)
-
   private:
     std::list<double> values;
     double end_x;

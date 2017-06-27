@@ -26,8 +26,7 @@ namespace geometry {
 
 class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTriangleMeshSoup)
+  private:
 
     std::vector<ChTriangle> m_triangles;  ///< triangle list
 

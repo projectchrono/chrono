@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsTorsionSpring)
-
   private:
     double stiffness;
     double damping;

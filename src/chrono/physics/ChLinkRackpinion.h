@@ -25,9 +25,6 @@ namespace chrono {
 
 class ChApi ChLinkRackpinion : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkRackpinion)
-
   protected:
     double R;         ///< primitive radius of the pinion
     double alpha;     ///< inclination of action line

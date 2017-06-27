@@ -37,9 +37,6 @@ class ChSystem;
 
 class ChApi ChLink : public ChLinkBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLink)
-
   protected:
     ChBodyFrame* Body1;       ///< first connected body
     ChBodyFrame* Body2;       ///< second connected body

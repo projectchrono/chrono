@@ -27,8 +27,6 @@ namespace chrono {
 /// able to recognize it and implement the proper translation.
 
 class ChApi ChColorAsset : public ChAsset {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChColorAsset)
 
   public:
     ChColorAsset() : fading(0) {}

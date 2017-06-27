@@ -31,9 +31,6 @@ namespace geometry {
 /// Base class for geometric objects used for collisions and visualization.
 class ChApi ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChGeometry)
-
   public:
     /// Enumeration of geometric objects
     enum GeometryType {

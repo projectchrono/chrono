@@ -26,9 +26,6 @@ namespace geometry {
 
 class ChApi ChLinePoly : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinePoly)
-
   private:
     std::vector<ChVector<> > points;  ///< control points
     int degree;                       ///< polynomial degree

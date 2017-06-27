@@ -33,9 +33,6 @@ namespace chrono {
 
 class ChApi ChConstraintTwoGeneric : public ChConstraintTwo {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConstraintTwoGeneric)
-
   protected:
     ChMatrixDynamic<double>* Cq_a;  ///< The [Cq_a] jacobian of the constraint
     ChMatrixDynamic<double>* Cq_b;  ///< The [Cq_b] jacobian of the constraint

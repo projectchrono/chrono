@@ -24,9 +24,6 @@ namespace geometry {
 
 class ChApi ChRoundedCylinder : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChRoundedCylinder)
-
   public:
     ChVector<> center;  ///< cylinder center
     double rad;         ///< cylinder radius

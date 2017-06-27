@@ -33,8 +33,6 @@ namespace chrono {
 
 class ChApi ChFunction_Repeat : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Repeat)
-
   private:
     double window_start;   ///< window begin position
     double window_length;  ///< window length

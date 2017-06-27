@@ -28,8 +28,6 @@ class ChMesh;
 /// Class for a generic 3D finite element node, with x,y,z displacement.
 /// This is the typical node that can be used for tetrahedrons, etc.
 class ChApiFea ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChNodeFEAxyz)
 
   public:
     ChNodeFEAxyz(ChVector<> initial_pos = VNULL);

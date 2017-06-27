@@ -32,9 +32,6 @@ namespace chrono {
 
 class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConstraintTwoGenericBoxed)
-
   protected:
     double l_min;
     double l_max;

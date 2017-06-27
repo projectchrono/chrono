@@ -26,8 +26,6 @@ namespace chrono {
 
 class ChApi ChFunction_Poly345 : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Poly345)
-
   private:
     double h;
     double end;

@@ -37,9 +37,6 @@ class ChBody;
 
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMarker)
-
   public:
     enum eChMarkerMotion {
         M_MOTION_FUNCTIONS = 0,  ///< marker uses its own x, y, z functions

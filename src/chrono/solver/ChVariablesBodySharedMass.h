@@ -90,9 +90,6 @@ class ChApi ChSharedMassBody {
 
 class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariablesBodySharedMass)
-
   private:
     ChSharedMassBody* sharedmass;  ///< shared inertia properties
 

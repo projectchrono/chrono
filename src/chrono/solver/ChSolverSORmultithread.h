@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChSolverSORmultithread : public ChIterativeSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverSORmultithread)
-
   protected:
     ChThreads* solver_threads;
 

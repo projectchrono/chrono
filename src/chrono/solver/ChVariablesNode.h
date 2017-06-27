@@ -25,9 +25,6 @@ namespace chrono {
 
 class ChApi ChVariablesNode : public ChVariables {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariablesNode)
-
   private:
     void* user_data;  ///< user-specified data
     double mass;      ///< mass value

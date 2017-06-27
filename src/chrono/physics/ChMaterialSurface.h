@@ -25,9 +25,6 @@ namespace chrono {
 /// Base class for specifying material properties for contact force generation.
 class ChApi ChMaterialSurface {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMaterialSurface)
-
   public:
     enum ContactMethod {
         NSC,  ///< non-smooth, constraint-based (a.k.a. rigid-body) contact

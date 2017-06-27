@@ -51,8 +51,6 @@ class ChApi ChRecPoint {
 
 class ChApi ChFunction_Recorder : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Recorder)
-
   private:
     std::list<ChRecPoint> m_points;  ///< the list of points
     mutable std::list<ChRecPoint>::const_iterator m_last;

@@ -24,9 +24,6 @@ namespace chrono {
 
 class ChApi ChShaftsCouple : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsCouple)
-
   protected:
     ChShaft* shaft1;  ///< first shaft
     ChShaft* shaft2;  ///< second shaft

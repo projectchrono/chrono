@@ -36,8 +36,6 @@ namespace chrono {
 /// exploit sparsity.
 
 class ChApi ChKblock {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChKblock)
 
   public:
     ChKblock() {}

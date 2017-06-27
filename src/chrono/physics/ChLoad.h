@@ -57,9 +57,6 @@ class ChLoadJacobians {
 
 class ChApi ChLoadBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadBase)
-
 protected:
     ChLoadJacobians* jacobians;
 

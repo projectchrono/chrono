@@ -27,8 +27,6 @@ namespace fea {
 /// Proxy to FEA nodes, to grant them the features
 /// needed for collision detection.
 class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZ)
 
   public:
     ChContactNodeXYZ(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0) {
@@ -149,8 +147,6 @@ class ChApiFea ChContactNodeXYZ : public ChContactable_1vars<3> {
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
 class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZsphere)
 
   public:
     ChContactNodeXYZsphere(ChNodeFEAxyz* anode = 0, ChContactSurface* acontainer = 0);
@@ -169,8 +165,6 @@ class ChApiFea ChContactNodeXYZsphere : public ChContactNodeXYZ {
 /// from ChNodeFEAxyzrot, but this does not happen -hopefully it will be, in future API-, so we need
 /// to implement also this ChContactNodeXYZROT as a proxy to ChNodeFEAxyzrot, sorry for code redundancy.
 class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZROT)
 
   public:
     ChContactNodeXYZROT(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0) {
@@ -291,8 +285,6 @@ class ChApiFea ChContactNodeXYZROT : public ChContactable_1vars<6> {
 /// Proxy to FEA nodes for collisions, with spheres associated to nodes, for point-cloud
 /// type of collisions.
 class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactNodeXYZROTsphere)
 
   public:
     ChContactNodeXYZROTsphere(ChNodeFEAxyzrot* anode = 0, ChContactSurface* acontainer = 0);
@@ -310,8 +302,6 @@ class ChApiFea ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// Might be an efficient option in case of dense tessellations (but misses the FEAnodes-vs-FEAfaces
 /// cases, and misses FEAedge-vs-edges)
 class ChApiFea ChContactSurfaceNodeCloud : public ChContactSurface {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContactSurfaceNodeCloud)
 
   public:
     ChContactSurfaceNodeCloud(ChMesh* parentmesh = 0) : ChContactSurface(parentmesh){};

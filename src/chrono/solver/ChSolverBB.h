@@ -27,9 +27,6 @@ namespace chrono {
 
 class ChApi ChSolverBB : public ChIterativeSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverBB)
-
   protected:
     int n_armijo;
     int max_armijo_backtrace;

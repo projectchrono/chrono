@@ -28,8 +28,6 @@ namespace chrono {
 
 class ChApi ChFunction_Fillet3 : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Fillet)
-
   private:
     double end;
     double y1;

@@ -24,8 +24,6 @@ namespace chrono {
 
 class ChApi ChFunction_Ramp : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Ramp)
-
   private:
     double y0;
     double ang;

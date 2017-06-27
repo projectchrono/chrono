@@ -31,9 +31,6 @@ namespace chrono {
 
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsTorqueConverter)
-
   private:
     ChShaft* shaft1;
     ChShaft* shaft2;

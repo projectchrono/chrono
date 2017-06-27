@@ -31,9 +31,6 @@ class ChSystem;
 
 class ChApi ChShaft : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaft)
-
   private:
     double torque;  ///< The torque acting on shaft (force, if used as linear DOF)
 

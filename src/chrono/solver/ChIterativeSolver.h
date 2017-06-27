@@ -36,9 +36,6 @@ namespace chrono {
 
 class ChApi ChIterativeSolver : public ChSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChIterativeSolver)
-
   protected:
     int max_iterations;  ///< maximum allowed iterations
     int tot_iterations;  ///< total number of iterations performed by the solver

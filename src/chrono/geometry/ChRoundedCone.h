@@ -24,9 +24,6 @@ namespace geometry {
 
 class ChApi ChRoundedCone : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChRoundedCone)
-
   public:
     ChRoundedCone() : center(VNULL), rad(0) {}
     ChRoundedCone(ChVector<>& mc, ChVector<> mrad) : center(mc), rad(mrad) {}

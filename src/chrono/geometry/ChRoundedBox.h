@@ -26,9 +26,6 @@ namespace geometry {
 
 class ChApi ChRoundedBox : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChRoundedBox)
-
   public:
     ChMatrix33<> Rot;  /// rotation of box
     ChVector<> Pos;    /// position of center

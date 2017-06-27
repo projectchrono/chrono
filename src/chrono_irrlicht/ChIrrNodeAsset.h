@@ -30,8 +30,6 @@ namespace irrlicht {
 /// Class for adding Irrlicht visualization to a ChPhysicsItem.
 /// This must be added as an 'asset' to the item (ex., a ChBody).
 class ChApiIrr ChIrrNodeAsset : public ChAsset {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChIrrNodeAsset)
 
   protected:
     ChIrrNode* mnode;

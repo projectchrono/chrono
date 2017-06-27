@@ -32,9 +32,6 @@ namespace chrono {
 
 class ChApi ChConstraintTwo : public ChConstraint {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConstraintTwo)
-
   protected:
     ChVariables* variables_a;  ///< The first  constrained object
     ChVariables* variables_b;  ///< The second constrained object

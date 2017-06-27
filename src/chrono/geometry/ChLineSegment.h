@@ -26,9 +26,6 @@ namespace geometry {
 
 class ChApi ChLineSegment : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineSegment)
-
   public:
     ChVector<> pA;  ///< first segment endpoint
     ChVector<> pB;  ///< second segment endpoint

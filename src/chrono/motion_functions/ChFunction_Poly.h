@@ -24,8 +24,6 @@ namespace chrono {
 
 class ChApi ChFunction_Poly : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Poly)
-
   private:
     static const int POLY_COEFF_ARRAY = 6;
     double coeff[POLY_COEFF_ARRAY];  ///< vector of coefficients

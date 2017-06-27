@@ -37,9 +37,6 @@ class ChShaft;
 
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsPlanetary)
-
   private:
     double r1;  ///< transmission ratios  as in   r1*w1 + r2*w2 + r3*w3 = 0
     double r2;

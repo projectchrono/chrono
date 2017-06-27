@@ -27,9 +27,6 @@ namespace chrono {
 
 class ChApi ChShaftsThermalEngine : public ChShaftsTorqueBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsThermalEngine)
-
   private:
     std::shared_ptr<ChFunction> Tw;  ///< torque as function of angular vel.
     double throttle;

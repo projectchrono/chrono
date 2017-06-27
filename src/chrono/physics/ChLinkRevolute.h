@@ -29,9 +29,6 @@ namespace chrono {
 
 class ChApi ChLinkRevolute : public ChLink {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkRevolute)
-
   public:
     ChLinkRevolute();
     ChLinkRevolute(const ChLinkRevolute& other);

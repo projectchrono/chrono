@@ -34,9 +34,6 @@ namespace chrono {
 
 class ChApi ChSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolver)
-
   public:
       /// Available types of solvers.
       enum class Type {

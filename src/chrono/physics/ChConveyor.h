@@ -28,9 +28,6 @@ namespace chrono {
 
 class ChApi ChConveyor : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConveyor)
-
   private:
     double conveyor_speed;          ///< speed of conveyor, along the X direction of the box.
     ChLinkLockLock* internal_link;  ///< link between this body and conveyor plate

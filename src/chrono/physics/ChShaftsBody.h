@@ -34,9 +34,6 @@ class ChBodyFrame;
 
 class ChApi ChShaftsBody : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsBody)
-
   private:
     double torque_react;                ///< reaction torque
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver

@@ -35,9 +35,6 @@ namespace chrono {
 
 class ChApi ChLinkMate : public ChLink {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMate)
-
   public:
     ChLinkMate() {}
     ChLinkMate(const ChLinkMate& other) : ChLink(other) {}
@@ -61,9 +58,6 @@ CH_CLASS_VERSION(ChLinkMate,0)
 /// between two frames attached to the two bodies.
 
 class ChApi ChLinkMateGeneric : public ChLinkMate {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateGeneric)
 
   protected:
     ChFrame<> frame1;
@@ -234,9 +228,6 @@ CH_CLASS_VERSION(ChLinkMateGeneric,0)
 
 class ChApi ChLinkMatePlane : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMatePlane)
-
   protected:
     bool flipped;
     double separation;
@@ -292,9 +283,6 @@ CH_CLASS_VERSION(ChLinkMatePlane,0)
 
 class ChApi ChLinkMateCoaxial : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateCoaxial)
-
   protected:
     bool flipped;
 
@@ -339,9 +327,6 @@ CH_CLASS_VERSION(ChLinkMateCoaxial,0)
 
 class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateSpherical)
-
   public:
     ChLinkMateSpherical() : ChLinkMateGeneric(true, true, true, false, false, false) {}
     ChLinkMateSpherical(const ChLinkMateSpherical& other);
@@ -369,9 +354,6 @@ CH_CLASS_VERSION(ChLinkMateSpherical,0)
 /// Mate constraining distance of origin of frame B respect to X axis of frame A.
 
 class ChApi ChLinkMateXdistance : public ChLinkMateGeneric {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateXdistance)
 
   protected:
     double distance;
@@ -422,9 +404,6 @@ CH_CLASS_VERSION(ChLinkMateXdistance,0)
 
 class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateParallel)
-
   protected:
     bool flipped;
 
@@ -471,9 +450,6 @@ CH_CLASS_VERSION(ChLinkMateParallel,0)
 
 class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateOrthogonal)
-
   protected:
     ChVector<> reldir1;
     ChVector<> reldir2;
@@ -518,9 +494,6 @@ CH_CLASS_VERSION(ChLinkMateOrthogonal,0)
 /// respect to the other frame.
 
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMateFix)
 
   public:
     ChLinkMateFix() : ChLinkMateGeneric(true, true, true, true, true, true) {}

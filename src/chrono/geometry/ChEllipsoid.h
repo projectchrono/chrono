@@ -24,9 +24,6 @@ namespace geometry {
 
 class ChApi ChEllipsoid : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChEllipsoid)
-
   public:
     ChVector<> center;  ///< ellipsoid center
     ChVector<> rad;     ///< ellipsoid semi-axes

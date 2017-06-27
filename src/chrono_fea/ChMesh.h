@@ -37,8 +37,6 @@ namespace fea {
 /// Class which defines a mesh of finite elements of class ChElementBase,
 /// between nodes of class ChNodeFEAbase.
 class ChApiFea ChMesh : public ChIndexedNodes {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChMesh)
 
   private:
     std::vector<std::shared_ptr<ChNodeFEAbase>> vnodes;     ///<  nodes

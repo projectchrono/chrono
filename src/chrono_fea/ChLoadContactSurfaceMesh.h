@@ -31,8 +31,6 @@ namespace fea {
 /// a more efficient LoadIntLoadResidual_F, however this is left in this way for didactical reasons.
 
 class ChApiFea ChLoadContactSurfaceMesh : public ChLoadBase {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadContactSurfaceMesh)
 
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> cmesh) { contactmesh = cmesh; }

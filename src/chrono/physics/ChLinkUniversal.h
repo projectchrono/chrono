@@ -29,9 +29,6 @@ namespace chrono {
 
 class ChApi ChLinkUniversal : public ChLink {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkUniversal)
-
   public:
     ChLinkUniversal();
     ChLinkUniversal(const ChLinkUniversal& other);

@@ -25,8 +25,6 @@ namespace chrono {
 /// The emitter can move together with the body, then.
 
 class ChApi ChEmitterAsset : public ChAsset {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChEmitterAsset)
 
   protected:
     //

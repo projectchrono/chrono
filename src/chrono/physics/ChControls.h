@@ -27,9 +27,6 @@ namespace chrono {
 
 class ChApi ChControls : public ChObj {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChControls)
-
   public:
     ChControls() {}
     ChControls(const ChControls& other) : ChObj(other) {}

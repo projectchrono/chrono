@@ -24,9 +24,6 @@ namespace chrono {
 
 class ChApi ChLinkScrew : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkScrew)
-
   protected:
     double tau;  ///< transmission coeff.
 

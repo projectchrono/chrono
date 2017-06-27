@@ -24,8 +24,6 @@ namespace chrono {
 /// Class for setting a color (used by ChVisualization)
 
 class ChApi ChColor {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChColor)
 
   public:
     float R;  /// red channel (0,1)

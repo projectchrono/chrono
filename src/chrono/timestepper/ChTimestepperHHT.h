@@ -26,8 +26,6 @@ namespace chrono {
 /// This timestepper allows use of an adaptive time-step, as well as optional use of a modified
 /// Newton scheme for the solution of the resulting nonlinear problem.
 class ChApi ChTimestepperHHT : public ChTimestepperIIorder, public ChImplicitIterativeTimestepper {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChTimestepperHHT)
 
   public:
     enum HHT_Mode {

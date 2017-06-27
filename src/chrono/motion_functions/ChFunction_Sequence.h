@@ -96,7 +96,6 @@ CH_CLASS_VERSION(ChFseqNode, 0)
 /// laws can be created by sequencing many basic ChFunctions.
 
 class ChApi ChFunction_Sequence : public ChFunction {
-    CH_FACTORY_TAG(ChFunction_Sequence)
 
   private:
     std::list<ChFseqNode> functions;  ///< the list of sub functions

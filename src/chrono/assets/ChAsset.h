@@ -32,8 +32,6 @@ class ChPhysicsItem;
 /// User can inherit his classes for custom assets from
 /// this class.
 class ChApi ChAsset {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChAsset)
 
   protected:
     //

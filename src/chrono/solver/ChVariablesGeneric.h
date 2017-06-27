@@ -35,9 +35,6 @@ namespace chrono {
 
 class ChApi ChVariablesGeneric : public ChVariables {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariablesGeneric)
-
   private:
     ChMatrixDynamic<>* Mmass;
     ChMatrixDynamic<>* inv_Mmass;

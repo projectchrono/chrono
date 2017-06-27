@@ -35,8 +35,6 @@ namespace fea {
 /// with the ChBodyFrame.
 
 class ChApiFea ChLinkPointFrame : public ChLinkBase {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkPointFrame)
 
   private:
     ChVector<> m_react;

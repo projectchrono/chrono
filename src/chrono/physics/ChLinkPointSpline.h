@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChLinkPointSpline : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkPointSpline)
-
   protected:
     std::shared_ptr<geometry::ChLine> trajectory_line;  ///< The line for the trajectory.
 

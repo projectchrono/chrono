@@ -122,11 +122,10 @@ class myEmployee {
 // 'class factory' registration of your class if you want to deserialize
 // objects whose exact class is not known in advance:
 
-CH_FACTORY_REGISTER(myEmployee)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployee)  //*****  for advanced serialization
 
 
 // Ok, now let's do something even more difficult: an inherited class.
-// Note the CH_FACTORY_TAG macro. 
 
 class myEmployeeBoss : public myEmployee {
 
@@ -171,9 +170,9 @@ class myEmployeeBoss : public myEmployee {
     }
 };
 
-CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployeeBoss)  //*****  for advanced serialization
 
-// Use the following to mark a class version:
+// Use the following to mark a class version:   //*****  optional, for advanced serialization
 namespace chrono {
 CH_CLASS_VERSION(myEmployeeBoss, 2)
 }
@@ -254,7 +253,7 @@ class myEmployeeCustomConstructor : public myEmployee {
 
 };
 
-CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  needed for advanced serialization
+CH_FACTORY_REGISTER(myEmployeeCustomConstructor)  //*****  for advanced serialization
 
 
                               
@@ -330,8 +329,8 @@ void my_serialization_example(ChArchiveOut& marchive)
         // class abstraction (class factory) mechanism, so that it
         // can be loaded later even if we do not know if it was an object of
         // class 'myEmployee' or specialized class 'myEmployeeBoss'...
-        // In order to use this feature, the classes must use CH_FACTORY_TAG 
-        // and CH_FACTORY_REGISTER macros, and must implement ArchiveIN() and ArchiveOUT().
+        // In order to use this feature, classes must use the CH_FACTORY_REGISTER macros, 
+        // and must implement ArchiveIN() and ArchiveOUT().
         myEmployeeBoss* a_boss = new myEmployeeBoss(64, 22356, false);
         a_boss->slave.age = 24;
         marchive << CHNVP(a_boss);  //  object was referenced by pointer.

@@ -72,9 +72,6 @@ class ChContactContainer;
 
 class ChApi ChSystem : public ChAssembly, public ChIntegrableIIorder {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystem)
-
   public:
     /// Create a physical system.
     ChSystem();

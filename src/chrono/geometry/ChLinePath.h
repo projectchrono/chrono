@@ -27,9 +27,6 @@ namespace geometry {
 
 class ChApi ChLinePath : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinePath)
-
   public:
     std::vector<std::shared_ptr<ChLine> > lines;
     std::vector<double> end_times;

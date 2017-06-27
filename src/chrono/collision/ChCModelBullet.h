@@ -37,8 +37,6 @@ class ChConvexDecomposition;
 ///  library
 
 class ChApi ChModelBullet : public ChCollisionModel {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChModelBullet)
 
   protected:
     // The Bullet collision object containing Bullet geometries

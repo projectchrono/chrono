@@ -27,9 +27,6 @@ namespace chrono {
 
 class ChApi ChAssembly : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChAssembly)
-
   public:
     ChAssembly();
     ChAssembly(const ChAssembly& other);

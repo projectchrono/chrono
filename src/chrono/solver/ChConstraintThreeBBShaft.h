@@ -25,9 +25,6 @@ namespace chrono {
 
 class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChConstraintThreeBBShaft)
-
   protected:
     ChMatrixNM<double, 1, 6> Cq_a;  ///< The [Cq_a] jacobian of the constraint
     ChMatrixNM<double, 1, 6> Cq_b;  ///< The [Cq_b] jacobian of the constraint

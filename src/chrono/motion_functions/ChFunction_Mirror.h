@@ -27,8 +27,6 @@ namespace chrono {
 
 class ChApi ChFunction_Mirror : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Mirror)
-
   private:
     std::shared_ptr<ChFunction> fa;
     double mirror_axis;  ///< symmetry axis position on x

@@ -25,9 +25,6 @@ namespace chrono {
 
 class ChApi ChShaftsClutch : public ChShaftsCouple {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsClutch)
-
   private:
     double maxT;                             ///< clutch max transmissible torque (for forward direction
     double minT;                             ///< clutch min transmissible torque (for backward direction)

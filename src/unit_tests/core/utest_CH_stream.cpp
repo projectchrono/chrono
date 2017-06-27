@@ -43,8 +43,6 @@ using namespace chrono;
 
 class myEmployee {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(myEmployee)  //***** for _advanced_ Chrono serialization
 
   public:
     int age;
@@ -87,7 +85,6 @@ CH_FACTORY_REGISTER(myEmployee)  //***** for _advanced_ Chrono serialization
 // ............ ok, more difficult! an inherited class ............
 
 class myEmployeeBoss : public myEmployee {
-    CH_FACTORY_TAG(myEmployeeBoss)  //***** for _advanced_ Chrono serialization
 
   public:
     bool is_dumb;

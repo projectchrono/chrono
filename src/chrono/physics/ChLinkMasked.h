@@ -33,9 +33,6 @@ class ChSystem;
 
 class ChApi ChLinkMasked : public ChLinkMarkers {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMasked)
-
   protected:
     // The mask of the locked coords, with the status of the
     // scalar constraints. This encapsulated object also

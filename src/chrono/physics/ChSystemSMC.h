@@ -29,8 +29,6 @@ namespace chrono {
 /// Class for a physical system in which contact is modeled using a smooth
 /// (penalty-based) method.
 class ChApi ChSystemSMC : public ChSystem {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemSMC)
 
   public:
     /// Enum for SMC contact type.

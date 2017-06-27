@@ -38,9 +38,6 @@ class ChBody;
 
 class ChApi ChForce : public ChObj {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChForce)
-
   public:
     // Types of force application
     enum ForceType { FORCE, TORQUE };

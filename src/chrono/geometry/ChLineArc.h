@@ -27,9 +27,6 @@ namespace geometry {
 
 class ChApi ChLineArc : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineArc)
-
   public:
     ChCoordsys<> origin;    ///< center position and plane of the arc: xy used for plane, z for axis.
     double radius;          ///< arc radius

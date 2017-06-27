@@ -157,38 +157,5 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     }
 }
 
-/*
-void ChKblockGeneric::StreamOUT(ChStreamOutBinary& mstream)
-{
-        // class version number
-    mstream.VersionWrite(1);
-
-        // serialize parent class too
-    ChKblock::StreamOUT(mstream);
-
-        // stream out all member data
-    // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
-    // important to waste disk space.. they may be recomputed run-time,
-    // and pointers to variables must be rebound in run-time.)
-    // mstream << Cq_a;
-    // mstream << Cq_b;
-}
-
-void ChKblockGeneric::StreamIN(ChStreamInBinary& mstream)
-{
-        // class version number
-    int version = mstream.VersionRead();
-
-        // deserialize parent class too
-    ChKblock::StreamIN(mstream);
-
-        // stream in all member data
-    // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so
-    // important to waste disk space.. they may be recomputed run-time,
-    // and pointers to variables must be rebound in run-time.)
-    // mstream >> Cq_a;
-    // mstream >> Cq_b;
-}
-*/
 
 }  // end namespace chrono

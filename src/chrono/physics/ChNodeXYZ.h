@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChNodeXYZ)
-
   public:
     ChNodeXYZ();
     ChNodeXYZ(const ChVector<>& initial_pos);

@@ -30,9 +30,6 @@ namespace geometry {
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineBezier)
-
   public:
     ChLineBezier() {}
     ChLineBezier(std::shared_ptr<ChBezierCurve> path);

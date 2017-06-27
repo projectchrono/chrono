@@ -44,9 +44,6 @@ class ChSystem;
 /// Further info at the @ref rigid_bodies  manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
-    
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChBody)
 
   protected:
     std::shared_ptr<collision::ChCollisionModel> collision_model;  ///< pointer to the collision model

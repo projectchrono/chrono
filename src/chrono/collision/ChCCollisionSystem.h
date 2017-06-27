@@ -33,8 +33,6 @@ namespace collision {
 /// Base class for generic collision engine.
 /// Most methods are 'pure virtual': they need to be implemented by derived classes.
 class ChApi ChCollisionSystem {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCollisionSystem)
 
   public:
     ChCollisionSystem(unsigned int max_objects = 16000, double scene_size = 500) {

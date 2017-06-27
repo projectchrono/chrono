@@ -28,9 +28,6 @@ namespace chrono {
 
 class ChApi ChLinkBrake : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkBrake)
-
   protected:
     double brake_torque;  ///< applied torque.
     double stick_ratio;  ///< static sticking torque = stick ratio * brake torque (if <1, sticking effect is turned off)

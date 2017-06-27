@@ -27,8 +27,6 @@ namespace chrono {
 /// Class for a physical system in which contact is modeled using a non-smooth
 /// (complementarity-based) method.
 class ChApi ChSystemNSC : public ChSystem {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemNSC)
 
   public:
     /// Create a physical system.

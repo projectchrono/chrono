@@ -28,9 +28,6 @@ namespace fea {
 
 class ChApi ChContinuumMaterial {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumMaterial)
-
   protected:
     double density;
 
@@ -53,9 +50,6 @@ class ChApi ChContinuumMaterial {
 /// This is a base material with isotropic hookean elasticity.
 
 class ChApi ChContinuumElastic : public ChContinuumMaterial {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumElastic)
 
   private:
     double E;                              ///< Young Modulus
@@ -149,9 +143,6 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
 
 class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumElastoplastic)
-
   public:
     ChContinuumElastoplastic(double myoung = 10000000, double mpoisson = 0.4, double mdensity = 1000)
         : ChContinuumElastic(myoung, mpoisson, mdensity) {}
@@ -189,9 +180,6 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
 /// with strain yield limit based on Von Mises yield.
 
 class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumPlasticVonMises)
 
   private:
     double elastic_yeld;
@@ -254,9 +242,6 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
 /// that are useful for simulating soils.
 
 class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
-
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChContinuumDruckerPrager)
 
   private:
     double elastic_yeld;

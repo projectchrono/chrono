@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsTorqueBase)
-
   protected:
     double torque;  ///< store actual value of torque
 

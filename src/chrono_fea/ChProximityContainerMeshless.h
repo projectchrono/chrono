@@ -64,8 +64,6 @@ class ChApiFea ChProximityMeshless {
 /// an object of class ChMatterMeshless.
 
 class ChApiFea ChProximityContainerMeshless : public ChProximityContainer {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChProximityContainerMeshless)
 
   protected:
     std::list<ChProximityMeshless*> proximitylist;

@@ -24,9 +24,6 @@ namespace chrono {
 
 class ChApi ChLinkClearance : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkClearance)
-
   protected:
     double clearance;           ///< distance offset
     double c_friction;          ///< friction coeff.

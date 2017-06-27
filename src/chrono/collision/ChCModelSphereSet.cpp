@@ -201,6 +201,51 @@ void ChModelSphereSet::GetSphereRad(thrust::host_vector<float>& rad) {
     rad = sphRad;
 }
 
+void ChModelSphereSet::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChModelSphereSet>();
+
+    // serialize the parent class data too
+    ChCollisionModel::ArchiveOUT(marchive);
+
+    // serialize all member data:
+    mstream << CHNVP(nSpheres);
+    for (uint i = 0; i < nSpheres; i++) {
+        mstream << CHNVP(sphPosLocal[i]);
+        mstream << CHNVP(sphRad[i]);
+    }
+    mstream << CHNVP(myBBminLocal);
+    mstream << CHNVP(myBBmaxLocal);
+    mstream << CHNVP(colFam);
+    mstream << CHNVP(noCollWith);
+}
+
+void ChModelSphereSet::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChModelSphereSet>();
+
+    // deserialize the parent class data too
+    ChCollisionModel::ArchiveIN(marchive);
+
+    // deserialize all member data:
+    sphPosLocal.clear();
+    sphRad.clear();
+    marchive >> CHNVP(nSpheres);
+    ChVector<float> tmpPos;
+    float tmpRad;
+    for (uint i = 0; i < nSpheres; i++) {
+        mstream >> CHNVP(tmpPos);
+        sphPosLocal.push_back(tmpPos);
+        mstream >> CHNVP(tmpRad);
+        sphRad.push_back(tmpRad);
+    }
+    marchive >> CHNVP(myBBminLocal);
+    marchive >> CHNVP(myBBmaxLocal);
+    marchive >> CHNVP(colFam);
+    marchive >> CHNVP(noCollWith);
+}
+
+/*
 void ChModelSphereSet::StreamIN(ChStreamInBinary& mstream) {
     // class version number
     int version = mstream.VersionRead();
@@ -242,6 +287,7 @@ void ChModelSphereSet::StreamOUT(ChStreamOutBinary& mstream) {
     mstream << colFam;
     mstream << noCollWith;
 }
+*/
 
 }  // END_OF_NAMESPACE____
 }  // END_OF_NAMESPACE____

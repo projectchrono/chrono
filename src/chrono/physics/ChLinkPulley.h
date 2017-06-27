@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChLinkPulley : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkPulley)
-
   protected:
     double tau;       ///< transmission coeff.
     double r1;        ///< radius of pulley in body1

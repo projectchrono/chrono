@@ -24,9 +24,6 @@ namespace chrono {
 /// Must be inherited by children classes.
 
 class ChApi ChIndexedNodes : public ChPhysicsItem {
-    
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChIndexedNodes)
 
   public:
     ChIndexedNodes() {}

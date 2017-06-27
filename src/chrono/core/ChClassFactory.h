@@ -21,20 +21,13 @@
 //  you just have to put the following line in your .cpp code
 //  (for example in myEmployee.cpp, but not in myEmployee.h!):
 //
-//  CH_FACTORY_REGISTER(myEmployee)
+//     CH_FACTORY_REGISTER(my_class)
 //
-//  Also, there is a problem: class names cannot be inferred from
-//  standard C++ stuff like:  typeid(myclass).name() because the result
-//  is compiler-dependent, with different name decorations on different 
-//  platforms. To overcome this issue, it is strongly suggested to put 
-//  the CH_FACTORY_TAG macro in the class declaration, as in:
-//  
-//  class myclass {
-//      CH_FACTORY_TAG(myclass)
-//   public:
-//      ...
-//   };
-//
+//  This allows creating an object from a string with its class name.
+//  Also, this sets a compiler-independent type name, which you can retrieve 
+//  by ChClassFactory::GetClassTagName(); in fact different compilers might
+//  have different name decorations in type_info.name, which cannot be 
+//  used for serialization, for example.
 //
 
 #include <cstdio>
@@ -305,13 +298,6 @@ protected:
 
 
 
-/// MACRO TO MARK CLASSES FOR CLASS FACTORY
-/// Different compilers use different name decorations, so typeid(ptr).name() is 
-/// not guaranteed to be the same across different platforms/compilers. 
-/// ***obsolete***?
-#define CH_FACTORY_TAG(classname) \
-
-
 /// MACRO TO REGISTER A CLASS INTO THE GLOBAL CLASS FACTORY 
 /// - Put this macro into a .cpp, where you prefer, but not into a .h header!
 /// - Use it as 
@@ -340,6 +326,8 @@ namespace class_factory {
 
 
 /// Call this macro to register a custom version for a class "classname". 
+/// - this macro must be used inside the "chrono" namespace! 
+/// - you can put this in .h files
 /// If you do not do this, the default version for all classes is 0.
 /// The m_version parameter should be an integer greater than 0.
 

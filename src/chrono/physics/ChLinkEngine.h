@@ -29,9 +29,6 @@ namespace chrono {
 
 class ChApi ChLinkEngine : public ChLinkLock {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkEngine)
-
   public:
     enum eCh_eng_mode {
         ENG_MODE_ROTATION = 0,

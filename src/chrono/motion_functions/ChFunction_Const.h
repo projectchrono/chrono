@@ -23,8 +23,6 @@ namespace chrono {
 
 class ChApi ChFunction_Const : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Const)
-
   private:
     double C;
 

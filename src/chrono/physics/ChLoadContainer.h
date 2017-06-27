@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChLoadContainer : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadContainer)
-
   private:
     std::vector<std::shared_ptr<ChLoadBase> > loadlist;
 

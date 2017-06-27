@@ -53,8 +53,6 @@ class settings_container;
 
 /// Base class for parallel systems.
 class CH_PARALLEL_API ChSystemParallel : public ChSystem {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallel)
 
   public:
     ChSystemParallel();
@@ -154,8 +152,6 @@ class CH_PARALLEL_API ChSystemParallel : public ChSystem {
 
 /// Parallel systems using non-smooth contact (complementarity-based) method.
 class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelNSC)
 
   public:
     ChSystemParallelNSC();
@@ -192,8 +188,6 @@ class CH_PARALLEL_API ChSystemParallelNSC : public ChSystemParallel {
 
 /// Parallel systems using smooth contact (penalty-based) method.
 class CH_PARALLEL_API ChSystemParallelSMC : public ChSystemParallel {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemParallelSMC)
 
   public:
     ChSystemParallelSMC();

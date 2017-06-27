@@ -727,37 +727,29 @@ void ChMatterMeshless::UpdateParticleCollisionModels() {
 
 //////// FILE I/O
 
-void ChMatterMeshless::StreamOUT(ChStreamOutBinary& mstream) {
-    /*
-    // class version number
-    mstream.VersionWrite(1);
+void ChMatterMeshless::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChMatterMeshless>();
 
-    // serialize parent class too
-    ChIndexedNodes::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChIndexedNodes::ArchiveOUT(marchive);
 
-    // stream out all member data
-    mstream.AbstractWrite(material.get());
-    */
-
-    //***TO DO*** stream nodes
+    // serialize all member data:
+    //***TODO
 }
 
-void ChMatterMeshless::StreamIN(ChStreamInBinary& mstream) {
-    /*
-    // class version number
-    int version = mstream.VersionRead();
+void ChMatterMeshless::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChMatterMeshless>();
 
-    // deserialize parent class too
-    ChIndexedNodes::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChIndexedNodes::ArchiveIN(marchive);
 
-    // stream in all member data
-    ChContinuumElastoplastic* mmat;
-    mstream.AbstractReadCreate(&mmat);
-    material = std::shared_ptr<ChContinuumElastoplastic>(mmat);
-    */
-
-    //***TO DO*** unstream nodes
+    // deserialize all member data:
+    //***TODO
 }
+
+
 
 }  // end namespace fea
 }  // end namespace chrono

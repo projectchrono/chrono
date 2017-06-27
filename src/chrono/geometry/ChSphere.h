@@ -24,9 +24,6 @@ namespace geometry {
 
 class ChApi ChSphere : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSphere)
-
   public:
     ChVector<> center;  ///< sphere center
     double rad;         ///< sphere radius

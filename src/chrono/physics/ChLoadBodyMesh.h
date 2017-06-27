@@ -32,9 +32,6 @@ namespace chrono {
 
 class  ChLoadBodyMesh : public ChLoadBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLoadBodyMesh)
-
 
   public:
     ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh) {

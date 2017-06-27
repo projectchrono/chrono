@@ -31,9 +31,6 @@ namespace chrono {
 
 class ChApi ChLinkBase : public ChPhysicsItem {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkBase)
-
   protected:
     bool disabled;  ///< all constraints of link disabled because of user needs
     bool valid;     ///< link data is valid

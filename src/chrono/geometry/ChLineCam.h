@@ -45,9 +45,6 @@ CH_ENUM_MAPPER_END(eChCamType);
 
 class ChApi ChLineCam : public ChLine {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLineCam)
-
   private:
     eChCamType type;                  ///< type of cam
     std::shared_ptr<ChFunction> law;  ///< follower motion law

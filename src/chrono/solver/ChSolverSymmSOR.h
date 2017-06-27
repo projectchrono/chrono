@@ -26,9 +26,6 @@ namespace chrono {
 
 class ChApi ChSolverSymmSOR : public ChIterativeSolver {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSolverSymmSOR)
-
   public:
     ChSolverSymmSOR(int mmax_iters = 50,       ///< max.number of iterations
                     bool mwarm_start = false,  ///< uses warm start?

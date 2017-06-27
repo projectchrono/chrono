@@ -26,9 +26,6 @@ class ChShaft;
 
 class ChApi ChVariablesShaft : public ChVariables {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariablesShaft)
-
   private:
     ChShaft* m_shaft;      ///< associated shaft element
     double m_inertia;      ///< shaft inertia

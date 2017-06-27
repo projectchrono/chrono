@@ -29,9 +29,6 @@ namespace chrono {
 
 class ChApi ChShaftsGear : public ChShaftsCouple {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsGear)
-
   private:
     double ratio;                       ///< transmission ratio t, as in w2=t*w1, or t=w2/w1
     double torque_react;                ///< reaction torque

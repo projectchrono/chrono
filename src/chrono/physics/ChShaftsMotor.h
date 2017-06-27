@@ -33,9 +33,6 @@ namespace chrono {
 
 class ChApi ChShaftsMotor : public ChShaftsCouple {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsMotor)
-
   private:
     double motor_torque;
 

@@ -31,9 +31,6 @@ namespace chrono {
 
 class ChApi ChLinkDistance : public ChLink {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkDistance)
-
   protected:
     double distance;           ////< the imposed distance
     ChVector<> pos1;           ////< first endpoint, in body rel.coords

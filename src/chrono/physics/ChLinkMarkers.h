@@ -30,9 +30,6 @@ namespace chrono {
 
 class ChApi ChLinkMarkers : public ChLink {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkMarkers)
-
   protected:
     ChMarker* marker1;  ///< slave coordsys
     ChMarker* marker2;  ///< master coordsys, =0 if liked to ground

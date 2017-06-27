@@ -30,8 +30,6 @@ namespace chrono {
 /// This is only the basic interface with the features that are in common.
 
 class ChApi ChProximityContainer : public ChPhysicsItem {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChProximityContainer)
 
   public:
     ChProximityContainer() : add_proximity_callback(NULL), report_proximity_callback(NULL) {}

@@ -24,8 +24,6 @@ namespace chrono {
 
 class ChApi ChFunction_Sine : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Sine)
-
   private:
     double amp;
     double phase;

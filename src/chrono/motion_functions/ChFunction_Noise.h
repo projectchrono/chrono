@@ -24,8 +24,6 @@ namespace chrono {
 
 class ChApi ChFunction_Noise : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Noise)
-
   private:
     double amp;
     double freq;

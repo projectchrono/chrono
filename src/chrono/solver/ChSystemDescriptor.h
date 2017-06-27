@@ -69,8 +69,6 @@ namespace chrono {
 /// and variables structures with other, more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChSystemDescriptor)
 
   protected:
     //

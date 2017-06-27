@@ -28,8 +28,6 @@ namespace fea {
 /// Concrete classes will be inherited from this class.
 
 class ChApiFea ChLinkInterface : public ChLinkBase {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkInterface)
 
   private:
   public:

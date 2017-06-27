@@ -32,9 +32,6 @@ namespace chrono {
 
 class ChApi ChShaftsTorque : public ChShaftsTorqueBase {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChShaftsTorque)
-
   public:
     ChShaftsTorque() {}
     ChShaftsTorque(const ChShaftsTorque& other);

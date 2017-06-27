@@ -23,9 +23,6 @@ namespace geometry {
 /// A conical geometric object for collisions and visualization.
 
 class ChApi ChCone : public ChGeometry {
-    
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChCone)
 
   public:
     ChVector<> center;  ///< base center

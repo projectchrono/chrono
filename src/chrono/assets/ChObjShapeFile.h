@@ -25,8 +25,6 @@ namespace chrono {
 /// is simply a reference to the resource on the disk.
 
 class ChApi ChObjShapeFile : public ChVisualization {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChObjShapeFile)
 
   protected:
     //

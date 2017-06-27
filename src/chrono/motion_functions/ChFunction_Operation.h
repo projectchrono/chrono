@@ -54,8 +54,6 @@ CH_ENUM_MAPPER_END(eChOperation);
 
 class ChApi ChFunction_Operation : public ChFunction {
 
-    CH_FACTORY_TAG(ChFunction_Operation)
-
   private:
     std::shared_ptr<ChFunction> fa;
     std::shared_ptr<ChFunction> fb;

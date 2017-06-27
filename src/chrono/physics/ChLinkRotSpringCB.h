@@ -26,8 +26,6 @@ namespace chrono {
 /// they are connected through a revolute, cylindrical, or screw joint). The
 /// relative angle and relative angular speed of this link are about the common axis.
 class ChApi ChLinkRotSpringCB : public ChLinkMarkers {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLinkRotSpringCB)
 
   public:
     ChLinkRotSpringCB();

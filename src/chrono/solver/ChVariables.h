@@ -47,8 +47,6 @@ namespace chrono {
 /// does \e not include any mass submatrix by default
 
 class ChApi ChVariables {
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChVariables)
 
   private:
     ChMatrix<>* qb;  ///< variables (accelerations, speeds, etc. depending on the problem)

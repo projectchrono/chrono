@@ -27,9 +27,6 @@ namespace geometry {
 
 class ChApi ChLine : public ChGeometry {
 
-    // Tag needed for class factory in archive (de)serialization:
-    CH_FACTORY_TAG(ChLine)
-
   protected:
     bool closed;
     int complexityU;
