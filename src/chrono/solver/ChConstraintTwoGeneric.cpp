@@ -245,14 +245,14 @@ void ChConstraintTwoGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
         storage.PasteTranspMatrix(*Cq_b, variables_b->GetOffset(), inscol);
 }
 
-void ChConstraintTwoGeneric::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChConstraintTwoGeneric::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConstraintTwoGeneric>();
 
-    // serialize parent class too
-    ChConstraintTwo::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChConstraintTwo::ArchiveOUT(marchive);
 
-    // stream out all member data
+    // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
     // important to waste disk space.. they may be recomputed run-time,
     // and pointers to variables must be rebound in run-time.)
@@ -260,19 +260,20 @@ void ChConstraintTwoGeneric::StreamOUT(ChStreamOutBinary& mstream) {
     // mstream << Cq_b;
 }
 
-void ChConstraintTwoGeneric::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChConstraintTwoGeneric::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConstraintTwoGeneric>();
 
-    // deserialize parent class too
-    ChConstraintTwo::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChConstraintTwo::ArchiveIN(marchive);
 
-    // stream in all member data
-    // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so
+    // deserialize all member data:
+    // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
     // important to waste disk space.. they may be recomputed run-time,
     // and pointers to variables must be rebound in run-time.)
-    // mstream >> Cq_a;
-    // mstream >> Cq_b;
+    // mstream << Cq_a;
+    // mstream << Cq_b;
 }
+
 
 }  // end namespace chrono

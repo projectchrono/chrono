@@ -72,33 +72,46 @@ double ChConstraint::Violation(double mc_i) {
     return mc_i;
 }
 
-void ChConstraint::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
 
-    // stream useful member data
-    mstream << cfm_i;
-    mstream << valid;
-    mstream << disabled;
-    mstream << redundant;
-    mstream << broken;
-    mstream << (int)mode;
+// Trick to avoid putting the following mapper macro inside the class definition in .h file:
+// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
+//class my_enum_mappers : public ChConstraint {
+//  public:
+    CH_ENUM_MAPPER_BEGIN(eChConstraintMode);
+    CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_FREE);
+    CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_FRIC);
+    CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_LOCK);
+    CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_UNILATERAL);
+    CH_ENUM_MAPPER_END(eChConstraintMode);
+//};
+
+void ChConstraint::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConstraint>();
+
+    // serialize all member data:
+    marchive << CHNVP(cfm_i);
+    marchive << CHNVP(valid);
+    marchive << CHNVP(disabled);
+    marchive << CHNVP(redundant);
+    marchive << CHNVP(broken);
+    eChConstraintMode_mapper typemapper;
+    marchive << CHNVP(typemapper(this->mode), "mode");
 }
 
-void ChConstraint::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChConstraint::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConstraint>();
 
-    // stream in member data
-    int mint;
-    mstream >> cfm_i;
-    mstream >> valid;
-    mstream >> disabled;
-    mstream >> redundant;
-    mstream >> broken;
-    mstream >> mint;
-    mode = (eChConstraintMode)mint;
-    this->UpdateActiveFlag();
+    // stream in all member data:
+    marchive >> CHNVP(cfm_i);
+    marchive >> CHNVP(valid);
+    marchive >> CHNVP(disabled);
+    marchive >> CHNVP(redundant);
+    marchive >> CHNVP(broken);
+    eChConstraintMode_mapper typemapper;
+    marchive >> CHNVP(typemapper(this->mode), "mode");
 }
+
 
 }  // end namespace chrono

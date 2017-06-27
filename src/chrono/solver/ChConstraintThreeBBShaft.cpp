@@ -188,14 +188,14 @@ void ChConstraintThreeBBShaft::Build_CqT(ChSparseMatrix& storage, int inscol) {
         storage.PasteTranspMatrix(Cq_c, variables_c->GetOffset(), inscol);
 }
 
-void ChConstraintThreeBBShaft::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChConstraintThreeBBShaft::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConstraintThreeBBShaft>();
 
-    // serialize parent class too
-    ChConstraintThree::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChConstraintThree::ArchiveOUT(marchive);
 
-    // stream out all member data
+    // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
     // important to waste disk space.. they may be recomputed run-time,
     // and pointers to variables must be rebound in run-time.)
@@ -203,19 +203,21 @@ void ChConstraintThreeBBShaft::StreamOUT(ChStreamOutBinary& mstream) {
     // mstream << Cq_b;
 }
 
-void ChConstraintThreeBBShaft::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChConstraintThreeBBShaft::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConstraintThreeBBShaft>();
 
-    // deserialize parent class too
-    ChConstraintThree::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChConstraintThree::ArchiveIN(marchive);
 
-    // stream in all member data
-    // NOTHING INTERESTING TO DESERIALIZE (the Cq jacobians are not so
+    // deserialize all member data:
+    // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
     // important to waste disk space.. they may be recomputed run-time,
     // and pointers to variables must be rebound in run-time.)
-    // mstream >> Cq_a;
-    // mstream >> Cq_b;
+    // mstream << Cq_a;
+    // mstream << Cq_b;
 }
+
+
 
 }  // end namespace chrono

@@ -39,26 +39,27 @@ ChConstraintThree& ChConstraintThree::operator=(const ChConstraintThree& other) 
     return *this;
 }
 
-void ChConstraintThree::StreamOUT(ChStreamOutBinary& mstream) {
-    // class version number
-    mstream.VersionWrite(1);
+void ChConstraintThree::ArchiveOUT(ChArchiveOut& marchive) {
+    // version number
+    marchive.VersionWrite<ChConstraintThree>();
 
-    // serialize parent class too
-    ChConstraint::StreamOUT(mstream);
+    // serialize the parent class data too
+    ChConstraint::ArchiveOUT(marchive);
 
-    // stream out all member data
+    // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (pointers to variables must be rebound in run-time.)
 }
 
-void ChConstraintThree::StreamIN(ChStreamInBinary& mstream) {
-    // class version number
-    int version = mstream.VersionRead();
+void ChConstraintThree::ArchiveIN(ChArchiveIn& marchive) {
+    // version number
+    int version = marchive.VersionRead<ChConstraintThree>();
 
-    // deserialize parent class too
-    ChConstraint::StreamIN(mstream);
+    // deserialize the parent class data too
+    ChConstraint::ArchiveIN(marchive);
 
-    // stream in all member data
-    // NOTHING INTERESTING TO DESERIALIZE (pointers to variables must be rebound in run-time.)
+    // stream in all member data:
+    // NOTHING INTERESTING TO SERIALIZE (pointers to variables must be rebound in run-time.)
 }
+
 
 }  // end namespace chrono
